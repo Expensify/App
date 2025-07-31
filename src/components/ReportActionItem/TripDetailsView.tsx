@@ -231,7 +231,7 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
 
     return (
         <View style={[styles.flex1, styles.ph5]}>
-            <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.pv3]}>
+            <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.pt3, styles.pb5]}>
                 <View style={[styles.flex1, styles.justifyContentCenter]}>
                     <Text
                         style={[styles.textLabelSupporting]}
@@ -241,16 +241,16 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
                     </Text>
                 </View>
             </View>
-            <>
+            <View style={[styles.gap5]}>
                 {reservationsData.map(({reservations, pnrID, currency, totalFareAmount}) => (
                     <Section
                         key={pnrID}
                         title={getTripTitle(reservations)}
                         subtitle={getTripDescription(totalFareAmount, currency, reservations)}
-                        containerStyles={[styles.ph0, styles.mh0, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}
+                        containerStyles={[styles.ph0, styles.mh0, styles.mb0, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}
                         titleStyles={[styles.textStrong, styles.textNormal, styles.ph5]}
                         subtitleStyles={[styles.ph5, styles.pb1, styles.mt1]}
-                        subtitleTextStyles={[styles.textLabelSupporting]}
+                        subtitleTextStyles={[styles.textLabelSupporting, styles.textLineHeightNormal]}
                         subtitleMuted
                     >
                         {reservations.map(({reservation, transactionID, sequenceIndex}) => {
@@ -269,11 +269,11 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
                         })}
                     </Section>
                 ))}
-                <SpacerView
-                    shouldShow={shouldShowHorizontalRule}
-                    style={[shouldShowHorizontalRule && styles.reportHorizontalRule]}
-                />
-            </>
+            </View>
+            <SpacerView
+                shouldShow={shouldShowHorizontalRule}
+                style={[shouldShowHorizontalRule && styles.reportHorizontalRule]}
+            />
         </View>
     );
 }
