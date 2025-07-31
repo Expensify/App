@@ -2,6 +2,7 @@ import type {TextStyle, ViewStyle} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import DotLottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MenuItemWithLink} from '@components/MenuItemList';
@@ -16,6 +17,7 @@ import type {
     ListItem,
     ReportActionListItemType,
     SearchListItem,
+    SortableColumnName,
     TaskListItemType,
     TransactionCardGroupListItemType,
     TransactionGroupListItemType,
@@ -53,7 +55,6 @@ import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {isDevelopment} from './Environment/Environment';
 import interceptAnonymousUser from './interceptAnonymousUser';
-import localeCompare from './LocaleCompare';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
@@ -89,6 +90,7 @@ import {
     isInvoiceReport,
     isMoneyRequestReport,
     isOpenExpenseReport,
+    isOpenReport,
     isSettled,
 } from './ReportUtils';
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getTodoSearchQuery} from './SearchQueryUtils';
@@ -96,12 +98,16 @@ import StringUtils from './StringUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
     allHavePendingRTERViolation,
+    getCategory,
+    getDescription,
+    getTag,
     getTaxAmount,
     getAmount as getTransactionAmount,
     getCreated as getTransactionCreatedDate,
     getMerchant as getTransactionMerchant,
     hasAnyTransactionWithoutRTERViolation,
     isPendingCardOrScanningTransaction,
+    isScanning,
     isUnreportedAndHasInvalidDistanceRateTransaction,
     isViolationDismissed,
 } from './TransactionUtils';
@@ -740,6 +746,9 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
     const shouldShowCategory = metadata?.columnsToShow?.shouldShowCategoryColumn;
     const shouldShowTag = metadata?.columnsToShow?.shouldShowTagColumn;
     const shouldShowTax = metadata?.columnsToShow?.shouldShowTaxColumn;
+    const shouldShowTo = metadata?.columnsToShow?.shouldShowToColumn;
+    const shouldShowFrom = metadata?.columnsToShow?.shouldShowFromColumn;
+    const shouldShowDescription = metadata?.columnsToShow?.shouldShowDescriptionColumn;
 
     // Pre-filter transaction keys to avoid repeated checks
     const transactionKeys = Object.keys(data).filter(isTransactionEntry);
@@ -777,6 +786,9 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             shouldShowCategory,
             shouldShowTag,
             shouldShowTax,
+            shouldShowTo,
+            shouldShowFrom,
+            shouldShowDescription,
             keyForList: transactionItem.transactionID,
             shouldShowYear: doesDataContainAPastYearTransaction,
             isAmountColumnWide: shouldShowAmountInWideColumn,
@@ -1248,6 +1260,9 @@ function getReportSections(
                 formattedMerchant,
                 date,
                 shouldShowMerchant,
+                shouldShowDescription: metadata?.columnsToShow.shouldShowDescriptionColumn,
+                shouldShowFrom: metadata?.columnsToShow.shouldShowFromColumn,
+                shouldShowTo: metadata?.columnsToShow.shouldShowToColumn,
                 shouldShowCategory: metadata?.columnsToShow?.shouldShowCategoryColumn,
                 shouldShowTag: metadata?.columnsToShow?.shouldShowTagColumn,
                 shouldShowTax: metadata?.columnsToShow?.shouldShowTaxColumn,
@@ -1345,15 +1360,16 @@ function getSortedSections(
     type: SearchDataTypes,
     status: SearchStatus,
     data: ListItemDataType<typeof type, typeof status>,
+    localeCompare: LocaleContextProps['localeCompare'],
     sortBy?: SearchColumnType,
     sortOrder?: SortOrder,
     groupBy?: SearchGroupBy,
 ) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return getSortedReportActionData(data as ReportActionListItemType[]);
+        return getSortedReportActionData(data as ReportActionListItemType[], localeCompare);
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return getSortedTaskData(data as TaskListItemType[], sortBy, sortOrder);
+        return getSortedTaskData(data as TaskListItemType[], localeCompare, sortBy, sortOrder);
     }
 
     if (groupBy) {
@@ -1361,7 +1377,7 @@ function getSortedSections(
         // eslint-disable-next-line default-case
         switch (groupBy) {
             case CONST.SEARCH.GROUP_BY.REPORTS:
-                return getSortedReportData(data as TransactionReportGroupListItemType[]);
+                return getSortedReportData(data as TransactionReportGroupListItemType[], localeCompare);
             case CONST.SEARCH.GROUP_BY.MEMBERS:
                 return getSortedMemberData(data as TransactionMemberGroupListItemType[]);
             case CONST.SEARCH.GROUP_BY.CARDS:
@@ -1369,14 +1385,102 @@ function getSortedSections(
         }
     }
 
-    return getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder);
+    return getSortedTransactionData(data as TransactionListItemType[], localeCompare, sortBy, sortOrder);
+}
+
+/**
+ * Determines what columns to show based on available data
+ * @param isExpenseReportView: true when we are inside an expense report view, false if we're in the Reports page.
+ */
+function getColumnsToShow(data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[], isExpenseReportView = false): Record<SortableColumnName, boolean> {
+    const columns: Record<string, boolean> = isExpenseReportView
+        ? {
+              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT]: true,
+              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE]: true,
+              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE]: true,
+              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]: false,
+              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION]: false,
+              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY]: false,
+              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG]: false,
+              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: true,
+              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT]: true,
+          }
+        : {
+              [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.TYPE]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TO]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.IN]: true,
+          };
+
+    const updateColumns = (transaction: OnyxTypes.Transaction | SearchTransaction) => {
+        const merchant = transaction.modifiedMerchant ? transaction.modifiedMerchant : (transaction.merchant ?? '');
+        if ((merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) || isScanning(transaction)) {
+            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT] = true;
+        }
+
+        if (getDescription(transaction) !== '') {
+            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION] = true;
+        }
+
+        const category = getCategory(transaction);
+        const categoryEmptyValues = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
+        if (category !== '' && !categoryEmptyValues.includes(category)) {
+            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] = true;
+        }
+
+        const tag = getTag(transaction);
+        if (tag !== '' && tag !== CONST.SEARCH.TAG_EMPTY_VALUE) {
+            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG] = true;
+        }
+
+        if (isExpenseReportView) {
+            return;
+        }
+
+        // Handle From&To columns that are only shown in the Reports page
+        // if From or To differ from current user in any transaction, show the columns
+        const accountID = (transaction as SearchTransaction).accountID;
+        if (accountID !== currentAccountID) {
+            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM] = true;
+        }
+
+        const managerID = (transaction as SearchTransaction).managerID;
+        if (managerID && managerID !== currentAccountID && !columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO]) {
+            const report = (data as OnyxTypes.SearchResults['data'])[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO] = !!report && !isOpenReport(report);
+        }
+    };
+
+    if (Array.isArray(data)) {
+        data.forEach(updateColumns);
+    } else {
+        Object.keys(data).forEach((key) => {
+            if (!isTransactionEntry(key)) {
+                return;
+            }
+            updateColumns(data[key]);
+        });
+    }
+
+    return columns;
 }
 
 /**
  * Compares two values based on a specified sorting order and column.
  * Handles both string and numeric comparisons, with special handling for absolute values when sorting by total amount.
  */
-function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: string): number {
+function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: string, localeCompare: LocaleContextProps['localeCompare']): number {
     const isAsc = sortOrder === CONST.SEARCH.SORT_ORDER.ASC;
 
     if (a === undefined || b === undefined) {
@@ -1400,7 +1504,7 @@ function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: str
  * @private
  * Sorts transaction sections based on a specified column and sort order.
  */
-function getSortedTransactionData(data: TransactionListItemType[], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+function getSortedTransactionData(data: TransactionListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
     if (!sortBy || !sortOrder) {
         return data;
     }
@@ -1415,11 +1519,11 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
         const aValue = sortingProperty === 'comment' ? a.comment?.comment : a[sortingProperty as keyof TransactionListItemType];
         const bValue = sortingProperty === 'comment' ? b.comment?.comment : b[sortingProperty as keyof TransactionListItemType];
 
-        return compareValues(aValue, bValue, sortOrder, sortingProperty);
+        return compareValues(aValue, bValue, sortOrder, sortingProperty, localeCompare);
     });
 }
 
-function getSortedTaskData(data: TaskListItemType[], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+function getSortedTaskData(data: TaskListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
     if (!sortBy || !sortOrder) {
         return data;
     }
@@ -1434,7 +1538,7 @@ function getSortedTaskData(data: TaskListItemType[], sortBy?: SearchColumnType, 
         const aValue = a[sortingProperty as keyof TaskListItemType];
         const bValue = b[sortingProperty as keyof TaskListItemType];
 
-        return compareValues(aValue, bValue, sortOrder, sortingProperty);
+        return compareValues(aValue, bValue, sortOrder, sortingProperty, localeCompare);
     });
 }
 
@@ -1442,9 +1546,9 @@ function getSortedTaskData(data: TaskListItemType[], sortBy?: SearchColumnType, 
  * @private
  * Sorts report sections based on a specified column and sort order.
  */
-function getSortedReportData(data: TransactionReportGroupListItemType[]) {
+function getSortedReportData(data: TransactionReportGroupListItemType[], localeCompare: LocaleContextProps['localeCompare']) {
     for (const report of data) {
-        report.transactions = getSortedTransactionData(report.transactions, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC);
+        report.transactions = getSortedTransactionData(report.transactions, localeCompare, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC);
     }
     return data.sort((a, b) => {
         const aNewestTransaction = a.transactions?.at(0)?.modifiedCreated ? a.transactions?.at(0)?.modifiedCreated : a.transactions?.at(0)?.created;
@@ -1478,7 +1582,7 @@ function getSortedCardData(data: TransactionCardGroupListItemType[]) {
  * @private
  * Sorts report actions sections based on a specified column and sort order.
  */
-function getSortedReportActionData(data: ReportActionListItemType[]) {
+function getSortedReportActionData(data: ReportActionListItemType[], localeCompare: LocaleContextProps['localeCompare']) {
     return data.sort((a, b) => {
         const aValue = a?.created;
         const bValue = b?.created;
@@ -1820,6 +1924,7 @@ export {
     isReportActionEntry,
     isTaskListItemType,
     getAction,
+    getColumnsToShow,
     createTypeMenuSections,
     createBaseSavedSearchMenuItem,
     shouldShowEmptyState,
