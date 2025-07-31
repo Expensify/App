@@ -702,7 +702,8 @@ describe('actions/PolicyTax', () => {
             const taxID = 'id_TAX_RATE_1';
 
             mockAxios?.pause?.();
-            deletePolicyTaxes(fakePolicy, [taxID]);
+            deletePolicyTaxes(fakePolicy, [taxID], TestHelper.localeCompare);
+
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -756,7 +757,8 @@ describe('actions/PolicyTax', () => {
                 },
             };
             mockAxios?.pause?.();
-            deletePolicyTaxes(fakePolicyWithForeignTaxDefault, [taxID]);
+            deletePolicyTaxes(fakePolicyWithForeignTaxDefault, [taxID], TestHelper.localeCompare);
+
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -807,7 +809,8 @@ describe('actions/PolicyTax', () => {
                 jsonCode: 500,
                 message: 'Internal Server Error',
             }));
-            deletePolicyTaxes(fakePolicy, [taxID]);
+            deletePolicyTaxes(fakePolicy, [taxID], TestHelper.localeCompare);
+
             return waitForBatchedUpdates()
                 .then(
                     () =>
