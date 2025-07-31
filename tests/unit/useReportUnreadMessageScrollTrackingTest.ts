@@ -29,6 +29,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     currentVerticalScrollingOffsetRef: offsetRef,
                     readActionSkippedRef: readActionRefFalse,
                     unreadMarkerReportActionIndex: -1,
+                    isInverted: true,
                     onTrackScrolling: onTrackScrollingMockFn,
                 }),
             );
@@ -56,6 +57,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     reportID,
                     currentVerticalScrollingOffsetRef: offsetRef,
                     readActionSkippedRef: readActionRefFalse,
+                    isInverted: true,
                     unreadMarkerReportActionIndex: -1,
                     onTrackScrolling: onTrackScrollingMockFn,
                 }),
@@ -81,6 +83,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     reportID,
                     currentVerticalScrollingOffsetRef: offsetRef,
                     readActionSkippedRef: readActionRefFalse,
+                    isInverted: true,
                     unreadMarkerReportActionIndex: 1,
                     onTrackScrolling: onTrackScrollingMockFn,
                 }),
@@ -112,6 +115,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     currentVerticalScrollingOffsetRef: offsetRef,
                     readActionSkippedRef: readActionRefFalse,
                     unreadMarkerReportActionIndex: -1,
+                    isInverted: true,
                     onTrackScrolling: onTrackScrollingMockFn,
                 }),
             );
@@ -136,6 +140,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     currentVerticalScrollingOffsetRef: offsetRef,
                     readActionSkippedRef: readActionRefFalse,
                     unreadMarkerReportActionIndex: 1,
+                    isInverted: true,
                     onTrackScrolling: onTrackScrollingMockFn,
                 }),
             );
@@ -164,6 +169,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     currentVerticalScrollingOffsetRef: offsetRef,
                     readActionSkippedRef: {current: true},
                     unreadMarkerReportActionIndex: 1,
+                    isInverted: true,
                     onTrackScrolling: onTrackScrollingMockFn,
                 }),
             );
