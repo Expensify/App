@@ -286,6 +286,7 @@ function BaseTextInput(
     // Height fix is needed only for Text single line inputs
     const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
 
+    /** Focuses the text input when the component mounts, with a delay to allow navigation/modal animations to complete. */
     useFocusEffect(
         useCallback(() => {
             if (!shouldDelayFocus || !inputProps.autoFocus) {
