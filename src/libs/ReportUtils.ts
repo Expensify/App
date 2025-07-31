@@ -1407,7 +1407,10 @@ function isCanceledTaskReport(report: OnyxInputOrEntry<Report>, parentReportActi
  */
 function isOpenTaskReport(report: OnyxInputOrEntry<Report>, parentReportAction: OnyxInputOrEntry<ReportAction> = null): boolean {
     return (
-        isTaskReport(report) && !isCanceledTaskReport(report, parentReportAction) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN
+        isTaskReport(report) &&
+        !isCanceledTaskReport(report, parentReportAction) &&
+        (report?.stateNum === CONST.REPORT.STATE_NUM.OPEN || parentReportAction?.childStateNum === CONST.REPORT.STATE_NUM.OPEN) &&
+        (report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN || parentReportAction?.childStatusNum === CONST.REPORT.STATUS_NUM.OPEN)
     );
 }
 
@@ -1421,8 +1424,8 @@ function isCompletedTaskReport(report: OnyxEntry<Report>): boolean {
 /**
  * Checks if the current user is the manager of the supplied report
  */
-function isReportManager(report: OnyxEntry<Report>): boolean {
-    return !!(report && report.managerID === currentUserAccountID);
+function isReportManager(report: OnyxEntry<Report>, reportAction?: ReportAction): boolean {
+    return !!(report && (report.managerID === currentUserAccountID || reportAction?.childManagerAccountID === currentUserAccountID));
 }
 
 /**
