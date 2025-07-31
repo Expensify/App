@@ -87,17 +87,13 @@ function ReportActionItemParentAction({
         canBeMissing: true,
         selector: (allPairs) => {
             const ancestorIDsToSelect = new Set(allAncestors.map(({report: reportAncestor}) => reportAncestor.reportID));
-
-            return Object.entries(allPairs ?? {}).reduce(
-                (acc, [key, value]) => {
-                    const id = key.split('_').at(1);
-                    if (ancestorIDsToSelect.has(id ?? '')) {
-                        acc[key] = value;
-                    }
-                    return acc;
-                },
-                {} as Record<string, unknown>,
-            );
+            return Object.entries(allPairs ?? {}).reduce((acc, [key, value]) => {
+                const id = key.split('_').at(1);
+                if (ancestorIDsToSelect.has(id ?? '') && acc) {
+                    acc[key] = value;
+                }
+                return acc;
+            }, {} as OnyxCollection<OnyxTypes.ReportNameValuePairs>);
         },
     });
 
