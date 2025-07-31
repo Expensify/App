@@ -3,7 +3,6 @@ import {isPast} from 'date-fns';
 import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
@@ -26,7 +25,9 @@ import Tooltip from '@components/Tooltip';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
@@ -55,10 +56,9 @@ import {
     isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils,
     isCurrentUserSubmitter,
     isDeprecatedGroupDM,
-    isExpenseReport,
     isExpenseRequest,
     isGroupChat as isGroupChatReportUtils,
-    isIOUReport,
+    isInvoiceRoom,
     isOpenTaskReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isSelfDM as isSelfDMReportUtils,
@@ -120,12 +120,13 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: true});
+    const isReportArchived = useReportIsArchived(report?.reportID);
 
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const isSelfDM = isSelfDMReportUtils(report);
-    const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report);
+    const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report, isReportArchived);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
     const shouldAddEllipsis = allParticipants?.length > CONST.DISPLAY_PARTICIPANTS_LIMIT;
@@ -139,11 +140,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isChatRoom = isChatRoomReportUtils(report);
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     const isTaskReport = isTaskReportReportUtils(report);
-    const [parentOfParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`, {canBeMissing: true});
-    const reportHeaderData =
-        ((!isTaskReport && !isChatThread) || (parentOfParentReport && (isIOUReport(parentOfParentReport) || isExpenseReport(parentOfParentReport)))) && report?.parentReportID
-            ? parentReport
-            : report;
+    const reportHeaderData = !isTaskReport && !isChatThread && report?.parentReportID ? parentReport : report;
     // Use sorted display names for the title for group chats on native small screen widths
     const title = getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy);
     const subtitle = getChatRoomSubtitle(reportHeaderData);
@@ -151,13 +148,16 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const reportDescription = Parser.htmlToText(getReportDescription(report));
     const policyName = getPolicyName({report, returnEmptyIfNotFound: true});
     const policyDescription = getPolicyDescriptionText(policy);
-    const isPersonalExpenseChat = isPolicyExpenseChat && isCurrentUserSubmitter(report?.reportID);
+    const isPersonalExpenseChat = isPolicyExpenseChat && isCurrentUserSubmitter(report);
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     const subscriptionPlan = useSubscriptionPlan();
 
     const shouldShowSubtitle = () => {
         if (!subtitle) {
             return false;
+        }
+        if (isInvoiceRoom(reportHeaderData)) {
+            return true;
         }
         if (isChatRoom) {
             return !reportDescription;
@@ -179,7 +179,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
     const join = callFunctionIfActionIsAllowed(() => joinRoom(report));
 
-    const canJoin = canJoinChat(report, parentReportAction, policy, reportNameValuePairs);
+    const canJoin = canJoinChat(report, parentReportAction, policy, isReportArchived);
 
     const joinButton = (
         <Button
@@ -210,7 +210,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         [firstDayFreeTrial, lastDayFreeTrial, hasTeam2025Pricing, reportNameValuePairs, subscriptionPlan],
     );
 
-    const shouldShowSubscript = shouldReportShowSubscript(report);
+    const isArchived = isArchivedReport(reportNameValuePairs);
+    const shouldShowSubscript = shouldReportShowSubscript(report, isArchived);
     const defaultSubscriptSize = isExpenseRequest(report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const icons = getIcons(reportHeaderData, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
     const brickRoadIndicator = hasReportNameError(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
@@ -223,8 +224,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurposeSelected);
-    const shouldShowRegisterForWebinar = introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO && (isChatUsedForOnboarding || isAdminRoom(report));
-    const isArchived = isArchivedReport(reportNameValuePairs);
+    const shouldShowRegisterForWebinar = introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO && (isChatUsedForOnboarding || (isAdminRoom(report) && !isChatThread));
     const shouldShowOnBoardingHelpDropdownButton = (shouldShowRegisterForWebinar || shouldShowGuideBooking) && !isArchived;
     const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding;
     const latestScheduledCall = reportNameValuePairs?.calendlyCalls?.at(-1);
@@ -323,7 +323,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                                 {subtitle}
                                             </Text>
                                         )}
-                                        {isChatRoom && !!reportDescription && isEmptyObject(parentNavigationSubtitleData) && (
+                                        {isChatRoom && !isInvoiceRoom(reportHeaderData) && !!reportDescription && isEmptyObject(parentNavigationSubtitleData) && (
                                             <View style={[styles.alignSelfStart, styles.mw100]}>
                                                 <Text
                                                     style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}

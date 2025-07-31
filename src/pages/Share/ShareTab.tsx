@@ -1,12 +1,13 @@
-import React, {useEffect, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useFastSearchFromOptions from '@hooks/useFastSearchFromOptions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getOptimisticChatReport, saveReportDraft, searchInServer} from '@libs/actions/Report';
@@ -27,12 +28,21 @@ const defaultListOptions = {
     categoryOptions: [],
 };
 
-function ShareTab() {
+type ShareTabRef = {
+    focus?: () => void;
+};
+
+function ShareTab(_: unknown, ref: React.Ref<ShareTabRef>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const selectionListRef = useRef<SelectionListHandle | null>(null);
+
+    useImperativeHandle(ref, () => ({
+        focus: selectionListRef.current?.focusTextInput,
+    }));
 
     const {options, areOptionsInitialized} = useOptionsList();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
@@ -52,7 +62,7 @@ function ShareTab() {
 
     const recentReportsOptions = useMemo(() => {
         if (textInputValue.trim() === '') {
-            return optionsOrderBy(searchOptions.recentReports, 20, recentReportComparator);
+            return optionsOrderBy(searchOptions.recentReports, recentReportComparator, 20);
         }
         const filteredOptions = filterOptions(textInputValue);
         const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filteredOptions, textInputValue, {
@@ -115,8 +125,10 @@ function ShareTab() {
             shouldSingleExecuteRowSelect
             onSelectRow={onSelectRow}
             isLoadingNewOptions={!!isSearchingForReports}
+            textInputAutoFocus={false}
+            ref={selectionListRef}
         />
     );
 }
 
-export default ShareTab;
+export default forwardRef(ShareTab);

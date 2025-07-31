@@ -1,10 +1,11 @@
 import React, {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
+import useOnyx from '@hooks/useOnyx';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
@@ -40,11 +41,22 @@ function SearchTransactionsChangeReport() {
         Navigation.goBack();
     };
 
+    const removeFromReport = () => {
+        if (!transactionsReports || selectedTransactionsKeys.length === 0) {
+            return;
+        }
+        changeTransactionsReport(selectedTransactionsKeys, CONST.REPORT.UNREPORTED_REPORT_ID);
+        clearSelectedTransactions();
+        Navigation.goBack();
+    };
+
     return (
         <IOURequestEditReportCommon
             backTo={undefined}
             transactionsReports={transactionsReports}
             selectReport={selectReport}
+            removeFromReport={removeFromReport}
+            isEditing
         />
     );
 }

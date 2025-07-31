@@ -19,7 +19,7 @@ import type {AttachmentModalScreenParams} from '@pages/media/AttachmentModalScre
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
-import type {Route as ExpensifyRoute, HybridAppRoute, Route as Routes} from '@src/ROUTES';
+import type {Route as ExpensifyRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import type {CompanyCardFeed} from '@src/types/onyx';
@@ -317,6 +317,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         rateID: string;
     };
+    [SCREENS.WORKSPACE.DISTANCE_RATE_NAME_EDIT]: {
+        policyID: string;
+        rateID: string;
+    };
     [SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT]: {
         policyID: string;
         rateID: string;
@@ -585,6 +589,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_ADVANCED]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT]: {
         policyID: string;
@@ -1010,6 +1015,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
         policyID: string;
         cardID: string;
@@ -1263,6 +1271,7 @@ type MoneyRequestNavigatorParamList = {
         iouType: IOUType;
         reportID: string;
         backTo: Routes;
+        shouldTurnOffSelectionMode?: boolean;
     };
     [SCREENS.MONEY_REQUEST.STEP_REPORT]: {
         action: IOUAction;
@@ -1407,7 +1416,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         pageIndex?: string;
-        backTo?: string;
+        backTo?: Routes;
         participantsAutoAssigned?: string;
         backToReport?: string;
     };
@@ -1510,6 +1519,35 @@ type MoneyRequestNavigatorParamList = {
         action: IOUAction;
         pageIndex: string;
         transactionID: string;
+    };
+    [SCREENS.MONEY_REQUEST.DISTANCE_CREATE]: {
+        iouType: IOUType;
+        reportID: string;
+        transactionID: string;
+
+        // These are not used in the screen, but are needed for the navigation
+        // for IOURequestStepDistanceManual and IOURequestStepDistanceMap components
+        backTo: never;
+        action: never;
+        currency: never;
+        pageIndex?: string;
+        backToReport?: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL]: {
+        action: IOUAction;
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes;
+        backToReport?: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MAP]: {
+        action: IOUAction;
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes;
+        backToReport?: string;
     };
 };
 
@@ -1722,6 +1760,10 @@ type RightModalNavigatorParamList = {
 
 type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.MY_TRIPS]: undefined;
+    [SCREENS.TRAVEL.TRAVEL_DOT_LINK_WEB_VIEW]: {
+        token: string;
+        isTestAccount?: string;
+    };
     [SCREENS.TRAVEL.TRIP_SUMMARY]: {
         reportID: string;
         transactionID: string;
@@ -1765,6 +1807,7 @@ type ReportsSplitNavigatorParamList = {
         backTo?: Routes;
         moneyRequestReportActionID?: string;
         transactionID?: string;
+        iouReportID?: string;
     };
     [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
 };
@@ -1921,6 +1964,9 @@ type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING.ACCOUNTING]: {
         backTo?: string;
     };
+    [SCREENS.ONBOARDING.INTERESTED_FEATURES]: {
+        backTo?: string;
+    };
     [SCREENS.ONBOARDING.WORK_EMAIL]: {
         backTo?: string;
     };
@@ -1975,7 +2021,7 @@ type SharedScreensParamList = {
         shortLivedToken?: string;
         authTokenType?: ValueOf<typeof CONST.AUTH_TOKEN_TYPES>;
         // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-        exitTo?: Routes | HybridAppRoute;
+        exitTo?: Routes;
         shouldForceLogin: string;
         domain?: Routes;
         delegatorEmail?: string;
@@ -1984,7 +2030,7 @@ type SharedScreensParamList = {
         accountID: string;
         validateCode: string;
         // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-        exitTo?: Routes | HybridAppRoute;
+        exitTo?: Routes;
     };
 };
 
@@ -2064,6 +2110,7 @@ type SearchReportParamList = {
     [SCREENS.SEARCH.REPORT_RHP]: {
         reportID: string;
         reportActionID?: string;
+        backTo?: Routes;
     };
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: {
         /** ID of the transaction the page was opened for */
@@ -2183,7 +2230,9 @@ type ScheduleCallParamList = {
 };
 
 type TestToolsModalModalNavigatorParamList = {
-    [SCREENS.TEST_TOOLS_MODAL.ROOT]: undefined;
+    [SCREENS.TEST_TOOLS_MODAL.ROOT]: {
+        backTo?: Routes;
+    };
 };
 
 type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & SearchFullscreenNavigatorParamList;

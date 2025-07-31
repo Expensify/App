@@ -58,6 +58,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 },
                 contentModel: HTMLContentModel.block,
             }),
+            'muted-link': HTMLElementModel.fromCustomModel({
+                tagName: 'muted-link',
+                mixedUAStyles: {...styles.subTextFileUpload, ...styles.textSupporting},
+                contentModel: HTMLContentModel.block,
+            }),
             'muted-text': HTMLElementModel.fromCustomModel({
                 tagName: 'muted-text',
                 mixedUAStyles: {...styles.colorMuted, ...styles.mb0},
@@ -90,6 +95,16 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                     return {whiteSpace: 'normal', ...styles.onlyEmojisText};
                 },
                 contentModel: HTMLContentModel.block,
+            }),
+            tooltip: HTMLElementModel.fromCustomModel({
+                tagName: 'tooltip',
+                mixedUAStyles: {whiteSpace: 'pre', ...styles.productTrainingTooltipText},
+                contentModel: HTMLContentModel.block,
+            }),
+            success: HTMLElementModel.fromCustomModel({
+                tagName: 'success',
+                mixedUAStyles: {...styles.textSuccess},
+                contentModel: HTMLContentModel.textual,
             }),
             strong: HTMLElementModel.fromCustomModel({
                 tagName: 'strong',
@@ -144,6 +159,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.mb0,
             styles.colorMuted,
             styles.mutedNormalTextLabel,
+            styles.productTrainingTooltipText,
             styles.textLabelSupporting,
             styles.lh16,
             styles.textSupporting,
@@ -156,6 +172,8 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.h1,
             styles.blockquote,
             styles.onlyEmojisTextLineHeight,
+            styles.subTextFileUpload,
+            styles.textSuccess,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */

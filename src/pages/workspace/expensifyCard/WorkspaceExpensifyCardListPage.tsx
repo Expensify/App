@@ -1,7 +1,6 @@
 import React, {useCallback, useContext, useMemo} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import Button from '@components/Button';
@@ -23,6 +22,7 @@ import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
@@ -58,7 +58,7 @@ type WorkspaceExpensifyCardListPageProps = {
 
 function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExpensifyCardListPageProps) {
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
 
     const policyID = route.params.policyID;
@@ -80,7 +80,8 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const {windowHeight} = useWindowDimensions();
     const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
 
-    const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
+    // Currently Expensify Cards only support USD, once support for more currencies is implemented, we will need to update this
+    const settlementCurrency = CONST.CURRENCY.USD;
 
     const allCards = useMemo(() => {
         const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList));
@@ -88,7 +89,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     }, [cardsList, policy?.employeeList]);
 
     const filterCard = useCallback((card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails), [personalDetails]);
-    const sortCards = useCallback((cards: Card[]) => sortCardsByCardholderName(cards, personalDetails), [personalDetails]);
+    const sortCards = useCallback((cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare), [personalDetails, localeCompare]);
     const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards);
 
     const handleIssueCardPress = () => {
@@ -117,7 +118,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     );
 
     const getHeaderButtons = () => (
-        <View style={[styles.flexRow, styles.gap2, shouldChangeLayout && styles.mb3, shouldShowSelector && shouldChangeLayout && styles.mt3]}>
+        <View style={[styles.flexRow, styles.gap2, !shouldShowSelector && shouldUseNarrowLayout && styles.mb3, shouldShowSelector && shouldChangeLayout && styles.mt3]}>
             <Button
                 success
                 onPress={handleIssueCardPress}
@@ -158,13 +159,13 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         cardholder={personalDetails?.[item.accountID ?? CONST.DEFAULT_NUMBER_ID]}
                         limit={item.nameValuePairs?.unapprovedExpenseLimit ?? 0}
                         name={item.nameValuePairs?.cardTitle ?? ''}
-                        currency={policyCurrency}
+                        currency={settlementCurrency}
                         isVirtual={!!item.nameValuePairs?.isVirtual}
                     />
                 </PressableWithFeedback>
             </OfflineWithFeedback>
         ),
-        [personalDetails, policyCurrency, policyID, workspaceAccountID, styles],
+        [personalDetails, settlementCurrency, policyID, workspaceAccountID, styles],
     );
 
     const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
@@ -218,7 +219,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             </HeaderWithBackButton>
             {!shouldShowSelector && shouldUseNarrowLayout && isBankAccountVerified && <View style={styles.ph5}>{getHeaderButtons()}</View>}
             {shouldShowSelector && (
-                <View style={[styles.w100, styles.ph5, styles.pb2, !shouldChangeLayout && [styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]]}>
+                <View style={[styles.w100, styles.ph5, styles.pb3, !shouldChangeLayout && [styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]]}>
                     <FeedSelector
                         onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.getRoute(policyID))}
                         cardIcon={ExpensifyCardImage}

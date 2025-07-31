@@ -5,6 +5,8 @@ import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {translateLocal} from '@libs/Localize';
 // eslint-disable-next-line no-restricted-syntax
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+// eslint-disable-next-line no-restricted-syntax
+import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -13,7 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Onboarding, Policy as PolicyType, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
 import createRandomPolicy from '../utils/collections/policies';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -644,6 +646,33 @@ describe('actions/Policy', () => {
             });
 
             expect(violations?.every((violation) => violation.type !== CONST.VIOLATION_TYPES.VIOLATION)).toBe(true);
+        });
+
+        it('should update active policy ID to personal policy when deleting the active policy', async () => {
+            const personalPolicy = createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL);
+            const teamPolicy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`, personalPolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${teamPolicy.id}`, teamPolicy);
+            await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, teamPolicy.id);
+            await waitForBatchedUpdates();
+
+            jest.spyOn(PolicyUtils, 'getPersonalPolicy').mockReturnValue(personalPolicy);
+
+            Policy.deleteWorkspace(teamPolicy.id, teamPolicy.name);
+            await waitForBatchedUpdates();
+
+            const activePolicyID: OnyxEntry<string> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+                    callback: (policyID) => {
+                        Onyx.disconnect(connection);
+                        resolve(policyID);
+                    },
+                });
+            });
+
+            expect(activePolicyID).toBe(personalPolicy.id);
         });
     });
 

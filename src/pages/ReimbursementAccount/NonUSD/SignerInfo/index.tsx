@@ -1,9 +1,9 @@
 import type {ComponentType} from 'react';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@navigation/Navigation';
@@ -28,6 +28,9 @@ type SignerInfoProps = {
 
     /** Handles submit button press */
     onSubmit: () => void;
+
+    /** Array of step names */
+    stepNames?: readonly string[];
 };
 
 type EmailSubmitParams = {
@@ -47,7 +50,7 @@ const {OWNS_MORE_THAN_25_PERCENT, COMPANY_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORP
 const fullBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [Name, JobTitle, DateOfBirth, Address, UploadDocuments, Confirmation];
 const userIsOwnerBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [JobTitle, UploadDocuments, Confirmation];
 
-function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
+function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
@@ -184,7 +187,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
             wrapperID={SignerInfo.displayName}
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('signerInfoStep.signerInfo')}
-            stepNames={CONST.NON_USD_BANK_ACCOUNT.STEP_NAMES}
+            stepNames={stepNames}
             startStepIndex={4}
         >
             {currentSubStep === SUBSTEP.IS_DIRECTOR && (
