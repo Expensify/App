@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Ensure upstream/main exists
-git fetch --depth=1 upstream main
+git fetch --depth=50 upstream main:upstream/main
 
 # Determine diff range safely
 if git merge-base upstream/main HEAD >/dev/null 2>&1; then
