@@ -61,7 +61,7 @@ export default function useReportUnreadMessageScrollTracking({reportID, currentV
     };
 
     const onViewableItemsChanged = useCallback(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
-        const viewableIndexes = viewableItems.map((viewableItem) => viewableItem.index).filter((value) => typeof value === 'number');
+        const viewableIndexes = viewableItems.map((viewableItem) => viewableItem.index).filter((value) => typeof value === 'number') as number[];
         const maxIndex = Math.max(...viewableIndexes);
         const minIndex = Math.min(...viewableIndexes);
         const unreadActionIndex = ref.current.unreadMarkerReportActionIndex;
