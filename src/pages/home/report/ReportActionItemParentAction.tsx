@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import onyxSubscribe from '@libs/onyxSubscribe';
@@ -13,6 +14,7 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getAllAncestorReportActionIDs,
     getAllAncestorReportActions,
+    isArchivedReport,
     navigateToLinkedReportAction,
 } from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
@@ -81,6 +83,19 @@ function ReportActionItemParentAction({
     const [allAncestors, setAllAncestors] = useState<Ancestor[]>([]);
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
+    const [ancestorReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        canBeMissing: true,
+        selector: (allPairs) => {
+            const ancestorIDsToSelect = new Set(ancestorIDs.current.reportIDs);
+
+            return Object.fromEntries(
+                Object.entries(allPairs ?? {}).filter(([key]) => {
+                    const id = key.split('_').at(1);
+                    return id && ancestorIDsToSelect.has(id);
+                }),
+            );
+        },
+    });
 
     useEffect(() => {
         const unsubscribeReports: Array<() => void> = [];
@@ -124,7 +139,9 @@ function ReportActionItemParentAction({
                 const ancestorReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ancestor.report.reportID}`];
                 const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(ancestorReport);
                 const shouldDisplayThreadDivider = !isTripPreview(ancestor.reportAction);
-
+                const reportNameValuePair =
+                    ancestorReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReports.current?.[ancestor?.report?.reportID]?.reportID}`];
+                const isAncestorReportArchived = isArchivedReport(reportNameValuePair);
                 return (
                     <OfflineWithFeedback
                         key={ancestor.reportAction.reportActionID}
@@ -137,14 +154,14 @@ function ReportActionItemParentAction({
                         {shouldDisplayThreadDivider && (
                             <ThreadDivider
                                 ancestor={ancestor}
-                                isLinkDisabled={!canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID])}
+                                isLinkDisabled={!canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID], isAncestorReportArchived)}
                             />
                         )}
                         <ReportActionItem
                             allReports={allReports}
                             policies={policies}
                             onPress={
-                                canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID])
+                                canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID], isAncestorReportArchived)
                                     ? () => navigateToLinkedReportAction(ancestor, isInNarrowPaneModal, canUserPerformWriteAction, isOffline)
                                     : undefined
                             }

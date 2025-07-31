@@ -97,6 +97,8 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EmployeeInviteMessageParams,
+    EmptyCategoriesSubtitleWithAccountingParams,
+    EmptyTagsSubtitleWithAccountingParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -1068,6 +1070,8 @@ const translations = {
         scanMultipleReceiptsDescription: '一次拍摄所有收据的照片，然后自行确认详细信息或让SmartScan处理。',
         receiptScanInProgress: '正在扫描收据',
         receiptScanInProgressDescription: '收据扫描中。稍后查看或立即输入详细信息。',
+        removeFromReport: '不在此报告中',
+        moveToPersonalSpace: '移动费用到个人空间',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) => (!isSubmitted ? '发现潜在的重复费用。请查看重复项以启用提交。' : '发现潜在的重复费用。请审查重复项以启用批准。'),
         receiptIssuesFound: () => ({
             one: '发现问题',
@@ -1813,7 +1817,7 @@ const translations = {
         expensifyWallet: 'Expensify Wallet（测试版）',
         sendAndReceiveMoney: '与朋友发送和接收资金。仅限美国银行账户。',
         enableWallet: '启用钱包',
-        addBankAccountToSendAndReceive: '获得报销您提交到工作区的费用。',
+        addBankAccountToSendAndReceive: '添加银行账户以进行付款或收款。',
         assignedCards: '已分配的卡片',
         assignedCardsDescription: '这些是由工作区管理员分配的卡片，用于管理公司支出。',
         expensifyCard: 'Expensify Card',
@@ -1824,6 +1828,8 @@ const translations = {
         chooseYourBankAccount: '选择您的银行账户',
         chooseAccountBody: '确保您选择正确的选项。',
         confirmYourBankAccount: '确认您的银行账户',
+        personalBankAccounts: '个人银行账户',
+        businessBankAccounts: '企业银行账户',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -4386,11 +4392,8 @@ const translations = {
             emptyCategories: {
                 title: '您尚未创建任何类别',
                 subtitle: '添加一个类别来组织您的支出。',
-            },
-            emptyCategoriesWithAccounting: {
-                subtitle1: '您的类别目前正在从会计连接中导入。前往',
-                subtitle2: '会计',
-                subtitle3: '进行任何更改。',
+                subtitleWithAccounting: ({accountingPageURL}: EmptyCategoriesSubtitleWithAccountingParams) =>
+                    `<muted-text><centered-text>您的类别目前是从会计连接导入的。请前往<a href="${accountingPageURL}">会计</a>部门进行更改。</centered-text></muted-text>`,
             },
             updateFailureMessage: '更新类别时发生错误，请重试。',
             createFailureMessage: '创建类别时发生错误，请重试。',
@@ -4650,14 +4653,9 @@ const translations = {
                 title: '您尚未创建任何标签',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: '添加标签以跟踪项目、地点、部门等。',
-                subtitle1: '导入电子表格以添加标签，用于跟踪项目、地点、部门等。',
-                subtitle2: '了解更多',
-                subtitle3: '关于格式化标签文件。',
-            },
-            emptyTagsWithAccounting: {
-                subtitle1: '您的标签目前正在从会计连接导入。前往',
-                subtitle2: '会计',
-                subtitle3: '进行任何更改。',
+                subtitleHTML: `<muted-text><centered-text>导入电子表格，为跟踪项目、地点、部门等添加标签。<a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">了解有关</a>标签文件格式的更多信息。</centered-text></muted-text>`,
+                subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
+                    `<muted-text><centered-text>您的标签目前是从会计连接导入的。请前往<a href="${accountingPageURL}">会计</a>部门进行更改。</centered-text></muted-text>`,
             },
             deleteTag: '删除标签',
             deleteTags: '删除标签',
@@ -5157,6 +5155,10 @@ const translations = {
                 one: '您确定要删除此费率吗？',
                 other: '您确定要删除这些费率吗？',
             }),
+            errors: {
+                rateNameRequired: '费率名称是必需的',
+                existingRateName: '具有此名称的距离费率已存在',
+            },
         },
         editor: {
             descriptionInputLabel: '描述',
@@ -5854,7 +5856,7 @@ const translations = {
         },
         statements: '发言',
         unapprovedCash: '未经批准的现金',
-        unapprovedCompanyCards: '未经批准的公司卡',
+        unapprovedCard: '未批准的卡',
         saveSearch: '保存搜索',
         deleteSavedSearch: '删除已保存的搜索',
         deleteSavedSearchConfirm: '您确定要删除此搜索吗？',
@@ -6197,9 +6199,8 @@ const translations = {
         levelThreeResult: '消息已从频道中移除，并收到匿名警告，消息已提交审核。',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: '邀请提交费用',
-        inviteToChat: '仅邀请聊天',
-        nothing: '什么都不做',
+        invite: '邀请他们',
+        nothing: 'Do nothing',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: '接受',
@@ -6281,14 +6282,12 @@ const translations = {
     },
     referralProgram: {
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
-            buttonText1: '开始聊天，',
-            buttonText2: '推荐朋友。',
+            buttonText: '开始聊天，<success><strong>推荐朋友</strong></success>。',
             header: '开始聊天，推荐朋友',
             body: '想让你的朋友也使用Expensify吗？只需与他们开始聊天，我们会处理剩下的事情。',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText1: '提交报销，',
-            buttonText2: '推荐你的老板。',
+            buttonText: '提交费用，<success><strong>推荐你的老板</strong></success>。',
             header: '提交报销，推荐给您的老板',
             body: '想让你的老板也使用Expensify吗？只需向他们提交一笔费用，其余的交给我们。',
         },

@@ -2,6 +2,7 @@ import type {TextStyle, ViewStyle} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import DotLottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MenuItemWithLink} from '@components/MenuItemList';
@@ -52,7 +53,6 @@ import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {isDevelopment} from './Environment/Environment';
 import interceptAnonymousUser from './interceptAnonymousUser';
-import localeCompare from './LocaleCompare';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
@@ -337,9 +337,9 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS]: {
-            key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
-            translationPath: 'search.unapprovedCompanyCards',
+        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]: {
+            key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD,
+            translationPath: 'search.unapprovedCard',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.CreditCardHourglass,
             searchQuery: buildQueryStringFromFilterFormValues({
@@ -365,7 +365,7 @@ function getSuggestedSearchesVisibility(
     let shouldShowExportSuggestion = false;
     let shouldShowStatementsSuggestion = false;
     let showShowUnapprovedCashSuggestion = false;
-    let showShowUnapprovedCompanyCardsSuggestion = false;
+    let showShowUnapprovedCardSuggestion = false;
     let shouldShowReconciliationSuggestion = false;
 
     Object.values(policies ?? {}).some((policy) => {
@@ -390,7 +390,7 @@ function getSuggestedSearchesVisibility(
         const isEligibleForExportSuggestion = isExporter;
         const isEligibleForStatementsSuggestion = isPaidPolicy && !!policy.areCompanyCardsEnabled && cardFeedsByPolicy[policy.id]?.length > 0;
         const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && isPaymentEnabled;
-        const isEligibleForUnapprovedCompanyCardsSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && cardFeedsByPolicy[policy.id]?.length > 0;
+        const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && cardFeedsByPolicy[policy.id]?.length > 0;
         const isEligibleForReconciliationSuggestion = isPaidPolicy && false; // s77rt TODO
 
         shouldShowSubmitSuggestion ||= isEligibleForSubmitSuggestion;
@@ -399,7 +399,7 @@ function getSuggestedSearchesVisibility(
         shouldShowExportSuggestion ||= isEligibleForExportSuggestion;
         shouldShowStatementsSuggestion ||= isEligibleForStatementsSuggestion;
         showShowUnapprovedCashSuggestion ||= isEligibleForUnapprovedCashSuggestion;
-        showShowUnapprovedCompanyCardsSuggestion ||= isEligibleForUnapprovedCompanyCardsSuggestion;
+        showShowUnapprovedCardSuggestion ||= isEligibleForUnapprovedCardSuggestion;
         shouldShowReconciliationSuggestion ||= isEligibleForReconciliationSuggestion;
 
         // We don't need to check the rest of the policies if we already determined that all suggestions should be displayed
@@ -410,7 +410,7 @@ function getSuggestedSearchesVisibility(
             shouldShowExportSuggestion &&
             shouldShowStatementsSuggestion &&
             showShowUnapprovedCashSuggestion &&
-            showShowUnapprovedCompanyCardsSuggestion &&
+            showShowUnapprovedCardSuggestion &&
             shouldShowReconciliationSuggestion
         );
     });
@@ -426,8 +426,7 @@ function getSuggestedSearchesVisibility(
         // s77rt remove DEV lock
         [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: shouldShowStatementsSuggestion && isDevelopment(),
         [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: showShowUnapprovedCashSuggestion,
-        // s77rt remove DEV lock
-        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS]: showShowUnapprovedCompanyCardsSuggestion && isDevelopment(),
+        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]: showShowUnapprovedCardSuggestion,
     };
 }
 
@@ -1307,15 +1306,16 @@ function getSortedSections(
     type: SearchDataTypes,
     status: SearchStatus,
     data: ListItemDataType<typeof type, typeof status>,
+    localeCompare: LocaleContextProps['localeCompare'],
     sortBy?: SearchColumnType,
     sortOrder?: SortOrder,
     groupBy?: SearchGroupBy,
 ) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return getSortedReportActionData(data as ReportActionListItemType[]);
+        return getSortedReportActionData(data as ReportActionListItemType[], localeCompare);
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return getSortedTaskData(data as TaskListItemType[], sortBy, sortOrder);
+        return getSortedTaskData(data as TaskListItemType[], localeCompare, sortBy, sortOrder);
     }
 
     if (groupBy) {
@@ -1323,7 +1323,7 @@ function getSortedSections(
         // eslint-disable-next-line default-case
         switch (groupBy) {
             case CONST.SEARCH.GROUP_BY.REPORTS:
-                return getSortedReportData(data as TransactionReportGroupListItemType[]);
+                return getSortedReportData(data as TransactionReportGroupListItemType[], localeCompare);
             case CONST.SEARCH.GROUP_BY.MEMBERS:
                 return getSortedMemberData(data as TransactionMemberGroupListItemType[]);
             case CONST.SEARCH.GROUP_BY.CARDS:
@@ -1331,7 +1331,7 @@ function getSortedSections(
         }
     }
 
-    return getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder);
+    return getSortedTransactionData(data as TransactionListItemType[], localeCompare, sortBy, sortOrder);
 }
 
 /**
@@ -1426,7 +1426,7 @@ function getColumnsToShow(data: OnyxTypes.SearchResults['data'] | OnyxTypes.Tran
  * Compares two values based on a specified sorting order and column.
  * Handles both string and numeric comparisons, with special handling for absolute values when sorting by total amount.
  */
-function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: string): number {
+function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: string, localeCompare: LocaleContextProps['localeCompare']): number {
     const isAsc = sortOrder === CONST.SEARCH.SORT_ORDER.ASC;
 
     if (a === undefined || b === undefined) {
@@ -1450,7 +1450,7 @@ function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: str
  * @private
  * Sorts transaction sections based on a specified column and sort order.
  */
-function getSortedTransactionData(data: TransactionListItemType[], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+function getSortedTransactionData(data: TransactionListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
     if (!sortBy || !sortOrder) {
         return data;
     }
@@ -1465,11 +1465,11 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
         const aValue = sortingProperty === 'comment' ? a.comment?.comment : a[sortingProperty as keyof TransactionListItemType];
         const bValue = sortingProperty === 'comment' ? b.comment?.comment : b[sortingProperty as keyof TransactionListItemType];
 
-        return compareValues(aValue, bValue, sortOrder, sortingProperty);
+        return compareValues(aValue, bValue, sortOrder, sortingProperty, localeCompare);
     });
 }
 
-function getSortedTaskData(data: TaskListItemType[], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+function getSortedTaskData(data: TaskListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
     if (!sortBy || !sortOrder) {
         return data;
     }
@@ -1484,7 +1484,7 @@ function getSortedTaskData(data: TaskListItemType[], sortBy?: SearchColumnType, 
         const aValue = a[sortingProperty as keyof TaskListItemType];
         const bValue = b[sortingProperty as keyof TaskListItemType];
 
-        return compareValues(aValue, bValue, sortOrder, sortingProperty);
+        return compareValues(aValue, bValue, sortOrder, sortingProperty, localeCompare);
     });
 }
 
@@ -1492,9 +1492,9 @@ function getSortedTaskData(data: TaskListItemType[], sortBy?: SearchColumnType, 
  * @private
  * Sorts report sections based on a specified column and sort order.
  */
-function getSortedReportData(data: TransactionReportGroupListItemType[]) {
+function getSortedReportData(data: TransactionReportGroupListItemType[], localeCompare: LocaleContextProps['localeCompare']) {
     for (const report of data) {
-        report.transactions = getSortedTransactionData(report.transactions, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC);
+        report.transactions = getSortedTransactionData(report.transactions, localeCompare, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC);
     }
     return data.sort((a, b) => {
         const aNewestTransaction = a.transactions?.at(0)?.modifiedCreated ? a.transactions?.at(0)?.modifiedCreated : a.transactions?.at(0)?.created;
@@ -1528,7 +1528,7 @@ function getSortedCardData(data: TransactionCardGroupListItemType[]) {
  * @private
  * Sorts report actions sections based on a specified column and sort order.
  */
-function getSortedReportActionData(data: ReportActionListItemType[]) {
+function getSortedReportActionData(data: ReportActionListItemType[], localeCompare: LocaleContextProps['localeCompare']) {
     return data.sort((a, b) => {
         const aValue = a?.created;
         const bValue = b?.created;
@@ -1757,9 +1757,9 @@ function createTypeMenuSections(
                 },
             });
         }
-        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS]) {
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]) {
             accountingSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS],
+                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyUnapprovedResults.title',
