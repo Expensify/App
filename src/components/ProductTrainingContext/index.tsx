@@ -265,10 +265,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const renderProductTrainingTooltip = useCallback(() => {
         const tooltip = TOOLTIPS[tooltipName];
         return (
-            <View
-                fsClass={CONST.FULL_STORY.UNMASK}
-                testID={CONST.FULL_STORY.UNMASK}
-            >
+            <View fsClass={CONST.FULLSTORY.CLASS.UNMASK}>
                 <View
                     style={[
                         styles.alignItemsCenter,

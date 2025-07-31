@@ -29,11 +29,11 @@ const FS: Fullstory = {
                 // time to call the resolve function in case it ran successfully.
                 setTimeout(resolve, 1000);
             } else {
-                FullStory(CONST.FULL_STORY.OBSERVE, {type: 'start', callback: resolve});
+                FullStory(CONST.FULLSTORY.OPERATION.OBSERVE, {type: 'start', callback: resolve});
             }
         }),
 
-    consent: (shouldConsent) => FullStory(CONST.FULL_STORY.SET_IDENTITY, {consent: shouldConsent}),
+    consent: (shouldConsent) => FullStory(CONST.FULLSTORY.OPERATION.SET_IDENTITY, {consent: shouldConsent}),
 
     identify: (userMetadata) => {
         /**
@@ -41,7 +41,7 @@ const FS: Fullstory = {
          * If the metadata does not contain an email, the user identity is anonymized.
          * If the metadata contains an accountID, the user identity is defined with it.
          */
-        FullStory(CONST.FULL_STORY.SET_IDENTITY, {
+        FullStory(CONST.FULLSTORY.OPERATION.SET_IDENTITY, {
             uid: String(userMetadata.accountID),
             properties: userMetadata,
         });
@@ -63,7 +63,7 @@ const FS: Fullstory = {
                 ) {
                     // On web, if we started FS at some point in a browser, it will run forever. So let's shut it down if we don't want it to run.
                     if (isInitialized()) {
-                        FullStory(CONST.FULL_STORY.SHUTDOWN);
+                        FullStory(CONST.FULLSTORY.OPERATION.SHUTDOWN);
                     }
                     return;
                 }
@@ -71,7 +71,7 @@ const FS: Fullstory = {
                 // If Fullstory was already initialized, we might have shutdown the session. So let's
                 // restart it before identifying the user.
                 if (isInitialized()) {
-                    FullStory(CONST.FULL_STORY.RESTART);
+                    FullStory(CONST.FULLSTORY.OPERATION.RESTART);
                 }
 
                 FS.onReady().then(() => {
@@ -86,7 +86,7 @@ const FS: Fullstory = {
         }
     },
 
-    anonymize: () => FullStory(CONST.FULL_STORY.SET_IDENTITY, {anonymous: true}),
+    anonymize: () => FullStory(CONST.FULLSTORY.OPERATION.SET_IDENTITY, {anonymous: true}),
 };
 
 export default FS;

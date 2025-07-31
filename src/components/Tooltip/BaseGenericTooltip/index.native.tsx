@@ -106,21 +106,13 @@ function BaseGenericTooltip({
 
     let content;
     if (renderTooltipContent) {
-        content = (
-            <View
-                fsClass={CONST.FULL_STORY.UNMASK}
-                testID={CONST.FULL_STORY.UNMASK}
-            >
-                {renderTooltipContent()}
-            </View>
-        );
+        content = <View fsClass={CONST.FULLSTORY.CLASS.UNMASK}>{renderTooltipContent()}</View>;
     } else {
         content = (
             <Text
                 numberOfLines={numberOfLines}
                 style={textStyle}
-                fsClass={CONST.FULL_STORY.UNMASK}
-                testID={CONST.FULL_STORY.UNMASK}
+                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
                 <Text style={textStyle}>{text}</Text>
             </Text>

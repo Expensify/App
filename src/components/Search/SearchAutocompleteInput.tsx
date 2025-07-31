@@ -195,8 +195,7 @@ function SearchAutocompleteInput(
             <Animated.View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle]}>
                 <View
                     style={styles.flex1}
-                    fsClass={CONST.FULL_STORY.UNMASK}
-                    testID={CONST.FULL_STORY.UNMASK}
+                    fsClass={CONST.FULLSTORY.CLASS.UNMASK}
                 >
                     <TextInput
                         testID="search-autocomplete-text-input"

@@ -128,8 +128,7 @@ function BaseGenericTooltip({
         content = (
             <View
                 ref={viewRef(contentRef)}
-                fsClass={CONST.FULL_STORY.UNMASK}
-                testID={CONST.FULL_STORY.UNMASK}
+                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
                 {renderTooltipContent()}
             </View>
@@ -139,8 +138,7 @@ function BaseGenericTooltip({
             <Text
                 numberOfLines={numberOfLines}
                 style={textStyle}
-                fsClass={CONST.FULL_STORY.UNMASK}
-                testID={CONST.FULL_STORY.UNMASK}
+                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
                 <Text
                     style={textStyle}

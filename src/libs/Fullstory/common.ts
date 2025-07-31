@@ -4,14 +4,14 @@ import type {GetChatFSClass} from './types';
 
 const getChatFSClass: GetChatFSClass = (context, report) => {
     if (isConciergeChatReport(report)) {
-        return CONST.FULL_STORY.UNMASK;
+        return CONST.FULLSTORY.CLASS.UNMASK;
     }
 
     if (shouldUnmaskChat(context, report)) {
-        return CONST.FULL_STORY.UNMASK;
+        return CONST.FULLSTORY.CLASS.UNMASK;
     }
 
-    return CONST.FULL_STORY.MASK;
+    return CONST.FULLSTORY.CLASS.MASK;
 };
 
 export default getChatFSClass;
