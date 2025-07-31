@@ -23,7 +23,7 @@ const useCanEditStep = (action: IOUAction, iouType: IOUType, report: OnyxInputOr
         selector: (reportActions) => reportActions?.[`${report?.parentReportActionID}`],
     });
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const canEdit = isEditing && canEditFieldOfMoneyRequest(reportAction, fieldToEdit);
+    const canEdit = !isEditing || canEditFieldOfMoneyRequest(reportAction, fieldToEdit);
     return [canEdit];
 };
 
