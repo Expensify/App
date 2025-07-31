@@ -5,6 +5,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import type {SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import {search} from '@libs/actions/Search';
 import {isReportActionEntry} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
@@ -17,13 +18,25 @@ type UseSearchHighlightAndScroll = {
     reportActions: OnyxCollection<ReportActions>;
     previousReportActions: OnyxCollection<ReportActions>;
     queryJSON: SearchQueryJSON;
+    searchKey: SearchKey | undefined;
     offset: number;
+    shouldCalculateTotals: boolean;
 };
 
 /**
  * Hook used to trigger a search when a new transaction or report action is added and handle highlighting and scrolling.
  */
-function useSearchHighlightAndScroll({searchResults, transactions, previousTransactions, reportActions, previousReportActions, queryJSON, offset}: UseSearchHighlightAndScroll) {
+function useSearchHighlightAndScroll({
+    searchResults,
+    transactions,
+    previousTransactions,
+    reportActions,
+    previousReportActions,
+    queryJSON,
+    searchKey,
+    offset,
+    shouldCalculateTotals,
+}: UseSearchHighlightAndScroll) {
     const isFocused = useIsFocused();
     // Ref to track if the search was triggered by this hook
     const triggeredByHookRef = useRef(false);
@@ -63,7 +76,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
 
         const previousTransactionsIDsSet = new Set(previousTransactionsIDs);
         const previousReportActionsIDsSet = new Set(previousReportActionsIDs);
-        const hasTransactionsIDsChange = transactionsIDs.some((id) => !previousTransactionsIDsSet.has(id));
+        const hasTransactionsIDsChange = transactionsIDs.length !== previousTransactionsIDs.length || transactionsIDs.some((id) => !previousTransactionsIDsSet.has(id));
         const hasReportActionsIDsChange = reportActionsIDs.some((id) => !previousReportActionsIDsSet.has(id));
 
         // Check if there is a change in the transactions or report actions list
@@ -97,12 +110,25 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             triggeredByHookRef.current = true;
 
             // Trigger the search
-            search({queryJSON, offset});
+            search({queryJSON, searchKey, offset, shouldCalculateTotals});
 
             // Set the ref to prevent further triggers until reset
             searchTriggeredRef.current = true;
         }
-    }, [isFocused, transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat, searchResults?.data, existingSearchResultIDs]);
+    }, [
+        isFocused,
+        transactions,
+        previousTransactions,
+        queryJSON,
+        searchKey,
+        offset,
+        shouldCalculateTotals,
+        reportActions,
+        previousReportActions,
+        isChat,
+        searchResults?.data,
+        existingSearchResultIDs,
+    ]);
 
     // Initialize the set with existing IDs only once
     useEffect(() => {

@@ -1,7 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 import usePermissions from '@src/hooks/usePermissions';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -11,7 +11,7 @@ type ChildrenProps = {
     children: React.ReactNode;
 };
 function Wrapper({children}: ChildrenProps) {
-    return <OnyxProvider>{children}</OnyxProvider>;
+    return <OnyxListItemProvider>{children}</OnyxListItemProvider>;
 }
 
 describe('usePermissions', () => {

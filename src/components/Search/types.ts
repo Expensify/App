@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {SearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
@@ -69,6 +70,7 @@ type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 
 type SearchContextData = {
     currentSearchHash: number;
+    currentSearchKey: SearchKey | undefined;
     selectedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
@@ -77,7 +79,7 @@ type SearchContextData = {
 };
 
 type SearchContext = SearchContextData & {
-    setCurrentSearchHash: (hash: number) => void;
+    setCurrentSearchHashAndKey: (hash: number, key: SearchKey | undefined) => void;
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
     setSelectedTransactions: {
         (selectedTransactionIDs: string[], unused?: undefined): void;
@@ -167,7 +169,9 @@ type SearchAutocompleteQueryRange = {
 
 type SearchParams = {
     queryJSON: SearchQueryJSON;
+    searchKey: SearchKey | undefined;
     offset: number;
+    shouldCalculateTotals: boolean;
 };
 
 export type {

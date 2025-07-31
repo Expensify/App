@@ -4,6 +4,7 @@ import type {ValueOf} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
+import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {
     ListItem,
@@ -17,7 +18,6 @@ import type {
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -26,8 +26,11 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {generateReportID} from '@libs/ReportUtils';
 import variables from '@styles/variables';
-import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
+import {updateSearchResultsWithTransactionThreadReportID} from '@userActions/Search';
+import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -57,6 +60,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const isEmpty = groupItem.transactions.length === 0;
     const isDisabledOrEmpty = isEmpty || isDisabled;
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const {currentSearchHash} = useSearchContext();
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
         const isAmountColumnWide = groupItem.transactions.some((transaction) => transaction.isAmountColumnWide);
@@ -82,11 +86,22 @@ function TransactionGroupListItem<TItem extends ListItem>({
         const backTo = Navigation.getActiveRoute();
 
         const reportID = getReportIDForTransaction(transactionItem);
-        const siblingTransactionThreadIDs = groupItem.transactions.map(getReportIDForTransaction);
+        const siblingTransactionIDs = groupItem.transactions.map((transaction) => transaction.transactionID);
 
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
         // to display prev/next arrows in RHP for navigation
-        setActiveTransactionThreadIDs(siblingTransactionThreadIDs).then(() => {
+        setActiveTransactionIDs(siblingTransactionIDs).then(() => {
+            // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
+            if (transactionItem.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                const transactionThreadReportID = generateReportID();
+                const {moneyRequestReportActionID, transactionID, reportID: transactionItemReportID} = transactionItem;
+                const reportAction = getReportAction(transactionItemReportID, moneyRequestReportActionID);
+                const iouReportID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
+
+                updateSearchResultsWithTransactionThreadReportID(currentSearchHash, transactionID, transactionThreadReportID);
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReportID, backTo, moneyRequestReportActionID, transactionID, iouReportID}));
+                return;
+            }
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         });
     };
@@ -148,7 +163,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     }, [groupItem, policy, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, groupBy]);
 
     const StyleUtils = useStyleUtils();
-    const {hovered, bind} = useHover();
     const pressableRef = useRef<View>(null);
 
     const onPress = useCallback(() => {
@@ -164,8 +178,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
-                onMouseEnter={bind.onMouseEnter}
-                onMouseLeave={bind.onMouseLeave}
                 ref={pressableRef}
                 onLongPress={onLongPress}
                 onPress={onPress}
@@ -175,6 +187,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 isNested
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
+                onMouseDown={(e) => e.preventDefault()}
                 id={item.keyForList ?? ''}
                 style={[
                     pressableStyle,
@@ -211,7 +224,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 onButtonPress={() => {
                                     openReportInRHP(transaction);
                                 }}
-                                isParentHovered={hovered}
                                 columnWrapperStyles={[styles.ph3, styles.pv1Half]}
                                 isReportItemChild
                                 isInSingleTransactionReport={groupItem.transactions.length === 1}
