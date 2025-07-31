@@ -108,8 +108,10 @@ const isQuickActionAllowed = (quickAction: QuickAction, quickActionReport: Repor
     if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM) {
         return !!quickActionPolicy?.arePerDiemRatesEnabled;
     }
+    // We don't want to show this QAB since this is already available in the FloatingActionButtonAndPopover
+    // In the future, we will remove this when the BE no longer returns this action
     if (quickAction?.action === CONST.QUICK_ACTIONS.CREATE_REPORT) {
-        return shouldShowPolicy(quickActionPolicy, false, undefined) && !!quickActionPolicy?.isPolicyExpenseChatEnabled;
+        return false;
     }
     return true;
 };
