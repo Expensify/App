@@ -12,7 +12,7 @@ type GithubReleaseJSON = {
 };
 
 let isLastSavedBeta = false;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.IS_BETA,
     callback: (value) => {
         isLastSavedBeta = !!value;
