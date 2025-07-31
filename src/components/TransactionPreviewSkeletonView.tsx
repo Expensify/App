@@ -14,14 +14,12 @@ function TransactionPreviewSkeletonView({transactionPreviewWidth}: TransactionPr
     const theme = useTheme();
     const styles = useThemeStyles();
 
-    const isWidthANumber = typeof transactionPreviewWidth === 'number';
-    const widthOfEntireSkeleton = isWidthANumber ? transactionPreviewWidth - styles.p4.padding * 2 : transactionPreviewWidth;
     const height = variables.transactionPreviewSkeletonHeight;
     const widthOfTheLeftSkeleton = 120;
     const widthOfTheRightSkeleton = 68;
 
     return (
-        <View style={[styles.p4, styles.mtn1, styles.justifyContentBetween, {width: widthOfEntireSkeleton}]}>
+        <View style={[styles.p4, styles.mtn1, styles.justifyContentBetween, {width: transactionPreviewWidth}]}>
             <SkeletonViewContentLoader
                 testID={TransactionPreviewSkeletonView.displayName}
                 animate
