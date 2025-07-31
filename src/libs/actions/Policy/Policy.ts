@@ -152,7 +152,7 @@ type BuildPolicyDataOptions = {
     shouldAddOnboardingTasks?: boolean;
     companySize?: OnboardingCompanySize;
     userReportedIntegration?: OnboardingAccounting;
-    selectedFeatures?: string[];
+    featuresMap?: Feature[];
 };
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -1889,7 +1889,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         shouldAddOnboardingTasks = true,
         companySize,
         userReportedIntegration,
-        selectedFeatures,
+        featuresMap,
     } = options;
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
@@ -1919,9 +1919,9 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     const shouldSetCreatedWorkspaceAsActivePolicy = !!activePolicyID && allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
 
     // Determine workspace type based on selected features or user reported integration
-    const isCorporateFeature = selectedFeatures?.some((featureId) => {
-        return featureId === CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias || featureId === CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.alias;
-    }) ?? false;
+    const isCorporateFeature = featuresMap?.some(
+        feature => !feature.enabledByDefault && feature.enabled && feature.requiresUpdate
+    );
     const isCorporateIntegration = userReportedIntegration && (CONST.POLICY.CONNECTIONS.CORPORATE as readonly string[]).includes(userReportedIntegration);
     const workspaceType = isCorporateFeature || isCorporateIntegration ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
         
@@ -2268,7 +2268,7 @@ function createWorkspace(
     shouldAddOnboardingTasks = true,
     companySize?: OnboardingCompanySize,
     userReportedIntegration?: OnboardingAccounting,
-    selectedFeatures?: string[],
+    featuresMap?: Feature[],
 ): CreateWorkspaceParams {
     const {optimisticData, failureData, successData, params} = buildPolicyData({
         policyOwnerEmail,
@@ -2281,7 +2281,7 @@ function createWorkspace(
         shouldAddOnboardingTasks,
         companySize,
         userReportedIntegration,
-        selectedFeatures,
+        featuresMap,
     });
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
@@ -5483,8 +5483,8 @@ function updateInterestedFeatures(features: Feature[], policyID: string, type: s
     }> = [];
 
     features.forEach((feature) => {
-        // If the feature is not enabled by default and it's programmatically enabled, we need to enable it
-        if (!feature.enabledByDefault && feature.programmaticallyEnabled) {
+        // If the feature is not enabled by default but it's enabled now, we need to enable it
+        if (!feature.enabledByDefault && feature.enabled) {
             if (feature.requiresUpdate && !shouldUpgradeToCorporate) {
                 shouldUpgradeToCorporate = true;
             }
@@ -5496,8 +5496,8 @@ function updateInterestedFeatures(features: Feature[], policyID: string, type: s
                 },
             });
         }
-        // If the feature is enabled by default and it's programmatically disabled, we need to disable it
-        if (feature.enabledByDefault && !feature.programmaticallyEnabled) {
+        // If the feature is enabled by default but it's not enabled now, we need to disable it
+        if (feature.enabledByDefault && !feature.enabled) {
             requests.push({
                 endpoint: feature.apiEndpoint,
                 parameters: {
