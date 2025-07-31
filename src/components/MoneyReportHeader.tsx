@@ -104,6 +104,7 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import KYCWall from './KYCWall';
+import {KYCWallContext} from './KYCWall/KYCWallContext';
 import type {PaymentMethod} from './KYCWall/types';
 import LoadingBar from './LoadingBar';
 import Modal from './Modal';
@@ -327,6 +328,7 @@ function MoneyReportHeader({
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const shouldShowLoadingBar = useLoadingBarVisibility();
+    const kycWallRef = useContext(KYCWallContext);
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
@@ -971,6 +973,7 @@ function MoneyReportHeader({
 
     const KYCMoreDropdown = (
         <KYCWall
+            ref={kycWallRef}
             onSuccessfulKYC={(payment) => confirmPayment(payment)}
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
             isDisabled={isOffline}

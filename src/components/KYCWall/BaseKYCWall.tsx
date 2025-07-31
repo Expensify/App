@@ -1,5 +1,6 @@
 /* eslint-disable react-compiler/react-compiler */
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
 import type {EmitterSubscription, GestureResponderEvent, View} from 'react-native';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
@@ -11,7 +12,6 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
 import {getBankAccountRoute, isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
-import {kycWallRef} from '@userActions/PaymentMethods';
 import {createWorkspaceFromIOUPayment} from '@userActions/Policy/Policy';
 import {setKYCWallSource} from '@userActions/Wallet';
 import CONST from '@src/CONST';
@@ -21,7 +21,7 @@ import type {BankAccountList} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
-import type {AnchorPosition, DomRect, KYCWallProps, PaymentMethod} from './types';
+import type {AnchorPosition, DomRect, KYCWallProps, KYCWallRef, PaymentMethod} from './types';
 
 // This sets the Horizontal anchor position offset for POPOVER MENU.
 const POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET = 20;
@@ -29,24 +29,27 @@ const POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET = 20;
 // This component allows us to block various actions by forcing the user to first add a default payment method and successfully make it through our Know Your Customer flow
 // before continuing to take whatever action they originally intended to take. It requires a button as a child and a native event so we can get the coordinates and use it
 // to render the AddPaymentMethodMenu in the correct location.
-function KYCWall({
-    addBankAccountRoute,
-    addDebitCardRoute,
-    anchorAlignment = {
-        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-    },
-    chatReportID = '',
-    children,
-    enablePaymentsRoute,
-    iouReport,
-    onSelectPaymentMethod = () => {},
-    onSuccessfulKYC,
-    shouldIncludeDebitCard = true,
-    shouldListenForResize = false,
-    source,
-    shouldShowPersonalBankAccountOption = false,
-}: KYCWallProps) {
+function KYCWall(
+    {
+        addBankAccountRoute,
+        addDebitCardRoute,
+        anchorAlignment = {
+            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+        },
+        chatReportID = '',
+        children,
+        enablePaymentsRoute,
+        iouReport,
+        onSelectPaymentMethod = () => {},
+        onSuccessfulKYC,
+        shouldIncludeDebitCard = true,
+        shouldListenForResize = false,
+        source,
+        shouldShowPersonalBankAccountOption = false,
+    }: KYCWallProps,
+    ref: ForwardedRef<KYCWallRef>,
+) {
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
@@ -217,20 +220,25 @@ function KYCWall({
     useEffect(() => {
         let dimensionsSubscription: EmitterSubscription | null = null;
 
-        kycWallRef.current = {continueAction};
-
         if (shouldListenForResize) {
             dimensionsSubscription = Dimensions.addEventListener('change', setMenuPosition);
         }
 
         return () => {
-            if (shouldListenForResize && dimensionsSubscription) {
-                dimensionsSubscription.remove();
+            if (!shouldListenForResize || !dimensionsSubscription) {
+                return;
             }
-
-            kycWallRef.current = null;
+            dimensionsSubscription.remove();
         };
-    }, [chatReportID, setMenuPosition, shouldListenForResize, continueAction]);
+    }, [chatReportID, setMenuPosition, shouldListenForResize]);
+
+    useImperativeHandle(
+        ref,
+        () => ({
+            continueAction,
+        }),
+        [continueAction],
+    );
 
     return (
         <>
@@ -257,4 +265,4 @@ function KYCWall({
 
 KYCWall.displayName = 'BaseKYCWall';
 
-export default KYCWall;
+export default forwardRef(KYCWall);

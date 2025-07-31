@@ -1,3 +1,4 @@
+import {forwardRef} from 'react';
 import BaseKYCWall from './BaseKYCWall';
 
-export default BaseKYCWall;
+export default forwardRef(BaseKYCWall);
