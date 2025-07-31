@@ -88,6 +88,8 @@ function NumberWithSymbolForm(
         footer,
         amountFormRef,
         label,
+        style,
+        containerStyle,
         symbolTextStyle,
         ...props
     }: NumberWithSymbolFormProps,
@@ -315,10 +317,10 @@ function NumberWithSymbolForm(
                 autoCapitalize="words"
                 inputMode={CONST.INPUT_MODE.DECIMAL}
                 errorText={errorText}
+                style={style}
                 autoFocus={props.autoFocus}
                 autoGrowExtraSpace={props.autoGrowExtraSpace}
                 autoGrowMarginSide={props.autoGrowMarginSide}
-                style={props.style}
             />
         );
     }
@@ -364,12 +366,27 @@ function NumberWithSymbolForm(
                     onKeyPress={textInputKeyPress}
                     isSymbolPressable={isSymbolPressable}
                     symbolTextStyle={symbolTextStyle}
-                    style={styles.iouAmountTextInput}
-                    containerStyle={styles.iouAmountTextInputContainer}
+                    style={style}
+                    containerStyle={containerStyle}
                     onMouseDown={handleMouseDown}
                     onMouseUp={handleMouseUp}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
+                    shouldUseDefaultLineHeightForPrefix={props.shouldUseDefaultLineHeightForPrefix}
+                    autoFocus={props.autoFocus}
+                    autoGrow={props.autoGrow}
+                    autoGrowExtraSpace={props.autoGrowExtraSpace}
+                    autoGrowMarginSide={props.autoGrowMarginSide}
+                    contentWidth={props.contentWidth}
+                    onPress={props.onPress}
+                    onBlur={props.onBlur}
+                    submitBehavior={props.submitBehavior}
+                    disableKeyboard={props.disableKeyboard}
+                    hideFocusedState={props.hideFocusedState}
+                    shouldApplyPaddingToContainer={props.shouldApplyPaddingToContainer}
+                    testID={props.testID}
+                    prefixCharacter={props.prefixCharacter}
+                    prefixStyle={props.prefixStyle}
+                    prefixContainerStyle={props.prefixContainerStyle}
+                    touchableInputWrapperStyle={props.touchableInputWrapperStyle}
                 />
                 {!!errorText && (
                     <FormHelpMessage

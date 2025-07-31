@@ -1,5 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef} from 'react';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
@@ -66,6 +67,7 @@ function AmountForm(
     }: AmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
+    const styles = useThemeStyles();
     const decimals = decimalsProp ?? getCurrencyDecimals(currency);
 
     return (
@@ -91,6 +93,8 @@ function AmountForm(
             maxLength={amountMaxLength}
             shouldShowBigNumberPad={canUseTouchScreen()}
             errorText={errorText}
+            style={displayAsTextInput ? undefined : styles.iouAmountTextInput}
+            containerStyle={displayAsTextInput ? undefined : styles.iouAmountTextInputContainer}
             autoFocus={autoFocus}
             autoGrowExtraSpace={autoGrowExtraSpace}
             autoGrowMarginSide={autoGrowMarginSide}

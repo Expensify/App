@@ -191,8 +191,21 @@ function MoneyRequestAmountInput(
             shouldShowBigNumberPad={shouldShowBigNumberPad}
             style={inputStyle}
             shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            containerStyle={props.containerStyle}
+            prefixCharacter={props.prefixCharacter}
+            disableKeyboard={props.disableKeyboard}
+            prefixStyle={props.prefixStyle}
+            prefixContainerStyle={props.prefixContainerStyle}
+            touchableInputWrapperStyle={props.touchableInputWrapperStyle}
+            hideFocusedState={props.hideFocusedState}
+            autoGrow={props.autoGrow}
+            contentWidth={props.contentWidth}
+            shouldApplyPaddingToContainer={props.shouldApplyPaddingToContainer}
+            testID={props.testID}
+            errorText={props.errorText}
+            footer={props.footer}
+            autoGrowExtraSpace={props.autoGrowExtraSpace}
+            submitBehavior={props.submitBehavior}
         />
     );
 }

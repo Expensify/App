@@ -100,6 +100,7 @@ function ValuePage({
                         isSymbolPressable={false}
                         autoGrowMarginSide="left"
                         style={[styles.iouAmountTextInput, styles.textAlignRight]}
+                        containerStyle={styles.iouAmountTextInputContainer}
                         shouldShowBigNumberPad={canUseTouchScreen()}
                     />
                 </FormProvider>

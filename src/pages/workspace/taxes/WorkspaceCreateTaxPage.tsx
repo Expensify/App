@@ -119,6 +119,7 @@ function WorkspaceCreateTaxPage({
                                     autoGrowExtraSpace={variables.w80}
                                     autoGrowMarginSide="left"
                                     style={[styles.iouAmountTextInput, styles.textAlignRight]}
+                                    containerStyle={styles.iouAmountTextInputContainer}
                                 />
                             </View>
                         </FormProvider>
