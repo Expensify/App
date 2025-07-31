@@ -3,7 +3,7 @@ import {measureFunction} from 'reassure';
 import {
     canDeleteReportAction,
     canShowReportRecipientLocalTime,
-    findLastAccessedReport,
+    findLastAccessedReportWithoutView,
     getDisplayNamesWithTooltips,
     getIcons,
     getIconsForParticipants,
@@ -84,7 +84,7 @@ describe('ReportUtils', () => {
         });
 
         await waitForBatchedUpdates();
-        await measureFunction(() => findLastAccessedReport(ignoreDomainRooms, openOnAdminRoom));
+        await measureFunction(() => findLastAccessedReportWithoutView(ignoreDomainRooms, openOnAdminRoom));
     });
 
     test('[ReportUtils] canDeleteReportAction on 1k reports and policies', async () => {

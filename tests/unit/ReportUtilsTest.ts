@@ -32,7 +32,7 @@ import {
     canJoinChat,
     canLeaveChat,
     canUserPerformWriteAction,
-    findLastAccessedReport,
+    findLastAccessedReportWithoutView,
     getAllAncestorReportActions,
     getApprovalChain,
     getChatByParticipants,
@@ -3092,13 +3092,8 @@ describe('ReportUtils', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
         });
 
-        it('should not return an archived report even if it was most recently accessed', () => {
-            const reportNameValuePairs = {
-                private_isArchived: DateUtils.getDBTime(),
-            };
-            const result = findLastAccessedReport(false, undefined, undefined, undefined, {
-                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: reportNameValuePairs,
-            });
+        it('should not return an archived report even if it was most recently accessed', async () => {
+            const result = findLastAccessedReportWithoutView(false);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report
@@ -3141,7 +3136,7 @@ describe('ReportUtils', () => {
         });
 
         it('findLastAccessedReport should return owned report if no reports was accessed before', () => {
-            const result = findLastAccessedReport(false);
+            const result = findLastAccessedReportWithoutView(false);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report

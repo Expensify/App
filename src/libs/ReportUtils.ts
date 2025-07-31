@@ -2040,7 +2040,7 @@ function findLastAccessedReport(
     return getMostRecentlyVisitedReport(reportsValues, reportMetadata);
 }
 
-function findLastAccessedReportWithoutView(ignoreDomainRooms: boolean, openOnAdminRoom: boolean, policyID?: string, excludeReportID?: string): OnyxEntry<Report> {
+function findLastAccessedReportWithoutView(ignoreDomainRooms: boolean, openOnAdminRoom = false, policyID?: string, excludeReportID?: string): OnyxEntry<Report> {
     return findLastAccessedReport(allReports, allPolicies, allReportMetadata, allReportNameValuePair, ignoreDomainRooms, openOnAdminRoom, policyID, excludeReportID);
 }
 
