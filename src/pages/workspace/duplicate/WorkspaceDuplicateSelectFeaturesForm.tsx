@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Rate} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getWorkspaceRules} from './utils';
 
 type WorkspaceDuplicateFormProps = {
     policyID?: string;
@@ -43,6 +44,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const customUnitRates: Record<string, Rate> = customUnits?.rates ?? {};
     const allRates = Object.values(customUnitRates)?.length;
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const rules = getWorkspaceRules(policy, translate);
 
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectedIntegration = getAllValidConnectedIntegration(policy, accountingIntegrations);
@@ -116,11 +118,15 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 value: 'workflows',
                 alternateText: 'eqwewq',
             },
-            {
-                translation: translate('workspace.common.rules'),
-                value: 'rules',
-                alternateText: 'eqwewq',
-            },
+            rules && rules.length > 0
+                ? {
+                      translation: translate('workspace.common.rules'),
+                      value: 'rules',
+                      alternateText: rules.length
+                          ? `${rules.length} ${translate('workspace.common.workspace').toLowerCase()} ${translate('workspace.common.rules').toLowerCase()}: ${rules.join(', ')}`
+                          : undefined,
+                  }
+                : undefined,
             {
                 translation: translate('workspace.common.distanceRates'),
                 value: 'distanceRates',
@@ -152,6 +158,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         totalTags,
         categoriesCount,
         taxesLength,
+        rules,
         ratesCount,
         allRates,
         bankAccountList,
