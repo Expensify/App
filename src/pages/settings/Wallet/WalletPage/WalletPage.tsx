@@ -446,6 +446,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                     onListContentSizeChange={shouldShowAddPaymentMenu || shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
                                     style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                                    shouldShowBankAccountSections
                                 />
                             </Section>
 

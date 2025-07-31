@@ -6,7 +6,7 @@ import Agreements from './Agreements';
 import BankInfo from './BankInfo/BankInfo';
 import BeneficialOwnerInfo from './BeneficialOwnerInfo/BeneficialOwnerInfo';
 import BusinessInfo from './BusinessInfo/BusinessInfo';
-import Country from './Country/Country';
+import Country from './Country';
 import Docusign from './Docusign';
 import Finish from './Finish';
 import SignerInfo from './SignerInfo';
