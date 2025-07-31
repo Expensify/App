@@ -476,7 +476,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
     const previousTransactionTag = usePrevious(transactionTag);
 
     const [previousTag, setPreviousTag] = useState<string | undefined>(undefined);
-    const [currenttransactionTag, setCurrentTransactionTag] = useState<string | undefined>(undefined);
+    const [currentTransactionTag, setCurrentTransactionTag] = useState<string | undefined>(undefined);
 
     useEffect(() => {
         if (transactionTag === previousTransactionTag) {
@@ -487,7 +487,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
     }, [transactionTag, previousTransactionTag]);
 
     const previousTagLength = getLengthOfTag(previousTag ?? '');
-    const currentTagLength = getLengthOfTag(currenttransactionTag ?? '');
+    const currentTagLength = getLengthOfTag(currentTransactionTag ?? '');
 
     const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
         const tagForDisplay = getTagForDisplay(updatedTransaction ?? transaction, index);
