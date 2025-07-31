@@ -792,7 +792,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                         subtitleKeyBelowLink={shouldShowNotFoundLinkedAction ? 'notFound.contactConcierge' : ''}
                         onLinkPress={navigateToEndOfReport}
                         shouldDisplaySearchRouter
-                        isReportScreen
                     >
                         <OfflineWithFeedback
                             pendingAction={reportPendingAction}

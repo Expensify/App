@@ -63,9 +63,6 @@ type BaseBlockingViewProps = {
 
     /** A testing ID that can be applied to the element on the page */
     testID?: string;
-
-    /** Whether the component is in report screen */
-    isReportScreen?: boolean;
 };
 
 type BlockingViewIconProps = {
@@ -119,13 +116,11 @@ function BlockingView({
     addBottomSafeAreaPadding,
     addOfflineIndicatorBottomSafeAreaPadding,
     testID,
-    isReportScreen = false,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
     const subtitleText = useMemo(() => {
-        if (isReportScreen && shouldShowLink) {
+        if (!!subtitleKeyBelowLink && shouldShowLink) {
             return (
                 <>
                     <Text style={[styles.textAlignCenter]}>
@@ -142,12 +137,10 @@ function BlockingView({
                             {` ${translate(linkKey)}`}
                         </TextLink>
                     </Text>
-                    {!!subtitleKeyBelowLink && (
-                        <AutoEmailLink
-                            style={[styles.textAlignCenter, subtitleStyle, styles.mt4]}
-                            text={translate(subtitleKeyBelowLink)}
-                        />
-                    )}
+                    <AutoEmailLink
+                        style={[styles.textAlignCenter, subtitleStyle, styles.mt4]}
+                        text={translate(subtitleKeyBelowLink)}
+                    />
                 </>
             );
         }
@@ -169,7 +162,7 @@ function BlockingView({
                 ) : null}
             </>
         );
-    }, [styles, subtitle, shouldShowLink, linkKey, onLinkPress, translate, subtitleStyle, subtitleKeyBelowLink, isReportScreen]);
+    }, [styles, subtitle, shouldShowLink, linkKey, onLinkPress, translate, subtitleStyle, subtitleKeyBelowLink]);
 
     const subtitleContent = useMemo(() => {
         if (CustomSubtitle) {
