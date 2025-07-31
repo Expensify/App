@@ -1920,7 +1920,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
 
     // Determine workspace type based on user reported integration or selected features
     const isCorporateFeature = selectedFeatures?.some((featureId) => {
-        return featureId === 'rules' || featureId === 'per-diem';
+        return featureId === CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias || featureId === CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.alias;
     }) ?? false;
     const isCorporateIntegration = userReportedIntegration && (CONST.POLICY.CONNECTIONS.CORPORATE as readonly string[]).includes(userReportedIntegration);
     const workspaceType = isCorporateFeature || isCorporateIntegration ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
