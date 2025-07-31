@@ -1,6 +1,7 @@
 import mapValues from 'lodash/mapValues';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -60,6 +61,9 @@ type MoneyRequestReceiptViewProps = {
 
     /** Updated transaction to show in duplicate transaction flow  */
     updatedTransaction?: OnyxEntry<OnyxTypes.Transaction>;
+
+    /** Whether the receipt view should take the full height of its container */
+    fullHeight?: boolean;
 };
 
 const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
@@ -73,7 +77,7 @@ const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
 
 const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
 
-function MoneyRequestReceiptView({allReports, report, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestReceiptViewProps) {
+function MoneyRequestReceiptView({allReports, report, readonly = false, updatedTransaction, isFromReviewDuplicates = false, fullHeight = false}: MoneyRequestReceiptViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -196,10 +200,16 @@ function MoneyRequestReceiptView({allReports, report, readonly = false, updatedT
         clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
     }, [transaction, chatReport, parentReportAction, linkedTransactionID, report?.reportID]);
 
-    const receiptStyle = shouldUseNarrowLayout ? styles.expenseViewImageSmall : styles.expenseViewImage;
+    let receiptStyle: StyleProp<ViewStyle>;
+
+    if (fullHeight) {
+        receiptStyle = styles.fullHeight;
+    } else {
+        receiptStyle = shouldUseNarrowLayout ? styles.expenseViewImageSmall : styles.expenseViewImage;
+    }
 
     return (
-        <View style={styles.pRelative}>
+        <View style={fullHeight ? styles.flex1 : styles.pRelative}>
             {shouldShowReceiptAudit && (
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('receipt')}>
                     <ReceiptAudit
@@ -211,7 +221,8 @@ function MoneyRequestReceiptView({allReports, report, readonly = false, updatedT
             {shouldShowReceiptEmptyState && (
                 <OfflineWithFeedback
                     pendingAction={getPendingFieldAction('receipt')}
-                    style={styles.mv3}
+                    style={[styles.mv3, styles.flex1]}
+                    contentContainerStyle={styles.flex1}
                 >
                     <ReceiptEmptyState
                         disabled={!canEditReceipt}
@@ -250,7 +261,8 @@ function MoneyRequestReceiptView({allReports, report, readonly = false, updatedT
                         }
                     }}
                     dismissError={dismissReceiptError}
-                    style={shouldShowReceiptEmptyState ? styles.mb3 : styles.mv3}
+                    style={[styles.mv3, styles.flex1]}
+                    contentContainerStyle={styles.flex1}
                 >
                     {hasReceipt && (
                         <View style={[styles.moneyRequestViewImage, receiptStyle]}>
@@ -265,6 +277,7 @@ function MoneyRequestReceiptView({allReports, report, readonly = false, updatedT
                                 enablePreviewModal
                                 readonly={readonly || !canEditReceipt}
                                 isFromReviewDuplicates={isFromReviewDuplicates}
+                                report={report}
                             />
                         </View>
                     )}

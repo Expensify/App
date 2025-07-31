@@ -5688,6 +5688,19 @@ const styles = (theme: ThemeColors) =>
             zIndex: 15,
         },
 
+        fullHeight: {
+            height: '100%',
+        },
+
+        wideRHPMoneyRequestReceiptViewContainer: {
+            backgroundColor: theme.appBG,
+            width: variables.sideBarWidth,
+            height: '100%',
+            borderRightWidth: 1,
+            borderColor: theme.border,
+            paddingVertical: 12,
+        },
+
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
             flex: 1,
             justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
