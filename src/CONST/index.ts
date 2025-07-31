@@ -904,6 +904,7 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     DEFAULT_NUMBER_ID,
+    FAKE_REPORT_ID: 'FAKE_REPORT_ID',
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
     EXPENSIFY_MOBILE_URL,
@@ -3087,7 +3088,9 @@ const CONST = {
         DISTANCE_UNIT_MILES: 'mi',
         DISTANCE_UNIT_KILOMETERS: 'km',
         MILEAGE_IRS_RATE: 0.7,
+        // The first created rate is called "Default rate", others are called "New Rate `i`"
         DEFAULT_RATE: 'Default Rate',
+        NEW_RATE: 'New Rate',
         RATE_DECIMALS: 3,
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
         MILES_TO_KILOMETERS: 1.609344,
@@ -6459,7 +6462,7 @@ const CONST = {
             EXPORT: 'export',
             STATEMENTS: 'statements',
             UNAPPROVED_CASH: 'unapprovedCash',
-            UNAPPROVED_COMPANY_CARDS: 'unapprovedCompanyCards',
+            UNAPPROVED_CARD: 'unapprovedCard',
         },
     },
 
