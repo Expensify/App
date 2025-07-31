@@ -65,13 +65,6 @@ const FS = {
     },
 };
 
-/**
- * Placeholder function for Mobile-Web compatibility.
- */
-function parseFSAttributes(): void {
-    // pass
-}
-
 /*
     prefix? if component name should be used as a prefix,
     in case data-test-id attribute usage,
@@ -106,4 +99,4 @@ function getChatFSAttributes(context: OnyxEntry<PersonalDetailsList>, name: stri
 }
 
 export default FS;
-export {FSPage, parseFSAttributes, getFSAttributes, getChatFSAttributes};
+export {FSPage, getFSAttributes, getChatFSAttributes};

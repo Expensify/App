@@ -1,5 +1,5 @@
 import {Portal} from '@gorhom/portal';
-import React, {useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {View as RNView} from 'react-native';
@@ -8,7 +8,6 @@ import AnimatedPressableWithoutFeedback from '@components/AnimatedPressableWitho
 import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
-import {parseFSAttributes} from '@libs/Fullstory';
 import CONST from '@src/CONST';
 import type {BaseGenericTooltipProps} from './types';
 
@@ -104,14 +103,6 @@ function BaseGenericTooltip({
             currentSize: animation,
         });
     });
-
-    /**
-     * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
-     * to ensure necessary properties are available for further processing.
-     * Reevaluates "fs-class" to dynamically apply styles or behavior based on
-     * updated attribute values.
-     */
-    useLayoutEffect(parseFSAttributes, []);
 
     let content;
     if (renderTooltipContent) {

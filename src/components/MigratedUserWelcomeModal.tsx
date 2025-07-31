@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useLayoutEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -8,7 +8,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import convertToLTR from '@libs/convertToLTR';
-import {parseFSAttributes} from '@libs/Fullstory';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WelcomeVideoModalNavigatorParamList} from '@libs/Navigation/types';
@@ -70,14 +69,6 @@ function OnboardingWelcomeVideo() {
         const defaultCannedQuery = buildCannedSearchQuery();
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultCannedQuery}));
     }, [dismissedProductTraining?.migratedUserWelcomeModal, setIsModalDisabled, tryNewDotMetadata, dismissedProductTrainingMetadata, tryNewDot, shouldOpenSearch]);
-
-    /**
-     * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
-     * to ensure necessary properties are available for further processing.
-     * Reevaluates "fs-class" to dynamically apply styles or behavior based on
-     * updated attribute values.
-     */
-    useLayoutEffect(parseFSAttributes, []);
 
     return (
         <FeatureTrainingModal

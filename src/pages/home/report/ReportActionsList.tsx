@@ -21,7 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
-import {getChatFSAttributes, parseFSAttributes} from '@libs/Fullstory';
+import {getChatFSAttributes} from '@libs/Fullstory';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -447,7 +447,7 @@ function ReportActionsList({
                 setIsScrollToBottomEnabled(true);
             });
         },
-        [report.reportID, reportScrollManager, setIsFloatingMessageCounterVisible, sortedVisibleReportActions, reportScrollManager],
+        [report.reportID, reportScrollManager, setIsFloatingMessageCounterVisible, sortedVisibleReportActions],
     );
 
     // Clear the highlighted report action after scrolling and highlighting
@@ -724,9 +724,6 @@ function ReportActionsList({
     const onEndReached = useCallback(() => {
         loadOlderChats(false);
     }, [loadOlderChats]);
-
-    // Parse Fullstory attributes on initial render
-    useLayoutEffect(parseFSAttributes, []);
 
     return (
         <>

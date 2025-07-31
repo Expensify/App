@@ -32,7 +32,6 @@ jest.mock('@libs/Fullstory', () => ({
     },
     getFSAttributes: jest.fn(),
     getChatFSAttributes: jest.fn().mockReturnValue(['mockTestID', 'mockFSClass']),
-    parseFSAttributes: jest.fn(),
 }));
 
 jest.mock('@components/withCurrentUserPersonalDetails', () => {

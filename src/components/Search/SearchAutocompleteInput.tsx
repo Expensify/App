@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/no-acc-spread-in-reduce */
 import type {ForwardedRef, RefObject} from 'react';
-import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo} from 'react';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
@@ -16,7 +16,6 @@ import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAdvancedFilters} from '@libs/actions/Search';
-import {parseFSAttributes} from '@libs/Fullstory';
 import Navigation from '@libs/Navigation/Navigation';
 import runOnLiveMarkdownRuntime from '@libs/runOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
@@ -190,9 +189,6 @@ function SearchAutocompleteInput(
     }, [onSearchQueryChange]);
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
-
-    // Parse Fullstory attributes on initial render
-    useLayoutEffect(parseFSAttributes, []);
 
     return (
         <View style={[outerWrapperStyle]}>

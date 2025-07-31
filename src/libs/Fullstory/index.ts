@@ -8,40 +8,6 @@ import * as Environment from '@src/libs/Environment/Environment';
 import type {OnyxInputOrEntry, PersonalDetailsList, Report, UserMetadata} from '@src/types/onyx';
 import type NavigationProperties from './types';
 
-/**
- * Extract values from non-scraped at build time attribute WEB_PROP_ATTR,
- * reevaluate "fs-class".
- */
-function parseFSAttributes(): void {
-    window?.document?.querySelectorAll(`[${CONST.FULL_STORY.WEB_PROP_ATTR}]`).forEach((o) => {
-        const attr = o.getAttribute(CONST.FULL_STORY.WEB_PROP_ATTR) ?? '';
-        if (!/fs-/gim.test(attr)) {
-            return;
-        }
-
-        const fsAttrs = attr.match(/fs-[a-zA-Z0-9_-]+/g) ?? [];
-        o.setAttribute('fs-class', fsAttrs.join(','));
-
-        let cleanedAttrs = attr;
-        fsAttrs.forEach((fsAttr) => {
-            cleanedAttrs = cleanedAttrs.replace(fsAttr, '');
-        });
-
-        cleanedAttrs = cleanedAttrs
-            .replace(/,+/g, ',')
-            .replace(/\s*,\s*/g, ',')
-            .replace(/^,+|,+$/g, '')
-            .replace(/\s+/g, ' ')
-            .trim();
-
-        if (cleanedAttrs) {
-            o.setAttribute(CONST.FULL_STORY.WEB_PROP_ATTR, cleanedAttrs);
-        } else {
-            o.removeAttribute(CONST.FULL_STORY.WEB_PROP_ATTR);
-        }
-    });
-}
-
 /*
     prefix? if component name should be used as a prefix,
     in case data-test-id attribute usage,
@@ -87,9 +53,7 @@ class FSPage {
         this.properties = properties;
     }
 
-    start() {
-        parseFSAttributes();
-    }
+    start() {}
 }
 
 /**
@@ -185,4 +149,4 @@ const FS = {
 };
 
 export default FS;
-export {FSPage, parseFSAttributes, getFSAttributes, getChatFSAttributes};
+export {FSPage, getFSAttributes, getChatFSAttributes};
