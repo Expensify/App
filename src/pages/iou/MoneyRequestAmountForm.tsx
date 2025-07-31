@@ -92,7 +92,7 @@ function MoneyRequestAmountForm(
     const initializeAmount = useCallback(
         (newAmount: number) => {
             const frontendAmount = newAmount ? convertToFrontendAmountAsString(newAmount, currency) : '';
-            moneyRequestAmountInputRef.current?.updateAmount(frontendAmount);
+            moneyRequestAmountInputRef.current?.updateNumber(frontendAmount);
         },
         [currency],
     );
@@ -114,7 +114,7 @@ function MoneyRequestAmountForm(
             const isTaxAmountForm = Navigation.getActiveRoute().includes('taxAmount');
 
             // Skip the check for tax amount form as 0 is a valid input
-            const currentAmount = moneyRequestAmountInputRef.current?.getAmount() ?? '';
+            const currentAmount = moneyRequestAmountInputRef.current?.getNumber() ?? '';
             if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount))) {
                 setFormError(translate('iou.error.invalidAmount'));
                 return;
@@ -234,7 +234,6 @@ function MoneyRequestAmountForm(
                 containerStyle={styles.iouAmountTextInputContainer}
                 testID="moneyRequestAmountInput"
                 errorText={formError}
-                shouldShowBigNumberPad={canUseTouchScreen}
                 footer={footer}
             />
         </ScrollView>

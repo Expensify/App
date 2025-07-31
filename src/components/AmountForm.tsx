@@ -2,7 +2,6 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef} from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import NumberWithSymbolForm from './NumberWithSymbolForm';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
@@ -91,7 +90,6 @@ function AmountForm(
             isSymbolPressable={isCurrencyPressable}
             hideSymbol={hideCurrencySymbol}
             maxLength={amountMaxLength}
-            shouldShowBigNumberPad={canUseTouchScreen()}
             errorText={errorText}
             style={displayAsTextInput ? undefined : styles.iouAmountTextInput}
             containerStyle={displayAsTextInput ? undefined : styles.iouAmountTextInputContainer}

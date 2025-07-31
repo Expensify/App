@@ -8,6 +8,7 @@ import {useMouseContext} from '@hooks/useMouseContext';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import {addLeadingZero, replaceAllDigits, replaceCommasWithPeriod, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import shouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually';
@@ -83,7 +84,7 @@ function NumberWithSymbolForm(
         onInputChange,
         onSymbolButtonPress,
         isSymbolPressable = true,
-        shouldShowBigNumberPad = false,
+        shouldShowBigNumberPad = canUseTouchScreen(),
         displayAsTextInput = false,
         footer,
         numberFormRef,

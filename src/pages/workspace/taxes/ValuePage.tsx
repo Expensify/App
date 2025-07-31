@@ -9,7 +9,6 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updatePolicyTaxValue, validateTaxValue} from '@libs/actions/TaxRate';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -101,7 +100,6 @@ function ValuePage({
                         autoGrowMarginSide="left"
                         style={[styles.iouAmountTextInput, styles.textAlignRight]}
                         containerStyle={styles.iouAmountTextInputContainer}
-                        shouldShowBigNumberPad={canUseTouchScreen()}
                     />
                 </FormProvider>
             </ScreenWrapper>
