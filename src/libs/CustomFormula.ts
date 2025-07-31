@@ -1,4 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
@@ -206,7 +207,7 @@ function compute(formula: string, context: FormulaContext): string {
                 value = computeUserPart(part, context);
                 break;
             case FORMULA_PART_TYPES.FREETEXT:
-                value = part.definition;
+                value = part.definition.trim();
                 break;
             default:
                 // If we don't recognize the part type, use the original definition
@@ -215,7 +216,7 @@ function compute(formula: string, context: FormulaContext): string {
 
         // Apply any functions to the computed value
         value = applyFunctions(value, part.functions);
-        result += value;
+        result = result === '' ? value : `${result} ${value}`; // Concatenate with space
     }
 
     return result;
@@ -238,7 +239,7 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         case 'startdate':
             return formatDate(report.lastVisibleActionCreated);
         case 'total':
-            return formatAmount(report.total, report.currency);
+            return formatAmount(report.total, getCurrencySymbol(report.currency ?? '') ?? report.currency);
         case 'currency':
             return report.currency ?? '';
         case 'policyname':
@@ -247,7 +248,7 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         case 'created':
             return formatDate(report.lastVisibleActionCreated, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
         default:
-            return part.definition;
+            return '';
     }
 }
 
@@ -362,7 +363,7 @@ function formatAmount(amount: number | undefined, currency: string | undefined):
     const formattedAmount = (absoluteAmount / 100).toFixed(2);
 
     if (currency) {
-        return `${currency} ${formattedAmount}`;
+        return `${currency}${formattedAmount}`;
     }
 
     return formattedAmount;
