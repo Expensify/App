@@ -20,13 +20,6 @@ import {getCurrentUserAccountID} from './Report';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
 
-
-let stashedCredentials: Credentials = {};
-Onyx.connect({
-    key: ONYXKEYS.STASHED_CREDENTIALS,
-    callback: (value) => (stashedCredentials = value ?? {}),
-});
-
 let session: Session = {};
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -172,7 +165,7 @@ function connect(email: string, delegatedAccess: OnyxEntry<DelegatedAccess>, cre
         });
 }
 
-function disconnect() {
+function disconnect(stashedCredentials: OnyxEntry<Credentials>) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
