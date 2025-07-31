@@ -1,7 +1,9 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {DelegatedAccess} from '@src/types/onyx/Account';
 import type Response from '@src/types/onyx/Response';
 import {isConnectedAsDelegate, restoreDelegateSession} from './actions/Delegate';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
@@ -30,6 +32,19 @@ Onyx.connect({
     callback: (value) => {
         isAuthenticatingWithShortLivedToken = !!value?.isAuthenticatingWithShortLivedToken;
         isSupportAuthTokenUsed = !!value?.isSupportAuthTokenUsed;
+    },
+});
+
+let delegatedAccess: OnyxEntry<DelegatedAccess>;
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+
+        delegatedAccess = value?.delegatedAccess;
     },
 });
 
@@ -136,7 +151,7 @@ function reauthenticate(command = ''): Promise<boolean> {
 
             // If we reauthenticate due to an expired delegate token, restore the delegate's original account.
             // This is because the credentials used to reauthenticate were for the delegate's original account, and not for the account they were connected as.
-            if (isConnectedAsDelegate()) {
+            if (isConnectedAsDelegate(delegatedAccess)) {
                 Log.info('Reauthenticate while connected as a delegate. Restoring original account.');
                 restoreDelegateSession(response);
                 return true;
