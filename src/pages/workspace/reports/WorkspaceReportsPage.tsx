@@ -268,11 +268,7 @@ function WorkspaceReportFieldsPage({
                                     }
                                     if (!isControlPolicy(policy)) {
                                         Navigation.navigate(
-                                            ROUTES.WORKSPACE_UPGRADE.getRoute(
-                                                policyID,
-                                                CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias,
-                                                ROUTES.WORKSPACE_REPORTS.getRoute(policyID),
-                                            ),
+                                            ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias, ROUTES.WORKSPACE_REPORTS.getRoute(policyID)),
                                         );
                                         return;
                                     }

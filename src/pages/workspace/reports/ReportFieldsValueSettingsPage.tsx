@@ -12,11 +12,11 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportField from '@libs/actions/Policy/ReportField';
+import {deleteReportFieldsListValue, removeReportFieldListValue, setReportFieldsListValueEnabled, updateReportFieldListValueEnabled} from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {hasAccountingConnections as hasAccountingConnectionsUtil} from '@libs/PolicyUtils';
+import {getReportFieldKey} from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -37,7 +37,7 @@ function ReportFieldsValueSettingsPage({
 }: ReportFieldsValueSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
+    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
 
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = useState(false);
 
@@ -46,7 +46,7 @@ function ReportFieldsValueSettingsPage({
         let reportFieldDisabledValue: boolean;
 
         if (reportFieldID) {
-            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+            const reportFieldKey = getReportFieldKey(reportFieldID);
 
             reportFieldValue = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {})?.at(valueIndex) ?? '';
             reportFieldDisabledValue = Object.values(policy?.fieldList?.[reportFieldKey]?.disabledOptions ?? {})?.at(valueIndex) ?? false;
@@ -58,7 +58,7 @@ function ReportFieldsValueSettingsPage({
         return [reportFieldValue, reportFieldDisabledValue];
     }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID, valueIndex]);
 
-    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
+    const hasAccountingConnections = hasAccountingConnectionsUtil(policy);
     const oldValueName = usePrevious(currentValueName);
 
     if ((!currentValueName && !oldValueName) || hasAccountingConnections) {
@@ -66,9 +66,9 @@ function ReportFieldsValueSettingsPage({
     }
     const deleteListValueAndHideModal = () => {
         if (reportFieldID) {
-            ReportField.removeReportFieldListValue(policyID, reportFieldID, [valueIndex]);
+            removeReportFieldListValue(policyID, reportFieldID, [valueIndex]);
         } else {
-            ReportField.deleteReportFieldsListValue([valueIndex]);
+            deleteReportFieldsListValue([valueIndex]);
         }
         setIsDeleteTagModalOpen(false);
         Navigation.goBack();
@@ -76,11 +76,11 @@ function ReportFieldsValueSettingsPage({
 
     const updateListValueEnabled = (value: boolean) => {
         if (reportFieldID) {
-            ReportField.updateReportFieldListValueEnabled(policyID, reportFieldID, [Number(valueIndex)], value);
+            updateReportFieldListValueEnabled(policyID, reportFieldID, [Number(valueIndex)], value);
             return;
         }
 
-        ReportField.setReportFieldsListValueEnabled([valueIndex], value);
+        setReportFieldsListValueEnabled([valueIndex], value);
     };
 
     const navigateToEditValue = () => {
