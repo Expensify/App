@@ -91,11 +91,7 @@ function PopoverWithMeasuredContent({
         ComposerFocusManager.saveFocusState(modalId);
     }, [isVisible, shouldEnableNewFocusManagement, prevIsVisible, modalId]);
 
-    useEffect(() => {
-        if (prevIsVisible || !isVisible || !isContentMeasured || shouldSkipRemeasurement) {
-            return;
-        }
-
+    if (!prevIsVisible && isVisible && isContentMeasured && !shouldSkipRemeasurement) {
         // Check if anything significant changed that would require re-measurement
         const hasAnchorPositionChanged = !deepEqual(prevAnchorPosition, anchorPosition);
         const hasWindowSizeChanged = !deepEqual(prevWindowDimensions, {windowWidth, windowHeight});
@@ -105,24 +101,10 @@ function PopoverWithMeasuredContent({
         // 1. We don't have static dimensions, OR
         // 2. The anchor position changed significantly, OR
         // 3. The window size changed significantly
-        if (hasStaticDimensions && !hasAnchorPositionChanged && !hasWindowSizeChanged) {
-            return;
+        if (!hasStaticDimensions || hasAnchorPositionChanged || hasWindowSizeChanged) {
+            setIsContentMeasured(false);
         }
-
-        setIsContentMeasured(false);
-    }, [
-        prevIsVisible,
-        isVisible,
-        isContentMeasured,
-        shouldSkipRemeasurement,
-        prevAnchorPosition,
-        anchorPosition,
-        prevWindowDimensions,
-        windowWidth,
-        windowHeight,
-        popoverDimensions.width,
-        popoverDimensions.height,
-    ]);
+    }
 
     /**
      * Measure the size of the popover's content.

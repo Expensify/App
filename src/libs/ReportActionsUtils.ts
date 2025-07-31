@@ -31,7 +31,7 @@ import {formatMessageElementList, translateLocal} from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import Parser from './Parser';
-import {getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
+import {getEffectiveDisplayName, getLoginsByAccountIDs, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
@@ -841,6 +841,10 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
+    if (!isVisiblePreviewOrMoneyRequest(reportAction)) {
+        return false;
+    }
+
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !!reportAction.pendingAction;
@@ -984,14 +988,24 @@ function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions
 }
 
 /**
- * Helper for filtering out Report Actions that are either:
+ * Determines whether a report action should be visible in the report view.
+ * Filters out:
  * - ReportPreview with shouldShow set to false and without a pending action
  * - Money request with parent action deleted
  */
+function isVisiblePreviewOrMoneyRequest(action: ReportAction): boolean {
+    const isDeletedMoneyRequest = isDeletedParentAction(action) && isMoneyRequestAction(action);
+    const isHiddenReportPreviewWithoutPendingAction = isReportPreviewAction(action) && action.pendingAction === undefined && !action.shouldShow;
+
+    return !isDeletedMoneyRequest && !isHiddenReportPreviewWithoutPendingAction;
+}
+
+/**
+ * Helper for filtering out report actions that should not be displayed in the report view.
+ * Delegates visibility logic to isVisiblePreviewOrMoneyRequest.
+ */
 function getFilteredReportActionsForReportView(actions: ReportAction[]) {
-    const isDeletedMoneyRequest = (action: ReportAction) => isDeletedParentAction(action) && isMoneyRequestAction(action);
-    const isHiddenReportPreviewWithoutPendingAction = (action: ReportAction) => isReportPreviewAction(action) && action.pendingAction === undefined && !action.shouldShow;
-    return actions.filter((action) => !isDeletedMoneyRequest(action) && !isHiddenReportPreviewWithoutPendingAction(action));
+    return actions.filter(isVisiblePreviewOrMoneyRequest);
 }
 
 /**
@@ -1192,7 +1206,7 @@ function isTagModificationAction(actionName: string): boolean {
  * Used for Send Money flow, which is a special case where we have no IOU create action and only one IOU pay action.
  * In other reports, pay actions do not count as a transactions, but this is an exception to this rule.
  */
-function getSendMoneyFlowOneTransactionThreadID(actions: OnyxEntry<ReportActions> | ReportAction[], chatReport: OnyxEntry<Report>) {
+function getSendMoneyFlowAction(actions: OnyxEntry<ReportActions> | ReportAction[], chatReport: OnyxEntry<Report>): ReportAction<'IOU'> | undefined {
     if (!chatReport) {
         return undefined;
     }
@@ -1212,7 +1226,7 @@ function getSendMoneyFlowOneTransactionThreadID(actions: OnyxEntry<ReportActions
     // ...and can only be triggered on DM chats
     const isDM = type === CONST.REPORT.TYPE.CHAT && !chatType && !(parentReportID && parentReportActionID);
 
-    return isFirstActionPay && isDM ? iouActions.at(0)?.childReportID : undefined;
+    return isFirstActionPay && isDM ? iouActions.at(0) : undefined;
 }
 
 /** Whether action has no linked report by design */
@@ -1247,16 +1261,25 @@ const isIOUActionMatchingTransactionList = (
 };
 
 /**
- * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
- * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
+ * Helper method to check if the report is a test transaction report
  */
-function getOneTransactionThreadReportID(
+function isTestTransactionReport(report: OnyxEntry<Report>): boolean {
+    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const [managerLogin] = getLoginsByAccountIDs([managerID]);
+    return managerLogin === CONST.EMAIL.MANAGER_MCTEST;
+}
+
+/**
+ * Gets the report action for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
+ * Returns a report action if there is exactly one transaction thread for the report, and undefined otherwise.
+ */
+function getOneTransactionThreadReportAction(
     report: OnyxEntry<Report>,
     chatReport: OnyxEntry<Report>,
     reportActions: OnyxEntry<ReportActions> | ReportAction[],
     isOffline: boolean | undefined = undefined,
     reportTransactionIDs?: string[],
-): string | undefined {
+): ReportAction<'IOU'> | undefined {
     // If the report is not an IOU, Expense report, or Invoice, it shouldn't be treated as one-transaction report.
     if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.INVOICE) {
         return;
@@ -1267,18 +1290,20 @@ function getOneTransactionThreadReportID(
         return;
     }
 
-    const sendMoneyFlowID = getSendMoneyFlowOneTransactionThreadID(reportActions, chatReport);
+    const sendMoneyFlow = getSendMoneyFlowAction(reportActions, chatReport);
 
-    if (sendMoneyFlowID) {
-        return sendMoneyFlowID;
+    if (sendMoneyFlow?.childReportID) {
+        return sendMoneyFlow;
     }
 
     const iouRequestActions = [];
     for (const action of reportActionsArray) {
         // If the original message is a 'pay' IOU, it shouldn't be added to the transaction count.
         // However, it is excluded from the matching function in order to display it properly, so we need to compare the type here.
-        if (!isIOUActionMatchingTransactionList(action, reportTransactionIDs, true) || getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
-            // eslint-disable-next-line no-continue
+        if (
+            !isIOUActionMatchingTransactionList(action, reportTransactionIDs, true) ||
+            (getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isTestTransactionReport(report))
+        ) {
             continue;
         }
 
@@ -1287,15 +1312,10 @@ function getOneTransactionThreadReportID(
         if (
             actionType &&
             iouRequestTypesSet.has(actionType) &&
-            action.childReportID &&
             // Include deleted IOU reportActions if:
             // - they have an associated IOU transaction ID or
-            // - they have visible childActions (like comments) that we'd want to display
             // - the action is pending deletion and the user is offline
-            (!!originalMessage?.IOUTransactionID ||
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                (isMessageDeleted(action) && action.childVisibleActionCount) ||
-                (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (isOffline ?? isNetworkOffline)))
+            (!!originalMessage?.IOUTransactionID || (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (isOffline ?? isNetworkOffline)))
         ) {
             iouRequestActions.push(action);
         }
@@ -1315,8 +1335,22 @@ function getOneTransactionThreadReportID(
         return;
     }
 
-    // Ensure we have a childReportID associated with the IOU report action
-    return singleAction?.childReportID;
+    return singleAction;
+}
+
+/**
+ * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
+ * Returns a reportID if there is exactly one transaction thread for the report, and undefined otherwise.
+ */
+function getOneTransactionThreadReportID(...args: Parameters<typeof getOneTransactionThreadReportAction>): string | undefined {
+    const reportAction = getOneTransactionThreadReportAction(...args);
+
+    if (reportAction) {
+        // Since we don't always create transaction thread optimistically, we return CONST.FAKE_REPORT_ID
+        return reportAction.childReportID ?? CONST.FAKE_REPORT_ID;
+    }
+
+    return undefined;
 }
 
 /**
@@ -1837,7 +1871,7 @@ function hasRequestFromCurrentAccount(reportID: string | undefined, currentAccou
         return false;
     }
 
-    return reportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.actorAccountID === currentAccountID);
+    return reportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.actorAccountID === currentAccountID && !isDeletedAction(action));
 }
 
 /**
@@ -1881,9 +1915,9 @@ function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTim
  * Check whether the current report action of the report is unread or not
  *
  */
-function isCurrentActionUnread(report: OnyxEntry<Report>, reportAction: ReportAction): boolean {
+function isCurrentActionUnread(report: OnyxEntry<Report>, reportAction: ReportAction, visibleReportActions?: ReportAction[]): boolean {
     const lastReadTime = report?.lastReadTime ?? '';
-    const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(report?.reportID)));
+    const sortedReportActions = visibleReportActions ?? getSortedReportActions(Object.values(getAllReportActions(report?.reportID)));
     const currentActionIndex = sortedReportActions.findIndex((action) => action.reportActionID === reportAction.reportActionID);
     if (currentActionIndex === -1) {
         return false;
@@ -2840,12 +2874,14 @@ function getCardIssuedMessage({
     reportAction,
     shouldRenderHTML = false,
     policyID = '-1',
-    card,
+    expensifyCard,
+    companyCard,
 }: {
     reportAction: OnyxEntry<ReportAction>;
     shouldRenderHTML?: boolean;
     policyID?: string;
-    card?: Card;
+    expensifyCard?: Card;
+    companyCard?: Card;
 }) {
     const cardIssuedActionOriginalMessage = isCardIssuedAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
 
@@ -2857,13 +2893,13 @@ function getCardIssuedMessage({
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : Parser.htmlToText(`<mention-user accountID="${assigneeAccountID}"/>`);
     const navigateRoute = isPolicyAdmin ? ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID)) : ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(String(cardID));
     const expensifyCardLink =
-        shouldRenderHTML && !!cardID ? `<a href='${environmentURL}/${navigateRoute}'>${translateLocal('cardPage.expensifyCard')}</a>` : translateLocal('cardPage.expensifyCard');
+        shouldRenderHTML && !!expensifyCard ? `<a href='${environmentURL}/${navigateRoute}'>${translateLocal('cardPage.expensifyCard')}</a>` : translateLocal('cardPage.expensifyCard');
     const isAssigneeCurrentUser = currentUserAccountID === assigneeAccountID;
     const companyCardLink =
-        shouldRenderHTML && isAssigneeCurrentUser
+        shouldRenderHTML && isAssigneeCurrentUser && companyCard
             ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${translateLocal('workspace.companyCards.companyCard')}</a>`
             : translateLocal('workspace.companyCards.companyCard');
-    const shouldShowAddMissingDetailsMessage = !isAssigneeCurrentUser || shouldShowAddMissingDetails(reportAction?.actionName, card);
+    const shouldShowAddMissingDetailsMessage = !isAssigneeCurrentUser || shouldShowAddMissingDetails(reportAction?.actionName, expensifyCard);
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED:
             return translateLocal('workspace.expensifyCard.issuedCard', {assignee});
@@ -2962,6 +2998,7 @@ export {
     getMessageOfOldDotReportAction,
     getMostRecentIOURequestActionID,
     getNumberOfMoneyRequests,
+    getOneTransactionThreadReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getAddedApprovalRuleMessage,
@@ -3046,6 +3083,7 @@ export {
     isWhisperActionTargetedToOthers,
     isTagModificationAction,
     isIOUActionMatchingTransactionList,
+    isTestTransactionReport,
     isResolvedActionableWhisper,
     shouldHideNewMarker,
     shouldReportActionBeVisible,
@@ -3084,7 +3122,7 @@ export {
     getWorkspaceDescriptionUpdatedMessage,
     getWorkspaceReportFieldAddMessage,
     getWorkspaceCustomUnitRateAddedMessage,
-    getSendMoneyFlowOneTransactionThreadID,
+    getSendMoneyFlowAction,
     getWorkspaceTagUpdateMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceReportFieldDeleteMessage,

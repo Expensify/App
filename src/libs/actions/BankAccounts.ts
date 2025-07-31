@@ -1,3 +1,4 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {OnfidoDataWithApplicantID} from '@components/Onfido/types';
@@ -26,6 +27,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {InternationalBankAccountForm, PersonalBankAccountForm} from '@src/types/form';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountForm, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
+import type {LastPaymentMethod, PersonalBankAccount} from '@src/types/onyx';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -285,8 +287,14 @@ function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, so
     API.write(WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT, parameters, onyxData);
 }
 
-function deletePaymentBankAccount(bankAccountID: number) {
+function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?: LastPaymentMethod, bankAccount?: OnyxEntry<PersonalBankAccount>) {
     const parameters: DeletePaymentBankAccountParams = {bankAccountID};
+
+    const bankAccountFailureData = {
+        ...bankAccount,
+        errors: getMicroSecondOnyxErrorWithTranslationKey('bankAccount.error.deletePaymentBankAccount'),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    };
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -304,6 +312,16 @@ function deletePaymentBankAccount(bankAccountID: number) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
                 value: {[bankAccountID]: null},
+            },
+        ],
+
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
+                value: {
+                    [bankAccountID]: bankAccountFailureData,
+                },
             },
         ],
     };
@@ -742,7 +760,7 @@ function updateBeneficialOwnersForBankAccount(bankAccountID: number, params: Par
  * Accept the ACH terms and conditions and verify the accuracy of the information provided
  * @param params - Verification step form params
  */
-function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContractStepProps, policyID: string) {
+function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContractStepProps, policyID: string | undefined) {
     API.write(
         WRITE_COMMANDS.ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT,
         {

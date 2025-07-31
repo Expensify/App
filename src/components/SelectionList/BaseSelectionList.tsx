@@ -196,35 +196,6 @@ function BaseSelectionList<TItem extends ListItem>(
         return canShowProductTrainingTooltip && isFocused;
     }, [canShowProductTrainingTooltip, isFocused]);
 
-    // Calculate initial page count so selected item is loaded
-    const initialPageCount = useMemo(() => {
-        if (canSelectMultiple || sections.length === 0) {
-            return 1;
-        }
-
-        let currentIndex = 0;
-        for (const section of sections) {
-            if (section.data) {
-                for (const item of section.data) {
-                    if (isItemSelected(item)) {
-                        return Math.floor(currentIndex / CONST.MAX_SELECTION_LIST_PAGE_LENGTH) + 1;
-                    }
-                    currentIndex++;
-                }
-            }
-        }
-
-        return 1;
-    }, [sections, canSelectMultiple, isItemSelected]);
-
-    useEffect(() => {
-        if (initialPageCount < 1) {
-            return;
-        }
-
-        setCurrentPage(initialPageCount);
-    }, [initialPageCount]);
-
     /**
      * Iterates through the sections and items inside each section, and builds 4 arrays along the way:
      * - `allOptions`: Contains all the items in the list, flattened, regardless of section
@@ -808,9 +779,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 : 0;
 
         // Reset the current page to 1 when the user types something
-        if (prevTextInputValue !== textInputValue) {
-            setCurrentPage(1);
-        }
+        setCurrentPage(1);
 
         updateAndScrollToFocusedIndex(newSelectedIndex);
     }, [

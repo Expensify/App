@@ -5,6 +5,8 @@
  */
 import * as dotenv from 'dotenv';
 import fs from 'fs';
+// eslint-disable-next-line you-dont-need-lodash-underscore/get
+import get from 'lodash/get';
 import path from 'path';
 import type {TemplateExpression} from 'typescript';
 import ts from 'typescript';
@@ -14,6 +16,8 @@ import dedent from '@libs/StringUtils/dedent';
 import hashStr from '@libs/StringUtils/hash';
 import {isTranslationTargetLocale, LOCALES, TRANSLATION_TARGET_LOCALES} from '@src/CONST/LOCALES';
 import type {Locale, TranslationTargetLocale} from '@src/CONST/LOCALES';
+import en from '@src/languages/en';
+import type {TranslationPaths} from '@src/languages/types';
 import CLI from './utils/CLI';
 import Prettier from './utils/Prettier';
 import PromisePool from './utils/PromisePool';
@@ -88,6 +92,11 @@ class TranslationGenerator {
     private readonly compareRef: string;
 
     /**
+     * Specific paths to retranslate (supersedes compareRef).
+     */
+    private readonly paths: TranslationPaths[] | undefined;
+
+    /**
      * Should we print verbose logs?
      */
     private readonly verbose: boolean;
@@ -99,13 +108,22 @@ class TranslationGenerator {
      */
     private readonly translatedSpanHashToEnglishSpanHash = new Map<number, number>();
 
-    constructor(config: {targetLanguages: TranslationTargetLocale[]; languagesDir: string; sourceFile: string; translator: Translator; compareRef: string; verbose: boolean}) {
+    constructor(config: {
+        targetLanguages: TranslationTargetLocale[];
+        languagesDir: string;
+        sourceFile: string;
+        translator: Translator;
+        compareRef: string;
+        paths?: TranslationPaths[];
+        verbose: boolean;
+    }) {
         this.targetLanguages = config.targetLanguages;
         this.languagesDir = config.languagesDir;
         const sourceCode = fs.readFileSync(config.sourceFile, 'utf8');
         this.sourceFile = ts.createSourceFile(config.sourceFile, sourceCode, ts.ScriptTarget.Latest, true);
         this.translator = config.translator;
         this.compareRef = config.compareRef;
+        this.paths = config.paths;
         this.verbose = config.verbose;
     }
 
@@ -115,8 +133,11 @@ class TranslationGenerator {
         // map of translations for each locale
         const translations = new Map<TranslationTargetLocale, Map<number, string>>();
 
-        // If a compareRef is provided, fetch the old version of the files, and traverse the ASTs in parallel to extract existing translations
-        if (this.compareRef) {
+        // If paths are specified, we only retranslate those paths and skip comparing with existing translations
+        const shouldUseExistingTranslations = !this.paths && this.compareRef;
+
+        // If a compareRef is provided and we're not filtering by paths, fetch the old version of the files, and traverse the ASTs in parallel to extract existing translations
+        if (shouldUseExistingTranslations) {
             const allLocales: Locale[] = [LOCALES.EN, ...this.targetLanguages];
 
             // An array of labeled "translation nodes", where "translations node" refers to the main object in en.ts and
@@ -265,6 +286,11 @@ class TranslationGenerator {
             return false;
         }
 
+        // Don't translate property keys (the name part of property assignments)
+        if (node.parent && ts.isPropertyAssignment(node.parent) && node.parent.name === node) {
+            return false;
+        }
+
         // Don't translate any strings or expressions that affect code execution by being part of control flow.
         // We want to translate only strings that are "leaves" or "results" of any expression or code block
         const isPartOfControlFlow =
@@ -403,13 +429,46 @@ class TranslationGenerator {
     }
 
     /**
+     * Check if a given translation path should be translated based on the paths filter.
+     * If no paths are specified, all paths should be translated.
+     * If paths are specified, only paths that match exactly or are nested under a specified path should be translated.
+     */
+    private shouldTranslatePath(currentPath: string): boolean {
+        if (!this.paths || this.paths.length === 0) {
+            return true;
+        }
+
+        for (const targetPath of this.paths) {
+            // Exact match
+            if (currentPath === targetPath) {
+                return true;
+            }
+            // Current path is nested under target path
+            if (currentPath.startsWith(`${targetPath}.`)) {
+                return true;
+            }
+            // Target path is nested under current path (for parent path matching)
+            if (targetPath.startsWith(`${currentPath}.`)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Recursively extract all string literals and templates to translate from the subtree rooted at the given node.
      * Simple templates (as defined by this.isSimpleTemplateExpression) can be translated directly.
      * Complex templates must have each of their spans recursively translated first, so we'll extract all the lowest-level strings to translate.
      * Then complex templates will be serialized with a hash of complex spans in place of the span text, and we'll translate that.
      */
-    private extractStringsToTranslate(node: ts.Node, stringsToTranslate: Map<number, StringWithContext>) {
+    private extractStringsToTranslate(node: ts.Node, stringsToTranslate: Map<number, StringWithContext>, currentPath = '') {
         if (this.shouldNodeBeTranslated(node)) {
+            // Check if this translation path should be included based on the paths filter
+            if (!this.shouldTranslatePath(currentPath)) {
+                return; // Skip this node and its children if the path doesn't match
+            }
+
             const context = this.getContextForNode(node);
             const translationKey = this.getTranslationKey(node);
 
@@ -426,12 +485,33 @@ class TranslationGenerator {
                     if (this.verbose) {
                         console.debug('😵‍💫 Encountered complex template, recursively translating its spans first:', node.getText());
                     }
-                    node.templateSpans.forEach((span) => this.extractStringsToTranslate(span, stringsToTranslate));
+                    node.templateSpans.forEach((span) => this.extractStringsToTranslate(span, stringsToTranslate, currentPath));
                     stringsToTranslate.set(translationKey, {text: this.templateExpressionToString(node), context});
                 }
             }
         }
-        node.forEachChild((child) => this.extractStringsToTranslate(child, stringsToTranslate));
+
+        // Continue traversing children
+        node.forEachChild((child) => {
+            let childPath = currentPath;
+
+            // If the child is a property assignment, update the path
+            if (ts.isPropertyAssignment(child)) {
+                let propName: string | undefined;
+
+                if (ts.isIdentifier(child.name)) {
+                    propName = child.name.text;
+                } else if (ts.isStringLiteral(child.name)) {
+                    propName = child.name.text;
+                }
+
+                if (propName) {
+                    childPath = currentPath ? `${currentPath}.${propName}` : propName;
+                }
+            }
+
+            this.extractStringsToTranslate(child, stringsToTranslate, childPath);
+        });
     }
 
     /**
@@ -565,6 +645,9 @@ class TranslationGenerator {
  * The main function mostly contains CLI and file I/O logic, while TS parsing and translation logic is encapsulated in TranslationGenerator.
  */
 async function main(): Promise<void> {
+    const languagesDir = process.env.LANGUAGES_DIR ?? path.join(__dirname, '../src/languages');
+    const enSourceFile = path.join(languagesDir, 'en.ts');
+
     /* eslint-disable @typescript-eslint/naming-convention */
     const cli = new CLI({
         flags: {
@@ -597,6 +680,30 @@ async function main(): Promise<void> {
                     'For incremental translations, this ref is the previous version of the codebase to compare to. Only strings that changed or had their context changed since this ref will be retranslated.',
                 default: '',
             },
+            paths: {
+                description: 'Comma-separated list of specific translation paths to retranslate (e.g., "common.save,errors.generic").',
+                parse: (val: string): TranslationPaths[] => {
+                    const rawPaths = val.split(',').map((translationPath) => translationPath.trim());
+                    const validatedPaths: TranslationPaths[] = [];
+                    const invalidPaths: string[] = [];
+
+                    for (const rawPath of rawPaths) {
+                        if (get(en, rawPath)) {
+                            validatedPaths.push(rawPath as TranslationPaths);
+                        } else {
+                            invalidPaths.push(rawPath);
+                        }
+                    }
+
+                    if (invalidPaths.length > 0) {
+                        throw new Error(`found the following invalid paths: ${JSON.stringify(invalidPaths)}`);
+                    }
+
+                    return validatedPaths;
+                },
+                supersedes: ['compare-ref'],
+                required: false,
+            },
         },
     } as const);
     /* eslint-enable @typescript-eslint/naming-convention */
@@ -617,15 +724,13 @@ async function main(): Promise<void> {
         translator = new ChatGPTTranslator(process.env.OPENAI_API_KEY);
     }
 
-    const languagesDir = process.env.LANGUAGES_DIR ?? path.join(__dirname, '../src/languages');
-    const enSourceFile = path.join(languagesDir, 'en.ts');
-
     const generator = new TranslationGenerator({
         targetLanguages: cli.namedArgs.locales,
         languagesDir,
         sourceFile: enSourceFile,
         translator,
         compareRef: cli.namedArgs['compare-ref'],
+        paths: cli.namedArgs.paths,
         verbose: cli.flags.verbose,
     });
 
