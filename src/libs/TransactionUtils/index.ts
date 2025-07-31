@@ -1420,7 +1420,7 @@ function getValidDuplicateTransactionIDs(transactionID: string, transactionColle
         // Skip further violations
         if (foundDuplicateViolation) {
             Log.warn(`Multiple duplicate violations found for transaction. Only one expected.`, {transactionID});
-            continue;
+            break;
         }
 
         foundDuplicateViolation = true;
@@ -1495,7 +1495,7 @@ function removeTransactionFromDuplicateTransactionViolation(
         }
 
         if (duplicateTransactionViolations.length > 1) {
-            Log.warn(`There are ${duplicateTransactionViolations.length} duplicate transaction violations for transactionID: ${duplicateID}. This should not happen.`);
+            Log.warn(`There are  duplicate transaction violations for transactionID. This should not happen.`, {duplicateTransactionViolations, duplicateID});
             continue;
         }
 
