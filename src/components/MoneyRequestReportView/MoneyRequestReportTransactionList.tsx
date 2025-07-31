@@ -17,20 +17,23 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {setActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
+import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {getMoneyRequestSpendBreakdown, isIOUReport} from '@libs/ReportUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {generateReportID, getMoneyRequestSpendBreakdown, isIOUReport} from '@libs/ReportUtils';
 import {compareValues, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
+import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 import MoneyRequestReportTotalSpend from './MoneyRequestReportTotalSpend';
@@ -78,6 +81,8 @@ type SortedTransactions = {
     sortBy: SortableColumnName;
     sortOrder: SortOrder;
 };
+
+type ReportScreenNavigationProps = ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
 
 const isSortableColumnName = (key: unknown): key is SortableColumnName => !!sortableColumnNames.find((val) => val === key);
 
@@ -162,18 +167,26 @@ function MoneyRequestReportTransactionList({
     const navigateToTransaction = useCallback(
         (activeTransactionID: string) => {
             const iouAction = getIOUActionForTransactionID(reportActions, activeTransactionID);
-            const reportIDToNavigate = iouAction?.childReportID;
-            if (!reportIDToNavigate) {
-                return;
-            }
+            const reportIDToNavigate = iouAction?.childReportID ?? generateReportID();
 
-            const backTo = Navigation.getActiveRoute();
+            const backTo = Navigation.getActiveRoute() as Route;
+
+            const routeParams = {
+                reportID: reportIDToNavigate,
+                backTo,
+            } as ReportScreenNavigationProps;
+
+            if (!iouAction?.childReportID) {
+                routeParams.moneyRequestReportActionID = iouAction?.reportActionID;
+                routeParams.transactionID = activeTransactionID;
+                routeParams.iouReportID = isMoneyRequestAction(iouAction) ? getOriginalMessage(iouAction)?.IOUReportID : undefined;
+            }
 
             // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
             // to display prev/next arrows in RHP for navigation
-            const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedTransactions);
-            setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs).then(() => {
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo}));
+            const sortedSiblingTransactionIDs = sortedTransactions.map((transaction) => transaction.transactionID);
+            setActiveTransactionIDs(sortedSiblingTransactionIDs).then(() => {
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
             });
         },
         [reportActions, sortedTransactions],
@@ -299,15 +312,18 @@ function MoneyRequestReportTransactionList({
             {shouldShowBreakdown && (
                 <View style={[styles.dFlex, styles.alignItemsEnd, listHorizontalPadding, styles.gap2, styles.mb2]}>
                     {[
-                        {text: translate('cardTransactions.outOfPocket'), value: formattedOutOfPocketAmount},
-                        {text: translate('cardTransactions.companySpend'), value: formattedCompanySpendAmount},
+                        {text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount},
+                        {text: 'cardTransactions.companySpend', value: formattedCompanySpendAmount},
                     ].map(({text, value}) => (
-                        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}>
+                        <View
+                            key={text}
+                            style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}
+                        >
                             <Text
                                 style={[styles.textLabelSupporting, styles.mr3]}
                                 numberOfLines={1}
                             >
-                                {text}
+                                {translate(text as TranslationPaths)}
                             </Text>
                             <Text
                                 numberOfLines={1}
