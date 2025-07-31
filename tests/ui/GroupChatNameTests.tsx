@@ -15,7 +15,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Participant} from '@src/types/onyx/Report';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockAxios} from '../utils/TestHelper';
 import {navigateToSidebarOption} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -127,11 +126,9 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
  * Note that limit of 5 names is only for the header.
  */
 describe('Tests for group chat name', () => {
-    let mockAxios: MockAxios;
     beforeEach(() => {
         jest.clearAllMocks();
-
-        mockAxios = TestHelper.setupGlobalAxiosMock();
+        TestHelper.setupGlobalAxiosMock();
         // Unsubscribe to pusher channels
         PusherHelper.teardown();
 

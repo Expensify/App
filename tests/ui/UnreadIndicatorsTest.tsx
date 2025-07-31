@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as NativeNavigation from '@react-navigation/native';
-import {act, cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
 import React from 'react';
@@ -28,7 +28,6 @@ import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockAxios} from '../utils/TestHelper';
 import {navigateToSidebarOption} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -183,23 +182,19 @@ function signInAndGetAppWithUnreadChat(): Promise<void> {
 }
 
 describe('Unread Indicators', () => {
-    let mockAxios: MockAxios;
-    
     beforeAll(() => {
         PusherHelper.setup();
     });
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockAxios = TestHelper.setupGlobalAxiosMock();
+        TestHelper.setupGlobalAxiosMock();
 
         // Unsubscribe to pusher channels
         PusherHelper.teardown();
     });
 
     afterEach(async () => {
-        // Clean up rendered components between tests
-        cleanup();
         // Clear Onyx state to prevent state bleeding between tests
         await Onyx.clear();
         await waitForBatchedUpdates();

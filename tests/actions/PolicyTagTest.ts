@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {createPolicyTag, deletePolicyTags, renamePolicyTag, renamePolicyTagList, setPolicyRequiresTag, setWorkspaceTagEnabled} from '@libs/actions/Policy/Tag';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, PolicyTags} from '@src/types/onyx';
@@ -262,7 +263,7 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    mockAxios.mockAPICommand('RenamePolicyTaglist', () => ({
+                    mockAxios.mockAPICommand(WRITE_COMMANDS.RENAME_POLICY_TAG_LIST, () => ({
                         jsonCode: 500,
                         message: 'Internal Server Error',
                     }));

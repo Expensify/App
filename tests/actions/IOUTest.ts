@@ -1354,7 +1354,7 @@ describe('actions/IOU', () => {
                             jsonCode: 500,
                             message: 'Internal Server Error',
                         }));
-                        return mockAxios?.resume?.() as Promise<void>;
+                        return mockAxios?.resume?.();
                     })
                     .then(
                         () =>
