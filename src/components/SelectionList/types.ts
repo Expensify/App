@@ -373,7 +373,7 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
 
-    /** Whether to animage in highlight */
+    /** Whether to animate in highlight */
     shouldAnimateInHighlight?: boolean;
 };
 
