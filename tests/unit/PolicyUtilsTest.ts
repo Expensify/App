@@ -13,6 +13,7 @@ import {
     getUnitRateValue,
     isUserInvitedToWorkspace,
     shouldShowPolicy,
+    sortWorkspacesBySelected,
 } from '@libs/PolicyUtils';
 import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -852,6 +853,27 @@ describe('PolicyUtils', () => {
         ])('%s', (_description, orderWeight, expected) => {
             const tagList = getTagListByOrderWeight(policyTags, orderWeight);
             expect(tagList.name).toEqual(expected);
+        });
+    });
+    describe('sortWorkspacesBySelected', () => {
+        it('should order workspaces with selected workspace first', () => {
+            const workspace1 = {policyID: '1', name: 'Workspace 1'};
+            const workspace2 = {policyID: '2', name: 'Workspace 2'};
+            const selectedWorkspace1 = {policyID: '3', name: 'Workspace 3'};
+            const selectedWorkspace2 = {policyID: '4', name: 'Workspace 4'};
+            expect(sortWorkspacesBySelected(workspace1, workspace2, ['3', '4'], TestHelper.localeCompare)).toBe(-1);
+            expect(sortWorkspacesBySelected(workspace1, selectedWorkspace1, ['3', '4'], TestHelper.localeCompare)).toBe(1);
+            expect(sortWorkspacesBySelected(selectedWorkspace1, selectedWorkspace2, ['3', '4'], TestHelper.localeCompare)).toBe(-1);
+        });
+
+        it('should order workspaces using name if no workspace is selected', () => {
+            const workspace1 = {policyID: '1', name: 'Workspace 1'};
+            const workspace2 = {policyID: '2', name: 'Workspace 2'};
+            const workspace3 = {policyID: '3', name: 'Workspace 3'};
+            const workspace4 = {policyID: '4', name: 'Workspace 4'};
+            expect(sortWorkspacesBySelected(workspace1, workspace2, undefined, TestHelper.localeCompare)).toBe(-1);
+            expect(sortWorkspacesBySelected(workspace1, workspace3, undefined, TestHelper.localeCompare)).toBe(-1);
+            expect(sortWorkspacesBySelected(workspace3, workspace4, undefined, TestHelper.localeCompare)).toBe(-1);
         });
     });
 });
