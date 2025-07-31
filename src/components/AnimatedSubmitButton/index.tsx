@@ -22,16 +22,13 @@ type AnimatedSubmitButtonProps = {
 
     // Function to call when the animation finishes
     onAnimationFinish: () => void;
-
-    // Whether to add top margin to the button
-    shouldAddTopMargin?: boolean;
 };
 
-function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunning, onAnimationFinish, shouldAddTopMargin = false}: AnimatedSubmitButtonProps) {
+function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunning, onAnimationFinish}: AnimatedSubmitButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isAnimationRunning = isSubmittingAnimationRunning;
-    const buttonDuration = isSubmittingAnimationRunning ? CONST.ANIMATION_SUBMIT_DURATION : CONST.ANIMATION_THUMBS_UP_DURATION;
+    const buttonDuration = isSubmittingAnimationRunning ? CONST.ANIMATION_SUBMIT_DURATION : CONST.ANIMATION_SUBMITTED_DURATION;
     const gap = styles.expenseAndReportPreviewTextButtonContainer.gap;
     const buttonMarginTop = useSharedValue<number>(gap);
     const height = useSharedValue<number>(variables.componentSizeNormal);
@@ -43,21 +40,17 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
     const containerStyles = useAnimatedStyle(() => ({
         height: height.get(),
         justifyContent: 'center',
-        ...(shouldAddTopMargin && {marginTop: buttonMarginTop.get()}),
     }));
 
     const stretchOutY = useCallback(() => {
         'worklet';
 
-        if (shouldAddTopMargin) {
-            buttonMarginTop.set(withTiming(canShow ? gap : 0, {duration: buttonDuration}));
-        }
         if (canShow) {
             runOnJS(onAnimationFinish)();
             return;
         }
         height.set(withTiming(0, {duration: buttonDuration}, () => runOnJS(onAnimationFinish)()));
-    }, [buttonDuration, buttonMarginTop, gap, height, onAnimationFinish, shouldAddTopMargin, canShow]);
+    }, [buttonDuration, height, onAnimationFinish, canShow]);
 
     const buttonAnimation = useMemo(
         () =>
@@ -83,7 +76,7 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
             setCanShow(true);
             setIsShowingLoading(false);
             height.set(variables.componentSizeNormal);
-            buttonMarginTop.set(shouldAddTopMargin ? gap : 0);
+            buttonMarginTop.set(0);
             return;
         }
 
@@ -95,7 +88,7 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
         }, CONST.ANIMATION_SUBMIT_LOADING_STATE_DURATION);
 
         return () => clearTimeout(timer);
-    }, [buttonMarginTop, gap, height, isAnimationRunning, shouldAddTopMargin]);
+    }, [buttonMarginTop, gap, height, isAnimationRunning]);
 
     useEffect(() => {
         if (!isAnimationRunning || isShowingLoading) {
