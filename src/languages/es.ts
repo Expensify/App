@@ -5227,6 +5227,10 @@ const translations = {
                 one: '¿Estás seguro de que quieres eliminar esta tasa?',
                 other: '¿Estás seguro de que quieres eliminar estas tasas?',
             }),
+            errors: {
+                rateNameRequired: 'El nombre de la tasa es obligatorio',
+                existingRateName: 'Ya existe una tasa de distancia con este nombre',
+            },
         },
         editor: {
             nameInputLabel: 'Nombre',

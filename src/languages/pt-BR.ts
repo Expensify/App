@@ -5245,6 +5245,10 @@ const translations = {
                 one: 'Tem certeza de que deseja excluir esta taxa?',
                 other: 'Tem certeza de que deseja excluir essas taxas?',
             }),
+            errors: {
+                rateNameRequired: 'O nome da taxa é obrigatório',
+                existingRateName: 'Já existe uma tarifa de distância com este nome.',
+            },
         },
         editor: {
             descriptionInputLabel: 'Descrição',

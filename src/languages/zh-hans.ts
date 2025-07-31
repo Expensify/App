@@ -5161,6 +5161,10 @@ const translations = {
                 one: '您确定要删除此费率吗？',
                 other: '您确定要删除这些费率吗？',
             }),
+            errors: {
+                rateNameRequired: '费率名称是必需的',
+                existingRateName: '具有此名称的距离费率已存在',
+            },
         },
         editor: {
             descriptionInputLabel: '描述',
