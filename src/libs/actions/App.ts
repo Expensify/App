@@ -435,6 +435,7 @@ function endSignOnTransition() {
  * @param [currency] Optional, selected currency for the workspace
  * @param [file], avatar file for workspace
  * @param [routeToNavigateAfterCreate], Optional, route to navigate after creating a workspace
+ * @param [isAnnualSubscription] Optional, does user have an annual subscription
  */
 function createWorkspaceWithPolicyDraftAndNavigateToIt(
     policyOwnerEmail = '',
@@ -446,6 +447,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
     currency?: string,
     file?: File,
     routeToNavigateAfterCreate?: Route,
+    isAnnualSubscription = false,
 ) {
     const policyIDWithDefault = policyID || generatePolicyID();
     createDraftInitialWorkspace(policyOwnerEmail, policyName, policyIDWithDefault, makeMeAdmin, currency, file);
@@ -456,7 +458,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
                 Navigation.goBack();
             }
             const routeToNavigate = routeToNavigateAfterCreate ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithDefault, backTo);
-            savePolicyDraftByNewWorkspace(policyIDWithDefault, policyName, policyOwnerEmail, makeMeAdmin, currency, file);
+            savePolicyDraftByNewWorkspace(policyIDWithDefault, policyName, policyOwnerEmail, makeMeAdmin, currency, file, isAnnualSubscription);
             Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
         })
         .then(endSignOnTransition);
@@ -471,9 +473,10 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
  * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  * @param [currency] Optional, selected currency for the workspace
  * @param [file] Optional, avatar file for workspace
+ * @param [isAnnualSubscription] Optional, does user have an annual subscription
  */
-function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, policyOwnerEmail = '', makeMeAdmin = false, currency = '', file?: File) {
-    createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID, CONST.ONBOARDING_CHOICES.MANAGE_TEAM, currency, file);
+function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, policyOwnerEmail = '', makeMeAdmin = false, currency = '', file?: File, isAnnualSubscription = false) {
+    createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID, CONST.ONBOARDING_CHOICES.MANAGE_TEAM, currency, file, undefined, undefined, undefined, isAnnualSubscription);
 }
 
 /**
