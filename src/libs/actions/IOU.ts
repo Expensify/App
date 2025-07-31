@@ -12203,29 +12203,21 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         return;
     }
 
-    const trackReport = Navigation.getReportRouteByID(draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
+    Navigation.dismissModalWithReport({reportID: expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)});
+}
 
-    if (trackReport) {
-        Navigation.dismissModal();
-
-        InteractionManager.runAfterInteractions(() => {
-            Navigation.popToTop();
-
-            const backToRoute = trackReport.params && typeof trackReport.params === 'object' && 'backTo' in trackReport.params ? (trackReport.params.backTo as Route) : undefined;
-
-            if (backToRoute) {
-                Navigation.goBack(backToRoute);
-            }
-
-            requestAnimationFrame(() => {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(expenseReport?.reportID));
-            });
-        });
-
-        return;
+function getNavigationUrlOnAppReportDelete(reportID: string | undefined, chatReportID: string | undefined): Route | undefined {
+    if (!reportID || !chatReportID) {
+        return undefined;
     }
 
-    Navigation.dismissModalWithReport({reportID: expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)});
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
+
+    if (chatReport?.reportID) {
+        return ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID);
+    }
+
+    return undefined;
 }
 
 export {
@@ -12334,5 +12326,6 @@ export {
     reopenReport,
     retractReport,
     startDistanceRequest,
+    getNavigationUrlOnAppReportDelete,
 };
 export type {GPSPoint as GpsPoint, IOURequestType, StartSplitBilActionParams, CreateTrackExpenseParams, RequestMoneyInformation, ReplaceReceipt};

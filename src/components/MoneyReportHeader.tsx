@@ -71,6 +71,7 @@ import {
     cancelPayment,
     canIOUBePaid as canIOUBePaidAction,
     deleteMoneyRequest,
+    getNavigationUrlOnAppReportDelete,
     getNavigationUrlOnMoneyRequestDelete,
     initSplitExpense,
     payInvoice,
@@ -1177,6 +1178,14 @@ function MoneyReportHeader({
                     Navigation.goBack();
                     InteractionManager.runAfterInteractions(() => {
                         deleteAppReport(moneyRequestReport?.reportID);
+
+                        if (moneyRequestReport?.reportID && moneyRequestReport?.chatReportID) {
+                            const goBackRoute = getNavigationUrlOnAppReportDelete(moneyRequestReport.reportID, moneyRequestReport.chatReportID);
+
+                            if (goBackRoute) {
+                                Navigation.setNavigationActionToMicrotaskQueue(() => navigateOnDeleteExpense(goBackRoute));
+                            }
+                        }
                     });
                 }}
                 onCancel={() => setIsDeleteReportModalVisible(false)}
