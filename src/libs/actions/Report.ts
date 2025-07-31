@@ -1767,9 +1767,9 @@ function saveReportDraftComment(reportID: string, comment: string | null, callba
         WRITE_COMMANDS.SAVE_REPORT_DRAFT_COMMENT,
         {
             reportID,
-            // comment is quoted to intentionally preserve trailing whitespace as the user types
+            // reportComment is quoted to intentionally preserve trailing whitespace as the user types
             // otherwise it will be trimmed by the WAF _and_ Auth's SParseHTTP function
-            comment: `"${comment}"`,
+            reportComment: `"${comment}"`,
         },
         {optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, value: {[reportID]: prepareDraftComment(comment)}}]},
         {
