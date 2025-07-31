@@ -5,9 +5,9 @@ import Button from '@components/Button';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
-import useIsAutoRenewEnabled from '@hooks/useIsAutoRenewEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {upgradeToCorporate} from '@libs/actions/Policy/Policy';
 import {canModifyPlan, getOwnedPaidPolicies} from '@libs/PolicyUtils';
@@ -42,8 +42,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     const currentUserAccountID = getCurrentUserAccountID();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: false});
-    const isAutoRenewEnabled = useIsAutoRenewEnabled();
+    const privateSubscription = usePrivateSubscription();
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const ownerPolicies = useMemo(() => getOwnedPaidPolicies(policies, currentUserAccountID), [policies, currentUserAccountID]);
 
@@ -123,7 +122,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     const autoIncrease = privateSubscription?.addNewUsersAutomatically ? translate('subscription.subscriptionSettings.on') : translate('subscription.subscriptionSettings.off');
     const subscriptionType = isAnnual ? translate('subscription.subscriptionSettings.annual') : translate('subscription.details.payPerUse');
     const subscriptionSize = `${privateSubscription?.userCount ?? translate('subscription.subscriptionSettings.none')}`;
-    const autoRenew = isAutoRenewEnabled ? translate('subscription.subscriptionSettings.on') : translate('subscription.subscriptionSettings.off');
+    const autoRenew = privateSubscription?.autoRenew ? translate('subscription.subscriptionSettings.on') : translate('subscription.subscriptionSettings.off');
 
     return (
         <MenuItemWithTopDescription
