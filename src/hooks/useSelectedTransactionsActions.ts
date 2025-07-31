@@ -1,9 +1,9 @@
 import {useCallback, useMemo, useState} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {useSearchContext} from '@components/Search/SearchContext';
-import {deleteMoneyRequest, unholdRequest} from '@libs/actions/IOU';
+import {deleteMoneyRequests, unholdRequest} from '@libs/actions/IOU';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {exportReportToCSV} from '@libs/actions/Report';
+import {deleteAppReport, exportReportToCSV} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
@@ -81,21 +81,21 @@ function useSelectedTransactionsActions({
                 return transactionID === IOUTransactionID;
             }),
         }));
-        const deletedTransactionIDs: string[] = [];
-        transactionsWithActions.forEach(({transactionID, action}) => {
-            if (!action) {
-                return;
-            }
 
-            deleteMoneyRequest(transactionID, action, undefined, deletedTransactionIDs);
-            deletedTransactionIDs.push(transactionID);
-        });
+        if (allTransactionsLength === selectedTransactionIDs?.length) {
+            deleteAppReport(report?.reportID);
+            Navigation.goBack();
+        } else {
+            const deletableExpenses = transactionsWithActions?.filter(({action}) => action);
+            deleteMoneyRequests(deletableExpenses);
+        }
+
         clearSelectedTransactions(true);
         if (allTransactionsLength - transactionsWithActions.length <= 1) {
             turnOffMobileSelectionMode();
         }
         setIsDeleteModalVisible(false);
-    }, [allTransactionsLength, reportActions, selectedTransactionIDs, clearSelectedTransactions]);
+    }, [allTransactionsLength, reportActions, selectedTransactionIDs, clearSelectedTransactions, report?.reportID]);
 
     const showDeleteModal = useCallback(() => {
         setIsDeleteModalVisible(true);
