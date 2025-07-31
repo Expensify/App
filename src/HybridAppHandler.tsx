@@ -1,4 +1,4 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app/src/index.native';
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {useContext, useEffect} from 'react';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
