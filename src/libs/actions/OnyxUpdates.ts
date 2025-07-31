@@ -64,7 +64,7 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
         })
         .then(() => {
             Performance.markEnd(CONST.TIMING.APPLY_HTTPS_UPDATES);
-            console.debug('[OnyxUpdateManager] Done applying HTTPS update');
+            Log.info('[OnyxUpdateManager] Done applying HTTPS update');
             return Promise.resolve(response);
         });
 }
@@ -73,14 +73,14 @@ function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
     Performance.markStart(CONST.TIMING.APPLY_PUSHER_UPDATES);
 
     pusherEventsPromise = pusherEventsPromise.then(() => {
-        console.debug('[OnyxUpdateManager] Applying pusher update');
+        Log.info('[OnyxUpdateManager] Applying pusher update');
     });
 
     pusherEventsPromise = updates
         .reduce((promise, update) => promise.then(() => PusherUtils.triggerMultiEventHandler(update.eventType, update.data)), pusherEventsPromise)
         .then(() => {
             Performance.markEnd(CONST.TIMING.APPLY_PUSHER_UPDATES);
-            console.debug('[OnyxUpdateManager] Done applying Pusher update');
+            Log.info('[OnyxUpdateManager] Done applying Pusher update');
         });
 
     return pusherEventsPromise;
@@ -90,14 +90,14 @@ function applyAirshipOnyxUpdates(updates: OnyxUpdateEvent[]) {
     Performance.markStart(CONST.TIMING.APPLY_AIRSHIP_UPDATES);
 
     airshipEventsPromise = airshipEventsPromise.then(() => {
-        console.debug('[OnyxUpdateManager] Applying Airship updates');
+        Log.info('[OnyxUpdateManager] Applying Airship updates');
     });
 
     airshipEventsPromise = updates
         .reduce((promise, update) => promise.then(() => Onyx.update(update.data)), airshipEventsPromise)
         .then(() => {
             Performance.markEnd(CONST.TIMING.APPLY_AIRSHIP_UPDATES);
-            console.debug('[OnyxUpdateManager] Done applying Airship updates');
+            Log.info('[OnyxUpdateManager] Done applying Airship updates');
         });
 
     return airshipEventsPromise;
