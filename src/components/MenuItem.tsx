@@ -973,10 +973,12 @@ function MenuItem(
                                                     <View style={styles.justifyContentCenter}>
                                                         <CopyTextToClipboard
                                                             urlToCopy={copyValue}
-                                                            shouldUseHoveredStyle
+                                                            shouldIconAlwaysUseHoveredStyle
                                                             iconHeight={variables.iconSizeExtraSmall}
                                                             iconWidth={variables.iconSizeExtraSmall}
                                                             iconStyles={styles.t0}
+                                                            styles={styles.reportActionContextMenuMiniButton}
+                                                            shouldIconUseBackgroundColor
                                                         />
                                                     </View>
                                                 )}

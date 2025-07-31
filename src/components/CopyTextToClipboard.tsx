@@ -16,12 +16,20 @@ type CopyTextToClipboardProps = {
     urlToCopy?: string;
 
     accessibilityRole?: AccessibilityRole;
+} & Pick<PressableWithDelayToggleProps, 'iconStyles' | 'iconHeight' | 'iconWidth' | 'styles' | 'shouldIconUseBackgroundColor' | 'shouldIconAlwaysUseHoveredStyle'>;
 
-    /** For using the hovered style by default, e.g. if we always need the hovered bg */
-    shouldUseHoveredStyle?: boolean;
-} & Pick<PressableWithDelayToggleProps, 'iconStyles' | 'iconHeight' | 'iconWidth' | 'styles'>;
-
-function CopyTextToClipboard({text, textStyles, urlToCopy, accessibilityRole, iconHeight, iconStyles, iconWidth, shouldUseHoveredStyle, styles}: CopyTextToClipboardProps) {
+function CopyTextToClipboard({
+    text,
+    textStyles,
+    urlToCopy,
+    accessibilityRole,
+    iconHeight,
+    iconStyles,
+    iconWidth,
+    shouldIconAlwaysUseHoveredStyle,
+    shouldIconUseBackgroundColor,
+    styles,
+}: CopyTextToClipboardProps) {
     const {translate} = useLocalize();
 
     const copyToClipboard = useCallback(() => {
@@ -40,11 +48,12 @@ function CopyTextToClipboard({text, textStyles, urlToCopy, accessibilityRole, ic
             accessible
             accessibilityLabel={translate('reportActionContextMenu.copyToClipboard')}
             accessibilityRole={accessibilityRole}
-            shouldUseHoveredStyle={shouldUseHoveredStyle}
+            shouldIconAlwaysUseHoveredStyle={shouldIconAlwaysUseHoveredStyle}
             iconWidth={iconWidth}
             iconHeight={iconHeight}
             iconStyles={iconStyles}
             styles={styles}
+            shouldIconUseBackgroundColor={shouldIconUseBackgroundColor}
         />
     );
 }

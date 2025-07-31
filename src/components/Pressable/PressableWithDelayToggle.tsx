@@ -51,8 +51,11 @@ type PressableWithDelayToggleProps = PressableProps & {
     inline?: boolean;
     accessibilityRole?: string;
 
+    /** For using the background color, e.g. if we need bg for the icon */
+    shouldIconUseBackgroundColor?: boolean;
+
     /** For using the hovered style by default, e.g. if we always need the hovered bg */
-    shouldUseHoveredStyle?: boolean;
+    shouldIconAlwaysUseHoveredStyle?: boolean;
 
     /** Copy icon width */
     iconWidth?: number;
@@ -75,9 +78,10 @@ function PressableWithDelayToggle(
         iconStyles,
         icon,
         accessibilityRole,
-        shouldUseHoveredStyle,
+        shouldIconAlwaysUseHoveredStyle,
         iconWidth = variables.iconSizeSmall,
         iconHeight = variables.iconSizeSmall,
+        shouldIconUseBackgroundColor = false,
     }: PressableWithDelayToggleProps,
     ref: PressableRef,
 ) {
@@ -99,7 +103,8 @@ function PressableWithDelayToggle(
     const PressableView = inline ? Text : PressableWithoutFeedback;
     const tooltipTexts = !isActive ? tooltipTextChecked : tooltipText;
     const labelText =
-        text && textChecked ? (
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
+        text || textChecked ? (
             <Text
                 suppressHighlighting
                 style={textStyles}
@@ -133,8 +138,15 @@ function PressableWithDelayToggle(
                             styles.flexRow,
                             pressableStyle,
                             !isActive && styles.cursorDefault,
-                            styles.reportActionContextMenuMiniButton,
-                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(!!shouldUseHoveredStyle || hovered, shouldUseHoveredStyle ? hovered : pressed, !isActive), true),
+                            shouldIconUseBackgroundColor &&
+                                StyleUtils.getButtonBackgroundColorStyle(
+                                    getButtonState(
+                                        !!shouldIconAlwaysUseHoveredStyle || hovered,
+                                        shouldIconAlwaysUseHoveredStyle ? hovered : pressed,
+                                        !shouldIconAlwaysUseHoveredStyle && !isActive,
+                                    ),
+                                    true,
+                                ),
                         ]}
                     >
                         {({hovered, pressed}) => (
