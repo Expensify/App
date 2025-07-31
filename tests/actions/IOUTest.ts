@@ -13,6 +13,7 @@ import {
     cancelPayment,
     canIOUBePaid,
     canUnapproveIOU,
+    completeSplitBill,
     createDistanceRequest,
     deleteMoneyRequest,
     getIOUReportActionToApproveOrPay,
@@ -28,6 +29,7 @@ import {
     setDraftSplitTransaction,
     setMoneyRequestCategory,
     splitBill,
+    startSplitBill,
     submitReport,
     trackExpense,
     unholdRequest,
@@ -44,6 +46,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiCommand} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {translateLocal} from '@libs/Localize';
+import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {
@@ -1613,7 +1616,7 @@ describe('actions/IOU', () => {
                     comment: '',
                 },
             });
-            expect(notifyNewAction).toHaveBeenCalledTimes(1);
+            expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -2313,6 +2316,63 @@ describe('actions/IOU', () => {
                 });
             });
             expect(report?.participants?.[RORY_ACCOUNT_ID].notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
+        });
+
+        it('the description should not be parsed again after completing the scan split bill without changing the description', async () => {
+            const reportID = '1';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                participants: {
+                    [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            });
+
+            // Start a scan split bill
+            const {splitTransactionID} = startSplitBill({
+                participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                comment: '# test',
+                currency: CONST.CURRENCY.USD,
+                existingSplitChatReportID: reportID,
+                receipt: {},
+                category: undefined,
+                tag: undefined,
+                taxCode: '',
+                taxAmount: 0,
+            });
+
+            await waitForBatchedUpdates();
+
+            let splitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`);
+
+            // Then the description should be parsed correctly
+            expect(splitTransaction?.comment?.comment).toBe('<h1>test</h1>');
+
+            const updatedSplitTransaction = splitTransaction
+                ? {
+                      ...splitTransaction,
+                      amount: 100,
+                  }
+                : undefined;
+
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            const iouAction = Object.values(reportActions ?? {}).find((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU));
+
+            expect(iouAction).toBeTruthy();
+
+            // Complete this split bill without changing the description
+            completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, RORY_EMAIL);
+
+            await waitForBatchedUpdates();
+
+            splitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`);
+
+            // Then the description should be the same since it was not changed
+            expect(splitTransaction?.comment?.comment).toBe('<h1>test</h1>');
         });
     });
 
