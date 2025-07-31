@@ -82,11 +82,16 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     }, [draftTransaction, transaction]);
 
     const onSaveSplitExpense = useCallback(() => {
-        if (!childTransactions.length && splitExpenses.length <= 1) {
+        if (splitExpenses.length <= 1) {
             const splitFieldDataFromOriginalTransactionWithoutID = {...splitFieldDataFromOriginalTransaction, transactionID: ''};
             const splitExpenseWithoutID = {...splitExpenses.at(0), transactionID: ''};
             // When we try to save one split during splits creation and if the data is identical to the original transaction we should close the split flow
-            if (deepEqual(splitFieldDataFromOriginalTransactionWithoutID, splitExpenseWithoutID)) {
+            if (!childTransactions.length && deepEqual(splitFieldDataFromOriginalTransactionWithoutID, splitExpenseWithoutID)) {
+                Navigation.dismissModal();
+                return;
+            }
+            // When we try to save splits during editing splits and if the data is identical to the already created transactions we should close the split flow
+            if (childTransactions.length && deepEqual(splitFieldDataFromChildTransactions, splitExpenses)) {
                 Navigation.dismissModal();
                 return;
             }
@@ -117,20 +122,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
 
         saveSplitTransactions(draftTransaction, currentSearchHash);
-    }, [
-        childTransactions.length,
-        splitExpenses,
-        sumOfSplitExpenses,
-        transactionDetailsAmount,
-        isPerDiem,
-        isCard,
-        draftTransaction,
-        splitFieldDataFromChildTransactions,
-        currentSearchHash,
-        splitFieldDataFromOriginalTransaction,
-        translate,
-        transactionDetails?.currency,
-    ]);
+    }, [splitExpenses, sumOfSplitExpenses, transactionDetailsAmount, isPerDiem, isCard, splitFieldDataFromChildTransactions, draftTransaction, currentSearchHash, splitFieldDataFromOriginalTransaction, childTransactions.length, translate, transactionDetails?.currency]);
 
     const onSplitExpenseAmountChange = useCallback(
         (currentItemTransactionID: string, value: number) => {
