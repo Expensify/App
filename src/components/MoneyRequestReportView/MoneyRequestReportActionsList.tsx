@@ -361,6 +361,7 @@ function MoneyRequestReportActionsList({
         currentVerticalScrollingOffsetRef: scrollingVerticalBottomOffset,
         readActionSkippedRef: readActionSkipped,
         unreadMarkerReportActionIndex,
+        isInverted: false,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             const {layoutMeasurement, contentSize, contentOffset} = event.nativeEvent;
             const fullContentHeight = contentSize.height;
