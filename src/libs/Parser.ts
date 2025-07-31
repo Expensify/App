@@ -7,7 +7,7 @@ import Log from './Log';
 const accountIDToNameMap: Record<string, string> = {};
 
 const reportIDToNameMap: Record<string, string> = {};
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -24,7 +24,7 @@ Onyx.connect({
     },
 });
 
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (personalDetailsList) => {
         Object.values(personalDetailsList ?? {}).forEach((personalDetails) => {
