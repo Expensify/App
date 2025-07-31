@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useLastAccessedReport from '@hooks/useLastAccessedReport';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
@@ -38,7 +39,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const [conciergeChatReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const {onboardingMessages} = useOnboardingMessages();
@@ -52,6 +52,14 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
     const {isBetaEnabled} = usePermissions();
+
+    // Get last accessed report for navigation after onboarding
+    const {lastAccessReport} = useLastAccessedReport(
+        !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+        false, // not opening admin room in this flow
+        undefined,
+        undefined,
+    );
 
     const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
     const isValidated = isCurrentUserValidated(loginList);
@@ -83,10 +91,10 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             navigateAfterOnboardingWithMicrotaskQueue(
                 isSmallScreenWidth,
                 isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                lastAccessReport,
                 onboardingPolicyID,
                 mergedAccountConciergeReportID,
                 false,
-                reportNameValuePairs,
             );
         },
         [
@@ -94,10 +102,10 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             onboardingAdminsChatReportID,
             onboardingMessages,
             onboardingPolicyID,
+            lastAccessReport,
             isBetaEnabled,
             isSmallScreenWidth,
             mergedAccountConciergeReportID,
-            reportNameValuePairs,
         ],
     );
 

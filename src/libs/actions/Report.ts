@@ -113,7 +113,7 @@ import {
     buildOptimisticSelfDMReport,
     buildOptimisticUnreportedTransactionAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    findLastAccessedReport,
+    findLastAccessedReportWithoutView,
     findSelfDMReportID,
     formatReportLastMessageText,
     generateReportID,
@@ -186,7 +186,6 @@ import type {
     Report,
     ReportAction,
     ReportActionReactions,
-    ReportNameValuePairs,
     ReportNextStep,
     ReportUserIsTyping,
     Transaction,
@@ -3454,28 +3453,21 @@ function openReportFromDeepLink(
                                 return;
                             }
 
-                            const connectionID = Onyx.connectWithoutView({
-                                key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-                                waitForCollectionCallback: true,
-                                callback: (allReportNameValuePairs) => {
-                                    Onyx.disconnect(connectionID);
-                                    // Check if the report exists in the collection
-                                    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-                                    // If the report does not exist, navigate to the last accessed report or Concierge chat
-                                    if (reportID && !report) {
-                                        const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID, allReportNameValuePairs)?.reportID;
-                                        if (lastAccessedReportID) {
-                                            const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
-                                            Navigation.navigate(lastAccessedReportRoute);
-                                            return;
-                                        }
-                                        navigateToConciergeChat(false, () => true);
-                                        return;
-                                    }
+                            // Check if the report exists in the collection
+                            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                            // If the report does not exist, navigate to the last accessed report or Concierge chat
+                            if (reportID && !report) {
+                                const lastAccessedReportID = findLastAccessedReportWithoutView(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
+                                if (lastAccessedReportID) {
+                                    const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
+                                    Navigation.navigate(lastAccessedReportRoute);
+                                    return;
+                                }
+                                navigateToConciergeChat(false, () => true);
+                                return;
+                            }
 
-                                    Navigation.navigate(route as Route);
-                                },
-                            });
+                            Navigation.navigate(route as Route);
                         };
 
                         if (isAnonymousUser()) {
@@ -3511,8 +3503,8 @@ function getCurrentUserEmail(): string | undefined {
     return currentUserEmail;
 }
 
-function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, reportNameValuePairs: OnyxCollection<ReportNameValuePairs>) {
-    const lastAccessedReportID = findLastAccessedReport(false, false, undefined, currentReport?.reportID, reportNameValuePairs)?.reportID;
+function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, lastAccessedReport: OnyxEntry<Report>) {
+    const lastAccessedReportID = lastAccessedReport?.reportID;
 
     if (lastAccessedReportID) {
         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
@@ -3529,8 +3521,8 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, reportName
     }
 }
 
-function getMostRecentReportID(currentReport: OnyxEntry<Report>, reportNameValuePairs: OnyxCollection<ReportNameValuePairs>) {
-    const lastAccessedReportID = findLastAccessedReport(false, false, undefined, currentReport?.reportID, reportNameValuePairs)?.reportID;
+function getMostRecentReportID(currentReport: OnyxEntry<Report>, lastAccessedReport: OnyxEntry<Report>) {
+    const lastAccessedReportID = lastAccessedReport?.reportID;
     return lastAccessedReportID ?? conciergeReportID;
 }
 
@@ -3547,7 +3539,7 @@ function joinRoom(report: OnyxEntry<Report>) {
     );
 }
 
-function leaveGroupChat(reportID: string, reportNameValuePairs: OnyxCollection<ReportNameValuePairs>) {
+function leaveGroupChat(reportID: string, lastAccessedReport: OnyxEntry<Report>) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!report) {
         Log.warn('Attempting to leave Group Chat that does not existing locally');
@@ -3599,12 +3591,12 @@ function leaveGroupChat(reportID: string, reportNameValuePairs: OnyxCollection<R
         },
     ];
 
-    navigateToMostRecentReport(report, reportNameValuePairs);
+    navigateToMostRecentReport(report, lastAccessedReport);
     API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData, successData, failureData});
 }
 
 /** Leave a report by setting the state to submitted and closed */
-function leaveRoom(reportID: string, reportNameValuePairs: OnyxCollection<ReportNameValuePairs>, isWorkspaceMemberLeavingWorkspaceRoom = false) {
+function leaveRoom(reportID: string, lastAccessedReport: OnyxEntry<Report>, isWorkspaceMemberLeavingWorkspaceRoom = false) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     if (!report) {
@@ -3711,7 +3703,7 @@ function leaveRoom(reportID: string, reportNameValuePairs: OnyxCollection<Report
         return;
     }
     // In other cases, the report is deleted and we should move the user to another report.
-    navigateToMostRecentReport(report, reportNameValuePairs);
+    navigateToMostRecentReport(report, lastAccessedReport);
 }
 
 function buildInviteToRoomOnyxData(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {

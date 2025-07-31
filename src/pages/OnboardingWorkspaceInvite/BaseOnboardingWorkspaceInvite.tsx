@@ -12,6 +12,7 @@ import type {Section} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useLastAccessedReport from '@hooks/useLastAccessedReport';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
@@ -58,10 +59,18 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const session = useSession();
     const {isBetaEnabled} = usePermissions();
+
+    // Get last accessed report for navigation after onboarding
+    const {lastAccessReport} = useLastAccessedReport(
+        !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+        false, // not opening admin room in this flow
+        undefined,
+        undefined,
+    );
+
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -234,12 +243,12 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         navigateAfterOnboardingWithMicrotaskQueue(
             isSmallScreenWidth,
             isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+            lastAccessReport,
             onboardingPolicyID,
             onboardingAdminsChatReportID,
             // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
             // See https://github.com/Expensify/App/issues/57167 for more details
             (session?.email ?? '').includes('+'),
-            reportNameValuePairs,
         );
     }, [
         currentUserPersonalDetails.firstName,
@@ -247,10 +256,10 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         currentUserPersonalDetails.lastName,
         onboardingAdminsChatReportID,
         onboardingPolicyID,
+        lastAccessReport,
         isSmallScreenWidth,
         isBetaEnabled,
         session?.email,
-        reportNameValuePairs,
     ]);
 
     const inviteUser = useCallback(() => {

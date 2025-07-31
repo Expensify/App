@@ -1,18 +1,17 @@
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import ROUTES from '@src/ROUTES';
-import type {ReportNameValuePairs} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import {setDisableDismissOnEscape} from './actions/Modal';
-import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
-import {findLastAccessedReport, isConciergeChatReport} from './ReportUtils';
+import {isConciergeChatReport} from './ReportUtils';
 
 const navigateAfterOnboarding = (
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
+    lastAccessedReport: OnyxEntry<Report>,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
 ) => {
     setDisableDismissOnEscape(false);
     Navigation.dismissModal();
@@ -27,7 +26,6 @@ const navigateAfterOnboarding = (
             reportID = onboardingAdminsChatReportID;
         }
     } else {
-        const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom, undefined, undefined, reportNameValuePairs);
         const lastAccessedReportID = lastAccessedReport?.reportID;
         // we don't want to navigate to newly created workspaces after onboarding is completed.
         if (lastAccessedReportID && lastAccessedReport.policyID !== onboardingPolicyID && !isConciergeChatReport(lastAccessedReport)) {
@@ -56,13 +54,13 @@ const navigateAfterOnboarding = (
 const navigateAfterOnboardingWithMicrotaskQueue = (
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
+    lastAccessedReport: OnyxEntry<Report>,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
 ) => {
     Navigation.setNavigationActionToMicrotaskQueue(() => {
-        navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, onboardingAdminsChatReportID, shouldPreventOpenAdminRoom, reportNameValuePairs);
+        navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, lastAccessedReport, onboardingPolicyID, onboardingAdminsChatReportID, shouldPreventOpenAdminRoom);
     });
 };
 

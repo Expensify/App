@@ -13,6 +13,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLastAccessedReport from '@hooks/useLastAccessedReport';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
@@ -59,6 +60,14 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const {isBetaEnabled} = usePermissions();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
+
+    // Get last accessed report for navigation after onboarding
+    const {lastAccessReport} = useLastAccessedReport(
+        !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+        false, // not opening admin room in this flow
+        undefined,
+        undefined,
+    );
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
@@ -221,16 +230,17 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         navigateAfterOnboardingWithMicrotaskQueue(
             isSmallScreenWidth,
             isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+            lastAccessReport,
             policyID,
             adminsChatReportID,
             // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
             // See https://github.com/Expensify/App/issues/57167 for more details
             (session?.email ?? '').includes('+'),
-            reportNameValuePairs,
         );
     }, [
         isBetaEnabled,
         isSmallScreenWidth,
+        lastAccessReport,
         onboardingAdminsChatReportID,
         onboardingCompanySize,
         onboardingMessages,

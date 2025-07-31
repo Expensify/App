@@ -8,6 +8,7 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLastAccessedReport from '@hooks/useLastAccessedReport';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
@@ -38,7 +39,6 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
     const [conciergeChatReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const {onboardingMessages} = useOnboardingMessages();
     // When we merge public email with work email, we now want to navigate to the
     // concierge chat report of the new work email and not the last accessed report.
@@ -48,6 +48,14 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
+
+    // Get last accessed report for navigation after onboarding
+    const {lastAccessReport} = useLastAccessedReport(
+        !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+        false, // not opening admin room in this flow
+        undefined,
+        undefined,
+    );
     const ICON_SIZE = 48;
 
     const processedHelperText = `<comment><muted-text-label>${translate('onboarding.workspace.price')}</muted-text-label></comment>`;
@@ -88,14 +96,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         setOnboardingAdminsChatReportID();
         setOnboardingPolicyID();
 
-        navigateAfterOnboardingWithMicrotaskQueue(
-            isSmallScreenWidth,
-            isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-            onboardingPolicyID,
-            mergedAccountConciergeReportID,
-            false,
-            reportNameValuePairs,
-        );
+        navigateAfterOnboardingWithMicrotaskQueue(isSmallScreenWidth, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), lastAccessReport, onboardingPolicyID, mergedAccountConciergeReportID, false);
     }, [
         onboardingPurposeSelected,
         currentUserPersonalDetails.firstName,
@@ -103,10 +104,10 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         onboardingAdminsChatReportID,
         onboardingMessages,
         onboardingPolicyID,
+        lastAccessReport,
         isSmallScreenWidth,
         isBetaEnabled,
         mergedAccountConciergeReportID,
-        reportNameValuePairs,
     ]);
 
     return (

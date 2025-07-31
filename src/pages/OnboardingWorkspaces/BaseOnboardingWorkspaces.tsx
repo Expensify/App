@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
+import useLastAccessedReport from '@hooks/useLastAccessedReport';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
@@ -52,8 +53,15 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
     const {isBetaEnabled} = usePermissions();
 
+    // Get last accessed report for navigation after onboarding
+    const {lastAccessReport} = useLastAccessedReport(
+        !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+        false, // not opening admin room in this flow
+        undefined,
+        undefined,
+    );
+
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
 
@@ -76,13 +84,13 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             navigateAfterOnboardingWithMicrotaskQueue(
                 isSmallScreenWidth,
                 isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                lastAccessReport,
                 policy.automaticJoiningEnabled ? policy.policyID : undefined,
                 undefined,
                 false,
-                reportNameValuePairs,
             );
         },
-        [onboardingMessages, onboardingPersonalDetails?.firstName, onboardingPersonalDetails?.lastName, isSmallScreenWidth, isBetaEnabled, reportNameValuePairs],
+        [onboardingMessages, onboardingPersonalDetails?.firstName, onboardingPersonalDetails?.lastName, lastAccessReport, isSmallScreenWidth, isBetaEnabled],
     );
 
     const policyIDItems = useMemo(() => {

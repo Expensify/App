@@ -1035,7 +1035,7 @@ function getParentReport(report: OnyxEntry<OnyxTypes.Report>): OnyxEntry<OnyxTyp
  * @param report - The task report being deleted
  * @returns The URL to navigate to
  */
-function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, reportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>): string | undefined {
+function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, lastAccessedReport: OnyxEntry<OnyxTypes.Report>): string | undefined {
     if (!report) {
         return undefined;
     }
@@ -1052,7 +1052,7 @@ function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, repor
     }
 
     // If no parent report, try to navigate to most recent report
-    const mostRecentReportID = getMostRecentReportID(report, reportNameValuePairs);
+    const mostRecentReportID = getMostRecentReportID(report, lastAccessedReport);
     if (mostRecentReportID) {
         return ROUTES.REPORT_WITH_ID.getRoute(mostRecentReportID);
     }
@@ -1063,7 +1063,7 @@ function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, repor
 /**
  * Cancels a task by setting the report state to SUBMITTED and status to CLOSED
  */
-function deleteTask(report: OnyxEntry<OnyxTypes.Report>, reportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>) {
+function deleteTask(report: OnyxEntry<OnyxTypes.Report>, lastAccessedReport: OnyxEntry<OnyxTypes.Report>) {
     if (!report) {
         return;
     }
@@ -1202,7 +1202,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>, reportNameValuePairs: O
     API.write(WRITE_COMMANDS.CANCEL_TASK, parameters, {optimisticData, successData, failureData});
     notifyNewAction(report.reportID, currentUserAccountID);
 
-    const urlToNavigateBack = getNavigationUrlOnTaskDelete(report, reportNameValuePairs);
+    const urlToNavigateBack = getNavigationUrlOnTaskDelete(report, lastAccessedReport);
     if (urlToNavigateBack) {
         Navigation.goBack();
         return urlToNavigateBack;

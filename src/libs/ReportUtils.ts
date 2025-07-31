@@ -1966,11 +1966,14 @@ function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, reportM
 }
 
 function findLastAccessedReport(
+    reports: OnyxCollection<OnyxEntry<Report>>,
+    policies: OnyxCollection<OnyxEntry<Policy>>,
+    reportMetadata: OnyxCollection<ReportMetadata>,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     ignoreDomainRooms: boolean,
     openOnAdminRoom = false,
     policyID?: string,
     excludeReportID?: string,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
 ): OnyxEntry<Report> {
     // If it's the user's first time using New Expensify, then they could either have:
     //   - just a Concierge report, if so we'll return that
@@ -1978,9 +1981,9 @@ function findLastAccessedReport(
     // If it's the latter, we'll use the deeplinked report over the Concierge report,
     // since the Concierge report would be incorrectly selected over the deep-linked report in the logic below.
 
-    const policyMemberAccountIDs = getPolicyEmployeeListByIdWithoutCurrentUser(allPolicies, policyID, currentUserAccountID);
+    const policyMemberAccountIDs = getPolicyEmployeeListByIdWithoutCurrentUser(policies, policyID, currentUserAccountID);
 
-    let reportsValues = Object.values(allReports ?? {});
+    let reportsValues = Object.values(reports ?? {});
 
     if (!!policyID || policyMemberAccountIDs.length > 0) {
         reportsValues = filterReportsByPolicyIDAndMemberAccountIDs(reportsValues, policyMemberAccountIDs, policyID);
@@ -2026,14 +2029,18 @@ function findLastAccessedReport(
     // At least two reports remain: self DM and Concierge chat.
     // Return the most recently visited report. Get the last read report from the report metadata.
     // If allReportMetadata is empty we'll return most recent report owned by user
-    if (isEmptyObject(allReportMetadata)) {
+    if (isEmptyObject(reportMetadata)) {
         const ownedReports = reportsValues.filter((report) => report?.ownerAccountID === currentUserAccountID);
         if (ownedReports.length > 0) {
             return lodashMaxBy(ownedReports, (a) => a?.lastReadTime ?? '');
         }
         return lodashMaxBy(reportsValues, (a) => a?.lastReadTime ?? '');
     }
-    return getMostRecentlyVisitedReport(reportsValues, allReportMetadata);
+    return getMostRecentlyVisitedReport(reportsValues, reportMetadata);
+}
+
+function findLastAccessedReportWithoutView(ignoreDomainRooms: boolean, openOnAdminRoom: boolean, policyID?: string, excludeReportID?: string): OnyxEntry<Report> {
+    return findLastAccessedReport(allReports, allPolicies, allReportMetadata, allReportNameValuePair, ignoreDomainRooms, openOnAdminRoom, policyID, excludeReportID);
 }
 
 /**
@@ -11633,6 +11640,7 @@ export {
     isWorkspaceTaskReport,
     isWorkspaceThread,
     getReportStatusTranslation,
+    findLastAccessedReportWithoutView,
 };
 
 export type {

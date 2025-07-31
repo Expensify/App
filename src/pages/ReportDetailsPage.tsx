@@ -24,6 +24,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import TextWithCopy from '@components/TextWithCopy';
+import useLastAccessedReport from '@hooks/useLastAccessedReport';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -148,6 +149,14 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
 
+    // Get last accessed report for navigation after leaving
+    const {lastAccessReport} = useLastAccessedReport(
+        !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+        false, // not opening admin room
+        undefined,
+        report.reportID, // exclude current report
+    );
+
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`, {canBeMissing: true});
 
@@ -157,7 +166,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     });
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: false});
-    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     const {reportActions} = usePaginatedReportActions(report.reportID);
 
@@ -305,13 +313,13 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         Navigation.dismissModal();
         Navigation.isNavigationReady().then(() => {
             if (isRootGroupChat) {
-                leaveGroupChat(report.reportID, allReportNameValuePairs);
+                leaveGroupChat(report.reportID, lastAccessReport);
                 return;
             }
             const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
-            leaveRoom(report.reportID, allReportNameValuePairs, isWorkspaceMemberLeavingWorkspaceRoom);
+            leaveRoom(report.reportID, lastAccessReport, isWorkspaceMemberLeavingWorkspaceRoom);
         });
-    }, [isPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility, allReportNameValuePairs]);
+    }, [isPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility, lastAccessReport]);
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, session?.email) && !policy?.isJoinRequestPending;
@@ -761,7 +769,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const deleteTransaction = useCallback(() => {
         if (caseID === CASES.DEFAULT) {
-            deleteTask(report, allReportNameValuePairs);
+            deleteTask(report, lastAccessReport);
             return;
         }
 
@@ -777,7 +785,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             deleteMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
             removeTransaction(iouTransactionID);
         }
-    }, [caseID, iouTransactionID, isSingleTransactionView, moneyRequestReport?.reportID, removeTransaction, report, requestParentReportAction, allReportNameValuePairs]);
+    }, [caseID, iouTransactionID, isSingleTransactionView, moneyRequestReport?.reportID, removeTransaction, report, requestParentReportAction, lastAccessReport]);
 
     // A flag to indicate whether the user chose to delete the transaction or not
     const isTransactionDeleted = useRef<boolean>(false);

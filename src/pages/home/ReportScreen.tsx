@@ -19,6 +19,7 @@ import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
+import useLastAccessedReport from '@hooks/useLastAccessedReport';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
@@ -55,7 +56,6 @@ import {
     buildTransactionThread,
     canEditReportAction,
     canUserPerformWriteAction,
-    findLastAccessedReport,
     generateReportID,
     getParticipantsAccountIDsForDisplay,
     getReportOfflinePendingActionAndErrors,
@@ -160,7 +160,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [userLeavingStatus = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`, {canBeMissing: true});
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
     const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
-    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true, allowStaleData: true});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<OnyxTypes.Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportOnyx?.parentReportID)}`, {
@@ -173,6 +172,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
 
+    // Use the hook to get the last accessed report
+    const {lastAccessReportID} = useLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), !!route.params.openOnAdminRoom, undefined, undefined);
+
     useEffect(() => {
         // Don't update if there is a reportID in the params already
         if (route.params.reportID) {
@@ -184,23 +186,15 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        const lastAccessedReportID = findLastAccessedReport(
-            !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-            !!route.params.openOnAdminRoom,
-            undefined,
-            undefined,
-            allReportNameValuePairs,
-        )?.reportID;
-
         // It's possible that reports aren't fully loaded yet
         // in that case the reportID is undefined
-        if (!lastAccessedReportID) {
+        if (!lastAccessReportID) {
             return;
         }
 
-        Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
-        navigation.setParams({reportID: lastAccessedReportID});
-    }, [allReportNameValuePairs, isBetaEnabled, navigation, route]);
+        Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessReportID}`);
+        navigation.setParams({reportID: lastAccessReportID});
+    }, [lastAccessReportID, navigation, route]);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const chatWithAccountManagerText = useMemo(() => {
