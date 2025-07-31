@@ -15,6 +15,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import useAutoRenewEnabled from '@hooks/useIsAutoRenewEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -69,6 +70,7 @@ function SubscriptionSettings() {
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const [privateTaxExempt] = useOnyx(ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT, {canBeMissing: true});
+    const isAutoRenewEnabled = useAutoRenewEnabled();
     const subscriptionPrice = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscription?.type);
     const priceDetails = translate(`subscription.yourPlan.${subscriptionPlan === CONST.POLICY.TYPE.CORPORATE ? 'control' : 'collect'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
         lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
@@ -128,7 +130,7 @@ function SubscriptionSettings() {
             showDelegateNoAccessModal();
             return;
         }
-        if (!privateSubscription?.autoRenew) {
+        if (!isAutoRenewEnabled) {
             updateSubscriptionAutoRenew(true);
             return;
         }
@@ -219,7 +221,7 @@ function SubscriptionSettings() {
                                     title={translate('subscription.subscriptionSettings.autoRenew')}
                                     switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
                                     onToggle={handleAutoRenewToggle}
-                                    isActive={privateSubscription?.autoRenew ?? false}
+                                    isActive={isAutoRenewEnabled}
                                 />
                                 {!!autoRenewalDate && (
                                     <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', {date: autoRenewalDate})}</Text>

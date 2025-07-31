@@ -5,6 +5,7 @@ import Button from '@components/Button';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import useIsAutoRenewEnabled from '@hooks/useIsAutoRenewEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,6 +43,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     const currentUserAccountID = getCurrentUserAccountID();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: false});
+    const isAutoRenewEnabled = useIsAutoRenewEnabled();
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const ownerPolicies = useMemo(() => getOwnedPaidPolicies(policies, currentUserAccountID), [policies, currentUserAccountID]);
 
@@ -121,7 +123,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     const autoIncrease = privateSubscription?.addNewUsersAutomatically ? translate('subscription.subscriptionSettings.on') : translate('subscription.subscriptionSettings.off');
     const subscriptionType = isAnnual ? translate('subscription.subscriptionSettings.annual') : translate('subscription.details.payPerUse');
     const subscriptionSize = `${privateSubscription?.userCount ?? translate('subscription.subscriptionSettings.none')}`;
-    const autoRenew = privateSubscription?.autoRenew ? translate('subscription.subscriptionSettings.on') : translate('subscription.subscriptionSettings.off');
+    const autoRenew = isAutoRenewEnabled ? translate('subscription.subscriptionSettings.on') : translate('subscription.subscriptionSettings.off');
 
     return (
         <MenuItemWithTopDescription
