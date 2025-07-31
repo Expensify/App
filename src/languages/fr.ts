@@ -1084,6 +1084,8 @@ const translations = {
         scanMultipleReceiptsDescription: "Prenez des photos de tous vos reçus en une seule fois, puis confirmez les détails vous-même ou laissez SmartScan s'en charger.",
         receiptScanInProgress: 'Numérisation du reçu en cours',
         receiptScanInProgressDescription: 'Numérisation du reçu en cours. Revenez plus tard ou saisissez les détails maintenant.',
+        removeFromReport: 'Supprimer du rapport',
+        moveToPersonalSpace: 'Déplacer les dépenses vers votre espace personnel',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Dépenses potentiellement en double identifiées. Vérifiez les doublons pour permettre la soumission.'
@@ -1844,7 +1846,7 @@ const translations = {
         expensifyWallet: 'Expensify Wallet (Bêta)',
         sendAndReceiveMoney: "Envoyez et recevez de l'argent avec des amis. Comptes bancaires américains uniquement.",
         enableWallet: 'Activer le portefeuille',
-        addBankAccountToSendAndReceive: 'Soyez remboursé pour les dépenses que vous soumettez à un espace de travail.',
+        addBankAccountToSendAndReceive: 'Ajoutez un compte bancaire pour effectuer ou recevoir des paiements.',
         assignedCards: 'Cartes assignées',
         assignedCardsDescription: "Ce sont des cartes attribuées par un administrateur d'espace de travail pour gérer les dépenses de l'entreprise.",
         expensifyCard: 'Expensify Card',
@@ -1855,6 +1857,8 @@ const translations = {
         chooseYourBankAccount: 'Choisissez votre compte bancaire',
         chooseAccountBody: 'Assurez-vous de sélectionner le bon.',
         confirmYourBankAccount: 'Confirmez votre compte bancaire',
+        personalBankAccounts: 'Comptes bancaires personnels',
+        businessBankAccounts: 'Comptes bancaires professionnels',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -5250,6 +5254,10 @@ const translations = {
                 one: 'Êtes-vous sûr de vouloir supprimer ce tarif ?',
                 other: 'Êtes-vous sûr de vouloir supprimer ces tarifs ?',
             }),
+            errors: {
+                rateNameRequired: 'Le nom du tarif est requis',
+                existingRateName: 'Un tarif de distance avec ce nom existe déjà.',
+            },
         },
         editor: {
             descriptionInputLabel: 'Description',
@@ -5972,7 +5980,7 @@ const translations = {
         },
         statements: 'Relevés',
         unapprovedCash: 'Espèces non approuvées',
-        unapprovedCompanyCards: "Cartes d'entreprise non approuvées",
+        unapprovedCard: 'Carte non approuvée',
         saveSearch: 'Enregistrer la recherche',
         deleteSavedSearch: 'Supprimer la recherche enregistrée',
         deleteSavedSearchConfirm: 'Êtes-vous sûr de vouloir supprimer cette recherche ?',

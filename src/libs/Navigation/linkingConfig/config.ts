@@ -801,6 +801,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.DISTANCE_RATE_EDIT]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATE_EDIT.route,
                         },
+                        [SCREENS.WORKSPACE.DISTANCE_RATE_NAME_EDIT]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATE_NAME_EDIT.route,
+                        },
                         [SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT.route,
                         },

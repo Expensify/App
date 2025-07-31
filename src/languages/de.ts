@@ -1082,6 +1082,8 @@ const translations = {
         scanMultipleReceiptsDescription: 'Machen Sie Fotos von all Ihren Belegen auf einmal, dann bestätigen Sie die Details selbst oder lassen Sie SmartScan dies übernehmen.',
         receiptScanInProgress: 'Belegscan läuft',
         receiptScanInProgressDescription: 'Belegscan läuft. Später erneut prüfen oder die Details jetzt eingeben.',
+        removeFromReport: 'Ausgabe aus Bericht entfernen',
+        moveToPersonalSpace: 'Ausgaben in persönlichen Bereich verschieben',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Mögliche doppelte Ausgaben erkannt. Überprüfen Sie die Duplikate, um die Einreichung zu ermöglichen.'
@@ -1842,7 +1844,7 @@ const translations = {
         expensifyWallet: 'Expensify Wallet (Beta)',
         sendAndReceiveMoney: 'Senden und Empfangen von Geld mit Freunden. Nur US-Bankkonten.',
         enableWallet: 'Wallet aktivieren',
-        addBankAccountToSendAndReceive: 'Erhalten Sie eine Rückerstattung für Ausgaben, die Sie an einen Arbeitsbereich einreichen.',
+        addBankAccountToSendAndReceive: 'Fügen Sie ein Bankkonto hinzu, um Zahlungen zu tätigen oder zu empfangen.',
         assignedCards: 'Zugewiesene Karten',
         assignedCardsDescription: 'Dies sind Karten, die von einem Workspace-Admin zugewiesen wurden, um die Ausgaben des Unternehmens zu verwalten.',
         expensifyCard: 'Expensify Card',
@@ -1853,6 +1855,8 @@ const translations = {
         chooseYourBankAccount: 'Wählen Sie Ihr Bankkonto aus',
         chooseAccountBody: 'Stellen Sie sicher, dass Sie das richtige auswählen.',
         confirmYourBankAccount: 'Bestätigen Sie Ihr Bankkonto',
+        personalBankAccounts: 'Persönliche Bankkonten',
+        businessBankAccounts: 'Geschäftsbankkonten',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -5237,6 +5241,10 @@ const translations = {
                 one: 'Möchten Sie diesen Satz wirklich löschen?',
                 other: 'Möchten Sie diese Tarife wirklich löschen?',
             }),
+            errors: {
+                rateNameRequired: 'Ratenname ist erforderlich',
+                existingRateName: 'Ein Entfernungsrate mit diesem Namen existiert bereits.',
+            },
         },
         editor: {
             descriptionInputLabel: 'Beschreibung',
@@ -5960,7 +5968,7 @@ const translations = {
         },
         statements: 'Erklärungen',
         unapprovedCash: 'Nicht genehmigtes Bargeld',
-        unapprovedCompanyCards: 'Nicht genehmigte Firmenkarten',
+        unapprovedCard: 'Nicht genehmigte Karte',
         saveSearch: 'Suche speichern',
         deleteSavedSearch: 'Gespeicherte Suche löschen',
         deleteSavedSearchConfirm: 'Möchten Sie diese Suche wirklich löschen?',
