@@ -1,12 +1,10 @@
- import Onyx from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import CONST from '../../src/CONST';
 import * as Localize from '../../src/libs/Localize';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-
-
 
 describe('localize', () => {
     beforeAll(() => {
@@ -67,7 +65,7 @@ describe('localize', () => {
         });
     });
 
-    describe('translate method - missing translation behavior', () => {        
+    describe('translate method - missing translation behavior', () => {
         beforeEach(async () => {
             await IntlStore.load(CONST.LOCALES.EN);
         });
@@ -88,16 +86,16 @@ describe('localize', () => {
             await waitForBatchedUpdates();
 
             const result = Localize.translate(CONST.LOCALES.EN, 'missing.translation.key' as TranslationPaths);
-            
+
             expect(result).toBe(CONST.MISSING_TRANSLATION);
-            
+
             // Restore original config
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             Object.assign(CONFIG.default, originalConfig);
         });
 
         it('should return MISSING_TRANSLATION for missing key with expensify email in staging', async () => {
-            // Mock staging environment  
+            // Mock staging environment
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const CONFIG = require('@src/CONFIG');
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
@@ -112,9 +110,9 @@ describe('localize', () => {
             await waitForBatchedUpdates();
 
             const result = Localize.translate(CONST.LOCALES.EN, 'missing.translation.key' as TranslationPaths);
-            
+
             expect(result).toBe(CONST.MISSING_TRANSLATION);
-            
+
             // Restore original config
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             Object.assign(CONFIG.default, originalConfig);
@@ -136,9 +134,9 @@ describe('localize', () => {
             await waitForBatchedUpdates();
 
             const result = Localize.translate(CONST.LOCALES.EN, 'missing.translation.key' as TranslationPaths);
-            
+
             expect(result).toBe('missing.translation.key');
-            
+
             // Restore original config
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             Object.assign(CONFIG.default, originalConfig);
@@ -160,9 +158,9 @@ describe('localize', () => {
             await waitForBatchedUpdates();
 
             const result = Localize.translate(CONST.LOCALES.EN, 'missing.translation.key' as TranslationPaths);
-            
+
             expect(result).toBe('missing.translation.key');
-            
+
             // Restore original config
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             Object.assign(CONFIG.default, originalConfig);
@@ -184,9 +182,9 @@ describe('localize', () => {
             await waitForBatchedUpdates();
 
             const result = Localize.translate(CONST.LOCALES.EN, 'missing.translation.key' as TranslationPaths);
-            
+
             expect(result).toBe('missing.translation.key');
-            
+
             // Restore original config
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             Object.assign(CONFIG.default, originalConfig);
