@@ -3963,11 +3963,7 @@ function getMoneyRequestReportName({
  * into a flat object. Used for displaying transactions and sending them in API commands
  */
 
-function getTransactionDetails(
-    transaction: OnyxInputOrEntry<Transaction>,
-    createdDateFormat: string = CONST.DATE.FNS_FORMAT_STRING,
-    policy: OnyxEntry<Policy> = undefined,
-): TransactionDetails | undefined {
+function getTransactionDetails(transaction: OnyxInputOrEntry<Transaction>, policy: OnyxEntry<Policy> = undefined): TransactionDetails | undefined {
     if (!transaction) {
         return;
     }

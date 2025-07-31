@@ -196,7 +196,7 @@ describe('ReportUtils', () => {
         const transaction = createRandomTransaction(1);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getTransactionDetails(transaction, 'yyyy-MM-dd'));
+        await measureFunction(() => getTransactionDetails(transaction));
     });
 
     test('[ReportUtils] getIOUReportActionDisplayMessage on 1k policies', async () => {

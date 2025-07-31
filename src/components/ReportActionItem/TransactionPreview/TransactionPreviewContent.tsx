@@ -63,7 +63,7 @@ function TransactionPreviewContent({
     const {translate} = useLocalize();
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
-    const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction, undefined, policy) ?? {}, [transaction, policy]);
+    const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction, policy) ?? {}, [transaction, policy]);
     const {amount, comment: requestComment, merchant, tag, category, currency: requestCurrency} = transactionDetails;
 
     const managerID = report?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
