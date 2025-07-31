@@ -87,7 +87,7 @@ function BaseRecordTroubleshootDataToolMenu({
     const styles = useThemeStyles();
     const [shouldRecordTroubleshootData] = useOnyx(ONYXKEYS.SHOULD_RECORD_TROUBLESHOOT_DATA, {canBeMissing: true});
     const [capturedLogs] = useOnyx(ONYXKEYS.LOGS, {canBeMissing: true});
-    const [isProfilingInProgress = false] = useOnyx(ONYXKEYS.APP_PROFILING_IN_PROGRESS, {canBeMissing: true});
+    const [isProfilingInProgress] = useOnyx(ONYXKEYS.APP_PROFILING_IN_PROGRESS, {canBeMissing: true});
     const [shareUrls, setShareUrls] = useState<string[]>();
     const [isDisabled, setIsDisabled] = useState<boolean>(false);
 
@@ -103,7 +103,7 @@ function BaseRecordTroubleshootDataToolMenu({
         } else {
             Performance.disableMonitoring();
         }
-        toggleProfileTool({isProfilingInProgress});
+        toggleProfileTool(isProfilingInProgress);
         return () => {
             Performance.disableMonitoring();
         };
