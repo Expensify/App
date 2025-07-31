@@ -1,5 +1,6 @@
 import {render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+// eslint-disable-next-line no-restricted-syntax
 import * as GetPlatformModule from '@libs/getPlatform';
 // eslint-disable-next-line no-restricted-syntax
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
