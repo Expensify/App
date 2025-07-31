@@ -405,8 +405,8 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
                 value: {
                     [personalPolicy?.id]: {
                         iou: {
-                            name: revertedLastUsedPaymentMethod
-                        }
+                            name: revertedLastUsedPaymentMethod,
+                        },
                     },
                 },
             });
@@ -417,8 +417,8 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
                 value: {
                     [personalPolicy?.id]: {
                         iou: {
-                            name: lastUsedPaymentMethod.iou.name
-                        }
+                            name: lastUsedPaymentMethod.iou.name,
+                        },
                     },
                 },
             });
@@ -433,8 +433,8 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
                 value: {
                     [paymentMethodID]: {
                         expense: {
-                            name: revertedLastUsedPaymentMethod
-                        }
+                            name: revertedLastUsedPaymentMethod,
+                        },
                     },
                 },
             });
@@ -445,8 +445,8 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
                 value: {
                     [paymentMethodID]: {
                         expense: {
-                            name: lastUsedPaymentMethod.expense?.name
-                        }
+                            name: lastUsedPaymentMethod.expense?.name,
+                        },
                     },
                 },
             });
