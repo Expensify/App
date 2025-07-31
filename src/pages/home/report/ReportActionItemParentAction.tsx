@@ -89,7 +89,7 @@ function ReportActionItemParentAction({
             const ancestorIDsToSelect = new Set(allAncestors.map(({report: reportAncestor}) => reportAncestor.reportID));
             return Object.entries(allPairs ?? {}).reduce((acc, [key, value]) => {
                 const id = key.split('_').at(1);
-                if (ancestorIDsToSelect.has(id ?? '') && acc) {
+                if (id && ancestorIDsToSelect.has(id) && acc) {
                     acc[key] = value;
                 }
                 return acc;
