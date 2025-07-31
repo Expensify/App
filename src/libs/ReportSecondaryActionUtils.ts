@@ -546,14 +546,6 @@ function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, repor
     return policy?.role === CONST.POLICY.ROLE.ADMIN;
 }
 
-function isRemoveHoldActionForTransaction(report: Report, reportTransaction: Transaction, policy?: Policy): boolean {
-    if (!isOnHoldTransactionUtils(reportTransaction)) {
-        return false;
-    }
-
-    return policy?.role === CONST.POLICY.ROLE.ADMIN;
-}
-
 function getSecondaryReportActions({
     report,
     chatReport,

@@ -1247,7 +1247,7 @@ describe('getSecondaryExportReportActions', () => {
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
     });
 
-    it('includes REMOVE HOLD option for admin', () => {
+    it('includes REMOVE HOLD option for admin in expense report but not in transaction thread report', () => {
         const report = {} as unknown as Report;
         const policy = {
             role: CONST.POLICY.ROLE.ADMIN,
@@ -1308,21 +1308,6 @@ describe('getSecondaryTransactionThreadActions', () => {
         jest.spyOn(ReportUtils, 'canHoldUnholdReportAction').mockReturnValueOnce({canHoldRequest: true, canUnholdRequest: true});
         const result = getSecondaryTransactionThreadActions(report, transaction, [actionR14932], policy);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
-    });
-
-    it('includes REMOVE HOLD option for admin', () => {
-        const report = {} as unknown as Report;
-        const policy = {
-            role: CONST.POLICY.ROLE.ADMIN,
-        } as unknown as Policy;
-        const transaction = {
-            comment: {
-                hold: 'REPORT_ACTION_ID',
-            },
-        } as unknown as Transaction;
-
-        const result = getSecondaryTransactionThreadActions(report, transaction, [], policy);
-        expect(result).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD);
     });
 
     it('includes DELETE option for expense report submitter', async () => {
