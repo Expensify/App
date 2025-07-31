@@ -41,7 +41,6 @@ import ValidateCodeForm from './ValidateCodeForm';
 import type {BaseValidateCodeFormRef} from './ValidateCodeForm/BaseValidateCodeForm';
 
 type SignInPageProps = {
-    shouldEnableMaxHeight?: boolean;
     ref?: Ref<SignInPageRef>;
 };
 
@@ -145,12 +144,9 @@ function getRenderOptions({
     };
 }
 
-function SignInPage({shouldEnableMaxHeight = true, ref}: SignInPageProps) {
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
+function SignInPage({ref}: SignInPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
-    const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
-    const safeAreaInsets = useSafeAreaInsets();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const signInPageLayoutRef = useRef<SignInPageLayoutRef>(null);
     const loginFormRef = useRef<InputHandle>(null);
     const validateCodeFormRef = useRef<BaseValidateCodeFormRef>(null);
@@ -304,64 +300,46 @@ function SignInPage({shouldEnableMaxHeight = true, ref}: SignInPageProps) {
         navigateBack,
     }));
     return (
-        // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
-        // The SVG should flow under the Home Indicator on iOS.
-        <ScreenWrapper
-            shouldShowOfflineIndicator={false}
-            shouldEnableMaxHeight={shouldEnableMaxHeight}
-            style={[styles.signInPage, StyleUtils.getPlatformSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]}
-            testID={SignInPageWrapper.displayName}
-        >
-            <SignInPageLayout
-                welcomeHeader={welcomeHeader}
-                welcomeText={welcomeText}
-                shouldShowWelcomeHeader={shouldShowWelcomeHeader || !shouldUseNarrowLayout}
-                shouldShowWelcomeText={shouldShowWelcomeText}
-                ref={signInPageLayoutRef}
-                navigateFocus={navigateFocus}
-            >
-                {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
-             so that password managers can access the values. Conditionally rendering this component will break this feature. */}
-                <LoginForm
-                    ref={loginFormRef}
-                    isVisible={shouldShowLoginForm}
-                    blurOnSubmit={isAccountValidated === false}
-                    // eslint-disable-next-line react-compiler/react-compiler
-                    scrollPageToTop={signInPageLayoutRef.current?.scrollPageToTop}
-                />
-                {shouldShouldSignUpWelcomeForm && <SignUpWelcomeForm />}
-                {shouldShowValidateCodeForm && (
-                    <ValidateCodeForm
-                        isVisible={!shouldShowAnotherLoginPageOpenedMessage}
-                        isUsingRecoveryCode={isUsingRecoveryCode}
-                        setIsUsingRecoveryCode={setIsUsingRecoveryCode}
-                        ref={validateCodeFormRef}
-                    />
-                )}
-                {!shouldShowAnotherLoginPageOpenedMessage && (
-                    <>
-                        {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
-                        {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrMagicCode setIsUsingMagicCode={setIsUsingMagicCode} />}
-                        {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
-                        {shouldShowSMSDeliveryFailurePage && <SMSDeliveryFailurePage />}
-                    </>
-                )}
-            </SignInPageLayout>
-        </ScreenWrapper>
-    );
-}
-
-function SignInPageWrapper(props: SignInPageProps) {
-    return (
         <ThemeProvider theme={CONST.THEME.DARK}>
             <ThemeStylesProvider>
                 <ColorSchemeWrapper>
                     <CustomStatusBarAndBackground isNested />
                     <LoginProvider>
-                        <SignInPage
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...props}
-                        />
+                        <SignInPageLayout
+                            welcomeHeader={welcomeHeader}
+                            welcomeText={welcomeText}
+                            shouldShowWelcomeHeader={shouldShowWelcomeHeader || !shouldUseNarrowLayout}
+                            shouldShowWelcomeText={shouldShowWelcomeText}
+                            ref={signInPageLayoutRef}
+                            navigateFocus={navigateFocus}
+                        >
+                            {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
+                            so that password managers can access the values. Conditionally rendering this component will break this feature. */}
+                            <LoginForm
+                                ref={loginFormRef}
+                                isVisible={shouldShowLoginForm}
+                                blurOnSubmit={isAccountValidated === false}
+                                // eslint-disable-next-line react-compiler/react-compiler
+                                scrollPageToTop={signInPageLayoutRef.current?.scrollPageToTop}
+                            />
+                            {shouldShouldSignUpWelcomeForm && <SignUpWelcomeForm />}
+                            {shouldShowValidateCodeForm && (
+                                <ValidateCodeForm
+                                    isVisible={!shouldShowAnotherLoginPageOpenedMessage}
+                                    isUsingRecoveryCode={isUsingRecoveryCode}
+                                    setIsUsingRecoveryCode={setIsUsingRecoveryCode}
+                                    ref={validateCodeFormRef}
+                                />
+                            )}
+                            {!shouldShowAnotherLoginPageOpenedMessage && (
+                                <>
+                                    {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
+                                    {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrMagicCode setIsUsingMagicCode={setIsUsingMagicCode} />}
+                                    {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
+                                    {shouldShowSMSDeliveryFailurePage && <SMSDeliveryFailurePage />}
+                                </>
+                            )}
+                        </SignInPageLayout>
                     </LoginProvider>
                 </ColorSchemeWrapper>
             </ThemeStylesProvider>
@@ -369,7 +347,28 @@ function SignInPageWrapper(props: SignInPageProps) {
     );
 }
 
+function SignInPageWrapper({ref}: SignInPageProps) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const safeAreaInsets = useSafeAreaInsets();
+    const {isInNarrowPaneModal} = useResponsiveLayout();
+
+    return (
+        // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
+        // The SVG should flow under the Home Indicator on iOS.
+        <ScreenWrapper
+            shouldShowOfflineIndicator={false}
+            style={[styles.signInPage, StyleUtils.getPlatformSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]}
+            testID={SignInPageWrapper.displayName}
+        >
+            <SignInPage ref={ref} />
+        </ScreenWrapper>
+    );
+}
+
 SignInPageWrapper.displayName = 'SignInPage';
+
+export {SignInPage as SignInPageBase};
 
 export default SignInPageWrapper;
 
