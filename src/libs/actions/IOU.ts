@@ -12202,6 +12202,29 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         Navigation.dismissModal();
         return;
     }
+
+    const trackReport = Navigation.getReportRouteByID(draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
+
+    if (trackReport) {
+        Navigation.dismissModal();
+
+        InteractionManager.runAfterInteractions(() => {
+            Navigation.popToTop();
+
+            const backToRoute = trackReport.params && typeof trackReport.params === 'object' && 'backTo' in trackReport.params ? (trackReport.params.backTo as Route) : undefined;
+
+            if (backToRoute) {
+                Navigation.goBack(backToRoute);
+            }
+
+            requestAnimationFrame(() => {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(expenseReport?.reportID));
+            });
+        });
+
+        return;
+    }
+
     Navigation.dismissModalWithReport({reportID: expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)});
 }
 
