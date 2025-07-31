@@ -8,23 +8,6 @@ import * as Environment from '@src/libs/Environment/Environment';
 import type {OnyxInputOrEntry, PersonalDetailsList, Report, UserMetadata} from '@src/types/onyx';
 import type NavigationProperties from './types';
 
-/*
-    prefix? if component name should be used as a prefix,
-    in case data-test-id attribute usage,
-    clean component name should be preserved in data-test-id.
-*/
-function getFSAttributes(name: string, mask: boolean, prefix: boolean): string {
-    if (!name) {
-        return `${mask ? CONST.FULL_STORY.MASK : CONST.FULL_STORY.UNMASK}`;
-    }
-
-    if (prefix) {
-        return `${name},${mask ? CONST.FULL_STORY.MASK : CONST.FULL_STORY.UNMASK}`;
-    }
-
-    return `${name}`;
-}
-
 function getChatFSAttributes(context: OnyxEntry<PersonalDetailsList>, name: string, report: OnyxInputOrEntry<Report>): string[] {
     if (!name) {
         return ['', ''];
@@ -149,4 +132,4 @@ const FS = {
 };
 
 export default FS;
-export {FSPage, getFSAttributes, getChatFSAttributes};
+export {FSPage, getChatFSAttributes};

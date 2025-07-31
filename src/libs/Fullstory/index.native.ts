@@ -65,23 +65,6 @@ const FS = {
     },
 };
 
-/*
-    prefix? if component name should be used as a prefix,
-    in case data-test-id attribute usage,
-    clean component name should be preserved in data-test-id.
-*/
-function getFSAttributes(name: string, mask: boolean, prefix: boolean): string {
-    if (!name && !prefix) {
-        return `${mask ? CONST.FULL_STORY.MASK : CONST.FULL_STORY.UNMASK}`;
-    }
-    // prefixed for Native apps should contain only component name
-    if (prefix) {
-        return name;
-    }
-
-    return `${name},${mask ? CONST.FULL_STORY.MASK : CONST.FULL_STORY.UNMASK}`;
-}
-
 function getChatFSAttributes(context: OnyxEntry<PersonalDetailsList>, name: string, report: OnyxInputOrEntry<Report>): string[] {
     if (!name) {
         return ['', ''];
@@ -99,4 +82,4 @@ function getChatFSAttributes(context: OnyxEntry<PersonalDetailsList>, name: stri
 }
 
 export default FS;
-export {FSPage, getFSAttributes, getChatFSAttributes};
+export {FSPage, getChatFSAttributes};
