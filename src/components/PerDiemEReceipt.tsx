@@ -8,7 +8,6 @@ import {convertAmountToDisplayString, convertToDisplayStringWithoutCurrency, get
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import EReceiptThumbnail from './EReceiptThumbnail';
