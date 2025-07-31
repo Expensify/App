@@ -9,7 +9,7 @@ import type {OnyxCollectionKey, OnyxKey} from '@src/ONYXKEYS';
  * @return Unsubscribe callback
  */
 function onyxSubscribe<TKey extends OnyxKey | `${OnyxCollectionKey}${string}`>(mapping: ConnectOptions<TKey>) {
-    const connection = Onyx.connect(mapping);
+    const connection = Onyx.connectWithoutView(mapping);
     return () => Onyx.disconnect(connection);
 }
 
