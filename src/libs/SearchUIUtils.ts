@@ -1,6 +1,6 @@
 import type {TextStyle, ViewStyle} from 'react-native';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import DotLottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
@@ -1509,33 +1509,13 @@ function createTypeMenuSections(
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
     defaultCardFeed: CardFeedForDisplay | undefined,
     policies: OnyxCollection<OnyxTypes.Policy>,
+    savedSearches: OnyxEntry<OnyxTypes.SaveSearch>,
+    isOffline: boolean,
 ): SearchTypeMenuSection[] {
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
     const suggestedSearches = getSuggestedSearches(defaultCardFeed?.id, currentUserAccountID);
     const suggestedSearchesVisibility = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies);
-
-    // Explore section
-    {
-        const exploreSection: SearchTypeMenuSection = {
-            translationPath: 'common.explore',
-            menuItems: [],
-        };
-
-        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPENSES]) {
-            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPENSES]);
-        }
-        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.REPORTS]) {
-            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.REPORTS]);
-        }
-        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.CHATS]) {
-            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.CHATS]);
-        }
-
-        if (exploreSection.menuItems.length > 0) {
-            typeMenuSections.push(exploreSection);
-        }
-    }
 
     // Todo section
     {
@@ -1666,6 +1646,42 @@ function createTypeMenuSections(
 
         if (accountingSection.menuItems.length > 0) {
             typeMenuSections.push(accountingSection);
+        }
+    }
+
+    // Saved section
+    {
+        const shouldShowSavedSearchesMenuItemTitle = Object.values(savedSearches ?? {}).filter((s) => s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length > 0;
+
+        if (shouldShowSavedSearchesMenuItemTitle) {
+            const savedSection: SearchTypeMenuSection = {
+                translationPath: 'search.savedSearchesMenuItemTitle',
+                menuItems: [],
+            };
+
+            typeMenuSections.push(savedSection);
+        }
+    }
+
+    // Explore section
+    {
+        const exploreSection: SearchTypeMenuSection = {
+            translationPath: 'common.explore',
+            menuItems: [],
+        };
+
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPENSES]) {
+            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPENSES]);
+        }
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.REPORTS]) {
+            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.REPORTS]);
+        }
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.CHATS]) {
+            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.CHATS]);
+        }
+
+        if (exploreSection.menuItems.length > 0) {
+            typeMenuSections.push(exploreSection);
         }
     }
 

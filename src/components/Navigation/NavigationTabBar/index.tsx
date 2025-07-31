@@ -15,6 +15,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
@@ -57,11 +58,13 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const {orderedReports} = useSidebarOrderedReports();
     const subscriptionPlan = useSubscriptionPlan();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const navigationState = useNavigationState(findFocusedRoute);
     const initialNavigationRouteState = getWorkspaceNavigationRouteState();
     const [lastWorkspacesTabNavigatorRoute, setLastWorkspacesTabNavigatorRoute] = useState(initialNavigationRouteState.lastWorkspacesTabNavigatorRoute);
     const [workspacesTabState, setWorkspacesTabState] = useState(initialNavigationRouteState.workspacesTabState);
     const params = workspacesTabState?.routes?.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
+    const {typeMenuSections} = useSearchTypeMenuSections();
 
     const [lastViewedPolicy] = useOnyx(
         ONYXKEYS.COLLECTION.POLICY,
@@ -145,9 +148,11 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                 }
             }
 
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+            const nonExploreTypeQuery = typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
+            const savedSearchQuery = Object.values(savedSearches ?? {}).at(0)?.query;
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: nonExploreTypeQuery ?? savedSearchQuery ?? buildCannedSearchQuery()}));
         });
-    }, [selectedTab]);
+    }, [selectedTab, typeMenuSections, savedSearches]);
 
     const navigateToSettings = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.SETTINGS) {
