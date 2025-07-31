@@ -3092,7 +3092,7 @@ describe('ReportUtils', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
         });
 
-        it('should not return an archived report even if it was most recently accessed', async () => {
+        it('should not return an archived report even if it was most recently accessed', () => {
             const result = findLastAccessedReportWithoutView(false);
 
             // Even though the archived report has a more recent lastVisitTime,
