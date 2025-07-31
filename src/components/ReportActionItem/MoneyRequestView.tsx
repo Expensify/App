@@ -201,6 +201,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
     const isSettled = isSettledReportUtils(moneyRequestReport?.reportID);
     const isCancelled = moneyRequestReport && moneyRequestReport?.isCancelledIOU;
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
+    const shouldShowPaid = isSettled && transactionReimbursable;
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
@@ -328,7 +329,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         } else if (isApproved) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
-        } else if (isSettled) {
+        } else if (shouldShowPaid) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.settledExpensify')}`;
         }
     }
@@ -654,7 +655,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount') ?? (amountTitle ? getPendingFieldAction('customUnitRateID') : undefined)}>
                     <MenuItemWithTopDescription
                         title={amountTitle}
-                        shouldShowTitleIcon={isSettled}
+                        shouldShowTitleIcon={shouldShowPaid}
                         titleIcon={Expensicons.Checkmark}
                         description={amountDescription}
                         titleStyle={styles.textHeadlineH2}
