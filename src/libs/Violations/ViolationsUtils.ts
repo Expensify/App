@@ -245,7 +245,7 @@ const ViolationsUtils = {
             return {
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
-                value: {name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true},
+                value: [{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}],
             };
         }
         if (!shouldShowSmartScanFailedError && hasSmartScanFailedError) {
