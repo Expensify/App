@@ -187,7 +187,7 @@ function SettlementButton({
                 shouldUpdateSelectedIndex: false,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
-                text: translate('iou.payElsewhere', {formattedAmount: onlyShowPayElsewhere ? formattedAmount : ''}),
+                text: translate('iou.payElsewhere', {formattedAmount: formattedAmount}),
                 icon: Expensicons.CheckCircle,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 shouldUpdateSelectedIndex: false,
