@@ -16,7 +16,7 @@ function getDeviceID(): Promise<string | null> {
             return;
         }
 
-        const connection = Onyx.connect({
+        const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.DEVICE_ID,
             callback: (id) => {
                 Onyx.disconnect(connection);
