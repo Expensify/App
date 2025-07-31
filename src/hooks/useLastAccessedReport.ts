@@ -29,8 +29,8 @@ const reportSelector = (report: OnyxEntry<Report>): ReportSelector =>
 
 const policySelector = (policy: OnyxEntry<Policy>): PolicySelector =>
     (policy && {
-        id: policy.id ?? '',
-        employeeList: policy.employeeList ?? [],
+        id: policy.id,
+        employeeList: policy.employeeList,
     }) as PolicySelector;
 
 const reportNameValuePairsSelector = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>): ReportNameValuePairsSelector =>
