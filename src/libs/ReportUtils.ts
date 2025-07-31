@@ -222,7 +222,6 @@ import {
     getCurrency,
     getDescription,
     getFormattedCreated,
-    getFormattedPostedDate,
     getMCCGroup,
     getMerchant,
     getMerchantOrDescription,
