@@ -35,6 +35,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getPlatform from '@libs/getPlatform';
 import goToSettings from '@libs/goToSettings';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
+import memoize from '@libs/memoize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {Option, SearchOption, Section} from '@libs/OptionsListUtils';
 import {
@@ -62,6 +63,8 @@ import type {PersonalDetails} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ImportContactButton from './ImportContactButton';
+
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'MoneyRequestParticipantsSelector.getValidOptions'});
 
 type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -119,6 +122,7 @@ function MoneyRequestParticipantsSelector(
     const {options, areOptionsInitialized, initializeOptions} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const [contacts, setContacts] = useState<Array<SearchOption<PersonalDetails>>>([]);
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListHandle | null>(null);
@@ -168,7 +172,7 @@ function MoneyRequestParticipantsSelector(
             };
         }
 
-        const optionList = getValidOptions(
+        const optionList = memoizedGetValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails.concat(contacts),
@@ -280,6 +284,8 @@ function MoneyRequestParticipantsSelector(
             chatOptions.personalDetails,
             personalDetails,
             true,
+            undefined,
+            reportAttributesDerived,
         );
 
         newSections.push(formatResults.section);
@@ -321,7 +327,7 @@ function MoneyRequestParticipantsSelector(
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
             });
@@ -340,14 +346,15 @@ function MoneyRequestParticipantsSelector(
         participants,
         chatOptions.recentReports,
         chatOptions.personalDetails,
-        chatOptions.selfDMChat,
         chatOptions.workspaceChats,
+        chatOptions.selfDMChat,
         chatOptions.userToInvite,
         personalDetails,
         translate,
-        showImportContacts,
-        inputHelperText,
         isPerDiemRequest,
+        showImportContacts,
+        reportAttributesDerived,
+        inputHelperText,
     ]);
 
     /**
@@ -581,7 +588,7 @@ function MoneyRequestParticipantsSelector(
         return (
             <>
                 {ClickableImportContactTextComponent}
-                <EmptySelectionListContent contentType={iouType} />;
+                <EmptySelectionListContent contentType={iouType} />
             </>
         );
     }, [iouType, ClickableImportContactTextComponent]);
