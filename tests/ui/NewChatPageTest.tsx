@@ -3,6 +3,7 @@ import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/
 import React from 'react';
 import {SectionList} from 'react-native';
 import Onyx from 'react-native-onyx';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
@@ -21,11 +22,13 @@ jest.mock('@src/libs/Navigation/navigationRef');
 
 const wrapper = ({children}: {children: React.ReactNode}) => (
     <OnyxListItemProvider>
-        <LocaleContextProvider>
-            <OptionsListContextProvider>
-                <ScreenWrapper testID="test">{children}</ScreenWrapper>
-            </OptionsListContextProvider>
-        </LocaleContextProvider>
+        <HTMLEngineProvider>
+            <LocaleContextProvider>
+                <OptionsListContextProvider>
+                    <ScreenWrapper testID="test">{children}</ScreenWrapper>
+                </OptionsListContextProvider>
+            </LocaleContextProvider>
+        </HTMLEngineProvider>
     </OnyxListItemProvider>
 );
 
