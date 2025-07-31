@@ -1,22 +1,33 @@
 import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import type {TextSelection} from '@components/Composer/types';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
+import type CONST from '@src/CONST';
 
-type BaseTextInputWithCurrencySymbolProps = {
-    /** Formatted amount in local currency  */
+type BaseTextInputWithSymbolProps = {
+    /** Formatted amount */
     formattedAmount: string;
 
     /** Function to call when amount in text input is changed */
-    onChangeAmount?: (value: string) => void;
+    onChangeAmount?: (amount: string) => void;
 
-    /** Function to call when currency button is pressed */
-    onCurrencyButtonPress?: () => void;
+    /** Function to call when symbol button is pressed */
+    onSymbolButtonPress?: () => void;
 
     /** Placeholder value for amount text input */
     placeholder: string;
 
-    /** Currency code of user's selected currency */
-    selectedCurrencyCode: string;
+    /** Symbol of the input */
+    symbol: string;
+
+    /** Position of the symbol */
+    symbolPosition?: ValueOf<typeof CONST.TEXT_INPUT_SYMBOL_POSITION>;
+
+    /** Whether the symbol is pressable */
+    isSymbolPressable?: boolean;
+
+    /** Whether to hide the symbol */
+    hideSymbol?: boolean;
 
     /** Selection Object */
     selection?: TextSelection;
@@ -42,17 +53,8 @@ type BaseTextInputWithCurrencySymbolProps = {
      */
     onMouseUp?: ((e: React.MouseEvent) => void) | undefined;
 
-    /** Whether the currency symbol is pressable */
-    isCurrencyPressable: boolean;
-
-    /** Whether to hide the currency symbol */
-    hideCurrencySymbol?: boolean;
-
     /** Whether to disable native keyboard on mobile */
     disableKeyboard?: boolean;
-
-    /** Extra symbol to display */
-    extraSymbol?: React.ReactNode;
 
     /** Style for the input */
     style?: StyleProp<TextStyle>;
@@ -72,6 +74,9 @@ type BaseTextInputWithCurrencySymbolProps = {
     /** Customizes the touchable wrapper of the TextInput component */
     touchableInputWrapperStyle?: StyleProp<ViewStyle>;
 
+    /** Style for the symbol */
+    symbolTextStyle?: StyleProp<TextStyle>;
+
     /** Max length for the amount input */
     maxLength?: number;
 
@@ -83,12 +88,12 @@ type BaseTextInputWithCurrencySymbolProps = {
 
     /** The test ID of TextInput. Used to locate the view in end-to-end tests. */
     testID?: string;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrow' | 'autoGrowExtraSpace' | 'contentWidth' | 'onPress' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix'>;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrow' | 'autoGrowExtraSpace' | 'autoGrowMarginSide' | 'contentWidth' | 'onPress' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix'>;
 
-type TextInputWithCurrencySymbolProps = Omit<BaseTextInputWithCurrencySymbolProps, 'onSelectionChange'> & {
+type TextInputWithSymbolProps = Omit<BaseTextInputWithSymbolProps, 'onSelectionChange'> & {
     onSelectionChange?: (start: number, end: number) => void;
 };
 
-export type {TextInputWithCurrencySymbolProps};
+export type {TextInputWithSymbolProps};
 
-export default BaseTextInputWithCurrencySymbolProps;
+export default BaseTextInputWithSymbolProps;
