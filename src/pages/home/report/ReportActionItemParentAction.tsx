@@ -86,14 +86,14 @@ function ReportActionItemParentAction({
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
         selector: (allPairs) => {
-            const ancestorIDsToSelect = new Set(allAncestors.map(({report: reportAncestor}) => reportAncestor.reportID));
-            return Object.entries(allPairs ?? {}).reduce((acc, [key, value]) => {
-                const id = key.split('_').at(1);
-                if (id && ancestorIDsToSelect.has(id) && acc) {
-                    acc[key] = value;
-                }
-                return acc;
-            }, {} as OnyxCollection<OnyxTypes.ReportNameValuePairs>);
+            const ancestorIDsToSelect = new Set(ancestorIDs.current.reportIDs);
+
+            return Object.fromEntries(
+                Object.entries(allPairs ?? {}).filter(([key]) => {
+                    const id = key.split('_').at(1);
+                    return id && ancestorIDsToSelect.has(id);
+                }),
+            );
         },
     });
 
