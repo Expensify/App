@@ -235,7 +235,7 @@ function KYCWall({
                 }
 
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if ((paymentMethod || policy) && !hasActivatedWallet) {
+                if (policy || (paymentMethod && (!hasActivatedWallet || paymentMethod !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT))) {
                     setShouldShowAddPaymentMenu(false);
                     selectPaymentMethod(paymentMethod, policy);
                     return;
