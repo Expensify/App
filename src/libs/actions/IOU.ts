@@ -12197,21 +12197,36 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
 
     API.write(WRITE_COMMANDS.SPLIT_TRANSACTION, parameters, {optimisticData, successData, failureData});
     InteractionManager.runAfterInteractions(() => removeDraftSplitTransaction(originalTransactionID));
+
     const isSearchPageTopmostFullScreenRoute = isSearchTopmostFullScreenRoute();
+    const transactionThreadReportID = iouActions.at(0)?.childReportID;
+    const transactionThreadReportScreen = Navigation.getReportRouteByID(transactionThreadReportID);
+
     if (isSearchPageTopmostFullScreenRoute || !transactionReport?.parentReportID) {
         Navigation.dismissModal();
+
+        // After the modal is dismissed, remove the transaction thread report screen
+        // to avoid navigating back to a report removed by the split transaction.
+        requestAnimationFrame(() => {
+            if (!transactionThreadReportScreen?.key) {
+                return;
+            }
+
+            Navigation.removeScreenByKey(transactionThreadReportScreen.key);
+        });
+
         return;
     }
     Navigation.dismissModalWithReport({reportID: expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)});
 
-    const transactionThreadReportID = iouActions.at(0)?.childReportID;
-    const trackTransactionThreadReport = Navigation.getReportRouteByID(transactionThreadReportID);
-    InteractionManager.runAfterInteractions(() => {
-        if (!trackTransactionThreadReport?.key) {
+    // After the modal is dismissed, remove the transaction thread report screen
+    // to avoid navigating back to a report removed by the split transaction.
+    requestAnimationFrame(() => {
+        if (!transactionThreadReportScreen?.key) {
             return;
         }
 
-        Navigation.removeScreenByKey(trackTransactionThreadReport.key);
+        Navigation.removeScreenByKey(transactionThreadReportScreen.key);
     });
 }
 
