@@ -260,7 +260,7 @@ function Expensify() {
             return;
         }
         disconnect(stashedCredentials, stashedSession);
-    }, [account?.delegatedAccess?.delegates, account?.delegatedAccess?.delegate]);
+    }, [account?.delegatedAccess?.delegates, account?.delegatedAccess?.delegate, stashedCredentials, stashedSession]);
 
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
