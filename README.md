@@ -31,7 +31,7 @@
 * [Contributor License Agreement](CLA.md)
 * [React StrictMode](contributingGuides/STRICT_MODE.md)
 * [Left Hand Navigation(LHN)](contributingGuides/LEFT_HAND_NAVIGATION.md)
-* [HybridApp - additional info & troubleshooting](contributingGuides/HYBRID_APP.md)
+* [HybridApp: additional info & troubleshooting](contributingGuides/HYBRID_APP.md)
 
 ----
 
