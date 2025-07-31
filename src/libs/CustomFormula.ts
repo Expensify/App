@@ -216,7 +216,7 @@ function compute(formula: string, context: FormulaContext): string {
 
         // Apply any functions to the computed value
         value = applyFunctions(value, part.functions);
-        result = result === '' ? value : `${result} ${value}`; // Concatenate with space
+        result = result === '' ? value : `${result} ${value}`.trim(); // Concatenate with space
     }
 
     return result;
