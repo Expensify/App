@@ -19,12 +19,12 @@ const reportSelector = (report: OnyxEntry<Report>): ReportSelector =>
     (report && {
         reportID: report.reportID,
         lastReadTime: report.lastReadTime,
-        chatType: report.chatType ?? '',
-        type: report.type ?? '',
-        participants: report.participants ?? {},
-        invoiceReceiver: report.invoiceReceiver ?? {},
-        ownerAccountID: report.ownerAccountID ?? 0,
-        parentReportActionID: report.parentReportActionID ?? '',
+        chatType: report.chatType,
+        type: report.type,
+        participants: report.participants,
+        invoiceReceiver: report.invoiceReceiver,
+        ownerAccountID: report.ownerAccountID,
+        parentReportActionID: report.parentReportActionID,
     }) as ReportSelector;
 
 const policySelector = (policy: OnyxEntry<Policy>): PolicySelector =>
@@ -35,12 +35,12 @@ const policySelector = (policy: OnyxEntry<Policy>): PolicySelector =>
 
 const reportNameValuePairsSelector = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>): ReportNameValuePairsSelector =>
     (reportNameValuePairs && {
-        private_isArchived: reportNameValuePairs.private_isArchived ?? '',
+        private_isArchived: reportNameValuePairs.private_isArchived,
     }) as ReportNameValuePairsSelector;
 
 const reportMetadataSelector = (reportMetadata: OnyxEntry<ReportMetadata>): ReportMetadataSelector =>
     (reportMetadata && {
-        lastVisitTime: reportMetadata.lastVisitTime ?? '',
+        lastVisitTime: reportMetadata.lastVisitTime,
     }) as ReportMetadataSelector;
 
 function useLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = false, policyID?: string, excludeReportID?: string) {
