@@ -17,6 +17,7 @@ import Icon from '@components/Icon';
 import {Eye} from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
@@ -326,6 +327,7 @@ type PureReportActionItemProps = {
         reportId: string | undefined,
         reportAction: OnyxEntry<OnyxTypes.ReportAction>,
         resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
+        formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
         policy: OnyxEntry<OnyxTypes.Policy>,
     ) => void;
 
@@ -818,7 +820,7 @@ function PureReportActionItem({
                 {
                     text: 'common.buttonConfirm',
                     key: `${action.reportActionID}-actionableReportMentionConfirmWhisper-${CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE}`,
-                    onPress: () => resolveActionableMentionConfirmWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE),
+                    onPress: () => resolveActionableMentionConfirmWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE, formatPhoneNumber),
                     isPrimary: true,
                 },
             ];
@@ -831,7 +833,7 @@ function PureReportActionItem({
             actionableMentionWhisperOptions.push({
                 text: 'actionableMentionWhisperOptions.inviteToSubmitExpense',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE}`,
-                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE, policy),
+                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE, formatPhoneNumber, policy),
                 isMediumSized: true,
             });
         }
@@ -840,13 +842,13 @@ function PureReportActionItem({
             {
                 text: 'actionableMentionWhisperOptions.inviteToChat',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
-                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, policy),
+                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, formatPhoneNumber, policy),
                 isMediumSized: true,
             },
             {
                 text: 'actionableMentionWhisperOptions.nothing',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, policy),
+                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, formatPhoneNumber, policy),
                 isMediumSized: true,
             },
         );
@@ -855,6 +857,7 @@ function PureReportActionItem({
         action,
         userBillingFundID,
         isActionableWhisper,
+        report?.policyID,
         policy,
         currentUserAccountID,
         reportID,
@@ -863,6 +866,7 @@ function PureReportActionItem({
         createDraftTransactionAndNavigateToParticipantSelector,
         dismissTrackExpenseActionableWhisper,
         resolveActionableReportMentionWhisper,
+        formatPhoneNumber,
         resolveActionableMentionWhisper,
     ]);
 
