@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {PartialPolicyForSidebar, ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
-import CONST from '@src/CONST';
+import CONST, {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
@@ -102,6 +102,7 @@ import {
     isChatRoom,
     isChatThread,
     isConciergeChatReport,
+    isDefaultRoom,
     isDeprecatedGroupDM,
     isDomainRoom,
     isExpenseReport,
@@ -124,6 +125,7 @@ import {
     shouldDisplayViolationsRBRInLHN,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
+    temporary_getMoneyRequestOptions,
 } from './ReportUtils';
 import {getTaskReportActionMessage} from './TaskUtils';
 import {getTransactionID} from './TransactionUtils';
@@ -841,7 +843,26 @@ function getOptionData({
     return result;
 }
 
-function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isReportArchived = false, reportDetailsLink = ''): WelcomeMessage {
+function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isReportArchived = false, reportDetailsLink = '', shouldShowUsePlusButtonText?: boolean): WelcomeMessage {
+    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true);
+    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
+    const filteredOptions = moneyRequestOptions.filter(
+        (
+            item,
+        ): item is Exclude<
+            IOUType,
+            typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE
+        > => item !== CONST.IOU.TYPE.INVOICE,
+    );
+    const additionalText = filteredOptions
+        .map(
+            (item, index) =>
+                `${index === filteredOptions.length - 1 && index > 0 ? `${translateLocal('common.or')} ` : ''}${translateLocal(
+                    item === 'submit' ? `reportActionsView.create` : `reportActionsView.iouTypes.${item}`,
+                )}`,
+        )
+        .join(', ');
+
     const welcomeMessage: WelcomeMessage = {};
     if (isChatThread(report) || isTaskReport(report)) {
         return welcomeMessage;
@@ -866,7 +887,7 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>,
     }
 
     if (isSelfDM(report)) {
-        welcomeMessage.messageText = translateLocal('reportActionsView.beginningOfChatHistorySelfDM');
+        welcomeMessage.messageHtml = `${translateLocal('reportActionsView.beginningOfChatHistorySelfDM')} ${shouldShowUsePlusButtonText ? translateLocal('reportActionsView.usePlusButton', {additionalText}) : ''}`;
         return welcomeMessage;
     }
 
@@ -875,8 +896,12 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>,
         return welcomeMessage;
     }
 
+    if (isDefaultRoom(report) && shouldShowUsePlusButtonText) {
+        welcomeMessage.messageHtml = translateLocal('reportActionsView.usePlusButton', {additionalText});
+        return welcomeMessage;
+    }
+
     welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfChatHistory');
-    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, undefined, true);
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, allPersonalDetails), isMultipleParticipant);
     const displayNamesWithTooltipsText = displayNamesWithTooltips

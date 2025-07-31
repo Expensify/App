@@ -60,22 +60,6 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, isReportArchived);
     const policyName = getPolicyName({report});
 
-    const filteredOptions = moneyRequestOptions.filter(
-        (
-            item,
-        ): item is Exclude<
-            IOUType,
-            typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE
-        > => item !== CONST.IOU.TYPE.INVOICE,
-    );
-    const additionalText = filteredOptions
-        .map(
-            (item, index) =>
-                `${index === filteredOptions.length - 1 && index > 0 ? `${translate('common.or')} ` : ''}${translate(
-                    item === 'submit' ? `reportActionsView.create` : `reportActionsView.iouTypes.${item}`,
-                )}`,
-        )
-        .join(', ');
     const reportName = getReportName(report);
     const shouldShowUsePlusButtonText =
         moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) ||
@@ -115,7 +99,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         return translate('reportActionsView.sayHello');
     }, [isChatRoom, isInvoiceRoom, isPolicyExpenseChat, isSelfDM, isSystemChat, translate, policyName, reportName]);
 
-    const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy, isReportArchived, reportDetailsLink);
+    const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy, isReportArchived, reportDetailsLink, shouldShowUsePlusButtonText);
 
     return (
         <>
@@ -123,16 +107,10 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                 <Text style={[styles.textHero]}>{welcomeHeroText}</Text>
             </View>
             <View style={[styles.mt3, styles.mw100]}>
-                {(isChatRoom || isPolicyExpenseChat) && !!welcomeMessage.messageHtml && (
+                {(isChatRoom || isPolicyExpenseChat || isSelfDM) && !!welcomeMessage.messageHtml && (
                     <View style={[styles.renderHTML, styles.cursorText]}>
                         <RenderHTML html={welcomeMessage.messageHtml} />
                     </View>
-                )}
-                {isSelfDM && (
-                    <Text>
-                        <Text>{welcomeMessage.messageText}</Text>
-                        {shouldShowUsePlusButtonText && <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>}
-                    </Text>
                 )}
                 {isSystemChat && (
                     <Text>
@@ -163,7 +141,11 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                                 {index < displayNamesWithTooltips.length - 2 && <Text>, </Text>}
                             </Text>
                         ))}
-                        {shouldShowUsePlusButtonText && <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>}
+                        {shouldShowUsePlusButtonText && !!welcomeMessage.messageHtml && (
+                            <View style={[styles.renderHTML, styles.cursorText]}>
+                                <RenderHTML html={welcomeMessage.messageHtml} />
+                            </View>
+                        )}
                         {isConciergeChatReport(report) && <Text>{translate('reportActionsView.askConcierge')}</Text>}
                     </Text>
                 )}
