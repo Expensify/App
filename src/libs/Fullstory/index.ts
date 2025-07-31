@@ -8,21 +8,16 @@ import * as Environment from '@src/libs/Environment/Environment';
 import type {OnyxInputOrEntry, PersonalDetailsList, Report, UserMetadata} from '@src/types/onyx';
 import type NavigationProperties from './types';
 
-function getChatFSAttributes(context: OnyxEntry<PersonalDetailsList>, name: string, report: OnyxInputOrEntry<Report>): string[] {
-    if (!name) {
-        return ['', ''];
-    }
+function getChatFSClass(context: OnyxEntry<PersonalDetailsList>, report: OnyxInputOrEntry<Report>): string {
     if (isConciergeChatReport(report)) {
-        const formattedName = `${CONST.FULL_STORY.CONCIERGE}-${name}`;
-        return [`${formattedName},${CONST.FULL_STORY.UNMASK}`, `${formattedName}`];
-    }
-    if (shouldUnmaskChat(context, report)) {
-        const formattedName = `${CONST.FULL_STORY.CUSTOMER}-${name}`;
-        return [`${formattedName},${CONST.FULL_STORY.UNMASK}`, `${formattedName}`];
+        return CONST.FULL_STORY.UNMASK;
     }
 
-    const formattedName = `${CONST.FULL_STORY.OTHER}-${name}`;
-    return [`${formattedName},${CONST.FULL_STORY.MASK}`, `${formattedName}`];
+    if (shouldUnmaskChat(context, report)) {
+        return CONST.FULL_STORY.UNMASK;
+    }
+
+    return CONST.FULL_STORY.MASK;
 }
 
 // Placeholder Browser API does not support Manual Page definition
@@ -132,4 +127,4 @@ const FS = {
 };
 
 export default FS;
-export {FSPage, getChatFSAttributes};
+export {FSPage, getChatFSClass};

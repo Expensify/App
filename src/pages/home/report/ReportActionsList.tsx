@@ -21,7 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
-import {getChatFSAttributes} from '@libs/Fullstory';
+import {getChatFSClass} from '@libs/Fullstory';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -493,7 +493,7 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
 
-    const [reportActionsListTestID, reportActionsListFSClass] = getChatFSAttributes(participantsContext, 'ReportActionsList', report);
+    const reportActionsListFSClass = getChatFSClass(participantsContext, report);
     const lastIOUActionWithError = sortedVisibleReportActions.find((action) => action.errors);
     const prevLastIOUActionWithError = usePrevious(lastIOUActionWithError);
 
@@ -733,8 +733,6 @@ function ReportActionsList({
             />
             <View
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
-                testID={reportActionsListTestID}
-                nativeID={reportActionsListTestID}
                 fsClass={reportActionsListFSClass}
             >
                 <InvertedFlatList

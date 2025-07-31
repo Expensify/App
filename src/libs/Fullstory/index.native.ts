@@ -65,21 +65,17 @@ const FS = {
     },
 };
 
-function getChatFSAttributes(context: OnyxEntry<PersonalDetailsList>, name: string, report: OnyxInputOrEntry<Report>): string[] {
-    if (!name) {
-        return ['', ''];
-    }
+function getChatFSClass(context: OnyxEntry<PersonalDetailsList>, report: OnyxInputOrEntry<Report>): string {
     if (isConciergeChatReport(report)) {
-        const formattedName = `${CONST.FULL_STORY.CONCIERGE}-${name}`;
-        return [`${formattedName}`, `${CONST.FULL_STORY.UNMASK},${formattedName}`];
+        return CONST.FULL_STORY.UNMASK;
     }
+
     if (shouldUnmaskChat(context, report)) {
-        const formattedName = `${CONST.FULL_STORY.CUSTOMER}-${name}`;
-        return [`${formattedName}`, `${CONST.FULL_STORY.UNMASK},${formattedName}`];
+        return CONST.FULL_STORY.UNMASK;
     }
-    const formattedName = `${CONST.FULL_STORY.OTHER}-${name}`;
-    return [`${formattedName}`, `${CONST.FULL_STORY.MASK},${formattedName}`];
+
+    return CONST.FULL_STORY.MASK;
 }
 
 export default FS;
-export {FSPage, getChatFSAttributes};
+export {FSPage, getChatFSClass};
