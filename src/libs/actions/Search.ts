@@ -297,7 +297,7 @@ function search({
     };
     const jsonQuery = JSON.stringify(query);
 
-    API.write(WRITE_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData});
+    API.read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData});
 }
 
 /**
@@ -368,11 +368,7 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], trans
     const failureData: OnyxUpdate[] = createOnyxData({isActionLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
 
     // If we are on the 'Approve', `Unapproved cash` or the `Unapproved company cards` suggested search, remove the report from the view once the action is taken, don't wait for the view to be re-fetched via Search
-    const approveActionSuggestedSearches: Partial<SearchKey[]> = [
-        CONST.SEARCH.SEARCH_KEYS.APPROVE,
-        CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
-        CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
-    ];
+    const approveActionSuggestedSearches: Partial<SearchKey[]> = [CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD];
 
     const successData: OnyxUpdate[] = approveActionSuggestedSearches.includes(currentSearchKey) ? createOnyxData(null) : createOnyxData({isActionLoading: false});
 
