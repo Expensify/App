@@ -204,7 +204,7 @@ function SettlementButton({
         const canUseWallet = !isExpenseReport && !isInvoiceReport && currency === CONST.CURRENCY.USD;
         const canUseBusinessBankAccount = isExpenseReport || (isIOUReport(iouReport) && reportID && !hasRequestFromCurrentAccount(reportID, Number(currentUserAccountID) ?? -1));
 
-        const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || isIOUReport;
+        const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || isIOUReport(iouReport);
 
         const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
 

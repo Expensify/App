@@ -74,6 +74,7 @@ import type {Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import EmptyMoneyRequestReportPreview from './EmptyMoneyRequestReportPreview';
 import type {MoneyRequestReportPreviewContentProps} from './types';
+import { getTotalAmountForIOUReportPreviewButton } from "@libs/MoneyRequestReportUtils";
 
 function MoneyRequestReportPreviewContent({
     iouReportID,
@@ -474,7 +475,8 @@ function MoneyRequestReportPreviewContent({
     );
 
     const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
+    const formattedAmount = getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction);
+    
     const reportPreviewActions = {
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: (
             <Button
@@ -504,6 +506,8 @@ function MoneyRequestReportPreviewContent({
                 onPress={confirmPayment}
                 onPaymentOptionsShow={onPaymentOptionsShow}
                 onPaymentOptionsHide={onPaymentOptionsHide}
+                formattedAmount={formattedAmount}
+                currency={iouReport?.currency}
                 confirmApproval={confirmApproval}
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                 shouldHidePaymentOptions={!shouldShowPayButton}
