@@ -209,7 +209,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             }
         });
 
-        const isStatementstLikeQuery = queryJSON.flatFilters.length === 2 && hasFeedFilter && hasPostedFilter;
+        const isStatementsLikeQuery = queryJSON.flatFilters.length === 2 && hasFeedFilter && hasPostedFilter;
         const isUnapprovedCashLikeQuery =
             queryJSON.flatFilters.length === 1 &&
             isReimbursable &&
@@ -221,7 +221,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             queryJSON.status[0] === CONST.SEARCH.STATUS.EXPENSE.DRAFTS &&
             queryJSON.status[1] === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
 
-        return isStatementstLikeQuery || isUnapprovedCashLikeQuery || isUnapprovedCardLikeQuery;
+        return isStatementsLikeQuery || isUnapprovedCashLikeQuery || isUnapprovedCardLikeQuery;
     }, [offset, queryJSON.flatFilters, queryJSON.type, queryJSON.status]);
 
     const previousReportActions = usePrevious(reportActions);
