@@ -28,6 +28,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {
+    BankAccountList,
     Beta,
     IntroSelected,
     NewGroupChatDraft,
@@ -9667,7 +9668,12 @@ function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean
 /**
  * What missing payment method does this report action indicate, if any?
  */
-function getIndicatedMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, reportId: string | undefined, reportAction: ReportAction): MissingPaymentMethod | undefined {
+function getIndicatedMissingPaymentMethod(
+    userWallet: OnyxEntry<UserWallet>,
+    reportId: string | undefined,
+    reportAction: ReportAction,
+    bankAccountList: OnyxEntry<BankAccountList>,
+): MissingPaymentMethod | undefined {
     const isSubmitterOfUnsettledReport = reportId && isCurrentUserSubmitter(getReport(reportId, allReports)) && !isSettled(reportId);
     if (!reportId || !isSubmitterOfUnsettledReport || !isReimbursementQueuedAction(reportAction)) {
         return undefined;
@@ -9677,7 +9683,7 @@ function getIndicatedMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, rep
         return isEmpty(userWallet) || userWallet.tierName === CONST.WALLET.TIER_NAME.SILVER ? 'wallet' : undefined;
     }
 
-    return !hasCreditBankAccount() ? 'bankAccount' : undefined;
+    return !hasCreditBankAccount(bankAccountList) ? 'bankAccount' : undefined;
 }
 
 /**

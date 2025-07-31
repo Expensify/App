@@ -72,7 +72,7 @@ function ReportActionItem({allReports, policies, action, report, transactions, s
         canBeMissing: true,
         selector: (transaction) => transaction?.errorFields?.route ?? null,
     });
-
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -81,7 +81,7 @@ function ReportActionItem({allReports, policies, action, report, transactions, s
     const blockedFromConcierge = useBlockedFromConcierge();
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const targetReport = isChatThread(report) ? parentReport : report;
-    const missingPaymentMethod = getIndicatedMissingPaymentMethod(userWallet, targetReport?.reportID, action);
+    const missingPaymentMethod = getIndicatedMissingPaymentMethod(userWallet, targetReport?.reportID, action, bankAccountList);
 
     const taskReport = originalMessage && 'taskReportID' in originalMessage ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage.taskReportID}`] : undefined;
     const linkedReport = originalMessage && 'linkedReportID' in originalMessage ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage.linkedReportID}`] : undefined;
