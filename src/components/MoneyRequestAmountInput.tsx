@@ -96,7 +96,7 @@ type MoneyRequestAmountInputProps = {
 
     /** Reference to the amount form */
     moneyRequestAmountInputRef?: ForwardedRef<NumberWithSymbolFormRef>;
-} & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior'>;
+} & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix'>;
 
 type Selection = {
     start: number;
@@ -123,6 +123,7 @@ function MoneyRequestAmountInput(
         moneyRequestAmountInputRef,
         shouldShowBigNumberPad = false,
         inputStyle,
+        shouldUseDefaultLineHeightForPrefix = true,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -189,6 +190,7 @@ function MoneyRequestAmountInput(
             isSymbolPressable={isCurrencyPressable}
             shouldShowBigNumberPad={shouldShowBigNumberPad}
             style={inputStyle}
+            shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />

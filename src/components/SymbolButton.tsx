@@ -43,12 +43,12 @@ function SymbolButton({onSymbolButtonPress, symbol, isSymbolPressable = true, te
                     src={Expensicons.DownArrow}
                     fill={theme.icon}
                 />
-                <Text style={[styles.iouAmountText, textStyle]}>{symbol}</Text>
+                <Text style={[styles.iouAmountText, styles.lineHeightUndefined, textStyle]}>{symbol}</Text>
             </PressableWithoutFeedback>
         </Tooltip>
     ) : (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-            <Text style={[styles.iouAmountText, textStyle]}>{symbol}</Text>
+            <Text style={[styles.iouAmountText, styles.lineHeightUndefined, textStyle]}>{symbol}</Text>
         </View>
     );
 }
