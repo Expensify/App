@@ -20,25 +20,6 @@ describe('useReportUnreadMessageScrollTracking', () => {
     describe('on init and without any scrolling', () => {
         const onTrackScrollingMockFn = jest.fn();
 
-        it('returns initial floatingMessage visibility and sets no state', () => {
-            // Given
-            const offsetRef = {current: 0};
-            const {result} = renderHook(() =>
-                useReportUnreadMessageScrollTracking({
-                    reportID,
-                    currentVerticalScrollingOffsetRef: offsetRef,
-                    readActionSkippedRef: readActionRefFalse,
-                    floatingMessageVisibleInitialValue: false,
-                    hasUnreadMarkerReportAction: false,
-                    onTrackScrolling: onTrackScrollingMockFn,
-                }),
-            );
-
-            // Then
-            expect(result.current.isFloatingMessageCounterVisible).toBe(false);
-            expect(onTrackScrollingMockFn).not.toBeCalled();
-        });
-
         it('returns floatingMessage visibility that was set to a new value', () => {
             // Given
             const offsetRef = {current: 0};
@@ -47,8 +28,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     reportID,
                     currentVerticalScrollingOffsetRef: offsetRef,
                     readActionSkippedRef: readActionRefFalse,
-                    floatingMessageVisibleInitialValue: false,
-                    hasUnreadMarkerReportAction: false,
+                    unreadMarkerReportActionIndex: -1,
                     onTrackScrolling: onTrackScrollingMockFn,
                 }),
             );
@@ -76,18 +56,47 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     reportID,
                     currentVerticalScrollingOffsetRef: offsetRef,
                     readActionSkippedRef: readActionRefFalse,
-                    floatingMessageVisibleInitialValue: false,
-                    hasUnreadMarkerReportAction: true,
+                    unreadMarkerReportActionIndex: -1,
                     onTrackScrolling: onTrackScrollingMockFn,
                 }),
             );
 
             // When
             act(() => {
-                offsetRef.current = CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD + 100;
+                offsetRef.current = CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD + 100;
                 result.current.trackVerticalScrolling(emptyScrollEventMock);
             });
             rerender({});
+
+            // Then
+            expect(result.current.isFloatingMessageCounterVisible).toBe(true);
+            expect(onTrackScrollingMockFn).toBeCalledWith(emptyScrollEventMock);
+        });
+
+        it('returns floatingMessage visibility as true when the unread message is not visible in the view port', () => {
+            // Given
+            const offsetRef = {current: 0};
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    readActionSkippedRef: readActionRefFalse,
+                    unreadMarkerReportActionIndex: 1,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                }),
+            );
+
+            // When
+            act(() => {
+                result.current.onViewableItemsChanged({viewableItems: [{index: 1, key: 'reportActions_1', isViewable: true, item: {}}], changed: []});
+            });
+
+            expect(result.current.isFloatingMessageCounterVisible).toBe(false);
+
+            // When
+            act(() => {
+                result.current.onViewableItemsChanged({viewableItems: [{index: 2, key: 'reportActions_2', isViewable: true, item: {}}], changed: []});
+            });
 
             // Then
             expect(result.current.isFloatingMessageCounterVisible).toBe(true);
@@ -97,64 +106,84 @@ describe('useReportUnreadMessageScrollTracking', () => {
         it('returns floatingMessage visibility as false when scrolling inside the threshold', () => {
             // Given
             const offsetRef = {current: 0};
-            const {result, rerender} = renderHook(() =>
+            const {result} = renderHook(() =>
                 useReportUnreadMessageScrollTracking({
                     reportID,
                     currentVerticalScrollingOffsetRef: offsetRef,
                     readActionSkippedRef: readActionRefFalse,
-                    floatingMessageVisibleInitialValue: false,
-                    hasUnreadMarkerReportAction: true,
+                    unreadMarkerReportActionIndex: -1,
                     onTrackScrolling: onTrackScrollingMockFn,
                 }),
             );
 
             // When
             act(() => {
-                offsetRef.current = CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD - 100;
+                offsetRef.current = CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD - 100;
                 result.current.trackVerticalScrolling(emptyScrollEventMock);
             });
-            rerender({});
 
             // Then
             expect(result.current.isFloatingMessageCounterVisible).toBe(false);
             expect(onTrackScrollingMockFn).toBeCalledWith(emptyScrollEventMock);
         });
 
-        it('calls readAction when scrolling inside the threshold and the message and read action skipped is true', () => {
+        it('returns floatingMessage visibility as false when unread message is visible', () => {
             // Given
             const offsetRef = {current: 0};
-            const {result, rerender} = renderHook(() =>
+            const {result} = renderHook(() =>
                 useReportUnreadMessageScrollTracking({
                     reportID,
                     currentVerticalScrollingOffsetRef: offsetRef,
-                    readActionSkippedRef: {current: true},
-                    floatingMessageVisibleInitialValue: false,
-                    hasUnreadMarkerReportAction: true,
+                    readActionSkippedRef: readActionRefFalse,
+                    unreadMarkerReportActionIndex: 1,
                     onTrackScrolling: onTrackScrollingMockFn,
                 }),
             );
 
             // When
             act(() => {
-                // offset greater, will set visible to true
-                offsetRef.current = CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD + 100;
-                result.current.trackVerticalScrolling(emptyScrollEventMock);
+                result.current.onViewableItemsChanged({viewableItems: [{index: 2, key: 'reportActions_2', isViewable: true, item: {}}], changed: []});
+            });
+            expect(result.current.isFloatingMessageCounterVisible).toBe(true);
+
+            act(() => {
+                result.current.onViewableItemsChanged({viewableItems: [{index: 1, key: 'reportActions_1', isViewable: true, item: {}}], changed: []});
+            });
+
+            // Then
+            expect(result.current.isFloatingMessageCounterVisible).toBe(false);
+            expect(onTrackScrollingMockFn).toBeCalledWith(emptyScrollEventMock);
+        });
+
+        it('calls readAction when scrolling to an extent the unread message is visible and read action skipped is true', () => {
+            // Given
+            const offsetRef = {current: 0};
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    readActionSkippedRef: {current: true},
+                    unreadMarkerReportActionIndex: 1,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                }),
+            );
+
+            // When
+            act(() => {
+                // if unread action is not visible, the floating button will be visible
+                result.current.onViewableItemsChanged({viewableItems: [{index: 2, key: 'reportActions_2', isViewable: true, item: {}}], changed: []});
             });
 
             expect(result.current.isFloatingMessageCounterVisible).toBe(true);
             expect(readNewestAction).toBeCalledTimes(0);
 
-            rerender({});
-
             act(() => {
-                // scrolling into the offset, should call readNewestAction
-                offsetRef.current = CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD - 100;
-                result.current.trackVerticalScrolling(emptyScrollEventMock);
+                // scrolling so that the unread action is visible, should call readNewestAction
+                result.current.onViewableItemsChanged({viewableItems: [{index: 1, key: 'reportActions_1', isViewable: true, item: {}}], changed: []});
             });
 
             // Then
             expect(readNewestAction).toBeCalledTimes(1);
-            expect(onTrackScrollingMockFn).toBeCalledWith(emptyScrollEventMock);
             expect(readActionRefFalse.current).toBe(false);
             expect(result.current.isFloatingMessageCounterVisible).toBe(false);
         });
