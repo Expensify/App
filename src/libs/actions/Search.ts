@@ -34,13 +34,14 @@ function handleActionButtonPress(
     isInMobileSelectionMode: boolean,
     snapshot: OnyxEntry<SearchResults>,
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>,
-    currentSearchKey?: SuggestedSearchKey,
+    currentSearchKey?: SearchKey,
 ) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
     const transactionID = isTransactionListItemType(item) ? [item.transactionID] : undefined;
     const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as SearchTransaction[];
     const hasHeldExpense = hasHeldExpenses('', allReportTransactions);
+
     if (hasHeldExpense || isInMobileSelectionMode) {
         goToItem();
         return;
@@ -98,7 +99,7 @@ function getPayActionCallback(
     goToItem: () => void,
     snapshot: OnyxEntry<SearchResults>,
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>,
-    currentSearchKey?: SuggestedSearchKey,
+    currentSearchKey?: SearchKey,
 ) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, lastPaymentMethod);
 
