@@ -172,14 +172,16 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
         selector: (all): ArchivedReportsIDSet => {
+            const ids = new Set<string>();
             if (!all) {
-                return new Set();
+                return ids;
             }
 
-            const ids = new Set<string>();
+            const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
             for (const [key, value] of Object.entries(all)) {
                 if (isArchivedReport(value)) {
-                    ids.add(key.slice(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length));
+                    const reportID = key.slice(prefixLength);
+                    ids.add(reportID);
                 }
             }
             return ids;
