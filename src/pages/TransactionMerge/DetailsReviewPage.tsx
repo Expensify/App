@@ -36,8 +36,8 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const {transactionID, backTo} = route.params;
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
-    const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
-    const sourceTransaction = getSourceTransaction(mergeTransaction);
+    const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`, {canBeMissing: true});
+    const [sourceTransaction = getSourceTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`, {canBeMissing: true});
 
     // State for selected values and error
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
