@@ -8,7 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
  * This function is used to ensure that the locale is loaded before we start to render UI. Once we load initial locale we can remove listener.
  */
 function init() {
-    const connection = Onyx.connect({
+    const connection = Onyx.connectWithoutView({
         key: ONYXKEYS.NVP_PREFERRED_LOCALE,
         initWithStoredValues: true,
         callback: (locale) => {
