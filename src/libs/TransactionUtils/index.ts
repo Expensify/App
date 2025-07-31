@@ -1735,6 +1735,7 @@ export {
     getMCCGroup,
     getCreated,
     getFormattedCreated,
+    getPostedDate,
     getCategory,
     getBillable,
     getTag,

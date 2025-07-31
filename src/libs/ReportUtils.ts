@@ -218,6 +218,7 @@ import {
     getCardID,
     getCardName,
     getCategory,
+    getCreated,
     getCurrency,
     getDescription,
     getFormattedCreated,
@@ -227,6 +228,7 @@ import {
     getMerchantOrDescription,
     getOriginalAmount,
     getOriginalCurrency,
+    getPostedDate,
     getRateID,
     getRecentTransactions,
     getReimbursable,
@@ -3972,7 +3974,7 @@ function getTransactionDetails(
     }
     const report = getReportOrDraftReport(transaction?.reportID);
     return {
-        created: getFormattedCreated(transaction, createdDateFormat),
+        created: getCreated(transaction),
         amount: getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report), transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID),
         attendees: getAttendees(transaction),
         taxAmount: getTaxAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)),
@@ -3990,7 +3992,7 @@ function getTransactionDetails(
         cardName: getCardName(transaction),
         originalAmount: getOriginalAmount(transaction),
         originalCurrency: getOriginalCurrency(transaction),
-        postedDate: getFormattedPostedDate(transaction),
+        postedDate: getPostedDate(transaction),
     };
 }
 

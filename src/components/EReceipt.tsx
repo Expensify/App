@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import useEReceipt from '@hooks/useEReceipt';
+import useFormattedDate from '@hooks/useFormattedDate';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -47,10 +48,11 @@ function EReceipt({transactionID, transactionItem, isThumbnail = false}: EReceip
         amount: transactionAmount,
         currency: transactionCurrency,
         merchant: transactionMerchant,
-        created: transactionDate,
+        created: transactionDateRaw,
         cardID: transactionCardID,
         cardName: transactionCardName,
-    } = getTransactionDetails(transactionItem ?? transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT) ?? {};
+    } = getTransactionDetails(transactionItem ?? transaction) ?? {};
+    const transactionDate = useFormattedDate(transactionDateRaw, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
     const formattedAmount = convertToDisplayString(transactionAmount, transactionCurrency);
     const currency = getCurrencySymbol(transactionCurrency ?? '');
     const amount = currency ? formattedAmount.replace(currency, '') : formattedAmount;
