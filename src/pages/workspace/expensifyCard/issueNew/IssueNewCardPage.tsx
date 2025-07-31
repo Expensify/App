@@ -51,7 +51,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === issueNewCard?.data?.assigneeEmail;
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: true});
     const stepNames = issueNewCard?.isChangeAssigneeDisabled ? CONST.EXPENSIFY_CARD.ASSIGNEE_EXCLUDED_STEP_NAMES : CONST.EXPENSIFY_CARD.STEP_NAMES;
-    const startFrom = useMemo(() => getStartStepIndex(issueNewCard), [issueNewCard]);
+    const startStepIndex = useMemo(() => getStartStepIndex(issueNewCard), [issueNewCard]);
 
     useEffect(() => {
         startIssueNewCardFlow(policyID);
@@ -64,7 +64,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                     <AssigneeStep
                         policy={policy}
                         stepNames={stepNames}
-                        startFrom={startFrom}
+                        startStepIndex={startStepIndex}
                     />
                 );
             case CONST.EXPENSIFY_CARD.STEP.CARD_TYPE:
@@ -72,7 +72,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                     <CardTypeStep
                         policyID={policyID}
                         stepNames={stepNames}
-                        startFrom={startFrom}
+                        startStepIndex={startStepIndex}
                     />
                 );
             case CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE:
@@ -80,7 +80,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                     <LimitTypeStep
                         policy={policy}
                         stepNames={stepNames}
-                        startFrom={startFrom}
+                        startStepIndex={startStepIndex}
                     />
                 );
             case CONST.EXPENSIFY_CARD.STEP.LIMIT:
@@ -88,7 +88,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                     <LimitStep
                         policyID={policyID}
                         stepNames={stepNames}
-                        startFrom={startFrom}
+                        startStepIndex={startStepIndex}
                     />
                 );
             case CONST.EXPENSIFY_CARD.STEP.CARD_NAME:
@@ -96,7 +96,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                     <CardNameStep
                         policyID={policyID}
                         stepNames={stepNames}
-                        startFrom={startFrom}
+                        startStepIndex={startStepIndex}
                     />
                 );
             case CONST.EXPENSIFY_CARD.STEP.CONFIRMATION:
@@ -105,7 +105,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                         policyID={policyID}
                         backTo={shouldUseBackToParam ? backTo : undefined}
                         stepNames={stepNames}
-                        startFrom={startFrom}
+                        startStepIndex={startStepIndex}
                     />
                 );
             default:
@@ -113,7 +113,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                     <AssigneeStep
                         policy={policy}
                         stepNames={stepNames}
-                        startFrom={startFrom}
+                        startStepIndex={startStepIndex}
                     />
                 );
         }

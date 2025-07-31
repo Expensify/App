@@ -33,13 +33,13 @@ type ConfirmationStepProps = {
     backTo?: Route;
 
     /** Array of step names */
-    stepNames?: readonly string[];
+    stepNames: readonly string[];
 
     /** Start from step index */
-    startFrom?: number;
+    startStepIndex: number;
 };
 
-function ConfirmationStep({policyID, backTo, stepNames, startFrom}: ConfirmationStepProps) {
+function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -96,7 +96,7 @@ function ConfirmationStep({policyID, backTo, stepNames, startFrom}: Confirmation
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={startFrom}
+            startStepIndex={startStepIndex}
             stepNames={stepNames}
             enableEdgeToEdgeBottomSafeAreaPadding
         >

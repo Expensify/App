@@ -23,13 +23,13 @@ type CardNameStepProps = {
     policyID: string | undefined;
 
     /** Array of step names */
-    stepNames?: readonly string[];
+    stepNames: readonly string[];
 
     /** Start from step index */
-    startFrom?: number;
+    startStepIndex: number;
 };
 
-function CardNameStep({policyID, stepNames, startFrom}: CardNameStepProps) {
+function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -79,7 +79,7 @@ function CardNameStep({policyID, stepNames, startFrom}: CardNameStepProps) {
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={startFrom}
+            startStepIndex={startStepIndex}
             stepNames={stepNames}
             enableEdgeToEdgeBottomSafeAreaPadding
         >

@@ -21,13 +21,13 @@ type LimitStepProps = {
     policyID: string | undefined;
 
     /** Array of step names */
-    stepNames?: readonly string[];
+    stepNames: readonly string[];
 
     /** Start from step index */
-    startFrom?: number;
+    startStepIndex: number;
 };
 
-function LimitStep({policyID, stepNames, startFrom}: LimitStepProps) {
+function LimitStep({policyID, stepNames, startStepIndex}: LimitStepProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
@@ -81,7 +81,7 @@ function LimitStep({policyID, stepNames, startFrom}: LimitStepProps) {
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={startFrom}
+            startStepIndex={startStepIndex}
             stepNames={stepNames}
             enableEdgeToEdgeBottomSafeAreaPadding
         >

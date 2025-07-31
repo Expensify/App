@@ -29,13 +29,13 @@ type AssigneeStepProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Array of step names */
-    stepNames?: readonly string[];
+    stepNames: readonly string[];
 
     /** Start from step index */
-    startFrom?: number;
+    startStepIndex: number;
 };
 
-function AssigneeStep({policy, stepNames, startFrom}: AssigneeStepProps) {
+function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -145,7 +145,7 @@ function AssigneeStep({policy, stepNames, startFrom}: AssigneeStepProps) {
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={startFrom}
+            startStepIndex={startStepIndex}
             stepNames={stepNames}
             enableEdgeToEdgeBottomSafeAreaPadding
         >

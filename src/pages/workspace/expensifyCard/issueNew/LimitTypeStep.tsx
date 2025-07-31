@@ -19,13 +19,13 @@ type LimitTypeStepProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Start from step index */
-    startFrom?: number;
+    startStepIndex: number;
 
     /** Array of step names */
-    stepNames?: readonly string[];
+    stepNames: readonly string[];
 };
 
-function LimitTypeStep({policy, stepNames, startFrom}: LimitTypeStepProps) {
+function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
@@ -95,7 +95,7 @@ function LimitTypeStep({policy, stepNames, startFrom}: LimitTypeStepProps) {
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={startFrom}
+            startStepIndex={startStepIndex}
             stepNames={stepNames}
             enableEdgeToEdgeBottomSafeAreaPadding
         >

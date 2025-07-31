@@ -19,13 +19,13 @@ type CardTypeStepProps = {
     policyID: string | undefined;
 
     /** Array of step names */
-    stepNames?: readonly string[];
+    stepNames: readonly string[];
 
     /** Start from step index */
-    startFrom?: number;
+    startStepIndex: number;
 };
 
-function CardTypeStep({policyID, stepNames, startFrom}: CardTypeStepProps) {
+function CardTypeStep({policyID, stepNames, startStepIndex}: CardTypeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
@@ -64,7 +64,7 @@ function CardTypeStep({policyID, stepNames, startFrom}: CardTypeStepProps) {
             offlineIndicatorStyle={styles.mtAuto}
             headerTitle={translate('workspace.card.issueCard')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={startFrom}
+            startStepIndex={startStepIndex}
             stepNames={stepNames}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
