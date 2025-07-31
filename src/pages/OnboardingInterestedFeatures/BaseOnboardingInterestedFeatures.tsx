@@ -168,21 +168,21 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         }
 
         const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
-
         const newUserReportedIntegration = selectedFeatures.some((feature) => feature === 'accounting') ? userReportedIntegration : undefined;
+        const featuresMap = features.map((feature) => ({
+            ...feature,
+            enabled: selectedFeatures.includes(feature.id),
+        }));
 
         // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
         // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
         const {adminsChatReportID, policyID, type} = shouldCreateWorkspace
-            ? createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM, '', undefined, false, onboardingCompanySize, newUserReportedIntegration, selectedFeatures)
+            ? createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM, '', undefined, false, onboardingCompanySize, newUserReportedIntegration, featuresMap)
             : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
         if (policyID) {
             updateInterestedFeatures(
-                features.map((feature) => ({
-                    ...feature,
-                    programmaticallyEnabled: selectedFeatures.includes(feature.id),
-                })),
+                featuresMap,
                 policyID,
                 type,
             );
