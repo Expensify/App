@@ -199,12 +199,12 @@ function WorkspaceReportFieldsPage({
                             title={translate('workspace.common.reportTitle')}
                             renderSubtitle={() => (
                                 <Text style={[[styles.textLabelSupportingEmptyValue, styles.lh20, styles.mt1]]}>
-                                    {translate('workspace.rules.expenseReportRules.customReportNamesSubtitle')}
+                                    {translate('workspace.reports.customReportNamesSubtitle')}
                                     <TextLink
                                         style={[styles.link]}
                                         href={CONST.CUSTOM_REPORT_NAME_HELP_URL}
                                     >
-                                        {translate('workspace.rules.expenseReportRules.customNameDescriptionLink')}
+                                        {translate('workspace.reports.customNameDescriptionLink')}
                                     </TextLink>
                                     .
                                 </Text>
@@ -220,7 +220,7 @@ function WorkspaceReportFieldsPage({
                                 onClose={clearTitleFieldError}
                             >
                                 <MenuItemWithTopDescription
-                                    description={translate('workspace.rules.expenseReportRules.customNameTitle')}
+                                    description={translate('workspace.reports.customNameTitle')}
                                     title={Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue ?? '')}
                                     shouldShowRightIcon
                                     style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
@@ -229,8 +229,8 @@ function WorkspaceReportFieldsPage({
                             </OfflineWithFeedback>
                             <ToggleSettingOptionRow
                                 pendingAction={reportTitlePendingFields.deletable}
-                                title={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
-                                switchAccessibilityLabel={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
+                                title={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
+                                switchAccessibilityLabel={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
                                 titleStyle={styles.pv2}
                                 isActive={!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].deletable}

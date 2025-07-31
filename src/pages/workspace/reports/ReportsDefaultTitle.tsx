@@ -37,11 +37,11 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const RULE_EXAMPLE_BULLET_POINTS = [
-        translate('workspace.rules.expenseReportRules.customNameEmailPhoneExample'),
-        translate('workspace.rules.expenseReportRules.customNameStartDateExample'),
-        translate('workspace.rules.expenseReportRules.customNameWorkspaceNameExample'),
-        translate('workspace.rules.expenseReportRules.customNameReportIDExample'),
-        translate('workspace.rules.expenseReportRules.customNameTotalExample'),
+        translate('workspace.reports.customNameEmailPhoneExample'),
+        translate('workspace.reports.customNameStartDateExample'),
+        translate('workspace.reports.customNameWorkspaceNameExample'),
+        translate('workspace.reports.customNameReportIDExample'),
+        translate('workspace.reports.customNameTotalExample'),
     ] as const satisfies string[];
 
     const fieldListItem = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
@@ -94,17 +94,17 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
                 testID={ReportsDefaultTitlePage.displayName}
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.rules.expenseReportRules.customNameTitle')}
+                    title={translate('workspace.reports.customNameTitle')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <View style={[styles.ph5, styles.pb4]}>
                     <Text>
-                        {translate('workspace.rules.expenseReportRules.customNameDescription')}
+                        {translate('workspace.reports.customNameDescription')}
                         <TextLink
                             style={[styles.link]}
                             href={CONST.CUSTOM_REPORT_NAME_HELP_URL}
                         >
-                            {translate('workspace.rules.expenseReportRules.customNameDescriptionLink')}
+                            {translate('workspace.reports.customNameDescriptionLink')}
                         </TextLink>
                         .
                     </Text>
@@ -130,14 +130,14 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.DEFAULT_TITLE}
                             defaultValue={customNameDefaultValue}
-                            label={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
-                            aria-label={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
+                            label={translate('workspace.reports.customNameInputLabel')}
+                            aria-label={translate('workspace.reports.customNameInputLabel')}
                             ref={inputCallbackRef}
                         />
                     </OfflineWithFeedback>
                     <BulletList
                         items={RULE_EXAMPLE_BULLET_POINTS}
-                        header={translate('workspace.rules.expenseReportRules.examples')}
+                        header={translate('workspace.reports.reportsCustomTitleExamples')}
                     />
                 </FormProvider>
             </ScreenWrapper>
