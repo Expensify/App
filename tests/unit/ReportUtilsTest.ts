@@ -1926,7 +1926,7 @@ describe('ReportUtils', () => {
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
 
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                currentUserAccountID: {
+                [currentUserAccountID]: {
                     accountID: currentUserAccountID,
                     displayName: currentUserEmail,
                     login: currentUserEmail,
