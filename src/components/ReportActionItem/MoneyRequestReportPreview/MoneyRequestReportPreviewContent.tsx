@@ -510,7 +510,6 @@ function MoneyRequestReportPreviewContent({
                 onPaymentOptionsShow={onPaymentOptionsShow}
                 onPaymentOptionsHide={onPaymentOptionsHide}
                 formattedAmount={formattedAmount}
-                currency={iouReport?.currency}
                 confirmApproval={confirmApproval}
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                 shouldHidePaymentOptions={!shouldShowPayButton}

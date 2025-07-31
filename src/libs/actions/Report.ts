@@ -5189,7 +5189,11 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
  * @param reportID - The ID of the IOU report to move
  * @param policyID - The ID of the policy to move the report to
  */
-function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']): {policyExpenseChatReportID?: string} | undefined {
+function moveIOUReportToPolicyAndInviteSubmitter(
+    reportID: string,
+    policyID: string,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): {policyExpenseChatReportID?: string} | undefined {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
