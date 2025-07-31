@@ -13,7 +13,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 // Current user mail is needed for handling missing translations
 let userEmail = '';
-Onyx.connect({
+// TODO: Remove this Onyx.connectWithoutView after deprecating translateLocal (#64943) and completing Onyx.connect deprecation - see https://github.com/Expensify/App/issues/66329 
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         if (!val) {
