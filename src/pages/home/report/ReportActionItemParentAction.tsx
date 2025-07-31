@@ -83,7 +83,23 @@ function ReportActionItemParentAction({
     const [allAncestors, setAllAncestors] = useState<Ancestor[]>([]);
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        canBeMissing: true,
+        selector: (allPairs) => {
+            const ancestorIDsToSelect = new Set(allAncestors.map(({report: reportAncestor}) => reportAncestor.reportID));
+
+            return Object.entries(allPairs ?? {}).reduce(
+                (acc, [key, value]) => {
+                    const id = key.split('_').at(1);
+                    if (ancestorIDsToSelect.has(id ?? '')) {
+                        acc[key] = value;
+                    }
+                    return acc;
+                },
+                {} as Record<string, unknown>,
+            );
+        },
+    });
 
     useEffect(() => {
         const unsubscribeReports: Array<() => void> = [];
