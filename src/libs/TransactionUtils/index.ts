@@ -86,6 +86,7 @@ type TransactionParams = {
     filename?: string;
     customUnit?: TransactionCustomUnit;
     splitExpenses?: SplitExpense[];
+    splitExpensesTotal?: number;
     participants?: Participant[];
     pendingAction?: PendingAction;
 };
@@ -270,6 +271,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         filename = '',
         customUnit,
         splitExpenses,
+        splitExpensesTotal,
         participants,
         pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     } = transactionParams;
@@ -287,9 +289,11 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     if (originalTransactionID) {
         commentJSON.originalTransactionID = originalTransactionID;
     }
-
     if (splitExpenses) {
         commentJSON.splitExpenses = splitExpenses;
+    }
+    if (splitExpensesTotal) {
+        commentJSON.splitExpensesTotal = splitExpensesTotal;
     }
 
     const isDistanceTransaction = !!pendingFields?.waypoints;
