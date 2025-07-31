@@ -71,7 +71,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        shouldHighlight: shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
     });

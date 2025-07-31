@@ -36,7 +36,7 @@ function TableListItem<TItem extends ListItem>({
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: styles.selectionListPressableItemWrapper.borderRadius,
-        shouldHighlight: !!item.shouldAnimateInHighlight,
+        shouldHighlight: !!shouldAnimateInHighlight,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
     });

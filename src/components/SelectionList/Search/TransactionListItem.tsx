@@ -30,6 +30,7 @@ function TransactionListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     isLoading,
+    shouldAnimateInHighlight,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
@@ -47,7 +48,7 @@ function TransactionListItem<TItem extends ListItem>({
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        shouldHighlight: shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
     });

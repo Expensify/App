@@ -577,15 +577,6 @@ function BaseSelectionList<TItem extends ListItem>(
         </>
     );
 
-    const getItem = useCallback((isItemHighlighted: boolean, selected: boolean, item: TItem) => {
-        // eslint-disable-next-line no-param-reassign
-        item.shouldAnimateInHighlight = isItemHighlighted;
-        // eslint-disable-next-line no-param-reassign
-        item.isSelected = selected;
-
-        return item;
-    }, []);
-
     const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
         const normalizedIndex = index + (section?.indexOffset ?? 0);
         const isDisabled = !!section.isDisabled || item.isDisabled;

@@ -372,6 +372,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
+
+    /** Whether to animage in highlight */
+    shouldAnimateInHighlight?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -392,6 +395,7 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     testID?: string;
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
+    shouldAnimateInHighlight?: boolean;
 };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
