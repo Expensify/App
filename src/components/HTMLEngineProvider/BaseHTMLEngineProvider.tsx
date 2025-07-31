@@ -106,6 +106,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 mixedUAStyles: {whiteSpace: 'pre', ...styles.productTrainingTooltipText},
                 contentModel: HTMLContentModel.block,
             }),
+            success: HTMLElementModel.fromCustomModel({
+                tagName: 'success',
+                mixedUAStyles: {...styles.textSuccess},
+                contentModel: HTMLContentModel.textual,
+            }),
             strong: HTMLElementModel.fromCustomModel({
                 tagName: 'strong',
                 getMixedUAStyles: (tnode) => (isChildOfTaskTitle(tnode as TNode) ? {} : styles.strong),
@@ -174,6 +179,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.onlyEmojisTextLineHeight,
             styles.subTextFileUpload,
             styles.textAlignCenter,
+            styles.textSuccess,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */
