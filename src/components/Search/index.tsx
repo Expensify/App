@@ -6,7 +6,7 @@ import {View} from 'react-native';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
-import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useLocalize from '@hooks/useLocalize';
@@ -208,7 +208,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         [reportActions],
     );
     const {translate} = useLocalize();
-    const searchListRef = useRef<SelectionListHandle | null>(null);
 
     useFocusEffect(
         useCallback(() => {
@@ -625,8 +624,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         );
     }, [clearSelectedTransactions, data, groupBy, reportActionsArray, selectedTransactions, setSelectedTransactions]);
 
-    const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
-
     if (shouldShowLoadingState) {
         return (
             <SearchRowSkeleton
@@ -681,7 +678,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     return (
         <SearchScopeProvider isOnSearch>
             <SearchList
-                ref={searchListRef}
+                ref={handleSelectionListScroll(sortedSelectedData)}
                 data={sortedSelectedData}
                 ListItem={ListItem}
                 onSelectRow={openReport}
@@ -721,7 +718,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 }
                 queryJSON={queryJSON}
                 onViewableItemsChanged={onViewableItemsChanged}
-                onLayout={onLayout}
                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
             />
         </SearchScopeProvider>
