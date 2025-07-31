@@ -546,6 +546,10 @@ function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, repor
     return policy?.role === CONST.POLICY.ROLE.ADMIN;
 }
 
+function isRemoveHoldActionForTransaction(report: Report, reportTransaction: Transaction, policy?: Policy): boolean {
+    return isOnHoldTransactionUtils(reportTransaction) && policy?.role === CONST.POLICY.ROLE.ADMIN && !isHoldCreator(reportTransaction, report.reportID);
+}
+
 function getSecondaryReportActions({
     report,
     chatReport,
@@ -668,6 +672,10 @@ function getSecondaryTransactionThreadActions(
 
     if (isHoldActionForTransaction(parentReport, reportTransaction, reportActions)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
+    }
+
+    if (isRemoveHoldActionForTransaction(parentReport, reportTransaction, policy)) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
     if (isSplitAction(parentReport, [reportTransaction], policy)) {

@@ -1247,7 +1247,7 @@ describe('getSecondaryExportReportActions', () => {
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
     });
 
-    it('includes REMOVE HOLD option for admin in expense report but not in transaction thread report', () => {
+    it('includes REMOVE HOLD option for expense report admin', () => {
         const report = {} as unknown as Report;
         const policy = {
             role: CONST.POLICY.ROLE.ADMIN,
@@ -1265,6 +1265,27 @@ describe('getSecondaryExportReportActions', () => {
 
         const result = getSecondaryReportActions({report, chatReport, reportTransactions, violations: {}, policy});
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
+    });
+
+    it('includes REMOVE HOLD option for transaction thread report admin if he is not the holder', () => {
+        const report = {} as unknown as Report;
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+        } as unknown as Policy;
+        const transaction = {
+            comment: {
+                hold: 'REPORT_ACTION_ID',
+            },
+        } as unknown as Transaction;
+
+        jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(false);
+        const result = getSecondaryTransactionThreadActions(report, transaction, [], policy);
+        expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
+
+        // Do not show if admin is the holder
+        jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(true);
+        const result2 = getSecondaryTransactionThreadActions(report, transaction, [], policy);
+        expect(result2).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
 });
 
