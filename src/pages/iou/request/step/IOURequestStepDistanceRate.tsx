@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import useCanEditStep from '@hooks/useCanEditStep';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -32,7 +33,7 @@ function IOURequestStepDistanceRate({
     report,
     reportDraft,
     route: {
-        params: {action, reportID, backTo, transactionID},
+        params: {action, reportID, backTo, transactionID, iouType},
     },
     transaction,
 }: IOURequestStepDistanceRateProps) {
@@ -56,7 +57,7 @@ function IOURequestStepDistanceRate({
     const transactionCurrency = getCurrency(transaction);
 
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
-
+    const [canEditDistanceRate] = useCanEditStep(action, iouType, report, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE);
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
@@ -110,6 +111,7 @@ function IOURequestStepDistanceRate({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepDistanceRate.displayName}
+            shouldShowNotFoundPage={!canEditDistanceRate}
         >
             <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate')}</Text>
 
