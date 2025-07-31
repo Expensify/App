@@ -108,6 +108,7 @@ import {
 import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
+import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
@@ -385,7 +386,7 @@ describe('ReportUtils', () => {
                     message: 'This is a test',
                     tasks: [
                         {
-                            type: 'test',
+                            type: CONST.ONBOARDING_TASK_TYPE.CREATE_REPORT,
                             title,
                             description: () => '',
                             autoCompleted: false,
@@ -414,7 +415,7 @@ describe('ReportUtils', () => {
                     message: 'This is a test',
                     tasks: [
                         {
-                            type: 'test',
+                            type: CONST.ONBOARDING_TASK_TYPE.CREATE_REPORT,
                             title: () => '',
                             description,
                             autoCompleted: false,
@@ -530,13 +531,13 @@ describe('ReportUtils', () => {
             const report1 = LHNTestUtils.getFakeReport();
             const report2 = LHNTestUtils.getFakeReport();
             const selectedReportID = report1.reportID;
-            expect(sortOutstandingReportsBySelected(report1, report2, selectedReportID)).toBe(-1);
+            expect(sortOutstandingReportsBySelected(report1, report2, selectedReportID, localeCompare)).toBe(-1);
         });
         it('should return 1 when report2 is selected and report1 is not', () => {
             const report1 = LHNTestUtils.getFakeReport();
             const report2 = LHNTestUtils.getFakeReport();
             const selectedReportID = report2.reportID;
-            expect(sortOutstandingReportsBySelected(report1, report2, selectedReportID)).toBe(1);
+            expect(sortOutstandingReportsBySelected(report1, report2, selectedReportID, localeCompare)).toBe(1);
         });
     });
 
