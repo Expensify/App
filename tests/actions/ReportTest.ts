@@ -84,7 +84,7 @@ describe('actions/Report', () => {
             // Onyx.clear() promise is resolved in batch which happens after the current microtasks cycle
             setImmediate(jest.runOnlyPendingTimers);
         }
-        global.fetch = TestHelper.getGlobalFetchMock();
+        TestHelper.setupGlobalAxiosMock();
 
         // Clear the queue before each test to avoid test pollution
         SequentialQueue.resetQueue();
@@ -998,7 +998,14 @@ describe('actions/Report', () => {
     it('should send DeleteComment request after AddComment is rollback', async () => {
         mockAxios = TestHelper.setupGlobalAxiosMock();
         mockAxios.mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
-
+        mockAxios.mockAPICommand('AddComment', () => ({
+            jsonCode: 500,
+            message: 'Internal Server Error',
+        }));
+        mockAxios.mockAPICommand('DeleteComment', () => ({
+            jsonCode: 500,
+            message: 'Internal Server Error',
+        }));
         const mockedXhr = jest.fn();
         mockedXhr.mockImplementation(originalXHR);
 
@@ -1537,7 +1544,6 @@ describe('actions/Report', () => {
     it('should create new report and "create report" quick action, when createNewReport gets called', async () => {
         const accountID = 1234;
         const policyID = '5678';
-        const mockFetchData = fetch as MockFetch;
         // Given a policy with harvesting is disabled
         const policy = {
             ...createRandomPolicy(Number(policyID)),
@@ -1548,11 +1554,13 @@ describe('actions/Report', () => {
             },
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
-
-        mockFetchData.pause();
+        mockAxios = TestHelper.setupGlobalAxiosMock();
+        mockAxios.mockAPICommand('CreateAppReport', () => ({
+            jsonCode: 500,
+            message: 'Internal Server Error',
+        }));
         const reportID = Report.createNewReport({accountID}, policyID);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
-
         const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
@@ -1565,7 +1573,6 @@ describe('actions/Report', () => {
         });
         expect(getOriginalMessage(reportPreviewAction)?.linkedReportID).toBe(reportID);
         expect(reportPreviewAction?.actorAccountID).toBe(accountID);
-
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT,
@@ -1586,6 +1593,7 @@ describe('actions/Report', () => {
             });
         });
 
+        // Temporarily skip the quick action test to see if other parts work
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
@@ -1599,12 +1607,8 @@ describe('actions/Report', () => {
                 },
             });
         });
-
-        // When the request fails
-        mockFetchData.fail();
-        await mockFetchData.resume();
+        mockAxios?.resume();
         await waitForBatchedUpdates();
-
         // Then the onyx data should be reverted to the state before the request
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
@@ -1614,7 +1618,6 @@ describe('actions/Report', () => {
                     Onyx.disconnect(connection);
                     const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
                     expect(parentPolicyExpenseChat?.hasOutstandingChildRequest).toBe(parentReport?.hasOutstandingChildRequest);
-
                     resolve();
                 },
             });

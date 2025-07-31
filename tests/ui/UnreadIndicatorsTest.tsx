@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as NativeNavigation from '@react-navigation/native';
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {act, cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
 import React from 'react';
@@ -28,6 +28,7 @@ import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
+import type {MockAxios} from '../utils/TestHelper';
 import {navigateToSidebarOption} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -35,13 +36,14 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(60000);
 
+jest.mock('axios');
+
 jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
 
 TestHelper.setupApp();
-TestHelper.setupGlobalFetchMock();
 
 beforeEach(() => {
     Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
@@ -181,16 +183,26 @@ function signInAndGetAppWithUnreadChat(): Promise<void> {
 }
 
 describe('Unread Indicators', () => {
+    let mockAxios: MockAxios;
+    
     beforeAll(() => {
         PusherHelper.setup();
     });
 
     beforeEach(() => {
         jest.clearAllMocks();
-        Onyx.clear();
+        mockAxios = TestHelper.setupGlobalAxiosMock();
 
         // Unsubscribe to pusher channels
         PusherHelper.teardown();
+    });
+
+    afterEach(async () => {
+        // Clean up rendered components between tests
+        cleanup();
+        // Clear Onyx state to prevent state bleeding between tests
+        await Onyx.clear();
+        await waitForBatchedUpdates();
     });
 
     it('Display bold in the LHN for unread chat and new line indicator above the chat message when we navigate to it', () =>

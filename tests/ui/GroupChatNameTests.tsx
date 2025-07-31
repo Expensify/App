@@ -15,12 +15,15 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Participant} from '@src/types/onyx/Report';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
+import type {MockAxios} from '../utils/TestHelper';
 import {navigateToSidebarOption} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(50000);
+
+jest.mock('axios');
 
 jest.mock('../../src/components/ConfirmedRoute.tsx');
 
@@ -124,10 +127,11 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
  * Note that limit of 5 names is only for the header.
  */
 describe('Tests for group chat name', () => {
+    let mockAxios: MockAxios;
     beforeEach(() => {
         jest.clearAllMocks();
 
-        global.fetch = TestHelper.getGlobalFetchMock();
+        mockAxios = TestHelper.setupGlobalAxiosMock();
         // Unsubscribe to pusher channels
         PusherHelper.teardown();
 

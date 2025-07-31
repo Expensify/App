@@ -171,7 +171,6 @@ describe('actions/IOU', () => {
     beforeEach(() => {
         jest.clearAllTimers();
         mockAxios = setupGlobalAxiosMock();
-        // mockAxios = fetch as mockAxios;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -3289,7 +3288,7 @@ describe('actions/IOU', () => {
         afterEach(PusherHelper.teardown);
 
         it('delete an expense (IOU Action and transaction) successfully', async () => {
-            // Given the fetch operations are paused and an expense is initiated
+            // Given the axios operations are paused and an expense is initiated
             mockAxios?.pause?.();
 
             if (transaction && createIOUAction) {
@@ -3331,7 +3330,6 @@ describe('actions/IOU', () => {
             expect(t).toBeTruthy();
             expect(t?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
-            // Given fetch operations are resumed
             mockAxios?.resume?.();
             await waitForBatchedUpdates();
 
@@ -4753,6 +4751,10 @@ describe('actions/IOU', () => {
             const actionCollectionDataSet: ReportActionsCollectionDataSet = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: actions};
             const comment = 'hold reason';
 
+            mockAxios.mockAPICommand('UnHoldRequest', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
@@ -4760,10 +4762,8 @@ describe('actions/IOU', () => {
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
-                    mockFetch.fail();
-                    mockFetch?.resume?.();
                     unholdRequest(transaction.transactionID, transactionThread.reportID);
-                    return waitForBatchedUpdates();
+                    return waitForNetworkPromises();
                 })
                 .then(() => {
                     return new Promise<void>((resolve) => {
@@ -4771,6 +4771,7 @@ describe('actions/IOU', () => {
                             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
                             callback: (updatedTransaction) => {
                                 Onyx.disconnect(connection);
+
                                 expect(updatedTransaction?.pendingAction).toBeFalsy();
                                 expect(updatedTransaction?.comment?.hold).toBeTruthy();
                                 expect(Object.values(updatedTransaction?.errors ?? {})).toEqual(
