@@ -12,7 +12,6 @@ import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 jest.mock('axios');
 
-
 Onyx.init({
     keys: ONYXKEYS,
 });
