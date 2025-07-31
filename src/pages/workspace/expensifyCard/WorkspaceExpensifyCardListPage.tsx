@@ -103,7 +103,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             return;
         }
         const activeRoute = Navigation.getActiveRoute();
-        setIssueNewCardStepAndData({policyID, data: {isFromWorkspaceMembersPage: false}});
+        setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
     };
 

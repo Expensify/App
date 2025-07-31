@@ -39,7 +39,7 @@ function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>): number {
     };
 
     const stepIndex = STEP_INDEXES[issueNewCard.currentStep];
-    return issueNewCard.data?.isFromWorkspaceMembersPage ? stepIndex - 1 : stepIndex;
+    return issueNewCard.isChangeAssigneeDisabled ? stepIndex - 1 : stepIndex;
 }
 
 function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
@@ -50,7 +50,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const firstAssigneeEmail = useInitial(issueNewCard?.data?.assigneeEmail);
     const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === issueNewCard?.data?.assigneeEmail;
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: true});
-    const stepNames = issueNewCard?.data?.isFromWorkspaceMembersPage ? CONST.EXPENSIFY_CARD.ASSIGNEE_EXCLUDED_STEP_NAMES : CONST.EXPENSIFY_CARD.STEP_NAMES;
+    const stepNames = issueNewCard?.isChangeAssigneeDisabled ? CONST.EXPENSIFY_CARD.ASSIGNEE_EXCLUDED_STEP_NAMES : CONST.EXPENSIFY_CARD.STEP_NAMES;
     const startFrom = useMemo(() => getStartStepIndex(issueNewCard), [issueNewCard]);
 
     useEffect(() => {

@@ -48,7 +48,7 @@ function CardTypeStep({policyID, stepNames, startFrom}: CardTypeStepProps) {
             setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
             return;
         }
-        if (issueNewCard?.data?.isFromWorkspaceMembersPage === true) {
+        if (issueNewCard?.isChangeAssigneeDisabled) {
             Navigation.goBack();
             clearIssueNewCardFlow(policyID);
             return;

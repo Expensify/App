@@ -160,8 +160,8 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                             style={[styles.m5, bottomSafeAreaPaddingStyle]}
                             pressOnEnter
                             onPress={() => {
+                                setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
                                 Navigation.dismissModal();
-                                setIssueNewCardStepAndData({policyID, data: {isFromWorkspaceMembersPage: false}});
                                 Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
                             }}
                         />

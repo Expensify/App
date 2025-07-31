@@ -88,9 +88,9 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
                 step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE,
                 data: {
                     assigneeEmail: memberLogin,
-                    isFromWorkspaceMembersPage: true,
                 },
                 isEditing: false,
+                isChangeAssigneeDisabled: true,
                 policyID,
             });
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID)));

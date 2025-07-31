@@ -223,9 +223,6 @@ type IssueNewCardData = {
 
     /** Name of the card */
     cardTitle: string;
-
-    /** Whether the flow is triggered from workspace members page */
-    isFromWorkspaceMembersPage: boolean;
 };
 
 /** Model of Issue new card flow */
@@ -238,6 +235,9 @@ type IssueNewCard = {
 
     /** Whether the user is editing step */
     isEditing: boolean;
+
+    /** Whether the changing assignee is disabled. E.g., The assignee is auto selected from workspace members page */
+    isChangeAssigneeDisabled: boolean;
 
     /** Whether the request is being processed */
     isLoading?: boolean;

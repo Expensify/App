@@ -110,8 +110,8 @@ function ConfirmationStep({policyID, backTo, stepNames, startFrom}: Confirmation
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.cardholder')}
                     title={getUserNameByEmail(data?.assigneeEmail ?? '', 'displayName')}
-                    shouldShowRightIcon={!data?.isFromWorkspaceMembersPage}
-                    interactive={!data?.isFromWorkspaceMembersPage}
+                    shouldShowRightIcon={!issueNewCard?.isChangeAssigneeDisabled}
+                    interactive={!issueNewCard?.isChangeAssigneeDisabled}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE)}
                 />
                 <MenuItemWithTopDescription
