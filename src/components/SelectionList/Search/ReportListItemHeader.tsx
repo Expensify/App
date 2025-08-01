@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ColorValue} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -17,6 +17,7 @@ import {handleActionButtonPress} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
 import ActionCell from './ActionCell';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
@@ -172,6 +173,12 @@ function ReportListItemHeader<TItem extends ListItem>({
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
+    const snapshotReport = useMemo(() => {
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as SearchReport;
+    }, [snapshot, reportItem.reportID]);
+    const snapshotPolicy = useMemo(() => {
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as SearchPolicy;
+    }, [snapshot, reportItem.policyID]);
     const [lastPaymentMethod] = useOnyx(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {canBeMissing: true});
     const avatarBorderColor =
         StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
@@ -182,7 +189,8 @@ function ReportListItemHeader<TItem extends ListItem>({
             reportItem,
             () => onSelectRow(reportItem as unknown as TItem),
             shouldUseNarrowLayout && !!canSelectMultiple,
-            snapshot?.data,
+            snapshotReport,
+            snapshotPolicy,
             lastPaymentMethod,
             currentSearchKey,
         );

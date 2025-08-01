@@ -247,21 +247,27 @@ describe('handleActionButtonPress', () => {
         Onyx.merge(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, mockLastPaymentMethod);
     });
 
+    const snapshotReport = mockSnapshotForItem?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${mockReportItemWithHold.reportID}`] ?? {};
+    const snapshotPolicy = mockSnapshotForItem?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${mockReportItemWithHold.policyID}`] ?? {};
+
     test('Should navigate to item when report has one transaction on hold', () => {
         const goToItem = jest.fn(() => {});
-        handleActionButtonPress(searchHash, mockReportItemWithHold, goToItem, false, mockSnapshotForItem?.data, mockLastPaymentMethod);
+        // @ts-expect-error: Allow partial record in snapshot update for testing
+        handleActionButtonPress(searchHash, mockReportItemWithHold, goToItem, false, snapshotReport, snapshotPolicy, mockLastPaymentMethod);
         expect(goToItem).toHaveBeenCalledTimes(1);
     });
 
     test('Should not navigate to item when the hold is removed', () => {
         const goToItem = jest.fn(() => {});
-        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem, false, mockSnapshotForItem?.data, mockLastPaymentMethod);
+        // @ts-expect-error: Allow partial record in snapshot update for testing
+        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem, false, snapshotReport, snapshotPolicy, mockLastPaymentMethod);
         expect(goToItem).toHaveBeenCalledTimes(0);
     });
 
     test('Should run goToItem callback when user is in mobile selection mode', () => {
         const goToItem = jest.fn(() => {});
-        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem, true, mockSnapshotForItem?.data, mockLastPaymentMethod);
+        // @ts-expect-error: Allow partial record in snapshot update for testing
+        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem, true, snapshotReport, snapshotPolicy, mockLastPaymentMethod);
         expect(goToItem).toHaveBeenCalledTimes(1);
     });
 });

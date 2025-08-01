@@ -18,6 +18,7 @@ import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/acti
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
 function TransactionListItem<TItem extends ListItem>({
@@ -40,6 +41,13 @@ function TransactionListItem<TItem extends ListItem>({
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey} = useSearchContext();
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
+    const snapshotReport = useMemo(() => {
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as SearchReport;
+    }, [snapshot, transactionItem.reportID]);
+
+    const snapshotPolicy = useMemo(() => {
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as SearchPolicy;
+    }, [snapshot, transactionItem.policyID]);
     const [lastPaymentMethod] = useOnyx(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {canBeMissing: true});
 
     const pressableStyle = [
@@ -88,11 +96,12 @@ function TransactionListItem<TItem extends ListItem>({
             transactionItem,
             () => onSelectRow(item),
             shouldUseNarrowLayout && !!canSelectMultiple,
-            snapshot?.data,
+            snapshotReport,
+            snapshotPolicy,
             lastPaymentMethod,
             currentSearchKey,
         );
-    }, [canSelectMultiple, currentSearchHash, currentSearchKey, item, onSelectRow, shouldUseNarrowLayout, transactionItem, snapshot, lastPaymentMethod]);
+    }, [currentSearchHash, transactionItem, shouldUseNarrowLayout, canSelectMultiple, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey, onSelectRow, item]);
 
     const handleCheckboxPress = useCallback(() => {
         onCheckboxPress?.(item);
