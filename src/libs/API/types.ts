@@ -94,7 +94,6 @@ const WRITE_COMMANDS = {
     SIGN_IN_WITH_GOOGLE: 'SignInWithGoogle',
     SIGN_IN_USER: 'SigninUser',
     SIGN_IN_USER_WITH_LINK: 'SigninUserWithLink',
-    SEARCH: 'Search',
     REQUEST_UNLINK_VALIDATION_LINK: 'RequestUnlinkValidationLink',
     UNLINK_LOGIN: 'UnlinkLogin',
     ENABLE_TWO_FACTOR_AUTH: 'EnableTwoFactorAuth',
@@ -490,6 +489,7 @@ const WRITE_COMMANDS = {
     FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING: 'FinishCorpayBankAccountOnboarding',
     REOPEN_REPORT: 'ReopenReport',
     TRAVEL_SIGNUP_REQUEST: 'RequestTravelAccess',
+    DELETE_VACATION_DELEGATE: 'DeleteVacationDelegate',
     IMPORT_PLAID_ACCOUNTS: 'ImportPlaidAccounts',
 } as const;
 
@@ -736,7 +736,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.REMOVE_POLICY_CATEGORY_RECEIPTS_REQUIRED]: Parameters.RemovePolicyCategoryReceiptsRequiredParams;
     [WRITE_COMMANDS.SET_POLICY_CATEGORY_MAX_AMOUNT]: Parameters.SetPolicyCategoryMaxAmountParams;
     [WRITE_COMMANDS.SET_POLICY_CATEGORY_APPROVER]: Parameters.SetPolicyCategoryApproverParams;
-    [WRITE_COMMANDS.SEARCH]: Parameters.SearchParams;
     [WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX]: Parameters.SetPolicyCategoryTaxParams;
     [WRITE_COMMANDS.JOIN_POLICY_VIA_INVITE_LINK]: Parameters.JoinPolicyInviteLinkParams;
     [WRITE_COMMANDS.GET_ACCESSIBLE_POLICIES]: null;
@@ -845,6 +844,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.RETRACT_REPORT]: Parameters.RetractReportParams;
     [WRITE_COMMANDS.COMPLETE_CONCIERGE_CALL]: Parameters.CompleteConciergeCallParams;
     [WRITE_COMMANDS.FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING]: Parameters.FinishCorpayBankAccountOnboardingParams;
+    [WRITE_COMMANDS.DELETE_VACATION_DELEGATE]: null;
     [WRITE_COMMANDS.REOPEN_REPORT]: Parameters.ReopenReportParams;
 
     [WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH]: Parameters.DeleteMoneyRequestOnSearchParams;
@@ -1022,6 +1022,7 @@ const READ_COMMANDS = {
     OPEN_PLAID_CARDS_BANK_LOGIN: 'OpenPlaidCardsBankLogin',
     OPEN_PLAID_BANK_ACCOUNT_SELECTOR: 'OpenPlaidBankAccountSelector',
     OPEN_SEARCH_PAGE: 'OpenSearchPage',
+    SEARCH: 'Search',
     GET_OLDER_ACTIONS: 'GetOlderActions',
     GET_NEWER_ACTIONS: 'GetNewerActions',
     EXPAND_URL_PREVIEW: 'ExpandURLPreview',
@@ -1113,6 +1114,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_INITIAL_SETTINGS_PAGE]: null;
     [READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE]: null;
     [READ_COMMANDS.OPEN_SEARCH_PAGE]: null;
+    [READ_COMMANDS.SEARCH]: Parameters.SearchParams;
     [READ_COMMANDS.BEGIN_SIGNIN]: Parameters.BeginSignInParams;
     [READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN]: Parameters.SignInWithShortLivedAuthTokenParams;
     [READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN]: Parameters.SignInWithSupportAuthTokenParams;
@@ -1172,6 +1174,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     CREATE_DIGITAL_WALLET: 'CreateDigitalWallet',
     VERIFY_TEST_DRIVE_RECIPIENT: 'VerifyTestDriveRecipient',
     LOCK_ACCOUNT: 'LockAccount',
+    SET_VACATION_DELEGATE: 'SetVacationDelegate',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
@@ -1195,6 +1198,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET]: Parameters.CreateDigitalWalletParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.VERIFY_TEST_DRIVE_RECIPIENT]: Parameters.VerifyTestDriveRecipientParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT]: Parameters.LockAccountParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE]: Parameters.SetVacationDelegateParams;
 };
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;
