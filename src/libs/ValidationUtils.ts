@@ -531,9 +531,10 @@ function isValidEmail(email: string): boolean {
 /**
  * Validates the given value if it is correct phone number in E164 format (international standard).
  * @param phoneNumber
+ * @param countryCodeByIP - country code parameter
  */
-function isValidPhoneInternational(phoneNumber: string): boolean {
-    const phoneNumberWithCountryCode = appendCountryCode(phoneNumber);
+function isValidPhoneInternational(phoneNumber: string, countryCodeByIP: number): boolean {
+    const phoneNumberWithCountryCode = appendCountryCode(phoneNumber, countryCodeByIP);
     const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
 
     return parsedPhoneNumber.possible && Str.isValidE164Phone(parsedPhoneNumber.number?.e164 ?? '');

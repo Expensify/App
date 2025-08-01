@@ -25,6 +25,7 @@ import type {PrivatePersonalDetails} from '@src/types/onyx';
 function PhoneNumberPage() {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -41,7 +42,7 @@ function PhoneNumberPage() {
 
         // Only call the API if the user has changed their phone number
         if (values?.phoneNumber && phoneNumber !== values.phoneNumber) {
-            updatePhone(formatE164PhoneNumber(values.phoneNumber) ?? '', currenPhoneNumber);
+            updatePhone(formatE164PhoneNumber(values.phoneNumber, countryCodeByIP) ?? '', currenPhoneNumber);
         }
 
         Navigation.goBack();
@@ -57,7 +58,7 @@ function PhoneNumberPage() {
                 return errors;
             }
 
-            const phoneNumberWithCountryCode = appendCountryCode(phoneNumberValue);
+            const phoneNumberWithCountryCode = appendCountryCode(phoneNumberValue, countryCodeByIP);
 
             if (!isValidPhoneNumber(phoneNumberWithCountryCode)) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.phoneNumber');
@@ -70,7 +71,7 @@ function PhoneNumberPage() {
 
             return errors;
         },
-        [translate, validateLoginError],
+        [translate, validateLoginError, countryCodeByIP],
     );
 
     return (

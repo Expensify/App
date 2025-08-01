@@ -13,6 +13,7 @@ import {
     isValidPastDate,
     isValidPaymentZipCode,
     isValidPersonName,
+    isValidPhoneInternational,
     isValidRoomName,
     isValidTwoFactorCode,
     isValidWebsite,
@@ -493,6 +494,55 @@ describe('ValidationUtils', () => {
                 expect(isValidInputLength('\n\t', 1)).toEqual({isValid: false, byteLength: 2}); // 2 bytes > 1
                 expect(isValidInputLength('\n\t', 2)).toEqual({isValid: true, byteLength: 2}); // 2 bytes ≤ 2
             });
+        });
+    });
+    
+    describe('isValidPhoneInternational', () => {
+        test('Should return true for valid E164 phone numbers with country code 1', () => {
+            expect(isValidPhoneInternational('+12345678901', 1)).toBe(true);
+            expect(isValidPhoneInternational('2345678901', 1)).toBe(true);
+        });
+
+        test('Should return false for invalid phone numbers with country code 1', () => {
+            expect(isValidPhoneInternational('123', 1)).toBe(false);
+            expect(isValidPhoneInternational('abc', 1)).toBe(false);
+            expect(isValidPhoneInternational('', 1)).toBe(false);
+        });
+
+        test('Should use provided country code parameter correctly', () => {
+            // UK phone number
+            expect(isValidPhoneInternational('2012345678', 44)).toBe(true);
+            expect(isValidPhoneInternational('+442012345678', 44)).toBe(true);
+            
+            // French phone number  
+            expect(isValidPhoneInternational('123456789', 33)).toBe(true);
+            expect(isValidPhoneInternational('+33123456789', 33)).toBe(true);
+        });
+
+        test('Should work correctly when country code 1 is explicitly provided', () => {
+            expect(isValidPhoneInternational('2345678901', 1)).toBe(true);
+        });
+
+        test('Should handle phone numbers that become invalid with different country codes', () => {
+            const phoneNumber = '123';
+            expect(isValidPhoneInternational(phoneNumber, 1)).toBe(false);
+            expect(isValidPhoneInternational(phoneNumber, 44)).toBe(false);
+            expect(isValidPhoneInternational(phoneNumber, 33)).toBe(false);
+        });
+
+        test('Should validate E164 format correctly', () => {
+            // Valid E164 numbers
+            expect(isValidPhoneInternational('+12345678901', 1)).toBe(true);
+            expect(isValidPhoneInternational('+442012345678', 44)).toBe(true);
+            
+            // Invalid format (not E164 compliant)
+            expect(isValidPhoneInternational('12345', 1)).toBe(false);
+        });
+
+        test('Should handle edge cases', () => {
+            expect(isValidPhoneInternational('', 1)).toBe(false);
+            expect(isValidPhoneInternational('   ', 1)).toBe(false);
+            expect(isValidPhoneInternational('abcdefghij', 1)).toBe(false);
         });
     });
 });

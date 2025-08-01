@@ -1,18 +1,10 @@
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
-import Onyx from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {clearSignInData, setAccountError} from './actions/Session';
 import Navigation from './Navigation/Navigation';
 import {parsePhoneNumber} from './PhoneNumber';
-
-let countryCodeByIP: number;
-Onyx.connect({
-    key: ONYXKEYS.COUNTRY_CODE,
-    callback: (val) => (countryCodeByIP = val ?? 1),
-});
 
 /**
  * Remove the special chars from the phone number
@@ -24,7 +16,7 @@ function getPhoneNumberWithoutSpecialChars(phone: string): string {
 /**
  * Append user country code to the phone number
  */
-function appendCountryCode(phone: string): string {
+function appendCountryCode(phone: string, countryCodeByIP = 1): string {
     if (phone.startsWith('+')) {
         return phone;
     }
@@ -61,12 +53,12 @@ function validateNumber(values: string): string {
  * Check number is valid and attach country code
  * @returns a valid phone number with country code
  */
-function getPhoneLogin(partnerUserID: string): string {
+function getPhoneLogin(partnerUserID: string, countryCodeByIP: number): string {
     if (partnerUserID.length === 0) {
         return '';
     }
 
-    return appendCountryCode(getPhoneNumberWithoutSpecialChars(partnerUserID));
+    return appendCountryCode(getPhoneNumberWithoutSpecialChars(partnerUserID), countryCodeByIP);
 }
 
 /**
@@ -101,8 +93,8 @@ function handleSAMLLoginError(errorMessage: string, shouldClearSignInData: boole
     Navigation.goBack(ROUTES.HOME);
 }
 
-function formatE164PhoneNumber(phoneNumber: string) {
-    const phoneNumberWithCountryCode = appendCountryCode(phoneNumber);
+function formatE164PhoneNumber(phoneNumber: string, countryCodeByIP: number) {
+    const phoneNumberWithCountryCode = appendCountryCode(phoneNumber, countryCodeByIP);
     const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
 
     return parsedPhoneNumber.number?.e164;
