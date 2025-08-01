@@ -189,9 +189,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     }, [isValidReport, quickActionAvatars, personalDetails, quickAction?.action]);
 
     const quickActionSubtitle = useMemo(() => {
-        if (quickAction?.action === CONST.QUICK_ACTIONS.CREATE_REPORT) {
-            return quickActionPolicy?.name;
-        }
         return !hideQABSubtitle ? (getReportName(quickActionReport) ?? translate('quickAction.updateDestination')) : '';
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -336,7 +333,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                         showDelegateNoAccessModal();
                         return;
                     }
-                    navigateToQuickAction(isValidReport, quickAction, currentUserPersonalDetails, quickActionPolicy?.id, selectOption);
+                    navigateToQuickAction(isValidReport, quickAction, selectOption);
                 });
             };
             return [
@@ -387,7 +384,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         policyChatForActivePolicy,
         quickActionTitle,
         quickActionSubtitle,
-        currentUserPersonalDetails,
         quickActionPolicy,
         quickActionReport,
         isValidReport,

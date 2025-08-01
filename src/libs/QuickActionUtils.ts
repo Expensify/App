@@ -84,8 +84,6 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
             return 'quickAction.paySomeone';
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             return 'quickAction.assignTask';
-        case CONST.QUICK_ACTIONS.CREATE_REPORT:
-            return 'quickAction.createReport';
         default:
             return '' as TranslationPaths;
     }
