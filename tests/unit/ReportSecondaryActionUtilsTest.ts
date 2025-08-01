@@ -1122,6 +1122,7 @@ describe('getSecondaryExportReportActions', () => {
             statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
         } as unknown as Report;
         const policy = {
+            id: POLICY_ID,
             role: CONST.POLICY.ROLE.ADMIN,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
             connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {}},
