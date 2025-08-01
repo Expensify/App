@@ -20,6 +20,7 @@ import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
+import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -74,6 +75,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
 
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
 
@@ -81,8 +83,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const {windowHeight} = useWindowDimensions();
     const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
 
-    // Currently Expensify Cards only support USD, once support for more currencies is implemented, we will need to update this
-    const settlementCurrency = CONST.CURRENCY.USD;
+    const settlementCurrency = isUkEuCurrencySupported ? policy?.outputCurrency : CONST.CURRENCY.USD;
 
     const allCards = useMemo(() => {
         const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList));

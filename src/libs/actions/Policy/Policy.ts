@@ -62,6 +62,7 @@ import type {
 import type UpdatePolicyMembersCustomFieldsParams from '@libs/API/parameters/UpdatePolicyMembersCustomFieldsParams';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {isCurrencySupportECards} from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -277,8 +278,18 @@ function isCurrencySupportedForDirectReimbursement(currency: string) {
 /**
  * Checks if the currency is supported for global reimbursement
  */
-function isCurrencySupportedForGlobalReimbursement(currency: TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>, canUseGlobalReimbursementsOnND: boolean) {
-    return canUseGlobalReimbursementsOnND ? CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency) : currency === CONST.CURRENCY.USD;
+function isCurrencySupportedForGlobalReimbursement(
+    currency: TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>,
+    canUseGlobalReimbursementsOnND: boolean,
+    canUseExpensifyCardEuUk: boolean,
+) {
+    if (canUseGlobalReimbursementsOnND) {
+        return CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency);
+    }
+    if (canUseExpensifyCardEuUk) {
+        return isCurrencySupportECards(currency);
+    }
+    return currency === CONST.CURRENCY.USD;
 }
 
 /**
