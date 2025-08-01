@@ -628,6 +628,7 @@ const translations = {
         getTheApp: "Scarica l'app",
         scanReceiptsOnTheGo: 'Scansiona le ricevute dal tuo telefono',
         headsUp: 'Attenzione!',
+        unstableInternetConnection: 'Connessione Internet instabile. Controlla la tua rete e riprova.',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',

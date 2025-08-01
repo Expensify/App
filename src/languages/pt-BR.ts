@@ -627,6 +627,7 @@ const translations = {
         getTheApp: 'Obtenha o aplicativo',
         scanReceiptsOnTheGo: 'Digitalize recibos com seu celular',
         headsUp: 'Atenção!',
+        unstableInternetConnection: 'Conexão de internet instável. Verifique sua rede e tente novamente.',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',

@@ -2655,7 +2655,11 @@ describe('actions/IOU', () => {
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    createWorkspace({
+                        policyOwnerEmail: CARLOS_EMAIL,
+                        makeMeAdmin: true,
+                        policyName: "Carlos's Workspace",
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -2783,7 +2787,11 @@ describe('actions/IOU', () => {
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    createWorkspace({
+                        policyOwnerEmail: CARLOS_EMAIL,
+                        makeMeAdmin: true,
+                        policyName: "Carlos's Workspace",
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -3012,7 +3020,11 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(() => {
                     // Which owns a workspace
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    createWorkspace({
+                        policyOwnerEmail: CARLOS_EMAIL,
+                        makeMeAdmin: true,
+                        policyName: "Carlos's Workspace",
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() =>
@@ -3228,7 +3240,7 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When the expense is deleted
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, true);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, true);
             }
             await waitForBatchedUpdates();
 
@@ -3306,7 +3318,7 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When the IOU expense is deleted
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, true);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, true);
             }
             await waitForBatchedUpdates();
 
@@ -3367,7 +3379,7 @@ describe('actions/IOU', () => {
             // When we attempt to delete an expense from the IOU report
             mockAxios?.pause?.();
             if (transaction && createIOUAction) {
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, false);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {});
             }
             await waitForBatchedUpdates();
 
@@ -3462,7 +3474,7 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When Deleting an expense
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, false);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {});
             }
             await waitForBatchedUpdates();
 
@@ -3536,6 +3548,7 @@ describe('actions/IOU', () => {
             createIOUAction = Object.values(reportActionsForIOUReport ?? {}).find((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
                 isMoneyRequestAction(reportAction),
             );
+
             expect(createIOUAction?.childReportID).toBe(thread.reportID);
 
             await waitForBatchedUpdates();
@@ -3544,7 +3557,9 @@ describe('actions/IOU', () => {
             if (transaction && createIOUAction) {
                 updateMoneyRequestAmountAndCurrency({
                     transactionID: transaction.transactionID,
+                    transactions: {},
                     transactionThreadReportID: thread.reportID,
+                    transactionViolations: {},
                     amount: 20000,
                     currency: CONST.CURRENCY.USD,
                     taxAmount: 0,
@@ -3584,7 +3599,7 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When Deleting an expense
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, false);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {});
             }
             await waitForBatchedUpdates();
 
@@ -3658,7 +3673,7 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When deleting expense
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, false);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {});
             }
             await waitForBatchedUpdates();
 
@@ -3809,7 +3824,7 @@ describe('actions/IOU', () => {
             mockAxios?.pause?.();
             if (transaction && createIOUAction) {
                 // When we delete the expense
-                deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
+                deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {});
             }
             await waitForBatchedUpdates();
 
@@ -3900,7 +3915,7 @@ describe('actions/IOU', () => {
             mockAxios?.pause?.();
             jest.advanceTimersByTime(10);
             if (transaction && createIOUAction) {
-                deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
+                deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {});
             }
             await waitForBatchedUpdates();
 
@@ -3975,7 +3990,7 @@ describe('actions/IOU', () => {
 
             let navigateToAfterDelete;
             if (transaction && createIOUAction) {
-                navigateToAfterDelete = deleteMoneyRequest(transaction.transactionID, createIOUAction, true);
+                navigateToAfterDelete = deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, true);
             }
 
             let allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
@@ -4023,7 +4038,7 @@ describe('actions/IOU', () => {
             let navigateToAfterDelete;
             if (transaction && createIOUAction) {
                 // When we delete the expense and we should delete the IOU report
-                navigateToAfterDelete = deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
+                navigateToAfterDelete = deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {});
             }
             // Then we expect to navigate to the chat report
             expect(chatReport?.reportID).not.toBeUndefined();
@@ -4044,7 +4059,12 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(() => {
                     const policyID = generatePolicyID();
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", policyID);
+                    createWorkspace({
+                        policyOwnerEmail: CARLOS_EMAIL,
+                        makeMeAdmin: true,
+                        policyName: "Carlos's Workspace",
+                        policyID,
+                    });
 
                     // Change the approval mode for the policy since default is Submit and Close
                     setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
@@ -4156,7 +4176,13 @@ describe('actions/IOU', () => {
 
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", undefined, CONST.ONBOARDING_CHOICES.CHAT_SPLIT);
+                    createWorkspace({
+                        policyOwnerEmail: CARLOS_EMAIL,
+                        makeMeAdmin: true,
+                        policyName: "Carlos's Workspace",
+                        policyID: undefined,
+                        engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -4321,7 +4347,13 @@ describe('actions/IOU', () => {
 
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", undefined, CONST.ONBOARDING_CHOICES.CHAT_SPLIT);
+                    createWorkspace({
+                        policyOwnerEmail: CARLOS_EMAIL,
+                        makeMeAdmin: true,
+                        policyName: "Carlos's Workspace",
+                        policyID: undefined,
+                        engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -5824,6 +5856,8 @@ describe('actions/IOU', () => {
                 },
                 policyTagList: {},
                 policyCategories: {},
+                transactions: {},
+                transactionViolations: {},
             });
 
             await waitForBatchedUpdates();
@@ -5882,6 +5916,8 @@ describe('actions/IOU', () => {
                 },
                 policyTagList: {},
                 policyCategories: {},
+                transactions: {},
+                transactionViolations: {},
             });
 
             await waitForBatchedUpdates();
@@ -5924,7 +5960,11 @@ describe('actions/IOU', () => {
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             // Which owns a workspace
             await waitForBatchedUpdates();
-            createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+            createWorkspace({
+                policyOwnerEmail: CARLOS_EMAIL,
+                makeMeAdmin: true,
+                policyName: "Carlos's Workspace",
+            });
             await waitForBatchedUpdates();
 
             // Get the policy expense chat report
@@ -6008,7 +6048,11 @@ describe('actions/IOU', () => {
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             // Which owns a workspace
             await waitForBatchedUpdates();
-            createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+            createWorkspace({
+                policyOwnerEmail: CARLOS_EMAIL,
+                makeMeAdmin: true,
+                policyName: "Carlos's Workspace",
+            });
             await waitForBatchedUpdates();
 
             // Get the policy expense chat report
@@ -6372,7 +6416,12 @@ describe('actions/IOU', () => {
             const creatorPersonalDetails = personalDetailsList?.[CARLOS_ACCOUNT_ID] ?? {accountID: CARLOS_ACCOUNT_ID};
 
             const policyID = generatePolicyID();
-            createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", policyID);
+            createWorkspace({
+                policyOwnerEmail: CARLOS_EMAIL,
+                makeMeAdmin: true,
+                policyName: "Carlos's Workspace",
+                policyID,
+            });
             createNewReport(creatorPersonalDetails, policyID);
             // Create a tracked expense
             const selfDMReport: Report = {
@@ -6479,7 +6528,12 @@ describe('actions/IOU', () => {
                 let originalTransactionID;
 
                 const policyID = generatePolicyID();
-                createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", policyID);
+                createWorkspace({
+                    policyOwnerEmail: CARLOS_EMAIL,
+                    makeMeAdmin: true,
+                    policyName: "Carlos's Workspace",
+                    policyID,
+                });
 
                 // Change the approval mode for the policy since default is Submit and Close
                 setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
