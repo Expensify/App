@@ -13,9 +13,18 @@ These rules are used to conduct structured code reviews on pull request diffs. E
 
 ### [PERF-1] No spread in list item's renderItem
 - **Severity**: MUST
-- **Condition**: Instead of extending the object with spread operator while passing it to the child component in the renderItem function, pass additional properties as props of the child component, and propagate it on its children.
+- **Condition**: When passing data to components in renderItem functions, avoid using spread operators to extend objects. Instead, pass the base object and additional properties as separate props to prevent unnecessary object creation on each render.
 
 Good:
+```tsx
+<Component
+  item={item}
+  isSelected={isSelected}
+  shouldAnimateInHighlight={isItemHighlighted}
+/>
+```
+
+Bad:
 ```tsx
 <Component
   item={{
@@ -23,15 +32,6 @@ Good:
       isSelected: selected,
       ...item,
   }}
-/>
-```
-
-Bad:
-```tsx
-<Component
-  item={item}
-  isSelected={isSelected}
-  shouldAnimateInHighlight={isItemHighlighted}
 />
 ```
 
