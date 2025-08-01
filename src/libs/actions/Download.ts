@@ -9,6 +9,8 @@ function setDownload(sourceID: string, isDownloading: boolean): Promise<void | v
 }
 
 function clearDownloads() {
+    // Use connectWithoutView to access Onyx data for clearing downloads
+    // without triggering UI updates or component re-renders.
     const connection = Onyx.connectWithoutView({
         key: ONYXKEYS.COLLECTION.DOWNLOAD,
         waitForCollectionCallback: true,
