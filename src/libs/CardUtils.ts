@@ -695,6 +695,20 @@ function getCustomCardName(cardID: string) {
     return customCardNames?.[cardID];
 }
 
+/**
+ * Get card which has a broken connection
+ *
+ * @param feedCards the list of the cards, related to one or several feeds
+ * @param [feedToExclude] the feed to ignore during the check, it's useful for checking broken connection error only in the feeds other than the selected one
+ */
+function getFeedConnectionBrokenCard(feedCards: Record<string, Card> | undefined, feedToExclude?: string): Card | undefined {
+    if (!feedCards || isEmptyObject(feedCards)) {
+        return undefined;
+    }
+
+    return Object.values(feedCards).find((card) => !isEmptyObject(card) && card.bank !== feedToExclude && card.lastScrapeResult !== 200);
+}
+
 export {
     isExpensifyCard,
     getDomainCards,
@@ -744,6 +758,7 @@ export {
     getCompanyCardDescription,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
+    getFeedConnectionBrokenCard,
     getCorrectStepForPlaidSelectedBank,
     getCustomCardName,
 };

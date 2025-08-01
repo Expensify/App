@@ -14,6 +14,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection';
 import {updateSelectedFeed} from '@libs/actions/Card';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {checkIfNewFeedConnected, getBankName, isSelectedFeedExpired} from '@libs/CardUtils';
@@ -69,6 +70,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
+    const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
 
     const renderLoading = () => <FullScreenLoadingIndicator />;
 
@@ -102,6 +104,11 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
 
         // Handle assign card flow
         if (feed && !isFeedExpired) {
+            if (isFeedConnectionBroken) {
+                updateBrokenConnection();
+                Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+                return;
+            }
             setAssignCardStepAndData({
                 currentStep: assignCard?.data?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
                 isEditing: false,
@@ -119,7 +126,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         if (isPlaid) {
             onImportPlaidAccounts();
         }
-    }, [isNewFeedConnected, newFeed, policyID, url, feed, isFeedExpired, assignCard?.data?.dateOption, isPlaid, onImportPlaidAccounts]);
+    }, [isNewFeedConnected, newFeed, policyID, url, feed, isFeedExpired, assignCard?.data?.dateOption, isPlaid, onImportPlaidAccounts, isFeedConnectionBroken, updateBrokenConnection]);
 
     const checkIfConnectionCompleted = (navState: WebViewNavigation) => {
         if (!navState.url.includes(ROUTES.BANK_CONNECTION_COMPLETE)) {
