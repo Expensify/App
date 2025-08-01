@@ -202,8 +202,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (!transaction || !reportActions) {
             return [];
         }
-        return getSecondaryTransactionThreadActions(parentReport, transaction, Object.values(reportActions), policy);
-    }, [parentReport, policy, transaction]);
+        return getSecondaryTransactionThreadActions(parentReport, transaction, Object.values(reportActions), policy, report);
+    }, [report, parentReport, policy, transaction]);
 
     const secondaryActionsImplementation: Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>> = {
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD]: {
@@ -240,7 +240,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             icon: Expensicons.ArrowSplit,
             value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {
-                initSplitExpense(transaction, reportID ?? String(CONST.DEFAULT_NUMBER_ID));
+                initSplitExpense(transaction);
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS]: {
@@ -248,7 +248,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             text: translate('iou.viewDetails'),
             icon: Expensicons.Info,
             onSelected: () => {
-                navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute());
+                navigateToDetailsPage(report, Navigation.getActiveRoute());
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE]: {
@@ -301,7 +301,12 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         )}
                     </View>
                 )}
-                {shouldDisplayTransactionNavigation && <MoneyRequestReportTransactionsNavigation currentReportID={reportID} />}
+                {shouldDisplayTransactionNavigation && !!transaction && (
+                    <MoneyRequestReportTransactionsNavigation
+                        currentTransactionID={transaction.transactionID}
+                        parentReport={parentReport}
+                    />
+                )}
             </HeaderWithBackButton>
             {shouldUseNarrowLayout && (
                 <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>

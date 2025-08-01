@@ -169,6 +169,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
+    [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
     [SCREENS.WORKSPACE.ADDRESS]: {
         policyID: string;
@@ -314,6 +315,10 @@ type SettingsNavigatorParamList = {
         rateID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATE_EDIT]: {
+        policyID: string;
+        rateID: string;
+    };
+    [SCREENS.WORKSPACE.DISTANCE_RATE_NAME_EDIT]: {
         policyID: string;
         rateID: string;
     };
@@ -1267,6 +1272,7 @@ type MoneyRequestNavigatorParamList = {
         iouType: IOUType;
         reportID: string;
         backTo: Routes;
+        shouldTurnOffSelectionMode?: boolean;
     };
     [SCREENS.MONEY_REQUEST.STEP_REPORT]: {
         action: IOUAction;
@@ -1802,6 +1808,7 @@ type ReportsSplitNavigatorParamList = {
         backTo?: Routes;
         moneyRequestReportActionID?: string;
         transactionID?: string;
+        iouReportID?: string;
     };
     [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
 };
