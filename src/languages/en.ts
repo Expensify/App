@@ -2465,6 +2465,10 @@ const translations = {
             title: 'Invite members',
             subtitle: 'Add your team or invite your accountant. The more, the merrier!',
         },
+        domainWorkspaceRestriction: {
+            title: 'Join existing workspaces',
+            subtitle: 'Your company has disabled workspace creation. Please choose from existing workspaces below or skip for now.',
+        },
     },
     featureTraining: {
         doNotShowAgain: "Don't show me this again",

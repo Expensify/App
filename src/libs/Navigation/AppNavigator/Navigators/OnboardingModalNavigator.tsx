@@ -16,6 +16,7 @@ import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStac
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
 import OnboardingAccounting from '@pages/OnboardingAccounting';
+import OnboardingDomainRestrictedWorkspaceModal from '@pages/OnboardingDomainRestrictedWorkspaceModal';
 import OnboardingEmployees from '@pages/OnboardingEmployees';
 import OnboardingInterestedFeatures from '@pages/OnboardingInterestedFeatures';
 import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
@@ -164,6 +165,10 @@ function OnboardingModalNavigator() {
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.WORKSPACE_INVITE}
                                 component={OnboardingWorkspaceInvite}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.ONBOARDING.DOMAIN_RESTRICTED_WORKSPACE_MODAL}
+                                component={OnboardingDomainRestrictedWorkspaceModal}
                             />
                         </Stack.Navigator>
                     </View>
