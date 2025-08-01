@@ -21,8 +21,7 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-// Set up a global fetch mock for API requests in tests.
-TestHelper.setupGlobalFetchMock();
+jest.mock('axios');
 
 jest.mock('@hooks/useNetwork', () =>
     jest.fn(() => ({
@@ -82,6 +81,7 @@ describe('AssignCardFeedPage', () => {
     });
 
     beforeEach(() => {
+        TestHelper.setupGlobalAxiosMock();
         // Mock the useResponsiveLayout hook to control layout behavior in tests.
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
             isSmallScreenWidth: false,

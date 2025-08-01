@@ -34,6 +34,8 @@ function toLocaleDigitMock(dot: string): string {
 }
 const GENERATED_ACCOUNT_ID = '555555';
 
+jest.mock('axios');
+
 jest.mock('@libs/UserUtils', () => ({
     // generateAccountID: () => GENERATED_ACCOUNT_ID,
     generateAccountID: jest.fn().mockReturnValue(GENERATED_ACCOUNT_ID),
@@ -512,7 +514,7 @@ describe('PolicyUtils', () => {
         });
 
         beforeEach(() => {
-            global.fetch = TestHelper.getGlobalFetchMock();
+            TestHelper.setupGlobalAxiosMock();
             return Onyx.clear().then(waitForBatchedUpdates);
         });
         it('should return false', () => {

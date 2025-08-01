@@ -7,8 +7,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy as PolicyType, TaxRate} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
+import type {MockAxios} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+jest.mock('axios');
 
 OnyxUpdateManager();
 describe('actions/PolicyTax', () => {
@@ -19,10 +21,9 @@ describe('actions/PolicyTax', () => {
         });
     });
 
-    let mockFetch: MockFetch;
+    let mockAxios: MockAxios;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockAxios = TestHelper.setupGlobalAxiosMock();
         return Onyx.clear()
             .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy))
             .then(waitForBatchedUpdates);
@@ -31,7 +32,7 @@ describe('actions/PolicyTax', () => {
     describe('SetPolicyCustomTaxName', () => {
         it('Set policy`s custom tax name', () => {
             const customTaxName = 'Custom tag name';
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             Policy.setPolicyCustomTaxName(fakePolicy.id, customTaxName);
             return waitForBatchedUpdates()
                 .then(
@@ -50,7 +51,7 @@ describe('actions/PolicyTax', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForBatchedUpdates)
                 .then(
                     () =>
@@ -72,7 +73,11 @@ describe('actions/PolicyTax', () => {
             const customTaxName = 'Custom tag name';
             const originalCustomTaxName = fakePolicy?.taxRates?.name;
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
+            mockAxios.mockAPICommand('SetPolicyCustomTaxName', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
             Policy.setPolicyCustomTaxName(fakePolicy.id, customTaxName);
             return waitForBatchedUpdates()
                 .then(
@@ -92,8 +97,7 @@ describe('actions/PolicyTax', () => {
                         }),
                 )
                 .then(() => {
-                    mockFetch?.fail?.();
-                    return mockFetch?.resume?.() as Promise<unknown>;
+                    return mockAxios?.resume?.() as Promise<unknown>;
                 })
                 .then(waitForBatchedUpdates)
                 .then(
@@ -119,7 +123,7 @@ describe('actions/PolicyTax', () => {
         it('Set policy`s currency default tax', () => {
             const taxCode = 'id_TAX_RATE_1';
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             Policy.setWorkspaceCurrencyDefault(fakePolicy.id, taxCode);
             return waitForBatchedUpdates()
                 .then(
@@ -138,7 +142,7 @@ describe('actions/PolicyTax', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForBatchedUpdates)
                 .then(
                     () =>
@@ -160,7 +164,11 @@ describe('actions/PolicyTax', () => {
             const taxCode = 'id_TAX_RATE_1';
             const originalDefaultExternalID = fakePolicy?.taxRates?.defaultExternalID;
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
+            mockAxios.mockAPICommand('SetPolicyCurrencyDefaultTax', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
             Policy.setWorkspaceCurrencyDefault(fakePolicy.id, taxCode);
             return waitForBatchedUpdates()
                 .then(
@@ -180,8 +188,7 @@ describe('actions/PolicyTax', () => {
                         }),
                 )
                 .then(() => {
-                    mockFetch?.fail?.();
-                    return mockFetch?.resume?.() as Promise<unknown>;
+                    return mockAxios?.resume?.() as Promise<unknown>;
                 })
                 .then(waitForBatchedUpdates)
                 .then(
@@ -206,7 +213,7 @@ describe('actions/PolicyTax', () => {
         it('Set policy`s foreign currency default', () => {
             const taxCode = 'id_TAX_RATE_1';
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             Policy.setForeignCurrencyDefault(fakePolicy.id, taxCode);
             return waitForBatchedUpdates()
                 .then(
@@ -225,7 +232,7 @@ describe('actions/PolicyTax', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForBatchedUpdates)
                 .then(
                     () =>
@@ -248,7 +255,11 @@ describe('actions/PolicyTax', () => {
             const taxCode = 'id_TAX_RATE_1';
             const originalDefaultForeignCurrencyID = fakePolicy?.taxRates?.foreignTaxDefault;
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
+            mockAxios.mockAPICommand('SetPolicyForeignCurrencyDefaultTax', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
             Policy.setForeignCurrencyDefault(fakePolicy.id, taxCode);
             return waitForBatchedUpdates()
                 .then(
@@ -269,8 +280,7 @@ describe('actions/PolicyTax', () => {
                 )
 
                 .then(() => {
-                    mockFetch?.fail?.();
-                    return mockFetch?.resume?.() as Promise<unknown>;
+                    return mockAxios?.resume?.() as Promise<unknown>;
                 })
                 .then(waitForBatchedUpdates)
                 .then(
@@ -300,7 +310,7 @@ describe('actions/PolicyTax', () => {
                 code: 'id_TAX_RATE_2',
             };
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             createPolicyTax(fakePolicy.id, newTaxRate);
             return waitForBatchedUpdates()
                 .then(
@@ -321,7 +331,7 @@ describe('actions/PolicyTax', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForBatchedUpdates)
                 .then(
                     () =>
@@ -348,7 +358,11 @@ describe('actions/PolicyTax', () => {
                 code: 'id_TAX_RATE_2',
             };
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
+            mockAxios.mockAPICommand('CreatePolicyTax', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
             createPolicyTax(fakePolicy.id, newTaxRate);
             return waitForBatchedUpdates()
                 .then(
@@ -370,8 +384,7 @@ describe('actions/PolicyTax', () => {
                         }),
                 )
                 .then(() => {
-                    mockFetch?.fail?.();
-                    return mockFetch?.resume?.() as Promise<unknown>;
+                    return mockAxios?.resume?.() as Promise<unknown>;
                 })
                 .then(waitForBatchedUpdates)
                 .then(
@@ -394,7 +407,7 @@ describe('actions/PolicyTax', () => {
     describe('SetPolicyTaxesEnabled', () => {
         it('Disable policy`s taxes', () => {
             const disableTaxID = 'id_TAX_RATE_1';
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             setPolicyTaxesEnabled(fakePolicy, [disableTaxID], false);
             return waitForBatchedUpdates()
                 .then(
@@ -415,7 +428,7 @@ describe('actions/PolicyTax', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForBatchedUpdates)
                 .then(
                     () =>
@@ -437,7 +450,11 @@ describe('actions/PolicyTax', () => {
 
         it('Disable policy`s taxes but API returns an error, then enable policy`s taxes again', () => {
             const disableTaxID = 'id_TAX_RATE_1';
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
+            mockAxios.mockAPICommand('SetPolicyTaxesEnabled', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
             setPolicyTaxesEnabled(fakePolicy, [disableTaxID], false);
             const originalTaxes = {...fakePolicy?.taxRates?.taxes};
             return waitForBatchedUpdates()
@@ -460,8 +477,7 @@ describe('actions/PolicyTax', () => {
                         }),
                 )
                 .then(() => {
-                    mockFetch?.fail?.();
-                    return mockFetch?.resume?.() as Promise<unknown>;
+                    return mockAxios?.resume?.() as Promise<unknown>;
                 })
                 .then(waitForBatchedUpdates)
                 .then(
@@ -488,7 +504,7 @@ describe('actions/PolicyTax', () => {
         it('Rename tax', () => {
             const taxID = 'id_TAX_RATE_1';
             const newTaxName = 'Tax rate 1 updated';
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             renamePolicyTax(fakePolicy.id, taxID, newTaxName);
             return waitForBatchedUpdates()
                 .then(
@@ -509,7 +525,7 @@ describe('actions/PolicyTax', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForBatchedUpdates)
                 .then(
                     () =>
@@ -533,7 +549,11 @@ describe('actions/PolicyTax', () => {
             const taxID = 'id_TAX_RATE_1';
             const newTaxName = 'Tax rate 1 updated';
             const originalTaxRate = {...fakePolicy?.taxRates?.taxes[taxID]};
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
+            mockAxios.mockAPICommand('RenamePolicyTax', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
             renamePolicyTax(fakePolicy.id, taxID, newTaxName);
             return waitForBatchedUpdates()
                 .then(
@@ -555,8 +575,7 @@ describe('actions/PolicyTax', () => {
                         }),
                 )
                 .then(() => {
-                    mockFetch?.fail?.();
-                    return mockFetch?.resume?.() as Promise<unknown>;
+                    return mockAxios?.resume?.() as Promise<unknown>;
                 })
                 .then(waitForBatchedUpdates)
                 .then(
@@ -583,7 +602,7 @@ describe('actions/PolicyTax', () => {
             const taxID = 'id_TAX_RATE_1';
             const newTaxValue = 10;
             const stringTaxValue = `${newTaxValue}%`;
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             updatePolicyTaxValue(fakePolicy.id, taxID, newTaxValue);
             return waitForBatchedUpdates()
                 .then(
@@ -604,7 +623,7 @@ describe('actions/PolicyTax', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForBatchedUpdates)
                 .then(
                     () =>
@@ -629,7 +648,11 @@ describe('actions/PolicyTax', () => {
             const newTaxValue = 10;
             const originalTaxRate = {...fakePolicy?.taxRates?.taxes[taxID]};
             const stringTaxValue = `${newTaxValue}%`;
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
+            mockAxios.mockAPICommand('UpdatePolicyTaxValue', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
             updatePolicyTaxValue(fakePolicy.id, taxID, newTaxValue);
             return waitForBatchedUpdates()
                 .then(
@@ -651,8 +674,7 @@ describe('actions/PolicyTax', () => {
                         }),
                 )
                 .then(() => {
-                    mockFetch?.fail?.();
-                    return mockFetch?.resume?.() as Promise<unknown>;
+                    return mockAxios?.resume?.() as Promise<unknown>;
                 })
                 .then(waitForBatchedUpdates)
                 .then(
@@ -679,8 +701,9 @@ describe('actions/PolicyTax', () => {
             const foreignTaxDefault = fakePolicy?.taxRates?.foreignTaxDefault;
             const taxID = 'id_TAX_RATE_1';
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             deletePolicyTaxes(fakePolicy, [taxID], TestHelper.localeCompare);
+
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -701,7 +724,7 @@ describe('actions/PolicyTax', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForBatchedUpdates)
                 .then(
                     () =>
@@ -733,8 +756,9 @@ describe('actions/PolicyTax', () => {
                     foreignTaxDefault: 'id_TAX_RATE_1',
                 },
             };
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             deletePolicyTaxes(fakePolicyWithForeignTaxDefault, [taxID], TestHelper.localeCompare);
+
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -755,7 +779,7 @@ describe('actions/PolicyTax', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForBatchedUpdates)
                 .then(
                     () =>
@@ -780,8 +804,13 @@ describe('actions/PolicyTax', () => {
             const foreignTaxDefault = fakePolicy?.taxRates?.foreignTaxDefault;
             const taxID = 'id_TAX_RATE_1';
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
+            mockAxios.mockAPICommand('DeletePolicyTaxes', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
             deletePolicyTaxes(fakePolicy, [taxID], TestHelper.localeCompare);
+
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -803,8 +832,7 @@ describe('actions/PolicyTax', () => {
                         }),
                 )
                 .then(() => {
-                    mockFetch?.fail?.();
-                    return mockFetch?.resume?.() as Promise<unknown>;
+                    return mockAxios?.resume?.() as Promise<unknown>;
                 })
                 .then(waitForBatchedUpdates)
                 .then(

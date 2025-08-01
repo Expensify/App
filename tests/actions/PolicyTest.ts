@@ -17,8 +17,10 @@ import type {Participant} from '@src/types/onyx/Report';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
+import type {MockAxios} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+jest.mock('axios');
 
 const ESH_EMAIL = 'eshgupta1217@gmail.com';
 const ESH_ACCOUNT_ID = 1;
@@ -34,26 +36,25 @@ describe('actions/Policy', () => {
         });
     });
 
-    let mockFetch: MockFetch;
+    let mockAxios: MockAxios;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockAxios = TestHelper.setupGlobalAxiosMock();
         IntlStore.load(CONST.LOCALES.EN);
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
     describe('createWorkspace', () => {
-        afterEach(() => {
-            mockFetch?.resume?.();
-        });
+        // afterEach(() => {
+        //     mockAxios?.resume?.();
+        // });
 
         it('creates a new workspace', async () => {
-            (fetch as MockFetch)?.pause?.();
-            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            mockAxios?.pause?.();
+            Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             const fakePolicy = createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            await Onyx.set(`${ONYXKEYS.NVP_ACTIVE_POLICY_ID}`, fakePolicy.id);
-            await Onyx.set(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Onyx.set(`${ONYXKEYS.NVP_ACTIVE_POLICY_ID}`, fakePolicy.id);
+            Onyx.set(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
             await waitForBatchedUpdates();
 
             let adminReportID;
@@ -195,7 +196,7 @@ describe('actions/Policy', () => {
             expect(manageTeamTasksCount).toBe(expectedManageTeamDefaultTasksCount);
 
             // Check for success data
-            (fetch as MockFetch)?.resume?.();
+            mockAxios?.resume?.();
             await waitForBatchedUpdates();
 
             policy = await new Promise((resolve) => {
@@ -302,12 +303,12 @@ describe('actions/Policy', () => {
         });
 
         it('create a new workspace fails will reset hasCompletedGuidedSetupFlow to the correct value', async () => {
-            (fetch as MockFetch)?.pause?.();
-            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
-            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true, chatReportID: '12345'});
+            mockAxios?.pause?.();
+            Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true, chatReportID: '12345'});
             await waitForBatchedUpdates();
 
-            (fetch as MockFetch)?.fail?.();
+            mockAxios?.fail?.();
             Policy.createWorkspace({
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
@@ -315,9 +316,10 @@ describe('actions/Policy', () => {
                 policyID: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
             });
+
             await waitForBatchedUpdates();
 
-            (fetch as MockFetch)?.resume?.();
+            mockAxios?.resume?.();
             await waitForBatchedUpdates();
 
             let onboarding: OnyxEntry<Onboarding>;
@@ -499,7 +501,7 @@ describe('actions/Policy', () => {
                 autoReporting,
                 autoReportingFrequency,
             };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
             // When a policy is upgradeToCorporate
             Policy.upgradeToCorporate(fakePolicy.id);
@@ -555,7 +557,7 @@ describe('actions/Policy', () => {
 
     describe('enablePolicyRules', () => {
         it('should disable preventSelfApproval when the rule feature is turned off', async () => {
-            (fetch as MockFetch)?.pause?.();
+            mockAxios?.pause?.();
             Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             const fakePolicy: PolicyType = {
                 ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
@@ -584,7 +586,7 @@ describe('actions/Policy', () => {
             expect(policy?.areRulesEnabled).toBeFalsy();
             expect(policy?.pendingFields?.areRulesEnabled).toEqual(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
 
-            (fetch as MockFetch)?.resume?.();
+            mockAxios?.resume?.();
             await waitForBatchedUpdates();
 
             policy = await new Promise((resolve) => {
@@ -617,11 +619,15 @@ describe('actions/Policy', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
             await Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, fakeReimbursementAccount);
+            await waitForBatchedUpdates();
 
-            // When deleting a workspace fails
-            mockFetch?.fail?.();
+            // Mock a server error response (500) to trigger failure data application
+            mockAxios.mockAPICommand('DeleteWorkspace', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
+
             Policy.deleteWorkspace(fakePolicy.id, fakePolicy.name);
-
             await waitForBatchedUpdates();
 
             // Then it should apply the correct failure data
@@ -636,7 +642,6 @@ describe('actions/Policy', () => {
                     },
                 });
             });
-
             // Unarchive the report (report key)
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -718,9 +723,9 @@ describe('actions/Policy', () => {
             const personalPolicy = createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL);
             const teamPolicy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`, personalPolicy);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${teamPolicy.id}`, teamPolicy);
-            await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, teamPolicy.id);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`, personalPolicy);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${teamPolicy.id}`, teamPolicy);
+            Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, teamPolicy.id);
             await waitForBatchedUpdates();
 
             jest.spyOn(PolicyUtils, 'getPersonalPolicy').mockReturnValue(personalPolicy);
@@ -812,8 +817,8 @@ describe('actions/Policy', () => {
                 accountID: TEST_ACCOUNT_ID,
             });
 
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
-
+            Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
+            await waitForBatchedUpdates();
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
 
             expect(workspaceName).toBe(translateLocal('workspace.new.workspaceName', {userName: TEST_DISPLAY_NAME, workspaceNumber: 2}));
@@ -832,7 +837,7 @@ describe('actions/Policy', () => {
         });
 
         it('should generate a workspace name with an incremented number even if previous workspaces were created in english lang', async () => {
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, {});
+            Onyx.set(ONYXKEYS.COLLECTION.POLICY, {});
             await IntlStore.load(CONST.LOCALES.ES);
             const existingPolicies = {
                 ...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `${TEST_DISPLAY_NAME}'s Workspace`),
@@ -847,7 +852,8 @@ describe('actions/Policy', () => {
 
             jest.spyOn(Str, 'UCFirst').mockReturnValue(TEST_DISPLAY_NAME);
 
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
+            Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
+            await waitForBatchedUpdates();
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
 
@@ -857,7 +863,7 @@ describe('actions/Policy', () => {
 
     describe('enablePolicyWorkflows', () => {
         it('should update delayed submission to instant when disabling the workflows feature', async () => {
-            (fetch as MockFetch)?.pause?.();
+            mockAxios?.pause?.();
             Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             const fakePolicy: PolicyType = {
                 ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),

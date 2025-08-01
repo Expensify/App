@@ -35,13 +35,14 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(60000);
 
+jest.mock('axios');
+
 jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
 
 TestHelper.setupApp();
-TestHelper.setupGlobalFetchMock();
 
 beforeEach(() => {
     Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
@@ -187,10 +188,16 @@ describe('Unread Indicators', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        Onyx.clear();
+        TestHelper.setupGlobalAxiosMock();
 
         // Unsubscribe to pusher channels
         PusherHelper.teardown();
+    });
+
+    afterEach(async () => {
+        // Clear Onyx state to prevent state bleeding between tests
+        await Onyx.clear();
+        await waitForBatchedUpdates();
     });
 
     it('Display bold in the LHN for unread chat and new line indicator above the chat message when we navigate to it', () =>

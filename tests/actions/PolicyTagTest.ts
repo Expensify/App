@@ -1,14 +1,17 @@
 import Onyx from 'react-native-onyx';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {createPolicyTag, deletePolicyTags, renamePolicyTag, renamePolicyTagList, setPolicyRequiresTag, setWorkspaceTagEnabled} from '@libs/actions/Policy/Tag';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, PolicyTags} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyTags from '../utils/collections/policyTags';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
+import type {MockAxios} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+jest.mock('axios');
 
 OnyxUpdateManager();
 describe('actions/Policy', () => {
@@ -18,10 +21,9 @@ describe('actions/Policy', () => {
         });
     });
 
-    let mockFetch: MockFetch;
+    let mockAxios: MockAxios;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockAxios = TestHelper.setupGlobalAxiosMock();
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -30,7 +32,7 @@ describe('actions/Policy', () => {
             const fakePolicy = createRandomPolicy(0);
             fakePolicy.requiresTag = false;
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
@@ -55,7 +57,7 @@ describe('actions/Policy', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForBatchedUpdates)
                 .then(
                     () =>
@@ -77,7 +79,7 @@ describe('actions/Policy', () => {
             const fakePolicy = createRandomPolicy(0);
             fakePolicy.requiresTag = true;
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
@@ -102,7 +104,7 @@ describe('actions/Policy', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForBatchedUpdates)
                 .then(
                     () =>
@@ -124,16 +126,19 @@ describe('actions/Policy', () => {
             const fakePolicy = createRandomPolicy(0);
             fakePolicy.requiresTag = true;
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
-                    mockFetch?.fail?.();
+                    mockAxios.mockAPICommand('SetPolicyRequiresTag', () => ({
+                        jsonCode: 500,
+                        message: 'Internal Server Error',
+                    }));
                     setPolicyRequiresTag(fakePolicy.id, false);
                     return waitForBatchedUpdates();
                 })
 
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForBatchedUpdates)
                 .then(
                     () =>
@@ -185,7 +190,7 @@ describe('actions/Policy', () => {
             const newTagListName = 'New tag list name';
             const fakePolicyTags = createRandomPolicyTags(oldTagListName);
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
@@ -222,7 +227,7 @@ describe('actions/Policy', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForBatchedUpdates)
                 .then(
                     () =>
@@ -251,14 +256,17 @@ describe('actions/Policy', () => {
             const newTagListName = 'New tag list name';
             const fakePolicyTags = createRandomPolicyTags(oldTagListName);
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    mockFetch?.fail?.();
+                    mockAxios.mockAPICommand(WRITE_COMMANDS.RENAME_POLICY_TAG_LIST, () => ({
+                        jsonCode: 500,
+                        message: 'Internal Server Error',
+                    }));
 
                     renamePolicyTagList(
                         fakePolicy.id,
@@ -271,7 +279,7 @@ describe('actions/Policy', () => {
                     );
                     return waitForBatchedUpdates();
                 })
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForBatchedUpdates)
                 .then(
                     () =>
@@ -303,7 +311,7 @@ describe('actions/Policy', () => {
             const newTagName = 'new tag';
             const fakePolicyTags = createRandomPolicyTags(tagListName);
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
@@ -333,7 +341,7 @@ describe('actions/Policy', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForBatchedUpdates)
                 .then(
                     () =>
@@ -363,19 +371,22 @@ describe('actions/Policy', () => {
             const newTagName = 'new tag';
             const fakePolicyTags = createRandomPolicyTags(tagListName);
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    mockFetch?.fail?.();
+                    mockAxios.mockAPICommand('CreatePolicyTag', () => ({
+                        jsonCode: 500,
+                        message: 'Internal Server Error',
+                    }));
 
                     createPolicyTag(fakePolicy.id, newTagName);
                     return waitForBatchedUpdates();
                 })
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForBatchedUpdates)
                 .then(
                     () =>
@@ -412,7 +423,7 @@ describe('actions/Policy', () => {
                 return acc;
             }, {});
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
@@ -444,7 +455,7 @@ describe('actions/Policy', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForBatchedUpdates)
                 .then(
                     () =>
@@ -483,19 +494,22 @@ describe('actions/Policy', () => {
                 return acc;
             }, {});
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    mockFetch?.fail?.();
+                    mockAxios.mockAPICommand('SetPolicyTagsEnabled', () => ({
+                        jsonCode: 500,
+                        message: 'Internal Server Error',
+                    }));
 
                     setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate, 0);
                     return waitForBatchedUpdates();
                 })
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForBatchedUpdates)
                 .then(
                     () =>
@@ -531,7 +545,7 @@ describe('actions/Policy', () => {
             const oldTagName = Object.keys(fakePolicyTags?.[tagListName]?.tags).at(0);
             const newTagName = 'New tag';
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
@@ -568,7 +582,7 @@ describe('actions/Policy', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForBatchedUpdates)
                 .then(
                     () =>
@@ -599,14 +613,17 @@ describe('actions/Policy', () => {
             const oldTagName = Object.keys(fakePolicyTags?.[tagListName]?.tags).at(0) ?? '';
             const newTagName = 'New tag';
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    mockFetch?.fail?.();
+                    mockAxios.mockAPICommand('RenamePolicyTag', () => ({
+                        jsonCode: 500,
+                        message: 'Internal Server Error',
+                    }));
 
                     renamePolicyTag(
                         fakePolicy.id,
@@ -618,7 +635,7 @@ describe('actions/Policy', () => {
                     );
                     return waitForBatchedUpdates();
                 })
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForBatchedUpdates)
                 .then(
                     () =>
@@ -650,7 +667,7 @@ describe('actions/Policy', () => {
             const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
             const tagsToDelete = Object.keys(fakePolicyTags?.[tagListName]?.tags ?? {});
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
@@ -678,7 +695,7 @@ describe('actions/Policy', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForBatchedUpdates)
                 .then(
                     () =>
@@ -708,19 +725,22 @@ describe('actions/Policy', () => {
             const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
             const tagsToDelete = Object.keys(fakePolicyTags?.[tagListName]?.tags ?? {});
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    mockFetch?.fail?.();
+                    mockAxios.mockAPICommand('DeletePolicyTags', () => ({
+                        jsonCode: 500,
+                        message: 'Internal Server Error',
+                    }));
 
                     deletePolicyTags(fakePolicy.id, tagsToDelete);
                     return waitForBatchedUpdates();
                 })
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForBatchedUpdates)
                 .then(
                     () =>

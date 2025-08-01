@@ -22,6 +22,8 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(50000);
 
+jest.mock('axios');
+
 jest.mock('../../src/components/ConfirmedRoute.tsx');
 
 // Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
@@ -126,8 +128,7 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
 describe('Tests for group chat name', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-
-        global.fetch = TestHelper.getGlobalFetchMock();
+        TestHelper.setupGlobalAxiosMock();
         // Unsubscribe to pusher channels
         PusherHelper.teardown();
 

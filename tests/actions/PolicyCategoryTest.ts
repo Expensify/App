@@ -6,8 +6,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
+import type {MockAxios} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+jest.mock('axios');
 
 OnyxUpdateManager();
 describe('actions/PolicyCategory', () => {
@@ -17,10 +19,9 @@ describe('actions/PolicyCategory', () => {
         });
     });
 
-    let mockFetch: MockFetch;
+    let mockAxios: MockAxios;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockAxios = TestHelper.setupGlobalAxiosMock();
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -29,7 +30,7 @@ describe('actions/PolicyCategory', () => {
             const fakePolicy = createRandomPolicy(0);
             fakePolicy.requiresCategory = false;
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Category.setWorkspaceRequiresCategory(fakePolicy.id, true);
             await waitForBatchedUpdates();
@@ -47,7 +48,7 @@ describe('actions/PolicyCategory', () => {
                     },
                 });
             });
-            await mockFetch?.resume?.();
+            await mockAxios?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -68,7 +69,7 @@ describe('actions/PolicyCategory', () => {
             const fakePolicy = createRandomPolicy(0);
             const fakeCategories = createRandomPolicyCategories(3);
             const newCategoryName = 'New category';
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
             Category.createPolicyCategory(fakePolicy.id, newCategoryName);
@@ -88,7 +89,7 @@ describe('actions/PolicyCategory', () => {
                     },
                 });
             });
-            await mockFetch?.resume?.();
+            await mockAxios?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -113,7 +114,7 @@ describe('actions/PolicyCategory', () => {
             const fakeCategories = createRandomPolicyCategories(3);
             const oldCategoryName = Object.keys(fakeCategories).at(0);
             const newCategoryName = 'Updated category';
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
             Category.renamePolicyCategory(fakePolicy.id, {
@@ -137,7 +138,7 @@ describe('actions/PolicyCategory', () => {
                     },
                 });
             });
-            await mockFetch?.resume?.();
+            await mockAxios?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -166,7 +167,7 @@ describe('actions/PolicyCategory', () => {
                     enabled: true,
                 },
             };
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
             Category.setWorkspaceCategoryEnabled(fakePolicy.id, categoriesToUpdate);
@@ -186,7 +187,7 @@ describe('actions/PolicyCategory', () => {
                     },
                 });
             });
-            await mockFetch?.resume?.();
+            await mockAxios?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -211,7 +212,7 @@ describe('actions/PolicyCategory', () => {
             const fakeCategories = createRandomPolicyCategories(3);
             const categoryNameToDelete = Object.keys(fakeCategories).at(0) ?? '';
             const categoriesToDelete = [categoryNameToDelete];
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
             Category.deleteWorkspaceCategories(fakePolicy.id, categoriesToDelete);
@@ -228,7 +229,7 @@ describe('actions/PolicyCategory', () => {
                     },
                 });
             });
-            await mockFetch?.resume?.();
+            await mockAxios?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({

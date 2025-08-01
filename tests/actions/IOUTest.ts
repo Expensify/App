@@ -89,10 +89,12 @@ import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
 import PusherHelper from '../utils/PusherHelper';
-import {getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
+import {getOnyxData, setPersonalDetails, setupGlobalAxiosMock, signInWithTestUser} from '../utils/TestHelper';
+import type {MockAxios} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
+
+jest.mock('axios');
 
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -165,11 +167,10 @@ describe('actions/IOU', () => {
         return waitForBatchedUpdates();
     });
 
-    let mockFetch: MockFetch;
+    let mockAxios: MockAxios;
     beforeEach(() => {
         jest.clearAllTimers();
-        global.fetch = getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockAxios = setupGlobalAxiosMock();
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -242,7 +243,7 @@ describe('actions/IOU', () => {
 
             // When the transaction is saved to draft before being submitted
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${fakeTransaction.transactionID}`, fakeTransaction);
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
 
             // When the user submits the transaction to the selfDM report
             trackExpense({
@@ -268,7 +269,7 @@ describe('actions/IOU', () => {
                 },
             });
             await waitForBatchedUpdates();
-            await mockFetch?.resume?.();
+            await mockAxios?.resume?.();
 
             // Given transaction after tracked expense
             const transaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
@@ -359,7 +360,7 @@ describe('actions/IOU', () => {
                 },
             });
             await waitForBatchedUpdates();
-            await mockFetch?.resume?.();
+            await mockAxios?.resume?.();
 
             // Then the expense should be categorized successfully
             await new Promise<void>((resolve) => {
@@ -454,7 +455,7 @@ describe('actions/IOU', () => {
             const linkedTrackedExpenseReportAction = Object.values(selfDMReportActionsOnyx ?? {}).find((reportAction) => isMoneyRequestAction(reportAction));
             const reportActionableTrackExpense = Object.values(selfDMReportActionsOnyx ?? {}).find((reportAction) => isActionableTrackExpense(reportAction));
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
 
             // Share the tracked expense with an accountant
             trackExpense({
@@ -506,7 +507,7 @@ describe('actions/IOU', () => {
                 });
             });
 
-            await mockFetch?.resume?.();
+            await mockAxios?.resume?.();
 
             // Accountant should be invited to the expense report
             expect(policyExpenseChatOnyx?.participants?.[accountant.accountID]).toBeTruthy();
@@ -574,7 +575,7 @@ describe('actions/IOU', () => {
             const linkedTrackedExpenseReportAction = Object.values(selfDMReportActionsOnyx ?? {}).find((reportAction) => isMoneyRequestAction(reportAction));
             const reportActionableTrackExpense = Object.values(selfDMReportActionsOnyx ?? {}).find((reportAction) => isActionableTrackExpense(reportAction));
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
 
             // Share the tracked expense with an accountant
             trackExpense({
@@ -626,7 +627,7 @@ describe('actions/IOU', () => {
                 });
             });
 
-            await mockFetch?.resume?.();
+            await mockAxios?.resume?.();
 
             // Accountant should be still a participant in the expense report
             expect(policyExpenseChatOnyx?.participants?.[accountant.accountID]).toBeTruthy();
@@ -645,7 +646,8 @@ describe('actions/IOU', () => {
             let createdAction: OnyxEntry<ReportAction>;
             let iouAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
             let transactionID: string | undefined;
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
+
             requestMoney({
                 report: {reportID: ''},
                 participantParams: {
@@ -794,7 +796,7 @@ describe('actions/IOU', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
@@ -843,7 +845,7 @@ describe('actions/IOU', () => {
             let iouAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
             let iouCreatedAction: OnyxEntry<ReportAction>;
             let transactionID: string | undefined;
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport)
                 .then(() =>
                     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
@@ -973,7 +975,7 @@ describe('actions/IOU', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForBatchedUpdates)
                 .then(
                     () =>
@@ -1058,7 +1060,7 @@ describe('actions/IOU', () => {
             };
             let newIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
             let newTransaction: OnyxEntry<Transaction>;
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport)
                 .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport ?? null))
                 .then(() =>
@@ -1179,7 +1181,7 @@ describe('actions/IOU', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForNetworkPromises)
                 .then(
                     () =>
@@ -1220,7 +1222,8 @@ describe('actions/IOU', () => {
             let createdAction: OnyxEntry<ReportAction>;
             let iouAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
             let transactionID: string | undefined;
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
+
             requestMoney({
                 report: {reportID: ''},
                 participantParams: {
@@ -1345,9 +1348,13 @@ describe('actions/IOU', () => {
                                 });
                             }),
                     )
-                    .then((): Promise<unknown> => {
-                        mockFetch?.fail?.();
-                        return mockFetch?.resume?.() as Promise<unknown>;
+                    .then((): Promise<void> => {
+                        // Mock RequestMoney API to fail with server error
+                        mockAxios.mockAPICommand('RequestMoney', () => ({
+                            jsonCode: 500,
+                            message: 'Internal Server Error',
+                        }));
+                        return mockAxios?.resume?.();
                     })
                     .then(
                         () =>
@@ -1509,7 +1516,7 @@ describe('actions/IOU', () => {
                     )
 
                     // Cleanup
-                    .then(mockFetch?.succeed)
+                    .then(mockAxios?.succeed)
             );
         });
         it('does not trigger notifyNewAction when doing the money request in a money request report', () => {
@@ -1736,7 +1743,7 @@ describe('actions/IOU', () => {
                 .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${julesExistingTransaction?.transactionID}`, julesExistingTransaction))
                 .then(() => {
                     // When we split a bill offline
-                    mockFetch?.pause?.();
+                    mockAxios?.pause?.();
                     splitBill(
                         // TODO: Migrate after the backend accepts accountIDs
                         {
@@ -2013,7 +2020,7 @@ describe('actions/IOU', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(waitForNetworkPromises)
                 .then(
                     () =>
@@ -2527,7 +2534,7 @@ describe('actions/IOU', () => {
                         }),
                 )
                 .then(() => {
-                    mockFetch?.pause?.();
+                    mockAxios?.pause?.();
                     if (chatReport && iouReport) {
                         payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, iouReport);
                     }
@@ -2580,7 +2587,7 @@ describe('actions/IOU', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockAxios?.resume)
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
@@ -2637,14 +2644,14 @@ describe('actions/IOU', () => {
         const merchant = 'NASDAQ';
 
         afterEach(() => {
-            mockFetch?.resume?.();
+            mockAxios?.resume?.();
         });
 
         it('updates the expense request and expense report when paid while offline', () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             return waitForBatchedUpdates()
                 .then(() => {
@@ -2839,7 +2846,11 @@ describe('actions/IOU', () => {
                         }),
                 )
                 .then(() => {
-                    mockFetch?.fail?.();
+                    // Mock PayMoneyRequest API to fail with server error
+                    mockAxios.mockAPICommand('PayMoneyRequest', () => ({
+                        jsonCode: 500,
+                        message: 'Internal Server Error',
+                    }));
                     if (chatReport && expenseReport) {
                         payMoneyRequest('ACH', chatReport, expenseReport);
                     }
@@ -2877,7 +2888,7 @@ describe('actions/IOU', () => {
                 type: CONST.REPORT.TYPE.IOU,
                 total: 10,
             };
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
 
             jest.advanceTimersByTime(10);
 
@@ -2932,7 +2943,7 @@ describe('actions/IOU', () => {
                 });
             });
 
-            mockFetch?.resume?.();
+            mockAxios?.resume?.();
         });
 
         it('calls notifyNewAction for the top most report', () => {
@@ -2997,7 +3008,7 @@ describe('actions/IOU', () => {
         const merchant = 'NASDAQ';
 
         afterEach(() => {
-            mockFetch?.resume?.();
+            mockAxios?.resume?.();
         });
 
         it("has an iouReportID of the cancelled payment's expense report", () => {
@@ -3224,8 +3235,8 @@ describe('actions/IOU', () => {
         afterEach(PusherHelper.teardown);
 
         it('delete an expense (IOU Action and transaction) successfully', async () => {
-            // Given the fetch operations are paused and an expense is initiated
-            mockFetch?.pause?.();
+            // Given the axios operations are paused and an expense is initiated
+            mockAxios?.pause?.();
 
             if (transaction && createIOUAction) {
                 // When the expense is deleted
@@ -3266,8 +3277,7 @@ describe('actions/IOU', () => {
             expect(t).toBeTruthy();
             expect(t?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
-            // Given fetch operations are resumed
-            mockFetch?.resume?.();
+            mockAxios?.resume?.();
             await waitForBatchedUpdates();
 
             // Then we recheck the IOU report action from the report actions collection
@@ -3304,7 +3314,7 @@ describe('actions/IOU', () => {
 
         it('delete the IOU report when there are no expenses left in the IOU report', async () => {
             // Given an IOU report and a paused fetch state
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
 
             if (transaction && createIOUAction) {
                 // When the IOU expense is deleted
@@ -3327,7 +3337,7 @@ describe('actions/IOU', () => {
             expect(report).toBeTruthy();
 
             // Given the resumed fetch state
-            mockFetch?.resume?.();
+            mockAxios?.resume?.();
             await waitForBatchedUpdates();
 
             report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -3367,7 +3377,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // When we attempt to delete an expense from the IOU report
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             if (transaction && createIOUAction) {
                 deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {});
             }
@@ -3393,7 +3403,7 @@ describe('actions/IOU', () => {
             expect(iouReport).toHaveProperty('chatReportID');
 
             // Given the resumed fetch state
-            await mockFetch?.resume?.();
+            await mockAxios?.resume?.();
 
             allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
                 const connection = Onyx.connect({
@@ -3459,7 +3469,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Given Fetch is paused and timers have advanced
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             jest.advanceTimersByTime(10);
 
             if (transaction && createIOUAction) {
@@ -3481,7 +3491,7 @@ describe('actions/IOU', () => {
             });
 
             expect(report?.reportID).toBeFalsy();
-            mockFetch?.resume?.();
+            mockAxios?.resume?.();
 
             // Then After resuming fetch, the report for the given thread ID still does not exist
             report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -3659,7 +3669,7 @@ describe('actions/IOU', () => {
             const resultActionAfter = reportActionID ? reportActions?.[reportActionID] : undefined;
             expect(resultActionAfter?.pendingAction).toBeUndefined();
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
 
             if (transaction && createIOUAction) {
                 // When deleting expense
@@ -3682,7 +3692,7 @@ describe('actions/IOU', () => {
 
             // When fetch resumes
             // Then the transaction thread report should still exist
-            mockFetch?.resume?.();
+            mockAxios?.resume?.();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
@@ -3811,7 +3821,7 @@ describe('actions/IOU', () => {
             // Verify that our action is no longer in the loading state
             expect(resultActionAfterUpdate?.pendingAction).toBeUndefined();
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             if (transaction && createIOUAction) {
                 // When we delete the expense
                 deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {});
@@ -3836,7 +3846,7 @@ describe('actions/IOU', () => {
             });
 
             // When we resume fetch
-            mockFetch?.resume?.();
+            mockAxios?.resume?.();
 
             // Then we expect the moneyRequestPreview to show [Deleted expense]
 
@@ -3902,7 +3912,7 @@ describe('actions/IOU', () => {
             expect(getReportActionText(iouPreview)).toBe('rory@expensifail.com owes $300.00');
 
             // When we delete the first expense
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             jest.advanceTimersByTime(10);
             if (transaction && createIOUAction) {
                 deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {});
@@ -3917,7 +3927,7 @@ describe('actions/IOU', () => {
             expect(iouReport?.total).toBe(20000);
 
             // When we resume
-            mockFetch?.resume?.();
+            mockAxios?.resume?.();
 
             // Then we expect the IOU report and reportPreview to update with new totals
             expect(iouReport).toBeTruthy();
@@ -3976,7 +3986,7 @@ describe('actions/IOU', () => {
             expect(createIOUAction?.childReportID).toBe(thread.reportID);
 
             // When we delete the expense, we should not delete the IOU report
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
 
             let navigateToAfterDelete;
             if (transaction && createIOUAction) {
@@ -3999,7 +4009,7 @@ describe('actions/IOU', () => {
             expect(iouReport).toHaveProperty('reportID');
             expect(iouReport).toHaveProperty('chatReportID');
 
-            await mockFetch?.resume?.();
+            await mockAxios?.resume?.();
 
             allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
                 const connection = Onyx.connect({
@@ -4439,7 +4449,11 @@ describe('actions/IOU', () => {
                         }),
                 )
                 .then(() => {
-                    mockFetch?.fail?.();
+                    // Mock SubmitExpenseReport API to fail with server error
+                    mockAxios.mockAPICommand('SubmitReport', () => ({
+                        jsonCode: 500,
+                        message: 'Internal Server Error',
+                    }));
                     if (expenseReport) {
                         submitReport(expenseReport);
                     }
@@ -4704,6 +4718,10 @@ describe('actions/IOU', () => {
             const actionCollectionDataSet: ReportActionsCollectionDataSet = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: actions};
             const comment = 'hold reason';
 
+            mockAxios.mockAPICommand('UnHoldRequest', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
@@ -4711,10 +4729,8 @@ describe('actions/IOU', () => {
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
-                    mockFetch.fail();
-                    mockFetch?.resume?.();
                     unholdRequest(transaction.transactionID, transactionThread.reportID);
-                    return waitForBatchedUpdates();
+                    return waitForNetworkPromises();
                 })
                 .then(() => {
                     return new Promise<void>((resolve) => {
@@ -4722,6 +4738,7 @@ describe('actions/IOU', () => {
                             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
                             callback: (updatedTransaction) => {
                                 Onyx.disconnect(connection);
+
                                 expect(updatedTransaction?.pendingAction).toBeFalsy();
                                 expect(updatedTransaction?.comment?.hold).toBeTruthy();
                                 expect(Object.values(updatedTransaction?.errors ?? {})).toEqual(
@@ -4767,12 +4784,15 @@ describe('actions/IOU', () => {
 
         it('should not clear transaction pending action when send invoice fails', async () => {
             // Given a send invoice request
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
             sendInvoice(1, createRandomTransaction(1));
 
             // When the request fails
-            mockFetch?.fail?.();
-            mockFetch?.resume?.();
+            mockAxios.mockAPICommand('SendInvoice', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
+            mockAxios?.resume?.();
             await waitForBatchedUpdates();
 
             // Then the pending action of the optimistic transaction shouldn't be cleared
@@ -5816,7 +5836,7 @@ describe('actions/IOU', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
 
             updateMoneyRequestAmountAndCurrency({
                 transactionID: fakeTransaction.transactionID,
@@ -5841,8 +5861,8 @@ describe('actions/IOU', () => {
             });
 
             await waitForBatchedUpdates();
-            mockFetch?.succeed?.();
-            await mockFetch?.resume?.();
+            mockAxios?.succeed?.();
+            await mockAxios?.resume?.();
 
             const updatedTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
                 const connection = Onyx.connect({
@@ -5876,7 +5896,7 @@ describe('actions/IOU', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
 
-            mockFetch?.pause?.();
+            mockAxios?.pause?.();
 
             updateMoneyRequestAmountAndCurrency({
                 transactionID: fakeTransaction.transactionID,
@@ -5901,8 +5921,12 @@ describe('actions/IOU', () => {
             });
 
             await waitForBatchedUpdates();
-            mockFetch?.fail?.();
-            await mockFetch?.resume?.();
+            // Mock UpdateMoneyRequestAmountAndCurrency API to fail with server error
+            mockAxios.mockAPICommand('UpdateMoneyRequestAmountAndCurrency', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
+            await mockAxios?.resume?.();
 
             const updatedTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
                 const connection = Onyx.connect({
@@ -5925,7 +5949,7 @@ describe('actions/IOU', () => {
         const merchant = 'NASDAQ';
 
         afterEach(() => {
-            mockFetch?.resume?.();
+            mockAxios?.resume?.();
         });
 
         it('pendingAction is not null after canceling the payment failed', async () => {
@@ -5983,15 +6007,19 @@ describe('actions/IOU', () => {
             });
 
             if (chatReport && expenseReport) {
-                mockFetch?.pause?.();
+                mockAxios?.pause?.();
                 // And when the payment is cancelled
                 cancelPayment(expenseReport, chatReport);
             }
             await waitForBatchedUpdates();
 
-            mockFetch?.fail?.();
+            // Mock CancelPayment API to fail with server error
+            mockAxios.mockAPICommand('CancelPayment', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
 
-            await mockFetch?.resume?.();
+            await mockAxios?.resume?.();
 
             await getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
@@ -6009,7 +6037,7 @@ describe('actions/IOU', () => {
         const merchant = 'NASDAQ';
 
         afterEach(() => {
-            mockFetch?.resume?.();
+            mockAxios?.resume?.();
         });
 
         it('pendingAction is not null after paying the money request', async () => {
@@ -6068,14 +6096,18 @@ describe('actions/IOU', () => {
 
             // When the expense report is paid elsewhere (but really, any payment option would work)
             if (chatReport && expenseReport) {
-                mockFetch?.pause?.();
+                mockAxios?.pause?.();
                 payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, expenseReport);
             }
             await waitForBatchedUpdates();
 
-            mockFetch?.fail?.();
+            // Mock PayMoneyRequest API to fail with server error
+            mockAxios.mockAPICommand('PayMoneyRequest', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
 
-            await mockFetch?.resume?.();
+            await mockAxios?.resume?.();
 
             await getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,

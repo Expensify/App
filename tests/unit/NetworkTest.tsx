@@ -23,12 +23,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session as OnyxSession} from '@src/types/onyx';
 import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
+import type {MockAxios} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type OnResolved = (params: {jsonCode?: string | number}) => void;
 
 const Onyx = MockedOnyx as typeof ReactNativeOnyxMock;
 
+jest.mock('axios');
 jest.mock('@src/libs/Log');
 
 Onyx.init({
@@ -38,8 +40,10 @@ Onyx.init({
 OnyxUpdateManager();
 const originalXHR = HttpUtils.xhr;
 
+let mockAxios: MockAxios;
+
 beforeEach(() => {
-    global.fetch = TestHelper.getGlobalFetchMock();
+    mockAxios = TestHelper.setupGlobalAxiosMock();
     HttpUtils.xhr = originalXHR;
 
     // Reset any pending requests
@@ -322,7 +326,14 @@ describe('NetworkTests', () => {
     });
 
     test('test Bad Gateway status will log hmmm', () => {
-        global.fetch = jest.fn().mockResolvedValueOnce({ok: false, status: CONST.HTTP_STATUS.BAD_GATEWAY, statusText: 'Bad Gateway'});
+        const axiosResponse = {
+            status: CONST.HTTP_STATUS.BAD_GATEWAY,
+            statusText: 'Bad Gateway',
+            data: '',
+            headers: {},
+            config: {},
+        };
+        mockAxios.mockResolvedValueOnce(axiosResponse);
 
         const logHmmmSpy = jest.spyOn(Log, 'hmmm');
 
@@ -338,7 +349,15 @@ describe('NetworkTests', () => {
     });
 
     test('test unknown status will log alert', () => {
-        global.fetch = jest.fn().mockResolvedValueOnce({ok: false, status: 418, statusText: "I'm a teapot"});
+        const axiosError = {
+            response: {
+                status: 418,
+                statusText: "I'm a teapot",
+                data: '',
+            },
+            code: 'HTTP_ERROR',
+        };
+        mockAxios.mockRejectedValueOnce(axiosError);
 
         const logAlertSpy = jest.spyOn(Log, 'alert');
 
@@ -354,8 +373,8 @@ describe('NetworkTests', () => {
     });
 
     test('test Failed to fetch error for non-retryable requests resolve with unable to retry jsonCode', () => {
-        // Setup xhr handler that rejects once with a Failed to Fetch
-        global.fetch = jest.fn().mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
+        // Setup axios handler that rejects once with a Failed to Fetch
+        mockAxios.mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
         const onResolved = jest.fn() as jest.MockedFunction<OnResolved>;
 
         // Given we have a request made while online
@@ -378,7 +397,7 @@ describe('NetworkTests', () => {
         const xhr = jest.spyOn(HttpUtils, 'xhr');
 
         // GIVEN a mock that will return a "cancelled" request error
-        global.fetch = jest.fn().mockRejectedValue(new DOMException('Aborted', CONST.ERROR.REQUEST_CANCELLED));
+        mockAxios.mockRejectedValue(new DOMException('Aborted', CONST.ERROR.REQUEST_CANCELLED));
 
         return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
             .then(() => {

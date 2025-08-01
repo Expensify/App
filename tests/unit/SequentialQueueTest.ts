@@ -14,13 +14,16 @@ const request: Request = {
     successData: [{key: 'userMetadata', onyxMethod: 'set', value: {accountID: 1234}}],
     failureData: [{key: 'userMetadata', onyxMethod: 'set', value: {}}],
 };
+
+jest.mock('axios');
+
 beforeAll(() => {
     Onyx.init({
         keys: ONYXKEYS,
     });
 });
 beforeEach(() => {
-    global.fetch = TestHelper.getGlobalFetchMock();
+    TestHelper.setupGlobalAxiosMock();
     return Onyx.clear().then(waitForBatchedUpdates);
 });
 describe('SequentialQueue', () => {

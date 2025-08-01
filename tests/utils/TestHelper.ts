@@ -1,4 +1,6 @@
 import {fireEvent, screen} from '@testing-library/react-native';
+import axios from 'axios';
+import type {AxiosResponse} from 'axios';
 import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
@@ -38,6 +40,20 @@ type QueueItem = {
 
 type FormData = {
     entries: () => Array<[string, string | Blob]>;
+};
+
+type MockAxios = jest.MockedFunction<typeof axios> & {
+    pause: () => void;
+    fail: () => void;
+    succeed: () => void;
+    resume: () => Promise<void>;
+    mockAPICommand: <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse) => void;
+};
+
+type AxiosQueueItem = {
+    resolve: (value: AxiosResponse<string> | PromiseLike<AxiosResponse<string>>) => void;
+    reject: (reason?: Error) => void;
+    config: Parameters<typeof axios>[0];
 };
 
 function formatPhoneNumber(phoneNumber: string) {
@@ -268,6 +284,97 @@ function getGlobalFetchMock(): typeof fetch {
     return mockFetch as typeof fetch;
 }
 
+/**
+ * Use for situations where axios() is required. This mock is stateful and has some additional methods to control its behavior:
+ *
+ * - pause() – stop resolving promises until you call resume()
+ * - resume() - flush the queue of promises, and start resolving new promises immediately
+ * - fail() - start returning a failure response
+ * - succeed() - go back to returning a success response
+ */
+function getGlobalAxiosMock(): typeof axios {
+    let queue: AxiosQueueItem[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let responses = new Map<string, (params: any) => OnyxResponse>();
+    let isPaused = false;
+    let shouldFail = false;
+
+    const getResponse = (config: Parameters<typeof axios>[0]): AxiosResponse<string> => {
+        const url = typeof config === 'string' ? config : ((config as {url?: string})?.url ?? '');
+        const commandMatch = url.match(/https:\/\/www\.expensify\.com\.dev\/api\/(\w+)\?/);
+        const command = commandMatch?.at(1) ?? null;
+
+        if (shouldFail) {
+            return {
+                status: 400,
+                statusText: 'Bad Request',
+                data: JSON.stringify({jsonCode: 400}),
+                headers: {},
+                config: config as never,
+            } as AxiosResponse<string>;
+        }
+        const responseHandler = command ? responses.get(command) : null;
+        let responseData: Record<string, unknown> = {jsonCode: 200};
+
+        if (responseHandler) {
+            const configData = (config as {data?: FormData})?.data;
+            const requestData = configData instanceof FormData ? Object.fromEntries(configData) : {};
+            responseData = {jsonCode: 200, ...responseHandler(requestData)};
+        }
+
+        return {
+            status: 200,
+            statusText: 'OK',
+            data: JSON.stringify(responseData),
+            headers: {},
+            config: config as never,
+        } as AxiosResponse<string>;
+    };
+
+    const mockAxios = jest.fn().mockImplementation((config: Parameters<typeof axios>[0]) => {
+        if (!isPaused) {
+            if (shouldFail) {
+                // Reject with a network-like error to simulate actual axios network failure
+                return Promise.reject(new Error(CONST.ERROR.FAILED_TO_FETCH));
+            }
+            return Promise.resolve(getResponse(config));
+        }
+        return new Promise<AxiosResponse<string>>((resolve, reject) => {
+            queue.push({resolve, reject, config});
+        });
+    }) as unknown as MockAxios;
+
+    const baseMockReset = mockAxios.mockReset.bind(mockAxios);
+    mockAxios.mockReset = () => {
+        baseMockReset();
+        queue = [];
+        responses = new Map();
+        isPaused = false;
+        shouldFail = false;
+        return mockAxios;
+    };
+
+    mockAxios.pause = () => (isPaused = true);
+    mockAxios.resume = () => {
+        isPaused = false;
+        queue.forEach(({resolve, reject, config}) => {
+            if (shouldFail) {
+                reject(new Error(CONST.ERROR.FAILED_TO_FETCH));
+            } else {
+                resolve(getResponse(config));
+            }
+        });
+        queue = [];
+        return waitForBatchedUpdates();
+    };
+    mockAxios.fail = () => (shouldFail = true);
+    mockAxios.succeed = () => (shouldFail = false);
+    mockAxios.mockAPICommand = <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse): void => {
+        responses.set(command, responseHandler);
+    };
+    return mockAxios as typeof axios;
+}
+
 function setupGlobalFetchMock(): MockFetch {
     const mockFetch = getGlobalFetchMock();
     const originalFetch = global.fetch;
@@ -281,8 +388,29 @@ function setupGlobalFetchMock(): MockFetch {
     return mockFetch as MockFetch;
 }
 
+function setupGlobalAxiosMock(): MockAxios {
+    const mockAxios = getGlobalAxiosMock();
+    // Note: This requires jest.mock('axios') to be called at the top of your test file
+    // Since HttpUtils calls axios() directly as a function, we mock the default export
+    const mockedAxios = axios as jest.MockedFunction<typeof axios>;
+    mockedAxios.mockImplementation(mockAxios as unknown as typeof axios);
+
+    return mockAxios as MockAxios;
+}
+
 function getFetchMockCalls(commandName: ApiCommand) {
     return (global.fetch as MockFetch).mock.calls.filter((c) => c[0] === `https://www.expensify.com.dev/api/${commandName}?`);
+}
+
+function getAxiosMockCalls(commandName: ApiCommand) {
+    // Cast to MockedFunction since we're mocking axios as a function (not individual methods)
+    const mockedAxios = axios as jest.MockedFunction<typeof axios>;
+    const calls = mockedAxios.mock.calls;
+    return calls.filter((call) => {
+        const config = call[0];
+        const url = typeof config === 'string' ? config : ((config as {url?: string})?.url ?? '');
+        return url === `https://www.expensify.com.dev/api/${commandName}?`;
+    });
 }
 
 /**
@@ -300,6 +428,25 @@ function expectAPICommandToHaveBeenCalledWith<TCommand extends ApiCommand>(comma
     expect(call).toBeTruthy();
     const body = (call?.at(1) as RequestInit)?.body;
     const params = body instanceof FormData ? Object.fromEntries(body) : {};
+    expect(params).toEqual(expect.objectContaining(expectedParams));
+}
+
+/**
+ * Assertion helper to validate that an axios command has been called a specific number of times.
+ */
+function expectAxiosCommandToHaveBeenCalled(commandName: ApiCommand, expectedCalls: number) {
+    expect(getAxiosMockCalls(commandName)).toHaveLength(expectedCalls);
+}
+
+/**
+ * Assertion helper to validate that an axios command has been called with specific parameters.
+ */
+function expectAxiosCommandToHaveBeenCalledWith<TCommand extends ApiCommand>(commandName: TCommand, callIndex: number, expectedParams: ApiRequestCommandParameters[TCommand]) {
+    const call = getAxiosMockCalls(commandName).at(callIndex);
+    expect(call).toBeTruthy();
+    const config = call?.[0];
+    const requestData = (config as {data?: FormData})?.data;
+    const params = requestData instanceof FormData ? Object.fromEntries(requestData) : {};
     expect(params).toEqual(expect.objectContaining(expectedParams));
 }
 
@@ -361,20 +508,26 @@ function localeCompare(a: string, b: string): number {
     return customCollator.compare(a, b);
 }
 
-export type {MockFetch, FormData};
+export type {MockFetch, MockAxios, FormData};
+
 export {
     assertFormDataMatchesObject,
     buildPersonalDetails,
     buildTestReportComment,
     getFetchMockCalls,
+    getAxiosMockCalls,
     getGlobalFetchMock,
+    getGlobalAxiosMock,
     setPersonalDetails,
     signInWithTestUser,
     signOutTestUser,
     setupApp,
     expectAPICommandToHaveBeenCalled,
     expectAPICommandToHaveBeenCalledWith,
+    expectAxiosCommandToHaveBeenCalled,
+    expectAxiosCommandToHaveBeenCalledWith,
     setupGlobalFetchMock,
+    setupGlobalAxiosMock,
     navigateToSidebarOption,
     getOnyxData,
     getNavigateToChatHintRegex,

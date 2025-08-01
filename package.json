@@ -122,6 +122,7 @@
     "@shopify/flash-list": "1.8.2",
     "@ua/react-native-airship": "~24.4.0",
     "awesome-phonenumber": "^5.4.0",
+    "axios": "^1.11.0",
     "babel-polyfill": "^6.26.0",
     "canvas-size": "^1.2.6",
     "core-js": "^3.32.0",

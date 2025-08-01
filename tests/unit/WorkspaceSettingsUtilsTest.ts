@@ -11,6 +11,8 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import mockData from './WorkspaceSettingsUtilsTest.json';
 
+jest.mock('axios');
+
 describe('WorkspacesSettingsUtils', () => {
     beforeAll(() => {
         Onyx.init({
@@ -20,7 +22,7 @@ describe('WorkspacesSettingsUtils', () => {
     });
 
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        TestHelper.setupGlobalAxiosMock();
         Onyx.clear([ONYXKEYS.NVP_PREFERRED_LOCALE]).then(waitForBatchedUpdates);
         IntlStore.load(CONST.LOCALES.EN);
         return waitForBatchedUpdates();
