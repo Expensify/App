@@ -66,6 +66,8 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion, bac
                 queryJSON: lastSearchQuery.queryJSON,
                 offset: newOffset,
                 prevReports: allReports,
+                shouldCalculateTotals: false,
+                searchKey: lastSearchQuery.searchKey,
             });
         }
 
@@ -84,8 +86,8 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion, bac
 
     return (
         shouldDisplayNavigationArrows && (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                {!shouldDisplayNarrowVersion && <Text style={(styles.textSupporting, styles.mnw64p)}>{`${currentIndex + 1} of ${allReportsCount}`}</Text>}
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                {!shouldDisplayNarrowVersion && <Text style={styles.textSupporting}>{`${currentIndex + 1} of ${allReportsCount}`}</Text>}
                 <PrevNextButtons
                     isPrevButtonDisabled={hidePrevButton}
                     isNextButtonDisabled={hideNextButton}

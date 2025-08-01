@@ -1029,8 +1029,30 @@ function MoneyReportHeader({
                 onBackButtonPress={onBackButtonPress}
                 shouldShowBorderBottom={false}
                 shouldEnableDetailPageNavigation
-                navigationComponent={shouldDisplayNarrowVersion ? undefined : headerNavigation}
             >
+                {!shouldDisplayNarrowVersion && headerNavigation}
+            </HeaderWithBackButton>
+
+            {shouldDisplayNarrowVersion &&
+                (shouldShowSelectedTransactionsButton ? (
+                    <View style={[styles.dFlex, styles.w100, styles.ph5]}>
+                        <ButtonWithDropdownMenu
+                            onPress={() => null}
+                            options={selectedTransactionsOptions}
+                            customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                            isSplitButton={false}
+                            shouldAlwaysShowDropdownMenu
+                            wrapperStyle={styles.w100}
+                        />
+                    </View>
+                ) : (
+                    <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                        {!!primaryAction && <View style={[styles.flex1]}>{primaryActionsImplementation[primaryAction]}</View>}
+                        {!!applicableSecondaryActions.length && KYCMoreDropdown}
+                    </View>
+                ))}
+
+            <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
                 {!shouldDisplayNarrowVersion && (
                     <View style={[styles.flexRow, styles.gap2]}>
                         {!!primaryAction && !shouldShowSelectedTransactionsButton && primaryActionsImplementation[primaryAction]}
@@ -1048,48 +1070,17 @@ function MoneyReportHeader({
                         )}
                     </View>
                 )}
-            </HeaderWithBackButton>
-            {shouldDisplayNarrowVersion && !shouldShowSelectedTransactionsButton && (
-                <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    {!!primaryAction && <View style={[styles.flex1]}>{primaryActionsImplementation[primaryAction]}</View>}
-                    {!!applicableSecondaryActions.length && KYCMoreDropdown}
+                <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
+                    {shouldShowNextStep && !!optimisticNextStep?.message?.length && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
+                    {shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline && <MoneyReportHeaderStatusBarSkeleton />}
+                    {!!statusBarProps && (
+                        <MoneyRequestHeaderStatusBar
+                            icon={statusBarProps.icon}
+                            description={statusBarProps.description}
+                        />
+                    )}
                 </View>
-            )}
-            <View style={[styles.dFlex, styles.flexColumn, styles.gap3, styles.pb3, styles.ph5, styles.justifyContentBetween]}>
-                <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap]}>
-                    <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap]}>
-                        {shouldShowSelectedTransactionsButton && shouldDisplayNarrowVersion && (
-                            <View
-                                style={[styles.dFlex, styles.w100]}
-                                key="1"
-                            >
-                                <ButtonWithDropdownMenu
-                                    onPress={() => null}
-                                    options={selectedTransactionsOptions}
-                                    customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
-                                    isSplitButton={false}
-                                    shouldAlwaysShowDropdownMenu
-                                    wrapperStyle={styles.w100}
-                                />
-                            </View>
-                        )}
-                        {shouldShowNextStep && !!optimisticNextStep?.message?.length && (
-                            <MoneyReportHeaderStatusBar
-                                nextStep={optimisticNextStep}
-                                key="2"
-                            />
-                        )}
-                        {shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline && <MoneyReportHeaderStatusBarSkeleton key="3" />}
-                        {!!statusBarProps && (
-                            <MoneyRequestHeaderStatusBar
-                                icon={statusBarProps.icon}
-                                description={statusBarProps.description}
-                                key="4"
-                            />
-                        )}
-                    </View>
-                    {shouldDisplayNarrowVersion && <View style={{flexShrink: 0, flexGrow: 0}}>{headerNavigation}</View>}
-                </View>
+                {shouldDisplayNarrowVersion && headerNavigation}
             </View>
 
             <LoadingBar shouldShow={shouldShowLoadingBar && shouldUseNarrowLayout} />
