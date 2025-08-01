@@ -8646,16 +8646,12 @@ function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: number) {
  * None of the options should show in chat threads or if there is some special Expensify account
  * as a participant of the report.
  */
-function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[], filterDeprecatedTypes = false): IOUType[] {
+function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[], filterDeprecatedTypes = false, isReportArchived = false): IOUType[] {
     const teacherUnitePolicyID = environment === CONST.ENVIRONMENT.PRODUCTION ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
     const isTeachersUniteReport = report?.policyID === teacherUnitePolicyID;
 
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
-
     // In any thread, task report or trip room, we do not allow any new expenses
-    if (isChatThread(report) || isTaskReport(report) || isInvoiceReport(report) || isSystemChat(report) || isArchivedReport(reportNameValuePairs) || isTripRoom(report)) {
+    if (isChatThread(report) || isTaskReport(report) || isInvoiceReport(report) || isSystemChat(report) || isReportArchived || isTripRoom(report)) {
         return [];
     }
 
@@ -8742,8 +8738,9 @@ function temporary_getMoneyRequestOptions(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     reportParticipants: number[],
+    isReportArchived = false,
 ): Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>> {
-    return getMoneyRequestOptions(report, policy, reportParticipants, true) as Array<
+    return getMoneyRequestOptions(report, policy, reportParticipants, true, isReportArchived) as Array<
         Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>
     >;
 }
@@ -8958,14 +8955,14 @@ function getReportOfflinePendingActionAndErrors(report: OnyxEntry<Report>): Repo
 /**
  * Check if the report can create the expense with type is iouType
  */
-function canCreateRequest(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, iouType: ValueOf<typeof CONST.IOU.TYPE>): boolean {
+function canCreateRequest(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, iouType: ValueOf<typeof CONST.IOU.TYPE>, isReportArchived = false): boolean {
     const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
 
     if (!canUserPerformWriteAction(report)) {
         return false;
     }
 
-    const requestOptions = getMoneyRequestOptions(report, policy, participantAccountIDs);
+    const requestOptions = getMoneyRequestOptions(report, policy, participantAccountIDs, isReportArchived);
     requestOptions.push(CONST.IOU.TYPE.CREATE);
 
     return requestOptions.includes(iouType);
