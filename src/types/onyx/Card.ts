@@ -242,6 +242,9 @@ type IssueNewCard = {
     /** Whether the user is editing step */
     isEditing: boolean;
 
+    /** Whether the changing assignee is disabled. E.g., The assignee is auto selected from workspace members page */
+    isChangeAssigneeDisabled: boolean;
+
     /** Whether the request is being processed */
     isLoading?: boolean;
 
