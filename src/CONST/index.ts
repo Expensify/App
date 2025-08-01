@@ -4085,6 +4085,7 @@ const CONST = {
         'GI',
         'DE',
         'GR',
+        'GB',
         'HU',
         'IE',
         'IT',
