@@ -13,6 +13,8 @@ type MergeDuplicatesParams = {
     receiptID: number;
     reportID: string | undefined;
     reportActionID?: string | undefined;
+    transactionThreadReportID?: string;
+    createdReportActionIDForThread?: string;
 };
 
 export default MergeDuplicatesParams;
