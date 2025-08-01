@@ -250,7 +250,7 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         case 'workspacename':
             return policy?.name ?? '';
         case 'created':
-            return formatDate(report.lastVisibleActionCreated, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            return formatDate(report.lastVisibleActionCreated, CONST.DATE.FNS_FORMAT_STRING);
         default:
             return part.definition;
     }
