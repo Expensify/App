@@ -21,7 +21,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAvatarsForAccountIDs, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getDisplayNameForParticipant, getDisplayNamesWithTooltips, isCompletedTaskReport, isOpenTaskReport} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -179,7 +179,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                             <MenuItem
                                 label={translate('task.assignee')}
                                 title={getDisplayNameForParticipant({accountID: report.managerID})}
-                                icon={getAvatarsForAccountIDs([report?.managerID ?? CONST.DEFAULT_NUMBER_ID], personalDetails)}
+                                iconAccountID={report.managerID}
                                 iconType={CONST.ICON_TYPE_AVATAR}
                                 avatarSize={CONST.AVATAR_SIZE.SMALLER}
                                 titleStyle={styles.assigneeTextStyle}

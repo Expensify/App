@@ -4,8 +4,6 @@ import type {ColorValue, TextStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useOnyx from '@hooks/useOnyx';
-import type {ReportAvatarDetails} from '@hooks/useReportAvatarDetails';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,7 +13,6 @@ import type {DisplayNameWithTooltips} from '@libs/ReportUtils';
 import {
     getChatRoomSubtitle,
     getDisplayNamesWithTooltips,
-    getIcons,
     getParentNavigationSubtitle,
     getReportName,
     isChatThread,
@@ -26,31 +23,23 @@ import {
     isMoneyRequestReport,
     isTrackExpenseReport,
     navigateToDetailsPage,
-    shouldReportShowSubscript,
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report} from '@src/types/onyx';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
+import type {Report} from '@src/types/onyx';
 import {getButtonRole} from './Button/utils';
 import DisplayNames from './DisplayNames';
 import type DisplayNamesProps from './DisplayNames/types';
-import {FallbackAvatar} from './Icon/Expensicons';
-import MultipleAvatars from './MultipleAvatars';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import SingleReportAvatar from './ReportActionItem/SingleReportAvatar';
+import ReportActionAvatars from './ReportActionAvatars';
 import type {TransactionListItemType} from './SelectionList/types';
-import SubscriptAvatar from './SubscriptAvatar';
 import Text from './Text';
 
 type AvatarWithDisplayNameProps = {
     /** The report currently being looked at */
     report: OnyxEntry<Report>;
-
-    /** The policy which the user has access to and which the report is tied to */
-    policy?: OnyxEntry<Policy>;
 
     /** The size of the avatar */
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -75,16 +64,6 @@ type AvatarWithDisplayNameProps = {
 
     /** Color of the secondary avatar border, usually should match the container background */
     avatarBorderColor?: ColorValue;
-
-    /** If we want to override the default avatar behavior and set a single avatar, we should pass this prop. */
-    singleAvatarDetails?: ReportAvatarDetails;
-};
-
-const fallbackIcon: Icon = {
-    source: FallbackAvatar,
-    type: CONST.ICON_TYPE_AVATAR,
-    name: '',
-    id: -1,
 };
 
 function getCustomDisplayName(
@@ -164,7 +143,6 @@ function getCustomDisplayName(
 }
 
 function AvatarWithDisplayName({
-    policy,
     report,
     isAnonymous = false,
     size = CONST.AVATAR_SIZE.DEFAULT,
@@ -172,7 +150,6 @@ function AvatarWithDisplayName({
     shouldEnableAvatarNavigation = true,
     shouldUseCustomSearchTitleName = false,
     transactions = [],
-    singleAvatarDetails,
     openParentReportInCurrentTab = false,
     avatarBorderColor: avatarBorderColorProp,
 }: AvatarWithDisplayNameProps) {
@@ -190,13 +167,10 @@ function AvatarWithDisplayName({
     const parentReportActionParam = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
     const title = getReportName(report, undefined, parentReportActionParam, personalDetails, invoiceReceiverPolicy, reportAttributes);
     const subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(report);
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
-    const icons = getIcons(report, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false);
-    const isReportArchived = useReportIsArchived(report?.reportID);
-    const shouldShowSubscriptAvatar = shouldReportShowSubscript(report, isReportArchived);
     const avatarBorderColor = avatarBorderColorProp ?? (isAnonymous ? theme.highlightBG : theme.componentBG);
 
     const actorAccountID = useRef<number | null>(null);
@@ -245,65 +219,34 @@ function AvatarWithDisplayName({
 
     const shouldUseFullTitle = isMoneyRequestOrReport || isAnonymous;
 
-    const getAvatar = useCallback(() => {
-        if (shouldShowSubscriptAvatar) {
-            return (
-                <SubscriptAvatar
-                    backgroundColor={avatarBorderColor}
-                    mainAvatar={icons.at(0) ?? fallbackIcon}
-                    secondaryAvatar={icons.at(1)}
-                    size={size}
-                />
-            );
-        }
-
-        if (!singleAvatarDetails || singleAvatarDetails.shouldDisplayAllActors || !singleAvatarDetails.reportPreviewSenderID) {
-            return (
-                <MultipleAvatars
-                    icons={icons}
-                    size={size}
-                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
-                />
-            );
-        }
-
-        return (
-            <SingleReportAvatar
-                reportPreviewDetails={singleAvatarDetails}
-                personalDetails={personalDetails}
-                containerStyles={[styles.actionAvatar, styles.mr3]}
-                actorAccountID={singleAvatarDetails.reportPreviewSenderID}
-            />
-        );
-    }, [StyleUtils, avatarBorderColor, icons, personalDetails, shouldShowSubscriptAvatar, singleAvatarDetails, size, styles]);
-
-    const getWrappedAvatar = useCallback(() => {
-        const avatar = getAvatar();
-
-        if (!shouldEnableAvatarNavigation) {
-            return <View accessibilityLabel={title}>{avatar}</View>;
-        }
-
-        return (
-            <View accessibilityLabel={title}>
-                <PressableWithoutFeedback
-                    onPress={showActorDetails}
-                    accessibilityLabel={title}
-                    role={getButtonRole(true)}
-                >
-                    {avatar}
-                </PressableWithoutFeedback>
-            </View>
-        );
-    }, [getAvatar, shouldEnableAvatarNavigation, showActorDetails, title]);
-
-    const WrappedAvatar = getWrappedAvatar();
+    const multipleAvatars = (
+        <ReportActionAvatars
+            singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
+            subscriptAvatarBorderColor={avatarBorderColor}
+            size={size}
+            secondaryAvatarContainerStyle={StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)}
+            reportID={report?.reportID}
+        />
+    );
 
     const headerView = (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {!!report && !!title && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    {WrappedAvatar}
+                    <View accessibilityLabel={title}>
+                        {shouldEnableAvatarNavigation ? (
+                            <PressableWithoutFeedback
+                                onPress={showActorDetails}
+                                accessibilityLabel={title}
+                                role={getButtonRole(true)}
+                            >
+                                {multipleAvatars}
+                            </PressableWithoutFeedback>
+                        ) : (
+                            multipleAvatars
+                        )}
+                    </View>
+
                     <View style={[styles.flex1, styles.flexColumn]}>
                         {getCustomDisplayName(
                             shouldUseCustomSearchTitleName,
