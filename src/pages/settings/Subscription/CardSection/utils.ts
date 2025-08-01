@@ -1,4 +1,5 @@
 import {addMonths, format, fromUnixTime, startOfMonth} from 'date-fns';
+import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -6,6 +7,7 @@ import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {getAmountOwed, getOverdueGracePeriodDate, getSubscriptionStatus, PAYMENT_STATUS} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
+import type {StripeCustomerID} from '@src/types/onyx';
 import type {AccountData} from '@src/types/onyx/Fund';
 import type {Purchase} from '@src/types/onyx/PurchaseList';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -24,16 +26,17 @@ type BillingStatusResult = {
 
 type GetBillingStatusProps = {
     translate: LocaleContextProps['translate'];
+    stripeCustomerId: OnyxEntry<StripeCustomerID>;
     accountData?: AccountData;
     purchase?: Purchase;
 };
 
-function getBillingStatus({translate, accountData, purchase}: GetBillingStatusProps): BillingStatusResult | undefined {
+function getBillingStatus({translate, stripeCustomerId, accountData, purchase}: GetBillingStatusProps): BillingStatusResult | undefined {
     const cardEnding = (accountData?.cardNumber ?? '')?.slice(-4);
 
     const amountOwed = getAmountOwed();
 
-    const subscriptionStatus = getSubscriptionStatus();
+    const subscriptionStatus = getSubscriptionStatus(stripeCustomerId);
 
     const endDate = getOverdueGracePeriodDate();
 
