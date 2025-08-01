@@ -222,7 +222,9 @@ function RoomInvitePage({
         }
         if (
             !inviteOptions.userToInvite &&
-            excludedUsers[parsePhoneNumber(appendCountryCode(searchValue, countryCodeByIP)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue, countryCodeByIP)) : searchValue]
+            excludedUsers[
+                parsePhoneNumber(appendCountryCode(searchValue, countryCodeByIP)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue, countryCodeByIP)) : searchValue
+            ]
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName});
         }

@@ -496,7 +496,7 @@ describe('ValidationUtils', () => {
             });
         });
     });
-    
+
     describe('isValidPhoneInternational', () => {
         test('Should return true for valid E164 phone numbers with country code 1', () => {
             expect(isValidPhoneInternational('+12345678901', 1)).toBe(true);
@@ -513,8 +513,8 @@ describe('ValidationUtils', () => {
             // UK phone number
             expect(isValidPhoneInternational('2012345678', 44)).toBe(true);
             expect(isValidPhoneInternational('+442012345678', 44)).toBe(true);
-            
-            // French phone number  
+
+            // French phone number
             expect(isValidPhoneInternational('123456789', 33)).toBe(true);
             expect(isValidPhoneInternational('+33123456789', 33)).toBe(true);
         });
@@ -534,7 +534,7 @@ describe('ValidationUtils', () => {
             // Valid E164 numbers
             expect(isValidPhoneInternational('+12345678901', 1)).toBe(true);
             expect(isValidPhoneInternational('+442012345678', 44)).toBe(true);
-            
+
             // Invalid format (not E164 compliant)
             expect(isValidPhoneInternational('12345', 1)).toBe(false);
         });

@@ -211,7 +211,9 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
         }
         if (
             !inviteOptions.userToInvite &&
-            excludedUsers[parsePhoneNumber(appendCountryCode(processedLogin, countryCodeByIP)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(processedLogin, countryCodeByIP)) : processedLogin]
+            excludedUsers[
+                parsePhoneNumber(appendCountryCode(processedLogin, countryCodeByIP)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(processedLogin, countryCodeByIP)) : processedLogin
+            ]
         ) {
             return translate('messages.userIsAlreadyMember', {login: processedLogin, name: reportName ?? ''});
         }

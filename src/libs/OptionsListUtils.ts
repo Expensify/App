@@ -1516,7 +1516,14 @@ function canCreateOptimisticPersonalDetailOption({
  * - If prop shouldAcceptName = true, the searchValue can be also a normal string
  * - The searchValue isn't the current personal detail login
  */
-function getUserToInviteOption({searchValue, loginsToExclude = {}, selectedOptions = [], showChatPreviewLine = false, shouldAcceptName = false, countryCodeByIP}: GetUserToInviteConfig): OptionData | null {
+function getUserToInviteOption({
+    searchValue,
+    loginsToExclude = {},
+    selectedOptions = [],
+    showChatPreviewLine = false,
+    shouldAcceptName = false,
+    countryCodeByIP,
+}: GetUserToInviteConfig): OptionData | null {
     if (!searchValue) {
         return null;
     }
@@ -2073,7 +2080,9 @@ function getValidOptions(
 
     let userToInvite: OptionData | null = null;
     if (includeUserToInvite) {
-        userToInvite = filterUserToInvite({currentUserOption: currentUserRef.current, recentReports: recentReportOptions, personalDetails: personalDetailsOptions}, searchString ?? '', {countryCodeByIP: config.countryCodeByIP ?? 1});
+        userToInvite = filterUserToInvite({currentUserOption: currentUserRef.current, recentReports: recentReportOptions, personalDetails: personalDetailsOptions}, searchString ?? '', {
+            countryCodeByIP: config.countryCodeByIP ?? 1,
+        });
     }
 
     return {
