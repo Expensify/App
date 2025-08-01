@@ -5,18 +5,17 @@ import {View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
 import type {WebStyle} from 'react-native-web';
 import type {MergeExclusive} from 'type-fest';
-import AutoEmailLink from '@components/AutoEmailLink';
 import Icon from '@components/Icon';
 import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
-import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
+import SubtitleDefault from './SubtitleDefault';
+import SubtitleWithBelowLink from './SubtitleWithBelowLink';
 
 type BaseBlockingViewProps = {
     /** Title message below the icon */
@@ -118,63 +117,11 @@ function BlockingView({
     testID,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const subtitleText = useMemo(() => {
-        if (!!subtitleKeyBelowLink && shouldShowLink) {
-            return (
-                <>
-                    <Text style={[styles.textAlignCenter]}>
-                        {!!subtitle && (
-                            <AutoEmailLink
-                                style={[styles.textAlignCenter, subtitleStyle]}
-                                text={subtitle}
-                            />
-                        )}
-                        <TextLink
-                            onPress={onLinkPress}
-                            style={[styles.link, styles.mt2, !!subtitleKeyBelowLink && styles.textAlignCenter]}
-                        >
-                            {` ${translate(linkKey)}`}
-                        </TextLink>
-                    </Text>
-                    <AutoEmailLink
-                        style={[styles.textAlignCenter, subtitleStyle, styles.mt4]}
-                        text={translate(subtitleKeyBelowLink)}
-                    />
-                </>
-            );
-        }
-        return (
-            <>
-                {!!subtitle && (
-                    <AutoEmailLink
-                        style={[styles.textAlignCenter, subtitleStyle]}
-                        text={subtitle}
-                    />
-                )}
-                {shouldShowLink ? (
-                    <TextLink
-                        onPress={onLinkPress}
-                        style={[styles.link, styles.mt2]}
-                    >
-                        {translate(linkKey)}
-                    </TextLink>
-                ) : null}
-            </>
-        );
-    }, [styles, subtitle, shouldShowLink, linkKey, onLinkPress, translate, subtitleStyle, subtitleKeyBelowLink]);
-
-    const subtitleContent = useMemo(() => {
-        if (CustomSubtitle) {
-            return CustomSubtitle;
-        }
-        return shouldEmbedLinkWithSubtitle ? (
-            <Text style={[styles.textAlignCenter]}>{subtitleText}</Text>
-        ) : (
-            <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>{subtitleText}</View>
-        );
-    }, [styles, subtitleText, shouldEmbedLinkWithSubtitle, CustomSubtitle]);
-
+    const SubtitleWrapper = shouldEmbedLinkWithSubtitle ? Text : View;
+    const subtitleWrapperStyle = useMemo(
+        () => (shouldEmbedLinkWithSubtitle ? [styles.textAlignCenter] : [styles.alignItemsCenter, styles.justifyContentCenter]),
+        [shouldEmbedLinkWithSubtitle, styles],
+    );
     const containerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, style: containerStyleProp});
 
     return (
@@ -204,7 +151,28 @@ function BlockingView({
             <View>
                 <Text style={[styles.notFoundTextHeader]}>{title}</Text>
 
-                {subtitleContent}
+                {!!CustomSubtitle && CustomSubtitle}
+                {!CustomSubtitle && (
+                    <SubtitleWrapper style={subtitleWrapperStyle}>
+                        {!!subtitleKeyBelowLink && shouldShowLink ? (
+                            <SubtitleWithBelowLink
+                                subtitle={subtitle}
+                                subtitleStyle={subtitleStyle}
+                                subtitleKeyBelowLink={subtitleKeyBelowLink}
+                                onLinkPress={onLinkPress}
+                                linkKey={linkKey}
+                            />
+                        ) : (
+                            <SubtitleDefault
+                                subtitle={subtitle}
+                                subtitleStyle={subtitleStyle}
+                                shouldShowLink={shouldShowLink}
+                                onLinkPress={onLinkPress}
+                                linkKey={linkKey}
+                            />
+                        )}
+                    </SubtitleWrapper>
+                )}
             </View>
         </View>
     );
