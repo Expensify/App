@@ -247,6 +247,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
+    const isReportArchived = useReportIsArchived(report?.reportID);
 
     const {getViolationsForField} = useViolations(transactionViolations ?? [], isTransactionScanning || !isPaidGroupPolicy(report));
     const hasViolations = useCallback(
@@ -863,7 +864,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={canEditReport}
-                            title={getReportName(parentReport) || parentReport?.reportName}
+                            title={getReportName(parentReport, undefined, undefined, undefined, undefined, undefined, isReportArchived) || parentReport?.reportName}
                             description={translate('common.report')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}

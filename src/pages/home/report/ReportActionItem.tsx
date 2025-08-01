@@ -136,7 +136,7 @@ function ReportActionItem({
                 action as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
                 report,
             )}
-            modifiedExpenseMessage={ModifiedExpenseMessage.getForReportAction({reportOrID: reportID, reportAction: action})}
+            modifiedExpenseMessage={ModifiedExpenseMessage.getForReportAction({reportOrID: reportID, reportAction: action, isReportArchived: isOriginalReportArchived})}
             getTransactionsWithReceipts={getTransactionsWithReceipts}
             clearError={clearError}
             clearAllRelatedReportActionErrors={clearAllRelatedReportActionErrors}

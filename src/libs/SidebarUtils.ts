@@ -205,8 +205,8 @@ function shouldDisplayReportInLHN(
     isInFocusMode: boolean,
     betas: OnyxEntry<Beta[]>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
-    isReportArchived?: boolean,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
+    isReportArchived = false,
 ) {
     if (!report) {
         return {shouldDisplay: false};
@@ -266,8 +266,8 @@ function getReportsToDisplayInLHN(
     policies: OnyxCollection<PartialPolicyForSidebar>,
     priorityMode: OnyxEntry<PriorityMode>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
+    isReportArchived = false,
 ) {
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const allReportsDictValues = reports ?? {};
@@ -285,8 +285,8 @@ function getReportsToDisplayInLHN(
             isInFocusMode,
             betas,
             transactionViolations,
-            isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]),
             reportAttributes,
+            isReportArchived,
         );
 
         if (shouldDisplay) {
@@ -306,8 +306,8 @@ function updateReportsToDisplayInLHN(
     betas: OnyxEntry<Beta[]>,
     policies: OnyxCollection<PartialPolicyForSidebar>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
+    isReportArchived = false,
 ) {
     const displayedReportsCopy = {...displayedReports};
     updatedReportsKeys.forEach((reportID) => {
@@ -323,8 +323,8 @@ function updateReportsToDisplayInLHN(
             isInFocusMode,
             betas,
             transactionViolations,
-            isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]),
             reportAttributes,
+            isReportArchived,
         );
 
         if (shouldDisplay) {
@@ -346,6 +346,7 @@ function sortReportsToDisplayInLHN(
     localeCompare: LocaleContextProps['localeCompare'],
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
+
 ): string[] {
     Performance.markStart(CONST.TIMING.GET_ORDERED_REPORT_IDS);
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
@@ -372,7 +373,7 @@ function sortReportsToDisplayInLHN(
         const report = reportToDisplay;
         const miniReport: MiniReport = {
             reportID: report?.reportID,
-            displayName: getReportName(report),
+            displayName: getReportName(report, undefined, undefined, undefined, undefined, undefined, isReportArchived),
             lastVisibleActionCreated: report?.lastVisibleActionCreated,
         };
 
@@ -502,6 +503,7 @@ function shouldShowRedBrickRoad(
  */
 function getOptionData({
     report,
+    isReportArchived,
     reportAttributes,
     oneTransactionThreadReport,
     reportNameValuePairs,
@@ -520,6 +522,7 @@ function getOptionData({
     lastMessageTextFromReport?: string;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
     reportAttributes: OnyxEntry<ReportAttributes>;
+    isReportArchived?: boolean;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -684,7 +687,15 @@ function getOptionData({
                     : translateLocal('workspace.invite.removed');
             const users = translateLocal(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
             result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName} ${verb} ${targetAccountIDsLength} ${users}`);
-            const roomName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`]) || lastActionOriginalMessage?.roomName;
+            const roomName = getReportName(
+                allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`],
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                isReportArchived
+            ) || lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
@@ -815,7 +826,7 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy);
+    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy, undefined, isReportArchived);
 
     result.text = reportName;
     result.subtitle = subtitle;
@@ -904,7 +915,7 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>,
 function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = false, reportDetailsLink = ''): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report});
-    const reportName = getReportName(report);
+    const reportName = getReportName(report, undefined, undefined, undefined, undefined, undefined, isReportArchived);
 
     if (report?.description) {
         welcomeMessage.messageHtml = getReportDescription(report);

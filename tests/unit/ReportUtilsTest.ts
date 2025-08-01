@@ -49,6 +49,7 @@ import {
     getReasonAndReportActionThatRequiresAttention,
     getReportIDFromLink,
     getReportName,
+    getReportNameInternal,
     getReportStatusTranslation,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
@@ -626,9 +627,13 @@ describe('ReportUtils', () => {
             test('Archived', async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseAdminsRoom.reportID}`, reportNameValuePairs);
 
-                expect(getReportName(baseAdminsRoom)).toBe('#admins (archived)');
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(baseAdminsRoom.reportID));
 
-                return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(baseAdminsRoom)).toBe('#admins (archivado)'));
+                expect(getReportName(baseAdminsRoom, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe('#admins (archived)');
+
+                return IntlStore.load(CONST.LOCALES.ES).then(() =>
+                    expect(getReportName(baseAdminsRoom, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe('#admins (archivado)'),
+                );
             });
         });
 
@@ -658,9 +663,13 @@ describe('ReportUtils', () => {
 
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseUserCreatedRoom.reportID}`, reportNameValuePairs);
 
-                expect(getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archived)');
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(archivedPolicyRoom.reportID));
 
-                return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archivado)'));
+                expect(getReportName(archivedPolicyRoom, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe('#VikingsChat (archived)');
+
+                return IntlStore.load(CONST.LOCALES.ES).then(() =>
+                    expect(getReportName(archivedPolicyRoom, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe('#VikingsChat (archivado)'),
+                );
             });
         });
 
@@ -712,9 +721,17 @@ describe('ReportUtils', () => {
 
                     await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseArchivedPolicyExpenseChat.reportID}`, reportNameValuePairs);
 
-                    expect(getReportName(memberArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's expenses (archived)`);
+                    const {result: isReportArchived} = renderHook(() => useReportIsArchived(memberArchivedPolicyExpenseChat.reportID));
 
-                    return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(memberArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gastos (archivado)`));
+                    expect(getReportName(memberArchivedPolicyExpenseChat, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe(
+                        `Ragnar Lothbrok's expenses (archived)`,
+                    );
+
+                    return IntlStore.load(CONST.LOCALES.ES).then(() =>
+                        expect(getReportName(memberArchivedPolicyExpenseChat, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe(
+                            `Ragnar Lothbrok's gastos (archivado)`,
+                        ),
+                    );
                 });
 
                 test('as admin', async () => {
@@ -723,9 +740,17 @@ describe('ReportUtils', () => {
                         isOwnPolicyExpenseChat: false,
                     };
 
-                    expect(getReportName(adminArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's expenses (archived)`);
+                    const {result: isReportArchived} = renderHook(() => useReportIsArchived(adminArchivedPolicyExpenseChat.reportID));
 
-                    return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(adminArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gastos (archivado)`));
+                    expect(getReportName(adminArchivedPolicyExpenseChat, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe(
+                        `Ragnar Lothbrok's expenses (archived)`,
+                    );
+
+                    return IntlStore.load(CONST.LOCALES.ES).then(() =>
+                        expect(getReportName(adminArchivedPolicyExpenseChat, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe(
+                            `Ragnar Lothbrok's gastos (archivado)`,
+                        ),
+                    );
                 });
             });
         });
@@ -766,7 +791,6 @@ describe('ReportUtils', () => {
                         targetAccountIDs: [1],
                     },
                 } as ReportAction;
-
                 expect(getReportName(threadOfRemovedRoomMemberAction, policy, removedParentReportAction)).toBe('removed ragnar@vikings.net');
             });
         });
@@ -907,7 +931,6 @@ describe('ReportUtils', () => {
                     automaticAction: true,
                 },
             } as ReportAction;
-
             expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
                 'approved via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules">workspace rules</a>',
             );
@@ -955,7 +978,6 @@ describe('ReportUtils', () => {
                     harvesting: true,
                 },
             } as ReportAction;
-
             expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
                 'submitted via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows">delay submissions</a>',
             );

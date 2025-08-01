@@ -129,9 +129,9 @@ export default {
         push(title, body, icon, data, onClick);
     },
 
-    pushModifiedExpenseNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {
+    pushModifiedExpenseNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false, isReportArchived = false) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
-        const body = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
+        const body = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, isReportArchived: isReportArchived});
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
         const data = {
             reportID: report.reportID,

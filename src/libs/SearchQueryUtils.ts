@@ -704,6 +704,7 @@ function getFilterDisplayValue(
     cardList: OnyxTypes.CardList,
     cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy>,
+    isReportArchived: boolean = false,
 ) {
     if (
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
@@ -724,7 +725,7 @@ function getFilterDisplayValue(
         return getCardDescription(cardID, cardList) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-        return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]) || filterValue;
+        return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`], undefined, undefined, undefined, undefined, undefined, isReportArchived) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
         const frontendAmount = convertToFrontendAmountAsInteger(Number(filterValue));
