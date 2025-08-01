@@ -72,7 +72,7 @@ function SuggestionEmoji(
             const emojiCode = emojiObject?.types?.at(preferredSkinTone) && preferredSkinTone !== -1 ? emojiObject.types.at(preferredSkinTone) : emojiObject?.code;
             const commentAfterColonWithEmojiNameRemoved = value.slice(selection.end);
 
-            updateComment(`${commentBeforeColon}${emojiCode} ${trimLeadingSpace(commentAfterColonWithEmojiNameRemoved)}`, true);
+            updateComment(`${commentBeforeColon}${emojiCode} ${trimLeadingSpace(commentAfterColonWithEmojiNameRemoved)}`);
 
             // In some Android phones keyboard, the text to search for the emoji is not cleared
             // will be added after the user starts typing again on the keyboard. This package is
