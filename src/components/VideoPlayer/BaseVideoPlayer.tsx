@@ -459,7 +459,7 @@ function BaseVideoPlayer({
                                     </>
                                 ) : (
                                     <View
-                                        fsClass="fs-exclude"
+                                        fsClass={CONST.FULLSTORY.CLASS.EXCLUDE}
                                         style={styles.flex1}
                                         ref={(el) => {
                                             if (!el) {
