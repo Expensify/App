@@ -11,22 +11,22 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  fingerprint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+  # fingerprint:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
 
-      - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
-        with:
-          IS_HYBRID_BUILD: 'false'
+  #     - name: Setup Node
+  #       uses: ./.github/actions/composite/setupNode
+  #       with:
+  #         IS_HYBRID_BUILD: 'false'
 
-      - name: Run RNEF Fingerprint
-        run: |
-          FINGERPRINT_OUTPUT=$(npx rnef fingerprint -p android --raw 2>&1)
-          echo "FINGERPRINT_OUTPUT:"
-          echo "$FINGERPRINT_OUTPUT"
+  #     - name: Run RNEF Fingerprint
+  #       run: |
+  #         FINGERPRINT_OUTPUT=$(npx rnef fingerprint -p android --raw 2>&1)
+  #         echo "FINGERPRINT_OUTPUT:"
+  #         echo "$FINGERPRINT_OUTPUT"
 
   build:
     runs-on: ${{ github.repository_owner == 'Expensify' && 'ubuntu-latest-xl' || 'ubuntu-latest' }}
