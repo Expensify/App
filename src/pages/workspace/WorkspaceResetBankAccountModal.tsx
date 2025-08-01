@@ -36,8 +36,9 @@ function WorkspaceResetBankAccountModal({
 }: WorkspaceResetBankAccountModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const policyID = reimbursementAccount?.achData?.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const achData = reimbursementAccount?.achData;
     const isInOpenState = achData?.state === BankAccount.STATE.OPEN;
     const bankAccountID = achData?.bankAccountID;
@@ -45,7 +46,7 @@ function WorkspaceResetBankAccountModal({
 
     const handleConfirm = () => {
         if (isNonUSDWorkspace) {
-            resetNonUSDBankAccount(policyID);
+            resetNonUSDBankAccount(policy);
 
             if (setShouldShowConnectedVerifiedBankAccount) {
                 setShouldShowConnectedVerifiedBankAccount(false);
