@@ -23,6 +23,7 @@ function ChatListItem<TItem extends ListItem>({
     shouldSyncFocus,
     policies,
     allReports,
+    shouldAnimateInHighlight,
 }: ChatListItemProps<TItem>) {
     const reportActionItem = item as unknown as ReportActionListItemType;
     const reportID = Number(reportActionItem?.reportID ?? CONST.DEFAULT_NUMBER_ID);
@@ -31,7 +32,7 @@ function ChatListItem<TItem extends ListItem>({
     const theme = useTheme();
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        shouldHighlight: shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
     });

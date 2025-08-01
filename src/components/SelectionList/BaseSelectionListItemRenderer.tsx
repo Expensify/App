@@ -44,6 +44,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     singleExecution,
     titleContainerStyles,
     shouldUseDefaultRightHandSideCheckmark,
+    shouldAnimateInHighlight,
     canShowProductTrainingTooltip = true,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
@@ -96,6 +97,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 titleContainerStyles={titleContainerStyles}
                 shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                 canShowProductTrainingTooltip={canShowProductTrainingTooltip}
+                shouldAnimateInHighlight={shouldAnimateInHighlight}
             />
             {item.footerContent && item.footerContent}
         </>
