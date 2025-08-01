@@ -1166,6 +1166,16 @@ describe('ReportUtils', () => {
                 expect(moneyRequestOptions.length).toBe(0);
             });
 
+            it('its archived report', () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], true);
+                expect(moneyRequestOptions.length).toBe(0);
+            });
+
             it('its trip room', () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
