@@ -6,7 +6,6 @@ import type {Policy, Report} from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
 import getIconForAction from './getIconForAction';
-import {shouldShowPolicy} from './PolicyUtils';
 import {canCreateRequest} from './ReportUtils';
 
 const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
