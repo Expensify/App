@@ -260,6 +260,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
+      - name: Append 🍒 to Cherry-picked PR title
+        if: ${{ inputs.PULL_REQUEST_URL != '' }}
+        run: |
+          PR_TITLE="$(gh pr view '${{ inputs.PULL_REQUEST_URL }}' --json title --jq .title)"
+          if [[ "$PR_TITLE" != 🍒* ]]; then
+            gh pr edit '${{ inputs.PULL_REQUEST_URL }}' --title "🍒 ${PR_TITLE}"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
       - name: "Announces a CP failure in the #announce Slack room"
         # v3
         uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
