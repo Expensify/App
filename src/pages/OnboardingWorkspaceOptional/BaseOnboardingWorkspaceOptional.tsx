@@ -161,7 +161,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                         onPress={() => {
                             setOnboardingErrorMessage('');
                             if (hasRestriction) {
-                                Navigation.navigate(ROUTES.ONBOARDING_DOMAIN_RESTRICTED_WORKSPACE_MODAL);
+                                Navigation.navigate(ROUTES.ONBOARDING_DOMAIN_RESTRICTED_WORKSPACE.getRoute());
                                 return;
                             }
                             Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.getRoute());

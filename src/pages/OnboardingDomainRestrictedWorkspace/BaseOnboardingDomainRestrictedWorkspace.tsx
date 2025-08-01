@@ -16,7 +16,6 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
-import Navigation from '@libs/Navigation/Navigation';
 import {shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
@@ -25,8 +24,9 @@ import {completeOnboarding} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {BaseOnboardingDomainRestrictedWorkspaceProps} from './types';
 
-function OnboardingDomainRestrictedWorkspaceModal() {
+function BaseOnboardingDomainRestrictedWorkspace({shouldUseNativeStyles}: BaseOnboardingDomainRestrictedWorkspaceProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {onboardingMessages} = useOnboardingMessages();
@@ -116,10 +116,6 @@ function OnboardingDomainRestrictedWorkspaceModal() {
         navigateAfterOnboardingWithMicrotaskQueue(isSmallScreenWidth, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS));
     }, [onboardingMessages, currentUserPersonalDetails, isSmallScreenWidth, isBetaEnabled]);
 
-    const handleBackPress = useCallback(() => {
-        Navigation.goBack();
-    }, []);
-
     const workspaceListItems = useMemo(() => {
         return availableWorkspaces.map((workspace) => ({
             ...workspace,
@@ -138,14 +134,12 @@ function OnboardingDomainRestrictedWorkspaceModal() {
 
     return (
         <ScreenWrapper
-            testID={OnboardingDomainRestrictedWorkspaceModal.displayName}
-            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
+            includeSafeAreaPaddingBottom
+            testID={BaseOnboardingDomainRestrictedWorkspace.displayName}
+            style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            <HeaderWithBackButton
-                title=""
-                onBackButtonPress={handleBackPress}
-            />
+            <HeaderWithBackButton progressBarPercentage={100} />
             <SelectionList
                 sections={[{data: workspaceListItems, isDisabled: false}]}
                 onSelectRow={() => {}} // Handled by the button in rightElement
@@ -174,6 +168,6 @@ function OnboardingDomainRestrictedWorkspaceModal() {
     );
 }
 
-OnboardingDomainRestrictedWorkspaceModal.displayName = 'OnboardingDomainRestrictedWorkspaceModal';
+BaseOnboardingDomainRestrictedWorkspace.displayName = 'BaseOnboardingDomainRestrictedWorkspace';
 
-export default OnboardingDomainRestrictedWorkspaceModal;
+export default BaseOnboardingDomainRestrictedWorkspace;

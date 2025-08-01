@@ -678,7 +678,7 @@ const SCREENS = {
         WORKSPACE_CONFIRMATION: 'Onboarding_Workspace_Confirmation',
         WORKSPACE_CURRENCY: 'Onboarding_Workspace_Currency',
         WORKSPACE_INVITE: 'Onboarding_Workspace_Invite',
-        DOMAIN_RESTRICTED_WORKSPACE_MODAL: 'Onboarding_Domain_Restricted_Workspace_Modal',
+        DOMAIN_RESTRICTED_WORKSPACE: 'Onboarding_Domain_Restricted_Workspace',
     },
 
     WELCOME_VIDEO: {
