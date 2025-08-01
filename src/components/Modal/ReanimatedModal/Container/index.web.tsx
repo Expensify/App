@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useRef} from 'react';
-import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Keyframe, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 import type {ContainerProps} from '@components/Modal/ReanimatedModal/types';
 import {easing, getModalInAnimationStyle, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
@@ -37,13 +37,15 @@ function Container({
     // instead of an entering transition since keyframe animations break keyboard on mWeb Chrome (#62799)
     const animatedStyles = useAnimatedStyle(() => getModalInAnimationStyle(animationIn)(initProgress.get()), [initProgress]);
 
-    const Exiting = useMemo(() => {
-        const AnimationOut = new Keyframe(getModalOutAnimation(animationOut));
-
-        // eslint-disable-next-line react-compiler/react-compiler
-        return AnimationOut.duration(animationOutTiming).withCallback(() => onCloseCallbackRef.current());
-    }, [animationOutTiming, animationOut]);
-
+    const Exiting = useMemo(
+        () =>
+            new Keyframe(getModalOutAnimation(animationOut))
+                .duration(animationOutTiming)
+                // eslint-disable-next-line react-compiler/react-compiler
+                .withCallback(() => onCloseCallbackRef.current())
+                .reduceMotion(ReduceMotion.Never),
+        [animationOutTiming, animationOut],
+    );
     return (
         <Animated.View
             style={[style, styles.modalContainer, type !== CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && styles.modalAnimatedContainer, animatedStyles, {zIndex: 1}]}
