@@ -16,6 +16,7 @@ function getDeviceID(): Promise<string | null> {
             return;
         }
 
+        // Use connectWithoutView to since this is a one-time data fetch that disconnects immediately without triggering UI updates.
         const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.DEVICE_ID,
             callback: (id) => {
