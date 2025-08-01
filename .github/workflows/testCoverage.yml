@@ -45,11 +45,6 @@ jobs:
           repository: ${{ steps.get_pr.outputs.repo }}
           ref: ${{ steps.get_pr.outputs.ref }}
 
-      - name: Fetch Upstream Remote for Base Repository
-        run: |
-          git remote add upstream https://github.com/${{ github.repository }}.git
-          git fetch upstream main
-
       - name: Setup Git for OSBotify
         uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
         id: setupGitForOSBotify
