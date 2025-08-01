@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -19,19 +19,13 @@ import {updateSettlementAccount} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ReconciliationAccountSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS>;
 
-type ReconciliationAccountSettingsPageRouteParams = {
-    backTo?: Route;
-};
-
 function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSettingsPageProps) {
     const {policyID, connection} = route.params;
-    const {backTo} = route.params as ReconciliationAccountSettingsPageRouteParams;
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -39,8 +33,8 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
     const connectionName = getConnectionNameFromRouteParam(connection);
     const defaultFundID = useDefaultFundID(policyID);
 
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
 
     const selectedBankAccount = useMemo(() => bankAccountList?.[paymentBankAccountID?.toString() ?? ''], [paymentBankAccountID, bankAccountList]);
@@ -64,13 +58,9 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
         return [{data}];
     }, [bankAccountList, paymentBankAccountID]);
 
-    const goBack = useCallback(() => {
-        Navigation.goBack(backTo ?? ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection));
-    }, [policyID, backTo, connection]);
-
     const selectBankAccount = (newBankAccountID?: number) => {
         updateSettlementAccount(domainName, defaultFundID, policyID, newBankAccountID, paymentBankAccountID);
-        goBack();
+        Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection));
     };
 
     return (
@@ -83,7 +73,7 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
             contentContainerStyle={[styles.flex1, styles.pb2]}
             connectionName={connectionName}
             shouldUseScrollView={false}
-            onBackButtonPress={goBack}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection))}
         >
             <Text style={[styles.textNormal, styles.mb5, styles.ph5]}>{translate('workspace.accounting.chooseReconciliationAccount.chooseBankAccount')}</Text>
             <Text style={[styles.textNormal, styles.mb6, styles.ph5]}>
