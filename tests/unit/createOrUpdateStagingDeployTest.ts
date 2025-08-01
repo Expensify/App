@@ -179,7 +179,8 @@ describe('createOrUpdateStagingDeployCash', () => {
             [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.2-1'}),
         });
 
-        mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef) => {
+        // cspell:disable-next-line
+        mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef, repositoryName) => {
             if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
                 return [...baseNewPullRequests];
             }
@@ -268,7 +269,8 @@ describe('createOrUpdateStagingDeployCash', () => {
 
             // New pull requests to add to open StagingDeployCash
             const newPullRequests = [9, 10];
-            mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef) => {
+            // cspell:disable-next-line
+            mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef, repositoryName) => {
                 if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-2-staging') {
                     return [...baseNewPullRequests, ...newPullRequests];
                 }
@@ -338,7 +340,8 @@ describe('createOrUpdateStagingDeployCash', () => {
             vol.fromJSON({
                 [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.2-1'}),
             });
-            mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef) => {
+            // cspell:disable-next-line
+            mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef, repositoryName) => {
                 if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
                     return [...baseNewPullRequests];
                 }
@@ -409,7 +412,8 @@ describe('createOrUpdateStagingDeployCash', () => {
             });
 
             mockGetInput.mockImplementation((arg) => (arg === 'GITHUB_TOKEN' ? 'fake_token' : ''));
-            mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef) => {
+            // cspell:disable-next-line
+            mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef, repositoryName) => {
                 if (fromRef === '1.0.2-1-staging' && toRef === '1.0.3-0-staging') {
                     return [6, 8, 10, 11];
                 }
@@ -427,6 +431,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                     {url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6`, number: 6, isVerified: true},
                     {url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/8`, number: 8, isVerified: true},
                 ],
+                PRListMobileExpensify: [],
                 deployBlockers: [],
                 internalQAPRList: [],
                 isTimingDashboardChecked: true,

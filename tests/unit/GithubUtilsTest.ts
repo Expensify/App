@@ -397,7 +397,11 @@ describe('GithubUtils', () => {
             `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/4`, // No QA
             `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/5`, // No QA
         ];
-
+        const PRListMobileExpensify = [
+            `https://github.com/Expensify/Mobile-Expensify/pull/1`,
+            `https://github.com/Expensify/Mobile-Expensify/pull/2`,
+            `https://github.com/Expensify/Mobile-Expensify/pull/3`,
+        ];
         const internalQAPRList = [
             `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6`, // Internal QA
             `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/7`, // Internal QA
@@ -441,7 +445,7 @@ describe('GithubUtils', () => {
             `${lineBreak}`;
 
         test('Test no verified PRs', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, PRListMobileExpensify).then((issue) => {
                 if (typeof issue !== 'object') {
                     return;
                 }
@@ -571,7 +575,7 @@ describe('GithubUtils', () => {
         });
 
         test('Test internalQA PRs', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, [...basePRList, ...internalQAPRList]).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, [...basePRList, ...internalQAPRList], PRListMobileExpensify).then((issue) => {
                 if (typeof issue !== 'object') {
                     return;
                 }
@@ -710,7 +714,7 @@ describe('GithubUtils', () => {
         test('should call GitHub API with correct parameters', async () => {
             mockCompareCommits.mockResolvedValue(commitHistoryData.emptyResponse);
 
-            await GithubUtils.getCommitHistoryBetweenTags('v1.0.0', 'v1.0.1');
+            await GithubUtils.getCommitHistoryBetweenTags('v1.0.0', 'v1.0.1', CONST.APP_REPO);
 
             expect(mockCompareCommits).toHaveBeenCalledWith({
                 owner: CONST.GITHUB_OWNER,
@@ -725,21 +729,21 @@ describe('GithubUtils', () => {
         test('should return empty array when no commits found', async () => {
             mockCompareCommits.mockResolvedValue(commitHistoryData.emptyResponse);
 
-            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
+            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO);
             expect(result).toEqual([]);
         });
 
         test('should return formatted commit history when commits exist', async () => {
             mockCompareCommits.mockResolvedValue(commitHistoryData.singleCommit);
 
-            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
+            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO);
             expect(result).toEqual(commitHistoryData.expectedFormattedCommit);
         });
 
         test('should handle multiple commits correctly', async () => {
             mockCompareCommits.mockResolvedValue(commitHistoryData.multipleCommitsResponse);
 
-            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
+            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO);
 
             expect(result).toHaveLength(2);
             expect(result.at(0)).toEqual({
@@ -766,7 +770,7 @@ describe('GithubUtils', () => {
 
             mockCompareCommits.mockRejectedValue(requestError);
 
-            await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1')).rejects.toThrow(requestError);
+            await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO)).rejects.toThrow(requestError);
             expect(consoleErrorSpy).toHaveBeenCalledWith(
                 expect.stringContaining(
                     "❓❓ Failed to get commits with the GitHub API. The base tag ('1.0.0') or head tag ('1.0.1') likely doesn't exist on the remote repository. If this is the case, create or push them.",
@@ -777,7 +781,7 @@ describe('GithubUtils', () => {
         test('should handle generic API errors gracefully', async () => {
             mockCompareCommits.mockRejectedValue(new Error('API Error'));
 
-            await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1')).rejects.toThrow('API Error');
+            await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO)).rejects.toThrow('API Error');
         });
     });
 
@@ -785,6 +789,10 @@ describe('GithubUtils', () => {
         test.each([
             [1234, `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1234`],
             [54321, `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/54321`],
-        ])('getPullRequestNumberFromURL("%s")', (input, expectedOutput) => expect(GithubUtils.getPullRequestURLFromNumber(input)).toBe(expectedOutput));
+        ])('getPullRequestNumberFromURL("%s")', (input, expectedOutput) => expect(GithubUtils.getPullRequestURLFromNumber(input, CONST.APP_REPO_URL)).toBe(expectedOutput));
+        test.each([
+            [1234, `https://github.com/Expensify/Mobile-Expensify/pull/1234`],
+            [54321, `https://github.com/Expensify/Mobile-Expensify/pull/54321`],
+        ])('getPullRequestNumberFromURL("%s")', (input, expectedOutput) => expect(GithubUtils.getPullRequestURLFromNumber(input, CONST.MOBILE_EXPENSIFY_URL)).toBe(expectedOutput));
     });
 });

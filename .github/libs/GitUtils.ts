@@ -173,6 +173,7 @@ function getValidMergedPRs(commits: CommitType[]): number[] {
             return;
         }
 
+        // Retrieve the PR number from the commit subject,
         const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-(staging|production))/);
         if (!Array.isArray(match) || match.length < 2) {
             return;
@@ -195,15 +196,15 @@ function getValidMergedPRs(commits: CommitType[]): number[] {
 /**
  * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
  */
-async function getPullRequestsDeployedBetween(fromTag: string, toTag: string) {
+async function getPullRequestsDeployedBetween(fromTag: string, toTag: string, repositoryName: string) {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
 
-    const gitCommitList = await getCommitHistoryAsJSON(fromTag, toTag);
-    const gitLogPullRequestNumbers = getValidMergedPRs(gitCommitList).sort((a, b) => a - b);
-    console.log(`[git log] Found ${gitCommitList.length} commits.`);
-    core.info(`[git log] Checklist PRs: ${gitLogPullRequestNumbers.join(', ')}`);
+    // const gitCommitList = await getCommitHistoryAsJSON(fromTag, toTag);
+    // const gitLogPullRequestNumbers = getValidMergedPRs(gitCommitList).sort((a, b) => a - b);
+    // console.log(`[git log] Found ${gitCommitList.length} commits.`);
+    // core.info(`[git log] Checklist PRs: ${gitLogPullRequestNumbers.join(', ')}`);
 
-    const apiCommitList = await GithubUtils.getCommitHistoryBetweenTags(fromTag, toTag);
+    const apiCommitList = await GithubUtils.getCommitHistoryBetweenTags(fromTag, toTag, repositoryName);
     const apiPullRequestNumbers = getValidMergedPRs(apiCommitList).sort((a, b) => a - b);
 
     console.log(`[api] Found ${apiCommitList.length} commits.`);
@@ -212,9 +213,9 @@ async function getPullRequestsDeployedBetween(fromTag: string, toTag: string) {
     core.endGroup();
 
     // Print diff between git log and API results for debugging
-    const onlyInGitLog = gitLogPullRequestNumbers.filter((pr) => !apiPullRequestNumbers.includes(pr));
-    const onlyInAPI = apiPullRequestNumbers.filter((pr) => !gitLogPullRequestNumbers.includes(pr));
-    core.info(`PR list diff - git log only: [${onlyInGitLog.join(', ')}], API only: [${onlyInAPI.join(', ')}]`);
+    // const onlyInGitLog = gitLogPullRequestNumbers.filter((pr) => !apiPullRequestNumbers.includes(pr));
+    // const onlyInAPI = apiPullRequestNumbers.filter((pr) => !gitLogPullRequestNumbers.includes(pr));
+    // core.info(`PR list diff - git log only: [${onlyInGitLog.join(', ')}], API only: [${onlyInAPI.join(', ')}]`);
 
     return apiPullRequestNumbers;
 }
