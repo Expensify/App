@@ -12,12 +12,15 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
+import memoize from '@libs/memoize';
 import Navigation from '@libs/Navigation/Navigation';
 import {filterAndOrderOptions, getHeaderMessage, getValidOptions} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
+
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'AddDelegatePage.getValidOptions'});
 
 function useOptions() {
     const betas = useBetas();
@@ -39,7 +42,7 @@ function useOptions() {
     );
 
     const defaultOptions = useMemo(() => {
-        const {recentReports, personalDetails, userToInvite, currentUserOption} = getValidOptions(
+        const {recentReports, personalDetails, userToInvite, currentUserOption} = memoizedGetValidOptions(
             {
                 reports: optionsList.reports,
                 personalDetails: optionsList.personalDetails,

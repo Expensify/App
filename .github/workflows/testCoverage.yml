@@ -1,0 +1,99 @@
+name: Test Coverage
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR Number"
+        required: true
+        type: number
+
+jobs:
+  coverage:
+    if: |
+      github.actor != 'OSBotify' &&
+      github.actor != 'imgbot[bot]' &&
+      github.actor != 'github-actions' &&
+      github.actor != 'melvin-bot' &&
+      github.actor != 'BlameGPT'
+    runs-on: ubuntu-latest
+    name: Generate Coverage Report
+    steps:
+      - name: Get PR Info
+        id: get_pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const PR = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.inputs.pr_number
+            })
+            core.setOutput('repo', PR.data.head.repo.full_name)
+            core.setOutput('isDraft', PR.data.draft)
+            core.setOutput('ref', PR.data.head.ref)
+
+      - name: Skip Coverage Check for Draft PRs
+        if: steps.get_pr.outputs.isDraft == 'true'
+        run: |
+          echo "PR is a draft, skipping coverage check."
+          exit 0
+
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.get_pr.outputs.repo }}
+          ref: ${{ steps.get_pr.outputs.ref }}
+
+      - name: Setup Git for OSBotify
+        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
+        id: setupGitForOSBotify
+        with:
+          OP_VAULT: ${{ vars.OP_VAULT }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
+          OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Check Changed Coverage src/ Files
+        id: check-src-changes
+        run: ./.github/scripts/checkCoverageChanges.sh
+
+      - name: Wait for Jest Tests to Complete
+        if: steps.check-src-changes.outputs.run_coverage == 'true'
+        uses: ./.github/actions/javascript/waitforJestTests
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Run Coverage for Changed Files
+        if: steps.check-src-changes.outputs.run_coverage == 'true'
+        run: ./.github/scripts/runCoverage.sh
+        env:
+          CI: true
+
+      - name: Generate Baseline Coverage From The Main Branch
+        if: steps.check-src-changes.outputs.run_coverage == 'true'
+        run: ./.github/scripts/generateBaselineCoverage.sh
+
+      - name: Configure AWS Credentials
+        if: steps.check-src-changes.outputs.run_coverage == 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Deploy Coverage Static to S3
+        if: steps.check-src-changes.outputs.run_coverage == 'true'
+        run: ./.github/scripts/deployCoverageS3.sh "${{ github.event.inputs.pr_number }}" "${{ github.run_id }}"
+
+      - name: Post Coverage to PR
+        if: steps.check-src-changes.outputs.run_coverage == 'true'
+        uses: ./.github/actions/javascript/postTestCoverageComment
+        with:
+          OS_BOTIFY_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
+          PR_NUMBER: ${{ github.event.inputs.pr_number }}
+          COVERAGE_URL: ${{ env.COVERAGE_URL }}
+          BASE_COVERAGE_PATH: ./baseline-coverage

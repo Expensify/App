@@ -24,7 +24,7 @@ const apply = jest.fn(({lastUpdateID, request, response}: OnyxUpdatesFromServer)
     }
 
     if (request && response) {
-        return applyHTTPSOnyxUpdates(request, response).then(() => undefined);
+        return applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID)).then(() => undefined);
     }
 
     return Promise.resolve();
