@@ -121,9 +121,8 @@ function SearchPage({route}: SearchPageProps) {
                 const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
                 queueExportSearchWithTemplate({templateName, templateType, jsonQuery: '{}', reportIDList, transactionIDList: selectedTransactionsKeys, policyID});
             }
-            clearSelectedTransactions();
         },
-        [queryJSON, selectedReports, selectedTransactionsKeys, clearSelectedTransactions, areAllMatchingItemsSelected],
+        [queryJSON, selectedReports, selectedTransactionsKeys, areAllMatchingItemsSelected],
     );
 
     const headerButtonsOptions = useMemo(() => {
@@ -170,9 +169,11 @@ function SearchPage({route}: SearchPageProps) {
                 {
                     text: translate('export.expenseLevelExport'),
                     icon: Expensicons.Table,
-                    onSelected: () =>
+                    onSelected: () => {
                         // The report level export template is not policy specific, so we don't need to pass a policyID
-                        beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined),
+                        beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
+                        clearSelectedTransactions(undefined, true);
+                    },
                 },
             ];
 
@@ -187,9 +188,11 @@ function SearchPage({route}: SearchPageProps) {
                 exportOptions.push({
                     text: translate('export.reportLevelExport'),
                     icon: Expensicons.Table,
-                    onSelected: () =>
+                    onSelected: () => {
                         // The report level export template is not policy specific, so we don't need to pass a policyID
-                        beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined),
+                        beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
+                        clearSelectedTransactions(undefined, true);
+                    },
                 });
             }
 
