@@ -215,6 +215,14 @@ function WorkspacesListPage() {
                 });
             }
 
+            if (isAdmin) {
+                threeDotsMenuItems.push({
+                    icon: Expensicons.Copy,
+                    text: translate('workspace.common.duplicateWorkspace'),
+                    onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID)) : undefined),
+                });
+            }
+
             if (!(isAdmin || isOwner)) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Exit,
