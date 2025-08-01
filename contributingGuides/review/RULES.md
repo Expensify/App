@@ -3,7 +3,7 @@
 These rules are used to conduct structured code reviews on pull request diffs. Each rule includes:
 
 - A unique **Rule ID**
-- **Severity level**: MUST / SHOULD / OPTIONAL
+- **Severity level**: MUST / SHOULD
 - **Pass/Fail condition**
 - Examples of good and bad usage
 
