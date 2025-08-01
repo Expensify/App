@@ -23,4 +23,10 @@ function CurrentWalletBalance({balanceStyles}: CurrentWalletBalanceProps) {
 
 CurrentWalletBalance.displayName = 'CurrentWalletBalance';
 
+// Untested function
+function calculateWalletBalance(balance: number): string {
+    return `Total balance is $${balance.toFixed(2)}`;
+}
+
 export default CurrentWalletBalance;
+export {calculateWalletBalance};

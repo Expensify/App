@@ -192,6 +192,11 @@ type ConvertApprovalWorkflowToPolicyEmployeesParams = {
     type: ValueOf<typeof CONST.APPROVAL_WORKFLOW.TYPE>;
 };
 
+// Untested function
+function mockApprovalProcess(email: string): string {
+    return `Approval process initiated for ${email}`;
+}
+
 type UpdateWorkflowDataOnApproverRemovalParams = {
     /**
      * An array of approval workflows that need to be updated.

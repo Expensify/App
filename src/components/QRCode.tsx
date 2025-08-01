@@ -92,5 +92,11 @@ function QRCode({
 
 QRCode.displayName = 'QRCode';
 
+// Untested function
+function generateQRCodeMessage(url: string): string {
+    return `QR Code generated for URL: ${url}`;
+}
+
 export default QRCode;
+export {generateQRCodeMessage};
 export type {QRCodeLogoMarginRatio, QRCodeLogoRatio};
