@@ -4,7 +4,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import {formatPhoneNumber} from '../../utils/TestHelper';
 
-
 type PersonalDetailsForDisplayName = Pick<PersonalDetails, 'firstName' | 'lastName'> & {
     firstName?: string | null;
     lastName?: string | null;
@@ -98,8 +97,61 @@ describe('PersonalDetailsUtils', () => {
             expect(result).toBe('Fallback Name');
         });
     });
-  
-  
+
+    describe('getPersonalDetailsOnyxDataForOptimisticUsers', () => {
+        test('should return correct optimistic and finally data', () => {
+            const newLogins = ['3322076524', 'test2@test.com', '+14185438090'];
+            const newAccountIDs = [1, 2, 3];
+            const result = getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
+            const expected = {
+                optimisticData: [
+                    {
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        onyxMethod: 'merge',
+                        value: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            '1': {
+                                accountID: 1,
+                                displayName: '3322076524',
+                                isOptimisticPersonalDetail: true,
+                                login: '3322076524',
+                            },
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            '2': {
+                                accountID: 2,
+                                displayName: 'test2@test.com',
+                                isOptimisticPersonalDetail: true,
+                                login: 'test2@test.com',
+                            },
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            '3': {
+                                accountID: 3,
+                                displayName: '(418) 543-8090',
+                                isOptimisticPersonalDetail: true,
+                                login: '+14185438090',
+                            },
+                        },
+                    },
+                ],
+                finallyData: [
+                    {
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        value: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            '1': null,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            '2': null,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            '3': null,
+                        },
+                    },
+                ],
+            };
+            expect(result).toEqual(expected);
+        });
+    });
+
     // Test Group 1: Scenarios where `passedPersonalDetails` is null or undefined
     describe('when passedPersonalDetails is null or undefined', () => {
         test('should return formatted email login when passedPersonalDetails is null', () => {
@@ -132,7 +184,7 @@ describe('PersonalDetailsUtils', () => {
     });
 
     // Test Group 2: Scenarios where `passedPersonalDetails` is provided
-    describe('when passedPersonalDetails is provided', () => {
+    describe('createDisplayName', () => {
         // Scenario 2.1: Both firstName and lastName are present
         test('should return full name when firstName and lastName are both non-empty', () => {
             const login = 'test@example.com';
@@ -226,58 +278,6 @@ describe('PersonalDetailsUtils', () => {
             const personalDetails: PersonalDetailsForDisplayName = {firstName: '', lastName: '  Last  '};
             const result = createDisplayName(login, personalDetails, formatPhoneNumber);
             expect(result).toBe('Last');
-
-    describe('getPersonalDetailsOnyxDataForOptimisticUsers', () => {
-        test('should return correct optimistic and finally data', () => {
-            const newLogins = ['3322076524', 'test2@test.com', '+14185438090'];
-            const newAccountIDs = [1, 2, 3];
-            const result = getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
-            const expected = {
-                optimisticData: [
-                    {
-                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                        onyxMethod: 'merge',
-                        value: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '1': {
-                                accountID: 1,
-                                displayName: '3322076524',
-                                isOptimisticPersonalDetail: true,
-                                login: '3322076524',
-                            },
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '2': {
-                                accountID: 2,
-                                displayName: 'test2@test.com',
-                                isOptimisticPersonalDetail: true,
-                                login: 'test2@test.com',
-                            },
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '3': {
-                                accountID: 3,
-                                displayName: '(418) 543-8090',
-                                isOptimisticPersonalDetail: true,
-                                login: '+14185438090',
-                            },
-                        },
-                    },
-                ],
-                finallyData: [
-                    {
-                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        value: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '1': null,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '2': null,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '3': null,
-                        },
-                    },
-                ],
-            };
-            expect(result).toEqual(expected);
         });
     });
 });

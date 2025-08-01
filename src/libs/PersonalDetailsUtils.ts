@@ -345,7 +345,7 @@ function createDisplayName(
 ): string {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.
-    const userLogin = formatPhoneNumberUtils(login);
+    const userLogin = formatPhoneNumber(login);
 
     if (!passedPersonalDetails) {
         return userLogin;
