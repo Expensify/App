@@ -211,7 +211,7 @@ function compute(formula: string, context: FormulaContext): string {
                 value = computeUserPart(part, context);
                 break;
             case FORMULA_PART_TYPES.FREETEXT:
-                value = part.definition.trim();
+                value = part.definition;
                 break;
             default:
                 // If we don't recognize the part type, use the original definition
@@ -220,7 +220,7 @@ function compute(formula: string, context: FormulaContext): string {
 
         // Apply any functions to the computed value
         value = applyFunctions(value, part.functions);
-        result = result === '' ? value : `${result} ${value}`.trim(); // Concatenate with space
+        result += value;
     }
 
     return result;
