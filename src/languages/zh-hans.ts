@@ -627,6 +627,7 @@ const translations = {
         getTheApp: '获取应用程序',
         scanReceiptsOnTheGo: '用手机扫描收据',
         headsUp: '\u6CE8\u610F\uFF01',
+        unstableInternetConnection: '互联网连接不稳定。请检查你的网络，然后重试。',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -1052,7 +1053,7 @@ const translations = {
         canceled: '已取消',
         posted: '已发布',
         deleteReceipt: '删除收据',
-        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `在此报告中删除了一笔费用 (${merchant} - ${amount})`,
+        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `删除了一笔费用 (${merchant} 的 ${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `移动了一笔费用${reportName ? `来自${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `移动了此费用${reportName ? `至 <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: '已将此费用移动到您的个人空间',
