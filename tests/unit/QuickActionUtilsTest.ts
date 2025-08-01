@@ -2,7 +2,7 @@
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {isQuickActionAllowed} from '@libs/QuickActionUtils';
 import CONST from '@src/CONST';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 
 // Mock the PolicyUtils module
 jest.mock('@libs/PolicyUtils');
@@ -79,6 +79,36 @@ describe('QuickActionUtils', () => {
 
                 const result = isQuickActionAllowed(createReportAction, undefined, policy as Policy);
 
+                expect(result).toBe(false);
+            });
+        });
+        describe('Manager McTest restrictions', () => {
+            const requestScanAction = {
+                action: CONST.QUICK_ACTIONS.REQUEST_SCAN,
+                isFirstQuickAction: false,
+            };
+
+            // Given a report with Manager McTest
+            const reportWithManagerMcTest: Report = {
+                reportID: '1',
+                participants: {
+                    [CONST.ACCOUNT_ID.MANAGER_MCTEST]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            };
+
+            beforeEach(() => {
+                jest.clearAllMocks();
+            });
+
+            it('should return false when report contains Manager McTest', () => {
+                mockedPolicyUtils.shouldShowPolicy.mockReturnValue(false);
+
+                // When the report contains Manager McTest
+                const result = isQuickActionAllowed(requestScanAction, reportWithManagerMcTest, undefined);
+
+                // Then it should return false
                 expect(result).toBe(false);
             });
         });
