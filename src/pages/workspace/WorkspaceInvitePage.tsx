@@ -58,6 +58,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const firstRenderRef = useRef(true);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`);
+    const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
 
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
@@ -177,7 +178,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                 const accountID = option.accountID;
                 const isOptionInPersonalDetails = Object.values(personalDetails).some((personalDetail) => personalDetail.accountID === accountID);
 
-                const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm);
+                const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCodeByIP);
 
                 const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
@@ -214,7 +215,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         });
 
         return sectionsArr;
-    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, personalDetails, translate, usersToInvite]);
+    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, personalDetails, translate, usersToInvite, countryCodeByIP]);
 
     const toggleOption = (option: MemberForList) => {
         clearErrors(route.params.policyID);
@@ -267,12 +268,12 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         }
         if (
             usersToInvite.length === 0 &&
-            excludedUsers[parsePhoneNumber(appendCountryCode(searchValue)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue)) : searchValue]
+            excludedUsers[parsePhoneNumber(appendCountryCode(searchValue, countryCodeByIP)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue, countryCodeByIP)) : searchValue]
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
         }
         return getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
-    }, [excludedUsers, translate, debouncedSearchTerm, policyName, usersToInvite, personalDetails.length]);
+    }, [excludedUsers, translate, debouncedSearchTerm, policyName, usersToInvite, personalDetails.length, countryCodeByIP]);
 
     const footerContent = useMemo(
         () => (

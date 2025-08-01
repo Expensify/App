@@ -1219,7 +1219,7 @@ function isMakingLastRequiredTagListOptional(policy: Policy | undefined, policyT
     return false;
 }
 
-function getSearchValueForPhoneOrEmail(searchTerm: string, countryCodeByIP: number) {
+function getSearchValueForPhoneOrEmail(searchTerm: string, countryCodeByIP = 1) {
     const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(searchTerm), countryCodeByIP));
     return parsedPhoneNumber.possible ? (parsedPhoneNumber.number?.e164 ?? '') : searchTerm.toLowerCase();
 }

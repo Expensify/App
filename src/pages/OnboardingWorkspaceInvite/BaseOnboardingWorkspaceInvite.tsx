@@ -46,6 +46,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const {translate, formatPhoneNumber} = useLocalize();
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
+    const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
     const policy = usePolicy(onboardingPolicyID);
     const {onboardingMessages} = useOnboardingMessages();
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
@@ -164,7 +165,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
                 const accountID = option.accountID;
                 const isOptionInPersonalDetails = Object.values(personalDetails).some((personalDetail) => personalDetail.accountID === accountID);
 
-                const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm);
+                const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCodeByIP);
 
                 const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
@@ -202,7 +203,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         });
 
         return sectionsArr;
-    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, personalDetails, translate, usersToInvite]);
+    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, personalDetails, translate, usersToInvite, countryCodeByIP]);
 
     const toggleOption = (option: MemberForList) => {
         const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
@@ -286,12 +287,12 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         }
         if (
             usersToInvite.length === 0 &&
-            excludedUsers[parsePhoneNumber(appendCountryCode(searchValue)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue)) : searchValue]
+            excludedUsers[parsePhoneNumber(appendCountryCode(searchValue, countryCodeByIP)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue, countryCodeByIP)) : searchValue]
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policy?.name ?? ''});
         }
         return getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
-    }, [excludedUsers, translate, debouncedSearchTerm, policy?.name, usersToInvite, personalDetails.length]);
+    }, [excludedUsers, translate, debouncedSearchTerm, policy?.name, usersToInvite, personalDetails.length, countryCodeByIP]);
 
     const footerContent = useMemo(
         () => (

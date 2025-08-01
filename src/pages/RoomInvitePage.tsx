@@ -58,6 +58,7 @@ function RoomInvitePage({
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
 
     const {options, areOptionsInitialized} = useOptionsList();
 
@@ -128,7 +129,7 @@ function RoomInvitePage({
             filterSelectedOptions = selectedOptions.filter((option) => {
                 const accountID = option?.accountID;
                 const isOptionInPersonalDetails = personalDetails ? personalDetails.some((personalDetail) => accountID && personalDetail?.accountID === accountID) : false;
-                const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(debouncedSearchTerm)));
+                const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(debouncedSearchTerm), countryCodeByIP));
                 const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number ? parsedPhoneNumber.number.e164 : debouncedSearchTerm.toLowerCase();
                 const isPartOfSearchTerm = (option.text?.toLowerCase() ?? '').includes(searchValue) || (option.login?.toLowerCase() ?? '').includes(searchValue);
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
@@ -160,7 +161,7 @@ function RoomInvitePage({
         }
 
         return sectionsArr;
-    }, [inviteOptions, areOptionsInitialized, selectedOptions, debouncedSearchTerm, translate]);
+    }, [inviteOptions, areOptionsInitialized, selectedOptions, debouncedSearchTerm, translate, countryCodeByIP]);
 
     const toggleOption = useCallback(
         (option: MemberForList) => {
@@ -221,12 +222,12 @@ function RoomInvitePage({
         }
         if (
             !inviteOptions.userToInvite &&
-            excludedUsers[parsePhoneNumber(appendCountryCode(searchValue)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue)) : searchValue]
+            excludedUsers[parsePhoneNumber(appendCountryCode(searchValue, countryCodeByIP)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue, countryCodeByIP)) : searchValue]
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName});
         }
         return getHeaderMessage((inviteOptions.personalDetails ?? []).length !== 0, !!inviteOptions.userToInvite, debouncedSearchTerm);
-    }, [debouncedSearchTerm, inviteOptions.userToInvite, inviteOptions.personalDetails, excludedUsers, translate, reportName]);
+    }, [debouncedSearchTerm, inviteOptions.userToInvite, inviteOptions.personalDetails, excludedUsers, translate, reportName, countryCodeByIP]);
 
     useEffect(() => {
         updateUserSearchPhrase(debouncedSearchTerm);

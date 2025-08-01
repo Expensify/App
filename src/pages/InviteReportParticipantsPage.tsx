@@ -58,6 +58,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
     const {translate, formatPhoneNumber} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
+    const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
     const [searchValue, debouncedSearchTerm, setSearchValue] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
 
@@ -117,7 +118,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
         // Filter all options that is a part of the search term or in the personal details
         let filterSelectedOptions = selectedOptions;
         if (debouncedSearchTerm !== '') {
-            const processedSearchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm);
+            const processedSearchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCodeByIP);
             filterSelectedOptions = tokenizedSearch(selectedOptions, processedSearchValue, (option) => [option.text ?? '', option.login ?? '']).filter((option) => {
                 const accountID = option?.accountID;
                 const isOptionInPersonalDetails = inviteOptions.personalDetails.some((personalDetail) => accountID && personalDetail?.accountID === accountID);
@@ -158,7 +159,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
         }
 
         return sectionsArr;
-    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, inviteOptions.recentReports, inviteOptions.personalDetails, inviteOptions.userToInvite, translate]);
+    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, inviteOptions.recentReports, inviteOptions.personalDetails, inviteOptions.userToInvite, translate, countryCodeByIP]);
 
     const toggleOption = useCallback(
         (option: MemberForList) => {
@@ -210,12 +211,12 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
         }
         if (
             !inviteOptions.userToInvite &&
-            excludedUsers[parsePhoneNumber(appendCountryCode(processedLogin)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(processedLogin)) : processedLogin]
+            excludedUsers[parsePhoneNumber(appendCountryCode(processedLogin, countryCodeByIP)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(processedLogin, countryCodeByIP)) : processedLogin]
         ) {
             return translate('messages.userIsAlreadyMember', {login: processedLogin, name: reportName ?? ''});
         }
         return getHeaderMessage(inviteOptions.recentReports.length + inviteOptions.personalDetails.length !== 0, !!inviteOptions.userToInvite, processedLogin);
-    }, [debouncedSearchTerm, inviteOptions.userToInvite, inviteOptions.recentReports.length, inviteOptions.personalDetails.length, excludedUsers, translate, reportName]);
+    }, [debouncedSearchTerm, inviteOptions.userToInvite, inviteOptions.recentReports.length, inviteOptions.personalDetails.length, excludedUsers, translate, reportName, countryCodeByIP]);
 
     const footerContent = useMemo(
         () => (
