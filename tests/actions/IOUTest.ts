@@ -645,8 +645,6 @@ describe('actions/IOU', () => {
             let createdAction: OnyxEntry<ReportAction>;
             let iouAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
             let transactionID: string | undefined;
-            let transactionThread: OnyxEntry<Report>;
-            let transactionThreadCreatedAction: OnyxEntry<ReportAction>;
             mockFetch?.pause?.();
             requestMoney({
                 report: {reportID: ''},
@@ -674,16 +672,14 @@ describe('actions/IOU', () => {
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
 
-                                    // A chat report, a transaction thread, and an iou report should be created
+                                    // A chat report and an iou report should be created
                                     const chatReports = Object.values(allReports ?? {}).filter((report) => report?.type === CONST.REPORT.TYPE.CHAT);
                                     const iouReports = Object.values(allReports ?? {}).filter((report) => report?.type === CONST.REPORT.TYPE.IOU);
-                                    expect(Object.keys(chatReports).length).toBe(2);
+                                    expect(Object.keys(chatReports).length).toBe(1);
                                     expect(Object.keys(iouReports).length).toBe(1);
                                     const chatReport = chatReports.at(0);
-                                    const transactionThreadReport = chatReports.at(1);
                                     const iouReport = iouReports.at(0);
                                     iouReportID = iouReport?.reportID;
-                                    transactionThread = transactionThreadReport;
 
                                     expect(iouReport?.participants).toEqual({
                                         [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
@@ -741,29 +737,6 @@ describe('actions/IOU', () => {
                                     expect(createdAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                     expect(iouAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
-                                    resolve();
-                                },
-                            });
-                        }),
-                )
-                .then(
-                    () =>
-                        new Promise<void>((resolve) => {
-                            const connection = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread?.reportID}`,
-                                waitForCollectionCallback: false,
-                                callback: (reportActionsForTransactionThread) => {
-                                    Onyx.disconnect(connection);
-
-                                    // The transaction thread should have a CREATED action
-                                    expect(Object.values(reportActionsForTransactionThread ?? {}).length).toBe(1);
-                                    const createdActions = Object.values(reportActionsForTransactionThread ?? {}).filter(
-                                        (reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED,
-                                    );
-                                    expect(Object.values(createdActions).length).toBe(1);
-                                    transactionThreadCreatedAction = createdActions.at(0);
-
-                                    expect(transactionThreadCreatedAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                     resolve();
                                 },
                             });
@@ -1247,8 +1220,6 @@ describe('actions/IOU', () => {
             let createdAction: OnyxEntry<ReportAction>;
             let iouAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
             let transactionID: string | undefined;
-            let transactionThreadReport: OnyxEntry<Report>;
-            let transactionThreadAction: OnyxEntry<ReportAction>;
             mockFetch?.pause?.();
             requestMoney({
                 report: {reportID: ''},
@@ -1277,14 +1248,13 @@ describe('actions/IOU', () => {
                                     callback: (allReports) => {
                                         Onyx.disconnect(connection);
 
-                                        // A chat report, transaction thread and an iou report should be created
+                                        // A chat report and an iou report should be created
                                         const chatReports = Object.values(allReports ?? {}).filter((report) => report?.type === CONST.REPORT.TYPE.CHAT);
                                         const iouReports = Object.values(allReports ?? {}).filter((report) => report?.type === CONST.REPORT.TYPE.IOU);
-                                        expect(Object.values(chatReports).length).toBe(2);
+                                        expect(Object.values(chatReports).length).toBe(1);
                                         expect(Object.values(iouReports).length).toBe(1);
                                         const chatReport = chatReports.at(0);
                                         chatReportID = chatReport?.reportID;
-                                        transactionThreadReport = chatReports.at(1);
 
                                         const iouReport = iouReports.at(0);
                                         iouReportID = iouReport?.reportID;
@@ -1401,24 +1371,6 @@ describe('actions/IOU', () => {
                         () =>
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
-                                    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                                    waitForCollectionCallback: true,
-                                    callback: (reportActionsForTransactionThread) => {
-                                        Onyx.disconnect(connection);
-                                        expect(Object.values(reportActionsForTransactionThread ?? {}).length).toBe(3);
-                                        transactionThreadAction = Object.values(
-                                            reportActionsForTransactionThread?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport?.reportID}`] ?? {},
-                                        ).find((reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
-                                        expect(transactionThreadAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                                     waitForCollectionCallback: false,
                                     callback: (transaction) => {
@@ -1481,22 +1433,6 @@ describe('actions/IOU', () => {
                             }),
                     )
 
-                    // Then the reportAction from transaction report should be removed from Onyx
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connection = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport?.reportID}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (reportActionsForReport) => {
-                                        Onyx.disconnect(connection);
-                                        expect(reportActionsForReport).toMatchObject({});
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-
                     // Along with the associated transaction
                     .then(
                         () =>
@@ -1519,9 +1455,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 if (chatReportID) {
                                     deleteReport(chatReportID);
-                                }
-                                if (transactionThreadReport?.reportID) {
-                                    deleteReport(transactionThreadReport?.reportID);
                                 }
                                 resolve();
                             }),
@@ -6132,9 +6065,7 @@ describe('actions/IOU', () => {
                 reportID: '456',
             };
 
-            const reportID = '456';
-
-            initSplitExpense(transaction, reportID);
+            initSplitExpense(transaction);
             await waitForBatchedUpdates();
 
             const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -6146,7 +6077,7 @@ describe('actions/IOU', () => {
             expect(draftTransaction?.amount).toBe(100);
             expect(draftTransaction?.currency).toBe('USD');
             expect(draftTransaction?.merchant).toBe('Test Merchant');
-            expect(draftTransaction?.reportID).toBe(reportID);
+            expect(draftTransaction?.reportID).toBe(transaction.reportID);
 
             expect(splitExpenses?.[0].amount).toBe(50);
             expect(splitExpenses?.[0].description).toBe('Test comment');
@@ -6160,9 +6091,8 @@ describe('actions/IOU', () => {
         });
         it('should not initialize split expense for null transaction', async () => {
             const transaction: Transaction | undefined = undefined;
-            const reportID = '456';
 
-            initSplitExpense(transaction, reportID);
+            initSplitExpense(transaction);
             await waitForBatchedUpdates();
 
             expect(transaction).toBeFalsy();
