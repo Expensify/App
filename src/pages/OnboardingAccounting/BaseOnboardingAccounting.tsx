@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -16,28 +15,26 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openOldDotLink} from '@libs/actions/Link';
-import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
-import {completeOnboarding} from '@libs/actions/Report';
-import {closeReactNativeApp} from '@libs/actions/Session';
-import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
-import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
+import {setOnboardingAdminsChatReportID, setOnboardingPolicyID, setOnboardingUserReportedIntegration} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
 import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
+import {closeReactNativeApp} from '@userActions/HybridApp';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {BaseOnboardingAccountingProps} from './types';
 
 type Integration = {
@@ -93,7 +90,7 @@ type OnboardingListItem = ListItem & {
     keyForList: OnboardingAccounting;
 };
 
-function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccountingProps) {
+function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboardingAccountingProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -102,15 +99,14 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
-    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
-    const {isBetaEnabled} = usePermissions();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
-    const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(undefined);
+    const [onboardingUserReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, {canBeMissing: true});
+
+    const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(onboardingUserReportedIntegration ?? undefined);
     const [error, setError] = useState('');
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
@@ -118,6 +114,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const {isOffline} = useNetwork();
     const isLoading = onboarding?.isLoading;
     const prevIsLoading = usePrevious(isLoading);
+
+    const isVsb = onboarding?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
 
     // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup
     useEffect(() => {
@@ -196,69 +194,11 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             return;
         }
 
-        if (!onboardingPurposeSelected || !onboardingCompanySize) {
-            return;
-        }
+        setOnboardingUserReportedIntegration(userReportedIntegration);
 
-        const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
-
-        // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
-        // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
-        const {adminsChatReportID, policyID} = shouldCreateWorkspace
-            ? createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM, '', undefined, false, onboardingCompanySize)
-            : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
-
-        if (shouldCreateWorkspace) {
-            setOnboardingAdminsChatReportID(adminsChatReportID);
-            setOnboardingPolicyID(policyID);
-        }
-
-        completeOnboarding({
-            engagementChoice: onboardingPurposeSelected,
-            onboardingMessage: CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
-            adminsChatReportID,
-            onboardingPolicyID: policyID,
-            companySize: onboardingCompanySize,
-            userReportedIntegration,
-        });
-
-        if (shouldOnboardingRedirectToOldDot(onboardingCompanySize, userReportedIntegration)) {
-            if (CONFIG.IS_HYBRID_APP) {
-                return;
-            }
-            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
-        }
-
-        // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
-        InteractionManager.runAfterInteractions(() => {
-            setOnboardingAdminsChatReportID();
-            setOnboardingPolicyID();
-        });
-
-        // We need to wait the policy is created before navigating out the onboarding flow
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            navigateAfterOnboarding(
-                isSmallScreenWidth,
-                isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-                policyID,
-                adminsChatReportID,
-                // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
-                // See https://github.com/Expensify/App/issues/57167 for more details
-                (session?.email ?? '').includes('+'),
-            );
-        });
-    }, [
-        isBetaEnabled,
-        isSmallScreenWidth,
-        onboardingAdminsChatReportID,
-        onboardingCompanySize,
-        onboardingPolicyID,
-        onboardingPurposeSelected,
-        paidGroupPolicy,
-        session?.email,
-        translate,
-        userReportedIntegration,
-    ]);
+        // Navigate to the next onboarding step with the selected integration
+        Navigation.navigate(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(route.params?.backTo));
+    }, [translate, userReportedIntegration, route.params?.backTo]);
 
     const handleIntegrationSelect = useCallback((integrationKey: OnboardingAccounting | null) => {
         setUserReportedIntegration(integrationKey);
@@ -312,9 +252,9 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                shouldShowBackButton
+                shouldShowBackButton={!isVsb}
                 progressBarPercentage={80}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_EMPLOYEES.getRoute())}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                 <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('onboarding.accounting.title')}</Text>

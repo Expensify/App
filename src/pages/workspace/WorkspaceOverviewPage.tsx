@@ -1,11 +1,11 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useContext, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
 import {Image, StyleSheet, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
-import Button from '@components/Button';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import {FallbackWorkspaceAvatar, ImageCropSquareMask, QrCode, Trashcan, UserPlus} from '@components/Icon/Expensicons';
 import {Building} from '@components/Icon/Illustrations';
@@ -16,6 +16,7 @@ import Section from '@components/Section';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
@@ -45,7 +46,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {CurrencyList} from '@src/types/onyx';
+import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyProps} from './withPolicy';
 import withPolicy from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
@@ -59,7 +61,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const illustrations = useThemeIllustrations();
 
     const backTo = route.params.backTo;
-    const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
+    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {
         selector: (session) => session?.accountID,
         canBeMissing: true,
@@ -173,6 +175,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} = usePayAndDowngrade(setIsDeleteModalOpen);
 
+    const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
+
     const confirmDeleteAndHideModal = useCallback(() => {
         if (!policy?.id || !policyName) {
             return;
@@ -180,11 +184,15 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
         deleteWorkspace(policy.id, policyName);
         setIsDeleteModalOpen(false);
+        goBackFromInvalidPolicy();
+    }, [policy?.id, policyName]);
 
-        if (!shouldUseNarrowLayout) {
-            goBackFromInvalidPolicy();
+    useEffect(() => {
+        if (isLoadingBill) {
+            return;
         }
-    }, [policy?.id, policyName, shouldUseNarrowLayout]);
+        dropdownMenuRef.current?.setIsMenuVisible(false);
+    }, [isLoadingBill]);
 
     const onDeleteWorkspace = useCallback(() => {
         if (shouldCalculateBillNewDot()) {
@@ -210,6 +218,59 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         Navigation.popToSidebar();
     };
 
+    const getHeaderButtons = () => {
+        if (readOnly) {
+            return null;
+        }
+        const secondaryActions: Array<DropdownOption<string>> = [];
+        if (isPolicyAdmin) {
+            secondaryActions.push({
+                value: 'invite',
+                text: translate('common.invite'),
+                icon: UserPlus,
+                onSelected: () => {
+                    if (isAccountLocked) {
+                        showLockedAccountModal();
+                        return;
+                    }
+                    clearInviteDraft(route.params.policyID);
+                    Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
+                },
+            });
+        }
+        secondaryActions.push({
+            value: 'share',
+            text: translate('common.share'),
+            icon: QrCode,
+            onSelected: isAccountLocked ? showLockedAccountModal : onPressShare,
+        });
+        if (isOwner) {
+            secondaryActions.push({
+                value: 'delete',
+                text: translate('common.delete'),
+                icon: Trashcan,
+                onSelected: onDeleteWorkspace,
+                disabled: isLoadingBill,
+                shouldShowLoadingSpinnerIcon: isLoadingBill,
+                shouldCloseModalOnSelect: !shouldCalculateBillNewDot(),
+            });
+        }
+        return (
+            <View style={[!shouldUseNarrowLayout && styles.flexRow, !shouldUseNarrowLayout && styles.gap2]}>
+                <ButtonWithDropdownMenu
+                    ref={dropdownMenuRef}
+                    success={false}
+                    onPress={() => {}}
+                    shouldAlwaysShowDropdownMenu
+                    customText={translate('common.more')}
+                    options={secondaryActions}
+                    isSplitButton={false}
+                    wrapperStyle={styles.flexGrow1}
+                />
+            </View>
+        );
+    };
+
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}
@@ -223,9 +284,11 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             shouldShowNotFoundPage={policy === undefined}
             onBackButtonPress={handleBackButtonPress}
             addBottomSafeAreaPadding
+            headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
         >
             {(hasVBA?: boolean) => (
                 <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5, styles.pb5]}>{getHeaderButtons()}</View>}
                     <Section
                         isCentralPane
                         title=""
@@ -374,43 +437,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     />
                                 </View>
                             </OfflineWithFeedback>
-                        )}
-                        {!readOnly && (
-                            <View style={[styles.flexRow, styles.mt6, styles.mnw120]}>
-                                {isPolicyAdmin && (
-                                    <Button
-                                        accessibilityLabel={translate('common.invite')}
-                                        text={translate('common.invite')}
-                                        onPress={() => {
-                                            if (isAccountLocked) {
-                                                showLockedAccountModal();
-                                                return;
-                                            }
-                                            clearInviteDraft(route.params.policyID);
-                                            Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
-                                        }}
-                                        icon={UserPlus}
-                                        style={[styles.mr2]}
-                                    />
-                                )}
-                                <Button
-                                    accessibilityLabel={translate('common.share')}
-                                    text={translate('common.share')}
-                                    onPress={isAccountLocked ? showLockedAccountModal : onPressShare}
-                                    icon={QrCode}
-                                />
-                                {isOwner && (
-                                    <Button
-                                        accessibilityLabel={translate('common.delete')}
-                                        text={translate('common.delete')}
-                                        style={[styles.ml2]}
-                                        onPress={onDeleteWorkspace}
-                                        icon={Trashcan}
-                                        isLoading={isLoadingBill}
-                                        iconStyles={isLoadingBill ? styles.opacity0 : undefined}
-                                    />
-                                )}
-                            </View>
                         )}
                     </Section>
                     <ConfirmModal

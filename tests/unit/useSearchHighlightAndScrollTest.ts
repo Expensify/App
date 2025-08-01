@@ -3,6 +3,7 @@ import {renderHook} from '@testing-library/react-native';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
 import {search} from '@libs/actions/Search';
+import CONST from '@src/CONST';
 
 jest.mock('@libs/actions/Search');
 jest.mock('@react-navigation/native', () => ({
@@ -35,11 +36,18 @@ describe('useSearchHighlightAndScroll', () => {
                 personalDetailsList: {},
             },
             search: {
-                columnsToShow: {shouldShowCategoryColumn: true, shouldShowTagColumn: true, shouldShowTaxColumn: true},
+                columnsToShow: {
+                    shouldShowCategoryColumn: true,
+                    shouldShowTagColumn: true,
+                    shouldShowTaxColumn: true,
+                    shouldShowToColumn: true,
+                    shouldShowFromColumn: true,
+                    shouldShowDescriptionColumn: true,
+                },
                 hasMoreResults: false,
                 hasResults: true,
                 offset: 0,
-                status: 'all',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 type: 'expense',
                 isLoading: false,
             },
@@ -50,15 +58,17 @@ describe('useSearchHighlightAndScroll', () => {
         previousReportActions: {},
         queryJSON: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {operator: 'and', left: 'tag', right: ''},
-            inputQuery: 'type:expense status:all',
+            inputQuery: 'type:expense',
             flatFilters: [],
             hash: 123,
             recentSearchHash: 456,
         },
+        searchKey: undefined,
+        shouldCalculateTotals: false,
         offset: 0,
     };
 
@@ -92,7 +102,7 @@ describe('useSearchHighlightAndScroll', () => {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
-        expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, offset: 0});
+        expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false});
     });
 
     it('should not trigger search when not focused', () => {
@@ -113,7 +123,7 @@ describe('useSearchHighlightAndScroll', () => {
         expect(search).not.toHaveBeenCalled();
     });
 
-    it('should trigger search for chat when report actions change', () => {
+    it('should trigger search for chat when report actions added and focused', () => {
         mockUseIsFocused.mockReturnValue(true);
 
         const chatProps = {
@@ -150,6 +160,79 @@ describe('useSearchHighlightAndScroll', () => {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
-        expect(search).toHaveBeenCalledWith({queryJSON: chatProps.queryJSON, offset: 0});
+        expect(search).toHaveBeenCalledWith({queryJSON: chatProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false});
+    });
+
+    it('should not trigger search when new transaction removed and focused', () => {
+        const initialProps = {
+            ...baseProps,
+            transactions: {
+                '1': {transactionID: '1'},
+                '2': {transactionID: '2'},
+            },
+            previousTransactions: {
+                '1': {transactionID: '1'},
+                '2': {transactionID: '2'},
+            },
+        };
+
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            initialProps,
+        });
+
+        const updatedProps = {
+            ...baseProps,
+            transactions: {
+                '1': {transactionID: '1'},
+            },
+        };
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender(updatedProps);
+        expect(search).not.toHaveBeenCalled();
+    });
+
+    it('should not trigger search for chat when report actions removed and focused', () => {
+        mockUseIsFocused.mockReturnValue(true);
+
+        const chatProps = {
+            ...baseProps,
+            queryJSON: {...baseProps.queryJSON, type: 'chat' as const},
+            reportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                    '2': {actionName: 'ADDCOMMENT', reportActionID: '2'},
+                },
+            },
+            previousReportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                    '2': {actionName: 'ADDCOMMENT', reportActionID: '2'},
+                },
+            },
+        };
+
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            initialProps: chatProps,
+        });
+
+        const updatedProps = {
+            ...chatProps,
+            reportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                },
+            },
+        };
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender(updatedProps);
+        expect(search).not.toHaveBeenCalled();
     });
 });

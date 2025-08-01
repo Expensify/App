@@ -1,10 +1,17 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import CONFIG from '@src/CONFIG';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridApp} from '@src/types/onyx';
 import type HybridAppSettings from './types';
+
+function closeReactNativeApp({shouldSignOut, shouldSetNVP}: {shouldSignOut: boolean; shouldSetNVP: boolean}) {
+    if (CONFIG.IS_HYBRID_APP) {
+        Onyx.merge(ONYXKEYS.HYBRID_APP, {closingReactNativeApp: true});
+    }
+    // eslint-disable-next-line no-restricted-properties
+    HybridAppModule.closeReactNativeApp({shouldSignOut, shouldSetNVP});
+}
 
 /*
  * Parses initial settings passed from OldDot app
@@ -22,17 +29,6 @@ function setReadyToShowAuthScreens(readyToShowAuthScreens: boolean) {
         return;
     }
     Onyx.merge(ONYXKEYS.HYBRID_APP, {readyToShowAuthScreens});
-}
-
-/*
- * Changes NewDot sign-in state
- */
-function setNewDotSignInState(newDotSignInState: ValueOf<typeof CONST.HYBRID_APP_SIGN_IN_STATE>) {
-    // This value is only relevant for HybridApp, so we can skip it in other environments.
-    if (!CONFIG.IS_HYBRID_APP) {
-        return;
-    }
-    Onyx.merge(ONYXKEYS.HYBRID_APP, {newDotSignInState});
 }
 
 function setUseNewDotSignInPage(useNewDotSignInPage: boolean) {
@@ -62,7 +58,6 @@ function resetSignInFlow() {
 
     Onyx.merge(ONYXKEYS.HYBRID_APP, {
         readyToShowAuthScreens: false,
-        newDotSignInState: CONST.HYBRID_APP_SIGN_IN_STATE.NOT_STARTED,
         useNewDotSignInPage: true,
     });
 }
@@ -75,7 +70,6 @@ function prepareHybridAppAfterTransitionToNewDot(hybridApp: HybridApp) {
         return Onyx.merge(ONYXKEYS.HYBRID_APP, {
             ...hybridApp,
             readyToShowAuthScreens: !(hybridApp?.useNewDotSignInPage ?? false),
-            newDotSignInState: CONST.HYBRID_APP_SIGN_IN_STATE.NOT_STARTED,
         });
     }
 
@@ -86,4 +80,4 @@ function prepareHybridAppAfterTransitionToNewDot(hybridApp: HybridApp) {
     });
 }
 
-export {parseHybridAppSettings, setReadyToShowAuthScreens, setNewDotSignInState, resetSignInFlow, prepareHybridAppAfterTransitionToNewDot, setUseNewDotSignInPage, setClosingReactNativeApp};
+export {parseHybridAppSettings, setReadyToShowAuthScreens, resetSignInFlow, prepareHybridAppAfterTransitionToNewDot, setUseNewDotSignInPage, setClosingReactNativeApp, closeReactNativeApp};

@@ -3,7 +3,6 @@ import type {ForwardedRef, RefObject} from 'react';
 import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo} from 'react';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {SelectionListHandle} from '@components/SelectionList/types';
@@ -13,6 +12,7 @@ import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAdvancedFilters} from '@libs/actions/Search';
@@ -41,7 +41,7 @@ type SearchAutocompleteInputProps = {
     onSubmit?: () => void;
 
     /** SearchAutocompleteList ref for managing TextInput and SearchAutocompleteList focus */
-    autocompleteListRef?: RefObject<SelectionListHandle>;
+    autocompleteListRef?: RefObject<SelectionListHandle | null>;
 
     /** Whether the input is full width */
     isFullWidth: boolean;
@@ -208,7 +208,7 @@ function SearchAutocompleteInput(
                         onChangeText={onSearchQueryChange}
                         autoFocus={autoFocus}
                         caretHidden={caretHidden}
-                        loadingSpinnerStyle={[styles.mt0, styles.mr2]}
+                        loadingSpinnerStyle={[styles.mt0, styles.mr0, styles.justifyContentCenter]}
                         role={CONST.ROLE.PRESENTATION}
                         placeholder={translate('search.searchPlaceholder')}
                         autoCapitalize="none"
@@ -221,7 +221,7 @@ function SearchAutocompleteInput(
                         onSubmitEditing={onSubmit}
                         shouldUseDisabledStyles={false}
                         textInputContainerStyles={[styles.borderNone, styles.pb0, styles.pl3]}
-                        inputStyle={[inputWidth, {lineHeight: undefined}]}
+                        inputStyle={[inputWidth, styles.lineHeightUndefined]}
                         placeholderTextColor={theme.textSupporting}
                         onFocus={() => {
                             onFocus?.();

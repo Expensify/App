@@ -33,6 +33,9 @@ type CustomBaseTextInputProps = {
     /** Customize the TextInput container */
     textInputContainerStyles?: StyleProp<ViewStyle>;
 
+    /** Whether to apply padding to the input, some inputs doesn't require any padding, e.g. Amount input in money request flow */
+    shouldApplyPaddingToContainer?: boolean;
+
     /** Customizes the touchable wrapper of the TextInput component */
     touchableInputWrapperStyle?: StyleProp<ViewStyle>;
 
@@ -163,6 +166,9 @@ type CustomBaseTextInputProps = {
     /** The mask of the masked input */
     mask?: MaskedTextInputOwnProps['mask'];
 
+    /** Custom notations for the masked input */
+    customNotations?: MaskedTextInputOwnProps['customNotations'];
+
     /** A set of permitted characters for the input */
     allowedKeys?: MaskedTextInputOwnProps['allowedKeys'];
 
@@ -177,6 +183,12 @@ type CustomBaseTextInputProps = {
 
     /** Callback when the input is cleared using the clear button */
     onClearInput?: () => void;
+
+    /** Whether the input should be enforced to take full height of container. Default is `false` */
+    shouldUseFullInputHeight?: boolean;
+
+    /** Whether the input prefix should use the default `Text` line height fallback. Disable this if you intentionally want the prefix to have `lineHeight: undefined` */
+    shouldUseDefaultLineHeightForPrefix?: boolean;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;

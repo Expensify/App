@@ -2,7 +2,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import type * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import {
     checkIfFeedConnectionIsBroken,
     filterInactiveCards,
@@ -28,6 +28,8 @@ import {
 } from '@src/libs/CardUtils';
 import type {CardFeeds, CardList, CompanyCardFeed, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+import {localeCompare} from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const shortDate = '0924';
 const shortDateSlashed = '09/24';
@@ -442,7 +444,8 @@ describe('CardUtils', () => {
 
     describe('getCustomOrFormattedFeedName', () => {
         beforeAll(() => {
-            TranslationStore.load(CONST.LOCALES.EN);
+            IntlStore.load(CONST.LOCALES.EN);
+            return waitForBatchedUpdates();
         });
         it('Should return custom name if exists', () => {
             const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
@@ -929,7 +932,7 @@ describe('CardUtils', () => {
         it('should sort cards by cardholder name in ascending order', () => {
             const policyMembersAccountIDs = [1, 2, 3];
             const cards = getCardsByCardholderName(mockCards, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare);
 
             expect(sortedCards).toHaveLength(3);
             expect(sortedCards.at(0)?.cardID).toBe(2);
@@ -940,7 +943,7 @@ describe('CardUtils', () => {
         it('should filter out cards that are not associated with policy members', () => {
             const policyMembersAccountIDs = [1, 2]; // Exclude accountID 3
             const cards = getCardsByCardholderName(mockCards, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare);
 
             expect(sortedCards).toHaveLength(2);
             expect(sortedCards.at(0)?.cardID).toBe(2);
@@ -950,7 +953,7 @@ describe('CardUtils', () => {
         it('should handle undefined cardsList', () => {
             const policyMembersAccountIDs = [1, 2, 3];
             const cards = getCardsByCardholderName(undefined, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare);
 
             expect(sortedCards).toHaveLength(0);
         });
@@ -958,7 +961,7 @@ describe('CardUtils', () => {
         it('should handle undefined personalDetails', () => {
             const policyMembersAccountIDs = [1, 2, 3];
             const cards = getCardsByCardholderName(mockCards, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, undefined);
+            const sortedCards = sortCardsByCardholderName(cards, undefined, localeCompare);
 
             expect(sortedCards).toHaveLength(3);
             // All cards should be sorted with default names
@@ -996,7 +999,7 @@ describe('CardUtils', () => {
 
             const policyMembersAccountIDs = [1, 2];
             const cards = getCardsByCardholderName(cardsWithMissingAccountID, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare);
 
             expect(sortedCards).toHaveLength(1);
             expect(sortedCards.at(0)?.cardID).toBe(1);

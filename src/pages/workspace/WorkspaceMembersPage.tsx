@@ -4,9 +4,7 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import type {TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import Badge from '@components/Badge';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
@@ -27,6 +25,7 @@ import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -46,7 +45,6 @@ import {
 } from '@libs/actions/Policy/Member';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {formatPhoneNumber as formatPhoneNumberUtil} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -66,6 +64,7 @@ import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList, PolicyEmployee, PolicyEmployeeList} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import MemberRightIcon from './MemberRightIcon';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
@@ -109,9 +108,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const prevPersonalDetails = usePrevious(personalDetails);
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
-
     const filterEmployees = useCallback(
         (employee?: PolicyEmployee) => {
             if (!employee?.email) {
@@ -139,7 +137,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     );
 
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`, {canBeMissing: true});
-    const {selectionMode} = useMobileSelectionMode();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const currentUserAccountID = Number(session?.accountID);
     const selectionListRef = useRef<SelectionListHandle>(null);
@@ -154,25 +152,26 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 employees: policy?.employeeList ?? {},
                 defaultApprover: policyApproverEmail ?? policy?.owner ?? '',
                 personalDetails: personalDetails ?? {},
+                localeCompare,
             }),
-        [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail],
+        [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail, localeCompare],
     );
 
-    const canSelectMultiple = isPolicyAdmin && (shouldUseNarrowLayout ? selectionMode?.isEnabled : true);
+    const canSelectMultiple = isPolicyAdmin && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
     const confirmModalPrompt = useMemo(() => {
         const approverAccountID = selectedEmployees.find((selectedEmployee) => isApprover(policy, selectedEmployee));
         if (!approverAccountID) {
             return translate('workspace.people.removeMembersPrompt', {
                 count: selectedEmployees.length,
-                memberName: formatPhoneNumberUtil(getPersonalDetailsByIDs({accountIDs: selectedEmployees, currentUserAccountID}).at(0)?.displayName ?? ''),
+                memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: selectedEmployees, currentUserAccountID}).at(0)?.displayName ?? ''),
             });
         }
         return translate('workspace.people.removeMembersWarningPrompt', {
             memberName: getDisplayNameForParticipant({accountID: approverAccountID}),
             ownerName: getDisplayNameForParticipant({accountID: policy?.ownerAccountID}),
         });
-    }, [selectedEmployees, translate, policy, currentUserAccountID]);
+    }, [selectedEmployees, translate, policy, currentUserAccountID, formatPhoneNumber]);
     /**
      * Get filtered personalDetails list with current employeeList
      */
@@ -378,7 +377,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const openMemberDetails = useCallback(
         (item: MemberOption) => {
             if (!isPolicyAdmin || !isPaidGroupPolicy(policy)) {
-                Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
+                Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID, Navigation.getActiveRoute()));
                 return;
             }
             clearWorkspaceOwnerChangeFlow(policyID);
@@ -428,15 +427,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     return;
                 }
             }
-            const isOwner = policy?.owner === details.login;
-            const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
-            const isAuditor = policyEmployee.role === CONST.POLICY.ROLE.AUDITOR;
-            let roleBadge = null;
-            if (isOwner || isAdmin) {
-                roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
-            } else if (isAuditor) {
-                roleBadge = <Badge text={translate('common.auditor')} />;
-            }
+
             const isPendingDeleteOrError = isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
 
             result.push({
@@ -448,7 +439,13 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 cursorStyle: details.isOptimisticPersonalDetail ? styles.cursorDefault : {},
                 text: formatPhoneNumber(getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
-                rightElement: roleBadge,
+                rightElement: (
+                    <MemberRightIcon
+                        role={policyEmployee.role}
+                        owner={policy?.owner}
+                        login={details.login}
+                    />
+                ),
                 icons: [
                     {
                         source: details.avatar ?? FallbackAvatar,
@@ -476,7 +473,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         policyMemberEmailsToAccountIDs,
         policyOwner,
         session?.accountID,
-        translate,
         styles.cursorDefault,
         isPolicyAdmin,
     ]);
@@ -487,7 +483,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const normalizedSearchQuery = StringUtils.normalize(searchQuery);
         return memberText.includes(normalizedSearchQuery) || alternateText.includes(normalizedSearchQuery);
     }, []);
-    const sortMembers = useCallback((memberOptions: MemberOption[]) => sortAlphabetically(memberOptions, 'text'), []);
+    const sortMembers = useCallback((memberOptions: MemberOption[]) => sortAlphabetically(memberOptions, 'text', localeCompare), [localeCompare]);
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers);
 
     useEffect(() => {
@@ -526,12 +522,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     );
 
     useEffect(() => {
-        if (selectionMode?.isEnabled) {
+        if (isMobileSelectionModeEnabled) {
             return;
         }
 
         setSelectedEmployees([]);
-    }, [setSelectedEmployees, selectionMode?.isEnabled]);
+    }, [setSelectedEmployees, isMobileSelectionModeEnabled]);
 
     useSearchBackPress({
         onClearSelection: () => setSelectedEmployees([]),
@@ -705,7 +701,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         );
     };
 
-    const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
+    const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
     const headerContent = (
         <>
@@ -743,7 +739,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
             onBackButtonPress={() => {
-                if (selectionMode?.isEnabled) {
+                if (isMobileSelectionModeEnabled) {
                     setSelectedEmployees([]);
                     turnOffMobileSelectionMode();
                     return;

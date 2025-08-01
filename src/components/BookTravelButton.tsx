@@ -1,21 +1,18 @@
 import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
 import React, {useCallback, useEffect, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openTravelDotLink} from '@libs/actions/Link';
-import {closeReactNativeApp} from '@libs/actions/Session';
-import {cleanupTravelProvisioningSession} from '@libs/actions/Travel';
-import Log from '@libs/Log';
+import {cleanupTravelProvisioningSession, requestTravelAccess} from '@libs/actions/Travel';
 import Navigation from '@libs/Navigation/Navigation';
+import {openTravelDotLink} from '@libs/openTravelDotLink';
 import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import colors from '@styles/theme/colors';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -58,7 +55,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
 
     const policy = usePolicy(activePolicyID);
     const [errorMessage, setErrorMessage] = useState<string | ReactElement>('');
-    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: false});
+    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const {isBlockedFromSpotnanaTravel, isBetaEnabled} = usePermissions();
@@ -68,9 +65,6 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const activePolicies = getActivePolicies(policies, currentUserLogin);
     const groupPaidPolicies = activePolicies.filter((activePolicy) => activePolicy.type !== CONST.POLICY.TYPE.PERSONAL && isPaidGroupPolicy(activePolicy));
-    // Flag indicating whether NewDot was launched exclusively for Travel,
-    // e.g., when the user selects "Trips" from the Expensify Classic menu in HybridApp.
-    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {canBeMissing: true});
 
     const hidePreventionModal = () => setPreventionModalVisibility(false);
     const hideVerificationModal = () => setVerificationModalVisibility(false);
@@ -125,25 +119,14 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
 
         const isPolicyProvisioned = policy?.travelSettings?.spotnanaCompanyID ?? policy?.travelSettings?.associatedTravelDomainAccountID;
         if (policy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned)) {
-            openTravelDotLink(policy?.id)
-                ?.then(() => {
-                    // When a user selects "Trips" in the Expensify Classic menu, the HybridApp opens the ManageTrips page in NewDot.
-                    // The isSingleNewDotEntry flag indicates if NewDot was launched solely for this purpose.
-                    if (!CONFIG.IS_HYBRID_APP || !hybridApp?.isSingleNewDotEntry) {
-                        return;
-                    }
-
-                    // Close NewDot if it was opened only for Travel, as its purpose is now fulfilled.
-                    Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
-                    closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
-                })
-                ?.catch(() => {
-                    setErrorMessage(translate('travel.errorMessage'));
-                });
+            openTravelDotLink(policy?.id);
         } else if (isPolicyProvisioned) {
             navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN);
         } else if (!isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
             setVerificationModalVisibility(true);
+            if (!travelSettings?.lastTravelSignupRequestTime) {
+                requestTravelAccess();
+            }
         }
         // Determine the domain to associate with the workspace during provisioning in Spotnana.
         // - If all admins share the same private domain, the workspace is tied to it automatically.
@@ -164,15 +147,15 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         isBlockedFromSpotnanaTravel,
         primaryContactMethod,
         policy,
+        groupPaidPolicies.length,
         travelSettings?.hasAcceptedTerms,
+        travelSettings?.lastTravelSignupRequestTime,
+        isBetaEnabled,
         styles.flexRow,
         styles.link,
         StyleUtils,
         translate,
-        hybridApp?.isSingleNewDotEntry,
         isUserValidated,
-        groupPaidPolicies.length,
-        isBetaEnabled,
     ]);
 
     return (

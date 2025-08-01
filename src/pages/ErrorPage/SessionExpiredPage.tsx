@@ -8,8 +8,8 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {closeReactNativeApp} from '@libs/actions/Session';
 import Navigation from '@libs/Navigation/Navigation';
+import {closeReactNativeApp} from '@userActions/HybridApp';
 import {clearSignInData} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 

@@ -4,22 +4,22 @@ import lodashSortBy from 'lodash/sortBy';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
-import localeCompare from '@libs/LocaleCompare';
+import useOnyx from '@hooks/useOnyx';
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
-import {canReportBeMentionedWithinPolicy, doesReportBelongToWorkspace, getDisplayNameForParticipant, isGroupChat, isReportParticipant} from '@libs/ReportUtils';
-import {trimLeadingSpace} from '@libs/SuggestionUtils';
+import {canReportBeMentionedWithinPolicy, doesReportBelongToWorkspace, isGroupChat, isReportParticipant} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
+import {getSortedPersonalDetails, trimLeadingSpace} from '@libs/SuggestionUtils';
 import {isValidRoomName} from '@libs/ValidationUtils';
 import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -57,42 +57,18 @@ type SuggestionPersonalDetailsList = Record<
     | null
 >;
 
-function getDisplayName(details: PersonalDetails) {
-    const displayNameFromAccountID = getDisplayNameForParticipant({accountID: details.accountID});
-    if (!displayNameFromAccountID) {
-        return details.login?.length ? details.login : '';
-    }
-    return displayNameFromAccountID;
-}
-
-/**
- * Comparison function to sort users. It compares weights, display names, and accountIDs in that order
- */
-function compareUserInList(first: PersonalDetails & {weight: number}, second: PersonalDetails & {weight: number}) {
-    if (first.weight !== second.weight) {
-        return first.weight - second.weight;
-    }
-
-    const displayNameLoginOrder = localeCompare(getDisplayName(first), getDisplayName(second));
-    if (displayNameLoginOrder !== 0) {
-        return displayNameLoginOrder;
-    }
-
-    return first.accountID - second.accountID;
-}
-
 function SuggestionMention(
     {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainerAndReportCursor, isComposerFocused, isGroupPolicyReport, policyID}: SuggestionProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
     const personalDetails = usePersonalDetails();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
     const suggestionValuesRef = useRef(suggestionValues);
     // eslint-disable-next-line react-compiler/react-compiler
     suggestionValuesRef.current = suggestionValues;
 
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMentionSuggestionsMenuVisible = !!suggestionValues.suggestedMentions.length && suggestionValues.shouldShowSuggestionMenu;
@@ -190,6 +166,23 @@ function SuggestionMention(
         [formatLoginPrivateDomain],
     );
 
+    function getOriginalMentionText(inputValue: string, atSignIndex: number, whiteSpacesLength = 0) {
+        const rest = inputValue.slice(atSignIndex);
+
+        // If the search string contains spaces, it's not a simple login/email mention.
+        // In that case, we need to replace all the words the user typed that are part of the mention.
+        // For example, if `rest` is "@Adam Chr and" and "@Adam Chris" is a valid mention,
+        // then `whiteSpacesLength` will be 1, and we should return "@Adam Chr".
+        // The length of this substring will then be used to replace the user's input with the full mention.
+        if (whiteSpacesLength) {
+            const str = rest.split(' ', whiteSpacesLength + 1).join(' ');
+            return rest.slice(0, str.length);
+        }
+
+        const breakerIndex = rest.search(CONST.REGEX.MENTION_BREAKER);
+        return breakerIndex === -1 ? rest : rest.slice(0, breakerIndex);
+    }
+
     /**
      * Replace the code of mention and update selection
      */
@@ -200,8 +193,13 @@ function SuggestionMention(
             if (!mentionObject || highlightedMentionIndexInner === -1) {
                 return;
             }
+
             const mentionCode = getMentionCode(mentionObject, suggestionValues.prefixType);
-            const commentAfterMention = value.slice(suggestionValues.atSignIndex + suggestionValues.mentionPrefix.length + 1);
+            const originalMention = getOriginalMentionText(value, suggestionValues.atSignIndex, StringUtils.countWhiteSpaces(suggestionValues.mentionPrefix));
+
+            const commentAfterMention = value.slice(
+                suggestionValues.atSignIndex + Math.max(originalMention.length, suggestionValues.mentionPrefix.length + suggestionValues.prefixType.length),
+            );
 
             updateComment(`${commentBeforeAtSign}${mentionCode} ${trimLeadingSpace(commentAfterMention)}`, true);
             const selectionPosition = suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH;
@@ -216,16 +214,7 @@ function SuggestionMention(
                 shouldShowSuggestionMenu: false,
             }));
         },
-        [
-            value,
-            suggestionValues.atSignIndex,
-            suggestionValues.suggestedMentions,
-            suggestionValues.prefixType,
-            suggestionValues.mentionPrefix.length,
-            getMentionCode,
-            updateComment,
-            setSelection,
-        ],
+        [value, suggestionValues.atSignIndex, suggestionValues.suggestedMentions, suggestionValues.prefixType, getMentionCode, updateComment, setSelection, suggestionValues.mentionPrefix],
     );
 
     /**
@@ -314,7 +303,7 @@ function SuggestionMention(
             }) as Array<PersonalDetails & {weight: number}>;
 
             // At this point we are sure that the details are not null, since empty user details have been filtered in the previous step
-            const sortedPersonalDetails = filteredPersonalDetails.sort(compareUserInList);
+            const sortedPersonalDetails = getSortedPersonalDetails(filteredPersonalDetails, localeCompare);
 
             sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
                 suggestions.push({
@@ -335,7 +324,7 @@ function SuggestionMention(
 
             return suggestions;
         },
-        [translate, formatPhoneNumber, formatLoginPrivateDomain],
+        [translate, formatPhoneNumber, formatLoginPrivateDomain, localeCompare],
     );
 
     const getRoomMentionOptions = useCallback(
@@ -492,5 +481,3 @@ function SuggestionMention(
 SuggestionMention.displayName = 'SuggestionMention';
 
 export default forwardRef(SuggestionMention);
-
-export {compareUserInList};

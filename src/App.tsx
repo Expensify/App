@@ -20,7 +20,7 @@ import {InputBlurContextProvider} from './components/InputBlurContext';
 import KeyboardProvider from './components/KeyboardProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import NavigationBar from './components/NavigationBar';
-import OnyxProvider from './components/OnyxProvider';
+import OnyxListItemProvider from './components/OnyxListItemProvider';
 import PopoverContextProvider from './components/PopoverProvider';
 import {ProductTrainingContextProvider} from './components/ProductTrainingContext';
 import SafeArea from './components/SafeArea';
@@ -42,22 +42,10 @@ import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import './libs/HybridApp';
-import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
-import type {Route} from './ROUTES';
+import {AttachmentModalContextProvider} from './pages/media/AttachmentModalScreen/AttachmentModalContext';
 import './setup/backgroundTask';
 import './setup/hybridApp';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
-
-/**
- * Properties passed to the top-level React Native component by HybridApp.
- * These will always be `undefined` in "pure" NewDot builds.
- */
-type AppProps = {
-    /** The URL specifying the initial navigation destination when the app opens */
-    url?: Route;
-    /** Serialized configuration data required to initialize the React Native app (e.g. authentication details) */
-    hybridAppSettings?: string;
-};
 
 LogBox.ignoreLogs([
     // Basically it means that if the app goes in the background and back to foreground on Android,
@@ -72,16 +60,20 @@ const fill = {flex: 1};
 
 const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
 
-function App({url, hybridAppSettings}: AppProps) {
+function App() {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
 
     return (
         <StrictModeWrapper>
             <SplashScreenStateContextProvider>
-                <InitialURLContextProvider url={url}>
-                    <HybridAppHandler hybridAppSettings={hybridAppSettings} />
+                <InitialURLContextProvider>
+                    <HybridAppHandler />
                     <GestureHandlerRootView style={fill}>
+                        {/* Initialize metrics early to ensure the UI renders even when NewDot is hidden.
+                            This is necessary for iOS HybridApp's SignInPage to appear correctly without the bootsplash.
+                            See: https://github.com/Expensify/App/pull/65178#issuecomment-3139026551
+                        */}
                         <SafeAreaProvider
                             initialMetrics={{
                                 insets: {top: 0, right: 0, bottom: 0, left: 0},
@@ -90,18 +82,18 @@ function App({url, hybridAppSettings}: AppProps) {
                         >
                             <ComposeProviders
                                 components={[
-                                    OnyxProvider,
+                                    OnyxListItemProvider,
                                     ThemeProvider,
                                     ThemeStylesProvider,
                                     ThemeIllustrationsProvider,
+                                    HTMLEngineProvider,
                                     PortalProvider,
                                     SafeArea,
                                     LocaleContextProvider,
-                                    HTMLEngineProvider,
                                     PopoverContextProvider,
                                     CurrentReportIDContextProvider,
                                     ScrollOffsetContextProvider,
-                                    ReportAttachmentsProvider,
+                                    AttachmentModalContextProvider,
                                     PickerStateProvider,
                                     EnvironmentProvider,
                                     CustomStatusBarAndBackgroundContextProvider,
@@ -122,7 +114,6 @@ function App({url, hybridAppSettings}: AppProps) {
                             >
                                 <CustomStatusBarAndBackground />
                                 <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                                    <HybridAppHandler hybridAppSettings={hybridAppSettings} />
                                     <ColorSchemeWrapper>
                                         <Expensify />
                                     </ColorSchemeWrapper>
@@ -140,5 +131,3 @@ function App({url, hybridAppSettings}: AppProps) {
 App.displayName = 'App';
 
 export default App;
-
-export type {AppProps};

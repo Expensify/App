@@ -1,15 +1,14 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import {setNewDotSignInState, setReadyToShowAuthScreens} from '@userActions/HybridApp';
+import {setReadyToShowAuthScreens} from '@userActions/HybridApp';
 import {clearSignInData, signUpUser} from '@userActions/Session';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
@@ -31,7 +30,6 @@ function SignUpWelcomeForm() {
                     text={translate('welcomeSignUpForm.join')}
                     isLoading={account?.isLoading}
                     onPress={() => {
-                        setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
                         signUpUser();
                         setReadyToShowAuthScreens(true);
                     }}

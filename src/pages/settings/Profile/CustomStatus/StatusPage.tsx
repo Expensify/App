@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import FormProvider from '@components/Form/FormProvider';
@@ -18,6 +17,8 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,6 +51,9 @@ function StatusPage() {
     const hasVacationDelegate = !!vacationDelegate?.delegate;
     const vacationDelegatePersonalDetails = getPersonalDetailByEmail(vacationDelegate?.delegate ?? '');
     const formattedDelegateLogin = formatPhoneNumber(vacationDelegatePersonalDetails?.login ?? '');
+
+    const {isBetaEnabled} = usePermissions();
+    const isVacationDelegateEnabled = isBetaEnabled(CONST.BETAS.VACATION_DELEGATE);
 
     const currentUserEmojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const currentUserStatusText = currentUserPersonalDetails?.status?.text ?? '';
@@ -172,6 +176,7 @@ function StatusPage() {
     );
 
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
+    const fallbackVacationDelegateLogin = formattedDelegateLogin === '' ? vacationDelegate?.delegate : formattedDelegateLogin;
 
     return (
         <ScreenWrapper
@@ -241,39 +246,41 @@ function StatusPage() {
                         />
                     )}
                 </View>
-                <View style={[styles.mb2, styles.mt6]}>
-                    <Text style={[styles.mh5]}>{translate('statusPage.setVacationDelegate')}</Text>
-                    {hasVacationDelegate && <Text style={[styles.mh5, styles.mt6, styles.mutedTextLabel]}>{translate('statusPage.vacationDelegate')}</Text>}
-                    {hasVacationDelegate ? (
-                        <OfflineWithFeedback
-                            pendingAction={vacationDelegate?.pendingAction}
-                            errors={vacationDelegate?.errors}
-                            errorRowStyles={styles.mh5}
-                            onClose={clearVacationDelegateError}
-                        >
-                            <MenuItem
-                                title={vacationDelegatePersonalDetails?.displayName ?? formattedDelegateLogin ?? vacationDelegate?.delegate}
-                                description={formattedDelegateLogin ?? vacationDelegate?.delegate}
-                                avatarID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                                icon={vacationDelegatePersonalDetails?.avatar ?? Expensicons.FallbackAvatar}
-                                iconType={CONST.ICON_TYPE_AVATAR}
-                                numberOfLinesDescription={1}
-                                shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}
-                                containerStyle={styles.pr2}
-                            />
-                        </OfflineWithFeedback>
-                    ) : (
-                        <View style={[styles.mt1]}>
-                            <MenuItem
-                                description={translate('statusPage.vacationDelegate')}
-                                shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}
-                                containerStyle={styles.pr2}
-                            />
-                        </View>
-                    )}
-                </View>
+                {isVacationDelegateEnabled && (
+                    <View style={[styles.mb2, styles.mt6]}>
+                        <Text style={[styles.mh5]}>{translate('statusPage.setVacationDelegate')}</Text>
+                        {hasVacationDelegate && <Text style={[styles.mh5, styles.mt6, styles.mutedTextLabel]}>{translate('statusPage.vacationDelegate')}</Text>}
+                        {hasVacationDelegate ? (
+                            <OfflineWithFeedback
+                                pendingAction={vacationDelegate?.pendingAction}
+                                errors={vacationDelegate?.errors}
+                                errorRowStyles={styles.mh5}
+                                onClose={() => clearVacationDelegateError(vacationDelegate?.previousDelegate)}
+                            >
+                                <MenuItem
+                                    title={vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin}
+                                    description={fallbackVacationDelegateLogin}
+                                    avatarID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                                    icon={vacationDelegatePersonalDetails?.avatar ?? Expensicons.FallbackAvatar}
+                                    iconType={CONST.ICON_TYPE_AVATAR}
+                                    numberOfLinesDescription={1}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}
+                                    containerStyle={styles.pr2}
+                                />
+                            </OfflineWithFeedback>
+                        ) : (
+                            <View style={[styles.mt1]}>
+                                <MenuItem
+                                    description={translate('statusPage.vacationDelegate')}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}
+                                    containerStyle={styles.pr2}
+                                />
+                            </View>
+                        )}
+                    </View>
+                )}
             </FormProvider>
         </ScreenWrapper>
     );

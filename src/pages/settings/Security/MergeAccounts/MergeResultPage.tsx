@@ -1,7 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useMemo} from 'react';
 import {InteractionManager} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
 import type {ConfirmationPageProps} from '@components/ConfirmationPage';
@@ -12,11 +11,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {closeReactNativeApp} from '@libs/actions/Session';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {closeReactNativeApp} from '@userActions/HybridApp';
 import {openOldDotLink} from '@userActions/Link';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONFIG from '@src/CONFIG';
@@ -30,7 +30,7 @@ function MergeResultPage() {
     const {translate} = useLocalize();
     const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT>>();
-    const {result, login} = params;
+    const {result, login, backTo} = params;
 
     const defaultResult = {
         heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
@@ -272,7 +272,7 @@ function MergeResultPage() {
                 title={translate('mergeAccountsPage.mergeAccount')}
                 shouldShowBackButton={result !== CONST.MERGE_ACCOUNT_RESULTS.SUCCESS}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());
+                    Navigation.goBack(backTo ?? ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());
                 }}
                 shouldDisplayHelpButton={false}
             />
@@ -287,7 +287,7 @@ function MergeResultPage() {
                 secondaryButtonText={secondaryButtonText}
                 onSecondaryButtonPress={onSecondaryButtonPress}
                 description={description}
-                descriptionStyle={{...descriptionStyle, ...styles.textSupporting}}
+                descriptionStyle={[descriptionStyle, styles.textSupporting]}
                 illustration={illustration}
                 illustrationStyle={illustrationStyle}
                 cta={cta}

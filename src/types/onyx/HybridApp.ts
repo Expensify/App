@@ -1,6 +1,3 @@
-import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
-
 /** Data structure holding user's OldDot access information */
 type HybridAppDelegateAccessData = {
     /** Indicates if OldDot is accessed in a delegate mode */
@@ -36,13 +33,10 @@ type HybridApp = {
     /** Determines whether to remove delegated access */
     shouldRemoveDelegatedAccess?: boolean;
 
-    /** Describes the current state of NewDot sign-in process */
-    newDotSignInState?: ValueOf<typeof CONST.HYBRID_APP_SIGN_IN_STATE>;
-
     /** Holds delegate access information */
     delegateAccessData?: HybridAppDelegateAccessData;
 
-    /** Indicates if the NewDot is being closed */
+    /** Indicates if NewDot is being closed */
     closingReactNativeApp?: boolean;
 };
 

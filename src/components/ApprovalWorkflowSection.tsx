@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -23,7 +24,7 @@ type ApprovalWorkflowSectionProps = {
 function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSectionProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, toLocaleOrdinal} = useLocalize();
+    const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const approverTitle = useCallback(
@@ -37,10 +38,10 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
             return translate('workspace.common.everyone');
         }
 
-        return sortAlphabetically(approvalWorkflow.members, 'displayName')
-            .map((m) => m.displayName)
+        return sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare)
+            .map((m) => Str.removeSMSDomain(m.displayName))
             .join(', ');
-    }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate]);
+    }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate, localeCompare]);
 
     return (
         <PressableWithoutFeedback
@@ -90,7 +91,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                             style={styles.p0}
                             titleStyle={styles.textLabelSupportingNormal}
                             descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
-                            description={approver.displayName}
+                            description={Str.removeSMSDomain(approver.displayName)}
                             icon={Expensicons.UserCheck}
                             iconHeight={20}
                             iconWidth={20}
