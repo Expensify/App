@@ -8,7 +8,7 @@ import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@navigation/Navigation';
 import getSignerDetailsAndSignerFilesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getSignerDetailsAndSignerFilesForSignerInfo';
-import {clearReimbursementAccountSaveCorpayOnboardingDirectorInformation, saveCorpayOnboardingDirectorInformation} from '@userActions/BankAccounts';
+import {askForCorpaySignerInformation, clearReimbursementAccountSaveCorpayOnboardingDirectorInformation, saveCorpayOnboardingDirectorInformation} from '@userActions/BankAccounts';
 import {clearErrors} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,6 +31,14 @@ type SignerInfoProps = {
 
     /** Array of step names */
     stepNames?: readonly string[];
+};
+
+type EmailSubmitParams = {
+    /** Signer email to send the reminder to */
+    signerEmail: string;
+
+    /** Optional second signer email to send the reminder to (only for AUD) */
+    secondSignerEmail?: string;
 };
 
 type SignerDetailsFormProps = SubStepProps;
@@ -87,6 +95,17 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
             clearReimbursementAccountSaveCorpayOnboardingDirectorInformation();
         };
     }, [reimbursementAccount, onSubmit, currency]);
+
+    useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (reimbursementAccount?.errors || reimbursementAccount?.isAskingForCorpaySignerInformation || !reimbursementAccount?.isAskingForCorpaySignerInformationSuccess) {
+            return;
+        }
+
+        if (reimbursementAccount?.isAskingForCorpaySignerInformationSuccess) {
+            setCurrentSubStep(SUBSTEP.HANG_TIGHT);
+        }
+    }, [reimbursementAccount]);
 
     const bodyContent = useMemo(() => {
         if (isUserOwner) {
@@ -151,10 +170,17 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
         }
     }, [currentSubStep, goToTheLastStep, isEditing, isUserDirector, onBackButtonPress, prevScreen, screenIndex]);
 
-    const handleEmailSubmit = useCallback(() => {
-        // TODO: the message to the email provided in the previous step should be sent
-        setCurrentSubStep(SUBSTEP.HANG_TIGHT);
-    }, []);
+    const handleEmailSubmit = useCallback(
+        (values: EmailSubmitParams) => {
+            askForCorpaySignerInformation({
+                signerEmail: values.signerEmail,
+                secondSignerEmail: values.secondSignerEmail,
+                policyID: String(policyID),
+                bankAccountID,
+            });
+        },
+        [bankAccountID, policyID],
+    );
 
     return (
         <InteractiveStepWrapper
@@ -185,6 +211,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
                 <EnterEmail
                     onSubmit={handleEmailSubmit}
                     isUserDirector={isUserDirector}
+                    isLoading={reimbursementAccount?.isAskingForCorpaySignerInformation}
                 />
             )}
 
