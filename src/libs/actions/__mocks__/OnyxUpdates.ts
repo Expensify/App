@@ -13,7 +13,7 @@ type OnyxUpdatesMock = typeof OnyxUpdatesImport & {
 };
 
 let lastUpdateIDAppliedToClient: number | undefined = 0;
-// Use connectWithoutView since this is a mock for testing purposes without triggering UI updates.
+// Use connectWithoutView because this is a mock for testing and does not involve any UI updates.
 Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     callback: (val) => (lastUpdateIDAppliedToClient = val),
