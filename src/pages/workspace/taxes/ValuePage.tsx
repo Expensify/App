@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updatePolicyTaxValue, validateTaxValue} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
@@ -34,6 +35,7 @@ function ValuePage({
     policy,
 }: ValuePageProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const currentTaxRate = getTaxByID(policy, taxID);
@@ -95,7 +97,7 @@ function ValuePage({
                         extraDecimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES - 2}
                         // We increase the amount max length to support the extra decimals.
                         amountMaxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
-                        extraSymbol={<Text style={[styles.iouAmountText, styles.lineHeightUndefined]}>%</Text>}
+                        extraSymbol={<Text style={[styles.iouAmountText, StyleUtils.getAmountInputLineHeightStyle()]}>%</Text>}
                         ref={inputCallbackRef}
                         autoGrowExtraSpace={variables.w80}
                         autoGrowMarginSide="left"
