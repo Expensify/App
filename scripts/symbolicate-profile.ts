@@ -14,7 +14,7 @@
  *
  * @note For downloading an artifact a github token is required.
  */
-import {execSync} from 'child_process';
+import {execSync, execFileSync} from 'child_process';
 import fs from 'fs';
 import https from 'https';
 import path from 'path';
@@ -138,8 +138,17 @@ function renameDownloadedSourcemapFile() {
 
 // Symbolicate using the downloaded source map
 function symbolicateProfile() {
-    const command = `npx react-native-release-profiler --local ${argsMap.profile} --sourcemap-path ${localSourceMapPath}`;
-    execSync(command, {stdio: 'inherit'});
+    execFileSync(
+        'npx',
+        [
+            'react-native-release-profiler',
+            '--local',
+            argsMap.profile,
+            '--sourcemap-path',
+            localSourceMapPath,
+        ],
+        {stdio: 'inherit'}
+    );
 }
 
 async function fetchAndProcessArtifact() {
