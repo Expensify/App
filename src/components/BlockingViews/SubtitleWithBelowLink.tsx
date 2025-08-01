@@ -14,11 +14,20 @@ function SubtitleWithBelowLink({
     onLinkPress,
     linkKey,
 }: {
+    /** Subtitle message below the title */
     subtitle?: string;
+
+    /** The style of the subtitle message */
     subtitleStyle?: StyleProp<TextStyle>;
-    subtitleKeyBelowLink: TranslationPaths;
-    onLinkPress: () => void;
-    linkKey: TranslationPaths;
+
+    /** Message below the link message */
+    subtitleKeyBelowLink?: TranslationPaths | '';
+
+    /** Function to call when pressing the navigation link */
+    onLinkPress?: () => void;
+
+    /** Link message below the subtitle */
+    linkKey?: TranslationPaths;
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
