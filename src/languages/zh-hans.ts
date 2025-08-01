@@ -1068,6 +1068,8 @@ const translations = {
         scanMultipleReceiptsDescription: '一次拍摄所有收据的照片，然后自行确认详细信息或让SmartScan处理。',
         receiptScanInProgress: '正在扫描收据',
         receiptScanInProgressDescription: '收据扫描中。稍后查看或立即输入详细信息。',
+        removeFromReport: '不在此报告中',
+        moveToPersonalSpace: '移动费用到个人空间',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) => (!isSubmitted ? '发现潜在的重复费用。请查看重复项以启用提交。' : '发现潜在的重复费用。请审查重复项以启用批准。'),
         receiptIssuesFound: () => ({
             one: '发现问题',
@@ -1813,7 +1815,7 @@ const translations = {
         expensifyWallet: 'Expensify Wallet（测试版）',
         sendAndReceiveMoney: '与朋友发送和接收资金。仅限美国银行账户。',
         enableWallet: '启用钱包',
-        addBankAccountToSendAndReceive: '获得报销您提交到工作区的费用。',
+        addBankAccountToSendAndReceive: '添加银行账户以进行付款或收款。',
         assignedCards: '已分配的卡片',
         assignedCardsDescription: '这些是由工作区管理员分配的卡片，用于管理公司支出。',
         expensifyCard: 'Expensify Card',
@@ -1824,6 +1826,8 @@ const translations = {
         chooseYourBankAccount: '选择您的银行账户',
         chooseAccountBody: '确保您选择正确的选项。',
         confirmYourBankAccount: '确认您的银行账户',
+        personalBankAccounts: '个人银行账户',
+        businessBankAccounts: '企业银行账户',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -5159,6 +5163,10 @@ const translations = {
                 one: '您确定要删除此费率吗？',
                 other: '您确定要删除这些费率吗？',
             }),
+            errors: {
+                rateNameRequired: '费率名称是必需的',
+                existingRateName: '具有此名称的距离费率已存在',
+            },
         },
         editor: {
             descriptionInputLabel: '描述',
@@ -5856,7 +5864,7 @@ const translations = {
         },
         statements: '发言',
         unapprovedCash: '未经批准的现金',
-        unapprovedCompanyCards: '未经批准的公司卡',
+        unapprovedCard: '未批准的卡',
         saveSearch: '保存搜索',
         deleteSavedSearch: '删除已保存的搜索',
         deleteSavedSearchConfirm: '您确定要删除此搜索吗？',
@@ -6199,9 +6207,8 @@ const translations = {
         levelThreeResult: '消息已从频道中移除，并收到匿名警告，消息已提交审核。',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: '邀请提交费用',
-        inviteToChat: '仅邀请聊天',
-        nothing: '什么都不做',
+        invite: '邀请他们',
+        nothing: 'Do nothing',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: '接受',

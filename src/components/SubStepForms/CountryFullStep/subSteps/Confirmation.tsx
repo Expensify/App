@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
+import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -93,16 +94,18 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
                 title={currency}
                 interactive={false}
             />
-            <Text style={[styles.ph5, styles.mb3, styles.mutedTextLabel]}>
-                {`${translate('countryStep.yourBusiness')} ${translate('countryStep.youCanChange')}`}{' '}
-                <TextLink
-                    style={[styles.label]}
-                    onPress={handleSettingsPress}
-                >
-                    {translate('common.settings').toLowerCase()}
-                </TextLink>
-                .
-            </Text>
+            <View style={styles.ph5}>
+                <Text style={[styles.mb3, styles.mutedTextLabel]}>
+                    {`${translate('countryStep.yourBusiness')} ${translate('countryStep.youCanChange')}`}{' '}
+                    <TextLink
+                        style={[styles.label]}
+                        onPress={handleSettingsPress}
+                    >
+                        {translate('common.settings').toLowerCase()}
+                    </TextLink>
+                    .
+                </Text>
+            </View>
             <InputWrapper
                 InputComponent={PushRowWithModal}
                 optionsList={getAvailableEuCountries(shouldAllowChange, isUkEuCurrencySupported)}

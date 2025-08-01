@@ -1075,6 +1075,8 @@ const translations = {
         scanMultipleReceiptsDescription: "Maak foto's van al je bonnetjes tegelijk, bevestig dan zelf de details of laat SmartScan het afhandelen.",
         receiptScanInProgress: 'Bon scannen bezig',
         receiptScanInProgressDescription: 'Bon scannen bezig. Kom later terug of voer de gegevens nu in.',
+        removeFromReport: 'Verwijder uit rapport',
+        moveToPersonalSpace: 'Verplaats uitgaven naar persoonlijke ruimte',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Potentiële dubbele uitgaven geïdentificeerd. Controleer duplicaten om indiening mogelijk te maken.'
@@ -1831,7 +1833,7 @@ const translations = {
         expensifyWallet: 'Expensify Wallet (Beta)',
         sendAndReceiveMoney: 'Stuur en ontvang geld met vrienden. Alleen Amerikaanse bankrekeningen.',
         enableWallet: 'Portemonnee inschakelen',
-        addBankAccountToSendAndReceive: 'Word terugbetaald voor uitgaven die je indient bij een werkruimte.',
+        addBankAccountToSendAndReceive: 'Voeg een bankrekening toe om betalingen te doen of te ontvangen.',
         assignedCards: 'Toegewezen kaarten',
         assignedCardsDescription: 'Dit zijn kaarten die door een werkruimtebeheerder zijn toegewezen om de uitgaven van het bedrijf te beheren.',
         expensifyCard: 'Expensify Card',
@@ -1842,6 +1844,8 @@ const translations = {
         chooseYourBankAccount: 'Kies uw bankrekening',
         chooseAccountBody: 'Zorg ervoor dat je de juiste selecteert.',
         confirmYourBankAccount: 'Bevestig uw bankrekening',
+        personalBankAccounts: 'Persoonlijke bankrekeningen',
+        businessBankAccounts: 'Zakelijke bankrekeningen',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -5247,6 +5251,10 @@ const translations = {
                 one: 'Weet je zeker dat je dit tarief wilt verwijderen?',
                 other: 'Weet je zeker dat je deze tarieven wilt verwijderen?',
             }),
+            errors: {
+                rateNameRequired: 'Tariefnaam is vereist',
+                existingRateName: 'Er bestaat al een afstandstarief met deze naam.',
+            },
         },
         editor: {
             descriptionInputLabel: 'Beschrijving',
@@ -5964,7 +5972,7 @@ const translations = {
         },
         statements: 'Verklaringen',
         unapprovedCash: 'Niet goedgekeurd contant geld',
-        unapprovedCompanyCards: 'Ongoedgekeurde bedrijfskaarten',
+        unapprovedCard: 'Niet-goedgekeurde kaart',
         saveSearch: 'Zoekopdracht opslaan',
         deleteSavedSearch: 'Verwijder opgeslagen zoekopdracht',
         deleteSavedSearchConfirm: 'Weet je zeker dat je deze zoekopdracht wilt verwijderen?',
@@ -6313,9 +6321,8 @@ const translations = {
         levelThreeResult: 'Bericht verwijderd uit kanaal plus anonieme waarschuwing en bericht is gerapporteerd voor beoordeling.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Uitnodigen om onkosten in te dienen',
-        inviteToChat: 'Alleen uitnodigen om te chatten',
-        nothing: 'Niets doen',
+        invite: 'Nodig hen uit',
+        nothing: 'Do nothing',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accepteren',
