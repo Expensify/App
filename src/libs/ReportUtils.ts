@@ -19,6 +19,7 @@ import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvata
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {PolicyTagList} from '@pages/workspace/tags/types';
 import type {IOUAction, IOUType, OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
@@ -1834,59 +1835,116 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
 /**
  * Pushes optimistic transaction violations to OnyxData for the given policy and categories onyx update.
  *
- * @param policyUpdate Changed policy properties, if none pass empty object
- * @param policyCategoriesUpdate Changed categories properties, if none pass empty object
+ * @param onyxData - The OnyxData object to push updates to
+ * @param policy - The current policy
+ * @param policyCategories - The categories of the current policy
+ * @param policyTagLists - The tags of the current policy
+ * @param transactionViolations - The policy transactions violations
+ * @param policyUpdate - Changed policy properties, if none pass empty object
+ * @param policyCategoriesUpdate - Changed categories properties, if none pass empty object
+ * @param policyTagListsUpdate - Changed tag properties, if none pass empty object
  */
 function pushTransactionViolationsOnyxData(
     onyxData: OnyxData,
-    policyID: string,
-    policyTagLists: PolicyTagLists,
+    policy: Policy,
     policyCategories: PolicyCategories,
-    allTransactionViolations: OnyxCollection<TransactionViolations>,
-    policyUpdate: Partial<Policy> = {},
+    policyTagLists: PolicyTagLists,
+    transactionViolations: OnyxCollection<TransactionViolations>,
+    policyUpdate: Partial<Policy>,
     policyCategoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
-): OnyxData {
-    if (isEmptyObject(policyUpdate) && isEmptyObject(policyCategoriesUpdate)) {
-        return onyxData;
+    policyTagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
+) {
+    const isPolicyCategoriesUpdateEmpty = Object.keys(policyCategoriesUpdate).length === 0;
+    const isPolicyTagListsUpdateEmpty = Object.keys(policyTagListsUpdate).length === 0;
+
+    if (isPolicyCategoriesUpdateEmpty && isPolicyTagListsUpdateEmpty && Object.keys(policyTagListsUpdate).length === 0) {
+        return;
     }
-    const optimisticPolicyCategories = Object.keys(policyCategories).reduce<Record<string, PolicyCategory>>((acc, categoryName) => {
-        acc[categoryName] = {...policyCategories[categoryName], ...(policyCategoriesUpdate?.[categoryName] ?? {})};
-        return acc;
-    }, {}) as PolicyCategories;
 
-    const optimisticPolicy = {...allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], ...policyUpdate} as Policy;
-    const hasDependentTags = hasDependentTagsPolicyUtils(optimisticPolicy, policyTagLists);
+    const reports = getAllPolicyReports(policy.id);
 
-    getAllPolicyReports(policyID).forEach((report) => {
-        const isReportAnInvoice = isInvoiceReport(report);
-        if (!report?.reportID || isReportAnInvoice) {
-            return;
+    if (!reports || reports.length === 0) {
+        return;
+    }
+
+    // Merge the existing PolicyCategories with the optimistic updates
+    const optimisticPolicyCategories: PolicyCategories = isPolicyCategoriesUpdateEmpty
+        ? policyCategories
+        : {
+              ...policyCategories,
+              ...Object.entries(policyCategoriesUpdate).reduce<PolicyCategories>((acc, [categoryName, categoryUpdate]) => {
+                  acc[categoryName] = {
+                      ...(policyCategories?.[categoryName] ?? {}),
+                      ...categoryUpdate,
+                  };
+                  return acc;
+              }, {}),
+          };
+
+    // Merge the existing PolicyTagLists with the optimistic updates
+    const optimisticPolicyTagLists: PolicyTagLists = isPolicyTagListsUpdateEmpty
+        ? policyTagLists
+        : {
+              ...policyTagLists,
+              ...Object.entries(policyTagListsUpdate).reduce<PolicyTagLists>((acc, [tagName, tagUpdate]) => {
+                  acc[tagName] = {
+                      ...(policyTagLists?.[tagName] ?? {}),
+                      tags: {
+                          ...(policyTagLists?.[tagName]?.tags ?? {}),
+                          ...(tagUpdate?.tags ?? {}),
+                      },
+                  };
+                  return acc;
+              }, {}),
+          };
+
+    // Merge the existing Policy with the optimistic updates
+    const optimisticPolicy = {...policy, ...policyUpdate};
+
+    const hasDependentTags = hasDependentTagsPolicyUtils(optimisticPolicy, optimisticPolicyTagLists);
+
+    const processedTransactionIDs = new Set<string>();
+
+    // Iterate through all reports to find transactions that need optimistic violations
+    for (const report of reports) {
+        // Skipping invoice report because should not have any category or tag violations
+        if (!report?.reportID || isInvoiceReport(report)) {
+            continue;
         }
 
-        getReportTransactions(report.reportID).forEach((transaction: Transaction) => {
-            const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
+        const transactions = getReportTransactions(report.reportID);
 
-            const optimisticTransactionViolations = ViolationsUtils.getViolationsOnyxData(
+        for (const transaction of transactions) {
+            // Skip it if transaction's optimistic violations already is pushed to ensure one update per transaction
+            const transactionID = transaction?.transactionID;
+            if (!transactionID || processedTransactionIDs.has(transactionID)) {
+                continue;
+            }
+
+            processedTransactionIDs.add(transactionID);
+
+            const existingViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+
+            const optimisticViolations = ViolationsUtils.getViolationsOnyxData(
                 transaction,
-                transactionViolations,
+                existingViolations ?? [],
                 optimisticPolicy,
-                policyTagLists,
+                optimisticPolicyTagLists,
                 optimisticPolicyCategories,
                 hasDependentTags,
-                isReportAnInvoice,
+                false,
             );
 
-            if (optimisticTransactionViolations) {
-                onyxData?.optimisticData?.push(optimisticTransactionViolations);
-                onyxData?.failureData?.push({
+            if (!isEmptyObject(optimisticViolations)) {
+                onyxData.optimisticData?.push(optimisticViolations);
+                onyxData.failureData?.push({
                     onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-                    value: transactionViolations,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                    value: existingViolations ?? null,
                 });
             }
-        });
-    });
-    return onyxData;
+        }
+    }
 }
 
 /**
