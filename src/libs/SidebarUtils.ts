@@ -286,8 +286,6 @@ function getReportsToDisplayInLHN(
             betas,
             transactionViolations,
             isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]),
-
-
             reportAttributes,
         );
 
@@ -326,7 +324,6 @@ function updateReportsToDisplayInLHN(
             betas,
             transactionViolations,
             isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]),
-
             reportAttributes,
         );
 
