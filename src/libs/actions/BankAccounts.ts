@@ -406,7 +406,9 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
                     [personalPolicy?.id]: {
                         iou: {
                             name: revertedLastUsedPaymentMethod,
+                            bankAccountID: null,
                         },
+                        ...(!revertedLastUsedPaymentMethod ? {lastUsed: {name: null, bankAccountID: null}} : {}),
                     },
                 },
             });
@@ -416,8 +418,13 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
                 key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
                 value: {
                     [personalPolicy?.id]: {
-                        iou: {
-                            name: lastUsedPaymentMethod.iou.name,
+                        expense: {
+                            name: lastUsedPaymentMethod.iou?.name,
+                            bankAccountID: lastUsedPaymentMethod.iou?.bankAccountID,
+                        },
+                        lastUsed: {
+                            name: lastUsedPaymentMethod.lastUsed?.name,
+                            bankAccountID: lastUsedPaymentMethod.lastUsed?.bankAccountID,
                         },
                     },
                 },
@@ -434,7 +441,9 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
                     [paymentMethodID]: {
                         expense: {
                             name: revertedLastUsedPaymentMethod,
+                            bankAccountID: null,
                         },
+                        ...(!revertedLastUsedPaymentMethod ? {lastUsed: {name: null, bankAccountID: null}} : {}),
                     },
                 },
             });
@@ -446,6 +455,11 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
                     [paymentMethodID]: {
                         expense: {
                             name: lastUsedPaymentMethod.expense?.name,
+                            bankAccountID: lastUsedPaymentMethod.expense?.bankAccountID,
+                        },
+                        lastUsed: {
+                            name: lastUsedPaymentMethod.lastUsed?.name,
+                            bankAccountID: lastUsedPaymentMethod.lastUsed?.bankAccountID,
                         },
                     },
                 },
