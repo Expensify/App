@@ -219,14 +219,14 @@ function PaymentMethodList({
             const assignedCards = Object.values(isLoadingCardList ? {} : (cardList ?? {}))
                 // Filter by active cards associated with a domain
                 .filter((card) => !!card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0));
-            const assignedCardsSorted = lodashSortBy(assignedCards, (card) => !isExpensifyCard(card.cardID));
+            const assignedCardsSorted = lodashSortBy(assignedCards, (card) => !isExpensifyCard(card));
 
             const assignedCardsGrouped: PaymentMethodItem[] = [];
             assignedCardsSorted.forEach((card) => {
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !!card.errors;
                 const icon = getCardFeedIcon(card.bank as CompanyCardFeed, illustrations);
 
-                if (!isExpensifyCard(card.cardID)) {
+                if (!isExpensifyCard(card)) {
                     const pressHandler = onPress as CardPressHandler;
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
