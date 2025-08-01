@@ -16,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -135,6 +136,7 @@ function AttachmentPickerWithMenuItems({
     const {isProduction} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
     const {setIsLoaderVisible} = useFullScreenLoader();
+    const isReportArchived = useReportIsArchived(report?.reportID);
 
     const isManualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
 
@@ -228,7 +230,7 @@ function AttachmentPickerWithMenuItems({
             ],
         };
 
-        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => options[option]);
+        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => options[option], isReportArchived);
 
         return moneyRequestOptionsList.flat().filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
     }, [translate, shouldUseNarrowLayout, report, policy, reportParticipantIDs, selectOption, isDelegateAccessRestricted, showDelegateNoAccessModal, isManualDistanceTrackingEnabled]);

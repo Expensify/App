@@ -27,6 +27,7 @@ import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitl
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -217,6 +218,7 @@ function ReportActionCompose({
     const includesConcierge = useMemo(() => chatIncludesConcierge({participants: report?.participants}), [report?.participants]);
     const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
+    const isReportArchived = useReportIsArchived(report?.reportID);
 
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
     const isExpensesReport = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
@@ -241,7 +243,7 @@ function ReportActionCompose({
     const shouldDisplayDualDropZone = useMemo(() => {
         const parentReport = getParentReport(report);
         const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
-        return (shouldAddOrReplaceReceipt && !isSettledOrApproved) || !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs).length;
+        return (shouldAddOrReplaceReceipt && !isSettledOrApproved) || !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, isReportArchived).length;
     }, [shouldAddOrReplaceReceipt, report, policy, reportParticipantIDs]);
 
     // Placeholder to display in the chat input.

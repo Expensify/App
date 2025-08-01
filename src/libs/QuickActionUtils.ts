@@ -92,10 +92,10 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
     }
 };
 
-const isQuickActionAllowed = (quickAction: QuickAction, quickActionReport: Report | undefined, quickActionPolicy: Policy | undefined) => {
+const isQuickActionAllowed = (quickAction: QuickAction, quickActionReport: Report | undefined, quickActionPolicy: Policy | undefined, isReportArchived = false) => {
     const iouType = getIOUType(quickAction?.action);
     if (iouType) {
-        return canCreateRequest(quickActionReport, quickActionPolicy, iouType);
+        return canCreateRequest(quickActionReport, quickActionPolicy, iouType, isReportArchived);
     }
     if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM) {
         return !!quickActionPolicy?.arePerDiemRatesEnabled;

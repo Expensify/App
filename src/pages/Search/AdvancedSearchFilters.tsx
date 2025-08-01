@@ -587,6 +587,7 @@ function AdvancedSearchFilters() {
         shouldShowPendingDeletePolicy: false,
         selectedPolicyIDs: undefined,
         searchTerm: '',
+        localeCompare,
     });
 
     // When looking if a user has any categories to display, we want to ignore the policies that are of type PERSONAL

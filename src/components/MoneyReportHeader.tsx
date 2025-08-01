@@ -3,6 +3,7 @@ import React, {useCallback, useContext, useEffect, useMemo, useState} from 'reac
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -19,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported, openReport, openUnreportedExpense} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getPlatform from '@libs/getPlatform';
 import {getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -191,6 +193,7 @@ function MoneyReportHeader({
         {canBeMissing: true},
     );
 
+    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactions.map((t) => t.transactionID));
     const isExported = useMemo(() => isExportedUtils(reportActions), [reportActions]);
     // wrapped in useMemo to improve performance because this is an operation on array
     const integrationNameFromExportMessage = useMemo(() => {
@@ -341,13 +344,17 @@ function MoneyReportHeader({
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
             } else if (isAnyTransactionOnHold) {
-                InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
+                if (getPlatform() === CONST.PLATFORM.IOS) {
+                    InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
+                } else {
+                    setIsHoldMenuVisible(true);
+                }
             } else if (isInvoiceReport) {
                 startAnimation();
                 payInvoice(type, chatReport, moneyRequestReport, payAsBusiness, methodID, paymentMethod);
             } else {
                 startAnimation();
-                payMoneyRequest(type, chatReport, moneyRequestReport, true);
+                payMoneyRequest(type, chatReport, moneyRequestReport, undefined, true);
             }
         },
         [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, showDelegateNoAccessModal, isInvoiceReport, moneyRequestReport, startAnimation],
@@ -611,6 +618,7 @@ function MoneyReportHeader({
                 isPaidAnimationRunning={isPaidAnimationRunning}
                 isApprovedAnimationRunning={isApprovedAnimationRunning}
                 onAnimationFinish={stopAnimation}
+                formattedAmount={totalAmount}
                 canIOUBePaid
                 onlyShowPayElsewhere={onlyShowPayElsewhere}
                 currency={moneyRequestReport?.currency}
@@ -994,11 +1002,12 @@ function MoneyReportHeader({
                     }}
                     buttonRef={buttonRef}
                     shouldAlwaysShowDropdownMenu
+                    shouldPopoverUseScrollView={shouldDisplayNarrowVersion && applicableSecondaryActions.length >= 5}
                     customText={translate('common.more')}
                     options={applicableSecondaryActions}
                     isSplitButton={false}
                     wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && styles.flex1]}
-                    shouldUseModalPaddingStyle={false}
+                    shouldUseModalPaddingStyle
                 />
             )}
         </KYCWall>
@@ -1137,7 +1146,9 @@ function MoneyReportHeader({
                         }
                         // it's deleting transaction but not the report which leads to bug (that is actually also on staging)
                         // Money request should be deleted when interactions are done, to not show the not found page before navigating to goBackRoute
-                        InteractionManager.runAfterInteractions(() => deleteMoneyRequest(transaction?.transactionID, requestParentReportAction));
+                        InteractionManager.runAfterInteractions(() =>
+                            deleteMoneyRequest(transaction?.transactionID, requestParentReportAction, duplicateTransactions, duplicateTransactionViolations),
+                        );
                         goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, false);
                     }
 

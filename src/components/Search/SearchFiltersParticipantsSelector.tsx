@@ -45,7 +45,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
-
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: false, initWithStoredValues: false});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
@@ -64,6 +63,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             },
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+                includeCurrentUser: true,
             },
         );
     }, [areOptionsInitialized, options.personalDetails, options.reports]);
@@ -73,12 +73,21 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     }, [defaultOptions, selectedOptions]);
 
     const chatOptions = useMemo(() => {
-        return filterAndOrderOptions(unselectedOptions, cleanSearchTerm, {
+        const filteredOptions = filterAndOrderOptions(unselectedOptions, cleanSearchTerm, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             canInviteUser: false,
         });
+
+        const {currentUserOption} = unselectedOptions;
+
+        // Ensure current user is not in personalDetails when they should be excluded
+        if (currentUserOption) {
+            filteredOptions.personalDetails = filteredOptions.personalDetails.filter((detail) => detail.accountID !== currentUserOption.accountID);
+        }
+
+        return filteredOptions;
     }, [unselectedOptions, cleanSearchTerm, selectedOptions]);
 
     const {sections, headerMessage} = useMemo(() => {
@@ -100,18 +109,26 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
 
         const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
 
-        if (chatOptions.currentUserOption) {
+        // If the current user is already selected, remove them from the recent reports and personal details
+        if (selectedCurrentUser) {
+            chatOptions.recentReports = chatOptions.recentReports.filter((report) => report.accountID !== selectedCurrentUser.accountID);
+            chatOptions.personalDetails = chatOptions.personalDetails.filter((detail) => detail.accountID !== selectedCurrentUser.accountID);
+        }
+
+        // If the current user is not selected, add them to the top of the list
+        if (!selectedCurrentUser && chatOptions.currentUserOption) {
             const formattedName = getDisplayNameForParticipant({
                 accountID: chatOptions.currentUserOption.accountID,
                 shouldAddCurrentUserPostfix: true,
                 personalDetailsData: personalDetails,
             });
-            if (selectedCurrentUser) {
-                selectedCurrentUser.text = formattedName;
-            } else {
-                chatOptions.currentUserOption.text = formattedName;
-                chatOptions.recentReports = [chatOptions.currentUserOption, ...chatOptions.recentReports];
-            }
+            chatOptions.currentUserOption.text = formattedName;
+
+            newSections.push({
+                title: '',
+                data: [chatOptions.currentUserOption],
+                shouldShow: true,
+            });
         }
 
         newSections.push(formattedResults.section);

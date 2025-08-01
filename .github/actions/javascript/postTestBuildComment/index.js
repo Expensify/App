@@ -11722,6 +11722,21 @@ const CONST = {
     EVENTS: {
         ISSUE_COMMENT: 'issue_comment',
     },
+    RUN_EVENT: {
+        PULL_REQUEST: 'pull_request',
+        PULL_REQUEST_TARGET: 'pull_request_target',
+        PUSH: 'push',
+    },
+    RUN_STATUS: {
+        COMPLETED: 'completed',
+        IN_PROGRESS: 'in_progress',
+        QUEUED: 'queued',
+    },
+    RUN_STATUS_CONCLUSION: {
+        SUCCESS: 'success',
+    },
+    TEST_WORKFLOW_NAME: 'Jest Unit Tests',
+    TEST_WORKFLOW_PATH: '.github/workflows/test.yml',
     PROPOSAL_KEYWORD: 'Proposal',
     DATE_FORMAT_STRING: 'yyyy-MM-dd',
     PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
@@ -12130,6 +12145,17 @@ class GithubUtils {
             workflow_id: workflow,
         })
             .then((response) => response.data.workflow_runs.at(0)?.id ?? -1);
+    }
+    /**
+     * List workflow runs for the repository.
+     */
+    static async listWorkflowRunsForRepo(options = {}) {
+        return this.octokit.actions.listWorkflowRunsForRepo({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            per_page: options.per_page ?? 50,
+            ...(options.status && { status: options.status }),
+        });
     }
     /**
      * Generate the URL of an New Expensify pull request given the PR number.

@@ -1,0 +1,10 @@
+name: 'Wait for Jest Tests'
+description: 'Waits for Jest Unit Tests workflow to complete before proceeding with coverage'
+inputs:
+  GITHUB_TOKEN:
+    description: 'GitHub token for API access'
+    required: true
+    default: ${{ github.token }}
+runs:
+  using: 'node20'
+  main: './index.js'

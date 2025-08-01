@@ -23,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import useOnyx from './useOnyx';
+import useReportIsArchived from './useReportIsArchived';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
 
 type ReportAvatarDetails = {
@@ -72,11 +73,11 @@ function getIconDetails({
     reportPreviewSenderID,
     innerPolicies,
     policy,
-}: AvatarDetailsProps & {reportPreviewSenderID: number | undefined}) {
+    isReportArchived = false,
+}: AvatarDetailsProps & {reportPreviewSenderID: number | undefined; isReportArchived?: boolean}) {
     const delegatePersonalDetails = action?.delegateAccountID ? personalDetails?.[action?.delegateAccountID] : undefined;
     const actorAccountID = getReportActionActorAccountID(action, iouReport, report, delegatePersonalDetails);
     const accountID = reportPreviewSenderID ?? actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
-
     const activePolicies = policies ?? innerPolicies;
 
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
@@ -177,7 +178,7 @@ function getIconDetails({
         if (!isWorkspaceActor) {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const avatarIconIndex = report?.isOwnPolicyExpenseChat || isPolicyExpenseChat(report) ? 0 : 1;
-            const reportIcons = getIcons(report, personalDetails, undefined, undefined, undefined, policy);
+            const reportIcons = getIcons(report, personalDetails, undefined, undefined, undefined, policy, undefined, isReportArchived);
 
             return reportIcons.at(avatarIconIndex) ?? defaultAvatar;
         }
@@ -221,6 +222,7 @@ function useReportAvatarDetails({iouReport, report, action, ...rest}: AvatarDeta
         canBeMissing: true,
         selector: (actions) => Object.values(actions ?? {}).filter(isMoneyRequestAction),
     });
+    const isReportArchived = useReportIsArchived(report?.reportID);
 
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(action?.childReportID);
     const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, iouActions ?? []), [reportTransactions, iouActions]);
@@ -243,6 +245,7 @@ function useReportAvatarDetails({iouReport, report, action, ...rest}: AvatarDeta
                 report,
                 iouReport,
                 reportPreviewSenderID: undefined,
+                isReportArchived,
             }),
         };
     }
@@ -280,6 +283,7 @@ function useReportAvatarDetails({iouReport, report, action, ...rest}: AvatarDeta
             report,
             iouReport,
             reportPreviewSenderID,
+            isReportArchived,
         }),
     };
 }

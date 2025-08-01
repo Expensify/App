@@ -1,8 +1,10 @@
 import Onyx from 'react-native-onyx';
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import {clearSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
+import CONFIG from '@src/CONFIG';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {resetSignInFlow} from './HybridApp';
 import {clearAllPolicies} from './Policy/Policy';
 
 let currentIsOffline: boolean | undefined;
@@ -33,6 +35,9 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
     }
 
     return Onyx.clear(keysToPreserve).then(() => {
+        if (CONFIG.IS_HYBRID_APP) {
+            resetSignInFlow();
+        }
         clearAllPolicies();
         if (!errorMessage) {
             return;

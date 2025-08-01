@@ -104,6 +104,7 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
             isVisible
             onClose={handleGoBack}
             onModalHide={clearAttachmentErrors}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 title={translate('common.receipt')}

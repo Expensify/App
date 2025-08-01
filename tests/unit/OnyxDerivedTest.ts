@@ -23,7 +23,7 @@ describe('OnyxDerived', () => {
     });
 
     describe('reportAttributes', () => {
-        const mockReport = {
+        const mockReport: Report = {
             reportID: `test_1`,
             reportName: 'Test Report',
             type: 'chat',

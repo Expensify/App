@@ -9,7 +9,9 @@ import {applyUpdates} from './applyUpdates';
 import {clear, enqueue, getUpdates} from './DeferredOnyxUpdates';
 
 let lastUpdateIDAppliedToClient: number = CONST.DEFAULT_NUMBER_ID;
-Onyx.connect({
+
+// We have used `connectWithoutView` here because OnyxUpdates is not connected to any UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     callback: (value) => (lastUpdateIDAppliedToClient = value ?? CONST.DEFAULT_NUMBER_ID),
 });

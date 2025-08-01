@@ -1,8 +1,8 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Policy, PolicyTag, PolicyTagLists, PolicyTags, Transaction} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
-import localeCompare from './LocaleCompare';
 import {translateLocal} from './Localize';
 import {hasEnabledOptions} from './OptionsListUtils';
 import type {Option} from './OptionsListUtils';
@@ -52,19 +52,21 @@ function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled' | 'pendin
  */
 function getTagListSections({
     tags,
+    localeCompare,
     recentlyUsedTags = [],
     selectedOptions = [],
     searchValue = '',
     maxRecentReportsToShow = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
 }: {
     tags: PolicyTags | Array<SelectedTagOption | PolicyTag>;
+    localeCompare: LocaleContextProps['localeCompare'];
     recentlyUsedTags?: string[];
     selectedOptions?: SelectedTagOption[];
     searchValue?: string;
     maxRecentReportsToShow?: number;
 }) {
     const tagSections = [];
-    const sortedTags = sortTags(tags);
+    const sortedTags = sortTags(tags, localeCompare);
 
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const enabledTags = sortedTags.filter((tag) => tag.enabled);
@@ -172,7 +174,7 @@ function hasEnabledTags(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists
 /**
  * Sorts tags alphabetically by name.
  */
-function sortTags(tags: Record<string, PolicyTag | SelectedTagOption> | Array<PolicyTag | SelectedTagOption>) {
+function sortTags(tags: Record<string, PolicyTag | SelectedTagOption> | Array<PolicyTag | SelectedTagOption>, localeCompare: LocaleContextProps['localeCompare']) {
     return Object.values(tags ?? {}).sort((a, b) => localeCompare(a.name, b.name)) as PolicyTag[];
 }
 

@@ -1033,7 +1033,7 @@ function createOption(
     }
 
     result.text = reportName;
-    result.icons = getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, null);
+    result.icons = getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, null, undefined, !!result?.private_isArchived);
     result.subtitle = subtitle;
 
     return result;

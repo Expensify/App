@@ -27,7 +27,7 @@ const updateWorkspaceFilter = (policyID: string[] | null) => {
 
 function SearchFiltersWorkspacePage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
@@ -45,6 +45,7 @@ function SearchFiltersWorkspacePage() {
         shouldShowPendingDeletePolicy: false,
         selectedPolicyIDs: selectedOptions,
         searchTerm: debouncedSearchTerm,
+        localeCompare,
     });
 
     const selectWorkspace = useCallback(

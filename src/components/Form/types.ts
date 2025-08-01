@@ -1,4 +1,4 @@
-import type {ComponentType, FocusEvent, Key, MutableRefObject, ReactNode, Ref} from 'react';
+import type {ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
 import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type AddPlaidBankAccount from '@components/AddPlaidBankAccount';
@@ -166,6 +166,9 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
     /** Disable press on enter for submit button */
     disablePressOnEnter?: boolean;
 
+    /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
+    enterKeyEventListenerPriority?: number;
+
     /** Render extra button above submit button */
     shouldRenderFooterAboveSubmit?: boolean;
     /**
@@ -182,7 +185,7 @@ type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     submit: () => void;
 };
 
-type InputRefs = Record<string, MutableRefObject<InputComponentBaseProps>>;
+type InputRefs = Record<string, RefObject<InputComponentBaseProps>>;
 
 type FormInputErrors<TFormID extends OnyxFormKey = OnyxFormKey> = Partial<Record<FormOnyxKeys<TFormID>, string | undefined>>;
 

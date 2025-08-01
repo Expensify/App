@@ -67,7 +67,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const [plaidCurrentEvent = ''] = useOnyx(ONYXKEYS.PLAID_CURRENT_EVENT, {canBeMissing: true});
     const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN, {canBeMissing: true});
     const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
     const {isBetaEnabled} = usePermissions();
@@ -360,7 +359,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     }, [achData?.isOnfidoSetupComplete, achData?.state, currentStep, hasInProgressVBBA, isOffline, onfidoToken]);
 
     const isLoading =
-        (isLoadingApp || !!account?.isLoading || (reimbursementAccount?.isLoading && !reimbursementAccount?.isCreateCorpayBankAccount)) &&
+        (isLoadingApp || (reimbursementAccount?.isLoading && !reimbursementAccount?.isCreateCorpayBankAccount)) &&
         (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
 
     const shouldShowOfflineLoader = !(

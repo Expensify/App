@@ -90,6 +90,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
                     assigneeEmail: memberLogin,
                 },
                 isEditing: false,
+                isChangeAssigneeDisabled: true,
                 policyID,
             });
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID)));

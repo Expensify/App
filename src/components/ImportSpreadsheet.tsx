@@ -4,7 +4,6 @@ import RNFetchBlob from 'react-native-blob-util';
 import type {TupleToUnion} from 'type-fest';
 import * as XLSX from 'xlsx';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSpreadsheetData} from '@libs/actions/ImportSpreadsheet';
@@ -15,7 +14,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route as Routes} from '@src/ROUTES';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
@@ -35,9 +33,12 @@ type ImportSpreadsheetProps = {
 
     // The route to navigate to after the file import is completed.
     goTo: Routes;
+
+    /** Whether the spreadsheet is importing multi-level tags */
+    isImportingMultiLevelTags?: boolean;
 };
 
-function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
+function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpreadsheetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isReadingFile, setIsReadingFile] = useState(false);
@@ -49,7 +50,6 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
-    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
 
     const panResponder = useRef(
         PanResponder.create({
@@ -112,7 +112,7 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
                 const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                 const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false}) as string[][] | unknown[][];
                 const formattedSpreadsheetData = data.map((row) => row.map((cell) => String(cell)));
-                setSpreadsheetData(formattedSpreadsheetData, fileURI, file.type, file.name, spreadsheet?.isImportingMultiLevelTags ?? false)
+                setSpreadsheetData(formattedSpreadsheetData, fileURI, file.type, file.name, isImportingMultiLevelTags ?? false)
                     .then(() => {
                         Navigation.navigate(goTo);
                     })
@@ -127,7 +127,7 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
 
     const getTextForImportModal = () => {
         let text = '';
-        if (spreadsheet?.isImportingMultiLevelTags) {
+        if (isImportingMultiLevelTags) {
             text = isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheetMultiLevelTag') : translate('spreadsheet.dragAndDropMultiLevelTag');
         } else {
             text = isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheet') : translate('spreadsheet.dragAndDrop');
@@ -135,7 +135,7 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
         return text;
     };
 
-    const acceptableFileTypes = spreadsheet?.isImportingMultiLevelTags
+    const acceptableFileTypes = isImportingMultiLevelTags
         ? CONST.MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS.map((extension) => `.${extension}`).join(',')
         : CONST.ALLOWED_SPREADSHEET_EXTENSIONS.map((extension) => `.${extension}`).join(',');
 
@@ -155,7 +155,7 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
                 // eslint-disable-next-line react-compiler/react-compiler, react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >
-                <Text style={[styles.textFileUpload, styles.mb1]}>{spreadsheet?.isImportingMultiLevelTags ? translate('spreadsheet.import') : translate('spreadsheet.upload')}</Text>
+                <Text style={[styles.textFileUpload, styles.mb1]}>{isImportingMultiLevelTags ? translate('spreadsheet.import') : translate('spreadsheet.upload')}</Text>
                 <View style={[styles.flexRow]}>
                     <RenderHTML html={getTextForImportModal()} />
                 </View>
@@ -199,7 +199,7 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
                         <HeaderWithBackButton
                             title={translate('spreadsheet.importSpreadsheet')}
                             onBackButtonPress={() => {
-                                if (spreadsheet?.isImportingMultiLevelTags) {
+                                if (isImportingMultiLevelTags) {
                                     setImportedSpreadsheetIsImportingMultiLevelTags(false);
                                 }
                                 Navigation.goBack(backTo);

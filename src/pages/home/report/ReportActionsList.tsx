@@ -29,10 +29,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
     getFirstVisibleReportActionID,
+    getOriginalMessage,
     isConsecutiveActionMadeByPreviousActor,
     isConsecutiveChronosAutomaticTimerAction,
     isCurrentActionUnread,
     isDeletedParentAction,
+    isMoneyRequestAction,
     isReportPreviewAction,
     isReversedTransaction,
     isTransactionThread,
@@ -42,6 +44,7 @@ import {
     canShowReportRecipientLocalTime,
     canUserPerformWriteAction,
     chatIncludesChronosWithID,
+    getOriginalReportID,
     getReportLastVisibleActionCreated,
     isArchivedNonExpenseReport,
     isCanceledTaskReport,
@@ -172,7 +175,11 @@ function ReportActionsList({
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
     const participantsContext = useContext(PersonalDetailsContext);
     const isReportArchived = useReportIsArchived(report?.reportID);
-
+    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: (wallet) => wallet?.tierName, canBeMissing: false});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}`, {canBeMissing: true});
+    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}`, {canBeMissing: true});
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
 
@@ -367,6 +374,7 @@ function ReportActionsList({
         if (report.reportID !== prevReportID) {
             return;
         }
+
         if (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction, sortedVisibleReportActions))) {
             // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
@@ -447,7 +455,7 @@ function ReportActionsList({
                 setIsScrollToBottomEnabled(true);
             });
         },
-        [report.reportID, reportScrollManager, setIsFloatingMessageCounterVisible, sortedVisibleReportActions, reportScrollManager],
+        [report.reportID, reportScrollManager, setIsFloatingMessageCounterVisible, sortedVisibleReportActions],
     );
 
     // Clear the highlighted report action after scrolling and highlighting
@@ -614,6 +622,16 @@ function ReportActionsList({
 
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
+            const originalReportID = getOriginalReportID(report.reportID, reportAction);
+            const reportDraftMessages = draftMessage?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`];
+            const matchingDraftMessage = reportDraftMessages?.[reportAction.reportActionID];
+            const matchingDraftMessageString = typeof matchingDraftMessage === 'string' ? matchingDraftMessage : matchingDraftMessage?.message;
+
+            const actionEmojiReactions = emojiReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportAction.reportActionID}`];
+            const transactionID = isMoneyRequestAction(reportAction) && getOriginalMessage(reportAction)?.IOUTransactionID;
+            const transaction = transactionID ? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] : undefined;
+            const actionLinkedTransactionRouteError = transaction?.errorFields?.route ?? undefined;
+
             return (
                 <ReportActionsListItemRenderer
                     allReports={allReports}
@@ -637,27 +655,40 @@ function ReportActionsList({
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                     transactions={Object.values(transactions ?? {})}
-                    shouldHighlight={actionIdToHighlight === reportAction.reportActionID}
+                    userWalletTierName={userWalletTierName}
+                    isUserValidated={isUserValidated}
+                    personalDetails={personalDetailsList}
+                    draftMessage={matchingDraftMessageString}
+                    emojiReactions={actionEmojiReactions}
+                    allDraftMessages={draftMessage}
+                    allEmojiReactions={emojiReactions}
+                    linkedTransactionRouteError={actionLinkedTransactionRouteError}
+                    userBillingFundID={userBillingFundID}
                 />
             );
         },
         [
-            report,
+            draftMessage,
+            emojiReactions,
             allReports,
             policies,
-            transactions,
+            sortedReportActions,
+            parentReportAction,
+            parentReportActionForTransactionThread,
+            report,
+            transactionThreadReport,
             linkedReportActionID,
             sortedVisibleReportActions,
             mostRecentIOUReportActionID,
             shouldHideThreadDividerLine,
-            parentReportAction,
-            sortedReportActions,
-            transactionThreadReport,
-            parentReportActionForTransactionThread,
-            shouldUseThreadDividerLine,
-            firstVisibleReportActionID,
             unreadMarkerReportActionID,
-            actionIdToHighlight,
+            firstVisibleReportActionID,
+            shouldUseThreadDividerLine,
+            transactions,
+            userWalletTierName,
+            isUserValidated,
+            personalDetailsList,
+            userBillingFundID,
         ],
     );
 
