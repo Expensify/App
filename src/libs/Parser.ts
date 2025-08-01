@@ -5,8 +5,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import Log from './Log';
 
 const accountIDToNameMap: Record<string, string> = {};
-
 const reportIDToNameMap: Record<string, string> = {};
+
+// Use connectWithoutView because it's only executed once when initializing the ExpensiMarkWithContext instance
+// without triggering UI updates or component re-renders.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
@@ -24,6 +26,8 @@ Onyx.connectWithoutView({
     },
 });
 
+// Use connectWithoutView because it's only executed once when initializing the ExpensiMarkWithContext instance
+// without triggering UI updates or component re-renders.
 Onyx.connectWithoutView({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (personalDetailsList) => {
