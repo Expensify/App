@@ -83,7 +83,15 @@ function TransactionListItem<TItem extends ListItem>({
     );
 
     const handleActionButtonPress = useCallback(() => {
-        handleActionButtonPressUtil(currentSearchHash, transactionItem, () => onSelectRow(item), shouldUseNarrowLayout && !!canSelectMultiple, snapshot, lastPaymentMethod, currentSearchKey);
+        handleActionButtonPressUtil(
+            currentSearchHash,
+            transactionItem,
+            () => onSelectRow(item),
+            shouldUseNarrowLayout && !!canSelectMultiple,
+            snapshot?.data,
+            lastPaymentMethod,
+            currentSearchKey,
+        );
     }, [canSelectMultiple, currentSearchHash, currentSearchKey, item, onSelectRow, shouldUseNarrowLayout, transactionItem, snapshot, lastPaymentMethod]);
 
     const handleCheckboxPress = useCallback(() => {

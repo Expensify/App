@@ -249,19 +249,19 @@ describe('handleActionButtonPress', () => {
 
     test('Should navigate to item when report has one transaction on hold', () => {
         const goToItem = jest.fn(() => {});
-        handleActionButtonPress(searchHash, mockReportItemWithHold, goToItem, false, mockSnapshotForItem, mockLastPaymentMethod);
+        handleActionButtonPress(searchHash, mockReportItemWithHold, goToItem, false, mockSnapshotForItem?.data, mockLastPaymentMethod);
         expect(goToItem).toHaveBeenCalledTimes(1);
     });
 
     test('Should not navigate to item when the hold is removed', () => {
         const goToItem = jest.fn(() => {});
-        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem, false, mockSnapshotForItem, mockLastPaymentMethod);
+        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem, false, mockSnapshotForItem?.data, mockLastPaymentMethod);
         expect(goToItem).toHaveBeenCalledTimes(0);
     });
 
     test('Should run goToItem callback when user is in mobile selection mode', () => {
         const goToItem = jest.fn(() => {});
-        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem, true, mockSnapshotForItem, mockLastPaymentMethod);
+        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem, true, mockSnapshotForItem?.data, mockLastPaymentMethod);
         expect(goToItem).toHaveBeenCalledTimes(1);
     });
 });

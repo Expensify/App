@@ -182,7 +182,7 @@ function ReportListItemHeader<TItem extends ListItem>({
             reportItem,
             () => onSelectRow(reportItem as unknown as TItem),
             shouldUseNarrowLayout && !!canSelectMultiple,
-            snapshot,
+            snapshot?.data,
             lastPaymentMethod,
             currentSearchKey,
         );
