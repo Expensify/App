@@ -2479,6 +2479,10 @@ const translations = {
             title: 'Invita membri',
             subtitle: 'Gestisci e condividi le tue spese con un commercialista o avvia un gruppo di viaggio con gli amici.',
         },
+        domainWorkspaceRestriction: {
+            title: 'Unisciti a workspace esistenti',
+            subtitle: 'La tua azienda ha disabilitato la creazione di workspace. Scegli tra i workspace esistenti qui sotto oppure salta per ora.',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'Non mostrarmelo più',

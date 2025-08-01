@@ -2487,6 +2487,10 @@ const translations = {
             title: 'メンバーを招待する',
             subtitle: '経費を会計士と管理・共有したり、友達と旅行グループを始めたりしましょう。',
         },
+        domainWorkspaceRestriction: {
+            title: '既存のワークスペースに参加',
+            subtitle: 'あなたの会社ではワークスペースの作成が無効になっています。以下から既存のワークスペースを選択するか、今はスキップしてください。',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'これを再び表示しないでください',

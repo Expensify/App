@@ -2481,6 +2481,10 @@ const translations = {
             title: 'Zaproś członków',
             subtitle: 'Zarządzaj i udostępniaj swoje wydatki księgowemu lub rozpocznij grupę podróżniczą z przyjaciółmi.',
         },
+        domainWorkspaceRestriction: {
+            title: 'Dołącz do istniejących przestrzeni roboczych',
+            subtitle: 'Twoja firma wyłączyła możliwość tworzenia przestrzeni roboczych. Wybierz jedną z istniejących poniżej lub pomiń ten krok.',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'Nie pokazuj mi tego ponownie',

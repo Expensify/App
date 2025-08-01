@@ -2459,6 +2459,10 @@ const translations = {
             title: '邀请成员',
             subtitle: '与会计师管理和分享您的费用，或与朋友组建旅行团体。',
         },
+        domainWorkspaceRestriction: {
+            title: '加入现有工作区',
+            subtitle: '您的公司已禁用工作区创建功能。请选择以下现有工作区之一，或暂时跳过。',
+        },
     },
     featureTraining: {
         doNotShowAgain: '不再显示此内容',

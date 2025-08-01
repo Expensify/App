@@ -2466,6 +2466,10 @@ const translations = {
             title: 'Inviter des membres',
             subtitle: 'Gérez et partagez vos dépenses avec un comptable ou créez un groupe de voyage avec des amis.',
         },
+        domainWorkspaceRestriction: {
+            title: 'Rejoindre des espaces de travail existants',
+            subtitle: 'Votre entreprise a désactivé la création d’espaces de travail. Veuillez choisir un espace existant ci-dessous ou ignorer cette étape pour le moment.',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'Ne plus me montrer ceci',

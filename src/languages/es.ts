@@ -2435,6 +2435,10 @@ const translations = {
             title: 'Invita a miembros',
             subtitle: 'Añade a tu equipo o invita a tu contador. ¡Cuantos más, mejor!',
         },
+        domainWorkspaceRestriction: {
+            title: 'Unirse a espacios de trabajo existentes',
+            subtitle: 'Tu empresa ha desactivado la creación de espacios de trabajo. Por favor, elige uno de los existentes a continuación o salta este paso por ahora.',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'No muestres esto otra vez',

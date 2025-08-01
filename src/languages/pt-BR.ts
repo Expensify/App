@@ -2484,6 +2484,10 @@ const translations = {
             title: 'Convidar membros',
             subtitle: 'Gerencie e compartilhe suas despesas com um contador ou inicie um grupo de viagem com amigos.',
         },
+        domainWorkspaceRestriction: {
+            title: 'Entrar em workspaces existentes',
+            subtitle: 'Sua empresa desativou a criação de workspaces. Escolha um dos existentes abaixo ou pule por enquanto.',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'Não me mostre isso novamente',

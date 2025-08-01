@@ -2486,6 +2486,10 @@ const translations = {
             title: 'Leden uitnodigen',
             subtitle: 'Beheer en deel je uitgaven met een accountant of start een reisgroep met vrienden.',
         },
+        domainWorkspaceRestriction: {
+            title: 'Bestaande workspaces joinen',
+            subtitle: 'Je bedrijf heeft het aanmaken van workspaces uitgeschakeld. Kies hieronder een bestaande workspace of sla dit voorlopig over.',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'Toon me dit niet meer',

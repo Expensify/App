@@ -2464,6 +2464,10 @@ const translations = {
             title: 'Mitglieder einladen',
             subtitle: 'Verwalten und teilen Sie Ihre Ausgaben mit einem Buchhalter oder gründen Sie eine Reisegruppe mit Freunden.',
         },
+        domainWorkspaceRestriction: {
+            title: 'Vorhandenen Workspaces beitreten',
+            subtitle: 'Ihr Unternehmen hat die Erstellung von Workspaces deaktiviert. Bitte wählen Sie unten einen bestehenden Workspace aus oder überspringen Sie diesen Schritt vorerst.',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'Nicht mehr anzeigen',
