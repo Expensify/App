@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useCanEditStep from '@hooks/useCanEditStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {createDraftTransaction, removeDraftTransaction} from '@libs/actions/TransactionEdit';
@@ -91,6 +92,7 @@ function IOURequestStepAmount({
     const {amount: transactionAmount} = getTransactionDetails(currentTransaction) ?? {amount: 0};
     const {currency: originalCurrency} = getTransactionDetails(isEditing && !isEmptyObject(draftTransaction) ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
     const currency = isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
+    const [canEditAmount] = useCanEditStep(action, iouType, report, CONST.EDIT_REQUEST_FIELD.AMOUNT);
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
@@ -312,6 +314,7 @@ function IOURequestStepAmount({
             testID={IOURequestStepAmount.displayName}
             shouldShowWrapper={!!backTo || isEditing}
             includeSafeAreaPaddingBottom
+            shouldShowNotFoundPage={!canEditAmount}
         >
             <MoneyRequestAmountForm
                 isEditing={!!backTo || isEditing}

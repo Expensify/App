@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
+import useCanEditStep from '@hooks/useCanEditStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,7 +33,7 @@ function IOURequestStepDistanceRate({
     report,
     reportDraft,
     route: {
-        params: {action, reportID, backTo, transactionID},
+        params: {action, reportID, backTo, transactionID, iouType},
     },
     transaction,
 }: IOURequestStepDistanceRateProps) {
@@ -74,6 +75,7 @@ function IOURequestStepDistanceRate({
             isSelected,
         };
     });
+    const [canEditDistanceRate] = useCanEditStep(action, iouType, report, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE);
 
     const initiallyFocusedOption = sections.find((item) => item.isSelected)?.keyForList;
 
@@ -108,6 +110,7 @@ function IOURequestStepDistanceRate({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepDistanceRate.displayName}
+            shouldShowNotFoundPage={!canEditDistanceRate}
         >
             <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate')}</Text>
 

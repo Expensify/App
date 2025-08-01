@@ -5,6 +5,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useCanEditStep from '@hooks/useCanEditStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -43,7 +44,7 @@ function IOURequestStepMerchant({
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-
+    const [canEditMerchant] = useCanEditStep(action, iouType, report, CONST.EDIT_REQUEST_FIELD.MERCHANT);
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && isEditing;
     const merchant = getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction)?.merchant;
@@ -114,6 +115,7 @@ function IOURequestStepMerchant({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepMerchant.displayName}
+            shouldShowNotFoundPage={!canEditMerchant}
         >
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
