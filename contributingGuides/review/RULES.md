@@ -9,7 +9,7 @@ These rules are used to conduct structured code reviews on pull request diffs. E
 
 ---
 
-## �� Performance Rules
+## Performance Rules
 
 ### [PERF-1] No spread in list item's renderItem
 - **Severity**: MUST
