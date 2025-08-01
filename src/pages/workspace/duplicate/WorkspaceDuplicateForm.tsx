@@ -61,13 +61,16 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
         [translate],
     );
 
-    const onSubmit = useCallback(({name, avatarFile}: {name?: string; avatarFile?: File | CustomRNImageManipulatorResult}) => {
-        const newPolicyID = generatePolicyID();
-        setDuplicateWorkspaceData({policyID: newPolicyID, name, file: avatarFile});
-        if (policyID) {
-            Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE_SELECT_FEATURES.getRoute(policyID));
-        }
-    }, [policyID]);
+    const onSubmit = useCallback(
+        ({name, avatarFile}: {name?: string; avatarFile?: File | CustomRNImageManipulatorResult}) => {
+            const newPolicyID = generatePolicyID();
+            setDuplicateWorkspaceData({policyID: newPolicyID, name, file: avatarFile});
+            if (policyID) {
+                Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE_SELECT_FEATURES.getRoute(policyID));
+            }
+        },
+        [policyID],
+    );
 
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
 

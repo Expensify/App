@@ -38,7 +38,8 @@ import type {
     TransactionDuplicateNavigatorParamList,
     TravelNavigatorParamList,
     WalletStatementNavigatorParamList,
-    WorkspaceConfirmationNavigatorParamList, WorkspaceDuplicateNavigatorParamList,
+    WorkspaceConfirmationNavigatorParamList,
+    WorkspaceDuplicateNavigatorParamList,
 } from '@navigation/types';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';

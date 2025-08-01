@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Rate} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getWorkspaceRules} from './utils';
+import {getWorkflowRules, getWorkspaceRules} from './utils';
 
 type WorkspaceDuplicateFormProps = {
     policyID?: string;
@@ -44,7 +44,6 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const customUnitRates: Record<string, Rate> = customUnits?.rates ?? {};
     const allRates = Object.values(customUnitRates)?.length;
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const rules = getWorkspaceRules(policy, translate);
 
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectedIntegration = getAllValidConnectedIntegration(policy, accountingIntegrations);
@@ -63,6 +62,9 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             : '';
 
     const items = useMemo(() => {
+        const rules = getWorkspaceRules(policy, translate);
+        const workflows = getWorkflowRules(policy, translate);
+
         const result = [
             {
                 translation: translate('workspace.common.selectAll'),
@@ -113,11 +115,13 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                       alternateText: taxesLength ? `${taxesLength} ${translate('workspace.common.taxes').toLowerCase()}` : undefined,
                   }
                 : undefined,
-            {
-                translation: translate('workspace.common.workflows'),
-                value: 'workflows',
-                alternateText: 'eqwewq',
-            },
+            workflows && workflows?.length > 0
+                ? {
+                      translation: translate('workspace.common.workflows'),
+                      value: 'workflows',
+                      alternateText: workflows?.join(', '),
+                  }
+                : undefined,
             rules && rules.length > 0
                 ? {
                       translation: translate('workspace.common.rules'),
@@ -148,9 +152,8 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
 
         return result.filter((item): item is NonNullable<typeof item> => item !== undefined);
     }, [
+        policy,
         translate,
-        policy?.name,
-        policy?.outputCurrency,
         formattedAddress,
         totalMembers,
         reportFields,
@@ -158,7 +161,6 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         totalTags,
         categoriesCount,
         taxesLength,
-        rules,
         ratesCount,
         allRates,
         bankAccountList,
