@@ -5,8 +5,8 @@ import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {ReportFieldItemType} from '@pages/workspace/reportFields/ReportFieldTypePicker';
-import ReportFieldTypePicker from '@pages/workspace/reportFields/ReportFieldTypePicker';
+import type {ReportFieldItemType} from '@pages/workspace/reports/ReportFieldTypePicker';
+import ReportFieldTypePicker from '@pages/workspace/reports/ReportFieldTypePicker';
 import CONST from '@src/CONST';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 

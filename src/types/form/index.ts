@@ -75,7 +75,7 @@ export type {SearchAdvancedFiltersForm} from './SearchAdvancedFiltersForm';
 export type {EditExpensifyCardLimitForm} from './EditExpensifyCardLimitForm';
 export type {default as TextPickerModalForm} from './TextPickerModalForm';
 export type {default as Form} from './Form';
-export type {RulesCustomNameModalForm} from './RulesCustomNameModalForm';
+export type {ReportsDefaultTitleModalForm} from './ReportsDefaultTitleModalForm';
 export type {RulesAutoApproveReportsUnderModalForm} from './RulesAutoApproveReportsUnderModalForm';
 export type {RulesRandomReportAuditModalForm} from './RulesRandomReportAuditModalForm';
 export type {RulesAutoPayReportsUnderModalForm} from './RulesAutoPayReportsUnderModalForm';

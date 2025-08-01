@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {Keyboard} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -13,59 +13,48 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasAccountingConnections} from '@libs/PolicyUtils';
-import {getReportFieldKey} from '@libs/ReportUtils';
 import {validateReportFieldListValueName} from '@libs/WorkspaceReportFieldUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
-import {addReportFieldListValue, createReportFieldsListValue} from '@userActions/Policy/ReportField';
+import {renameReportFieldsListValue} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 
-type ReportFieldsAddListValuePageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE>;
+type ReportFieldsEditValuePageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE>;
 
-function ReportFieldsAddListValuePage({
+function ReportFieldsEditValuePage({
     policy,
     route: {
-        params: {policyID, reportFieldID},
+        params: {policyID, valueIndex},
     },
-}: ReportFieldsAddListValuePageProps) {
+}: ReportFieldsEditValuePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
+    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
 
-    const listValues = useMemo(() => {
-        let reportFieldListValues: string[];
-        if (reportFieldID) {
-            const reportFieldKey = getReportFieldKey(reportFieldID);
-            reportFieldListValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {});
-        } else {
-            reportFieldListValues = formDraft?.[INPUT_IDS.LIST_VALUES] ?? [];
-        }
-        return reportFieldListValues;
-    }, [formDraft, policy?.fieldList, reportFieldID]);
+    const currentValueName = formDraft?.listValues?.[valueIndex] ?? '';
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) =>
-            validateReportFieldListValueName(values[INPUT_IDS.VALUE_NAME].trim(), '', listValues, INPUT_IDS.VALUE_NAME),
-        [listValues],
+            validateReportFieldListValueName(values[INPUT_IDS.NEW_VALUE_NAME].trim(), currentValueName, formDraft?.[INPUT_IDS.LIST_VALUES] ?? [], INPUT_IDS.NEW_VALUE_NAME),
+        [currentValueName, formDraft],
     );
 
-    const createValue = useCallback(
+    const editValue = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
-            if (reportFieldID) {
-                addReportFieldListValue(policyID, reportFieldID, values[INPUT_IDS.VALUE_NAME]);
-            } else {
-                createReportFieldsListValue(values[INPUT_IDS.VALUE_NAME]);
+            const valueName = values[INPUT_IDS.NEW_VALUE_NAME]?.trim();
+            if (currentValueName !== valueName) {
+                renameReportFieldsListValue(valueIndex, valueName);
             }
             Keyboard.dismiss();
             Navigation.goBack();
         },
-        [policyID, reportFieldID],
+        [currentValueName, valueIndex],
     );
 
     return (
@@ -78,16 +67,16 @@ function ReportFieldsAddListValuePage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
-                testID={ReportFieldsAddListValuePage.displayName}
+                testID={ReportFieldsEditValuePage.displayName}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.reportFields.addValue')}
+                    title={translate('workspace.reportFields.editValue')}
                     onBackButtonPress={Navigation.goBack}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
-                    onSubmit={createValue}
+                    onSubmit={editValue}
                     submitButtonText={translate('common.save')}
                     validate={validate}
                     style={[styles.mh5, styles.flex1]}
@@ -97,9 +86,10 @@ function ReportFieldsAddListValuePage({
                 >
                     <InputWrapper
                         InputComponent={TextInput}
+                        defaultValue={currentValueName}
                         label={translate('common.value')}
                         accessibilityLabel={translate('common.value')}
-                        inputID={INPUT_IDS.VALUE_NAME}
+                        inputID={INPUT_IDS.NEW_VALUE_NAME}
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}
                     />
@@ -109,6 +99,6 @@ function ReportFieldsAddListValuePage({
     );
 }
 
-ReportFieldsAddListValuePage.displayName = 'ReportFieldsAddListValuePage';
+ReportFieldsEditValuePage.displayName = 'ReportFieldsEditValuePage';
 
-export default withPolicyAndFullscreenLoading(ReportFieldsAddListValuePage);
+export default withPolicyAndFullscreenLoading(ReportFieldsEditValuePage);

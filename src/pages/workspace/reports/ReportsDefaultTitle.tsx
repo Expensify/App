@@ -25,11 +25,11 @@ import {clearPolicyTitleFieldError, setPolicyDefaultReportTitle} from '@userActi
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import INPUT_IDS from '@src/types/form/RulesCustomNameModalForm';
+import INPUT_IDS from '@src/types/form/ReportsDefaultTitleModalForm';
 
-type RulesCustomNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_CUSTOM_NAME>;
+type RulesCustomNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORTS_DEFAULT_TITLE>;
 
-function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
+function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
 
@@ -37,24 +37,24 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const RULE_EXAMPLE_BULLET_POINTS = [
-        translate('workspace.rules.expenseReportRules.customNameEmailPhoneExample'),
-        translate('workspace.rules.expenseReportRules.customNameStartDateExample'),
-        translate('workspace.rules.expenseReportRules.customNameWorkspaceNameExample'),
-        translate('workspace.rules.expenseReportRules.customNameReportIDExample'),
-        translate('workspace.rules.expenseReportRules.customNameTotalExample'),
+        translate('workspace.reports.customNameEmailPhoneExample'),
+        translate('workspace.reports.customNameStartDateExample'),
+        translate('workspace.reports.customNameWorkspaceNameExample'),
+        translate('workspace.reports.customNameReportIDExample'),
+        translate('workspace.reports.customNameTotalExample'),
     ] as const satisfies string[];
 
     const fieldListItem = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
     const customNameDefaultValue = Str.htmlDecode(fieldListItem?.defaultValue ?? '');
 
     const validateCustomName = useCallback(
-        ({customName}: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM> = {};
-            if (!customName) {
-                errors[INPUT_IDS.CUSTOM_NAME] = translate('common.error.fieldRequired');
-            } else if (customName.length > CONST.WORKSPACE_NAME_CHARACTER_LIMIT) {
-                errors[INPUT_IDS.CUSTOM_NAME] = translate('common.error.characterLimitExceedCounter', {
-                    length: customName.length,
+        ({defaultTitle}: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM> = {};
+            if (!defaultTitle) {
+                errors[INPUT_IDS.DEFAULT_TITLE] = translate('common.error.fieldRequired');
+            } else if (defaultTitle.length > CONST.WORKSPACE_NAME_CHARACTER_LIMIT) {
+                errors[INPUT_IDS.DEFAULT_TITLE] = translate('common.error.characterLimitExceedCounter', {
+                    length: defaultTitle.length,
                     limit: CONST.WORKSPACE_NAME_CHARACTER_LIMIT,
                 });
             }
@@ -75,8 +75,8 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
         clearTitleFieldError();
     });
 
-    const submitForm = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM>) => {
-        setPolicyDefaultReportTitle(policyID, values.customName);
+    const submitForm = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM>) => {
+        setPolicyDefaultReportTitle(policyID, values.defaultTitle);
         Navigation.goBack();
     };
 
@@ -91,27 +91,27 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesCustomNamePage.displayName}
+                testID={ReportsDefaultTitlePage.displayName}
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.rules.expenseReportRules.customNameTitle')}
+                    title={translate('workspace.reports.customNameTitle')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <View style={[styles.ph5, styles.pb4]}>
                     <Text>
-                        {translate('workspace.rules.expenseReportRules.customNameDescription')}
+                        {translate('workspace.reports.customNameDescription')}
                         <TextLink
                             style={[styles.link]}
                             href={CONST.CUSTOM_REPORT_NAME_HELP_URL}
                         >
-                            {translate('workspace.rules.expenseReportRules.customNameDescriptionLink')}
+                            {translate('workspace.reports.customNameDescriptionLink')}
                         </TextLink>
                         .
                     </Text>
                 </View>
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
-                    formID={ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM}
+                    formID={ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM}
                     validate={validateCustomName}
                     onSubmit={submitForm}
                     submitButtonText={translate('common.save')}
@@ -128,16 +128,16 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                     >
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID={INPUT_IDS.CUSTOM_NAME}
+                            inputID={INPUT_IDS.DEFAULT_TITLE}
                             defaultValue={customNameDefaultValue}
-                            label={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
-                            aria-label={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
+                            label={translate('workspace.reports.customNameInputLabel')}
+                            aria-label={translate('workspace.reports.customNameInputLabel')}
                             ref={inputCallbackRef}
                         />
                     </OfflineWithFeedback>
                     <BulletList
                         items={RULE_EXAMPLE_BULLET_POINTS}
-                        header={translate('workspace.rules.expenseReportRules.examples')}
+                        header={translate('workspace.reports.reportsCustomTitleExamples')}
                     />
                 </FormProvider>
             </ScreenWrapper>
@@ -145,6 +145,6 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
     );
 }
 
-RulesCustomNamePage.displayName = 'RulesCustomNamePage';
+ReportsDefaultTitlePage.displayName = 'ReportsDefaultTitlePage';
 
-export default RulesCustomNamePage;
+export default ReportsDefaultTitlePage;
