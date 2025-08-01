@@ -506,7 +506,6 @@ function IOURequestStepConfirmation({
                         source: item.comment?.source,
                     },
                     shouldHandleNavigation: index === transactions.length - 1,
-                    shouldGenerateOptimisticTransactionThread: action === CONST.IOU.ACTION.SUBMIT,
                     backToReport,
                 });
             });

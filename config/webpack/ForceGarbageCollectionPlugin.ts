@@ -15,7 +15,6 @@ class ForceGarbageCollectionPlugin {
             compiler.hooks.done.tap(this.constructor.name, () => {
                 this.compilationCount++;
 
-                // Log memory usage every compilation
                 const memUsage = process.memoryUsage();
                 const heapUsedMB = Math.round(memUsage.heapUsed / 1024 / 1024);
                 const heapTotalMB = Math.round(memUsage.heapTotal / 1024 / 1024);
@@ -23,10 +22,8 @@ class ForceGarbageCollectionPlugin {
                 console.log(`📊 Compilation #${this.compilationCount} - Heap: ${heapUsedMB}MB/${heapTotalMB}MB`);
                 if (this.compilationCount % 5 === 0) {
                     console.log(`🗑️ Forcing garbage collection after ${this.compilationCount} compilations`);
-                    // @ts-expect-error - gc is a global function provided when Node.js is started with --expose-gc flag
-                    gc();
+                    gc?.();
 
-                    // Log memory after garbage collection
                     const memAfterGC = process.memoryUsage();
                     const heapAfterMB = Math.round(memAfterGC.heapUsed / 1024 / 1024);
                     console.log(`✅ Post-GC heap size: ${heapAfterMB}MB (freed ${heapUsedMB - heapAfterMB}MB)`);
