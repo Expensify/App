@@ -22,6 +22,10 @@ function ChatListItem<TItem extends ListItem>({
     shouldSyncFocus,
     policies,
     allReports,
+    userWalletTierName,
+    isUserValidated,
+    personalDetails,
+    userBillingFundID,
 }: ChatListItemProps<TItem>) {
     const reportActionItem = item as unknown as ReportActionListItemType;
     const reportID = Number(reportActionItem?.reportID ?? CONST.DEFAULT_NUMBER_ID);
@@ -82,6 +86,10 @@ function ChatListItem<TItem extends ListItem>({
                 shouldShowDraftMessage={false}
                 policies={policies}
                 shouldShowBorder
+                userWalletTierName={userWalletTierName}
+                isUserValidated={isUserValidated}
+                personalDetails={personalDetails}
+                userBillingFundID={userBillingFundID}
             />
         </BaseListItem>
     );

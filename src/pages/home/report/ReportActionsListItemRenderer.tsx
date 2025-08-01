@@ -3,7 +3,8 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, ReportActionsDrafts, Transaction} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 
@@ -64,6 +65,33 @@ type ReportActionsListItemRendererProps = {
 
     /** Animate highlight action in few seconds */
     shouldHighlight?: boolean;
+
+    /** Draft messages for the report */
+    draftMessage?: string;
+
+    /** Emoji reactions for the report action */
+    emojiReactions?: OnyxEntry<ReportActionReactions>;
+
+    /** User wallet tierName */
+    userWalletTierName: string | undefined;
+
+    /** Linked transaction route error */
+    linkedTransactionRouteError?: OnyxEntry<Errors>;
+
+    /** Whether the user is validated */
+    isUserValidated: boolean | undefined;
+
+    /** Personal details list */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+
+    /** User billing fund ID */
+    userBillingFundID: number | undefined;
+
+    /** All draft messages collection */
+    allDraftMessages?: OnyxCollection<ReportActionsDrafts>;
+
+    /** All emoji reactions collection */
+    allEmojiReactions?: OnyxCollection<ReportActionReactions>;
 };
 
 function ReportActionsListItemRenderer({
@@ -86,6 +114,15 @@ function ReportActionsListItemRenderer({
     shouldUseThreadDividerLine = false,
     shouldHighlight = false,
     parentReportActionForTransactionThread,
+    draftMessage,
+    emojiReactions,
+    userWalletTierName,
+    linkedTransactionRouteError,
+    isUserValidated,
+    userBillingFundID,
+    personalDetails,
+    allDraftMessages,
+    allEmojiReactions,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -175,6 +212,13 @@ function ReportActionsListItemRenderer({
                 index={index}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                userWalletTierName={userWalletTierName}
+                isUserValidated={isUserValidated}
+                personalDetails={personalDetails}
+                allDraftMessages={allDraftMessages}
+                allEmojiReactions={allEmojiReactions}
+                linkedTransactionRouteError={linkedTransactionRouteError}
+                userBillingFundID={userBillingFundID}
             />
         );
     }
@@ -199,6 +243,13 @@ function ReportActionsListItemRenderer({
             isFirstVisibleReportAction={isFirstVisibleReportAction}
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             shouldHighlight={shouldHighlight}
+            userWalletTierName={userWalletTierName}
+            isUserValidated={isUserValidated}
+            personalDetails={personalDetails}
+            draftMessage={draftMessage}
+            emojiReactions={emojiReactions}
+            linkedTransactionRouteError={linkedTransactionRouteError}
+            userBillingFundID={userBillingFundID}
         />
     );
 }
