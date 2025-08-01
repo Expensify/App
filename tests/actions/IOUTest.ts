@@ -2648,7 +2648,11 @@ describe('actions/IOU', () => {
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    createWorkspace({
+                        policyOwnerEmail: CARLOS_EMAIL,
+                        makeMeAdmin: true,
+                        policyName: "Carlos's Workspace",
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -2776,7 +2780,11 @@ describe('actions/IOU', () => {
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    createWorkspace({
+                        policyOwnerEmail: CARLOS_EMAIL,
+                        makeMeAdmin: true,
+                        policyName: "Carlos's Workspace",
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -3001,7 +3009,11 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(() => {
                     // Which owns a workspace
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    createWorkspace({
+                        policyOwnerEmail: CARLOS_EMAIL,
+                        makeMeAdmin: true,
+                        policyName: "Carlos's Workspace",
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() =>
@@ -4034,7 +4046,12 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(() => {
                     const policyID = generatePolicyID();
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", policyID);
+                    createWorkspace({
+                        policyOwnerEmail: CARLOS_EMAIL,
+                        makeMeAdmin: true,
+                        policyName: "Carlos's Workspace",
+                        policyID,
+                    });
 
                     // Change the approval mode for the policy since default is Submit and Close
                     setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
@@ -4146,7 +4163,13 @@ describe('actions/IOU', () => {
 
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", undefined, CONST.ONBOARDING_CHOICES.CHAT_SPLIT);
+                    createWorkspace({
+                        policyOwnerEmail: CARLOS_EMAIL,
+                        makeMeAdmin: true,
+                        policyName: "Carlos's Workspace",
+                        policyID: undefined,
+                        engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -4311,7 +4334,13 @@ describe('actions/IOU', () => {
 
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", undefined, CONST.ONBOARDING_CHOICES.CHAT_SPLIT);
+                    createWorkspace({
+                        policyOwnerEmail: CARLOS_EMAIL,
+                        makeMeAdmin: true,
+                        policyName: "Carlos's Workspace",
+                        policyID: undefined,
+                        engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -5900,7 +5929,11 @@ describe('actions/IOU', () => {
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             // Which owns a workspace
             await waitForBatchedUpdates();
-            createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+            createWorkspace({
+                policyOwnerEmail: CARLOS_EMAIL,
+                makeMeAdmin: true,
+                policyName: "Carlos's Workspace",
+            });
             await waitForBatchedUpdates();
 
             // Get the policy expense chat report
@@ -5980,7 +6013,11 @@ describe('actions/IOU', () => {
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             // Which owns a workspace
             await waitForBatchedUpdates();
-            createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+            createWorkspace({
+                policyOwnerEmail: CARLOS_EMAIL,
+                makeMeAdmin: true,
+                policyName: "Carlos's Workspace",
+            });
             await waitForBatchedUpdates();
 
             // Get the policy expense chat report
@@ -6340,7 +6377,12 @@ describe('actions/IOU', () => {
             const creatorPersonalDetails = personalDetailsList?.[CARLOS_ACCOUNT_ID] ?? {accountID: CARLOS_ACCOUNT_ID};
 
             const policyID = generatePolicyID();
-            createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", policyID);
+            createWorkspace({
+                policyOwnerEmail: CARLOS_EMAIL,
+                makeMeAdmin: true,
+                policyName: "Carlos's Workspace",
+                policyID,
+            });
             createNewReport(creatorPersonalDetails, policyID);
             // Create a tracked expense
             const selfDMReport: Report = {
@@ -6447,7 +6489,12 @@ describe('actions/IOU', () => {
                 let originalTransactionID;
 
                 const policyID = generatePolicyID();
-                createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", policyID);
+                createWorkspace({
+                    policyOwnerEmail: CARLOS_EMAIL,
+                    makeMeAdmin: true,
+                    policyName: "Carlos's Workspace",
+                    policyID,
+                });
 
                 // Change the approval mode for the policy since default is Submit and Close
                 setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);

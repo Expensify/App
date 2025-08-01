@@ -136,6 +136,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.NVP_PREFERRED_LOCALE,
     ONYXKEYS.CREDENTIALS,
     ONYXKEYS.PRESERVED_USER_SESSION,
+    ONYXKEYS.HYBRID_APP,
 ];
 
 Onyx.connect({
@@ -473,7 +474,15 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
  * @param [file] Optional, avatar file for workspace
  */
 function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, policyOwnerEmail = '', makeMeAdmin = false, currency = '', file?: File) {
-    createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID, CONST.ONBOARDING_CHOICES.MANAGE_TEAM, currency, file);
+    createWorkspace({
+        policyOwnerEmail,
+        makeMeAdmin,
+        policyName,
+        policyID,
+        engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+        currency,
+        file,
+    });
 }
 
 /**

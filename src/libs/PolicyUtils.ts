@@ -477,6 +477,13 @@ function getCommaSeparatedTagNameWithSanitizedColons(tag: string): string {
         .join(', ');
 }
 
+function getLengthOfTag(tag: string): number {
+    if (!tag) {
+        return 0;
+    }
+    return getTagArrayFromName(tag).length;
+}
+
 /**
  * Escape colon from tag name
  */
@@ -1641,6 +1648,7 @@ export {
     isUserInvitedToWorkspace,
     getPolicyRole,
     hasIndependentTags,
+    getLengthOfTag,
 };
 
 export type {MemberEmailsToAccountIDs};

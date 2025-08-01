@@ -83,7 +83,6 @@ import type {
     DefaultAmountParams,
     DefaultVendorDescriptionParams,
     DelegateRoleParams,
-    DelegateSubmitParams,
     DelegatorParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -97,6 +96,8 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EmployeeInviteMessageParams,
+    EmptyCategoriesSubtitleWithAccountingParams,
+    EmptyTagsSubtitleWithAccountingParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -626,6 +627,7 @@ const translations = {
         getTheApp: 'Download de app',
         scanReceiptsOnTheGo: 'Scan bonnetjes vanaf je telefoon',
         headsUp: 'Let op!',
+        unstableInternetConnection: 'Onstabiele internetverbinding. Controleer je netwerk en probeer het opnieuw.',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -4472,11 +4474,8 @@ const translations = {
             emptyCategories: {
                 title: 'Je hebt nog geen categorieën aangemaakt',
                 subtitle: 'Voeg een categorie toe om uw uitgaven te organiseren.',
-            },
-            emptyCategoriesWithAccounting: {
-                subtitle1: 'Je categorieën worden momenteel geïmporteerd vanuit een boekhoudkoppeling. Ga naar',
-                subtitle2: 'boekhouding',
-                subtitle3: 'om wijzigingen aan te brengen.',
+                subtitleWithAccounting: ({accountingPageURL}: EmptyCategoriesSubtitleWithAccountingParams) =>
+                    `<muted-text><centered-text>Je categorieën worden momenteel geïmporteerd vanuit een boekhoudkoppeling. Ga naar de <a href="${accountingPageURL}">boekhouding</a> om wijzigingen aan te brengen.</centered-text></muted-text>`,
             },
             updateFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de categorie, probeer het alstublieft opnieuw.',
             createFailureMessage: 'Er is een fout opgetreden bij het aanmaken van de categorie, probeer het alstublieft opnieuw.',
@@ -4738,14 +4737,9 @@ const translations = {
                 title: 'Je hebt nog geen tags aangemaakt',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'Voeg een tag toe om projecten, locaties, afdelingen en meer bij te houden.',
-                subtitle1: 'Importeer een spreadsheet om tags toe te voegen voor het bijhouden van projecten, locaties, afdelingen en meer.',
-                subtitle2: 'Meer informatie',
-                subtitle3: 'over het formatteren van tagbestanden.',
-            },
-            emptyTagsWithAccounting: {
-                subtitle1: 'Uw tags worden momenteel geïmporteerd vanuit een boekhoudkoppeling. Ga naar',
-                subtitle2: 'boekhouding',
-                subtitle3: 'om wijzigingen aan te brengen.',
+                subtitleHTML: `<muted-text><centered-text>Importeer een spreadsheet om tags toe te voegen voor het volgen van projecten, locaties, afdelingen en meer. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Meer informatie</a> over het opmaken van tagbestanden.</centered-text></muted-text>`,
+                subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
+                    `<muted-text><centered-text>Je tags worden momenteel geïmporteerd vanuit een boekhoudverbinding. Ga naar de <a href="${accountingPageURL}">boekhouding</a> om wijzigingen aan te brengen.</centered-text></muted-text>`,
             },
             deleteTag: 'Verwijder tag',
             deleteTags: 'Verwijder tags',
@@ -6171,7 +6165,6 @@ const translations = {
                     return `Werkruimte gewijzigd naar ${toPolicyName}${fromPolicyName ? ` (voorheen ${fromPolicyName})` : ''}`;
                 },
                 changeType: ({oldType, newType}: ChangeTypeParams) => `veranderde type van ${oldType} naar ${newType}`,
-                delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `heeft dit rapport naar ${delegateUser} gestuurd omdat ${originalManager} op vakantie is.`,
                 exportedToCSV: `geëxporteerd naar CSV`,
                 exportedToIntegration: {
                     automatic: ({label}: ExportedToIntegrationParams) => `geëxporteerd naar ${label}`,
