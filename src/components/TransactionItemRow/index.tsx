@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import type {ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Checkbox from '@components/Checkbox';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
@@ -89,7 +89,7 @@ type TransactionItemRowProps = {
     shouldShowCheckbox: boolean;
     columns?: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>;
     onButtonPress?: () => void;
-    columnWrapperStyles?: ViewStyle[];
+    style?: StyleProp<ViewStyle>;
     isReportItemChild?: boolean;
     isActionLoading?: boolean;
     isInSingleTransactionReport?: boolean;
@@ -121,7 +121,7 @@ function TransactionItemRow({
     shouldShowCheckbox = false,
     columns,
     onButtonPress = () => {},
-    columnWrapperStyles,
+    style,
     isReportItemChild = false,
     isActionLoading,
     isInSingleTransactionReport = false,
@@ -360,14 +360,13 @@ function TransactionItemRow({
             transactionItem,
         ],
     );
-    const safeColumnWrapperStyle = columnWrapperStyles ?? [styles.p3, styles.expenseWidgetRadius];
     const shouldRenderChatBubbleCell = useMemo(() => {
         return columns?.includes(CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS) ?? false;
     }, [columns]);
 
     if (shouldUseNarrowLayout) {
         return (
-            <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.p3, styles.pt2, bgActiveStyles]}>
+            <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, bgActiveStyles, style]}>
                 <View style={[styles.flexRow]}>
                     {shouldShowCheckbox && (
                         <Checkbox
@@ -460,7 +459,7 @@ function TransactionItemRow({
     }
 
     return (
-        <View style={[...safeColumnWrapperStyle, styles.flex1, styles.gap2, bgActiveStyles, styles.mw100]}>
+        <View style={[styles.expenseWidgetRadius, styles.flex1, styles.gap2, bgActiveStyles, styles.mw100, style]}>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                 <Checkbox
                     disabled={isDisabled}

@@ -65,6 +65,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({item, isFocused, sho
                         setIsSelected((val) => !val);
                     }}
                     shouldShowCheckbox
+                    style={styles.p3}
                 />
             </PressableWithFeedback>
         </OfflineWithFeedback>
