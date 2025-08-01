@@ -50,7 +50,6 @@ import {
     isReportOwner,
     navigateOnDeleteExpense,
     navigateToDetailsPage,
-    reportTransactionsSelector,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
@@ -180,8 +179,8 @@ function MoneyReportHeader({
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
 
     const transactions = useMemo(() => {
-        return reportTransactionsSelector(reportTransactions, moneyRequestReport?.reportID);
-    }, [reportTransactions, moneyRequestReport?.reportID]);
+        return Object.values(reportTransactions);
+    }, [reportTransactions]);
 
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`, {
