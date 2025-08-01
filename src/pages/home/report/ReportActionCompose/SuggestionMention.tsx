@@ -19,7 +19,7 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {canReportBeMentionedWithinPolicy, doesReportBelongToWorkspace, isGroupChat, isReportParticipant} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import {getSortedPersonalDetails, trimLeadingSpace} from '@libs/SuggestionUtils';
+import {compareUserInList, trimLeadingSpace} from '@libs/SuggestionUtils';
 import {isValidRoomName} from '@libs/ValidationUtils';
 import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -62,7 +62,7 @@ function SuggestionMention(
     ref: ForwardedRef<SuggestionsRef>,
 ) {
     const personalDetails = usePersonalDetails();
-    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
     const suggestionValuesRef = useRef(suggestionValues);
     // eslint-disable-next-line react-compiler/react-compiler
@@ -303,7 +303,7 @@ function SuggestionMention(
             }) as Array<PersonalDetails & {weight: number}>;
 
             // At this point we are sure that the details are not null, since empty user details have been filtered in the previous step
-            const sortedPersonalDetails = getSortedPersonalDetails(filteredPersonalDetails, localeCompare);
+            const sortedPersonalDetails = filteredPersonalDetails.sort(compareUserInList);
 
             sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
                 suggestions.push({
@@ -324,7 +324,7 @@ function SuggestionMention(
 
             return suggestions;
         },
-        [translate, formatPhoneNumber, formatLoginPrivateDomain, localeCompare],
+        [translate, formatPhoneNumber, formatLoginPrivateDomain],
     );
 
     const getRoomMentionOptions = useCallback(
