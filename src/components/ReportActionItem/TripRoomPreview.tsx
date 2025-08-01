@@ -193,7 +193,7 @@ function TripRoomPreview({
                         )}
                         <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                             <Text style={[styles.textLabelSupporting, styles.lh16]}>{translate('common.total')}</Text>
-                            <Text style={[styles.labelStrong, styles.textNormal]}>{displayAmount}</Text>
+                            <Text style={[styles.labelStrong, styles.textNormal, styles.lineHeightXLarge]}>{displayAmount}</Text>
                         </View>
 
                         <Button
