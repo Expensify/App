@@ -113,6 +113,7 @@ import type {
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
+    ImportMemberConfirmationParams,
     ImportMembersSuccessfulDescriptionParams,
     ImportPerDiemRatesSuccessfulDescriptionParams,
     ImportTagsSuccessfulDescriptionParams,
@@ -627,6 +628,8 @@ const translations = {
         getTheApp: 'Download de app',
         scanReceiptsOnTheGo: 'Scan bonnetjes vanaf je telefoon',
         headsUp: 'Let op!',
+        submitTo: 'Sturen naar',
+        forwardTo: 'Doorsturen naar',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -967,6 +970,8 @@ const translations = {
             'Het bestand dat u heeft geüpload is ofwel leeg of bevat ongeldige gegevens. Zorg ervoor dat het bestand correct is opgemaakt en de benodigde informatie bevat voordat u het opnieuw uploadt.',
         importSpreadsheet: 'Spreadsheet importeren',
         downloadCSV: 'CSV downloaden',
+        importMemberConfirmation: ({newMembers}: ImportMemberConfirmationParams) =>
+            `Bevestig hieronder de gegevens voor de ${newMembers} nieuw(e) werkruimte-lid/leden die worden toegevoegd als onderdeel van deze upload. Bestaande leden ontvangen geen rolupdates of uitnodigingsberichten.`,
     },
     receipt: {
         upload: 'Bonnetje uploaden',

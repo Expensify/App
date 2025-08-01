@@ -113,6 +113,7 @@ import type {
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
+    ImportMemberConfirmationParams,
     ImportMembersSuccessfulDescriptionParams,
     ImportPerDiemRatesSuccessfulDescriptionParams,
     ImportTagsSuccessfulDescriptionParams,
@@ -628,6 +629,8 @@ const translations = {
         getTheApp: 'Hole dir die App',
         scanReceiptsOnTheGo: 'Scannen Sie Belege von Ihrem Telefon aus',
         headsUp: 'Achtung!',
+        submitTo: 'Einreichen an',
+        forwardTo: 'Weiterleiten an',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -969,6 +972,8 @@ const translations = {
             'Die Datei, die Sie hochgeladen haben, ist entweder leer oder enthält ungültige Daten. Bitte stellen Sie sicher, dass die Datei korrekt formatiert ist und die notwendigen Informationen enthält, bevor Sie sie erneut hochladen.',
         importSpreadsheet: 'Tabellenkalkulation importieren',
         downloadCSV: 'CSV herunterladen',
+        importMemberConfirmation: ({newMembers}: ImportMemberConfirmationParams) =>
+            `Bitte bestätige die folgenden Details für das/die ${newMembers} neue(n) Workspace-Mitglied(er), das/die durch diesen Upload hinzugefügt wird/werden. Bestehende Mitglieder erhalten keine Rollenaktualisierungen oder Einladungsnachrichten.`,
     },
     receipt: {
         upload: 'Beleg hochladen',
