@@ -441,6 +441,11 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeSmall,
         },
 
+        textExtraSmall: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeExtraSmall,
+        },
+
         textMicro: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
@@ -4496,6 +4501,15 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 0,
         },
 
+        dropDownButtonCartIcon: {
+            minWidth: 22,
+        },
+
+        dropDownSmallButtonArrowContain: {
+            marginLeft: 3,
+            marginRight: 6,
+        },
+
         dropDownMediumButtonArrowContain: {
             marginLeft: 12,
             marginRight: 16,
@@ -4708,6 +4722,16 @@ const styles = (theme: ThemeColors) =>
         justSignedInModalAnimation: (is2FARequired: boolean) => ({
             height: is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight,
         }),
+
+        settlementButtonListContainer: {
+            maxHeight: 500,
+            paddingBottom: 0,
+            paddingTop: 0,
+        },
+
+        settlementButtonShortFormWidth: {
+            minWidth: 90,
+        },
 
         moneyRequestViewImage: {
             ...spacing.mh5,

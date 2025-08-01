@@ -23,6 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useReportIsArchived from './useReportIsArchived';
@@ -50,6 +51,7 @@ function useSelectedTransactionsActions({
 }) {
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const selectedTransactions = useMemo(
         () =>
@@ -67,6 +69,7 @@ function useSelectedTransactionsActions({
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const isTrackExpenseThread = isTrackExpenseReport(report);
     const isInvoice = isInvoiceReport(report);
+
     let iouType: IOUType = CONST.IOU.TYPE.SUBMIT;
 
     if (isTrackExpenseThread) {
@@ -92,7 +95,7 @@ function useSelectedTransactionsActions({
                 return;
             }
 
-            deleteMoneyRequest(transactionID, action, undefined, deletedTransactionIDs);
+            deleteMoneyRequest(transactionID, action, duplicateTransactions, duplicateTransactionViolations, false, deletedTransactionIDs);
             deletedTransactionIDs.push(transactionID);
         });
         clearSelectedTransactions(true);
@@ -100,7 +103,7 @@ function useSelectedTransactionsActions({
             turnOffMobileSelectionMode();
         }
         setIsDeleteModalVisible(false);
-    }, [allTransactionsLength, reportActions, selectedTransactionIDs, clearSelectedTransactions]);
+    }, [duplicateTransactions, duplicateTransactionViolations, allTransactionsLength, reportActions, selectedTransactionIDs, clearSelectedTransactions]);
 
     const showDeleteModal = useCallback(() => {
         setIsDeleteModalVisible(true);

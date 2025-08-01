@@ -90,14 +90,12 @@ const ROUTES = {
             backTo,
             moneyRequestReportActionID,
             transactionID,
-            iouReportID,
         }: {
             reportID: string | undefined;
             reportActionID?: string;
             backTo?: string;
             moneyRequestReportActionID?: string;
             transactionID?: string;
-            iouReportID?: string;
         }) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the SEARCH_REPORT route');
@@ -112,10 +110,6 @@ const ROUTES = {
             }
             if (moneyRequestReportActionID) {
                 queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
-            }
-
-            if (iouReportID) {
-                queryParams.push(`iouReportID=${iouReportID}`);
             }
 
             const queryString = queryParams.length > 0 ? (`${baseRoute}?${queryParams.join('&')}` as const) : baseRoute;
@@ -354,6 +348,7 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER: 'settings/profile/status/clear-after',
     SETTINGS_STATUS_CLEAR_AFTER_DATE: 'settings/profile/status/clear-after/date',
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
+    SETTINGS_VACATION_DELEGATE: 'settings/profile/status/vacation-delegate',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
     SETTINGS_CONSOLE: {
         route: 'settings/troubleshoot/console',
@@ -391,19 +386,10 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (
-            reportID: string | undefined,
-            reportActionID?: string,
-            referrer?: string,
-            moneyRequestReportActionID?: string,
-            transactionID?: string,
-            backTo?: string,
-            iouReportID?: string,
-        ) => {
+        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, moneyRequestReportActionID?: string, transactionID?: string, backTo?: string) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
             }
-
             const baseRoute = reportActionID ? (`r/${reportID}/${reportActionID}` as const) : (`r/${reportID}` as const);
 
             const queryParams: string[] = [];
@@ -415,10 +401,6 @@ const ROUTES = {
             if (moneyRequestReportActionID && transactionID) {
                 queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
                 queryParams.push(`transactionID=${transactionID}`);
-            }
-
-            if (iouReportID) {
-                queryParams.push(`iouReportID=${iouReportID}`);
             }
 
             const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
@@ -598,15 +580,10 @@ const ROUTES = {
     },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':type/edit/reason/:transactionID?/:searchHash?',
-        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string | undefined, backTo: string, searchHash?: number) => {
-            let route = searchHash
-                ? (`${type as string}/edit/reason/${transactionID}/${searchHash}/?backTo=${backTo}` as const)
-                : (`${type as string}/edit/reason/${transactionID}/?backTo=${backTo}` as const);
-
-            if (reportID) {
-                route = `${route}&reportID=${reportID}` as const;
-            }
-
+        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string, backTo: string, searchHash?: number) => {
+            const route = searchHash
+                ? (`${type as string}/edit/reason/${transactionID}/${searchHash}/?backTo=${backTo}&reportID=${reportID}` as const)
+                : (`${type as string}/edit/reason/${transactionID}/?backTo=${backTo}&reportID=${reportID}` as const);
             return route;
         },
     },
@@ -1848,6 +1825,10 @@ const ROUTES = {
     WORKSPACE_DISTANCE_RATE_EDIT: {
         route: 'workspaces/:policyID/distance-rates/:rateID/edit',
         getRoute: (policyID: string, rateID: string) => `workspaces/${policyID}/distance-rates/${rateID}/edit` as const,
+    },
+    WORKSPACE_DISTANCE_RATE_NAME_EDIT: {
+        route: 'workspaces/:policyID/distance-rates/:rateID/name/edit',
+        getRoute: (policyID: string, rateID: string) => `workspaces/${policyID}/distance-rates/${rateID}/name/edit` as const,
     },
     WORKSPACE_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT: {
         route: 'workspaces/:policyID/distance-rates/:rateID/tax-reclaimable/edit',

@@ -365,6 +365,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS,
                         },
+                        [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: {
+                            path: ROUTES.SETTINGS_VACATION_DELEGATE,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_SIZE.route,
                             parse: {
@@ -797,6 +801,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.DISTANCE_RATE_EDIT]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATE_EDIT.route,
+                        },
+                        [SCREENS.WORKSPACE.DISTANCE_RATE_NAME_EDIT]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATE_NAME_EDIT.route,
                         },
                         [SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT.route,
