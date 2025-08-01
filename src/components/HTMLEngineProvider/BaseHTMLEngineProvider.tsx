@@ -73,6 +73,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 mixedUAStyles: {...styles.mutedNormalTextLabel, ...styles.mb0},
                 contentModel: HTMLContentModel.block,
             }),
+            'centered-text': HTMLElementModel.fromCustomModel({
+                tagName: 'centered-text',
+                mixedUAStyles: {...styles.textAlignCenter},
+                contentModel: HTMLContentModel.block,
+            }),
             comment: HTMLElementModel.fromCustomModel({
                 tagName: 'comment',
                 getMixedUAStyles: (tnode) => {
@@ -100,6 +105,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'tooltip',
                 mixedUAStyles: {whiteSpace: 'pre', ...styles.productTrainingTooltipText},
                 contentModel: HTMLContentModel.block,
+            }),
+            success: HTMLElementModel.fromCustomModel({
+                tagName: 'success',
+                mixedUAStyles: {...styles.textSuccess},
+                contentModel: HTMLContentModel.textual,
             }),
             strong: HTMLElementModel.fromCustomModel({
                 tagName: 'strong',
@@ -168,6 +178,8 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.blockquote,
             styles.onlyEmojisTextLineHeight,
             styles.subTextFileUpload,
+            styles.textAlignCenter,
+            styles.textSuccess,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */

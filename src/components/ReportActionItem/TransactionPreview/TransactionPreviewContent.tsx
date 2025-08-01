@@ -20,7 +20,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount} from '@libs/IOUUtils';
 import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getCleanedTagName} from '@libs/PolicyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
@@ -231,18 +231,17 @@ function TransactionPreviewContent({
                         <View style={[styles.expenseAndReportPreviewBoxBody, styles.mtn1]}>
                             <View style={styles.gap3}>
                                 {shouldShowIOUHeader && (
-                                    <View style={[styles.flex1, styles.dFlex, styles.alignItemsCenter, styles.gap2, styles.flexRow]}>
-                                        <UserInfoCellsWithArrow
-                                            shouldShowToRecipient
-                                            participantFrom={from}
-                                            participantFromDisplayName={from.displayName ?? from.login ?? translate('common.hidden')}
-                                            participantToDisplayName={to.displayName ?? to.login ?? translate('common.hidden')}
-                                            participantTo={to}
-                                            avatarSize="mid-subscript"
-                                            infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
-                                            infoCellsAvatarStyle={styles.pr1}
-                                        />
-                                    </View>
+                                    <UserInfoCellsWithArrow
+                                        shouldShowToRecipient
+                                        participantFrom={from}
+                                        participantFromDisplayName={from.displayName ?? from.login ?? translate('common.hidden')}
+                                        participantToDisplayName={to.displayName ?? to.login ?? translate('common.hidden')}
+                                        participantTo={to}
+                                        avatarSize="mid-subscript"
+                                        infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
+                                        infoCellsAvatarStyle={styles.pr1}
+                                        style={[styles.flex1, styles.dFlex, styles.alignItemsCenter, styles.gap2, styles.flexRow]}
+                                    />
                                 )}
                                 <View style={previewTextViewGap}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
@@ -345,7 +344,7 @@ function TransactionPreviewContent({
                                                         numberOfLines={1}
                                                         style={[isDeleted && styles.lineThrough, styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                                     >
-                                                        {getCleanedTagName(tag)}
+                                                        {getCommaSeparatedTagNameWithSanitizedColons(tag)}
                                                     </Text>
                                                 </View>
                                             )}
