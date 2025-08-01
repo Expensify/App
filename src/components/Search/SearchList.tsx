@@ -5,11 +5,12 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo,
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, {FadeOutUp, LinearTransition} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
+import {easing} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithFeedback} from '@components/Pressable';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
@@ -30,6 +31,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -82,6 +84,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     /** Whether to prevent long press of options */
     shouldPreventLongPressRow?: boolean;
+
+    /** Whether to animate the items in the list */
+    shouldAnimate?: boolean;
 
     /** The search query */
     queryJSON: SearchQueryJSON;
@@ -136,6 +141,7 @@ function SearchList(
         columns,
         onViewableItemsChanged,
         onLayout,
+        shouldAnimate,
         estimatedItemSize = ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD,
         isMobileSelectionModeEnabled,
     }: SearchListProps,
@@ -172,6 +178,7 @@ function SearchList(
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
+    const prevDataLength = usePrevious(data.length);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here because there is a race condition that causes shouldUseNarrowLayout to change indefinitely in this component
     // See https://github.com/Expensify/App/issues/48675 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -185,6 +192,8 @@ function SearchList(
     });
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+
+    const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
 
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
@@ -316,56 +325,66 @@ function SearchList(
             const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             return (
-                <ListItem
-                    showTooltip
-                    isFocused={isItemFocused}
-                    onSelectRow={onSelectRow}
-                    onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
-                        // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
-                        if (isMobileChrome() && event.nativeEvent) {
-                            if (!event.nativeEvent.sourceCapabilities) {
-                                return;
+                <Animated.View
+                    exiting={shouldAnimate ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
+                    entering={undefined}
+                    style={styles.overflowHidden}
+                    layout={shouldAnimate && hasItemsBeingRemoved ? LinearTransition.easing(easing).duration(CONST.SEARCH.LAYOUT_ANIMATION_DURATION) : undefined}
+                >
+                    <ListItem
+                        showTooltip
+                        isFocused={isItemFocused}
+                        onSelectRow={onSelectRow}
+                        onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
+                            // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
+                            if (isMobileChrome() && event.nativeEvent) {
+                                if (!event.nativeEvent.sourceCapabilities) {
+                                    return;
+                                }
+                                // Ignore the focus if it's caused by a touch event on mobile chrome.
+                                // For example, a long press will trigger a focus event on mobile chrome
+                                if (event.nativeEvent.sourceCapabilities.firesTouchEvents) {
+                                    return;
+                                }
                             }
-                            // Ignore the focus if it's caused by a touch event on mobile chrome.
-                            // For example, a long press will trigger a focus event on mobile chrome
-                            if (event.nativeEvent.sourceCapabilities.firesTouchEvents) {
-                                return;
-                            }
-                        }
-                        setFocusedIndex(index);
-                    }}
-                    onLongPressRow={handleLongPressRow}
-                    onCheckboxPress={onCheckboxPress}
-                    canSelectMultiple={canSelectMultiple}
-                    item={{
-                        shouldAnimateInHighlight: isItemHighlighted,
-                        ...item,
-                    }}
-                    shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                    queryJSONHash={hash}
-                    columns={columns}
-                    policies={policies}
-                    isDisabled={isDisabled}
-                    allReports={allReports}
-                    groupBy={groupBy}
-                />
+                            setFocusedIndex(index);
+                        }}
+                        onLongPressRow={handleLongPressRow}
+                        onCheckboxPress={onCheckboxPress}
+                        canSelectMultiple={canSelectMultiple}
+                        item={{
+                            shouldAnimateInHighlight: isItemHighlighted,
+                            ...item,
+                        }}
+                        shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                        queryJSONHash={hash}
+                        columns={columns}
+                        policies={policies}
+                        isDisabled={isDisabled}
+                        allReports={allReports}
+                        groupBy={groupBy}
+                    />
+                </Animated.View>
             );
         },
         [
-            ListItem,
-            canSelectMultiple,
             focusedIndex,
-            handleLongPressRow,
             itemsToHighlight,
-            onCheckboxPress,
+            shouldAnimate,
+            styles.overflowHidden,
+            hasItemsBeingRemoved,
+            ListItem,
             onSelectRow,
-            policies,
-            columns,
+            handleLongPressRow,
+            onCheckboxPress,
+            canSelectMultiple,
+            shouldPreventDefaultFocusOnSelectRow,
             hash,
+            columns,
+            policies,
+            allReports,
             groupBy,
             setFocusedIndex,
-            shouldPreventDefaultFocusOnSelectRow,
-            allReports,
         ],
     );
 
