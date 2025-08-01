@@ -202,8 +202,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (!transaction || !reportActions) {
             return [];
         }
-        return getSecondaryTransactionThreadActions(parentReport, transaction, Object.values(reportActions), policy);
-    }, [parentReport, policy, transaction]);
+        return getSecondaryTransactionThreadActions(parentReport, transaction, Object.values(reportActions), policy, report);
+    }, [report, parentReport, policy, transaction]);
 
     const secondaryActionsImplementation: Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>> = {
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD]: {
