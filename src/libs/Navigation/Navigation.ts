@@ -43,7 +43,8 @@ const SET_UP_2FA_ROUTES: Route[] = [
 ];
 
 let account: OnyxEntry<Account>;
-Onyx.connect({
+// We have used `connectWithoutView` here because it is not connected to any UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.ACCOUNT,
     callback: (value) => {
         account = value;
