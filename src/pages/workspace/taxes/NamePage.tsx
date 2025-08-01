@@ -36,6 +36,7 @@ function NamePage({
     const {translate} = useLocalize();
     const currentTaxRate = getTaxByID(policy, taxID);
     const {inputCallbackRef} = useAutoFocusInput();
+
     const [name, setName] = useState(currentTaxRate?.name ?? '');
 
     const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, taxID)), [policyID, taxID]);
@@ -44,7 +45,7 @@ function NamePage({
         const taxName = name.trim();
         // Do not call the API if the edited tax name is the same as the current tag name
         if (currentTaxRate?.name !== taxName) {
-            renamePolicyTax(policyID, taxID, taxName, policy);
+            renamePolicyTax(policyID, taxID, taxName, policy?.taxRates);
         }
         goBack();
     };

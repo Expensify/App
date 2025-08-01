@@ -14,6 +14,7 @@ import {setPolicyTaxCode, validateTaxCode} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,6 +33,8 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
     const policy = usePolicy(policyID);
     const {inputCallbackRef} = useAutoFocusInput();
 
+    const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
+
     const setTaxCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CODE_FORM>) => {
             const newTaxCode = values.taxCode.trim();
@@ -40,10 +43,10 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                 return;
             }
 
-            setPolicyTaxCode(policyID, currentTaxCode, newTaxCode, policy);
+            setPolicyTaxCode(policyID, currentTaxCode, newTaxCode, policy?.taxRates, distanceRateCustomUnit);
             Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, currentTaxCode));
         },
-        [currentTaxCode, policyID, policy],
+        [currentTaxCode, policyID, policy?.taxRates, distanceRateCustomUnit],
     );
 
     const validate = useCallback(
