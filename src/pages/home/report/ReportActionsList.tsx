@@ -649,6 +649,8 @@ function ReportActionsList({
 
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
+            const actionIndex = isTransactionThread(parentReportAction) ? sortedVisibleReportActions.length - index - 1 : index;
+
             return (
                 <ReportActionsListItemRenderer
                     allReports={allReports}
@@ -662,11 +664,8 @@ function ReportActionsList({
                     transactionThreadReport={transactionThreadReport}
                     linkedReportActionID={linkedReportActionID}
                     displayAsGroup={
-                        !isConsecutiveChronosAutomaticTimerAction(
-                            sortedVisibleReportActions,
-                            isTransactionThread(parentReportAction) ? sortedVisibleReportActions.length - index : index,
-                            chatIncludesChronosWithID(reportAction?.reportID),
-                        ) && isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, isTransactionThread(parentReportAction) ? sortedVisibleReportActions.length - index : index)
+                        !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, actionIndex, chatIncludesChronosWithID(reportAction?.reportID)) &&
+                        isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, actionIndex)
                     }
                     mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                     shouldHideThreadDividerLine={shouldHideThreadDividerLine}
