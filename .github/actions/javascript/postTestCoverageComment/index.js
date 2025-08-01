@@ -11884,7 +11884,7 @@ async function run() {
     try {
         const osBotifyToken = core.getInput('OS_BOTIFY_TOKEN', { required: true });
         GithubUtils_1.default.initOctokitWithToken(osBotifyToken);
-        const prNumber = parseInt(core.getInput('PR_NUMBER', { required: true }), 10);
+        const prNumber = Number(core.getInput('PR_NUMBER', { required: true }));
         const baseCoveragePath = core.getInput('BASE_COVERAGE_PATH', { required: false });
         const coverageUrl = core.getInput('COVERAGE_URL', { required: false });
         console.log(`Processing test coverage for PR #${prNumber}`);
@@ -11918,7 +11918,7 @@ async function run() {
             .addRaw(coverageSection.replace(COVERAGE_SECTION_HEADER, ''))
             .addSeparator()
             .addRaw('💡 This summary is also available at the end of the PR description.')
-            .write();
+            .write({ overwrite: true });
         // Set outputs
         core.setOutput('coverage-summary', JSON.stringify(coverageData.overall));
         core.setOutput('coverage-changed', changedFiles.length > 0);
@@ -11975,6 +11975,21 @@ const CONST = {
     EVENTS: {
         ISSUE_COMMENT: 'issue_comment',
     },
+    RUN_EVENT: {
+        PULL_REQUEST: 'pull_request',
+        PULL_REQUEST_TARGET: 'pull_request_target',
+        PUSH: 'push',
+    },
+    RUN_STATUS: {
+        COMPLETED: 'completed',
+        IN_PROGRESS: 'in_progress',
+        QUEUED: 'queued',
+    },
+    RUN_STATUS_CONCLUSION: {
+        SUCCESS: 'success',
+    },
+    TEST_WORKFLOW_NAME: 'Jest Unit Tests',
+    TEST_WORKFLOW_PATH: '.github/workflows/test.yml',
     PROPOSAL_KEYWORD: 'Proposal',
     DATE_FORMAT_STRING: 'yyyy-MM-dd',
     PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
