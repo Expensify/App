@@ -9,6 +9,7 @@ import type {Log} from '@src/types/onyx';
 
 let shouldStoreLogs = false;
 
+// We have opted for `connectWithoutView` here as the data is strictly for non-UI use.
 Onyx.connectWithoutView({
     key: ONYXKEYS.SHOULD_STORE_LOGS,
     callback: (val) => {
