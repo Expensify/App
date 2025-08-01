@@ -83,7 +83,6 @@ import type {
     DefaultAmountParams,
     DefaultVendorDescriptionParams,
     DelegateRoleParams,
-    DelegateSubmitParams,
     DelegatorParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -97,6 +96,8 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EmployeeInviteMessageParams,
+    EmptyCategoriesSubtitleWithAccountingParams,
+    EmptyTagsSubtitleWithAccountingParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -4452,11 +4453,8 @@ const translations = {
             emptyCategories: {
                 title: 'Sie haben noch keine Kategorien erstellt.',
                 subtitle: 'Fügen Sie eine Kategorie hinzu, um Ihre Ausgaben zu organisieren.',
-            },
-            emptyCategoriesWithAccounting: {
-                subtitle1: 'Ihre Kategorien werden derzeit aus einer Buchhaltungsverbindung importiert. Gehen Sie zu',
-                subtitle2: 'Buchhaltung',
-                subtitle3: 'um Änderungen vorzunehmen.',
+                subtitleWithAccounting: ({accountingPageURL}: EmptyCategoriesSubtitleWithAccountingParams) =>
+                    `<muted-text><centered-text>Ihre Kategorien werden derzeit aus einer Buchhaltungsverbindung importiert. Gehen Sie zur <a href="${accountingPageURL}">Buchhaltung</a>, um Änderungen vorzunehmen.</centered-text></muted-text>`,
             },
             updateFailureMessage: 'Beim Aktualisieren der Kategorie ist ein Fehler aufgetreten, bitte versuchen Sie es erneut.',
             createFailureMessage: 'Beim Erstellen der Kategorie ist ein Fehler aufgetreten, bitte versuchen Sie es erneut.',
@@ -4721,14 +4719,9 @@ const translations = {
                 title: 'Sie haben noch keine Tags erstellt.',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'Fügen Sie ein Tag hinzu, um Projekte, Standorte, Abteilungen und mehr zu verfolgen.',
-                subtitle1: 'Importieren Sie eine Tabelle, um Tags für die Verfolgung von Projekten, Standorten, Abteilungen und mehr hinzuzufügen.',
-                subtitle2: 'Erfahren Sie mehr',
-                subtitle3: 'über das Formatieren von Tag-Dateien.',
-            },
-            emptyTagsWithAccounting: {
-                subtitle1: 'Ihre Tags werden derzeit aus einer Buchhaltungsverbindung importiert. Gehen Sie zu',
-                subtitle2: 'Buchhaltung',
-                subtitle3: 'um Änderungen vorzunehmen.',
+                subtitleHTML: `<muted-text><centered-text>Importieren Sie eine Kalkulationstabelle, um Tags für die Verfolgung von Projekten, Standorten, Abteilungen und mehr hinzuzufügen. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Erfahren Sie mehr</a> über die Formatierung von Tag-Dateien.</centered-text></muted-text>`,
+                subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
+                    `<muted-text><centered-text>Your tags are currently importing from an accounting connection. Gehen Sie zur <a href="${accountingPageURL}">Buchhaltung</a>, um Änderungen vorzunehmen.</centered-text></muted-text>`,
             },
             deleteTag: 'Tag löschen',
             deleteTags: 'Tags löschen',
@@ -5236,6 +5229,10 @@ const translations = {
                 one: 'Möchten Sie diesen Satz wirklich löschen?',
                 other: 'Möchten Sie diese Tarife wirklich löschen?',
             }),
+            errors: {
+                rateNameRequired: 'Ratenname ist erforderlich',
+                existingRateName: 'Ein Entfernungsrate mit diesem Namen existiert bereits.',
+            },
         },
         editor: {
             descriptionInputLabel: 'Beschreibung',
@@ -6160,7 +6157,6 @@ const translations = {
                     return `Arbeitsbereich geändert zu ${toPolicyName}${fromPolicyName ? ` (zuvor ${fromPolicyName})` : ''}`;
                 },
                 changeType: ({oldType, newType}: ChangeTypeParams) => `Typ von ${oldType} zu ${newType} geändert`,
-                delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `diesen Bericht an ${delegateUser} gesendet, da ${originalManager} im Urlaub ist`,
                 exportedToCSV: `in CSV exportiert`,
                 exportedToIntegration: {
                     automatic: ({label}: ExportedToIntegrationParams) => `exportiert nach ${label}`,

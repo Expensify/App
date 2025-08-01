@@ -1424,7 +1424,7 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>, g
 
     const mentionElements = targetAccountIDs.map((accountID): MemberChangeMessageUserMentionElement => {
         const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
-        const handleText = getEffectiveDisplayName(personalDetail) ?? translateLocal('common.hidden');
+        const handleText = getEffectiveDisplayName(formatPhoneNumber, personalDetail) ?? translateLocal('common.hidden');
 
         return {
             kind: 'userMention',
@@ -1500,7 +1500,6 @@ function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
     return [
         CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
         CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE,
-        CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT,
         CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV,
         CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
         CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT,
@@ -1553,10 +1552,6 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
                 return translateLocal('report.actions.type.changeFieldEmpty', {newValue, fieldName});
             }
             return translateLocal('report.actions.type.changeField', {oldValue, newValue, fieldName});
-        }
-        case CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT: {
-            const {delegateUser, originalManager} = originalMessage;
-            return translateLocal('report.actions.type.delegateSubmit', {delegateUser, originalManager});
         }
         case CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV:
             return translateLocal('report.actions.type.exportedToCSV');
@@ -1888,7 +1883,7 @@ function getActionableMentionWhisperMessage(reportAction: OnyxEntry<ReportAction
     const personalDetails = getPersonalDetailsByIDs({accountIDs: targetAccountIDs, currentUserAccountID: 0});
     const mentionElements = targetAccountIDs.map((accountID): string => {
         const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
-        const displayName = getEffectiveDisplayName(personalDetail);
+        const displayName = getEffectiveDisplayName(formatPhoneNumber, personalDetail);
         const handleText = isEmpty(displayName) ? translateLocal('common.hidden') : displayName;
         return `<mention-user accountID=${accountID}>@${handleText}</mention-user>`;
     });
@@ -2973,6 +2968,30 @@ function getIntegrationSyncFailedMessage(action: OnyxEntry<ReportAction>, policy
     return translateLocal('report.actions.type.integrationSyncFailed', {label, errorMessage, workspaceAccountingLink});
 }
 
+function getManagerOnVacation(action: OnyxEntry<ReportAction>): string | undefined {
+    if (!isApprovedAction(action)) {
+        return;
+    }
+
+    return getOriginalMessage(action)?.managerOnVacation;
+}
+
+function getVacationer(action: OnyxEntry<ReportAction>): string | undefined {
+    if (!isSubmittedAction(action)) {
+        return;
+    }
+
+    return getOriginalMessage(action)?.vacationer;
+}
+
+function getSubmittedTo(action: OnyxEntry<ReportAction>): string | undefined {
+    if (!isSubmittedAction(action)) {
+        return;
+    }
+
+    return getOriginalMessage(action)?.to;
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -3140,6 +3159,9 @@ export {
     getReportActionFromExpensifyCard,
     isReopenedAction,
     getIntegrationSyncFailedMessage,
+    getManagerOnVacation,
+    getVacationer,
+    getSubmittedTo,
     getReceiptScanFailedMessage,
 };
 
