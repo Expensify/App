@@ -875,5 +875,22 @@ describe('PolicyUtils', () => {
             expect(sortWorkspacesBySelected(workspace1, workspace3, undefined, TestHelper.localeCompare)).toBe(-1);
             expect(sortWorkspacesBySelected(workspace3, workspace4, undefined, TestHelper.localeCompare)).toBe(-1);
         });
+
+        it('should sort workspaces when using this method correctly', () => {
+            const unsortedWorkspaces = [
+                {policyID: '2', name: 'Workspace 2'},
+                {policyID: '1', name: 'Workspace 1'},
+                {policyID: '4', name: 'Workspace 4'},
+                {policyID: '3', name: 'Workspace 3'},
+            ];
+            const selectedWorkspaceIDs = ['3', '4'];
+            const sortedWorkspaces = unsortedWorkspaces.sort((a, b) => sortWorkspacesBySelected(a, b, selectedWorkspaceIDs, TestHelper.localeCompare));
+            expect(sortedWorkspaces).toEqual([
+                {policyID: '3', name: 'Workspace 3'},
+                {policyID: '4', name: 'Workspace 4'},
+                {policyID: '1', name: 'Workspace 1'},
+                {policyID: '2', name: 'Workspace 2'},
+            ]);
+        });
     });
 });
