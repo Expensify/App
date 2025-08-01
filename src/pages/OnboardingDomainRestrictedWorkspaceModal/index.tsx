@@ -37,7 +37,9 @@ function OnboardingDomainRestrictedWorkspaceModal() {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        canBeMissing: false,
+    });
 
     // Get workspaces that the user can join (based on their domain)
     const availableWorkspaces = useMemo(() => {
@@ -49,7 +51,7 @@ function OnboardingDomainRestrictedWorkspaceModal() {
             .filter((policy) => shouldShowPolicy(policy, false, currentUserPersonalDetails.login) && !policy?.isJoinRequestPending && policy?.isPolicyExpenseChatEnabled)
             .map((policy) => ({
                 text: policy?.name ?? '',
-                policyID: policy?.id ?? '',
+                policyID: policy?.id ?? '-1',
                 icons: [
                     {
                         source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name),
