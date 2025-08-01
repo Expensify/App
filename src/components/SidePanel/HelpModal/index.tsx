@@ -36,6 +36,8 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
 
     // Close Side Panel on escape key press
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => closeSidePanel(), {isActive: !isExtraLargeScreenWidth, shouldBubble: false});
+    // Close Side Panel on debug key press i.e. opening the TestTools modal
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.DEBUG, () => closeSidePanel(), {shouldBubble: true});
 
     // Close Side Panel on small screens when navigation keyboard shortcuts are used
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SEARCH, onCloseSidePanelOnSmallScreens, {shouldBubble: true});
@@ -64,17 +66,17 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
 
     return (
         <ModalPortal>
-            <ColorSchemeWrapper>
-                <FocusTrapForModal active={!isExtraLargeScreenWidth}>
-                    <View style={styles.sidePanelContainer}>
-                        <View>
-                            {!shouldHideSidePanelBackdrop && (
-                                <HelpOverlay
-                                    onBackdropPress={closeSidePanel}
-                                    isRHPVisible={isRHPVisible}
-                                />
-                            )}
-                        </View>
+            <FocusTrapForModal active={!isExtraLargeScreenWidth}>
+                <View style={styles.sidePanelContainer}>
+                    <View>
+                        {!shouldHideSidePanelBackdrop && (
+                            <HelpOverlay
+                                onBackdropPress={closeSidePanel}
+                                isRHPVisible={isRHPVisible}
+                            />
+                        )}
+                    </View>
+                    <ColorSchemeWrapper>
                         <Animated.View
                             style={[
                                 styles.sidePanelContent(shouldUseNarrowLayout, isExtraLargeScreenWidth),
@@ -83,9 +85,9 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
                         >
                             <HelpContent closeSidePanel={closeSidePanel} />
                         </Animated.View>
-                    </View>
-                </FocusTrapForModal>
-            </ColorSchemeWrapper>
+                    </ColorSchemeWrapper>
+                </View>
+            </FocusTrapForModal>
         </ModalPortal>
     );
 }
