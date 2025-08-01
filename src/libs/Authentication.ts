@@ -25,7 +25,9 @@ type Parameters = {
 
 let isAuthenticatingWithShortLivedToken = false;
 let isSupportAuthTokenUsed = false;
-Onyx.connect({
+
+// We have used `connectWithoutView` here because it is not connected to any UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         isAuthenticatingWithShortLivedToken = !!value?.isAuthenticatingWithShortLivedToken;
