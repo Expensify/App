@@ -16,9 +16,7 @@ import {queueOnyxUpdates} from './QueuedOnyxUpdates';
 // callback were triggered it would lead to duplicate processing of server updates.
 let lastUpdateIDAppliedToClient: number | undefined = 0;
 
-// It is not recommended to use `connectWithoutView`
-// We use it here because this lib is not connected to any UI
-// It is highly discouraged to use `connectWithoutView` in the code and should be avoided!
+// We have used `connectWithoutView` here because OnyxUpdates is not connected to any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     callback: (val) => (lastUpdateIDAppliedToClient = val),
