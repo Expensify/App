@@ -25,7 +25,7 @@ type WorkspacesListRowProps = {
     limit: number;
 
     /** Policy currency */
-    currency: string;
+    currency?: string;
 
     /** Type of card */
     isVirtual: boolean;
