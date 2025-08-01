@@ -99,6 +99,7 @@ export default {
     iosSafeAreaInsetsPercentage: 0.7,
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
+    minScanTooltipWidth: 320,
     uploadViewMargin: 20,
     sideBarWithLHBWidth: 320,
     navigationTabBarSize: 72,
@@ -121,7 +122,11 @@ export default {
     lineHeighTaskTitle: getValueUsingPixelRatio(26, 30),
     lineHeightSignInHeroXSmall: getValueUsingPixelRatio(32, 37),
     inputHeight: getValueUsingPixelRatio(52, 72),
+    inputPaddingTop: getValueUsingPixelRatio(15, 21),
+    inputPaddingBottom: getValueUsingPixelRatio(8, 11),
     inputHeightSmall: 28,
+    inputIconMarginTopSmall: getValueUsingPixelRatio(8, 11),
+    inputIconMarginTopLarge: getValueUsingPixelRatio(16, 21),
     formErrorLineHeight: getValueUsingPixelRatio(18, 23),
     communicationsLinkHeight: getValueUsingPixelRatio(20, 30),
     alternateTextHeight: getValueUsingPixelRatio(20, 24),
@@ -259,6 +264,9 @@ export default {
     cardMiniatureHeight: 13,
     cardMiniatureBorderRadius: 2,
 
+    cardAvatarWidth: 20,
+    cardAvatarHeight: 13,
+
     cardNameWidth: 156,
     updateAnimationW: 390,
     updateAnimationH: 240,
@@ -321,4 +329,41 @@ export default {
     w130: 130,
     w184: 184,
     w191: 191,
+
+    // Transaction item row heights based on layout types
+    // Wide screen (desktop) layout
+    optionRowWideItemHeight: 64,
+
+    // Narrow screen with drawer layout
+    optionRowNarrowWithDrawerItemHeight: 100,
+    optionRowNarrowWithDrawerItemHeightWithButton: 124,
+
+    // Narrow screen without drawer (mobile-like) layout
+    optionRowNarrowWithoutDrawerItemHeight: 92,
+    optionRowNarrowWithoutDrawerItemHeightWithButton: 104,
+
+    optionRowListItemPadding: 8,
+    optionRowSearchHeaderHeight: 54,
+
+    // SearchList item heights
+    searchListItemHeightLargeScreen: 72,
+    searchListItemHeightSmallScreen: 96,
+    searchListItemHeightChat: 351,
+    searchListItemHeightChatCompact: 105,
+    searchOptionRowTransactionHeightSmallScreen: 60,
+    searchOptionRowTransactionHeightLargeScreen: 52,
+    searchOptionRowBaseHeight: 52,
+    searchOptionRowSmallFooterHeight: 28,
+    searchOptionRowLargeFooterHeight: 17,
+    searchOptionRowMargin: 8,
+
+    // Search item violation warning mark height
+    searchViolationWarningMarkHeight: 22,
+
+    // Search item base padding/margin
+    searchItemBasePadding: 8,
+
+    // Chat-specific item heights (rounded to nearest integer). The values was measured on the screen
+    searchChatReportPreviewHeight: 434,
+    searchChatStandardItemHeight: 97,
 } as const;

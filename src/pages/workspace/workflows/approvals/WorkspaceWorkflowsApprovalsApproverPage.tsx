@@ -2,7 +2,6 @@ import {useNavigationState} from '@react-navigation/native';
 import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -16,6 +15,7 @@ import type {Section} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearApprovalWorkflowApprover, clearApprovalWorkflowApprovers, setApprovalWorkflowApprover} from '@libs/actions/Workflow';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -54,7 +54,7 @@ type ApproverSection = SectionListData<SelectionListApprover, Section<SelectionL
 
 function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsApproverPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
@@ -144,7 +144,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         const filteredApprovers =
             debouncedSearchTerm !== '' ? tokenizedSearch(approvers, getSearchValueForPhoneOrEmail(debouncedSearchTerm), (option) => [option.text ?? '', option.login ?? '']) : approvers;
 
-        const data = sortAlphabetically(filteredApprovers, 'text');
+        const data = sortAlphabetically(filteredApprovers, 'text', localeCompare);
         return [
             {
                 title: undefined,
@@ -165,6 +165,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         membersEmail,
         policy?.preventSelfApproval,
         policy?.owner,
+        localeCompare,
     ]);
 
     const shouldShowListEmptyContent = !debouncedSearchTerm && !!approvalWorkflow && !sections.at(0)?.data.length && !isApprovalWorkflowLoading;

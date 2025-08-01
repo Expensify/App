@@ -17,8 +17,11 @@ import {
     getShareDestinationOptions,
     getShareLogOptions,
     getValidOptions,
+    optionsOrderBy,
     orderOptions,
     orderWorkspaceOptions,
+    recentReportComparator,
+    sortAlphabetically,
 } from '@libs/OptionsListUtils';
 import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport, isExpensifyOnlyParticipantInReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -27,6 +30,7 @@ import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
+import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@rnmapbox/maps', () => {
@@ -39,6 +43,17 @@ jest.mock('@rnmapbox/maps', () => {
 
 jest.mock('@react-native-community/geolocation', () => ({
     setRNConfiguration: jest.fn(),
+}));
+
+jest.mock('@src/libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+    dismissModal: jest.fn(),
+    dismissModalWithReport: jest.fn(),
+    goBack: jest.fn(),
+    getTopmostReportId: jest.fn(() => undefined),
+    setNavigationActionToMicrotaskQueue: jest.fn(),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+    getReportRHPActiveRoute: jest.fn(),
 }));
 
 type PersonalDetailsList = Record<string, PersonalDetails & OptionData>;
@@ -801,6 +816,98 @@ describe('OptionsListUtils', () => {
 
             // Then the result should include the admin room
             expect(adminRoomOption).toBeDefined();
+        });
+
+        it('should include brickRoadIndicator if showRBR is true', () => {
+            const reportID = '1455140530846319';
+            const workspaceChat: SearchOption<Report> = {
+                item: {
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    currency: 'USD',
+                    errorFields: {},
+                    lastActionType: 'CREATED',
+                    lastReadTime: '2025-03-21 07:25:46.279',
+                    lastVisibleActionCreated: '2024-12-15 21:13:24.317',
+                    lastVisibleActionLastModified: '2024-12-15 21:13:24.317',
+                    ownerAccountID: 0,
+                    permissions: ['read', 'write'],
+                    participants: {1: {notificationPreference: 'always'}},
+                    policyID: '52A5ABD88FBBD18F',
+                    policyName: "A's Workspace",
+                    reportID,
+                    reportName: "A's Workspace chat",
+                    type: 'chat',
+                    writeCapability: 'all',
+                },
+                text: "A's Workspace chat",
+                alternateText: "A's Workspace",
+                allReportErrors: {},
+                subtitle: "A's Workspace",
+                participantsList: [],
+                reportID,
+                keyForList: '1455140530846319',
+                isDefaultRoom: true,
+                isChatRoom: true,
+                policyID: '52A5ABD88FBBD18F',
+                lastMessageText: '',
+                lastVisibleActionCreated: '2024-12-15 21:13:24.317',
+                notificationPreference: 'hidden',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            };
+            const results = getValidOptions(
+                {reports: [workspaceChat], personalDetails: []},
+                {
+                    includeMultipleParticipantReports: true,
+                    showRBR: true,
+                },
+            );
+            expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        });
+
+        it('should not include brickRoadIndicator if showRBR is false', () => {
+            const reportID = '1455140530846319';
+            const workspaceChat: SearchOption<Report> = {
+                item: {
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    currency: 'USD',
+                    errorFields: {},
+                    lastActionType: 'CREATED',
+                    lastReadTime: '2025-03-21 07:25:46.279',
+                    lastVisibleActionCreated: '2024-12-15 21:13:24.317',
+                    lastVisibleActionLastModified: '2024-12-15 21:13:24.317',
+                    ownerAccountID: 0,
+                    permissions: ['read', 'write'],
+                    participants: {1: {notificationPreference: 'always'}},
+                    policyID: '52A5ABD88FBBD18F',
+                    policyName: "A's Workspace",
+                    reportID,
+                    reportName: "A's Workspace chat",
+                    type: 'chat',
+                    writeCapability: 'all',
+                },
+                text: "A's Workspace chat",
+                alternateText: "A's Workspace",
+                allReportErrors: {},
+                subtitle: "A's Workspace",
+                participantsList: [],
+                reportID,
+                keyForList: '1455140530846319',
+                isDefaultRoom: true,
+                isChatRoom: true,
+                policyID: '52A5ABD88FBBD18F',
+                lastMessageText: '',
+                lastVisibleActionCreated: '2024-12-15 21:13:24.317',
+                notificationPreference: 'hidden',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            };
+            const results = getValidOptions(
+                {reports: [workspaceChat], personalDetails: []},
+                {
+                    includeMultipleParticipantReports: true,
+                    showRBR: false,
+                },
+            );
+            expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(null);
         });
     });
 
@@ -1785,6 +1892,80 @@ describe('OptionsListUtils', () => {
 
             // Then the returned value should match the search term
             expect(filteredReports).toEqual(reports);
+        });
+    });
+
+    describe('getMostRecentOptions()', () => {
+        it('returns the most recent options up to the specified limit', () => {
+            const options: OptionData[] = [
+                {reportID: '1', lastVisibleActionCreated: '2022-01-01T10:00:00Z'} as OptionData,
+                {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z'} as OptionData,
+                {reportID: '3', lastVisibleActionCreated: '2022-01-01T09:00:00Z'} as OptionData,
+                {reportID: '4', lastVisibleActionCreated: '2022-01-01T13:00:00Z'} as OptionData,
+            ];
+            const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
+            const result = optionsOrderBy(options, comparator, 2);
+            expect(result.length).toBe(2);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(0)!.reportID).toBe('4');
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(1)!.reportID).toBe('2');
+        });
+
+        it('returns all options if limit is greater than options length', () => {
+            const options: OptionData[] = [
+                {reportID: '1', lastVisibleActionCreated: '2022-01-01T10:00:00Z'} as OptionData,
+                {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z'} as OptionData,
+            ];
+            const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
+            const result = optionsOrderBy(options, comparator, 5);
+            expect(result.length).toBe(2);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(0)!.reportID).toBe('2');
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(1)!.reportID).toBe('1');
+        });
+
+        it('returns empty array if options is empty', () => {
+            const result = optionsOrderBy([], recentReportComparator, 3);
+            expect(result).toEqual([]);
+        });
+
+        it('applies filter function if provided', () => {
+            const options: OptionData[] = [
+                {reportID: '1', lastVisibleActionCreated: '2022-01-01T10:00:00Z', isPinned: true} as OptionData,
+                {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z', isPinned: false} as OptionData,
+                {reportID: '3', lastVisibleActionCreated: '2022-01-01T09:00:00Z', isPinned: true} as OptionData,
+            ];
+            const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
+            const result = optionsOrderBy(options, comparator, 2, (option) => option.isPinned);
+            expect(result.length).toBe(2);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(0)!.reportID).toBe('1');
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(1)!.reportID).toBe('3');
+        });
+    });
+
+    describe('sortAlphabetically', () => {
+        it('should sort options alphabetically by text', () => {
+            const options: OptionData[] = [{text: 'Banana', reportID: '1'} as OptionData, {text: 'Apple', reportID: '2'} as OptionData, {text: 'Cherry', reportID: '3'} as OptionData];
+            const sortedOptions = sortAlphabetically(options, 'text', localeCompare);
+            expect(sortedOptions.at(0)?.reportID).toBe('2');
+            expect(sortedOptions.at(1)?.reportID).toBe('1');
+            expect(sortedOptions.at(2)?.reportID).toBe('3');
+        });
+
+        it('should handle empty array', () => {
+            const sortedOptions = sortAlphabetically([], 'abc', localeCompare);
+            expect(sortedOptions).toEqual([]);
+        });
+
+        it('should handle single option', () => {
+            const options: OptionData[] = [{text: 'Single', reportID: '1'} as OptionData];
+            const sortedOptions = sortAlphabetically(options, 'text', localeCompare);
+            expect(sortedOptions.length).toBe(1);
+            expect(sortedOptions.at(0)?.text).toBe('Single');
         });
     });
 });

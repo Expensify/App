@@ -10,9 +10,10 @@ import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-method
 import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
 import type {Api} from '@octokit/plugin-rest-endpoint-methods/dist-types/types';
 import {throttling} from '@octokit/plugin-throttling';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import arrayDifference from '@src/utils/arrayDifference';
+import {RequestError} from '@octokit/request-error';
+import arrayDifference from './arrayDifference';
 import CONST from './CONST';
+import {isEmptyObject} from './isEmptyObject';
 
 type OctokitOptions = {method: string; url: string; request: {retryCount: number}};
 
@@ -21,6 +22,14 @@ type ListForRepoResult = RestEndpointMethodTypes['issues']['listForRepo']['respo
 type OctokitIssueItem = OctokitComponents['schemas']['issue'];
 
 type ListForRepoMethod = RestEndpointMethods['issues']['listForRepo'];
+
+type OctokitCommit = OctokitComponents['schemas']['commit'];
+
+type CommitType = {
+    commit: string;
+    subject: string;
+    authorName: string;
+};
 
 type StagingDeployCashPR = {
     url: string;
@@ -44,6 +53,8 @@ type OctokitArtifact = OctokitComponents['schemas']['artifact'];
 type OctokitPR = OctokitComponents['schemas']['pull-request-simple'];
 
 type CreateCommentResponse = RestEndpointMethodTypes['issues']['createComment']['response'];
+
+type ListCommentsResponse = RestEndpointMethodTypes['issues']['listComments']['response'];
 
 type StagingDeployCashData = {
     title: string;
@@ -314,7 +325,11 @@ class GithubUtils {
 
                     // Tag version and comparison URL
                     // eslint-disable-next-line max-len
-                    let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n`;
+                    let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n`;
+
+                    // Warn deployers about potential bugs with the new process
+                    issueBody +=
+                        '> 💡 **Deployer FYI:** This checklist was generated using a new process. PR list from original method and detail logging can be found in the most recent [deploy workflow](https://github.com/Expensify/App/actions/workflows/deploy.yml) labeled `staging`, in the `createChecklist` action. Please tag @Julesssss with any issues.\r\n\r\n';
 
                     // PR list
                     if (sortedPRList.length > 0) {
@@ -445,6 +460,19 @@ class GithubUtils {
         );
     }
 
+    static getAllCommentDetails(issueNumber: number): Promise<ListCommentsResponse['data']> {
+        return this.paginate(
+            this.octokit.issues.listComments,
+            {
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                issue_number: issueNumber,
+                per_page: 100,
+            },
+            (response) => response.data,
+        );
+    }
+
     /**
      * Create comment on pull request
      */
@@ -471,6 +499,36 @@ class GithubUtils {
                 workflow_id: workflow,
             })
             .then((response) => response.data.workflow_runs.at(0)?.id ?? -1);
+    }
+
+    /**
+     * List workflow runs for the repository.
+     */
+    static async listWorkflowRunsForRepo(
+        options: {
+            per_page?: number;
+            status?:
+                | 'completed'
+                | 'action_required'
+                | 'cancelled'
+                | 'failure'
+                | 'neutral'
+                | 'skipped'
+                | 'stale'
+                | 'success'
+                | 'timed_out'
+                | 'in_progress'
+                | 'queued'
+                | 'requested'
+                | 'waiting';
+        } = {},
+    ) {
+        return this.octokit.actions.listWorkflowRunsForRepo({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            per_page: options.per_page ?? 50,
+            ...(options.status && {status: options.status}),
+        });
     }
 
     /**
@@ -560,7 +618,93 @@ class GithubUtils {
             })
             .then((response) => response.url);
     }
+
+    /**
+     * Get the contents of a file from the API at a given ref as a string.
+     */
+    static async getFileContents(path: string, ref = 'main'): Promise<string> {
+        const {data} = await this.octokit.repos.getContent({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            path,
+            ref,
+        });
+        if (Array.isArray(data)) {
+            throw new Error(`Provided path ${path} refers to a directory, not a file`);
+        }
+        if (!('content' in data)) {
+            throw new Error(`Provided path ${path} is invalid`);
+        }
+        return Buffer.from(data.content, 'base64').toString('utf8');
+    }
+
+    /**
+     * Get commits between two tags via the GitHub API
+     */
+    static async getCommitHistoryBetweenTags(fromTag: string, toTag: string): Promise<CommitType[]> {
+        console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
+        core.startGroup('Fetching paginated commits:');
+
+        try {
+            let allCommits: OctokitCommit[] = [];
+            let page = 1;
+            const perPage = 250;
+            let hasMorePages = true;
+
+            while (hasMorePages) {
+                core.info(`📄 Fetching page ${page} of commits...`);
+
+                const response = await this.octokit.repos.compareCommits({
+                    owner: CONST.GITHUB_OWNER,
+                    repo: CONST.APP_REPO,
+                    base: fromTag,
+                    head: toTag,
+                    per_page: perPage,
+                    page,
+                });
+
+                // Check if we got a proper response with commits
+                if (response.data?.commits && Array.isArray(response.data.commits)) {
+                    if (page === 1) {
+                        core.info(`📊 Total commits: ${response.data.total_commits ?? 'unknown'}`);
+                    }
+                    core.info(`✅ compareCommits API returned ${response.data.commits.length} commits for page ${page}`);
+
+                    allCommits = allCommits.concat(response.data.commits);
+
+                    // Check if we got fewer commits than requested or if we've reached the total
+                    const totalCommits = response.data.total_commits;
+                    if (response.data.commits.length < perPage || (totalCommits && allCommits.length >= totalCommits)) {
+                        hasMorePages = false;
+                    } else {
+                        page++;
+                    }
+                } else {
+                    core.warning('⚠️ GitHub API returned unexpected response format');
+                    hasMorePages = false;
+                }
+            }
+
+            core.info(`🎉 Successfully fetched ${allCommits.length} total commits`);
+            core.endGroup();
+            return allCommits.map(
+                (commit): CommitType => ({
+                    commit: commit.sha,
+                    subject: commit.commit.message,
+                    authorName: commit.commit.author?.name ?? 'Unknown',
+                }),
+            );
+        } catch (error) {
+            if (error instanceof RequestError && error.status === 404) {
+                console.error(
+                    `❓❓ Failed to get commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them.`,
+                );
+            }
+            core.endGroup();
+            throw error;
+        }
+    }
 }
 
 export default GithubUtils;
-export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse, StagingDeployCashData};
+export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse, ListCommentsResponse, StagingDeployCashData, CommitType};

@@ -4,6 +4,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import EmbeddedDemo from '@components/EmbeddedDemo';
 import Modal from '@components/Modal';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,9 +23,10 @@ function TestDriveDemo() {
     const styles = useThemeStyles();
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: false});
     const [onboardingReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboarding?.chatReportID}`, {canBeMissing: true});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: false});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const viewTourReportID = introSelected?.viewTour;
     const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
+    const {testDrive} = useOnboardingMessages();
 
     useEffect(() => {
         InteractionManager.runAfterInteractions(() => {
@@ -62,8 +64,8 @@ function TestDriveDemo() {
                     <TestDriveBanner onPress={closeModal} />
                     <FullPageOfflineBlockingView>
                         <EmbeddedDemo
-                            url={getTestDriveURL(shouldUseNarrowLayout, introSelected?.choice)}
-                            iframeTitle={CONST.TEST_DRIVE.EMBEDDED_DEMO_IFRAME_TITLE}
+                            url={getTestDriveURL(shouldUseNarrowLayout, introSelected)}
+                            iframeTitle={testDrive.EMBEDDED_DEMO_IFRAME_TITLE}
                         />
                     </FullPageOfflineBlockingView>
                 </Modal>

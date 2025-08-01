@@ -1,30 +1,33 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useBetas} from '@components/OnyxProvider';
+import {useBetas} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportActions from '@libs/actions/Report';
+import {searchInServer} from '@libs/actions/Report';
+import memoize from '@libs/memoize';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, getHeaderMessage, getValidOptions} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
+
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'AddDelegatePage.getValidOptions'});
 
 function useOptions() {
     const betas = useBetas();
     const [isLoading, setIsLoading] = useState(true);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const existingDelegates = useMemo(
         () =>
             account?.delegatedAccess?.delegates?.reduce(
@@ -39,7 +42,7 @@ function useOptions() {
     );
 
     const defaultOptions = useMemo(() => {
-        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getValidOptions(
+        const {recentReports, personalDetails, userToInvite, currentUserOption} = memoizedGetValidOptions(
             {
                 reports: optionsList.reports,
                 personalDetails: optionsList.personalDetails,
@@ -50,7 +53,7 @@ function useOptions() {
             },
         );
 
-        const headerMessage = OptionsListUtils.getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0, !!userToInvite, '');
+        const headerMessage = getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0, !!userToInvite, '');
 
         if (isLoading) {
             // eslint-disable-next-line react-compiler/react-compiler
@@ -67,11 +70,11 @@ function useOptions() {
     }, [optionsList.reports, optionsList.personalDetails, betas, existingDelegates, isLoading]);
 
     const options = useMemo(() => {
-        const filteredOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), {
+        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), {
             excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
-        const headerMessage = OptionsListUtils.getHeaderMessage(
+        const headerMessage = getHeaderMessage(
             (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0,
             !!filteredOptions.userToInvite,
             debouncedSearchValue,
@@ -88,7 +91,7 @@ function useOptions() {
 function AddDelegatePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const {userToInvite, recentReports, personalDetails, searchValue, debouncedSearchValue, setSearchValue, headerMessage, areOptionsInitialized} = useOptions();
 
     const sections = useMemo(() => {
@@ -133,7 +136,7 @@ function AddDelegatePage() {
     }, []);
 
     useEffect(() => {
-        ReportActions.searchInServer(debouncedSearchValue);
+        searchInServer(debouncedSearchValue);
     }, [debouncedSearchValue]);
 
     return (

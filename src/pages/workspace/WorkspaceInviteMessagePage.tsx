@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -17,6 +16,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {clearDraftValues} from '@libs/actions/FormActions';
@@ -48,7 +48,7 @@ type WorkspaceInviteMessagePageProps = WithPolicyAndFullscreenLoadingProps &
 
 function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}: WorkspaceInviteMessagePageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT, {canBeMissing: true});
 
     const viewportOffsetTop = useViewportOffsetTop();
@@ -101,7 +101,14 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         Keyboard.dismiss();
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
-        addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID, policyMemberAccountIDs, workspaceInviteRoleDraft);
+        addMembersToWorkspace(
+            invitedEmailsToAccountIDsDraft ?? {},
+            `${welcomeNoteSubject}\n\n${welcomeNote}`,
+            route.params.policyID,
+            policyMemberAccountIDs,
+            workspaceInviteRoleDraft,
+            formatPhoneNumber,
+        );
         setWorkspaceInviteMessageDraft(route.params.policyID, welcomeNote ?? null);
         clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
         if ((route.params?.backTo as string)?.endsWith('members')) {

@@ -63,16 +63,36 @@ type DeleteConfirmationParams = {
     action: OnyxInputOrEntry<ReportAction>;
 };
 
-type BeginningOfChatHistoryDomainRoomPartOneParams = {
+type BeginningOfChatHistoryDomainRoomParams = {
     domainRoom: string;
 };
 
-type BeginningOfChatHistoryAdminRoomPartOneParams = {
+type BeginningOfChatHistoryAdminRoomParams = {
     workspaceName: string;
 };
 
-type BeginningOfChatHistoryAnnounceRoomPartOneParams = {
+type BeginningOfChatHistoryAnnounceRoomParams = {
     workspaceName: string;
+};
+
+type BeginningOfChatHistoryPolicyExpenseChatParams = {
+    workspaceName: string;
+    submitterDisplayName: string;
+};
+
+type BeginningOfChatHistoryInvoiceRoomParams = {
+    invoicePayer: string;
+    invoiceReceiver: string;
+};
+
+type BeginningOfArchivedRoomParams = {
+    reportName: string;
+    reportDetailsLink: string;
+};
+
+type BeginningOfChatHistoryUserRoomParams = {
+    reportName: string;
+    reportDetailsLink: string;
 };
 
 type BeginningOfChatHistoryAnnounceRoomPartTwo = {
@@ -137,9 +157,12 @@ type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
 
-type BusinessBankAccountParams = {
-    amount: string;
-    last4Digits: string;
+type WorkspacesListRouteParams = {
+    workspacesListRoute: string;
+};
+
+type WorkspaceRouteParams = {
+    workspaceRoute: string;
 };
 
 type RequestAmountParams = {amount: string};
@@ -201,8 +224,6 @@ type EnterMagicCodeParams = {contactMethod: string};
 type TransferParams = {amount: string};
 
 type InstantSummaryParams = {rate: string; minAmount: string};
-
-type BankAccountLastFourParams = {lastFour: string};
 
 type NotYouParams = {user: string};
 
@@ -379,8 +400,6 @@ type UpdatedPolicyManualApprovalThresholdParams = {oldLimit: string; newLimit: s
 
 type ChangeTypeParams = {oldType: string; newType: string};
 
-type DelegateSubmitParams = {delegateUser: string; originalManager: string};
-
 type AccountOwnerParams = {accountOwnerEmail: string};
 
 type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
@@ -446,7 +465,7 @@ type ExportAgainModalDescriptionParams = {
     connectionName: ConnectionName;
 };
 
-type IntegrationSyncFailedParams = {label: string; errorMessage: string; linkText?: string; linkURL?: string};
+type IntegrationSyncFailedParams = {label: string; errorMessage: string; linkText?: string; linkURL?: string; workspaceAccountingLink?: string};
 
 type AddEmployeeParams = {email: string; role: string};
 
@@ -680,6 +699,10 @@ type FileLimitParams = {
     fileLimit: number;
 };
 
+type FileTypeParams = {
+    fileType: string;
+};
+
 type CompanyCardBankName = {
     bankName: string;
 };
@@ -780,12 +803,30 @@ type ContactMethodsRouteParams = {
     contactMethodsRoute: string;
 };
 
+type ContactMethodParams = {
+    contactMethodRoute: string;
+};
+
 type BusinessTaxIDParams = {
     country: string;
 };
 
+type EmptyCategoriesSubtitleWithAccountingParams = {
+    accountingPageURL: string;
+};
+
+type EmptyTagsSubtitleWithAccountingParams = {
+    accountingPageURL: string;
+};
+
+type SettlementAccountInfoParams = {
+    reconciliationAccountSettingsLink: string;
+    accountNumber: string;
+};
+
 export type {
     ContactMethodsRouteParams,
+    ContactMethodParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
@@ -804,6 +845,7 @@ export type {
     AutoPayApprovedReportsLimitErrorParams,
     FeatureNameParams,
     FileLimitParams,
+    FileTypeParams,
     SpreadSheetColumnParams,
     SpreadFieldNameParams,
     AssignedCardParams,
@@ -860,10 +902,14 @@ export type {
     AdminCanceledRequestParams,
     AlreadySignedInParams,
     ApprovedAmountParams,
-    BeginningOfChatHistoryAdminRoomPartOneParams,
-    BeginningOfChatHistoryAnnounceRoomPartOneParams,
+    BeginningOfChatHistoryAdminRoomParams,
+    BeginningOfChatHistoryAnnounceRoomParams,
+    BeginningOfChatHistoryPolicyExpenseChatParams,
+    BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfArchivedRoomParams,
+    BeginningOfChatHistoryUserRoomParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
-    BeginningOfChatHistoryDomainRoomPartOneParams,
+    BeginningOfChatHistoryDomainRoomParams,
     CanceledRequestParams,
     CharacterLimitParams,
     ConfirmThatParams,
@@ -968,7 +1014,6 @@ export type {
     ChangeReportPolicyParams,
     ChangeTypeParams,
     ExportedToIntegrationParams,
-    DelegateSubmitParams,
     AccountOwnerParams,
     IntegrationsMessageParams,
     MarkedReimbursedParams,
@@ -1035,7 +1080,6 @@ export type {
     SettlementDateParams,
     PolicyExpenseChatNameParams,
     YourPlanPriceValueParams,
-    BusinessBankAccountParams,
     NeedCategoryForExportToIntegrationParams,
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyManualApprovalThresholdParams,
@@ -1049,7 +1093,6 @@ export type {
     UpdatedPolicyCategoryExpenseLimitTypeParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     SubscriptionSettingsSummaryParams,
-    BankAccountLastFourParams,
     ReviewParams,
     CreateExpensesParams,
     CurrencyInputDisabledTextParams,
@@ -1058,5 +1101,10 @@ export type {
     AirlineParams,
     RailTicketParams,
     TravelTypeParams,
+    WorkspacesListRouteParams,
+    WorkspaceRouteParams,
     BusinessTaxIDParams,
+    EmptyCategoriesSubtitleWithAccountingParams,
+    EmptyTagsSubtitleWithAccountingParams,
+    SettlementAccountInfoParams,
 };

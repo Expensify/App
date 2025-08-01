@@ -1,5 +1,4 @@
 import React, {useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -12,6 +11,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
@@ -90,6 +90,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
                     assigneeEmail: memberLogin,
                 },
                 isEditing: false,
+                isChangeAssigneeDisabled: true,
                 policyID,
             });
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID)));

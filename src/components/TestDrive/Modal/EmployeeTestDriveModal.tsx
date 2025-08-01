@@ -6,6 +6,8 @@ import {InteractionManager} from 'react-native';
 import TestReceipt from '@assets/images/fake-test-drive-employee-receipt.jpg';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingMessages from '@hooks/useOnboardingMessages';
+import useOnyx from '@hooks/useOnyx';
 import {
     initMoneyRequest,
     setMoneyRequestAmount,
@@ -23,16 +25,21 @@ import type {TestDriveModalNavigatorParamList} from '@libs/Navigation/types';
 import {generateReportID} from '@libs/ReportUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import BaseTestDriveModal from './BaseTestDriveModal';
 
 function EmployeeTestDriveModal() {
     const {translate} = useLocalize();
+    const reportID = generateReportID();
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const route = useRoute<PlatformStackRouteProp<TestDriveModalNavigatorParamList, typeof SCREENS.TEST_DRIVE_MODAL.ROOT>>();
     const [bossEmail, setBossEmail] = useState(route.params?.bossEmail ?? '');
     const [formError, setFormError] = useState<string | undefined>();
     const [isLoading, setIsLoading] = useState(false);
+    const {testDrive} = useOnboardingMessages();
 
     const onBossEmailChange = useCallback((value: string) => {
         setBossEmail(value);
@@ -55,11 +62,13 @@ function EmployeeTestDriveModal() {
                     'jpg',
                     (source, _, filename) => {
                         const transactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-                        const reportID = generateReportID();
+
                         initMoneyRequest({
                             reportID,
                             isFromGlobalCreate: false,
                             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                            report,
+                            parentReport,
                         });
 
                         setMoneyRequestReceipt(transactionID, source, filename, true, CONST.TEST_RECEIPT.FILE_TYPE, false, true);
@@ -72,10 +81,9 @@ function EmployeeTestDriveModal() {
                                 selected: true,
                             },
                         ]);
-
-                        setMoneyRequestAmount(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.AMOUNT, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.CURRENCY);
-                        setMoneyRequestDescription(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.DESCRIPTION, true);
-                        setMoneyRequestMerchant(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.MERCHANT, true);
+                        setMoneyRequestAmount(transactionID, testDrive.EMPLOYEE_FAKE_RECEIPT.AMOUNT, testDrive.EMPLOYEE_FAKE_RECEIPT.CURRENCY);
+                        setMoneyRequestDescription(transactionID, testDrive.EMPLOYEE_FAKE_RECEIPT.DESCRIPTION, true);
+                        setMoneyRequestMerchant(transactionID, testDrive.EMPLOYEE_FAKE_RECEIPT.MERCHANT, true);
                         setMoneyRequestCreated(transactionID, format(new Date(), CONST.DATE.FNS_FORMAT_STRING), true);
 
                         InteractionManager.runAfterInteractions(() => {

@@ -6,7 +6,6 @@ import {View} from 'react-native';
 import type {ScrollView as RNScrollView} from 'react-native';
 import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DistanceRequestFooter from '@components/DistanceRequest/DistanceRequestFooter';
 import DistanceRequestRenderItem from '@components/DistanceRequest/DistanceRequestRenderItem';
@@ -17,6 +16,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -96,6 +96,7 @@ function IOURequestStepDistance({
             },
         [optimisticWaypoints, transaction],
     );
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
 
     const backupWaypoints = transactionBackup?.pendingFields?.waypoints ? transactionBackup?.comment?.waypoints : undefined;
     // When online, fetch the backup route to ensure the map is populated even if the user does not save the transaction.
@@ -304,7 +305,7 @@ function IOURequestStepDistance({
             const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant);
+                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
             });
             setDistanceRequestData(participants);
             if (shouldSkipConfirmation) {
@@ -390,7 +391,6 @@ function IOURequestStepDistance({
         transaction,
         backTo,
         report,
-        reportID,
         reportNameValuePairs,
         iouType,
         activePolicy,
@@ -398,6 +398,7 @@ function IOURequestStepDistance({
         shouldSkipConfirmation,
         transactionID,
         personalDetails,
+        reportAttributesDerived,
         translate,
         currentUserPersonalDetails.login,
         currentUserPersonalDetails.accountID,
@@ -406,6 +407,7 @@ function IOURequestStepDistance({
         backToReport,
         customUnitRateID,
         navigateToConfirmationPage,
+        reportID,
     ]);
 
     const getError = () => {

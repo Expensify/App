@@ -1,5 +1,4 @@
 import type {ValueOf} from 'type-fest';
-import {sortAlphabetically} from '@libs/ListUtils';
 
 /**
  * These locales are fully supported.
@@ -67,7 +66,8 @@ type FullySupportedLocale = ValueOf<typeof FULLY_SUPPORTED_LOCALES>;
 type Locale = FullySupportedLocale | ValueOf<typeof BETA_LOCALES>;
 type TranslationTargetLocale = ValueOf<typeof TRANSLATION_TARGET_LOCALES>;
 
-const SORTED_LOCALES = [FULLY_SUPPORTED_LOCALES.EN, FULLY_SUPPORTED_LOCALES.ES, ...sortAlphabetically(Object.values(BETA_LOCALES))] as Locale[];
+// Sort all locales alphabetically by their display names
+const SORTED_LOCALES = Object.values({...FULLY_SUPPORTED_LOCALES, ...BETA_LOCALES}).sort((a, b) => LOCALE_TO_LANGUAGE_STRING[a].localeCompare(LOCALE_TO_LANGUAGE_STRING[b]));
 
 function isSupportedLocale(locale: string): locale is Locale {
     return (Object.values(LOCALES) as readonly string[]).includes(locale);

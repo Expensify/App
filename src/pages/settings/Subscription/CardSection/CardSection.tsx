@@ -1,16 +1,17 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -226,12 +227,7 @@ function CardSection() {
                     isVisible={isRequestRefundModalVisible}
                     onConfirm={requestRefund}
                     onCancel={() => setIsRequestRefundModalVisible(false)}
-                    prompt={
-                        <>
-                            <Text style={styles.mb4}>{translate('subscription.cardSection.requestRefundModal.phrase1')}</Text>
-                            <Text>{translate('subscription.cardSection.requestRefundModal.phrase2')}</Text>
-                        </>
-                    }
+                    prompt={<RenderHTML html={translate('subscription.cardSection.requestRefundModal.full')} />}
                     confirmText={translate('subscription.cardSection.requestRefundModal.confirm')}
                     cancelText={translate('common.cancel')}
                     danger

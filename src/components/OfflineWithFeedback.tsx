@@ -14,6 +14,7 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import CustomStylesForChildrenProvider from './CustomStylesForChildrenProvider';
 import ErrorMessageRow from './ErrorMessageRow';
+import ImageSVG from './ImageSVG';
 
 /**
  * This component should be used when we are using the offline pattern B (offline with feedback).
@@ -108,7 +109,7 @@ function OfflineWithFeedback({
     const applyStrikeThrough = useCallback(
         (childrenProp: React.ReactNode): React.ReactNode => {
             const strikeThroughChildren = mapChildrenFlat(childrenProp, (child) => {
-                if (!React.isValidElement(child)) {
+                if (!React.isValidElement(child) || child.type === ImageSVG) {
                     return child;
                 }
 

@@ -1,11 +1,14 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {getButtonRole} from '@components/Button/utils';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {PressableWithFeedback} from '@components/Pressable';
+import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchGroupBy} from '@components/Search/types';
-import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {
     ListItem,
+    TransactionCardGroupListItemType,
     TransactionGroupListItemProps,
     TransactionGroupListItemType,
     TransactionListItemType,
@@ -17,15 +20,21 @@ import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {generateReportID} from '@libs/ReportUtils';
 import variables from '@styles/variables';
-import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
+import {updateSearchResultsWithTransactionThreadReportID} from '@userActions/Search';
+import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 
@@ -40,17 +49,19 @@ function TransactionGroupListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
+    columns,
     groupBy,
+    policies,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}, canBeMissing: true});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${groupItem?.policyID}`];
     const isEmpty = groupItem.transactions.length === 0;
     const isDisabledOrEmpty = isEmpty || isDisabled;
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const {currentSearchHash} = useSearchContext();
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
         const isAmountColumnWide = groupItem.transactions.some((transaction) => transaction.isAmountColumnWide);
@@ -70,48 +81,33 @@ function TransactionGroupListItem<TItem extends ListItem>({
         backgroundColor: theme.highlightBG,
     });
 
-    const listItemPressableStyle = [
-        styles.selectionListPressableItemWrapper,
-        styles.pv2,
-        styles.ph0,
-        styles.overflowHidden,
-        // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
-        styles.bgTransparent,
-        item.isSelected && styles.activeComponentBG,
-        styles.mh0,
-    ];
+    const pressableStyle = [styles.transactionGroupListItemStyle, item.isSelected && styles.activeComponentBG];
 
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
         const backTo = Navigation.getActiveRoute();
 
         const reportID = getReportIDForTransaction(transactionItem);
-        const siblingTransactionThreadIDs = groupItem.transactions.map(getReportIDForTransaction);
+        const siblingTransactionIDs = groupItem.transactions.map((transaction) => transaction.transactionID);
 
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
         // to display prev/next arrows in RHP for navigation
-        setActiveTransactionThreadIDs(siblingTransactionThreadIDs).then(() => {
+        setActiveTransactionIDs(siblingTransactionIDs).then(() => {
+            // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
+            if (transactionItem.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                const transactionThreadReportID = generateReportID();
+                const {moneyRequestReportActionID, transactionID, reportID: transactionItemReportID} = transactionItem;
+                const reportAction = getReportAction(transactionItemReportID, moneyRequestReportActionID);
+                const iouReportID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
+
+                updateSearchResultsWithTransactionThreadReportID(currentSearchHash, transactionID, transactionThreadReportID);
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReportID, backTo, moneyRequestReportActionID, transactionID, iouReportID}));
+                return;
+            }
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         });
     };
 
-    const sampleTransaction = groupItem.transactions.at(0);
-    const {COLUMNS} = CONST.REPORT.TRANSACTION_LIST;
-
-    const columns = [
-        COLUMNS.RECEIPT,
-        COLUMNS.TYPE,
-        COLUMNS.DATE,
-        COLUMNS.MERCHANT,
-        COLUMNS.FROM,
-        COLUMNS.TO,
-        ...(sampleTransaction?.shouldShowCategory ? [COLUMNS.CATEGORY] : []),
-        ...(sampleTransaction?.shouldShowTag ? [COLUMNS.TAG] : []),
-        ...(sampleTransaction?.shouldShowTax ? [COLUMNS.TAX] : []),
-        COLUMNS.TOTAL_AMOUNT,
-        COLUMNS.ACTION,
-    ] satisfies Array<ValueOf<typeof COLUMNS>>;
-
-    const getHeader = (isHovered: boolean) => {
+    const getHeader = useMemo(() => {
         const headers: Record<SearchGroupBy, React.JSX.Element> = {
             [CONST.SEARCH.GROUP_BY.REPORTS]: (
                 <ReportListItemHeader
@@ -120,7 +116,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     onSelectRow={onSelectRow}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
-                    isHovered={isHovered}
                     isFocused={isFocused}
                     canSelectMultiple={canSelectMultiple}
                 />
@@ -133,6 +128,15 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     canSelectMultiple={canSelectMultiple}
                 />
             ),
+            [CONST.SEARCH.GROUP_BY.CARDS]: (
+                <CardListItemHeader
+                    card={groupItem as TransactionCardGroupListItemType}
+                    onCheckboxPress={onCheckboxPress}
+                    isDisabled={isDisabledOrEmpty}
+                    isFocused={isFocused}
+                    canSelectMultiple={canSelectMultiple}
+                />
+            ),
         };
 
         if (!groupBy) {
@@ -140,31 +144,44 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         return headers[groupBy];
-    };
+    }, [groupItem, policy, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, groupBy]);
+
+    const StyleUtils = useStyleUtils();
+    const pressableRef = useRef<View>(null);
+
+    const onPress = useCallback(() => {
+        onSelectRow(item);
+    }, [item, onSelectRow]);
+
+    const onLongPress = useCallback(() => {
+        onLongPressRow?.(item);
+    }, [item, onLongPressRow]);
+
+    useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     return (
-        <BaseListItem
-            item={item}
-            pressableStyle={listItemPressableStyle}
-            wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
-            containerStyle={[styles.mb2]}
-            isFocused={isFocused}
-            isDisabled={isDisabled}
-            showTooltip={showTooltip}
-            canSelectMultiple={canSelectMultiple}
-            onSelectRow={onSelectRow}
-            onLongPressRow={onLongPressRow}
-            pendingAction={item.pendingAction}
-            keyForList={item.keyForList}
-            onFocus={onFocus}
-            shouldShowBlueBorderOnFocus
-            shouldSyncFocus={shouldSyncFocus}
-            hoverStyle={item.isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
-        >
-            {(hovered) => (
-                <View style={[styles.flex1]}>
-                    {getHeader(hovered)}
+        <OfflineWithFeedback pendingAction={item.pendingAction}>
+            <PressableWithFeedback
+                ref={pressableRef}
+                onLongPress={onLongPress}
+                onPress={onPress}
+                disabled={isDisabled && !item.isSelected}
+                accessibilityLabel={item.text ?? ''}
+                role={getButtonRole(true)}
+                isNested
+                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
+                onMouseDown={(e) => e.preventDefault()}
+                id={item.keyForList ?? ''}
+                style={[
+                    pressableStyle,
+                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                ]}
+                onFocus={onFocus}
+                wrapperStyle={[styles.mb2, styles.mh5, animatedHighlightStyle, styles.userSelectNone]}
+            >
+                <View style={styles.flex1}>
+                    {getHeader}
                     {isEmpty ? (
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
                             <Text
@@ -176,32 +193,30 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         </View>
                     ) : (
                         groupItem.transactions.map((transaction) => (
-                            <View key={transaction.transactionID}>
-                                <TransactionItemRow
-                                    transactionItem={transaction}
-                                    isSelected={!!transaction.isSelected}
-                                    dateColumnSize={dateColumnSize}
-                                    amountColumnSize={amountColumnSize}
-                                    taxAmountColumnSize={taxAmountColumnSize}
-                                    shouldShowTooltip={showTooltip}
-                                    shouldUseNarrowLayout={!isLargeScreenWidth}
-                                    shouldShowCheckbox={!!canSelectMultiple}
-                                    onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                    columns={columns}
-                                    onButtonPress={() => {
-                                        openReportInRHP(transaction);
-                                    }}
-                                    isParentHovered={hovered}
-                                    columnWrapperStyles={[styles.ph3, styles.pv1Half]}
-                                    isReportItemChild
-                                    isInSingleTransactionReport={groupItem.transactions.length === 1}
-                                />
-                            </View>
+                            <TransactionItemRow
+                                key={transaction.transactionID}
+                                transactionItem={transaction}
+                                isSelected={!!transaction.isSelected}
+                                dateColumnSize={dateColumnSize}
+                                amountColumnSize={amountColumnSize}
+                                taxAmountColumnSize={taxAmountColumnSize}
+                                shouldShowTooltip={showTooltip}
+                                shouldUseNarrowLayout={!isLargeScreenWidth}
+                                shouldShowCheckbox={!!canSelectMultiple}
+                                onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                                columns={columns as Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>}
+                                onButtonPress={() => {
+                                    openReportInRHP(transaction);
+                                }}
+                                columnWrapperStyles={[styles.ph3, styles.pv1Half]}
+                                isReportItemChild
+                                isInSingleTransactionReport={groupItem.transactions.length === 1}
+                            />
                         ))
                     )}
                 </View>
-            )}
-        </BaseListItem>
+            </PressableWithFeedback>
+        </OfflineWithFeedback>
     );
 }
 

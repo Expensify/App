@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
@@ -37,7 +38,7 @@ type ApprovalWorkflowEditorProps = {
 
 function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, policy, policyID}: ApprovalWorkflowEditorProps, ref: ForwardedRef<ScrollViewRN>) {
     const styles = useThemeStyles();
-    const {translate, toLocaleOrdinal} = useLocalize();
+    const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const approverCount = approvalWorkflow.approvers.length;
 
     const approverDescription = useCallback(
@@ -66,10 +67,10 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
             return translate('workspace.common.everyone');
         }
 
-        return sortAlphabetically(approvalWorkflow.members, 'displayName')
-            .map((m) => m.displayName)
+        return sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare)
+            .map((m) => Str.removeSMSDomain(m.displayName))
             .join(', ');
-    }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate]);
+    }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate, localeCompare]);
 
     const approverErrorMessage = useCallback(
         (approver: Approver | undefined, approverIndex: number) => {
@@ -85,8 +86,8 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     return;
                 }
                 return translate('workflowsPage.approverCircularReference', {
-                    name1: approver.displayName,
-                    name2: previousApprover.displayName,
+                    name1: Str.removeSMSDomain(approver.displayName),
+                    name2: Str.removeSMSDomain(previousApprover.displayName),
                 });
             }
 
@@ -156,7 +157,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                             pendingAction={getApprovalPendingAction(approverIndex)}
                         >
                             <MenuItemWithTopDescription
-                                title={approver?.displayName}
+                                title={Str.removeSMSDomain(approver?.displayName ?? '')}
                                 titleStyle={styles.textNormalThemeText}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                                 description={approverDescription(approverIndex)}

@@ -1,11 +1,13 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
 import type {ListItem, TransactionMemberGroupListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 
 type MemberListItemHeaderProps<TItem extends ListItem> = {
@@ -24,6 +26,12 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
 
 function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onCheckboxPress, isDisabled, canSelectMultiple}: MemberListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
+    const {translate, formatPhoneNumber} = useLocalize();
+
+    const [formattedDisplayName, formattedLogin] = useMemo(
+        () => [formatPhoneNumber(getDisplayNameOrDefault(memberItem)), formatPhoneNumber(memberItem.login ?? '')],
+        [memberItem, formatPhoneNumber],
+    );
 
     // s77rt add total cell, action cell and collapse/expand button
 
@@ -36,7 +44,7 @@ function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onChe
                             onPress={() => onCheckboxPress?.(memberItem as unknown as TItem)}
                             isChecked={memberItem.isSelected}
                             disabled={!!isDisabled || memberItem.isDisabledCheckbox}
-                            accessibilityLabel={memberItem.text ?? ''}
+                            accessibilityLabel={translate('common.select')}
                         />
                     )}
                     <View style={[styles.flexRow, styles.gap3]}>
@@ -45,18 +53,18 @@ function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onChe
                                 <Avatar
                                     source={memberItem.avatar}
                                     type={CONST.ICON_TYPE_AVATAR}
-                                    name={memberItem.displayName ?? memberItem.login}
+                                    name={formattedDisplayName}
                                     avatarID={memberItem.accountID}
                                 />
                             </View>
                         </UserDetailsTooltip>
                         <View style={[styles.gapHalf]}>
                             <TextWithTooltip
-                                text={memberItem.displayName ?? memberItem.login ?? ''}
+                                text={formattedDisplayName}
                                 style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre]}
                             />
                             <TextWithTooltip
-                                text={memberItem.login ?? ''}
+                                text={formattedLogin || formattedDisplayName}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             />
                         </View>
