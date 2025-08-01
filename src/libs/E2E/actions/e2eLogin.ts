@@ -25,6 +25,7 @@ const e2eUserCredentials = {
 export default function (): Promise<boolean> {
     const waitForBeginSignInToFinish = (): Promise<void> =>
         new Promise((resolve) => {
+            // We opted for `connectWithoutView` here as this is being used for mocking data for E2E flow.
             const id = Onyx.connectWithoutView({
                 key: ONYXKEYS.CREDENTIALS,
                 callback: (credentials) => {
@@ -43,6 +44,7 @@ export default function (): Promise<boolean> {
 
     // Subscribe to auth token, to check if we are authenticated
     return new Promise((resolve, reject) => {
+        // We opted for `connectWithoutView` here as this is being used for mocking data for E2E flow.
         const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.SESSION,
             callback: (session) => {
