@@ -328,9 +328,9 @@ function getFormattedAddress(privatePersonalDetails: OnyxEntry<PrivatePersonalDe
  * @param personalDetail - details object
  * @returns - The effective display name
  */
-function getEffectiveDisplayName(personalDetail?: PersonalDetails): string | undefined {
+function getEffectiveDisplayName(formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], personalDetail?: PersonalDetails): string | undefined {
     if (personalDetail) {
-        return formatPhoneNumberUtils(personalDetail?.login ?? '') || personalDetail.displayName;
+        return formatPhoneNumber(personalDetail?.login ?? '') || personalDetail.displayName;
     }
 
     return undefined;
