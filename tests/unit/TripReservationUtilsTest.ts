@@ -1,3 +1,4 @@
+/* cspell:disable */
 import {getPNRReservationDataFromTripReport, getReservationsFromTripReport} from '@libs/TripReservationUtils';
 import CONST from '@src/CONST';
 import type {Pnr, TripData} from '@src/types/onyx/TripData';
