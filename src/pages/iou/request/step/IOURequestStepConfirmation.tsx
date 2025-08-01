@@ -322,8 +322,15 @@ function IOURequestStepConfirmation({
         if (transaction?.isFromGlobalCreate && !transaction.receipt?.isTestReceipt) {
             // If the participants weren't automatically added to the transaction, then we should go back to the IOURequestStepParticipants.
             if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, initialTransactionID, transaction?.reportID || reportID, undefined, action), {
+                // TODO: temporary fix for multi-files dnd; check if other flow can use reportID instead of transaction?.reportID
+                const shouldUseNewScanFlow = iouType === CONST.IOU.TYPE.TRACK || iouType === CONST.IOU.TYPE.SUBMIT;
+                const backToReportID =
+                    shouldUseNewScanFlow && !transaction?.participants?.at(0)?.isPolicyExpenseChat
+                        ? reportID
+                        : // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                          transaction?.reportID || reportID;
+                const iouTypeForRoute = shouldUseNewScanFlow ? CONST.IOU.TYPE.CREATE : iouType;
+                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouTypeForRoute, initialTransactionID, backToReportID, undefined, action), {
                     compareParams: false,
                 });
                 return;
