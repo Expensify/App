@@ -11,7 +11,7 @@ RCT_EXPORT_MODULE()
     NSLog(@"[ReactNativeHybridApp] `shouldUseStaging` should never be called in standalone `New Expensify` app");
 }
 
-- (void)closeReactNativeApp:(BOOL)shouldSignOut shouldSetNVP:(BOOL)shouldSetNVP {
+- (void)closeReactNativeApp:(BOOL)shouldSetNVP {
     NSLog(@"[ReactNativeHybridApp] `closeReactNativeApp` should never be called in standalone `New Expensify` app");
 }
 

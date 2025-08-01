@@ -153,7 +153,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         }
 
         if (CONFIG.IS_HYBRID_APP) {
-            closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+            closeReactNativeApp({shouldSetNVP: true});
             setRootStatusBarEnabled(false);
             return;
         }
@@ -204,6 +204,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         });
 
         if (shouldOnboardingRedirectToOldDot(onboardingCompanySize, newUserReportedIntegration)) {
+            // TODO
             if (CONFIG.IS_HYBRID_APP) {
                 return;
             }

@@ -5,12 +5,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridApp} from '@src/types/onyx';
 import type HybridAppSettings from './types';
 
-function closeReactNativeApp({shouldSignOut, shouldSetNVP}: {shouldSignOut: boolean; shouldSetNVP: boolean}) {
+function closeReactNativeApp({shouldSetNVP}: {shouldSetNVP: boolean}) {
     if (CONFIG.IS_HYBRID_APP) {
         Onyx.merge(ONYXKEYS.HYBRID_APP, {closingReactNativeApp: true});
     }
     // eslint-disable-next-line no-restricted-properties
-    HybridAppModule.closeReactNativeApp({shouldSignOut, shouldSetNVP});
+    HybridAppModule.closeReactNativeApp({shouldSetNVP});
 }
 
 /*

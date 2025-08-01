@@ -5,7 +5,7 @@ import {TurboModuleRegistry} from 'react-native';
 export interface Spec extends TurboModule {
     isHybridApp: () => boolean;
     shouldUseStaging: (isStaging: boolean) => void;
-    closeReactNativeApp: (shouldSignOut: boolean, shouldSetNVP: boolean) => void;
+    closeReactNativeApp: (shouldSetNVP: boolean) => void;
     completeOnboarding: (status: boolean) => void;
     switchAccount: (newDotCurrentAccountEmail: string, authToken: string, policyID: string, accountID: string) => void;
     sendAuthToken: (authToken: string) => void;

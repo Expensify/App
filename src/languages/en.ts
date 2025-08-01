@@ -1457,10 +1457,8 @@ const translations = {
     },
     updateRequiredView: {
         updateRequired: 'Update required',
-        pleaseInstall: 'Please update to the latest version of New Expensify',
-        pleaseInstallExpensifyClassic: 'Please install the latest version of Expensify',
+        pleaseInstall: 'Please install the latest version of Expensify',
         toGetLatestChanges: 'For mobile or desktop, download and install the latest version. For web, refresh your browser.',
-        newAppNotAvailable: 'The New Expensify app is no longer available.',
     },
     initialSettingsPage: {
         about: 'About',
