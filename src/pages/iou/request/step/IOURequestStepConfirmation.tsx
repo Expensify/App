@@ -129,6 +129,7 @@ function IOURequestStepConfirmation({
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${draftPolicyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${realPolicyID}`, {canBeMissing: true});
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
 
     /*
      * We want to use a report from the transaction if it exists
@@ -136,7 +137,7 @@ function IOURequestStepConfirmation({
      */
     const transactionReport = getReportOrDraftReport(transaction?.reportID);
     const shouldUseTransactionReport =
-        transactionReport && !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id);
+        transactionReport && !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id, undefined, false);
     const report = shouldUseTransactionReport ? transactionReport : (reportReal ?? reportDraft);
     const policy = policyReal ?? policyDraft;
     const isDraftPolicy = policy === policyDraft;
@@ -188,7 +189,7 @@ function IOURequestStepConfirmation({
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false);
 
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: false});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const viewTourReportID = introSelected?.viewTour;
     const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
 
@@ -211,9 +212,9 @@ function IOURequestStepConfirmation({
                 if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                     return participant;
                 }
-                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant);
+                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
             }) ?? [],
-        [transaction?.participants, personalDetails, iouType],
+        [transaction?.participants, iouType, personalDetails, reportAttributesDerived],
     );
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const formHasBeenSubmitted = useRef(false);
@@ -376,7 +377,7 @@ function IOURequestStepConfirmation({
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
     useEffect(() => {
-        let newReceiptFiles = {};
+        let newReceiptFiles: Record<string, Receipt> = {};
         let isScanFilesCanBeRead = true;
 
         Promise.all(
@@ -387,7 +388,9 @@ function IOURequestStepConfirmation({
                 const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
 
                 if (!isLocalFile) {
-                    newReceiptFiles = {...newReceiptFiles, [item.transactionID]: item.receipt};
+                    if (item.receipt) {
+                        newReceiptFiles = {...newReceiptFiles, [item.transactionID]: item.receipt};
+                    }
                     return;
                 }
 
@@ -494,6 +497,7 @@ function IOURequestStepConfirmation({
                         source: item.comment?.source,
                     },
                     shouldHandleNavigation: index === transactions.length - 1,
+                    shouldGenerateOptimisticTransactionThread: action === CONST.IOU.ACTION.SUBMIT,
                     backToReport,
                 });
             });
@@ -974,7 +978,7 @@ function IOURequestStepConfirmation({
         const file = e?.dataTransfer?.files[0];
         if (file) {
             file.uri = URL.createObjectURL(file);
-            validateFiles([file]);
+            validateFiles([file], Array.from(e.dataTransfer?.items));
         }
     };
 

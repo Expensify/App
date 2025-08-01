@@ -51,7 +51,6 @@ import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -360,6 +359,9 @@ type PureReportActionItemProps = {
 
     /** Whether to show border for MoneyRequestReportPreviewContent */
     shouldShowBorder?: boolean;
+
+    /** Whether to highlight the action for a few seconds */
+    shouldHighlight?: boolean;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -424,9 +426,10 @@ function PureReportActionItem({
     dismissTrackExpenseActionableWhisper = () => {},
     userBillingFundID,
     shouldShowBorder,
+    shouldHighlight = false,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
-    const {translate, datetimeToCalendarTime} = useLocalize();
+    const {translate, datetimeToCalendarTime, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
     const theme = useTheme();
@@ -451,8 +454,9 @@ function PureReportActionItem({
     const isReportArchived = useReportIsArchived(report?.reportID);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
-        () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
-        [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        () => (isReportActionLinked || shouldHighlight ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
+        [StyleUtils, isReportActionLinked, theme.messageHighlightBG, shouldHighlight],
     );
 
     const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, 1, undefined, undefined);
@@ -1613,6 +1617,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         deepEqual(prevProps.missingPaymentMethod, nextProps.missingPaymentMethod) &&
         prevProps.reimbursementDeQueuedOrCanceledActionMessage === nextProps.reimbursementDeQueuedOrCanceledActionMessage &&
         prevProps.modifiedExpenseMessage === nextProps.modifiedExpenseMessage &&
+        prevProps.shouldHighlight === nextProps.shouldHighlight &&
         prevProps.userBillingFundID === nextProps.userBillingFundID
     );
 });
