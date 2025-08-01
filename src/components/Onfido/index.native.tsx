@@ -42,9 +42,8 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                 // our "user exited the flow" callback. On web, this event has it's own callback passed as a config so we don't need to bother with this there.
                 if (([CONST.ONFIDO.ERROR.USER_CANCELLED, CONST.ONFIDO.ERROR.USER_TAPPED_BACK, CONST.ONFIDO.ERROR.USER_EXITED] as string[]).includes(errorMessage)) {
                     if (getPlatform() === CONST.PLATFORM.ANDROID) {
-                        AppStateTracker.getApplicationState().then((appState) => {
-                            const wasInBackground = appState.prevState === 'background';
-                            onUserExit(!wasInBackground);
+                        AppStateTracker.getWasAppRelaunchedFromIcon().then((wasAppRelaunchedFromIcon) => {
+                            onUserExit(!wasAppRelaunchedFromIcon);
                         });
                         return;
                     }
