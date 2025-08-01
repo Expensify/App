@@ -3629,7 +3629,7 @@ const translations = {
                 body: 'セットアップを完了するには、QuickBooks Desktop が実行されているコンピューターで次のリンクを開いてください。',
                 setupErrorTitle: '問題が発生しました',
                 setupErrorBody: ({conciergeLink}: QBDSetupErrorBodyParams) =>
-                    `<muted-text>現在、QuickBooks Desktopへの接続ができません。問題が解決しない場合は、後でもう一度お試しいただくか、<a href="${conciergeLink}">Conciergeまでご連絡ください</a>。</muted-text>`,
+                    `<muted-text><centered-text>現在、QuickBooks Desktopへの接続ができません。問題が解決しない場合は、後でもう一度お試しいただくか、<a href="${conciergeLink}">Conciergeまでご連絡ください</a>。</centered-text></muted-text>`,
             },
             importDescription: 'QuickBooks DesktopからExpensifyにインポートするコーディング設定を選択してください。',
             classes: 'クラス',

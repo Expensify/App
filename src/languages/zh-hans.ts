@@ -3585,7 +3585,7 @@ const translations = {
                 body: '要完成设置，请在运行QuickBooks Desktop的计算机上打开以下链接。',
                 setupErrorTitle: '出现错误',
                 setupErrorBody: ({conciergeLink}: QBDSetupErrorBodyParams) =>
-                    `<muted-text>QuickBooks Desktop 连接暂时无法正常工作。请稍后再试，如果问题仍然存在，<a href="${conciergeLink}">请联系Concierge</a>。</muted-text>`,
+                    `<muted-text><centered-text>QuickBooks Desktop 连接暂时无法正常工作。请稍后再试，如果问题仍然存在，<a href="${conciergeLink}">请联系Concierge</a>。</centered-text></muted-text>`,
             },
             importDescription: '选择从 QuickBooks Desktop 导入到 Expensify 的编码配置。',
             classes: '类',

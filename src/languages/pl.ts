@@ -3630,7 +3630,7 @@ const translations = {
                 body: 'Aby zakończyć konfigurację, otwórz poniższy link na komputerze, na którym działa QuickBooks Desktop.',
                 setupErrorTitle: 'Coś poszło nie tak',
                 setupErrorBody: ({conciergeLink}: QBDSetupErrorBodyParams) =>
-                    `<muted-text>Połączenie QuickBooks Desktop obecnie nie działa. Spróbuj ponownie później lub <a href="${conciergeLink}">skontaktuj się z Concierge</a>, jeśli problem będzie się powtarzał.</muted-text>`,
+                    `<muted-text><centered-text>Połączenie QuickBooks Desktop obecnie nie działa. Spróbuj ponownie później lub <a href="${conciergeLink}">skontaktuj się z Concierge</a>, jeśli problem będzie się powtarzał.</centered-text></muted-text>`,
             },
             importDescription: 'Wybierz, które konfiguracje kodowania zaimportować z QuickBooks Desktop do Expensify.',
             classes: 'Klasy',
