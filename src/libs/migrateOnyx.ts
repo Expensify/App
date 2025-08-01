@@ -1,5 +1,4 @@
 import Log from './Log';
-import KeyReportActionsDraftByReportActionID from './migrations/KeyReportActionsDraftByReportActionID';
 import MoveIsOptimisticReportToMetadata from './migrations/MoveIsOptimisticReportToMetadata';
 import NVPMigration from './migrations/NVPMigration';
 import PendingMembersToMetadata from './migrations/PendingMembersToMetadata';
@@ -18,7 +17,6 @@ export default function () {
         const migrationPromises = [
             RenameCardIsVirtual,
             RenameReceiptFilename,
-            KeyReportActionsDraftByReportActionID,
             TransactionBackupsToCollection,
             RemoveEmptyReportActionsDrafts,
             NVPMigration,
