@@ -10,13 +10,19 @@ import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import type TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ExtendedTargetedEvent, ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {
+    ExtendedTargetedEvent,
+    ReportActionListItemType,
+    SortableColumnName,
+    TaskListItemType,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useInitialWindowDimensions from '@hooks/useInitialWindowDimensions';
@@ -30,6 +36,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
+import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -79,6 +86,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** The search query */
     queryJSON: SearchQueryJSON;
 
+    /** Columns to show */
+    columns: SortableColumnName[];
+
     /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
     onViewableItemsChanged?: (info: {changed: ViewToken[]; viewableItems: ViewToken[]}) => void;
 
@@ -123,6 +133,7 @@ function SearchList(
         shouldPreventDefaultFocusOnSelectRow,
         shouldPreventLongPressRow,
         queryJSON,
+        columns,
         onViewableItemsChanged,
         onLayout,
         estimatedItemSize = ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD,
@@ -174,12 +185,6 @@ function SearchList(
     });
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-
-    const personalDetails = usePersonalDetails();
-
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: false});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
 
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
@@ -294,16 +299,9 @@ function SearchList(
                 clearTimeout(itemFocusTimeoutRef.current);
             }
 
-            const duration =
-                CONST.ANIMATED_HIGHLIGHT_ENTRY_DELAY +
-                CONST.ANIMATED_HIGHLIGHT_ENTRY_DURATION +
-                CONST.ANIMATED_HIGHLIGHT_START_DELAY +
-                CONST.ANIMATED_HIGHLIGHT_START_DURATION +
-                CONST.ANIMATED_HIGHLIGHT_END_DELAY +
-                CONST.ANIMATED_HIGHLIGHT_END_DURATION;
             itemFocusTimeoutRef.current = setTimeout(() => {
                 setItemsToHighlight(null);
-            }, duration);
+            }, durationHighlightItem);
         },
         [data, scrollToIndex],
     );
@@ -345,14 +343,11 @@ function SearchList(
                     }}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     queryJSONHash={hash}
+                    columns={columns}
                     policies={policies}
                     isDisabled={isDisabled}
                     allReports={allReports}
                     groupBy={groupBy}
-                    userWallet={userWallet}
-                    isUserValidated={isUserValidated}
-                    personalDetails={personalDetails}
-                    userBillingFundID={userBillingFundID}
                 />
             );
         },
@@ -360,20 +355,17 @@ function SearchList(
             ListItem,
             canSelectMultiple,
             focusedIndex,
-            itemsToHighlight,
             handleLongPressRow,
+            itemsToHighlight,
             onCheckboxPress,
             onSelectRow,
             policies,
+            columns,
             hash,
             groupBy,
             setFocusedIndex,
             shouldPreventDefaultFocusOnSelectRow,
             allReports,
-            userWallet,
-            isUserValidated,
-            personalDetails,
-            userBillingFundID,
         ],
     );
 
@@ -466,7 +458,7 @@ function SearchList(
                 onScroll={onScroll}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
-                extraData={focusedIndex}
+                extraData={[focusedIndex, isFocused, columns]}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}

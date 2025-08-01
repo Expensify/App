@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import onyxSubscribe from '@libs/onyxSubscribe';
@@ -13,12 +14,12 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getAllAncestorReportActionIDs,
     getAllAncestorReportActions,
+    isArchivedReport,
     navigateToLinkedReportAction,
 } from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
 import ReportActionItem from './ReportActionItem';
@@ -61,27 +62,6 @@ type ReportActionItemParentActionProps = {
 
     /** If the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
-
-    /** User wallet */
-    userWallet: OnyxEntry<OnyxTypes.UserWallet>;
-
-    /** Whether the user is validated */
-    isUserValidated: boolean | undefined;
-
-    /** Personal details list */
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-
-    /** Draft message for the report action */
-    draftMessage?: string;
-
-    /** Emoji reactions for the report action */
-    emojiReactions?: OnyxEntry<OnyxTypes.ReportActionReactions>;
-
-    /** Linked transaction route error */
-    linkedTransactionRouteError?: OnyxEntry<Errors>;
-
-    /** User billing fund ID */
-    userBillingFundID: number | undefined;
 };
 
 function ReportActionItemParentAction({
@@ -96,13 +76,6 @@ function ReportActionItemParentAction({
     shouldDisplayReplyDivider,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
-    userWallet,
-    isUserValidated,
-    personalDetails,
-    draftMessage,
-    emojiReactions,
-    linkedTransactionRouteError,
-    userBillingFundID,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestorIDs = useRef(getAllAncestorReportActionIDs(report));
@@ -110,6 +83,19 @@ function ReportActionItemParentAction({
     const [allAncestors, setAllAncestors] = useState<Ancestor[]>([]);
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
+    const [ancestorReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        canBeMissing: true,
+        selector: (allPairs) => {
+            const ancestorIDsToSelect = new Set(ancestorIDs.current.reportIDs);
+
+            return Object.fromEntries(
+                Object.entries(allPairs ?? {}).filter(([key]) => {
+                    const id = key.split('_').at(1);
+                    return id && ancestorIDsToSelect.has(id);
+                }),
+            );
+        },
+    });
 
     useEffect(() => {
         const unsubscribeReports: Array<() => void> = [];
@@ -153,7 +139,9 @@ function ReportActionItemParentAction({
                 const ancestorReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ancestor.report.reportID}`];
                 const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(ancestorReport);
                 const shouldDisplayThreadDivider = !isTripPreview(ancestor.reportAction);
-
+                const reportNameValuePair =
+                    ancestorReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReports.current?.[ancestor?.report?.reportID]?.reportID}`];
+                const isAncestorReportArchived = isArchivedReport(reportNameValuePair);
                 return (
                     <OfflineWithFeedback
                         key={ancestor.reportAction.reportActionID}
@@ -166,14 +154,14 @@ function ReportActionItemParentAction({
                         {shouldDisplayThreadDivider && (
                             <ThreadDivider
                                 ancestor={ancestor}
-                                isLinkDisabled={!canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID])}
+                                isLinkDisabled={!canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID], isAncestorReportArchived)}
                             />
                         )}
                         <ReportActionItem
                             allReports={allReports}
                             policies={policies}
                             onPress={
-                                canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID])
+                                canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID], isAncestorReportArchived)
                                     ? () => navigateToLinkedReportAction(ancestor, isInNarrowPaneModal, canUserPerformWriteAction, isOffline)
                                     : undefined
                             }
@@ -189,13 +177,6 @@ function ReportActionItemParentAction({
                             isFirstVisibleReportAction={isFirstVisibleReportAction}
                             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                             isThreadReportParentAction
-                            userWallet={userWallet}
-                            isUserValidated={isUserValidated}
-                            personalDetails={personalDetails}
-                            draftMessage={draftMessage}
-                            emojiReactions={emojiReactions}
-                            linkedTransactionRouteError={linkedTransactionRouteError}
-                            userBillingFundID={userBillingFundID}
                         />
                     </OfflineWithFeedback>
                 );

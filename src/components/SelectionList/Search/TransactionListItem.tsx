@@ -8,7 +8,6 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem, TransactionListItemProps, TransactionListItemType} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import useHover from '@hooks/useHover';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
@@ -31,6 +30,7 @@ function TransactionListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     isLoading,
+    columns,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
@@ -61,24 +61,6 @@ function TransactionListItem<TItem extends ListItem>({
         };
     }, [transactionItem]);
 
-    const columns = useMemo(
-        () =>
-            [
-                CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT,
-                CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE,
-                CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE,
-                CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT,
-                CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM,
-                CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO,
-                ...(transactionItem?.shouldShowCategory ? [CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] : []),
-                ...(transactionItem?.shouldShowTag ? [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG] : []),
-                ...(transactionItem?.shouldShowTax ? [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAX] : []),
-                CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT,
-                CONST.REPORT.TRANSACTION_LIST.COLUMNS.ACTION,
-            ] satisfies Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>,
-        [transactionItem?.shouldShowCategory, transactionItem?.shouldShowTag, transactionItem?.shouldShowTax],
-    );
-
     const handleActionButtonPress = useCallback(() => {
         handleActionButtonPressUtil(currentSearchHash, transactionItem, () => onSelectRow(item), shouldUseNarrowLayout && !!canSelectMultiple, currentSearchKey);
     }, [canSelectMultiple, currentSearchHash, currentSearchKey, item, onSelectRow, shouldUseNarrowLayout, transactionItem]);
@@ -96,7 +78,6 @@ function TransactionListItem<TItem extends ListItem>({
     }, [item, onLongPressRow]);
 
     const StyleUtils = useStyleUtils();
-    const {hovered, bind} = useHover();
     const pressableRef = useRef<View>(null);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
@@ -104,8 +85,6 @@ function TransactionListItem<TItem extends ListItem>({
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
-                onMouseEnter={bind.onMouseEnter}
-                onMouseLeave={bind.onMouseLeave}
                 ref={pressableRef}
                 onLongPress={onLongPress}
                 onPress={onPress}
@@ -122,7 +101,7 @@ function TransactionListItem<TItem extends ListItem>({
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
-                wrapperStyle={[styles.mb2, styles.mh5, animatedHighlightStyle, styles.userSelectNone]}
+                wrapperStyle={[styles.mb2, styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone]}
             >
                 {!isLargeScreenWidth && (
                     <UserInfoAndActionButtonRow
@@ -137,8 +116,7 @@ function TransactionListItem<TItem extends ListItem>({
                     onButtonPress={handleActionButtonPress}
                     onCheckboxPress={handleCheckboxPress}
                     shouldUseNarrowLayout={!isLargeScreenWidth}
-                    columns={columns}
-                    isParentHovered={hovered}
+                    columns={columns as Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>}
                     isActionLoading={isLoading ?? transactionItem.isActionLoading}
                     isSelected={!!transactionItem.isSelected}
                     dateColumnSize={dateColumnSize}
