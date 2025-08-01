@@ -6,8 +6,8 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {convertToShortDisplayString} from '@libs/CurrencyUtils';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 
@@ -36,7 +36,7 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const cardholderName = useMemo(() => PersonalDetailsUtils.getDisplayNameOrDefault(cardholder), [cardholder]);
+    const cardholderName = useMemo(() => getDisplayNameOrDefault(cardholder), [cardholder]);
     const cardType = isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
     return (
         <View style={[styles.flexRow, styles.gap3, styles.br3, styles.p4]}>
@@ -101,7 +101,7 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
                     numberOfLines={1}
                     style={[styles.textNormalThemeText]}
                 >
-                    {CurrencyUtils.convertToShortDisplayString(limit, currency)}
+                    {convertToShortDisplayString(limit, currency)}
                 </Text>
                 {shouldUseNarrowLayout && (
                     <Text
