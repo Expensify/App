@@ -1,4 +1,4 @@
-import type {RefObject} from 'react';
+import type {MutableRefObject, RefObject} from 'react';
 import React, {useContext, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -30,7 +30,7 @@ type AccountingContextType = {
     /*
      * This stores refs to integration buttons, so the PopoverMenu can be positioned correctly
      */
-    popoverAnchorRefs: RefObject<Record<string, RefObject<View | null>>>;
+    popoverAnchorRefs: RefObject<Record<string, MutableRefObject<View | null>>>;
 };
 
 const popoverAnchorRefsInitialValue = Object.values(CONST.POLICY.CONNECTIONS.NAME).reduce(
@@ -38,7 +38,7 @@ const popoverAnchorRefsInitialValue = Object.values(CONST.POLICY.CONNECTIONS.NAM
         acc[key] = {current: null};
         return acc;
     },
-    {} as Record<ConnectionName, RefObject<View | null>>,
+    {} as Record<ConnectionName, MutableRefObject<View | null>>,
 );
 
 const defaultAccountingContext = {
@@ -56,7 +56,7 @@ type AccountingContextProviderProps = ChildrenProps & {
 };
 
 function AccountingContextProvider({children, policy}: AccountingContextProviderProps) {
-    const popoverAnchorRefs = useRef<Record<string, RefObject<View | null>>>(defaultAccountingContext.popoverAnchorRefs.current);
+    const popoverAnchorRefs = useRef<Record<string, MutableRefObject<View | null>>>(defaultAccountingContext.popoverAnchorRefs.current);
     const [activeIntegration, setActiveIntegration] = useState<ActiveIntegrationState>();
     const {translate} = useLocalize();
     const policyID = policy?.id;
@@ -139,7 +139,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                         if (!policyID || !activeIntegration?.integrationToDisconnect) {
                             return;
                         }
-                        removePolicyConnection(policy, activeIntegration?.integrationToDisconnect);
+                        removePolicyConnection(policyID, activeIntegration?.integrationToDisconnect);
                         closeConfirmationModal();
                     }}
                     integrationToConnect={activeIntegration?.name}

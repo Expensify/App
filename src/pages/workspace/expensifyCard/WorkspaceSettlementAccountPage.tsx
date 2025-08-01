@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -14,7 +14,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getRouteParamForConnection} from '@libs/AccountingUtils';
-import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -39,7 +38,6 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const policyID = route.params?.policyID;
     const defaultFundID = useDefaultFundID(policyID);
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
     const [isUsingContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${defaultFundID}`, {canBeMissing: true});
@@ -56,22 +54,6 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountsList ?? {});
 
     const domainName = cardSettings?.domainName ?? getDomainNameForPolicy(policyID);
-
-    const hasActiveAccountingConnection = !!(policy?.connections && Object.keys(policy.connections).length > 0);
-
-    const fetchPolicyAccountingData = useCallback(() => {
-        if (!policyID) {
-            return;
-        }
-        openPolicyAccountingPage(policyID);
-    }, [policyID]);
-
-    useEffect(() => {
-        if (!cardSettings || !hasActiveAccountingConnection || isUsingContinuousReconciliation !== undefined || reconciliationConnection !== undefined) {
-            return;
-        }
-        fetchPolicyAccountingData();
-    }, [cardSettings, hasActiveAccountingConnection, isUsingContinuousReconciliation, reconciliationConnection, fetchPolicyAccountingData]);
 
     const data = useMemo(() => {
         const options = eligibleBankAccounts.map((bankAccount) => {
@@ -160,11 +142,11 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                     listHeaderContent={
                         <>
                             <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementAccountDescription')}</Text>
-                            {!!isUsingContinuousReconciliation && !!connectionParam && hasActiveAccountingConnection && (
+                            {!!isUsingContinuousReconciliation && (
                                 <View style={[styles.renderHTML, styles.mh5, styles.mb6]}>
                                     <RenderHTML
                                         html={translate('workspace.expensifyCard.settlementAccountInfo', {
-                                            reconciliationAccountSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connectionParam, Navigation.getActiveRoute())}`,
+                                            reconciliationAccountSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connectionParam)}`,
                                             accountNumber: `${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(paymentBankAccountNumber)}`,
                                         })}
                                     />
