@@ -285,7 +285,9 @@ function getReportsToDisplayInLHN(
             isInFocusMode,
             betas,
             transactionViolations,
-            !!reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived,
+            isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]),
+
+
             reportAttributes,
         );
 
