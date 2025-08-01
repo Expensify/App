@@ -41,7 +41,7 @@ jobs:
         # commit from Jul 23, 2025
         # uses: callstackincubator/ios@0a70afc8f4ab36ead9c304bb3059f2e0cfe5f25a 
         # commit with logging errors
-        uses: callstackincubator/ios@57aca6e1e4276e259bab7a43986d6cb51dde59fc 
+        uses: callstackincubator/ios@7847e06 
         env:
           IS_HYBRID_APP: ${{ matrix.is_hybrid_build }}
         with:
