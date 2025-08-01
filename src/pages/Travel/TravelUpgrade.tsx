@@ -37,6 +37,7 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
             makeMeAdmin: false,
             policyName: params.name,
             policyID: params.policyID,
+            engagementChoice: undefined,
             currency: params.currency,
             file: params.avatarFile as File,
         });

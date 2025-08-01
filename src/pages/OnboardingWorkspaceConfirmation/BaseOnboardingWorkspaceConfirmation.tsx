@@ -64,11 +64,13 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
             // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
             const {adminsChatReportID, policyID} = shouldCreateWorkspace
                 ? createWorkspace({
+                      policyOwnerEmail: undefined,
                       makeMeAdmin: true,
                       policyName: name,
                       policyID: generatePolicyID(),
                       engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
                       currency,
+                      file: undefined,
                       shouldAddOnboardingTasks: false,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};

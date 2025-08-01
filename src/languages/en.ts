@@ -73,7 +73,6 @@ import type {
     DefaultAmountParams,
     DefaultVendorDescriptionParams,
     DelegateRoleParams,
-    DelegateSubmitParams,
     DelegatorParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -621,6 +620,7 @@ const translations = {
         getTheApp: 'Get the app',
         scanReceiptsOnTheGo: 'Scan receipts from your phone',
         headsUp: 'Heads up!',
+        unstableInternetConnection: 'Unstable internet connection. Please check your network and try again.',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -1050,7 +1050,7 @@ const translations = {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
-        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `deleted an expense on this report (${merchant} - ${amount})`,
+        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `deleted an expense (${amount} for ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `moved an expense${reportName ? ` from ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense${reportName ? ` to <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: 'moved this expense to your personal space',
@@ -6143,7 +6143,6 @@ const translations = {
                     return `changed the workspace to ${toPolicyName}${fromPolicyName ? ` (previously ${fromPolicyName})` : ''}`;
                 },
                 changeType: ({oldType, newType}: ChangeTypeParams) => `changed type from ${oldType} to ${newType}`,
-                delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `sent this report to ${delegateUser} since ${originalManager} is on vacation`,
                 exportedToCSV: `exported to CSV`,
                 exportedToIntegration: {
                     automatic: ({label}: ExportedToIntegrationParams) => `exported to ${label}`,

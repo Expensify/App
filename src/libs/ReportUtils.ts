@@ -52,7 +52,6 @@ import type {
     Transaction,
     TransactionViolation,
     TransactionViolations,
-    UserWallet,
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
@@ -4836,7 +4835,7 @@ function getAdminRoomInvitedParticipants(parentReportAction: OnyxEntry<ReportAct
     const personalDetails = getPersonalDetailsByIDs({accountIDs: originalMessage?.targetAccountIDs ?? [], currentUserAccountID: 0});
 
     const participants = personalDetails.map((personalDetail) => {
-        const name = getEffectiveDisplayName(personalDetail);
+        const name = getEffectiveDisplayName(formatPhoneNumber, personalDetail);
         if (name && name?.length > 0) {
             return name;
         }
@@ -9761,14 +9760,14 @@ function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean
 /**
  * What missing payment method does this report action indicate, if any?
  */
-function getIndicatedMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, reportId: string | undefined, reportAction: ReportAction): MissingPaymentMethod | undefined {
+function getIndicatedMissingPaymentMethod(userWalletTierName: string | undefined, reportId: string | undefined, reportAction: ReportAction): MissingPaymentMethod | undefined {
     const isSubmitterOfUnsettledReport = reportId && isCurrentUserSubmitter(getReport(reportId, allReports)) && !isSettled(reportId);
     if (!reportId || !isSubmitterOfUnsettledReport || !isReimbursementQueuedAction(reportAction)) {
         return undefined;
     }
     const paymentType = getOriginalMessage(reportAction)?.paymentType;
     if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-        return isEmpty(userWallet) || userWallet.tierName === CONST.WALLET.TIER_NAME.SILVER ? 'wallet' : undefined;
+        return !userWalletTierName || userWalletTierName === CONST.WALLET.TIER_NAME.SILVER ? 'wallet' : undefined;
     }
 
     return !hasCreditBankAccount() ? 'bankAccount' : undefined;
@@ -9777,11 +9776,11 @@ function getIndicatedMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, rep
 /**
  * Checks if report chat contains missing payment method
  */
-function hasMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, iouReportID: string | undefined): boolean {
+function hasMissingPaymentMethod(userWalletTierName: string | undefined, iouReportID: string | undefined): boolean {
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`] ?? {};
     return Object.values(reportActions)
         .filter(Boolean)
-        .some((action) => getIndicatedMissingPaymentMethod(userWallet, iouReportID, action) !== undefined);
+        .some((action) => getIndicatedMissingPaymentMethod(userWalletTierName, iouReportID, action) !== undefined);
 }
 
 /**

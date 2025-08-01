@@ -85,7 +85,6 @@ import type {
     DefaultAmountParams,
     DefaultVendorDescriptionParams,
     DelegateRoleParams,
-    DelegateSubmitParams,
     DelegatorParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -631,6 +630,7 @@ const translations = {
         getTheApp: 'アプリを入手',
         scanReceiptsOnTheGo: '携帯電話から領収書をスキャンする',
         headsUp: 'ご注意ください！',
+        unstableInternetConnection: 'インターネット接続が不安定です。ネットワークを確認してもう一度お試しください。',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -1063,7 +1063,7 @@ const translations = {
         canceled: 'キャンセルされました',
         posted: '投稿済み',
         deleteReceipt: '領収書を削除',
-        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `このレポートで経費を削除しました (${merchant} - ${amount})`,
+        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `経費を削除しました (${merchant}の${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `費用${reportName ? `${reportName} から` : ''}を移動しました`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `この経費${reportName ? `to <a href="${reportUrl}">${reportName}</a>` : ''}を移動しました`,
         unreportedTransaction: 'この経費をあなたの個人スペースに移動しました。',
@@ -6146,7 +6146,6 @@ const translations = {
                     return `ワークスペースを${toPolicyName}に変更しました${fromPolicyName ? `（以前は ${fromPolicyName}）` : ''}`;
                 },
                 changeType: ({oldType, newType}: ChangeTypeParams) => `${oldType} から ${newType} にタイプを変更しました`,
-                delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `${originalManager}が休暇中のため、このレポートを${delegateUser}に送信しました。`,
                 exportedToCSV: `CSVにエクスポートされました`,
                 exportedToIntegration: {
                     automatic: ({label}: ExportedToIntegrationParams) => `${label}にエクスポートされました`,

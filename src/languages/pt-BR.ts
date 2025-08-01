@@ -85,7 +85,6 @@ import type {
     DefaultAmountParams,
     DefaultVendorDescriptionParams,
     DelegateRoleParams,
-    DelegateSubmitParams,
     DelegatorParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -630,6 +629,7 @@ const translations = {
         getTheApp: 'Obtenha o aplicativo',
         scanReceiptsOnTheGo: 'Digitalize recibos com seu celular',
         headsUp: 'Atenção!',
+        unstableInternetConnection: 'Conexão de internet instável. Verifique sua rede e tente novamente.',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -1062,7 +1062,7 @@ const translations = {
         canceled: 'Cancelado',
         posted: 'Publicado',
         deleteReceipt: 'Excluir recibo',
-        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `excluiu uma despesa neste relatório (${merchant} - ${amount})`,
+        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `excluiu uma despesa (${amount} para ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `moveu uma despesa${reportName ? `de ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moveu esta despesa${reportName ? `para <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: 'movei esta despesa para o seu espaço pessoal',
@@ -6177,7 +6177,6 @@ const translations = {
                     return `Espaço de trabalho alterado para ${toPolicyName}${fromPolicyName ? ` (anteriormente ${fromPolicyName})` : ''}`;
                 },
                 changeType: ({oldType, newType}: ChangeTypeParams) => `alterado o tipo de ${oldType} para ${newType}`,
-                delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `enviei este relatório para ${delegateUser} já que ${originalManager} está de férias`,
                 exportedToCSV: `exportado para CSV`,
                 exportedToIntegration: {
                     automatic: ({label}: ExportedToIntegrationParams) => `exportado para ${label}`,

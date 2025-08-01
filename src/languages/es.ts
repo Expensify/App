@@ -72,7 +72,6 @@ import type {
     DefaultAmountParams,
     DefaultVendorDescriptionParams,
     DelegateRoleParams,
-    DelegateSubmitParams,
     DelegatorParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -612,6 +611,7 @@ const translations = {
         getTheApp: 'Descarga la app',
         scanReceiptsOnTheGo: 'Escanea recibos desde tu teléfono',
         headsUp: '¡Atención!',
+        unstableInternetConnection: 'Conexión a internet inestable. Por favor, revisa tu red e inténtalo de nuevo.',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -1049,7 +1049,7 @@ const translations = {
         pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con la transacción de la tarjeta. Márcalo como efectivo para cancelar.',
         markAsCash: 'Marcar como efectivo',
         routePending: 'Ruta pendiente...',
-        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `eliminó un gasto de este informe (${merchant} - ${amount})`,
+        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `eliminó un gasto (${amount} para ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `movió un gasto${reportName ? ` desde ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `movió este gasto${reportName ? ` a <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: 'movió este gasto a tu espacio personal',
@@ -6166,7 +6166,6 @@ const translations = {
                     return `cambió el espacio de trabajo a ${toPolicyName}${fromPolicyName ? ` (previamente ${fromPolicyName})` : ''}`;
                 },
                 changeType: ({oldType, newType}: ChangeTypeParams) => `cambió type de ${oldType} a ${newType}`,
-                delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `envié este informe a ${delegateUser} ya que ${originalManager} está de vacaciones`,
                 exportedToCSV: `exportado a CSV`,
                 exportedToIntegration: {
                     automatic: ({label}: ExportedToIntegrationParams) => `exportado a ${label}`,

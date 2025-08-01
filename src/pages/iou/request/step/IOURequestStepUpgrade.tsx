@@ -73,6 +73,7 @@ function IOURequestStepUpgrade({
                                 policyOwnerEmail: '',
                                 makeMeAdmin: false,
                                 policyName: '',
+                                policyID: undefined,
                                 engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
                             });
                             setIsUpgraded(true);

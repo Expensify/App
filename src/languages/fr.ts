@@ -85,7 +85,6 @@ import type {
     DefaultAmountParams,
     DefaultVendorDescriptionParams,
     DelegateRoleParams,
-    DelegateSubmitParams,
     DelegatorParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -631,6 +630,7 @@ const translations = {
         getTheApp: "Obtenez l'application",
         scanReceiptsOnTheGo: 'Numérisez les reçus depuis votre téléphone',
         headsUp: 'Attention !',
+        unstableInternetConnection: 'Connexion Internet instable. Veuillez vérifier votre réseau et réessayer.',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -1066,7 +1066,7 @@ const translations = {
         canceled: 'Annulé',
         posted: 'Publié',
         deleteReceipt: 'Supprimer le reçu',
-        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `supprimé une dépense sur ce rapport (${merchant} - ${amount})`,
+        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `supprimé une dépense (${amount} pour ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `a déplacé une dépense${reportName ? `de ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `déplacé cette dépense${reportName ? `à <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: 'déplacé cette dépense vers votre espace personnel',
@@ -6186,7 +6186,6 @@ const translations = {
                     return `Espace de travail modifié en ${toPolicyName}${fromPolicyName ? ` (auparavant ${fromPolicyName})` : ''}`;
                 },
                 changeType: ({oldType, newType}: ChangeTypeParams) => `changé le type de ${oldType} à ${newType}`,
-                delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `a envoyé ce rapport à ${delegateUser} puisque ${originalManager} est en vacances`,
                 exportedToCSV: `exporté en CSV`,
                 exportedToIntegration: {
                     automatic: ({label}: ExportedToIntegrationParams) => `exporté vers ${label}`,

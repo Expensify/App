@@ -85,7 +85,6 @@ import type {
     DefaultAmountParams,
     DefaultVendorDescriptionParams,
     DelegateRoleParams,
-    DelegateSubmitParams,
     DelegatorParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -631,6 +630,7 @@ const translations = {
         getTheApp: 'Pobierz aplikację',
         scanReceiptsOnTheGo: 'Skanuj paragony za pomocą telefonu',
         headsUp: 'Uwaga!',
+        unstableInternetConnection: 'Niestabilne połączenie internetowe. Sprawdź swoją sieć i spróbuj ponownie.',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -1060,7 +1060,7 @@ const translations = {
         canceled: 'Anulowano',
         posted: 'Opublikowano',
         deleteReceipt: 'Usuń paragon',
-        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `usunął wydatek w tym raporcie (${merchant} - ${amount})`,
+        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `usunął wydatek (${amount} dla ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `przeniósł wydatek${reportName ? `z ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `przeniesiono ten wydatek${reportName ? `do <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: 'przeniósł ten wydatek do twojej przestrzeni osobistej',
@@ -6165,7 +6165,6 @@ const translations = {
                     return `Zmieniono przestrzeń roboczą na ${toPolicyName}${fromPolicyName ? ` (wcześniej ${fromPolicyName})` : ''}`;
                 },
                 changeType: ({oldType, newType}: ChangeTypeParams) => `zmieniono typ z ${oldType} na ${newType}`,
-                delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `wysłał ten raport do ${delegateUser}, ponieważ ${originalManager} jest na urlopie`,
                 exportedToCSV: `wyeksportowano do CSV`,
                 exportedToIntegration: {
                     automatic: ({label}: ExportedToIntegrationParams) => `wyeksportowano do ${label}`,

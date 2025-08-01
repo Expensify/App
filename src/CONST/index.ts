@@ -656,6 +656,7 @@ const CONST = {
         TRACK_FLOWS: 'trackFlows',
         EUR_BILLING: 'eurBilling',
         MANUAL_DISTANCE: 'manualDistance',
+        VACATION_DELEGATE: 'vacationDelegate',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1122,7 +1123,6 @@ const CONST = {
                 CHRONOS_OOO_LIST: 'CHRONOSOOOLIST',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
-                DELEGATE_SUBMIT: 'DELEGATESUBMIT', // OldDot Action
                 DELETED_ACCOUNT: 'DELETEDACCOUNT', // Deprecated OldDot Action
                 DELETED_TRANSACTION: 'DELETEDTRANSACTION',
                 DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
@@ -1594,6 +1594,7 @@ const CONST = {
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
         INCORRECT_MAGIC_CODE: 451,
+        POLICY_DIFF_WARNING: 305,
     },
     HTTP_STATUS: {
         // When Cloudflare throttles

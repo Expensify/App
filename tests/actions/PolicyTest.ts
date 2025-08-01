@@ -312,6 +312,7 @@ describe('actions/Policy', () => {
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
+                policyID: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
             });
             await waitForBatchedUpdates();
@@ -361,6 +362,7 @@ describe('actions/Policy', () => {
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
+                engagementChoice: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -474,7 +476,6 @@ describe('actions/Policy', () => {
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
             });
-
             await waitForBatchedUpdates();
 
             await TestHelper.getOnyxData({
