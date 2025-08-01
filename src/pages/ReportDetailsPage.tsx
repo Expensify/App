@@ -149,7 +149,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
 
-    const {lastAccessReport} = useLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), undefined, undefined, report.reportID);
+    const {lastAccessReportID} = useLastAccessedReport(false, undefined, undefined, report.reportID);
 
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`, {canBeMissing: true});
@@ -307,13 +307,13 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         Navigation.dismissModal();
         Navigation.isNavigationReady().then(() => {
             if (isRootGroupChat) {
-                leaveGroupChat(report.reportID, lastAccessReport);
+                leaveGroupChat(report.reportID, lastAccessReportID);
                 return;
             }
             const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
-            leaveRoom(report.reportID, lastAccessReport, isWorkspaceMemberLeavingWorkspaceRoom);
+            leaveRoom(report.reportID, lastAccessReportID, isWorkspaceMemberLeavingWorkspaceRoom);
         });
-    }, [isPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility, lastAccessReport]);
+    }, [isPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility, lastAccessReportID]);
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, session?.email) && !policy?.isJoinRequestPending;
@@ -763,7 +763,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const deleteTransaction = useCallback(() => {
         if (caseID === CASES.DEFAULT) {
-            deleteTask(report, lastAccessReport);
+            deleteTask(report, lastAccessReportID);
             return;
         }
 
@@ -779,7 +779,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             deleteMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
             removeTransaction(iouTransactionID);
         }
-    }, [caseID, iouTransactionID, isSingleTransactionView, moneyRequestReport?.reportID, removeTransaction, report, requestParentReportAction, lastAccessReport]);
+    }, [caseID, iouTransactionID, isSingleTransactionView, moneyRequestReport?.reportID, removeTransaction, report, requestParentReportAction, lastAccessReportID]);
 
     // A flag to indicate whether the user chose to delete the transaction or not
     const isTransactionDeleted = useRef<boolean>(false);

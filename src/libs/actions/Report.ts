@@ -3503,9 +3503,7 @@ function getCurrentUserEmail(): string | undefined {
     return currentUserEmail;
 }
 
-function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, lastAccessedReport: OnyxEntry<Report>) {
-    const lastAccessedReportID = lastAccessedReport?.reportID;
-
+function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, lastAccessedReportID: string | undefined) {
     if (lastAccessedReportID) {
         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
         Navigation.goBack(lastAccessedReportRoute);
@@ -3521,8 +3519,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, lastAccess
     }
 }
 
-function getMostRecentReportID(currentReport: OnyxEntry<Report>, lastAccessedReport: OnyxEntry<Report>) {
-    const lastAccessedReportID = lastAccessedReport?.reportID;
+function getMostRecentReportID(lastAccessedReportID: string | undefined) {
     return lastAccessedReportID ?? conciergeReportID;
 }
 
@@ -3539,7 +3536,7 @@ function joinRoom(report: OnyxEntry<Report>) {
     );
 }
 
-function leaveGroupChat(reportID: string, lastAccessedReport: OnyxEntry<Report>) {
+function leaveGroupChat(reportID: string, lastAccessedReportID: string | undefined) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!report) {
         Log.warn('Attempting to leave Group Chat that does not existing locally');
@@ -3591,12 +3588,12 @@ function leaveGroupChat(reportID: string, lastAccessedReport: OnyxEntry<Report>)
         },
     ];
 
-    navigateToMostRecentReport(report, lastAccessedReport);
+    navigateToMostRecentReport(report, lastAccessedReportID);
     API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData, successData, failureData});
 }
 
 /** Leave a report by setting the state to submitted and closed */
-function leaveRoom(reportID: string, lastAccessedReport: OnyxEntry<Report>, isWorkspaceMemberLeavingWorkspaceRoom = false) {
+function leaveRoom(reportID: string, lastAccessedReportID: string | undefined, isWorkspaceMemberLeavingWorkspaceRoom = false) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     if (!report) {
@@ -3703,7 +3700,7 @@ function leaveRoom(reportID: string, lastAccessedReport: OnyxEntry<Report>, isWo
         return;
     }
     // In other cases, the report is deleted and we should move the user to another report.
-    navigateToMostRecentReport(report, lastAccessedReport);
+    navigateToMostRecentReport(report, lastAccessedReportID);
 }
 
 function buildInviteToRoomOnyxData(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {

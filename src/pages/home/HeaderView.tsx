@@ -122,7 +122,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: true});
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const {lastAccessReport} = useLastAccessedReport(false, false, undefined, report?.reportID);
+    const {lastAccessReportID} = useLastAccessedReport(false, false, undefined, report?.reportID);
 
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -373,7 +373,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                 isVisible={isDeleteTaskConfirmModalVisible}
                                 onConfirm={() => {
                                     setIsDeleteTaskConfirmModalVisible(false);
-                                    deleteTask(report, lastAccessReport);
+                                    deleteTask(report, lastAccessReportID);
                                 }}
                                 onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
                                 title={translate('task.deleteTask')}
