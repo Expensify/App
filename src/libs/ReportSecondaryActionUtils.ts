@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
-import {getCurrentUserAccountID} from './actions/Report';
+import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getConnectedIntegration,
@@ -13,6 +13,7 @@ import {
     getValidConnectedIntegration,
     hasIntegrationAutoSync,
     isInstantSubmitEnabled,
+    isPolicyMember,
     isPreferredExporter,
 } from './PolicyUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
@@ -30,6 +31,7 @@ import {
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtils,
     isExported as isExportedUtils,
+    isHoldCreator,
     isInvoiceReport as isInvoiceReportUtils,
     isIOUReport as isIOUReportUtils,
     isOpenReport as isOpenReportUtils,
@@ -98,6 +100,18 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
     const isSubmitter = isCurrentUserSubmitter(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = (report.managerID ?? CONST.DEFAULT_NUMBER_ID) === getCurrentUserAccountID();
+    const isOpenReport = isOpenReportUtils(report);
+    const isPolicyExpenseChat = !!policy?.isPolicyExpenseChatEnabled;
+    const currentUserEmail = getCurrentUserEmail();
+    const userIsPolicyMember = isPolicyMember(currentUserEmail, report.policyID);
+
+    if (!(userIsPolicyMember && isPolicyExpenseChat)) {
+        return false;
+    }
+
+    if (isOpenReport) {
+        return isSubmitter || isAdmin;
+    }
 
     return isSubmitter || isAdmin || isManager;
 }
@@ -510,6 +524,36 @@ function isReopenAction(report: Report, policy?: Policy): boolean {
     return true;
 }
 
+function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, reportTransactions: Transaction[], reportActions?: ReportAction[], policy?: Policy): boolean {
+    const isReportOnHold = reportTransactions.some(isOnHoldTransactionUtils);
+
+    if (!isReportOnHold) {
+        return false;
+    }
+
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions);
+
+    if (!transactionThreadReportID) {
+        return false;
+    }
+
+    const isHolder = reportTransactions.some((transaction) => isHoldCreator(transaction, transactionThreadReportID));
+
+    if (isHolder) {
+        return false;
+    }
+
+    return policy?.role === CONST.POLICY.ROLE.ADMIN;
+}
+
+function isRemoveHoldActionForTransaction(report: Report, reportTransaction: Transaction, policy?: Policy): boolean {
+    if (!isOnHoldTransactionUtils(reportTransaction)) {
+        return false;
+    }
+
+    return policy?.role === CONST.POLICY.ROLE.ADMIN;
+}
+
 function getSecondaryReportActions({
     report,
     chatReport,
@@ -581,6 +625,10 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.HOLD);
     }
 
+    if (isRemoveHoldAction(report, chatReport, reportTransactions, reportActions, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
+    }
+
     if (isSplitAction(report, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
@@ -630,6 +678,10 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
     }
 
+    if (isRemoveHoldActionForTransaction(parentReport, reportTransaction, policy)) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD);
+    }
+
     if (isSplitAction(parentReport, [reportTransaction], policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
     }
@@ -642,4 +694,4 @@ function getSecondaryTransactionThreadActions(
 
     return options;
 }
-export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isDeleteAction, getSecondaryExportReportActions};
+export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isDeleteAction, getSecondaryExportReportActions, isSplitAction};
