@@ -224,7 +224,7 @@
     "@babel/types": "^7.22.19",
     "@callstack/reassure-compare": "^1.0.0-rc.4",
     "@dword-design/eslint-plugin-import-alias": "^5.0.0",
-    "@electron/notarize": "^2.1.0",
+    "@electron/notarize": "^2.5.0",
     "@fullstory/babel-plugin-annotate-react": "^2.3.0",
     "@fullstory/babel-plugin-react-native": "^1.2.1",
     "@jest/globals": "^29.5.0",
