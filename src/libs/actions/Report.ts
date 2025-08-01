@@ -49,11 +49,11 @@ import type {
     UpdateCommentParams,
     UpdateGroupChatAvatarParams,
     UpdateGroupChatMemberRolesParams,
+    UpdatePolicyRoomAvatarParams,
     UpdatePolicyRoomNameParams,
     UpdateReportNotificationPreferenceParams,
     UpdateReportPrivateNoteParams,
     UpdateReportWriteCapabilityParams,
-    UpdatePolicyRoomAvatarParams,
     UpdateRoomDescriptionParams,
 } from '@libs/API/parameters';
 import type ExportReportCSVParams from '@libs/API/parameters/ExportReportCSVParams';
