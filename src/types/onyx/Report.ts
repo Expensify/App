@@ -135,7 +135,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         writeCapability?: WriteCapability;
 
         /** The report type */
-        type?: string;
+        type?: ValueOf<typeof CONST.REPORT.TYPE> | ValueOf<typeof CONST.SEARCH.DATA_TYPES> | ValueOf<typeof CONST.REPORT.UNSUPPORTED_TYPE>;
 
         /** The report visibility */
         visibility?: RoomVisibility;
@@ -193,6 +193,15 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the report is cancelled */
         isCancelledIOU?: boolean;
+
+        /** Whether the report has been reopened */
+        hasReportBeenReopened?: boolean;
+
+        /** Whether the report has been exported to integration */
+        isExportedToIntegration?: boolean;
+
+        /** Whether the report has any export errors */
+        hasExportError?: boolean;
 
         /** The ID of the IOU report */
         iouReportID?: string;

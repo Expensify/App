@@ -274,19 +274,19 @@ function PopoverMenu({
     const renderBackButtonItem = () => {
         const previousMenuItems = getPreviousSubMenu();
         const previouslySelectedItem = previousMenuItems[enteredSubMenuIndexes[enteredSubMenuIndexes.length - 1]];
-        const hasBackButtonText = !!previouslySelectedItem.backButtonText;
+        const hasBackButtonText = !!previouslySelectedItem?.backButtonText;
 
         return (
             <MenuItem
-                key={previouslySelectedItem.text}
+                key={previouslySelectedItem?.text}
                 icon={Expensicons.BackArrow}
                 iconFill={theme.icon}
                 style={hasBackButtonText ? styles.pv0 : undefined}
-                title={hasBackButtonText ? previouslySelectedItem.backButtonText : previouslySelectedItem.text}
+                title={hasBackButtonText ? previouslySelectedItem?.backButtonText : previouslySelectedItem?.text}
                 titleStyle={hasBackButtonText ? styles.createMenuHeaderText : undefined}
                 shouldShowBasicTitle={hasBackButtonText}
                 shouldCheckActionAllowedOnPress={false}
-                description={previouslySelectedItem.description}
+                description={previouslySelectedItem?.description}
                 onPress={() => {
                     setCurrentMenuItems(previousMenuItems);
                     setFocusedIndex(-1);
@@ -322,13 +322,10 @@ function PopoverMenu({
                         }
                         setFocusedIndex(menuIndex);
                     }}
-                    wrapperStyle={StyleUtils.getItemBackgroundColorStyle(
-                        !!item.isSelected,
-                        focusedIndex === menuIndex,
-                        item.disabled ?? false,
-                        theme.activeComponentBG,
-                        theme.hoverComponentBG,
-                    )}
+                    wrapperStyle={[
+                        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, focusedIndex === menuIndex, item.disabled ?? false, theme.activeComponentBG, theme.hoverComponentBG),
+                        shouldUseScrollView && !shouldUseModalPaddingStyle && StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
+                    ]}
                     shouldRemoveHoverBackground={item.isSelected}
                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                     // Spread other props dynamically
@@ -406,6 +403,8 @@ function PopoverMenu({
         return styles.createMenuContainer;
     }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer]);
 
+    const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
+
     return (
         <PopoverWithMeasuredContent
             anchorPosition={anchorPosition}
@@ -431,18 +430,18 @@ function PopoverMenu({
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
             useNativeDriver
             restoreFocusType={restoreFocusType}
-            innerContainerStyle={innerContainerStyle}
+            innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             testID={testID}
         >
             <FocusTrapForModal active={isVisible}>
                 <View
                     onLayout={onLayout}
-                    style={[menuContainerStyle, containerStyles]}
+                    style={[menuContainerStyle, containerStyles, {paddingTop, paddingBottom, paddingVertical, ...(isWebOrDesktop ? styles.flex1 : styles.flexGrow1)}]}
                 >
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
-                    {renderWithConditionalWrapper(shouldUseScrollView, scrollContainerStyle, renderedMenuItems)}
+                    {renderWithConditionalWrapper(shouldUseScrollView, restScrollContainerStyle, renderedMenuItems)}
                 </View>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
