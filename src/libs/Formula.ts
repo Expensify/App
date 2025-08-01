@@ -1,4 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import type Policy from '@src/types/onyx/Policy';
@@ -7,10 +8,13 @@ import type Report from '@src/types/onyx/Report';
 type FormulaPart = {
     /** The original definition from the formula */
     definition: string;
+
     /** The type of formula part (report, field, user, etc.) */
-    type: string;
+    type: ValueOf<typeof FORMULA_PART_TYPES>;
+
     /** The field path for accessing data (e.g., ['type'], ['startdate'], ['total']) */
     fieldPath: string[];
+
     /** Functions to apply to the computed value (e.g., ['frontPart']) */
     functions: string[];
 };
@@ -248,7 +252,7 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         case 'created':
             return formatDate(report.lastVisibleActionCreated, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
         default:
-            return '';
+            return part.definition;
     }
 }
 

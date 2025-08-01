@@ -1,6 +1,6 @@
 import {measureFunction} from 'reassure';
-import {compute, extract, parse} from '@libs/CustomFormula';
-import type {FormulaContext} from '@libs/CustomFormula';
+import {compute, extract, parse} from '@libs/Formula';
+import type {FormulaContext} from '@libs/Formula';
 
 describe('[CustomFormula] Performance Tests', () => {
     const mockReport = {

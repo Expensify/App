@@ -1,5 +1,5 @@
-import {compute, extract, FORMULA_PART_TYPES, isFormula, parse} from '@libs/CustomFormula';
-import type {FormulaContext} from '@libs/CustomFormula';
+import {compute, extract, FORMULA_PART_TYPES, isFormula, parse} from '@libs/Formula';
+import type {FormulaContext} from '@libs/Formula';
 
 describe('CustomFormula', () => {
     describe('extract()', () => {
