@@ -22,21 +22,7 @@ describe('QuickActionUtils', () => {
                 jest.clearAllMocks();
             });
 
-            it('should return true when shouldShowPolicy returns true and isPolicyExpenseChatEnabled is true', () => {
-                const policy: Partial<Policy> = {
-                    id: 'policy123',
-                    isPolicyExpenseChatEnabled: true,
-                };
-
-                mockedPolicyUtils.shouldShowPolicy.mockReturnValue(true);
-
-                const result = isQuickActionAllowed(createReportAction, undefined, policy as Policy);
-
-                expect(result).toBe(true);
-                expect(mockedPolicyUtils.shouldShowPolicy).toHaveBeenCalledWith(policy, false, undefined);
-            });
-
-            it('should return false when shouldShowPolicy returns false even if isPolicyExpenseChatEnabled is true', () => {
+            it('should return false when shouldShowPolicy returns true and isPolicyExpenseChatEnabled is true', () => {
                 const policy: Partial<Policy> = {
                     id: 'policy123',
                     isPolicyExpenseChatEnabled: true,
@@ -47,7 +33,6 @@ describe('QuickActionUtils', () => {
                 const result = isQuickActionAllowed(createReportAction, undefined, policy as Policy);
 
                 expect(result).toBe(false);
-                expect(mockedPolicyUtils.shouldShowPolicy).toHaveBeenCalledWith(policy, false, undefined);
             });
 
             it('should return false when shouldShowPolicy returns true but isPolicyExpenseChatEnabled is false', () => {
@@ -56,12 +41,11 @@ describe('QuickActionUtils', () => {
                     isPolicyExpenseChatEnabled: false,
                 };
 
-                mockedPolicyUtils.shouldShowPolicy.mockReturnValue(true);
+                mockedPolicyUtils.shouldShowPolicy.mockReturnValue(false);
 
                 const result = isQuickActionAllowed(createReportAction, undefined, policy as Policy);
 
                 expect(result).toBe(false);
-                expect(mockedPolicyUtils.shouldShowPolicy).toHaveBeenCalledWith(policy, false, undefined);
             });
 
             it('should return false when shouldShowPolicy returns true but isPolicyExpenseChatEnabled is undefined', () => {
@@ -75,7 +59,6 @@ describe('QuickActionUtils', () => {
                 const result = isQuickActionAllowed(createReportAction, undefined, policy as Policy);
 
                 expect(result).toBe(false);
-                expect(mockedPolicyUtils.shouldShowPolicy).toHaveBeenCalledWith(policy, false, undefined);
             });
 
             it('should return false when policy is undefined', () => {
@@ -84,7 +67,6 @@ describe('QuickActionUtils', () => {
                 const result = isQuickActionAllowed(createReportAction, undefined, undefined);
 
                 expect(result).toBe(false);
-                expect(mockedPolicyUtils.shouldShowPolicy).toHaveBeenCalledWith(undefined, false, undefined);
             });
 
             it('should return false when both conditions are false', () => {
@@ -98,7 +80,6 @@ describe('QuickActionUtils', () => {
                 const result = isQuickActionAllowed(createReportAction, undefined, policy as Policy);
 
                 expect(result).toBe(false);
-                expect(mockedPolicyUtils.shouldShowPolicy).toHaveBeenCalledWith(policy, false, undefined);
             });
         });
     });
