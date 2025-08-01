@@ -2,6 +2,7 @@ import React, {useCallback, useContext, useDeferredValue, useEffect, useMemo, us
 import {ActivityIndicator, FlatList, View} from 'react-native';
 import type {ListRenderItemInfo, ViewToken} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
+import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -32,6 +33,7 @@ import {openUnreportedExpense} from '@libs/actions/Report';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
@@ -131,7 +133,8 @@ function MoneyRequestReportPreviewContent({
         [transactions, iouReportID, action],
     );
 
-    const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation} = usePaymentAnimations();
+    const {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation, startSubmittingAnimation} =
+        usePaymentAnimations();
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
@@ -293,7 +296,7 @@ function MoneyRequestReportPreviewContent({
     const totalAmountStyle = shouldUseNarrowLayout ? [styles.flexColumnReverse, styles.alignItemsStretch] : [styles.flexRow, styles.alignItemsCenter];
 
     useEffect(() => {
-        if (!isPaidAnimationRunning || isApprovedAnimationRunning) {
+        if (!isPaidAnimationRunning || isApprovedAnimationRunning || isSubmittingAnimationRunning) {
             return;
         }
 
@@ -439,8 +442,13 @@ function MoneyRequestReportPreviewContent({
         if (isPaidAnimationRunning) {
             return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
         }
+
+        if (isSubmittingAnimationRunning) {
+            return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
+        }
+
         return getReportPreviewAction(violations, isIouReportArchived || isChatReportArchived, iouReport, policy, transactions, invoiceReceiverPolicy);
-    }, [isPaidAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, reportActions, invoiceReceiverPolicy, isChatReportArchived]);
+    }, [isPaidAnimationRunning, isSubmittingAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, invoiceReceiverPolicy, isChatReportArchived]);
 
     const addExpenseDropdownOptions = useMemo(
         () => [
@@ -479,10 +487,15 @@ function MoneyRequestReportPreviewContent({
 
     const reportPreviewActions = {
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: (
-            <Button
+            <AnimatedSubmitButton
                 success={isWaitingForSubmissionFromCurrentUser}
-                text={translate('common.submit')}
-                onPress={() => submitReport(iouReport)}
+                text={translate('iou.submitAmount', {amount: getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction)})}
+                onPress={() => {
+                    startSubmittingAnimation();
+                    submitReport(iouReport);
+                }}
+                isSubmittingAnimationRunning={isSubmittingAnimationRunning}
+                onAnimationFinish={stopAnimation}
             />
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE]: (
