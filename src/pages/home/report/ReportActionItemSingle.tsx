@@ -16,7 +16,7 @@ import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getReportActionMessage} from '@libs/ReportActionsUtils';
+import {getManagerOnVacation, getReportActionMessage, getSubmittedTo, getVacationer} from '@libs/ReportActionsUtils';
 import {isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -86,6 +86,16 @@ function ReportActionItemSingle({
     const [primaryAvatar, secondaryAvatar] = avatars;
 
     const accountOwnerDetails = getPersonalDetailByEmail(details.login ?? '');
+
+    // Vacation delegate details for submitted action
+    const vacationer = getVacationer(action);
+    const submittedTo = getSubmittedTo(action);
+    const vacationDelegateDetailsForSubmit = getPersonalDetailByEmail(vacationer ?? '');
+    const submittedToDetails = getPersonalDetailByEmail(submittedTo ?? '');
+
+    // Vacation delegate details for approved action
+    const managerOnVacation = getManagerOnVacation(action);
+    const vacationDelegateDetailsForApprove = getPersonalDetailByEmail(managerOnVacation ?? '');
 
     const headingText = avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE ? `${primaryAvatar.name} & ${secondaryAvatar.name}` : primaryAvatar.name;
 
@@ -202,6 +212,19 @@ function ReportActionItemSingle({
                 ) : null}
                 {!!action?.delegateAccountID && (
                     <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', {delegator: accountOwnerDetails?.displayName ?? ''})}</Text>
+                )}
+                {!!vacationer && !!submittedTo && (
+                    <Text style={[styles.chatDelegateMessage]}>
+                        {translate('statusPage.toAsVacationDelegate', {
+                            submittedToName: submittedToDetails?.displayName ?? submittedTo ?? '',
+                            vacationDelegateName: vacationDelegateDetailsForSubmit?.displayName ?? vacationer ?? '',
+                        })}
+                    </Text>
+                )}
+                {!!managerOnVacation && (
+                    <Text style={[styles.chatDelegateMessage]}>
+                        {translate('statusPage.asVacationDelegate', {nameOrEmail: vacationDelegateDetailsForApprove?.displayName ?? managerOnVacation ?? ''})}
+                    </Text>
                 )}
                 <View style={hasBeenFlagged ? styles.blockquote : {}}>{children}</View>
             </View>
