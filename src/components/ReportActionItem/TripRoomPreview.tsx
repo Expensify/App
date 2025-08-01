@@ -184,14 +184,16 @@ function TripRoomPreview({
                                 {dateInfo} • {reservationsData.length} {(reservationsData.length < 2 ? translate('travel.trip') : translate('travel.trips')).toLowerCase()}
                             </Text>
                         </View>
-                        <FlatList
-                            data={reservationsData}
-                            style={[styles.gap3, styles.border, styles.borderRadiusComponentLarge, styles.p4]}
-                            renderItem={renderItem}
-                        />
+                        {reservationsData.length > 0 && (
+                            <FlatList
+                                data={reservationsData}
+                                style={[styles.gap4, styles.border, styles.borderRadiusComponentLarge, styles.p4]}
+                                renderItem={renderItem}
+                            />
+                        )}
                         <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                             <Text style={[styles.textLabelSupporting, styles.lh16]}>{translate('common.total')}</Text>
-                            <Text style={styles.labelStrong}>{displayAmount}</Text>
+                            <Text style={[styles.labelStrong, styles.textNormal]}>{displayAmount}</Text>
                         </View>
 
                         <Button
