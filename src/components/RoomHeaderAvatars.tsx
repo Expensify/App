@@ -2,7 +2,7 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearAvatarErrors, updateRoomAvatar} from '@libs/actions/Report';
+import {clearAvatarErrors, updatePolicyRoomAvatar} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {isThread, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {isDefaultAvatar} from '@libs/UserUtils';
@@ -58,8 +58,8 @@ function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
                     size={CONST.AVATAR_SIZE.X_LARGE}
                     avatarStyle={styles.avatarXLarge}
                     onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
-                    onImageRemoved={() => updateRoomAvatar(report.reportID)}
-                    onImageSelected={(file) => updateRoomAvatar(report.reportID, file)}
+                    onImageRemoved={() => updatePolicyRoomAvatar(report.reportID)}
+                    onImageSelected={(file) => updatePolicyRoomAvatar(report.reportID, file)}
                     editIcon={Expensicons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     pendingAction={report.pendingFields?.avatar}

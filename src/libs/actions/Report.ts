@@ -53,7 +53,7 @@ import type {
     UpdateReportNotificationPreferenceParams,
     UpdateReportPrivateNoteParams,
     UpdateReportWriteCapabilityParams,
-    UpdateRoomAvatarParams,
+    UpdatePolicyRoomAvatarParams,
     UpdateRoomDescriptionParams,
 } from '@libs/API/parameters';
 import type ExportReportCSVParams from '@libs/API/parameters/ExportReportCSVParams';
@@ -947,7 +947,7 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
  * @param file - The selected image file to update the avatar with.
  */
 
-function updateRoomAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
+function updatePolicyRoomAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -991,12 +991,12 @@ function updateRoomAvatar(reportID: string, file?: File | CustomRNImageManipulat
         },
     ];
 
-    const parameters: UpdateRoomAvatarParams = {
+    const parameters: UpdatePolicyRoomAvatarParams = {
         reportID,
         file,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_ROOM_AVATAR, parameters, {optimisticData, failureData, successData});
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_ROOM_AVATAR, parameters, {optimisticData, failureData, successData});
 }
 
 /**
@@ -5998,7 +5998,7 @@ export {
     unsubscribeFromReportChannel,
     updateDescription,
     updateGroupChatAvatar,
-    updateRoomAvatar,
+    updatePolicyRoomAvatar,
     updateGroupChatMemberRoles,
     updateChatName,
     updateLastVisitTime,
