@@ -152,40 +152,7 @@ describe('PersonalDetailsUtils', () => {
         });
     });
 
-    // Test Group 1: Scenarios where `passedPersonalDetails` is null or undefined
-    describe('when passedPersonalDetails is null or undefined', () => {
-        test('should return formatted email login when passedPersonalDetails is null', () => {
-            const login = 'test@example.com';
-            const result = createDisplayName(login, null, formatPhoneNumber);
-            // Expect email to remain unchanged by formatPhoneNumber
-            expect(result).toBe(login);
-        });
-
-        test('should return formatted US phone login when passedPersonalDetails is undefined', () => {
-            const login = '+15551234567';
-            const result = createDisplayName(login, undefined, formatPhoneNumber);
-            // Expect US phone number to be formatted based on country code
-            expect(result).toBe('+1 555-123-4567');
-        });
-
-        test('should return formatted international phone login when passedPersonalDetails is undefined', () => {
-            const login = '+442079460000'; // UK number
-            const result = createDisplayName(login, undefined, formatPhoneNumber);
-            expect(result).toBe('+44 20 7946 0000');
-        });
-
-        test('should return formatted SMS login (stripped of suffix) when passedPersonalDetails is null', () => {
-            const login = '+18005550000@expensify.sms';
-            const result = createDisplayName(login, null, formatPhoneNumber);
-            // This test assumes `formatPhoneNumber` correctly strips the `@expensify.sms` suffix
-            // and formats the remaining phone number, as implied by the function's internal comment.
-            expect(result).toBe('(800) 555-0000');
-        });
-    });
-
-    // Test Group 2: Scenarios where `passedPersonalDetails` is provided
     describe('createDisplayName', () => {
-        // Scenario 2.1: Both firstName and lastName are present
         test('should return full name when firstName and lastName are both non-empty', () => {
             const login = 'test@example.com';
             const personalDetails: PersonalDetailsForDisplayName = {firstName: 'John', lastName: 'Doe'};
@@ -278,6 +245,34 @@ describe('PersonalDetailsUtils', () => {
             const personalDetails: PersonalDetailsForDisplayName = {firstName: '', lastName: '  Last  '};
             const result = createDisplayName(login, personalDetails, formatPhoneNumber);
             expect(result).toBe('Last');
+        });
+
+        test('should return formatted email login when passedPersonalDetails is null', () => {
+            const login = 'test@example.com';
+            const result = createDisplayName(login, null, formatPhoneNumber);
+            // Expect email to remain unchanged by formatPhoneNumber
+            expect(result).toBe(login);
+        });
+
+        test('should return formatted US phone login when passedPersonalDetails is undefined', () => {
+            const login = '+15551234567';
+            const result = createDisplayName(login, undefined, formatPhoneNumber);
+            // Expect US phone number to be formatted based on country code
+            expect(result).toBe('+1 555-123-4567');
+        });
+
+        test('should return formatted international phone login when passedPersonalDetails is undefined', () => {
+            const login = '+442079460000'; // UK number
+            const result = createDisplayName(login, undefined, formatPhoneNumber);
+            expect(result).toBe('+44 20 7946 0000');
+        });
+
+        test('should return formatted SMS login (stripped of suffix) when passedPersonalDetails is null', () => {
+            const login = '+18005550000@expensify.sms';
+            const result = createDisplayName(login, null, formatPhoneNumber);
+            // This test assumes `formatPhoneNumber` correctly strips the `@expensify.sms` suffix
+            // and formats the remaining phone number, as implied by the function's internal comment.
+            expect(result).toBe('(800) 555-0000');
         });
     });
 });
