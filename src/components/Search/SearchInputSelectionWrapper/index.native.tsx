@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, startTransition, useEffect, useState} from 'react';
+import React, {forwardRef, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {Rect} from 'react-native-svg';
 import SearchAutocompleteInput from '@components/Search/SearchAutocompleteInput';
@@ -15,9 +15,9 @@ function SearchInputSelectionWrapper(props: SearchAutocompleteInputProps, ref: F
     const styles = useThemeStyles();
 
     useEffect(() => {
-        startTransition(() => {
+        setTimeout(() => {
             setDelayFirstRender(false);
-        });
+        }, 100);
     }, []);
 
     if (delayFirstRender) {
