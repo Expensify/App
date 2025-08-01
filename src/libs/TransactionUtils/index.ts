@@ -1843,7 +1843,11 @@ function isTransactionPendingDelete(transaction: OnyxEntry<Transaction>): boolea
 function getChildTransactions(originalTransactionID: string | undefined) {
     return Object.values(allTransactions ?? {}).filter((currentTransaction) => {
         const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
-        return currentTransaction?.comment?.originalTransactionID === originalTransactionID && !!currentReport;
+        return (
+            currentTransaction?.comment?.originalTransactionID === originalTransactionID &&
+            !!currentReport &&
+            currentTransaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+        );
     });
 }
 
