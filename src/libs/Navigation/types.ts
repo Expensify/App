@@ -1895,6 +1895,7 @@ type WorkspaceSplitNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.MORE_FEATURES]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.TAGS]: {
         policyID: string;
