@@ -1,7 +1,6 @@
 import Log from './Log';
 import KeyReportActionsDraftByReportActionID from './migrations/KeyReportActionsDraftByReportActionID';
 import MoveIsOptimisticReportToMetadata from './migrations/MoveIsOptimisticReportToMetadata';
-import NVPMigration from './migrations/NVPMigration';
 import PendingMembersToMetadata from './migrations/PendingMembersToMetadata';
 import PronounsMigration from './migrations/PronounsMigration';
 import RemoveEmptyReportActionsDrafts from './migrations/RemoveEmptyReportActionsDrafts';
@@ -21,7 +20,6 @@ export default function () {
             KeyReportActionsDraftByReportActionID,
             TransactionBackupsToCollection,
             RemoveEmptyReportActionsDrafts,
-            NVPMigration,
             PronounsMigration,
             MoveIsOptimisticReportToMetadata,
             PendingMembersToMetadata,
