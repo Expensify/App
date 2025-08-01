@@ -17,7 +17,7 @@ import PressableWithoutFeedback from './PressableWithoutFeedback';
 
 type PressableWithDelayToggleProps = PressableProps & {
     /** The text to display */
-    text: string;
+    text?: string;
 
     /** The text to display once the pressable is pressed */
     textChecked?: string;
@@ -50,6 +50,18 @@ type PressableWithDelayToggleProps = PressableProps & {
      */
     inline?: boolean;
     accessibilityRole?: string;
+
+    /** For using the background color, e.g. if we need bg for the icon */
+    shouldIconUseBackgroundColor?: boolean;
+
+    /** For using the hovered style by default, e.g. if we always need the hovered bg */
+    shouldIconAlwaysUseHoveredStyle?: boolean;
+
+    /** Copy icon width */
+    iconWidth?: number;
+
+    /** Copy icon height */
+    iconHeight?: number;
 };
 
 function PressableWithDelayToggle(
@@ -66,6 +78,10 @@ function PressableWithDelayToggle(
         iconStyles,
         icon,
         accessibilityRole,
+        shouldIconAlwaysUseHoveredStyle,
+        iconWidth = variables.iconSizeSmall,
+        iconHeight = variables.iconSizeSmall,
+        shouldIconUseBackgroundColor = false,
     }: PressableWithDelayToggleProps,
     ref: PressableRef,
 ) {
@@ -86,15 +102,17 @@ function PressableWithDelayToggle(
     // of a Pressable
     const PressableView = inline ? Text : PressableWithoutFeedback;
     const tooltipTexts = !isActive ? tooltipTextChecked : tooltipText;
-    const labelText = (
-        <Text
-            suppressHighlighting
-            style={textStyles}
-        >
-            {!isActive && textChecked ? textChecked : text}
-            &nbsp;
-        </Text>
-    );
+    const labelText =
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
+        text || textChecked ? (
+            <Text
+                suppressHighlighting
+                style={textStyles}
+            >
+                {!isActive && textChecked ? textChecked : text}
+                &nbsp;
+            </Text>
+        ) : null;
 
     return (
         <PressableView
@@ -116,7 +134,20 @@ function PressableWithDelayToggle(
                         tabIndex={-1}
                         accessible={false}
                         onPress={updatePressState}
-                        style={[styles.flexRow, pressableStyle, !isActive && styles.cursorDefault]}
+                        style={({hovered, pressed}) => [
+                            styles.flexRow,
+                            pressableStyle,
+                            !isActive && styles.cursorDefault,
+                            shouldIconUseBackgroundColor &&
+                                StyleUtils.getButtonBackgroundColorStyle(
+                                    getButtonState(
+                                        !!shouldIconAlwaysUseHoveredStyle || hovered,
+                                        shouldIconAlwaysUseHoveredStyle ? hovered : pressed,
+                                        !shouldIconAlwaysUseHoveredStyle && !isActive,
+                                    ),
+                                    true,
+                                ),
+                        ]}
                     >
                         {({hovered, pressed}) => (
                             <>
@@ -126,8 +157,8 @@ function PressableWithDelayToggle(
                                         src={!isActive ? iconChecked : icon}
                                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
                                         additionalStyles={iconStyles}
-                                        width={variables.iconSizeSmall}
-                                        height={variables.iconSizeSmall}
+                                        width={iconWidth}
+                                        height={iconHeight}
                                         inline={inline}
                                     />
                                 )}
@@ -143,3 +174,5 @@ function PressableWithDelayToggle(
 PressableWithDelayToggle.displayName = 'PressableWithDelayToggle';
 
 export default forwardRef(PressableWithDelayToggle);
+
+export type {PressableWithDelayToggleProps};
