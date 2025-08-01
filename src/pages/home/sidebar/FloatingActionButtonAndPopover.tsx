@@ -129,7 +129,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
 
     const canSendInvoice = useMemo(() => canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
-    const isValidReport = !(isEmptyObject(quickActionReport) || isReportArchived);
+    const isArchivedReport = useReportIsArchived(quickActionReport?.reportID);
+    const isValidReport = !(isEmptyObject(quickActionReport) || isArchivedReport);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
@@ -154,11 +155,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
 
     const quickActionAvatars = useMemo(() => {
         if (isValidReport) {
-            const avatars = getIcons(quickActionReport, personalDetails);
+            const avatars = getIcons(quickActionReport, personalDetails, null, undefined, undefined, undefined, undefined, isArchivedReport);
             return avatars.length <= 1 || isPolicyExpenseChat(quickActionReport) ? avatars : avatars.filter((avatar) => avatar.id !== session?.accountID);
         }
         if (!isEmptyObject(policyChatForActivePolicy)) {
-            return getIcons(policyChatForActivePolicy, personalDetails);
+            return getIcons(policyChatForActivePolicy, personalDetails, null, undefined, undefined, undefined, undefined, isArchivedReport);
         }
         return [];
         // Policy is needed as a dependency in order to update the shortcut details when the workspace changes
