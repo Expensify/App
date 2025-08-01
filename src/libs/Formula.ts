@@ -1,9 +1,9 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
+import {getCurrencySymbol} from './CurrencyUtils';
 
 type FormulaPart = {
     /** The original definition from the formula */

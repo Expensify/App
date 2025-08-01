@@ -1,12 +1,12 @@
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import Timing from '@libs/actions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Beta from '@src/types/onyx/Beta';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
-import * as CustomFormula from './CustomFormula';
+import Timing from './actions/Timing';
+import * as Formula from './Formula';
 import Log from './Log';
 import Performance from './Performance';
 import Permissions from './Permissions';
@@ -114,7 +114,7 @@ function shouldComputeReportName(report: Report, policy: Policy | undefined): bo
     }
 
     // Check if the formula contains formula parts
-    return CustomFormula.isFormula(titleField.defaultValue);
+    return Formula.isFormula(titleField.defaultValue);
 }
 
 /**
@@ -155,12 +155,12 @@ function computeNameForNewReport(update: OnyxUpdate, context: UpdateContext): {r
     }
 
     // Build context for formula computation
-    const formulaContext: CustomFormula.FormulaContext = {
+    const formulaContext: Formula.FormulaContext = {
         report: newReport,
         policy,
     };
 
-    const newName = CustomFormula.compute(titleField.defaultValue, formulaContext);
+    const newName = Formula.compute(titleField.defaultValue, formulaContext);
 
     if (newName && newName !== newReport.reportName) {
         Log.info('[OptimisticReportNames] New report name computed successfully', false, {
@@ -212,14 +212,14 @@ function computeReportNameIfNeeded(
     // Quick check: see if the update might affect the report name
     const updateType = determineObjectTypeByKey(incomingUpdate.key);
     const formula = titleField.defaultValue;
-    const formulaParts = CustomFormula.parse(formula);
+    const formulaParts = Formula.parse(formula);
 
     // Check if any formula part might be affected by this update
     const isAffected = formulaParts.some((part) => {
-        if (part.type === CustomFormula.FORMULA_PART_TYPES.REPORT) {
+        if (part.type === Formula.FORMULA_PART_TYPES.REPORT) {
             return updateType === 'report' || updateType === 'transaction';
         }
-        if (part.type === CustomFormula.FORMULA_PART_TYPES.FIELD) {
+        if (part.type === Formula.FORMULA_PART_TYPES.FIELD) {
             return updateType === 'report';
         }
         return false;
@@ -237,12 +237,12 @@ function computeReportNameIfNeeded(
     const updatedPolicy = updateType === 'policy' && report.policyID === getPolicyIDFromKey(incomingUpdate.key) ? {...policy, ...incomingUpdate.value} : policy;
 
     // Compute the new name
-    const formulaContext: CustomFormula.FormulaContext = {
+    const formulaContext: Formula.FormulaContext = {
         report: updatedReport,
         policy: updatedPolicy,
     };
 
-    const newName = CustomFormula.compute(formula, formulaContext);
+    const newName = Formula.compute(formula, formulaContext);
 
     // Only return an update if the name actually changed
     if (newName && newName !== report.reportName) {
@@ -281,6 +281,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
     const {betas, allReports} = context;
 
     // Check if the feature is enabled
+    // TODO: change this condition later (implemented only for testing purposes)
     if (false && !Permissions.canUseAuthAutoReportTitles(betas)) {
         Performance.markEnd(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
         Timing.end(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
