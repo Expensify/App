@@ -2,9 +2,9 @@ name: Remote Build iOS
 
 on:
   workflow_dispatch:
-  push:
-    branches-ignore: [staging, production]
-    paths-ignore: ['docs/**', 'contributingGuides/**', 'help/**', '.github/**', 'scripts/**', 'tests/**']
+  # push:
+  #   branches-ignore: [staging, production]
+  #   paths-ignore: ['docs/**', 'contributingGuides/**', 'help/**', '.github/**', 'scripts/**', 'tests/**']
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           submodules: ${{ matrix.is_hybrid_build || false }}
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          # token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -38,7 +38,10 @@ jobs:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
 
       - name: RNEF Remote Build - iOS
-        uses: callstackincubator/ios@78ed46313dac4ed09cb5cc73b9b1b9193d59d863
+        # commit from Jul 23, 2025
+        # uses: callstackincubator/ios@0a70afc8f4ab36ead9c304bb3059f2e0cfe5f25a 
+        # commit with logging errors
+        uses: callstackincubator/ios@7847e0676242cefa801cba8ede6736140b7bae91 
         env:
           IS_HYBRID_APP: ${{ matrix.is_hybrid_build }}
         with:
