@@ -42,7 +42,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
-import {getAllSortedTransactions, getCategory, getTag} from './TransactionUtils';
+import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {isPublicDomain} from './ValidationUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
@@ -466,6 +466,23 @@ function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
  */
 function getCleanedTagName(tag: string) {
     return tag?.replace(/\\:/g, CONST.COLON);
+}
+
+/**
+ * Converts a colon-delimited tag string into a comma-separated string, filtering out empty tags.
+ */
+function getCommaSeparatedTagNameWithSanitizedColons(tag: string): string {
+    return getTagArrayFromName(tag)
+        .filter((tagItem) => tagItem !== '')
+        .map(getCleanedTagName)
+        .join(', ');
+}
+
+function getLengthOfTag(tag: string): number {
+    if (!tag) {
+        return 0;
+    }
+    return getTagArrayFromName(tag).length;
 }
 
 /**
@@ -1489,6 +1506,7 @@ export {
     getPerDiemCustomUnits,
     getAdminEmployees,
     getCleanedTagName,
+    getCommaSeparatedTagNameWithSanitizedColons,
     getConnectedIntegration,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
@@ -1631,6 +1649,7 @@ export {
     isUserInvitedToWorkspace,
     getPolicyRole,
     hasIndependentTags,
+    getLengthOfTag,
 };
 
 export type {MemberEmailsToAccountIDs};
