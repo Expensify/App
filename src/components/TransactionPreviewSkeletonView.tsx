@@ -47,9 +47,6 @@ function TransactionPreviewSkeletonView({transactionPreviewWidth}: TransactionPr
                     height="7"
                 />
             </SkeletonViewContentLoader>
-            {/* This skeleton inverts the progress bar, which should be on the right,
-            so we don't need to know the width of the component to calculate it - works with percentages.
-           */}
             <View style={[styles.r0, styles.b0, styles.p4, styles.mtn1, styles.pAbsolute]}>
                 <SkeletonViewContentLoader
                     width={widthOfTheRightSkeleton}
