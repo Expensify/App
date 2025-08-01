@@ -206,7 +206,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
     const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report) && !readonly;
     const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived) && canUserPerformWriteAction;
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
-    const isSplitAvailable = report && transaction && isSplitAction(report, [transaction], policy);
+    const isSplitAvailable = report && transaction && isSplitAction(moneyRequestReport ?? report, [transaction], policy);
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
     const canEditAmount =

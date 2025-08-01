@@ -1267,6 +1267,7 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
             alignItems: 'center',
             paddingHorizontal: 4,
+            marginVertical: 15,
             borderWidth: 1,
             borderColor: 'transparent',
         },

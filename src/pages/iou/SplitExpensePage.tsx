@@ -167,11 +167,11 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             previewHeaderText.unshift({text: date}, dotSeparator);
 
             if (isCancelled) {
-                previewHeaderText.push({text: translate('iou.canceled')}, dotSeparator);
+                previewHeaderText.push(dotSeparator, {text: translate('iou.canceled')});
             } else if (isApproved) {
-                previewHeaderText.push({text: translate('iou.approved')}, dotSeparator);
+                previewHeaderText.push(dotSeparator, {text: translate('iou.approved')});
             } else if (isSettled) {
-                previewHeaderText.push({text: translate('iou.settledExpensify')}, dotSeparator);
+                previewHeaderText.push(dotSeparator, {text: translate('iou.settledExpensify')});
             }
 
             const headerText = previewHeaderText.reduce((text, currentKey) => {
