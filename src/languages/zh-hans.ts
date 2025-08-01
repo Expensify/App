@@ -2662,6 +2662,11 @@ const translations = {
         toGetStarted: '添加一个银行账户以报销费用、发行Expensify卡、收取发票付款并从一个地方支付账单。',
         plaidBodyCopy: '为您的员工提供一种更简单的方式来支付公司费用并获得报销。',
         checkHelpLine: '您的银行路由号码和账户号码可以在该账户的支票上找到。',
+        bankAccountPurposeTitle: '您想用您的银行账户做什么？',
+        getReimbursed: '获得报销',
+        getReimbursedDescription: '由雇主或其他人报销',
+        makePayments: '进行付款',
+        makePaymentsDescription: '支付费用或发行Expensify卡',
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `要连接银行账户，请 <a href="${contactMethodRoute}">添加一个电子邮件作为您的主要登录方式</a> 并重试。您可以添加电话号码作为辅助登录。`,
         hasBeenThrottledError: '添加您的银行账户时发生错误。请稍等几分钟后重试。',

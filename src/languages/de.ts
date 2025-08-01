@@ -2671,6 +2671,11 @@ const translations = {
         toGetStarted: 'Fügen Sie ein Bankkonto hinzu, um Ausgaben zu erstatten, Expensify-Karten auszustellen, Rechnungszahlungen zu sammeln und Rechnungen von einem Ort aus zu bezahlen.',
         plaidBodyCopy: 'Geben Sie Ihren Mitarbeitern eine einfachere Möglichkeit, Unternehmensausgaben zu bezahlen - und zurückerstattet zu werden.',
         checkHelpLine: 'Ihre Bankleitzahl und Kontonummer finden Sie auf einem Scheck für das Konto.',
+        bankAccountPurposeTitle: 'Was möchten Sie mit Ihrem Bankkonto machen?',
+        getReimbursed: 'Erstattung erhalten',
+        getReimbursedDescription: 'Vom Arbeitgeber oder anderen',
+        makePayments: 'Zahlungen tätigen',
+        makePaymentsDescription: 'Ausgaben bezahlen oder Expensify-Karten ausstellen',
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `Um ein Bankkonto zu verbinden, bitte <a href="${contactMethodRoute}">Fügen Sie eine E-Mail als Ihren primären Login hinzu</a> und versuchen Sie es erneut. Sie können Ihre Telefonnummer als sekundären Login hinzufügen.`,
         hasBeenThrottledError: 'Beim Hinzufügen Ihres Bankkontos ist ein Fehler aufgetreten. Bitte warten Sie ein paar Minuten und versuchen Sie es erneut.',
