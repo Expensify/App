@@ -25,7 +25,7 @@ function IntroSchoolPrincipalPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
 
     /**
      * Submit form to pass firstName, partnerUserID and lastName
