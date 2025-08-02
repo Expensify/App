@@ -52,6 +52,9 @@ type SectionProps = Partial<ChildrenProps> & {
     /** Customize the Section container */
     subtitleStyles?: StyleProp<ViewStyle>;
 
+    /** Customize the Section subtitle text */
+    subtitleTextStyles?: StyleProp<TextStyle>;
+
     /** Customize the Section container */
     childrenStyles?: StyleProp<ViewStyle>;
 
@@ -105,6 +108,7 @@ function Section({
     menuItems,
     subtitle,
     subtitleStyles,
+    subtitleTextStyles,
     subtitleMuted = false,
     title,
     renderTitle,
@@ -200,7 +204,7 @@ function Section({
                           <View
                               style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP ? [styles.mt1, styles.mh1] : styles.mt2, subtitleStyles]}
                           >
-                              <Text style={[styles.textNormal, subtitleMuted && styles.colorMuted]}>{subtitle}</Text>
+                              <Text style={[styles.textNormal, subtitleMuted && styles.colorMuted, subtitleTextStyles]}>{subtitle}</Text>
                           </View>
                       )}
 
