@@ -425,7 +425,7 @@ async function run(): Promise<void> {
         const osBotifyToken = core.getInput('OS_BOTIFY_TOKEN', {required: true});
         GithubUtils.initOctokitWithToken(osBotifyToken);
 
-        const prNumber = parseInt(core.getInput('PR_NUMBER', {required: true}), 10);
+        const prNumber = Number(core.getInput('PR_NUMBER', {required: true}));
         const baseCoveragePath = core.getInput('BASE_COVERAGE_PATH', {required: false});
         const coverageUrl = core.getInput('COVERAGE_URL', {required: false});
 
@@ -469,7 +469,7 @@ async function run(): Promise<void> {
             .addRaw(coverageSection.replace(COVERAGE_SECTION_HEADER, ''))
             .addSeparator()
             .addRaw('💡 This summary is also available at the end of the PR description.')
-            .write();
+            .write({overwrite: true});
 
         // Set outputs
         core.setOutput('coverage-summary', JSON.stringify(coverageData.overall));
