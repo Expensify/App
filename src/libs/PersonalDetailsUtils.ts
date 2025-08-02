@@ -73,9 +73,10 @@ function getDisplayNameOrDefault(
     youAfterTranslation = youTranslation,
 ): string {
     let displayName = passedPersonalDetails?.displayName ?? '';
-
+    console.log("passedPersonalDetails", passedPersonalDetails)
     let login = passedPersonalDetails?.login ?? '';
-
+    console.log("login", login)
+    console.log("shouldFallbackToHidden", shouldFallbackToHidden)
     // If the displayName starts with the merged account prefix, remove it.
     if (regexMergedAccount.test(displayName)) {
         // Remove the merged account prefix from the displayName.
@@ -107,6 +108,7 @@ function getDisplayNameOrDefault(
         return defaultValue;
     }
 
+    console.log("login::: at the end", login)
     if (login) {
         return login;
     }
