@@ -331,8 +331,8 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
 
         // s77rt remove DEV lock
         const shouldDisplayGroupByFilter = isDevelopment;
-        const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues?.feed;
-        const shouldDisplayPostedFilter = groupBy?.value === CONST.SEARCH.GROUP_BY.CARDS;
+        const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues.feed;
+        const shouldDisplayPostedFilter = !!filterFormValues.feed && (!!filterFormValues.postedOn || !!filterFormValues.postedAfter || !!filterFormValues.postedBefore);
 
         const filterList = [
             {
@@ -399,6 +399,9 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         displayPosted,
         filterFormValues.from,
         filterFormValues.feed,
+        filterFormValues.postedOn,
+        filterFormValues.postedAfter,
+        filterFormValues.postedBefore,
         translate,
         typeComponent,
         groupByComponent,

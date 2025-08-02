@@ -51,7 +51,6 @@ import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import {isDevelopment} from './Environment/Environment';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
@@ -366,8 +365,8 @@ function getSuggestedSearchesVisibility(
     let shouldShowApproveSuggestion = false;
     let shouldShowExportSuggestion = false;
     let shouldShowStatementsSuggestion = false;
-    let showShowUnapprovedCashSuggestion = false;
-    let showShowUnapprovedCardSuggestion = false;
+    let shouldShowUnapprovedCashSuggestion = false;
+    let shouldShowUnapprovedCardSuggestion = false;
     let shouldShowReconciliationSuggestion = false;
 
     Object.values(policies ?? {}).some((policy) => {
@@ -400,8 +399,8 @@ function getSuggestedSearchesVisibility(
         shouldShowApproveSuggestion ||= isEligibleForApproveSuggestion;
         shouldShowExportSuggestion ||= isEligibleForExportSuggestion;
         shouldShowStatementsSuggestion ||= isEligibleForStatementsSuggestion;
-        showShowUnapprovedCashSuggestion ||= isEligibleForUnapprovedCashSuggestion;
-        showShowUnapprovedCardSuggestion ||= isEligibleForUnapprovedCardSuggestion;
+        shouldShowUnapprovedCashSuggestion ||= isEligibleForUnapprovedCashSuggestion;
+        shouldShowUnapprovedCardSuggestion ||= isEligibleForUnapprovedCardSuggestion;
         shouldShowReconciliationSuggestion ||= isEligibleForReconciliationSuggestion;
 
         // We don't need to check the rest of the policies if we already determined that all suggestions should be displayed
@@ -411,8 +410,8 @@ function getSuggestedSearchesVisibility(
             shouldShowApproveSuggestion &&
             shouldShowExportSuggestion &&
             shouldShowStatementsSuggestion &&
-            showShowUnapprovedCashSuggestion &&
-            showShowUnapprovedCardSuggestion &&
+            shouldShowUnapprovedCashSuggestion &&
+            shouldShowUnapprovedCardSuggestion &&
             shouldShowReconciliationSuggestion
         );
     });
@@ -425,10 +424,9 @@ function getSuggestedSearchesVisibility(
         [CONST.SEARCH.SEARCH_KEYS.PAY]: shouldShowPaySuggestion,
         [CONST.SEARCH.SEARCH_KEYS.APPROVE]: shouldShowApproveSuggestion,
         [CONST.SEARCH.SEARCH_KEYS.EXPORT]: shouldShowExportSuggestion,
-        // s77rt remove DEV lock
-        [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: shouldShowStatementsSuggestion && isDevelopment(),
-        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: showShowUnapprovedCashSuggestion,
-        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]: showShowUnapprovedCardSuggestion,
+        [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: shouldShowStatementsSuggestion,
+        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: shouldShowUnapprovedCashSuggestion,
+        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]: shouldShowUnapprovedCardSuggestion,
     };
 }
 
