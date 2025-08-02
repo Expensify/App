@@ -8,6 +8,7 @@ import {
     filterInactiveCards,
     flatAllCardsList,
     formatCardExpiration,
+    getAllCardsForWorkspace,
     getBankCardDetailsImage,
     getBankName,
     getCardFeedIcon,
@@ -596,7 +597,7 @@ describe('CardUtils', () => {
 
     describe('getFilteredCardList', () => {
         it('Should return filtered custom feed cards list', () => {
-            const cardsList = getFilteredCardList(customFeedCardsList, undefined);
+            const cardsList = getFilteredCardList(customFeedCardsList, undefined, undefined);
             expect(cardsList).toStrictEqual({
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '480801XXXXXX2111': 'ENCRYPTED_CARD_NUMBER',
@@ -606,13 +607,13 @@ describe('CardUtils', () => {
         });
 
         it('Should return filtered direct feed cards list with a single card', () => {
-            const cardsList = getFilteredCardList(directFeedCardsSingleList, oAuthAccountDetails[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]);
+            const cardsList = getFilteredCardList(directFeedCardsSingleList, oAuthAccountDetails[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE], undefined);
             // eslint-disable-next-line @typescript-eslint/naming-convention
             expect(cardsList).toStrictEqual({'CREDIT CARD...6607': 'CREDIT CARD...6607'});
         });
 
         it('Should return filtered direct feed cards list with multiple cards', () => {
-            const cardsList = getFilteredCardList(directFeedCardsMultipleList, oAuthAccountDetails[CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]);
+            const cardsList = getFilteredCardList(directFeedCardsMultipleList, oAuthAccountDetails[CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE], undefined);
             expect(cardsList).toStrictEqual({
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 'CREDIT CARD...1233': 'CREDIT CARD...1233',
@@ -624,7 +625,7 @@ describe('CardUtils', () => {
         });
 
         it('Should return empty object if no data was provided', () => {
-            const cardsList = getFilteredCardList(undefined, undefined);
+            const cardsList = getFilteredCardList(undefined, undefined, undefined);
             expect(cardsList).toStrictEqual({});
         });
 
@@ -697,7 +698,7 @@ describe('CardUtils', () => {
                 },
             } as unknown as WorkspaceCardsList;
 
-            const filteredCards = getFilteredCardList(customFeedWorkspaceCardsList, undefined);
+            const filteredCards = getFilteredCardList(customFeedWorkspaceCardsList, undefined, undefined);
             expect(filteredCards).toStrictEqual({});
         });
 
@@ -818,6 +819,67 @@ describe('CardUtils', () => {
         it('should return false when Expensify Card was not issued for given workspace', () => {
             const workspaceAccountID = 11111111;
             expect(hasIssuedExpensifyCard(workspaceAccountID, {})).toBe(false);
+        });
+    });
+
+    describe('getAllCardsForWorkspace', () => {
+        it('should return all cards for a given workspace', () => {
+            const workspaceAccountID = 11111111;
+            expect(getAllCardsForWorkspace(workspaceAccountID, allCardsList)).toEqual({
+                '21310091': {
+                    accountID: 18439984,
+                    bank: 'vcf',
+                    cardID: 21310091,
+                    cardName: '480801XXXXXX2554',
+                    domainName: 'expensify-policy41314f4dc5ce25af.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '2554',
+                    lastScrape: '2024-11-27 11:00:53',
+                    lastUpdated: '',
+                    scrapeMinDate: '2024-10-17',
+                    state: 3,
+                },
+                '21570655': {
+                    accountID: 18439984,
+                    bank: 'oauth.capitalone.com',
+                    cardID: 21570655,
+                    cardName: 'CREDIT CARD...5678',
+                    domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '5678',
+                    lastScrape: '',
+                    lastScrapeResult: 200,
+                    lastUpdated: '',
+                    scrapeMinDate: '2024-08-27',
+                    state: 3,
+                },
+                '21570656': {
+                    accountID: 18439984,
+                    bank: 'oauth.capitalone.com',
+                    cardID: 21570656,
+                    cardName: 'CREDIT CARD...4444',
+                    domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '5678',
+                    lastScrape: '',
+                    lastScrapeResult: 403,
+                    lastUpdated: '',
+                    scrapeMinDate: '2024-08-27',
+                    state: 3,
+                },
+                '21570657': {
+                    accountID: 18439984,
+                    bank: 'Expensify Card',
+                    cardID: 21570657,
+                    cardName: 'CREDIT CARD...5644',
+                    domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 2,
+                },
+            });
         });
     });
 
