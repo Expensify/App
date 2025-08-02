@@ -11,7 +11,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
-import {getOutstandingReportsForUser, getPolicyName, isIOUReport, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {getOutstandingReportsForUser, getPolicyName, isIOUReport, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -70,23 +70,14 @@ function IOURequestEditReportCommon({backTo, selectReport, selectedReportID, sel
     const isReportIOU = selectedReport ? isIOUReport(selectedReport) : false;
     const shouldShowRemoveFromReport = isEditing && isOwner && !isReportIOU && !isUnreported;
 
-    const expenseReports = useMemo(
-        () =>
-            Object.values(allPoliciesID ?? {}).flatMap((policyID) => {
-                if (!policyID || (selectedPolicyID && policyID !== selectedPolicyID)) {
-                    return [];
-                }
-                const reports = getOutstandingReportsForUser(
-                    policyID,
-                    selectedReport?.ownerAccountID ?? currentUserPersonalDetails.accountID,
-                    allReports ?? {},
-                    reportNameValuePairs,
-                    isEditing,
-                );
-                return reports;
-            }),
-        [allReports, currentUserPersonalDetails.accountID, selectedReport, isEditing, allPoliciesID, reportNameValuePairs, selectedPolicyID],
-    );
+    const expenseReports = useMemo(() => {
+        if (!selectedPolicyID || isSelfDM(selectedReport)) {
+            return Object.values(allPoliciesID ?? {}).flatMap((policyID) =>
+                getOutstandingReportsForUser(policyID, selectedReport?.ownerAccountID ?? currentUserPersonalDetails.accountID, allReports ?? {}, reportNameValuePairs, isEditing),
+            );
+        }
+        return getOutstandingReportsForUser(selectedPolicyID, selectedReport?.ownerAccountID ?? currentUserPersonalDetails.accountID, allReports ?? {}, reportNameValuePairs, isEditing);
+    }, [allReports, currentUserPersonalDetails.accountID, selectedReport, isEditing, allPoliciesID, reportNameValuePairs, selectedPolicyID]);
 
     const reportOptions: TransactionGroupListItem[] = useMemo(() => {
         if (!allReports) {
