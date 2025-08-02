@@ -95,10 +95,10 @@ type SearchContext = SearchContextData & {
     setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
     lastSearchType: string | undefined;
-    shouldShowExportModeOption: boolean;
-    setShouldShowExportModeOption: (shouldShow: boolean) => void;
-    isExportMode: boolean;
-    setExportMode: (on: boolean) => void;
+    showSelectAllMatchingItems: boolean;
+    shouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
+    areAllMatchingItemsSelected: boolean;
+    selectAllMatchingItems: (on: boolean) => void;
 };
 
 type ASTNode = {
