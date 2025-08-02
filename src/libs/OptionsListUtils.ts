@@ -1619,6 +1619,9 @@ function getUserToInviteContactOption({
     const userToInvite = {
         item: userDetails,
         text: displayName,
+        displayName,
+        firstName,
+        lastName,
         alternateText: displayName !== effectiveSearchValue ? effectiveSearchValue : undefined,
         brickRoadIndicator: null,
         icons: [
