@@ -18,6 +18,7 @@ If your business operates in the European Union, you can send international reim
 - ✅ Address verification document
 - ✅ Bank statement for direct debit
 - ✅ Proof of Beneficial Ownership
+- ✅ A signed direct debit authorization form
 - ✅ Certified copies of ID & proof of address (Jersey only)
 
 ## Special Requirements:
