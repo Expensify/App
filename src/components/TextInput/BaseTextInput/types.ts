@@ -121,9 +121,6 @@ type CustomBaseTextInputProps = {
     /** Should loading state should be displayed */
     isLoading?: boolean;
 
-    /** Type of autocomplete */
-    autoCompleteType?: string;
-
     /** List of markdowns that won't be styled as a markdown */
     excludedMarkdownStyles?: Array<keyof MarkdownStyle>;
 
