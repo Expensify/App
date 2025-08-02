@@ -36,6 +36,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -128,6 +129,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const currentUserPolicyExpenseChatReportID = getPolicyExpenseChat(accountID, policy?.id, allReports)?.reportID;
     const [currentUserPolicyExpenseChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentUserPolicyExpenseChatReportID}`, {canBeMissing: true});
+    const isUserPolicyExpenseChatArchived = useReportIsArchived(currentUserPolicyExpenseChatReportID);
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(currentUserPolicyExpenseChat);
     const isPolicyExpenseChatEnabled = !!policy?.isPolicyExpenseChatEnabled;
     const prevPendingFields = usePrevious(policy?.pendingFields);
@@ -495,7 +497,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                 <MenuItem
                                     title={getReportName(currentUserPolicyExpenseChat)}
                                     description={translate('workspace.common.workspace')}
-                                    icon={getIcons(currentUserPolicyExpenseChat, personalDetails)}
+                                    icon={getIcons(currentUserPolicyExpenseChat, personalDetails, null, undefined, undefined, undefined, undefined, isUserPolicyExpenseChatArchived)}
                                     onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID))}
                                     shouldShowRightIcon
                                     wrapperStyle={[styles.br2, styles.pl2, styles.pr0, styles.pv3, styles.mt1, styles.alignItemsCenter]}
