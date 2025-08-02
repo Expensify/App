@@ -7,6 +7,7 @@ import useContactPermissions from '@libs/ContactPermission/useContactPermissions
 import getContacts from '@libs/ContactUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
 import type {PersonalDetails} from '@src/types/onyx';
+import useLocalize from './useLocalize';
 
 /**
  * Return type of the useContactImport hook.
@@ -26,14 +27,15 @@ type UseContactImportResult = {
 function useContactImport(): UseContactImportResult {
     const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);
     const [contacts, setContacts] = useState<Array<SearchOption<PersonalDetails>>>([]);
+    const {localeCompare} = useLocalize();
 
     const importAndSaveContacts = useCallback(() => {
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
             setContactPermissionState(permissionStatus);
-            const usersFromContact = getContacts(contactList);
+            const usersFromContact = getContacts(contactList, localeCompare);
             setContacts(usersFromContact);
         });
-    }, []);
+    }, [localeCompare]);
 
     useContactPermissions({
         importAndSaveContacts,
