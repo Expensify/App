@@ -196,7 +196,7 @@ function SearchList(
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || !isFocused) {
+            if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox) {
                 return;
             }
             // disable long press for empty expense reports
@@ -210,7 +210,7 @@ function SearchList(
             setLongPressedItem(item);
             setIsModalVisible(true);
         },
-        [isFocused, isSmallScreenWidth, onCheckboxPress, isMobileSelectionModeEnabled, shouldPreventLongPressRow],
+        [isSmallScreenWidth, onCheckboxPress, isMobileSelectionModeEnabled, shouldPreventLongPressRow],
     );
 
     const turnOnSelectionMode = useCallback(() => {
