@@ -6,6 +6,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
@@ -19,7 +20,7 @@ function Confirmation({onNext, isEditing}: ConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const privateSubscription = usePrivateSubscription();
     const [subscriptionSizeFormDraft] = useOnyx(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM_DRAFT);
     const subscriptionRenewalDate = getNewSubscriptionRenewalDate();
     const subscriptionSizeDraft = subscriptionSizeFormDraft ? Number(subscriptionSizeFormDraft[INPUT_IDS.SUBSCRIPTION_SIZE]) : 0;

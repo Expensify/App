@@ -6,6 +6,7 @@ import Button from '@components/Button';
 import {Star} from '@components/Icon/Expensicons';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFreeTrialText} from '@libs/SubscriptionUtils';
@@ -25,7 +26,7 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: true});
+    const privateSubscription = usePrivateSubscription();
 
     const [freeTrialText, setFreeTrialText] = useState<string | undefined>(undefined);
     const {isOffline} = useNetwork();
