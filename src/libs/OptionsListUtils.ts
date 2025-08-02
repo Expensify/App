@@ -2175,6 +2175,20 @@ function getAttendeeOptions(
         'accountID',
     );
 
+    const recentAttendeeHasCurrentUser = recentAttendees.find((attendee) => attendee.email === currentUserLogin || attendee.login === currentUserLogin);
+    if (!recentAttendeeHasCurrentUser && currentUserLogin) {
+        const details = getPersonalDetailByEmail(currentUserLogin);
+        recentAttendees.push({
+            email: currentUserLogin,
+            login: currentUserLogin,
+            displayName: details?.displayName ?? currentUserLogin,
+            accountID: currentUserAccountID,
+            text: details?.displayName ?? currentUserLogin,
+            searchText: details?.displayName ?? currentUserLogin,
+            avatarUrl: details?.avatarThumbnail ?? '',
+        });
+    }
+
     const filteredRecentAttendees = recentAttendees
         .filter((attendee) => !attendees.find(({email, displayName}) => (attendee.email ? email === attendee.email : displayName === attendee.displayName)))
         .map((attendee) => ({
