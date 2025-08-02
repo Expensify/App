@@ -192,10 +192,10 @@ function AvatarWithDisplayName({
     const subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy);
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
-    const icons = getIcons(report, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
+    const isReportArchived = useReportIsArchived(report?.reportID);
+    const icons = getIcons(report, personalDetails, null, '', -1, policy, invoiceReceiverPolicy, isReportArchived);
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false);
-    const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldShowSubscriptAvatar = shouldReportShowSubscript(report, isReportArchived);
     const avatarBorderColor = avatarBorderColorProp ?? (isAnonymous ? theme.highlightBG : theme.componentBG);
 
@@ -209,7 +209,7 @@ function AvatarWithDisplayName({
     }, [parentReportActions, report]);
 
     const goToDetailsPage = useCallback(() => {
-        navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute());
+        navigateToDetailsPage(report, Navigation.getActiveRoute());
     }, [report]);
 
     const showActorDetails = useCallback(() => {
