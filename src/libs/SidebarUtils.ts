@@ -103,7 +103,6 @@ import {
     isChatRoom,
     isChatThread,
     isConciergeChatReport,
-    isDefaultRoom,
     isDeprecatedGroupDM,
     isDomainRoom,
     isExpenseReport,
