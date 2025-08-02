@@ -67,9 +67,10 @@ function AmountWithoutCurrencyInput(
             accessibilityLabel={accessibilityLabel}
             role={role}
             ref={ref}
-            keyboardType={!shouldAllowNegative ? CONST.KEYBOARD_TYPE.DECIMAL_PAD : undefined}
+            keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
             type="mask"
             mask={shouldAllowNegative ? `[~][99999999]${separator}[09]` : `[09999999]${separator}[09]`}
+            inputMode={CONST.INPUT_MODE.DECIMAL}
             customNotations={customMask}
             allowedKeys="0123456789.,-"
             validationRegex={'^-?(?!.*[.,].*[.,])\\d{0,8}(?:[.,]\\d{0,2})?$'}
