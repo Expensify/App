@@ -190,3 +190,10 @@
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/50782
 - E/App issue: https://github.com/Expensify/App/issues/64900
 - PR introducing patch: [#65804](https://github.com/Expensify/App/pull/65804)
+
+### [react-native+0.79.2+027+fix-clipboard-text-data-can-be-null.patch](react-native+0.79.2+027+fix-clipboard-text-data-can-be-null.patch)
+
+- Reason: This patch fixes a crash that occurred when the clipboard text data can be null.
+- Upstream PR/issue: 🛑
+- E/App issue: [#66925](https://github.com/Expensify/App/issues/66925)
+- PR introducing patch: [#66749](https://github.com/Expensify/App/pull/66749)
