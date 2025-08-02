@@ -724,7 +724,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const shouldShowYear = shouldShowYearUtil(searchResults?.data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
-    const shouldShowSorting = !Array.isArray(status) && !groupBy;
+    const shouldShowSorting = !groupBy;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
 
     return (
