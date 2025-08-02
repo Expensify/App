@@ -1,6 +1,6 @@
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo, useRef} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -64,7 +64,7 @@ function IOURequestStepDescription({
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput(true);
+    const {inputCallbackRef, inputRef} = useAutoFocusInput(true);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
@@ -200,6 +200,11 @@ function IOURequestStepDescription({
                 </View>
             </FormProvider>
             <DiscardChangesConfirmation
+                onCancel={() => {
+                    InteractionManager.runAfterInteractions(() => {
+                        inputRef.current?.focus();
+                    });
+                }}
                 getHasUnsavedChanges={() => {
                     if (isSavedRef.current) {
                         return false;
