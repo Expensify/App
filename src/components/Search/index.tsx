@@ -706,16 +706,14 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const visibleDataLength = data.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
     if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchResults.search.type)) {
         return (
-            <SearchScopeProvider isOnSearch>
-                <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
-                    <EmptySearchView
-                        hash={hash}
-                        type={type}
-                        groupBy={groupBy}
-                        hasResults={searchResults.search.hasResults}
-                    />
-                </View>
-            </SearchScopeProvider>
+            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
+                <EmptySearchView
+                    hash={hash}
+                    type={type}
+                    groupBy={groupBy}
+                    hasResults={searchResults.search.hasResults}
+                />
+            </View>
         );
     }
 

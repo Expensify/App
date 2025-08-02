@@ -3,6 +3,7 @@ import React, {useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewStyle} from 'react-native';
 import {InteractionManager, Linking, View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import BookTravelButton from '@components/BookTravelButton';
 import ConfirmModal from '@components/ConfirmModal';
@@ -15,6 +16,7 @@ import type DotLottieAnimation from '@components/LottieAnimations/types';
 import MenuItem from '@components/MenuItem';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ScrollView from '@components/ScrollView';
+import SearchScopeProvider from '@components/Search/SearchScopeProvider';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -40,7 +42,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
+import type {IntroSelected, PersonalDetails, Policy, Report} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type EmptySearchViewProps = {
@@ -48,6 +50,18 @@ type EmptySearchViewProps = {
     groupBy?: ValueOf<typeof CONST.SEARCH.GROUP_BY>;
     type: SearchDataTypes;
     hasResults: boolean;
+};
+
+type EmptySearchViewContentProps = EmptySearchViewProps & {
+    currentUserPersonalDetails: PersonalDetails;
+    allPolicies: OnyxCollection<Policy>;
+    activePolicyID: string | undefined;
+    activePolicy: OnyxEntry<Policy>;
+    groupPoliciesWithChatEnabled: readonly never[] | Array<OnyxEntry<Policy>>;
+    introSelected: OnyxEntry<IntroSelected>;
+    hasSeenTour: boolean;
+    viewTourReportID: string | undefined;
+    viewTourReport: OnyxEntry<Report>;
 };
 
 type EmptySearchViewItem = {
@@ -75,6 +89,59 @@ const tripsFeatures: FeatureListItem[] = [
 ];
 
 function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps) {
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+
+    const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
+
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
+        canBeMissing: true,
+    });
+    const viewTourReportID = introSelected?.viewTour;
+    const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
+
+    return (
+        <SearchScopeProvider isOnSearch>
+            <EmptySearchViewContent
+                hash={hash}
+                type={type}
+                groupBy={groupBy}
+                hasResults={hasResults}
+                currentUserPersonalDetails={currentUserPersonalDetails}
+                allPolicies={allPolicies}
+                activePolicyID={activePolicyID}
+                activePolicy={activePolicy}
+                groupPoliciesWithChatEnabled={groupPoliciesWithChatEnabled}
+                introSelected={introSelected}
+                hasSeenTour={hasSeenTour}
+                viewTourReportID={viewTourReportID}
+                viewTourReport={viewTourReport}
+            />
+        </SearchScopeProvider>
+    );
+}
+
+function EmptySearchViewContent({
+    hash,
+    type,
+    groupBy,
+    hasResults,
+    currentUserPersonalDetails,
+    allPolicies,
+    activePolicyID,
+    activePolicy,
+    groupPoliciesWithChatEnabled,
+    introSelected,
+    hasSeenTour,
+    viewTourReportID,
+    viewTourReport,
+}: EmptySearchViewContentProps) {
+    console.log('all policies', allPolicies)
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -82,16 +149,10 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
     const contextMenuAnchor = useRef<RNText>(null);
     const [modalVisible, setModalVisible] = useState(false);
     const {typeMenuSections} = useSearchTypeMenuSections();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         canBeMissing: true,
     });
-
-    const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<Policy>) ?? {});
@@ -157,14 +218,6 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
             </>
         );
     }, [styles, translate]);
-
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasSeenTourSelector,
-        canBeMissing: true,
-    });
-    const viewTourReportID = introSelected?.viewTour;
-    const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
 
     // Default 'Folder' lottie animation, along with its background styles
     const defaultViewItemHeader = useMemo(
