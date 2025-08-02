@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription, ViewStyle} from 'react-native';
 import {BackHandler, Dimensions, InteractionManager, Modal, View} from 'react-native';
 import {LayoutAnimationConfig} from 'react-native-reanimated';
+import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
@@ -41,6 +42,8 @@ function ReanimatedModal({
     onSwipeComplete,
     swipeDirection,
     swipeThreshold,
+    shouldPreventScrollOnFocus,
+    initialFocus,
     ...props
 }: ReanimatedModalProps) {
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
@@ -184,13 +187,14 @@ function ReanimatedModal({
         );
     }
     const isBackdropMounted = isVisibleState || ((isTransitioning || isContainerOpen !== isVisibleState) && getPlatform() === CONST.PLATFORM.WEB);
+    const modalVisibility = isVisibleState || isTransitioning || isContainerOpen !== isVisibleState;
     return (
         <LayoutAnimationConfig skipExiting={getPlatform() !== CONST.PLATFORM.WEB}>
             <Modal
                 transparent
                 animationType="none"
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                visible={isVisibleState || isTransitioning || isContainerOpen !== isVisibleState}
+                visible={modalVisibility}
                 onRequestClose={onBackButtonPress}
                 statusBarTranslucent={statusBarTranslucent}
                 testID={testID}
@@ -213,7 +217,13 @@ function ReanimatedModal({
                         {isVisibleState && containerView}
                     </KeyboardAvoidingView>
                 ) : (
-                    isVisibleState && containerView
+                    <FocusTrapForModal
+                        active={modalVisibility}
+                        initialFocus={initialFocus}
+                        shouldPreventScroll={shouldPreventScrollOnFocus}
+                    >
+                        {isVisibleState && containerView}
+                    </FocusTrapForModal>
                 )}
             </Modal>
         </LayoutAnimationConfig>
