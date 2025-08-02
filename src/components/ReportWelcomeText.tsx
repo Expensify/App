@@ -23,6 +23,7 @@ import {
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
+import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -98,7 +99,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         return translate('reportActionsView.sayHello');
     }, [isChatRoom, isInvoiceRoom, isPolicyExpenseChat, isSelfDM, isSystemChat, translate, policyName, reportName]);
 
-    const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy, isReportArchived, reportDetailsLink, shouldShowUsePlusButtonText);
+    const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy, isReportArchived, reportDetailsLink);
 
     return (
         <>
@@ -106,7 +107,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                 <Text style={[styles.textHero]}>{welcomeHeroText}</Text>
             </View>
             <View style={[styles.mt3, styles.mw100]}>
-                {(isChatRoom || isPolicyExpenseChat || isSelfDM) && !!welcomeMessage.messageHtml && (
+                {(isChatRoom || isPolicyExpenseChat) && !!welcomeMessage.messageHtml && (
                     <View style={[styles.renderHTML, styles.cursorText]}>
                         <RenderHTML html={welcomeMessage.messageHtml} />
                     </View>
@@ -114,6 +115,12 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                 {isSystemChat && (
                     <Text>
                         <Text>{welcomeMessage.messageText}</Text>
+                    </Text>
+                )}
+                {isSelfDM && (
+                    <Text>
+                        {welcomeMessage.messageText}
+                        {shouldShowUsePlusButtonText && <TextWithEmojiFragment message={welcomeMessage.usePlusButtonText} />}
                     </Text>
                 )}
                 {isDefault && displayNamesWithTooltips.length > 0 && (
@@ -140,11 +147,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                                 {index < displayNamesWithTooltips.length - 2 && <Text>, </Text>}
                             </Text>
                         ))}
-                        {shouldShowUsePlusButtonText && !!welcomeMessage.messageHtml && (
-                            <View style={[styles.renderHTML, styles.cursorText]}>
-                                <RenderHTML html={welcomeMessage.messageHtml} />
-                            </View>
-                        )}
+                        {shouldShowUsePlusButtonText && <TextWithEmojiFragment message={welcomeMessage.usePlusButtonText} />}
                         {isConciergeChatReport(report) && <Text>{translate('reportActionsView.askConcierge')}</Text>}
                     </Text>
                 )}
