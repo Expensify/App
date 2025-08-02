@@ -5,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearPaymentCard3dsVerification, verifySetupIntent} from '@userActions/PaymentMethods';
 import {verifySetupIntentAndRequestPolicyOwnerChange} from '@userActions/Policy/Policy';
@@ -19,6 +20,9 @@ type CardAuthenticationModalProps = {
 };
 function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModalProps) {
     const styles = useThemeStyles();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to be consistent with BaseModal component
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [isLoading, setIsLoading] = useState(true);
@@ -75,9 +79,10 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
                 <HeaderWithBackButton
                     title={headerTitle}
                     shouldShowBorderBottom
-                    shouldShowCloseButton
+                    shouldShowCloseButton={!isSmallScreenWidth}
                     onCloseButtonPress={onModalClose}
-                    shouldShowBackButton={false}
+                    shouldShowBackButton={isSmallScreenWidth}
+                    onBackButtonPress={onModalClose}
                     shouldDisplayHelpButton={false}
                 />
                 {isLoading && <FullScreenLoadingIndicator />}

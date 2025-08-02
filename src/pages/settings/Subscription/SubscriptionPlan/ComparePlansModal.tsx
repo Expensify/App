@@ -40,6 +40,8 @@ function ComparePlansModal({isModalVisible, setIsModalVisible}: ComparePlansModa
         setIsModalVisible(false);
     };
 
+    const onClose = () => setIsModalVisible(false);
+
     const renderPlans = () => (
         <View style={isSmallScreenWidth ? [styles.ph4, styles.pb8] : [styles.ph8, styles.pb8]}>
             <Text style={[styles.textLabelSupporting, styles.textNormal]}>
@@ -70,15 +72,17 @@ function ComparePlansModal({isModalVisible, setIsModalVisible}: ComparePlansModa
                 <Modal
                     isVisible={isModalVisible}
                     type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED : CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
-                    onClose={() => setIsModalVisible(false)}
+                    onClose={onClose}
                     animationOut={isSmallScreenWidth ? animationOut : undefined}
                     innerContainerStyle={isSmallScreenWidth ? {...safeAreaPaddingBottomStyle, maxHeight} : {...styles.workspaceSection, ...safeAreaPaddingBottomStyle, maxHeight}}
+                    shouldUseReanimatedModal
                 >
                     <HeaderWithBackButton
                         title={translate('subscription.compareModal.comparePlans')}
-                        shouldShowCloseButton
-                        onCloseButtonPress={() => setIsModalVisible(false)}
-                        shouldShowBackButton={false}
+                        shouldShowCloseButton={!isSmallScreenWidth}
+                        onCloseButtonPress={onClose}
+                        shouldShowBackButton={isSmallScreenWidth}
+                        onBackButtonPress={onClose}
                         style={isSmallScreenWidth ? styles.pl4 : [styles.pr3, styles.pl8]}
                         shouldDisplayHelpButton={false}
                     />
