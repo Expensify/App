@@ -23,8 +23,8 @@ import {
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
+import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
 import CONST from '@src/CONST';
-import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
@@ -60,22 +60,6 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, isReportArchived);
     const policyName = getPolicyName({report});
 
-    const filteredOptions = moneyRequestOptions.filter(
-        (
-            item,
-        ): item is Exclude<
-            IOUType,
-            typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE
-        > => item !== CONST.IOU.TYPE.INVOICE,
-    );
-    const additionalText = filteredOptions
-        .map(
-            (item, index) =>
-                `${index === filteredOptions.length - 1 && index > 0 ? `${translate('common.or')} ` : ''}${translate(
-                    item === 'submit' ? `reportActionsView.create` : `reportActionsView.iouTypes.${item}`,
-                )}`,
-        )
-        .join(', ');
     const reportName = getReportName(report);
     const shouldShowUsePlusButtonText =
         moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) ||
@@ -128,15 +112,15 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                         <RenderHTML html={welcomeMessage.messageHtml} />
                     </View>
                 )}
-                {isSelfDM && (
-                    <Text>
-                        <Text>{welcomeMessage.messageText}</Text>
-                        {shouldShowUsePlusButtonText && <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>}
-                    </Text>
-                )}
                 {isSystemChat && (
                     <Text>
                         <Text>{welcomeMessage.messageText}</Text>
+                    </Text>
+                )}
+                {isSelfDM && (
+                    <Text>
+                        {welcomeMessage.messageText}
+                        {shouldShowUsePlusButtonText && <TextWithEmojiFragment message={welcomeMessage.usePlusButtonText} />}
                     </Text>
                 )}
                 {isDefault && displayNamesWithTooltips.length > 0 && (
@@ -163,7 +147,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                                 {index < displayNamesWithTooltips.length - 2 && <Text>, </Text>}
                             </Text>
                         ))}
-                        {shouldShowUsePlusButtonText && <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>}
+                        {shouldShowUsePlusButtonText && <TextWithEmojiFragment message={welcomeMessage.usePlusButtonText} />}
                         {isConciergeChatReport(report) && <Text>{translate('reportActionsView.askConcierge')}</Text>}
                     </Text>
                 )}
