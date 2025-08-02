@@ -17,7 +17,6 @@ import type {
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -46,6 +45,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
+    columns,
     groupBy,
     policies,
 }: TransactionGroupListItemProps<TItem>) {
@@ -91,23 +91,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
         });
     };
 
-    const sampleTransaction = groupItem.transactions.at(0);
-    const {COLUMNS} = CONST.REPORT.TRANSACTION_LIST;
-
-    const columns = [
-        COLUMNS.RECEIPT,
-        COLUMNS.TYPE,
-        COLUMNS.DATE,
-        COLUMNS.MERCHANT,
-        COLUMNS.FROM,
-        COLUMNS.TO,
-        ...(sampleTransaction?.shouldShowCategory ? [COLUMNS.CATEGORY] : []),
-        ...(sampleTransaction?.shouldShowTag ? [COLUMNS.TAG] : []),
-        ...(sampleTransaction?.shouldShowTax ? [COLUMNS.TAX] : []),
-        COLUMNS.TOTAL_AMOUNT,
-        COLUMNS.ACTION,
-    ] satisfies Array<ValueOf<typeof COLUMNS>>;
-
     const getHeader = useMemo(() => {
         const headers: Record<SearchGroupBy, React.JSX.Element> = {
             [CONST.SEARCH.GROUP_BY.REPORTS]: (
@@ -148,7 +131,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     }, [groupItem, policy, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, groupBy]);
 
     const StyleUtils = useStyleUtils();
-    const {hovered, bind} = useHover();
     const pressableRef = useRef<View>(null);
 
     const onPress = useCallback(() => {
@@ -164,8 +146,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
-                onMouseEnter={bind.onMouseEnter}
-                onMouseLeave={bind.onMouseLeave}
                 ref={pressableRef}
                 onLongPress={onLongPress}
                 onPress={onPress}
@@ -208,11 +188,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 shouldUseNarrowLayout={!isLargeScreenWidth}
                                 shouldShowCheckbox={!!canSelectMultiple}
                                 onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                columns={columns}
+                                columns={columns as Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>}
                                 onButtonPress={() => {
                                     openReportInRHP(transaction);
                                 }}
-                                isParentHovered={hovered}
                                 columnWrapperStyles={[styles.ph3, styles.pv1Half]}
                                 isReportItemChild
                                 isInSingleTransactionReport={groupItem.transactions.length === 1}

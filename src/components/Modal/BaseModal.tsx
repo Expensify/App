@@ -112,7 +112,8 @@ function BaseModal(
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct modal width
     const canUseTouchScreen = canUseTouchScreenCheck();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth, shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
+
     const {sidePanelOffset} = useSidePanel();
     const sidePanelStyle = !shouldUseReanimatedModal && shouldApplySidePanelOffset && !isSmallScreenWidth ? {paddingRight: sidePanelOffset.current} : undefined;
     const sidePanelReanimatedStyle =
@@ -344,6 +345,11 @@ function BaseModal(
     const {originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
     const offlineIndicatorContextValue = useMemo(() => (isInNarrowPane ? (originalValues ?? {}) : {}), [isInNarrowPane, originalValues]);
 
+    const backdropOpacityAdjusted =
+        hideBackdrop || (type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal)) // right_docked modals shouldn't add backdrops when opened in same-width RHP
+            ? 0
+            : backdropOpacity;
+
     return (
         <ModalContext.Provider value={modalContextValue}>
             <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
@@ -376,7 +382,7 @@ function BaseModal(
                         swipeThreshold={swipeThreshold}
                         isVisible={isVisible}
                         backdropColor={theme.overlay}
-                        backdropOpacity={!shouldUseCustomBackdrop && hideBackdrop ? 0 : backdropOpacity}
+                        backdropOpacity={backdropOpacityAdjusted}
                         backdropTransitionOutTiming={0}
                         hasBackdrop={hasBackdrop ?? fullscreen}
                         coverScreen={fullscreen}
