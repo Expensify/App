@@ -965,6 +965,16 @@ const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, f
     }
 };
 
+const formatInTimeZoneWithFallback2: typeof formatInTimeZone = (date, timeZone, formatStr, options?) => {
+    try {
+        return formatInTimeZone(date, timeZone, formatStr, options);
+        // On macOs and iOS devices some platform use deprecated old timezone values which results in invalid time string error.
+        // Try with backward timezone values on error.
+    } catch {
+        return formatInTimeZone(date, timezoneNewToBackwardMap[timeZone as SelectedTimezone], formatStr, options);
+    }
+};
+
 const DateUtils = {
     isDate,
     formatToDayOfWeek,
@@ -1023,6 +1033,7 @@ const DateUtils = {
     getFormattedDateRangeForPerDiem,
     isCurrentTimeWithinRange,
     formatInTimeZoneWithFallback,
+    formatInTimeZoneWithFallback2,
 };
 
 export default DateUtils;
