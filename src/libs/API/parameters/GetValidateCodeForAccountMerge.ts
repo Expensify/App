@@ -1,3 +1,3 @@
-type GetValidateCodeForAccountMergeParams = {email: string; authToken: string};
+type GetValidateCodeForAccountMergeParams = {email: string};
 
 export default GetValidateCodeForAccountMergeParams;
