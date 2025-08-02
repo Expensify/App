@@ -9,36 +9,41 @@ async function waitForJestTests(): Promise<void> {
     const pollInterval = 10 * 1000; // 10 seconds
     const startTime = Date.now();
 
-    // Get PR number and SHA (backwards compatible with manual dispatch)
+    // Get PR number from either context or manual input
     let prNumber: number;
-    let headSha: string;
+    const inputsPRNumber = (context.payload.inputs as {pr_number: number})?.pr_number;
 
     if (context.payload.pull_request?.number) {
+        // Regular PR context
         prNumber = context.payload.pull_request.number;
-        headSha = context.sha;
-        console.log(`Using PR context - PR #${prNumber}, SHA: ${headSha}`);
+        console.log(`Using PR context - PR #${prNumber}`);
+    } else if (inputsPRNumber) {
+        // Manual workflow dispatch
+        prNumber = Number(inputsPRNumber);
+        console.log(`Using manual dispatch - PR #${prNumber}`);
     } else {
-        prNumber = Number((context.payload.inputs as Record<string, {pr_number: number}>)?.pr_number ?? '0');
-
-        if (!prNumber) {
-            core.setFailed('PR number is required when pull_request context is not available.');
-            return;
-        }
-
-        // Get PR details to find the head SHA
-        console.log(`Using workflow inputs - Getting details for PR #${prNumber}`);
-        const prResponse = await GithubUtils.octokit.pulls.get({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            pull_number: prNumber,
-        });
-
-        headSha = prResponse.data.head.sha;
-        console.log(`PR #${prNumber} head SHA: ${headSha}`);
+        core.setFailed('PR number is required but not available in context or inputs.');
+        return;
     }
 
-    console.log(`Looking for test workflow runs for PR #${context.payload.pull_request?.number}`);
-    console.log(`Head SHA: ${context.sha}`);
+    if (!prNumber) {
+        core.setFailed('Invalid PR number.');
+        return;
+    }
+
+    // Single API call to get PR details and extract headSha
+    console.log(`Getting PR details for PR #${prNumber}...`);
+    const prResponse = await GithubUtils.octokit.pulls.get({
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        pull_number: prNumber,
+    });
+
+    const headSha = prResponse.data.head.sha;
+    console.log(`PR #${prNumber} head SHA: ${headSha}`);
+
+    console.log(`Looking for test workflow runs for PR #${prNumber}`);
+    console.log(`Head SHA: ${headSha}`);
 
     while (Date.now() - startTime < maxWaitTime) {
         // Get all recent workflow runs for this repo
@@ -54,7 +59,7 @@ async function waitForJestTests(): Promise<void> {
             // Check if it's the Jest Unit Tests workflow specifically
             const isTestWorkflow = run.name === CONST.TEST_WORKFLOW_NAME || run.path === CONST.TEST_WORKFLOW_PATH;
             // Check if it's for our PR's head SHA
-            const matchesSHA = run.head_sha === context.sha;
+            const matchesSHA = run.head_sha === headSha;
             // For manual dispatch or when no PR context, be more flexible with event types
             // For regular PR events, maintain existing strict logic
             const isValidEvent = context.payload.pull_request
@@ -87,7 +92,7 @@ async function waitForJestTests(): Promise<void> {
 
             const inProgressTestRuns = inProgressWorkflows.data.workflow_runs.filter((run) => {
                 const isTestWorkflow = run.name === CONST.TEST_WORKFLOW_NAME || run.path === CONST.TEST_WORKFLOW_PATH;
-                const matchesSHA = run.head_sha === context.sha;
+                const matchesSHA = run.head_sha === headSha;
                 const isValidEvent = context.payload.pull_request
                     ? run.event === CONST.RUN_EVENT.PULL_REQUEST || run.event === CONST.RUN_EVENT.PULL_REQUEST_TARGET
                     : run.event === CONST.RUN_EVENT.PULL_REQUEST || run.event === CONST.RUN_EVENT.PULL_REQUEST_TARGET || run.event === CONST.RUN_EVENT.PUSH;
@@ -102,7 +107,7 @@ async function waitForJestTests(): Promise<void> {
                 console.log('No matching test workflow runs found, checking if tests are required...');
                 // Check if there might be no test workflow triggered
                 // This could happen if the PR doesn't have testable changes
-                const allRecentRuns = workflows.data.workflow_runs.filter((run) => run.head_sha === context.sha);
+                const allRecentRuns = workflows.data.workflow_runs.filter((run) => run.head_sha === headSha);
                 console.log(`Found ${allRecentRuns.length} workflow runs for this SHA.`);
 
                 // Assume tests passed if no workflow runs exist

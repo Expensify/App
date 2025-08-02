@@ -4,9 +4,15 @@
 # Save current coverage first (from PR branch)
 mv coverage pr-coverage
 
-# Fetch and checkout main branch files
-git fetch origin main
-git checkout origin/main -- .
+# Copy changed_files.txt to a backup
+cp changed_files.txt changed_files_backup.txt
+
+# Fetch and checkout upstream (main) branch files
+git fetch upstream main
+git checkout upstream/main -- .
+
+# Restore the backup to changed_files.txt
+cp changed_files_backup.txt changed_files.txt
 
 # Install dependencies
 npm install
