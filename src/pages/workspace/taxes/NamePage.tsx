@@ -45,7 +45,7 @@ function NamePage({
         const taxName = name.trim();
         // Do not call the API if the edited tax name is the same as the current tag name
         if (currentTaxRate?.name !== taxName) {
-            renamePolicyTax(policyID, taxID, taxName);
+            renamePolicyTax(policyID, taxID, taxName, policy?.taxRates);
         }
         goBack();
     };
