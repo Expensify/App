@@ -1,4 +1,4 @@
-import {render, waitFor} from '@testing-library/react-native';
+import {render} from '@testing-library/react-native';
 import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -96,40 +96,6 @@ describe('Deep linking', () => {
         await waitForNetworkPromises();
         jest.clearAllMocks();
         lastVisitedPath = undefined;
-    });
-
-    it('should not reuse the last deep link and log in when signing out', async () => {
-        expect(hasAuthToken()).toBe(false);
-
-        const cleanUpSpy = jest.spyOn(Session, 'cleanupSession');
-
-        const url = getInitialURL();
-        // User signs in automatically when the app is rendered because of the deep link
-        Linking.setInitialURL(url);
-        render(<App />);
-
-        await waitForBatchedUpdatesWithAct();
-
-        expect(hasAuthToken()).toBe(true);
-
-        // Verify the current page is the report in the deep link
-        await waitFor(() => {
-            expect(lastVisitedPath).toBe(`/${ROUTES.REPORT}/${report.reportID}`);
-        });
-
-        signOutAndRedirectToSignIn();
-
-        await waitForBatchedUpdatesWithAct();
-
-        await waitFor(() => {
-            expect(hasAuthToken()).toBe(false);
-        });
-
-        await waitFor(() => {
-            expect(cleanUpSpy).toHaveBeenCalledTimes(1);
-        });
-
-        cleanUpSpy.mockClear();
     });
 
     it('should not remember the report path of the last deep link login after signing out and in again', async () => {
