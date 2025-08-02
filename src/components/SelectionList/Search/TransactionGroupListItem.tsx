@@ -192,7 +192,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 onButtonPress={() => {
                                     openReportInRHP(transaction);
                                 }}
-                                style={shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half, styles.noBorderRadius]}
+                                style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half]]}
                                 isReportItemChild
                                 isInSingleTransactionReport={groupItem.transactions.length === 1}
                             />
