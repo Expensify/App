@@ -818,6 +818,10 @@ type BusinessTaxIDParams = {
     country: string;
 };
 
+type QBDSetupErrorBodyParams = {
+    conciergeLink: string;
+};
+
 type EmptyCategoriesSubtitleWithAccountingParams = {
     accountingPageURL: string;
 };
@@ -1113,6 +1117,7 @@ export type {
     WorkspacesListRouteParams,
     WorkspaceRouteParams,
     BusinessTaxIDParams,
+    QBDSetupErrorBodyParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
     SettlementAccountInfoParams,
