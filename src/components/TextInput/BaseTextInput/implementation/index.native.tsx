@@ -287,6 +287,7 @@ function BaseTextInput(
     const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
 
     /** Focuses the text input when the component mounts, with a delay to allow navigation/modal animations to complete. */
+    /** Related issue: https://github.com/Expensify/App/issues/64968 */
     useFocusEffect(
         useCallback(() => {
             if (!shouldDelayFocus || !inputProps.autoFocus) {
