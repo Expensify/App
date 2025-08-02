@@ -741,8 +741,7 @@ function getAttendees(transaction: OnyxInputOrEntry<Transaction>): Attendee[] {
             const creatorEmail = creatorDetails?.login ?? '';
             const creatorDisplayName = creatorDetails?.displayName ?? creatorEmail;
 
-
-            if (!isCreatorAlreadyInAttendees && creatorEmail) {
+            if (creatorEmail) {
                 attendees.push({
                     email: creatorEmail,
                     login: creatorEmail,
