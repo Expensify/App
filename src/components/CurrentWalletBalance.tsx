@@ -11,7 +11,7 @@ type CurrentWalletBalanceProps = {
 
 function CurrentWalletBalance({balanceStyles}: CurrentWalletBalanceProps) {
     const styles = useThemeStyles();
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
 
     return (
         <Balance

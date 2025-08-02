@@ -414,4 +414,11 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
     });
 }
 
-export {calculateApprovers, convertPolicyEmployeesToApprovalWorkflows, convertApprovalWorkflowToPolicyEmployees, INITIAL_APPROVAL_WORKFLOW, updateWorkflowDataOnApproverRemoval};
+export {
+    calculateApprovers,
+    convertPolicyEmployeesToApprovalWorkflows,
+    convertApprovalWorkflowToPolicyEmployees,
+    INITIAL_APPROVAL_WORKFLOW,
+    updateWorkflowDataOnApproverRemoval,
+    mockApprovalProcess,
+};
