@@ -24,7 +24,7 @@ import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getTag, getTagForDisplay} from '@libs/TransactionUtils';
+import {getChildTransactions, getTag, getTagForDisplay} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,6 +41,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const report = getReportOrDraftReport(reportID);
 
     const [splitExpenseDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: false});
+
     const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(splitExpenseDraftTransaction) ?? {}, [splitExpenseDraftTransaction]);
 
     const policy = usePolicy(report?.policyID);
@@ -53,6 +54,8 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const [draftTransactionWithSplitExpenses] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
     const splitExpensesList = draftTransactionWithSplitExpenses?.comment?.splitExpenses;
+    const childTransactions = getChildTransactions(transactionID);
+    const isCreationOfSplits = !childTransactions.length;
 
     const currentAmount = transactionDetailsAmount >= 0 ? Math.abs(Number(splitExpenseDraftTransactionDetails?.amount)) : Number(splitExpenseDraftTransactionDetails?.amount);
     const currentDescription = getParsedComment(Parser.htmlToMarkdown(splitExpenseDraftTransactionDetails?.comment ?? ''));
@@ -197,7 +200,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                         />
                     </ScrollView>
                     <FixedFooter style={styles.mtAuto}>
-                        {Number(splitExpensesList?.length) > 2 && (
+                        {Number(splitExpensesList?.length) > (isCreationOfSplits ? 1 : 2) && (
                             <Button
                                 danger
                                 large

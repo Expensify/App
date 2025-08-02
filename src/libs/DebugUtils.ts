@@ -1080,6 +1080,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     accountant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitExpenses: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isDemoTransaction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    splitExpensesTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1119,6 +1120,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 dismissedViolations: 'object',
                 splitExpenses: 'array',
                 isDemoTransaction: 'boolean',
+                splitExpensesTotal: 'number',
             });
         case 'accountant':
             return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {
