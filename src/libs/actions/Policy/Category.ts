@@ -29,15 +29,14 @@ import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getPolicy, goBackWhenEnableFeature} from '@libs/PolicyUtils';
-import {getAllPolicyReports, pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
+import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyCategory, PolicyTagLists, RecentlyUsedCategories, Report, TransactionViolations} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory, PolicyTagLists, RecentlyUsedCategories, TransactionViolations} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
-
 
 let allRecentlyUsedCategories: OnyxCollection<RecentlyUsedCategories> = {};
 Onyx.connect({
