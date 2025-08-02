@@ -2,8 +2,7 @@ import React, {useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewStyle} from 'react-native';
 import {InteractionManager, Linking, View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import BookTravelButton from '@components/BookTravelButton';
 import ConfirmModal from '@components/ConfirmModal';
@@ -141,7 +140,6 @@ function EmptySearchViewContent({
     viewTourReportID,
     viewTourReport,
 }: EmptySearchViewContentProps) {
-    console.log('all policies', allPolicies)
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -155,7 +153,7 @@ function EmptySearchViewContent({
     });
 
     const shouldRedirectToExpensifyClassic = useMemo(() => {
-        return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<Policy>) ?? {});
+        return areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
     }, [allPolicies]);
 
     const typeMenuItems = useMemo(() => {
