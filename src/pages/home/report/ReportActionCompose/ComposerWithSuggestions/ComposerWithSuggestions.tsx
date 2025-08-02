@@ -145,6 +145,9 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
 
     /** Whether the main composer was hidden */
     didHideComposerInput?: boolean;
+
+    /** The native ID for this component */
+    nativeID?: string;
 };
 
 type SwitchToCurrentReportProps = {
@@ -225,6 +228,7 @@ function ComposerWithSuggestions(
         raiseIsScrollLikelyLayoutTriggered,
         onCleared = () => {},
         onLayout: onLayoutProps,
+        nativeID,
 
         // Refs
         suggestionsRef,
@@ -827,6 +831,7 @@ function ComposerWithSuggestions(
                     onScroll={hideSuggestionMenu}
                     shouldContainScroll={isMobileSafari()}
                     isGroupPolicyReport={isGroupPolicyReport}
+                    nativeID={nativeID}
                 />
             </View>
 
