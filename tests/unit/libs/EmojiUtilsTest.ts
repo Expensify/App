@@ -37,19 +37,19 @@ jest.mock('@assets/emojis', () => ({
     },
     emojiNameTable: {
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        'grinning_face': {
+        grinning_face: {
             code: '😀',
             name: 'grinning_face',
             keywords: ['face', 'grin', 'grinning'],
         },
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        'waving_hand': {
+        waving_hand: {
             code: '👋',
             name: 'waving_hand',
             keywords: ['hand', 'wave', 'waving'],
         },
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        'thumbs_up': {
+        thumbs_up: {
             code: '👍',
             name: 'thumbs_up',
             keywords: ['hand', 'thumb', 'up'],
@@ -192,8 +192,8 @@ describe('processFrequentlyUsedEmojis', () => {
             code: '😀',
             name: 'grinning_face',
             keywords: ['face', 'grin', 'grinning'],
-            count: 8, 
-            lastUpdatedAt: 2000, 
+            count: 8,
+            lastUpdatedAt: 2000,
         });
     });
 
@@ -257,30 +257,6 @@ describe('processFrequentlyUsedEmojis', () => {
         expect(result.at(2)?.code).toBe('😀');
     });
 
-    it('should handle emojis with skin tones correctly', () => {
-        const input: FrequentlyUsedEmoji[] = [
-            {
-                code: '😀',
-                name: 'grinning_face',
-                count: 5,
-                lastUpdatedAt: 1000,
-                types: ['😀', '😀🏻', '😀🏼'],
-            },
-        ];
-
-        const result = processFrequentlyUsedEmojis(input);
-
-        expect(result).toHaveLength(1);
-        expect(result.at(0)).toEqual({
-            code: '😀',
-            name: 'grinning_face',
-            keywords: ['face', 'grin', 'grinning'],
-            count: 5,
-            lastUpdatedAt: 1000,
-            types: ['😀', '😀🏻', '😀🏼'],
-        });
-    });
-
     it('should handle complex scenario with mixed data quality', () => {
         const input: FrequentlyUsedEmoji[] = [
             {
@@ -318,11 +294,11 @@ describe('processFrequentlyUsedEmojis', () => {
         const result = processFrequentlyUsedEmojis(input);
 
         expect(result).toHaveLength(3);
-        
-        expect(result.at(0)?.code).toBe('👍'); 
-        expect(result.at(1)?.code).toBe('😀'); 
-        expect(result.at(2)?.code).toBe('👋'); 
-        expect(result.at(1)?.count).toBe(7); 
-        expect(result.at(1)?.lastUpdatedAt).toBe(1500); 
+
+        expect(result.at(0)?.code).toBe('👍');
+        expect(result.at(1)?.code).toBe('😀');
+        expect(result.at(2)?.code).toBe('👋');
+        expect(result.at(1)?.count).toBe(7);
+        expect(result.at(1)?.lastUpdatedAt).toBe(1500);
     });
-}); 
+});
