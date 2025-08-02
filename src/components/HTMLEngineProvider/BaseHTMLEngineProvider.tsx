@@ -58,6 +58,16 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 },
                 contentModel: HTMLContentModel.block,
             }),
+            'muted-micro-text': HTMLElementModel.fromCustomModel({
+                tagName: 'muted-micro-text',
+                getMixedUAStyles: (tnode) => {
+                    if (tnode.attributes.issmall === undefined) {
+                        return {...styles.mutedNormalTextLabel, ...styles.mb0};
+                    }
+                    return {...styles.mutedNormalTextLabel, ...styles.mb0, ...styles.textMicro, textDecorationLine: 'none'};
+                },
+                contentModel: HTMLContentModel.block,
+            }),
             'muted-link': HTMLElementModel.fromCustomModel({
                 tagName: 'muted-link',
                 mixedUAStyles: {...styles.subTextFileUpload, ...styles.textSupporting},
