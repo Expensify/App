@@ -401,6 +401,10 @@ const styles = (theme: ThemeColors) =>
             lineHeight: undefined,
         },
 
+        heightUndefined: {
+            height: undefined,
+        },
+
         lineHeightLarge: {
             lineHeight: variables.lineHeightLarge,
         },
