@@ -2,6 +2,7 @@ import React, {useRef} from 'react';
 import Button from '@components/Button';
 import PopoverMenu from '@components/PopoverMenu';
 import type {SearchQueryJSON} from '@components/Search/types';
+import useRouteValidatedCallback from '@hooks/useRouteValidatedCallback';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useSearchTypeMenu from '@hooks/useSearchTypeMenu';
 import useTheme from '@hooks/useTheme';
@@ -19,13 +20,14 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
 
     const buttonRef = useRef<HTMLDivElement>(null);
     const {unmodifiedPaddings} = useSafeAreaPaddings();
+    const validatedOpenMenu = useRouteValidatedCallback(openMenu);
 
     return (
         <>
             <Button
                 innerStyles={[{backgroundColor: theme.sidebarHover}]}
                 icon={Expensicons.Menu}
-                onPress={openMenu}
+                onPress={validatedOpenMenu}
             />
             {!delayPopoverMenuFirstRender && (
                 <PopoverMenu
