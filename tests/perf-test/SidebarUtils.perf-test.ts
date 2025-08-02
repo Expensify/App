@@ -83,6 +83,7 @@ describe('SidebarUtils', () => {
                 policy,
                 parentReportAction,
                 oneTransactionThreadReport: undefined,
+                card: undefined,
             }),
         );
     });
