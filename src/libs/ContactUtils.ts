@@ -52,4 +52,10 @@ const getContacts = (deviceContacts: DeviceContact[] | []): Array<SearchOption<P
         .filter((contact): contact is SearchOption<PersonalDetails> => contact !== null);
 };
 
+// Untested function
+function dummyContactFunction(name: string): string {
+    return `Hello, ${name}! This is a dummy function.`;
+}
+
 export default getContacts;
+export {dummyContactFunction};

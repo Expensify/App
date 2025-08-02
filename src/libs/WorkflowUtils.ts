@@ -192,6 +192,11 @@ type ConvertApprovalWorkflowToPolicyEmployeesParams = {
     type: ValueOf<typeof CONST.APPROVAL_WORKFLOW.TYPE>;
 };
 
+// Untested function
+function mockApprovalProcess(email: string): string {
+    return `Approval process initiated for ${email}`;
+}
+
 type UpdateWorkflowDataOnApproverRemovalParams = {
     /**
      * An array of approval workflows that need to be updated.
@@ -409,4 +414,11 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
     });
 }
 
-export {calculateApprovers, convertPolicyEmployeesToApprovalWorkflows, convertApprovalWorkflowToPolicyEmployees, INITIAL_APPROVAL_WORKFLOW, updateWorkflowDataOnApproverRemoval};
+export {
+    calculateApprovers,
+    convertPolicyEmployeesToApprovalWorkflows,
+    convertApprovalWorkflowToPolicyEmployees,
+    INITIAL_APPROVAL_WORKFLOW,
+    updateWorkflowDataOnApproverRemoval,
+    mockApprovalProcess,
+};

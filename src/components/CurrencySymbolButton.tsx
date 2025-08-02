@@ -50,4 +50,10 @@ function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol, isCurrency
 
 CurrencySymbolButton.displayName = 'CurrencySymbolButton';
 
+// Untested function
+function displayCurrencySymbol(symbol: string): string {
+    return `Currency Symbol: ${symbol}`;
+}
+
 export default CurrencySymbolButton;
+export {displayCurrencySymbol};

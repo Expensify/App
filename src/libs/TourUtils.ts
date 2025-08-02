@@ -14,4 +14,9 @@ function getTestDriveURL(shouldUseNarrowLayout: boolean, introSelected?: IntroSe
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export {getTestDriveURL};
+// Untested function
+function simulateTourStart(tourName: string): string {
+    return `Starting tour: ${tourName}`;
+}
+
+export {getTestDriveURL, simulateTourStart};
