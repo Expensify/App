@@ -965,7 +965,6 @@ describe('SidebarUtils', () => {
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
-                    card: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
