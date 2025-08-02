@@ -2,7 +2,7 @@ import {fireEvent, screen} from '@testing-library/react-native';
 import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
-import type {ConnectOptions, OnyxKey} from 'react-native-onyx/dist/types';
+import type {ConnectOptions, OnyxEntry, OnyxKey} from 'react-native-onyx/dist/types';
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translateLocal} from '@libs/Localize';
@@ -15,7 +15,7 @@ import HttpUtils from '@src/libs/HttpUtils';
 import * as NumberUtils from '@src/libs/NumberUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import appSetup from '@src/setup';
-import type {Response as OnyxResponse, PersonalDetails, Report} from '@src/types/onyx';
+import type {Response as OnyxResponse, PersonalDetails, Report, StripeCustomerID} from '@src/types/onyx';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
@@ -43,6 +43,13 @@ type FormData = {
 function formatPhoneNumber(phoneNumber: string) {
     return formatPhoneNumberWithCountryCode(phoneNumber, 1);
 }
+
+const STRIPE_CUSTOMER_ID: OnyxEntry<StripeCustomerID> = {
+    paymentMethodID: '1',
+    intentsID: '2',
+    currency: 'USD',
+    status: 'authentication_required',
+};
 
 function setupApp() {
     beforeAll(() => {
@@ -380,4 +387,5 @@ export {
     getNavigateToChatHintRegex,
     formatPhoneNumber,
     localeCompare,
+    STRIPE_CUSTOMER_ID,
 };
