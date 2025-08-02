@@ -21,7 +21,8 @@ import type {
 import type PusherModule from './types';
 
 let shouldForceOffline = false;
-Onyx.connect({
+// We have used `connectWithoutView` here because it is not connected to any UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
