@@ -35,6 +35,7 @@ const violationNameToField: Record<ViolationName, (violation: TransactionViolati
     overAutoApprovalLimit: () => 'amount',
     overCategoryLimit: () => 'amount',
     overLimit: () => 'amount',
+    overTripLimit: () => 'amount',
     overLimitAttendee: () => 'amount',
     perDayLimit: () => 'amount',
     prohibitedExpense: () => 'receipt',
