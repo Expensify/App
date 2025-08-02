@@ -59,7 +59,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {TryNewDot} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Locale from '@src/types/onyx/Locale';
