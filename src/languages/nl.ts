@@ -4929,6 +4929,7 @@ const translations = {
                 limit: 'Limiet',
                 limitType: 'Limiettype',
                 name: 'Naam',
+                disabledApprovalForSmartLimitError: 'Schakel de goedkeuringsworkflow in voor uw beleid om Slimme Limiet-kaarten in te stellen.',
             },
             deactivateCardModal: {
                 deactivate: 'Deactiveren',

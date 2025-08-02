@@ -4844,6 +4844,7 @@ const translations = {
                 limit: '限制',
                 limitType: '限制类型',
                 name: '名称',
+                disabledApprovalForSmartLimitError: '请在您的政策中启用审批工作流程以设置智能限额卡。',
             },
             deactivateCardModal: {
                 deactivate: '停用',
