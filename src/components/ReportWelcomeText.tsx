@@ -57,7 +57,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true, reportMetadata);
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
-    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
+    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, isReportArchived);
     const policyName = getPolicyName({report});
 
     const filteredOptions = moneyRequestOptions.filter(
