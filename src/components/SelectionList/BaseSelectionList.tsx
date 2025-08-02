@@ -762,6 +762,14 @@ function BaseSelectionList<TItem extends ListItem>(
     const prevAllOptionsLength = usePrevious(flattenedSections.allOptions.length);
 
     useEffect(() => {
+        if (prevTextInputValue === textInputValue) {
+            return;
+        }
+        // Reset the current page to 1 when the user types something
+        setCurrentPage(1);
+    }, [textInputValue, prevTextInputValue]);
+
+    useEffect(() => {
         // Avoid changing focus if the textInputValue remains unchanged.
         if (
             (prevTextInputValue === textInputValue && flattenedSections.selectedOptions.length === prevSelectedOptionsLength) ||
@@ -777,9 +785,6 @@ function BaseSelectionList<TItem extends ListItem>(
             (flattenedSections.selectedOptions.length !== prevSelectedOptionsLength && prevAllOptionsLength === flattenedSections.allOptions.length)
                 ? -1
                 : 0;
-
-        // Reset the current page to 1 when the user types something
-        setCurrentPage(1);
 
         updateAndScrollToFocusedIndex(newSelectedIndex);
     }, [
