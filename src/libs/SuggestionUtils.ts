@@ -1,6 +1,6 @@
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
+import localeCompare from './LocaleCompare';
 import {getDisplayNameForParticipant} from './ReportUtils';
 
 /**
@@ -32,21 +32,19 @@ function getDisplayName(details: PersonalDetails) {
 }
 
 /**
- * Function to sort users. It compares weights, display names, and accountIDs in that order
+ * Comparison function to sort users. It compares weights, display names, and accountIDs in that order
  */
-function getSortedPersonalDetails(personalDetails: Array<PersonalDetails & {weight: number}>, localeCompare: LocaleContextProps['localeCompare']) {
-    return personalDetails.sort((first, second) => {
-        if (first.weight !== second.weight) {
-            return first.weight - second.weight;
-        }
+function compareUserInList(first: PersonalDetails & {weight: number}, second: PersonalDetails & {weight: number}) {
+    if (first.weight !== second.weight) {
+        return first.weight - second.weight;
+    }
 
-        const displayNameLoginOrder = localeCompare(getDisplayName(first), getDisplayName(second));
-        if (displayNameLoginOrder !== 0) {
-            return displayNameLoginOrder;
-        }
+    const displayNameLoginOrder = localeCompare(getDisplayName(first), getDisplayName(second));
+    if (displayNameLoginOrder !== 0) {
+        return displayNameLoginOrder;
+    }
 
-        return first.accountID - second.accountID;
-    });
+    return first.accountID - second.accountID;
 }
 
-export {trimLeadingSpace, hasEnoughSpaceForLargeSuggestionMenu, getSortedPersonalDetails};
+export {trimLeadingSpace, hasEnoughSpaceForLargeSuggestionMenu, compareUserInList};
