@@ -131,7 +131,7 @@ import {
 import {getTaskReportActionMessage} from './TaskUtils';
 import {getTransactionID} from './TransactionUtils';
 
-type WelcomeMessage = {phrase1?: string; messageText?: string; messageHtml?: string};
+type WelcomeMessage = {phrase1?: string; messageText?: string; messageHtml?: string; usePlusButtonText?: string};
 
 const visibleReportActionItems: ReportActions = {};
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
@@ -844,7 +844,7 @@ function getOptionData({
     return result;
 }
 
-function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isReportArchived = false, reportDetailsLink = '', shouldShowUsePlusButtonText?: boolean): WelcomeMessage {
+function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isReportArchived = false, reportDetailsLink = ''): WelcomeMessage {
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true);
     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
     const filteredOptions = moneyRequestOptions.filter(
@@ -888,7 +888,8 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>,
     }
 
     if (isSelfDM(report)) {
-        welcomeMessage.messageHtml = `${translateLocal('reportActionsView.beginningOfChatHistorySelfDM')} ${shouldShowUsePlusButtonText ? translateLocal('reportActionsView.usePlusButton', {additionalText}) : ''}`;
+        welcomeMessage.messageText = translateLocal('reportActionsView.beginningOfChatHistorySelfDM');
+        welcomeMessage.usePlusButtonText = translateLocal('reportActionsView.usePlusButton', {additionalText});
         return welcomeMessage;
     }
 
@@ -897,11 +898,7 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>,
         return welcomeMessage;
     }
 
-    if (isDefaultRoom(report) && shouldShowUsePlusButtonText) {
-        welcomeMessage.messageHtml = translateLocal('reportActionsView.usePlusButton', {additionalText});
-        return welcomeMessage;
-    }
-
+    welcomeMessage.usePlusButtonText = translateLocal('reportActionsView.usePlusButton', {additionalText});
     welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfChatHistory');
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, allPersonalDetails), isMultipleParticipant);
