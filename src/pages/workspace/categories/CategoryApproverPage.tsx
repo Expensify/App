@@ -48,7 +48,7 @@ function CategoryApproverPage({
                     policyID={policyID}
                     selectedApprover={selectedApprover}
                     setApprover={(email) => {
-                        Category.setPolicyCategoryApprover(policyID, categoryName, email);
+                        Category.setPolicyCategoryApprover(policyID, categoryName, email, policy?.rules?.approvalRules ?? []);
                         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
                     }}
                 />
