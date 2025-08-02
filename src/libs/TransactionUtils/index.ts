@@ -741,8 +741,6 @@ function getAttendees(transaction: OnyxInputOrEntry<Transaction>): Attendee[] {
             const creatorEmail = creatorDetails?.login ?? '';
             const creatorDisplayName = creatorDetails?.displayName ?? creatorEmail;
 
-            // Check if the creator is already in the attendees list
-            const isCreatorAlreadyInAttendees = attendees.some((attendee) => attendee.accountID === creatorAccountID);
 
             if (!isCreatorAlreadyInAttendees && creatorEmail) {
                 attendees.push({
