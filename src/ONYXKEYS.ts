@@ -551,6 +551,11 @@ const ONYXKEYS = {
     /** List of transaction thread IDs used when navigating to prev/next transaction when viewing it in RHP */
     TRANSACTION_THREAD_NAVIGATION_REPORT_IDS: 'transactionThreadNavigationReportIDs',
 
+    /** List of reports IDs used when navigating to prev/next report */
+    REPORT_NAVIGATION_REPORT_IDS: 'ReportNavigationReportsId',
+
+    REPORT_NAVIGATION_LAST_SEARCH_QUERY: 'ReportNavigationLastSearchQuery',
+
     /** Timestamp of the last login on iOS */
     NVP_LAST_ECASH_IOS_LOGIN: 'nvp_lastECashIOSLogin',
     NVP_LAST_IPHONE_LOGIN: 'nvp_lastiPhoneLogin',
@@ -1213,6 +1218,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_LAST_IPHONE_LOGIN]: string;
     [ONYXKEYS.NVP_LAST_ANDROID_LOGIN]: string;
     [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS]: string[];
+    [ONYXKEYS.REPORT_NAVIGATION_REPORT_IDS]: Record<string, string>;
+    [ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY]: OnyxTypes.LastSearchParams;
     [ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION]: OnboardingAccounting;
     [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
 };
