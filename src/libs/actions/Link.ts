@@ -11,7 +11,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {getUrlWithBackToParam} from '@src/ROUTES';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn} from './Session';
 
 let isNetworkOffline = false;
@@ -179,7 +179,11 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
             signOutAndRedirectToSignIn();
             return;
         }
-        Navigation.navigate(internalNewExpensifyPath as Route);
+        let urlToNavigate = internalNewExpensifyPath;
+        if (CONST.POLICY.POLICY_ROUTE_REGEX.test(internalNewExpensifyPath)) {
+            urlToNavigate = getUrlWithBackToParam(internalNewExpensifyPath, Navigation.getActiveRoute());
+        }
+        Navigation.navigate(urlToNavigate as Route);
         return;
     }
     // If we are handling an old dot Expensify link we need to open it with openOldDotLink() so we can navigate to it with the user already logged in.

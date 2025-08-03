@@ -629,6 +629,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 policyID={policyID}
                 accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
                 featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
+                backToRoute={route.params.backTo}
             >
                 <ScreenWrapper
                     enableEdgeToEdgeBottomSafeAreaPadding
