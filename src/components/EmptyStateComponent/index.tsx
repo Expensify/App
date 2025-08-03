@@ -105,7 +105,10 @@ function EmptyStateComponent({
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2, titleStyles]}>{title}</Text>
                         {subtitleText ??
                             (isSubtitleContainsCustomEmoji ? (
-                                <TextWithEmojiFragment message={subtitle} />
+                                <TextWithEmojiFragment
+                                    style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}
+                                    message={subtitle}
+                                />
                             ) : (
                                 <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text>
                             ))}

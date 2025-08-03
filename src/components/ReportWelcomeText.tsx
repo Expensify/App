@@ -136,7 +136,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                 )}
                 {isSelfDM && (
                     <Text>
-                        {welcomeMessage.messageText}
+                        <Text>{welcomeMessage.messageText}</Text>
                         {shouldShowUsePlusButtonText && <TextWithEmojiFragment message={translate('reportActionsView.usePlusButton', {additionalText})} />}
                     </Text>
                 )}
