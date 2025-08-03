@@ -43,7 +43,18 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                 return;
             }
 
-            setPolicyTaxCode(policyID, currentTaxCode, newTaxCode, policy?.taxRates, distanceRateCustomUnit);
+            if (!policy?.taxRates?.taxes[currentTaxCode]) {
+                return;
+            }
+            setPolicyTaxCode(
+                policyID,
+                currentTaxCode,
+                newTaxCode,
+                policy?.taxRates?.taxes[currentTaxCode],
+                policy?.taxRates?.foreignTaxDefault,
+                policy?.taxRates?.defaultExternalID,
+                distanceRateCustomUnit,
+            );
             Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, currentTaxCode));
         },
         [currentTaxCode, policyID, policy?.taxRates, distanceRateCustomUnit],

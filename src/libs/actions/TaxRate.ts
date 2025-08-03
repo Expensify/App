@@ -23,7 +23,7 @@ import INPUT_IDS from '@src/types/form/WorkspaceNewTaxForm';
 import {default as INPUT_IDS_TAX_CODE} from '@src/types/form/WorkspaceTaxCodeForm';
 import type {Policy, TaxRate, TaxRates} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {CustomUnit, Rate, TaxRatesWithDefault} from '@src/types/onyx/Policy';
+import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 /**
@@ -414,8 +414,7 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[]) {
     API.write(WRITE_COMMANDS.DELETE_POLICY_TAXES, parameters, onyxData);
 }
 
-function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number, taxRates: OnyxEntry<TaxRatesWithDefault>) {
-    const originalTaxRate = {...taxRates?.taxes[taxID]};
+function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number, originalTaxRate: TaxRate) {
     const stringTaxValue = `${taxValue}%`;
 
     const onyxData: OnyxData = {
@@ -479,8 +478,7 @@ function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number,
     API.write(WRITE_COMMANDS.UPDATE_POLICY_TAX_VALUE, parameters, onyxData);
 }
 
-function renamePolicyTax(policyID: string, taxID: string, newName: string, taxRates: OnyxEntry<TaxRatesWithDefault>) {
-    const originalTaxRate = {...taxRates?.taxes[taxID]};
+function renamePolicyTax(policyID: string, taxID: string, newName: string, originalTaxRate: TaxRate) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -542,8 +540,15 @@ function renamePolicyTax(policyID: string, taxID: string, newName: string, taxRa
     API.write(WRITE_COMMANDS.RENAME_POLICY_TAX, parameters, onyxData);
 }
 
-function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: string, taxRates: OnyxEntry<TaxRatesWithDefault>, distanceRateCustomUnit: CustomUnit | undefined) {
-    const originalTaxRate = {...taxRates?.taxes[oldTaxCode]};
+function setPolicyTaxCode(
+    policyID: string,
+    oldTaxCode: string,
+    newTaxCode: string,
+    originalTaxRate: TaxRate,
+    oldForeignTaxDefault: string | undefined,
+    oldDefaultExternalID: string | undefined,
+    distanceRateCustomUnit: CustomUnit | undefined,
+) {
     const optimisticDistanceRateCustomUnit = distanceRateCustomUnit && {
         ...distanceRateCustomUnit,
         rates: {
@@ -563,8 +568,7 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
             ),
         },
     };
-    const oldDefaultExternalID = taxRates?.defaultExternalID;
-    const oldForeignTaxDefault = taxRates?.foreignTaxDefault;
+
     const onyxData: OnyxData = {
         optimisticData: [
             {

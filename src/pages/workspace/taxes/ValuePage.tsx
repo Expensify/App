@@ -43,11 +43,11 @@ function ValuePage({
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM>) => {
-            if (defaultValue === values.value) {
+            if (defaultValue === values.value || !policy?.taxRates?.taxes[taxID]) {
                 goBack();
                 return;
             }
-            updatePolicyTaxValue(policyID, taxID, Number(values.value), policy?.taxRates);
+            updatePolicyTaxValue(policyID, taxID, Number(values.value), policy?.taxRates?.taxes[taxID]);
             goBack();
         },
         [defaultValue, policyID, taxID, policy?.taxRates, goBack],
