@@ -1776,9 +1776,7 @@ const translations = {
         changePaymentCurrency: 'Betaalvaluta wijzigen',
         paymentCurrency: 'Betaalvaluta',
         paymentCurrencyDescription: 'Selecteer een gestandaardiseerde valuta waarnaar alle persoonlijke uitgaven moeten worden omgerekend',
-        note: 'Opmerking: Het wijzigen van uw betalingsvaluta kan van invloed zijn op hoeveel u zult betalen voor Expensify. Raadpleeg onze',
-        noteLink: 'prijs pagina',
-        noteDetails: 'voor volledige details.',
+        note: `Let op: Het wijzigen van je betalingsvaluta kan invloed hebben op hoeveel je betaalt voor Expensify. Raadpleeg onze <a href="${CONST.PRICING}">prijspagina</a> voor meer informatie.`,
     },
     addDebitCardPage: {
         addADebitCard: 'Voeg een debetkaart toe',

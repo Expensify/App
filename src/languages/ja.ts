@@ -1773,9 +1773,7 @@ const translations = {
         changePaymentCurrency: '支払い通貨を変更',
         paymentCurrency: '支払い通貨',
         paymentCurrencyDescription: 'すべての個人経費を変換する標準通貨を選択してください',
-        note: '注意: 支払い通貨を変更すると、Expensifyの支払い額に影響を与える可能性があります。私たちのガイドを参照してください。',
-        noteLink: '価格ページ',
-        noteDetails: '詳細については。',
+        note: `注: お支払いの通貨を変更すると、Expensifyのお支払いに影響する場合があります。詳しくは<a href="${CONST.PRICING}">価格ページ</a>をご覧ください。`,
     },
     addDebitCardPage: {
         addADebitCard: 'デビットカードを追加',

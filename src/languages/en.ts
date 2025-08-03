@@ -1759,9 +1759,7 @@ const translations = {
         changePaymentCurrency: 'Change payment currency',
         paymentCurrency: 'Payment currency',
         paymentCurrencyDescription: 'Select a standardized currency that all personal expenses should be converted to',
-        note: 'Note: Changing your payment currency can impact how much you’ll pay for Expensify. Refer to our',
-        noteLink: 'pricing page',
-        noteDetails: 'for full details.',
+        note: `Note: Changing your payment currency can impact how much you’ll pay for Expensify. Refer to our <a href="${CONST.PRICING}">pricing page</a> for full details.`,
     },
     addDebitCardPage: {
         addADebitCard: 'Add a debit card',

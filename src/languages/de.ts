@@ -1781,9 +1781,7 @@ const translations = {
         changePaymentCurrency: 'Zahlungswährung ändern',
         paymentCurrency: 'Zahlungswährung',
         paymentCurrencyDescription: 'Wählen Sie eine standardisierte Währung, in die alle persönlichen Ausgaben umgerechnet werden sollen.',
-        note: 'Hinweis: Das Ändern Ihrer Zahlungsmethode kann beeinflussen, wie viel Sie für Expensify bezahlen. Beziehen Sie sich auf unsere',
-        noteLink: 'Preisseite',
-        noteDetails: 'für vollständige Details.',
+        note: `Hinweis: Wenn Sie Ihre Zahlungswährung ändern, kann sich dies auf Ihre Kosten für Expensify auswirken. Auf unserer <a href="${CONST.PRICING}">Preisseite</a> finden Sie alle Details.`,
     },
     addDebitCardPage: {
         addADebitCard: 'Fügen Sie eine Debitkarte hinzu',
