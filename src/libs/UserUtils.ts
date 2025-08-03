@@ -1,12 +1,10 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import {ConciergeAvatar, NotificationsAvatar} from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account, LoginList, PrivatePersonalDetails, Session, VacationDelegate} from '@src/types/onyx';
+import type {LoginList, PrivatePersonalDetails, VacationDelegate} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -18,21 +16,6 @@ type AvatarSource = IconAsset | string;
 
 type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
 
-let account: OnyxEntry<Account>;
-Onyx.connect({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (value) => {
-        account = value ?? {};
-    },
-});
-
-let session: OnyxEntry<Session>;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        session = value ?? {};
-    },
-});
 
 /**
  * Searches through given loginList for any contact method / login with an error.
@@ -64,30 +47,30 @@ function hasLoginListError(loginList: OnyxEntry<LoginList>): boolean {
  * an Info brick road status indicator. Currently this only applies if the user
  * has an unvalidated contact method.
  */
-function hasLoginListInfo(loginList: OnyxEntry<LoginList>): boolean {
-    return Object.values(loginList ?? {}).some((login) => session?.email !== login.partnerUserID && !login.validatedDate);
+function hasLoginListInfo(loginList: OnyxEntry<LoginList>, email: string): boolean {
+    return Object.values(loginList ?? {}).some((login) => email !== login.partnerUserID && !login.validatedDate);
 }
 
 /**
  * Checks if the current user has a validated the primary contact method
  */
-function isCurrentUserValidated(loginList: OnyxEntry<LoginList>): boolean {
-    if (!loginList || !session?.email) {
+function isCurrentUserValidated(loginList: OnyxEntry<LoginList>, email: string): boolean {
+    if (!loginList || !email) {
         return false;
     }
 
-    return !!loginList?.[session.email]?.validatedDate;
+    return !!loginList?.[email]?.validatedDate;
 }
 
 /**
  * Gets the appropriate brick road indicator status for a given loginList.
  * Error status is higher priority, so we check for that first.
  */
-function getLoginListBrickRoadIndicator(loginList: OnyxEntry<LoginList>): LoginListIndicator {
+function getLoginListBrickRoadIndicator(loginList: OnyxEntry<LoginList>, email: string): LoginListIndicator {
     if (hasLoginListError(loginList)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
-    if (hasLoginListInfo(loginList)) {
+    if (hasLoginListInfo(loginList, email)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 
@@ -102,12 +85,13 @@ function getProfilePageBrickRoadIndicator(
     loginList: OnyxEntry<LoginList>,
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>,
     vacationDelegate: OnyxEntry<VacationDelegate>,
+    email: string,
 ): LoginListIndicator {
     const hasPhoneNumberError = !!privatePersonalDetails?.errorFields?.phoneNumber;
     if (hasLoginListError(loginList) || hasPhoneNumberError || !isEmptyObject(vacationDelegate?.errors)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
-    if (hasLoginListInfo(loginList)) {
+    if (hasLoginListInfo(loginList, email)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 
@@ -262,8 +246,8 @@ function getSecondaryPhoneLogin(loginList: OnyxEntry<Login>): string | undefined
 /**
  * Gets the contact method
  */
-function getContactMethod(): string {
-    return account?.primaryLogin ?? session?.email ?? '';
+function getContactMethod(primaryLogin: string, email: string): string {
+    return primaryLogin ?? email ?? '';
 }
 
 export {

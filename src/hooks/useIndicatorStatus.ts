@@ -33,6 +33,7 @@ function useIndicatorStatus(): IndicatorStatusResult {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [allCards] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
     const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
 
     // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
     // those should be cleaned out before doing any error checking
@@ -65,7 +66,7 @@ function useIndicatorStatus(): IndicatorStatusResult {
     };
 
     const infoChecking: Partial<Record<IndicatorStatus, boolean>> = {
-        [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO]: !!loginList && hasLoginListInfo(loginList),
+        [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO]: !!loginList && hasLoginListInfo(loginList, session?.email ?? ''),
         [CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO]: hasSubscriptionGreenDotInfo(),
     };
 

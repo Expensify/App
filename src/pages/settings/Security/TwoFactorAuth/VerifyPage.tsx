@@ -33,7 +33,9 @@ type VerifyPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList,
 function VerifyPage({route}: VerifyPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const contactMethod = getContactMethod();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const contactMethod = getContactMethod(loginList?.primaryLogin ?? '', session?.email ?? '');
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
 
