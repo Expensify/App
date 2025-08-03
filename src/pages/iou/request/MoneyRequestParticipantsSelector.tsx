@@ -462,7 +462,7 @@ function MoneyRequestParticipantsSelector(
     const initiateContactImportAndSetState = useCallback(() => {
         setContactPermissionState(RESULTS.GRANTED);
         InteractionManager.runAfterInteractions(importAndSaveContacts);
-    }, [importAndSaveContacts]);
+    }, [importAndSaveContacts, setContactPermissionState]);
 
     const footerContent = useMemo(() => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {

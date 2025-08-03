@@ -233,7 +233,18 @@ function AttachmentPickerWithMenuItems({
         const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => options[option], isReportArchived);
 
         return moneyRequestOptionsList.flat().filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
-    }, [translate, shouldUseNarrowLayout, report, policy, reportParticipantIDs, selectOption, isDelegateAccessRestricted, showDelegateNoAccessModal, isManualDistanceTrackingEnabled]);
+    }, [
+        translate,
+        shouldUseNarrowLayout,
+        report,
+        policy,
+        reportParticipantIDs,
+        selectOption,
+        isDelegateAccessRestricted,
+        showDelegateNoAccessModal,
+        isManualDistanceTrackingEnabled,
+        isReportArchived,
+    ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
         if (!isPolicyExpenseChat(report) || !isPaidGroupPolicy(report) || !isReportOwner(report)) {
