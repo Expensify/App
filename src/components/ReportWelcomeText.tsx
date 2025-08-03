@@ -24,6 +24,7 @@ import {
 } from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
+import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -59,6 +60,23 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, isReportArchived);
     const policyName = getPolicyName({report});
+
+    const filteredOptions = moneyRequestOptions.filter(
+        (
+            item,
+        ): item is Exclude<
+            IOUType,
+            typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE
+        > => item !== CONST.IOU.TYPE.INVOICE,
+    );
+    const additionalText = filteredOptions
+        .map(
+            (item, index) =>
+                `${index === filteredOptions.length - 1 && index > 0 ? `${translate('common.or')} ` : ''}${translate(
+                    item === 'submit' ? `reportActionsView.create` : `reportActionsView.iouTypes.${item}`,
+                )}`,
+        )
+        .join(', ');
 
     const reportName = getReportName(report);
     const shouldShowUsePlusButtonText =
@@ -120,7 +138,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                 {isSelfDM && (
                     <Text>
                         {welcomeMessage.messageText}
-                        {shouldShowUsePlusButtonText && <TextWithEmojiFragment message={welcomeMessage.usePlusButtonText} />}
+                        {shouldShowUsePlusButtonText && <TextWithEmojiFragment message={translate('reportActionsView.usePlusButton', {additionalText})} />}
                     </Text>
                 )}
                 {isDefault && displayNamesWithTooltips.length > 0 && (
@@ -147,7 +165,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                                 {index < displayNamesWithTooltips.length - 2 && <Text>, </Text>}
                             </Text>
                         ))}
-                        {shouldShowUsePlusButtonText && <TextWithEmojiFragment message={welcomeMessage.usePlusButtonText} />}
+                        {shouldShowUsePlusButtonText && <TextWithEmojiFragment message={translate('reportActionsView.usePlusButton', {additionalText})} />}
                         {isConciergeChatReport(report) && <Text>{translate('reportActionsView.askConcierge')}</Text>}
                     </Text>
                 )}

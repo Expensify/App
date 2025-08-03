@@ -5,7 +5,6 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {PartialPolicyForSidebar, ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
-import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
@@ -130,7 +129,7 @@ import {
 import {getTaskReportActionMessage} from './TaskUtils';
 import {getTransactionID} from './TransactionUtils';
 
-type WelcomeMessage = {phrase1?: string; messageText?: string; messageHtml?: string; usePlusButtonText?: string};
+type WelcomeMessage = {phrase1?: string; messageText?: string; messageHtml?: string};
 
 const visibleReportActionItems: ReportActions = {};
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
@@ -844,25 +843,6 @@ function getOptionData({
 }
 
 function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isReportArchived = false, reportDetailsLink = ''): WelcomeMessage {
-    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true);
-    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
-    const filteredOptions = moneyRequestOptions.filter(
-        (
-            item,
-        ): item is Exclude<
-            IOUType,
-            typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE
-        > => item !== CONST.IOU.TYPE.INVOICE,
-    );
-    const additionalText = filteredOptions
-        .map(
-            (item, index) =>
-                `${index === filteredOptions.length - 1 && index > 0 ? `${translateLocal('common.or')} ` : ''}${translateLocal(
-                    item === 'submit' ? `reportActionsView.create` : `reportActionsView.iouTypes.${item}`,
-                )}`,
-        )
-        .join(', ');
-
     const welcomeMessage: WelcomeMessage = {};
     if (isChatThread(report) || isTaskReport(report)) {
         return welcomeMessage;
@@ -888,7 +868,6 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>,
 
     if (isSelfDM(report)) {
         welcomeMessage.messageText = translateLocal('reportActionsView.beginningOfChatHistorySelfDM');
-        welcomeMessage.usePlusButtonText = translateLocal('reportActionsView.usePlusButton', {additionalText});
         return welcomeMessage;
     }
 
@@ -897,8 +876,8 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>,
         return welcomeMessage;
     }
 
-    welcomeMessage.usePlusButtonText = translateLocal('reportActionsView.usePlusButton', {additionalText});
     welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfChatHistory');
+    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true);
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, allPersonalDetails), isMultipleParticipant);
     const displayNamesWithTooltipsText = displayNamesWithTooltips
