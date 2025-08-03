@@ -15,14 +15,16 @@ import ROUTES from '@src/ROUTES';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn} from './Session';
 
 let isNetworkOffline = false;
-Onyx.connect({
+// Use connectWithoutView since this is to open an external link and doesn't affect any UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (value) => (isNetworkOffline = value?.isOffline ?? false),
 });
 
 let currentUserEmail = '';
 let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
-Onyx.connect({
+// Use connectWithoutView since this is to open an external link and doesn't affect any UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserEmail = value?.email ?? '';
@@ -238,7 +240,6 @@ function getTravelDotLink(policyID: OnyxEntry<string>) {
 }
 
 export {
-    buildOldDotURL,
     openOldDotLink,
     openExternalLink,
     openLink,
