@@ -831,6 +831,20 @@ type SettlementAccountInfoParams = {
     accountNumber: string;
 };
 
+type MergeSuccessDescriptionParams = {
+    from: string;
+    to: string;
+};
+
+type MergeFailureUncreatedAccountDescriptionParams = {
+    email: string;
+    contactMethodLink: string;
+};
+
+type MergeFailureDescriptionGenericParams = {
+    email: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     ContactMethodParams,
@@ -1116,4 +1130,7 @@ export type {
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
     SettlementAccountInfoParams,
+    MergeSuccessDescriptionParams,
+    MergeFailureUncreatedAccountDescriptionParams,
+    MergeFailureDescriptionGenericParams,
 };

@@ -136,6 +136,9 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeFailureDescriptionGenericParams,
+    MergeFailureUncreatedAccountDescriptionParams,
+    MergeSuccessDescriptionParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
@@ -1603,67 +1606,32 @@ const translations = {
         },
         mergeSuccess: {
             accountsMerged: 'アカウントが統合されました！',
-            successfullyMergedAllData: {
-                beforeFirstEmail: `すべてのデータを正常にマージしました`,
-                beforeSecondEmail: `into`,
-                afterSecondEmail: `今後、このアカウントにはどちらのログインも使用できます。`,
-            },
+            description: ({from, to}: MergeSuccessDescriptionParams) =>
+                `<muted-text><centered-text><strong>${from}</strong>、<strong>${to}</strong> の全データのマージに成功しました。今後、このアカウントにはどちらのログインも使用できます。</centered-text></muted-text>`,
         },
         mergePendingSAML: {
             weAreWorkingOnIt: '対応中です',
             limitedSupport: '新しいExpensifyではアカウントの統合をまだサポートしていません。この操作はExpensify Classicで行ってください。',
-            reachOutForHelp: {
-                beforeLink: 'ご自由に',
-                linkText: 'Conciergeに連絡する',
-                afterLink: 'ご質問があればどうぞ！',
-            },
+            reachOutForHelp: '<muted-text><centered-text>ご質問は<concierge-link>Conciergeまでお</concierge-link>気軽にどうぞ！</centered-text></muted-text>',
             goToExpensifyClassic: 'Expensify Classicに移動',
         },
-        mergeFailureSAMLDomainControl: {
-            beforeFirstEmail: 'マージできません',
-            beforeDomain: 'それはによって管理されているため',
-            afterDomain: '. お願いします',
-            linkText: 'Conciergeに連絡する',
-            afterLink: 'サポートが必要な場合。',
-        },
-        mergeFailureSAMLAccount: {
-            beforeEmail: 'マージできません',
-            afterEmail: 'ドメイン管理者がそれをあなたのプライマリーログインとして設定したため、他のアカウントに統合することはできません。代わりに他のアカウントをそれに統合してください。',
-        },
+        mergeFailureSAMLDomainControlDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text><strong>${email}</strong> は <strong>${email.split('@').at(1) ?? ''}</strong> によって管理されているため、マージできません。<concierge-link>Conciergeにご相談</concierge-link>ください。</centered-text></muted-text>`,
+        mergeFailureSAMLAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>ドメイン管理者がプライマリログインとして設定しているため、<strong>${email}</strong> を他のアカウントに統合することはできません。代わりに他のアカウントをマージしてください。</centered-text></muted-text>`,
         mergeFailure2FA: {
-            oldAccount2FAEnabled: {
-                beforeFirstEmail: 'アカウントをマージできません、なぜなら',
-                beforeSecondEmail: '二要素認証 (2FA) が有効になっています。2FAを無効にしてください。',
-                afterSecondEmail: 'そしてもう一度試してください。',
-            },
+            description: ({email}: MergeFailureDescriptionGenericParams) =>
+                `<muted-text><centered-text><strong>${email}</strong>、二要素認証（2FA）が有効になっているため、アカウントを統合できません。<strong>${email}</strong>、2FAを無効にして再度お試しください。</centered-text></muted-text>`,
             learnMore: 'アカウントの統合について詳しく学ぶ。',
         },
-        mergeFailureAccountLocked: {
-            beforeEmail: 'マージできません',
-            afterEmail: 'ロックされているためです。どうぞ',
-            linkText: 'Conciergeに連絡する',
-            afterLink: `サポートが必要な場合。`,
-        },
-        mergeFailureUncreatedAccount: {
-            noExpensifyAccount: {
-                beforeEmail: 'アカウントをマージできません、なぜなら',
-                afterEmail: 'Expensifyアカウントを持っていません。',
-            },
-            addContactMethod: {
-                beforeLink: 'お願いします',
-                linkText: '連絡方法として追加する',
-                afterLink: 'instead.',
-            },
-        },
-        mergeFailureSmartScannerAccount: {
-            beforeEmail: 'マージできません',
-            afterEmail: '他のアカウントに統合することはできません。代わりに他のアカウントをこのアカウントに統合してください。',
-        },
-        mergeFailureInvoicedAccount: {
-            beforeEmail: '次のアカウントには統合できません: ',
-            afterEmail: '。このアカウントには請求書が発行された請求関係があります。',
-        },
-
+        mergeFailureAccountLockedDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text><strong>${email}</strong> はロックされているので、マージできない。<concierge-link>Conciergeにご相談</concierge-link>ください。</centered-text></muted-text>`,
+        mergeFailureUncreatedAccountDescription: ({email, contactMethodLink}: MergeFailureUncreatedAccountDescriptionParams) =>
+            `<muted-text><centered-text><strong>${email}</strong> がExpensifyアカウントを持っていないため、アカウントを統合できません。代わりに<a href="${contactMethodLink}">連絡先として追加して</a>ください。</centered-text></muted-text>`,
+        mergeFailureSmartScannerAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text><strong>${email}</strong> を他のアカウントに統合することはできません。代わりに他のアカウントを統合してください。</centered-text></muted-text>`,
+        mergeFailureInvoicedAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>このアカウントは請求済みの請求リレーションシップを所有しているため、<strong>${email}</strong> にアカウントをマージすることはできません。</centered-text></muted-text>`,
         mergeFailureTooManyAttempts: {
             heading: '後でもう一度お試しください。',
             description: 'アカウントの統合を試みる回数が多すぎます。後でもう一度お試しください。',
