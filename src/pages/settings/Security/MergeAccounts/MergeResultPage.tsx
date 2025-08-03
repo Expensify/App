@@ -44,7 +44,7 @@ function MergeResultPage() {
             [CONST.MERGE_ACCOUNT_RESULTS.SUCCESS]: {
                 heading: translate('mergeAccountsPage.mergeSuccess.accountsMerged'),
                 descriptionComponent: (
-                    <View style={[styles.renderHTML, styles.w100]}>
+                    <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
                         <RenderHTML html={translate('mergeAccountsPage.mergeSuccess.description', {from: login, to: userEmailOrPhone ?? ''})} />
                     </View>
                 ),
@@ -56,7 +56,7 @@ function MergeResultPage() {
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_NO_EXIST]: {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 descriptionComponent: (
-                    <View style={[styles.renderHTML, styles.w100]}>
+                    <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
                         <RenderHTML
                             html={translate('mergeAccountsPage.mergeFailureUncreatedAccountDescription', {
                                 email: login,
@@ -72,7 +72,7 @@ function MergeResultPage() {
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_2FA]: {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 descriptionComponent: (
-                    <View style={[styles.renderHTML, styles.w100]}>
+                    <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
                         <RenderHTML html={translate('mergeAccountsPage.mergeFailure2FA.description', {email: login})} />
                     </View>
                 ),
@@ -85,7 +85,7 @@ function MergeResultPage() {
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_SMART_SCANNER]: {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 descriptionComponent: (
-                    <View style={[styles.renderHTML, styles.w100]}>
+                    <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
                         <RenderHTML html={translate('mergeAccountsPage.mergeFailureSmartScannerAccountDescription', {email: login})} />
                     </View>
                 ),
@@ -96,7 +96,7 @@ function MergeResultPage() {
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_SAML_DOMAIN_CONTROL]: {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 descriptionComponent: (
-                    <View style={[styles.renderHTML, styles.w100]}>
+                    <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
                         <RenderHTML html={translate('mergeAccountsPage.mergeFailureSAMLDomainControlDescription', {email: login})} />
                     </View>
                 ),
@@ -108,7 +108,7 @@ function MergeResultPage() {
                 heading: translate('mergeAccountsPage.mergePendingSAML.weAreWorkingOnIt'),
                 description: translate('mergeAccountsPage.mergePendingSAML.limitedSupport'),
                 ctaComponent: (
-                    <View style={[styles.renderHTML, styles.mt2]}>
+                    <View style={[styles.renderHTML, styles.mt2, styles.flexRow]}>
                         <RenderHTML html={translate('mergeAccountsPage.mergePendingSAML.reachOutForHelp')} />
                     </View>
                 ),
@@ -129,7 +129,7 @@ function MergeResultPage() {
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_SAML_PRIMARY_LOGIN]: {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 descriptionComponent: (
-                    <View style={[styles.renderHTML, styles.w100]}>
+                    <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
                         <RenderHTML html={translate('mergeAccountsPage.mergeFailureSAMLAccountDescription', {email: login})} />
                     </View>
                 ),
@@ -140,7 +140,7 @@ function MergeResultPage() {
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_ACCOUNT_LOCKED]: {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 descriptionComponent: (
-                    <View style={[styles.renderHTML, styles.w100]}>
+                    <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
                         <RenderHTML html={translate('mergeAccountsPage.mergeFailureAccountLockedDescription', {email: login})} />
                     </View>
                 ),
@@ -151,7 +151,7 @@ function MergeResultPage() {
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING]: {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 descriptionComponent: (
-                    <View style={[styles.renderHTML, styles.w100]}>
+                    <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
                         <RenderHTML html={translate('mergeAccountsPage.mergeFailureInvoicedAccountDescription', {email: login})} />
                     </View>
                 ),
