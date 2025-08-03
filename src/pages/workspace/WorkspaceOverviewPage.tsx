@@ -187,11 +187,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
         deleteWorkspace(policy.id, policyName);
         setIsDeleteModalOpen(false);
-
-        if (!shouldUseNarrowLayout) {
-            goBackFromInvalidPolicy();
-        }
-    }, [policy?.id, policyName, shouldUseNarrowLayout]);
+        goBackFromInvalidPolicy();
+    }, [policy?.id, policyName]);
 
     useEffect(() => {
         if (isLoadingBill) {
