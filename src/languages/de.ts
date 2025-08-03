@@ -1521,8 +1521,8 @@ const translations = {
             clearCacheAndRestart: 'Cache leeren und neu starten',
             viewConsole: 'Debug-Konsole anzeigen',
             debugConsole: 'Debug-Konsole',
-            description: 'Verwenden Sie die untenstehenden Tools, um das Expensify-Erlebnis zu unterstützen. Wenn Sie auf Probleme stoßen, bitte',
-            submitBug: 'einen Fehler melden',
+            description:
+                '<muted-text>Verwenden Sie die folgenden Tools, um Probleme mit Expensify zu beheben. Wenn Sie auf Probleme stoßen, <concierge-link>melden Sie bitte einen Fehler</concierge-link>.</muted-text>',
             confirmResetDescription: 'Alle nicht gesendeten Entwurfsnachrichten gehen verloren, aber der Rest Ihrer Daten ist sicher.',
             resetAndRefresh: 'Zurücksetzen und aktualisieren',
             clientSideLogging: 'Client-seitiges Logging',
