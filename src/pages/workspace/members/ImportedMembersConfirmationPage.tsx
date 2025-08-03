@@ -53,7 +53,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
 
     const [importedSpreadsheetMemberData] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA, {canBeMissing: true});
     const newMembers = useMemo(() => {
-        return importedSpreadsheetMemberData?.filter((member) => !isPolicyMember(member.email, policyID)) ?? [];
+        return importedSpreadsheetMemberData?.filter((member) => !isPolicyMember(member.email, policyID) && !member.role) ?? [];
     }, [importedSpreadsheetMemberData, policyID]);
     const invitedEmailsToAccountIDsDraft = useMemo(() => {
         const memberEmails = newMembers.map((member) => member.email);

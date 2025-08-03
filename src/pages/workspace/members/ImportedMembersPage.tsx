@@ -13,6 +13,7 @@ import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {isPolicyMember} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,8 +74,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             return;
         }
 
-        let isRoleMissing = true;
-        let firstMemberRole = '';
+        let isRoleMissing = false;
 
         const columns = Object.values(spreadsheet?.columns ?? {});
         const membersEmailsColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.EMAIL);
@@ -89,10 +89,9 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             let role = policy?.employeeList?.[email]?.role ?? '';
             if (membersRolesColumn !== -1 && membersRoles?.[containsHeader ? index + 1 : index]) {
                 role = membersRoles?.[containsHeader ? index + 1 : index];
-                isRoleMissing = false;
-                if (!firstMemberRole) {
-                    firstMemberRole = membersRoles?.[containsHeader ? index + 1 : index];
-                }
+            }
+            if (membersRolesColumn !== -1 && !membersRoles?.[containsHeader ? index + 1 : index]) {
+                isRoleMissing = true;
             }
             let submitsTo = '';
             if (membersSubmitsToColumn !== -1 && membersSubmitsTo?.[containsHeader ? index + 1 : index]) {
@@ -111,23 +110,25 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             };
         });
 
-        let allMembers = [...(members ?? [])];
+        const allMembers = [...(members ?? [])];
 
         // add submitsTo and forwardsTo members if they are not in the workspace
         members?.forEach((member) => {
-            if (member.submitsTo && !allMembers.some((m) => m.email === member.submitsTo)) {
+            if (member.submitsTo && !allMembers.some((m) => m.email === member.submitsTo) && !isPolicyMember(member.submitsTo, policyID)) {
+                isRoleMissing = true;
                 allMembers.push({
                     email: member.submitsTo,
-                    role: policy?.employeeList?.[member.submitsTo]?.role ?? firstMemberRole,
+                    role: '',
                     submitsTo: '',
                     forwardsTo: '',
                 });
             }
 
-            if (member.forwardsTo && !allMembers.some((m) => m.email === member.forwardsTo)) {
+            if (member.forwardsTo && !allMembers.some((m) => m.email === member.forwardsTo) && !isPolicyMember(member.forwardsTo, policyID)) {
+                isRoleMissing = true;
                 allMembers.push({
                     email: member.forwardsTo,
-                    role: policy?.employeeList?.[member.forwardsTo]?.role ?? firstMemberRole,
+                    role: policy?.employeeList?.[member.forwardsTo]?.role ?? '',
                     submitsTo: '',
                     forwardsTo: '',
                 });
@@ -138,12 +139,6 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             setImportedSpreadsheetMemberData(allMembers);
             Navigation.navigate(ROUTES.WORKSPACE_MEMBERS_IMPORTED_CONFIRMATION.getRoute(policyID));
         } else {
-            allMembers = allMembers.map((member) => {
-                return {
-                    ...member,
-                    role: member.role || firstMemberRole,
-                };
-            });
             setIsImporting(true);
             importPolicyMembers(policyID, allMembers);
         }
