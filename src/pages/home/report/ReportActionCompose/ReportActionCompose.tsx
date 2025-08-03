@@ -244,7 +244,7 @@ function ReportActionCompose({
         const parentReport = getParentReport(report);
         const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
         return (shouldAddOrReplaceReceipt && !isSettledOrApproved) || !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, isReportArchived).length;
-    }, [shouldAddOrReplaceReceipt, report, policy, reportParticipantIDs]);
+    }, [shouldAddOrReplaceReceipt, report, policy, reportParticipantIDs, isReportArchived]);
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
