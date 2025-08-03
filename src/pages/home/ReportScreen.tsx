@@ -495,16 +495,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
 
         openReport(reportIDFromRoute, reportActionIDFromRoute);
-    }, [
-        reportMetadata.isOptimisticReport,
-        report,
-        isOffline,
-        route.params,
-        isReportInRHP,
-        currentUserEmail,
-        reportIDFromRoute,
-        reportActionIDFromRoute,
-    ]);
+    }, [reportMetadata.isOptimisticReport, report, isOffline, route.params, isReportInRHP, currentUserEmail, reportIDFromRoute, reportActionIDFromRoute]);
 
     const prevTransactionThreadReportID = usePrevious(transactionThreadReportID);
     useEffect(() => {
