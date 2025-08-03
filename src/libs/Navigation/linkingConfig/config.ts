@@ -365,6 +365,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS,
                         },
+                        [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: {
+                            path: ROUTES.SETTINGS_VACATION_DELEGATE,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_SIZE.route,
                             parse: {

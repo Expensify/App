@@ -161,6 +161,11 @@ type WorkspacesListRouteParams = {
     workspacesListRoute: string;
 };
 
+type BusinessBankAccountParams = {
+    amount?: string;
+    last4Digits?: string;
+};
+
 type WorkspaceRouteParams = {
     workspaceRoute: string;
 };
@@ -224,6 +229,8 @@ type EnterMagicCodeParams = {contactMethod: string};
 type TransferParams = {amount: string};
 
 type InstantSummaryParams = {rate: string; minAmount: string};
+
+type BankAccountLastFourParams = {lastFour: string};
 
 type NotYouParams = {user: string};
 
@@ -399,8 +406,6 @@ type UpdatedPolicyAuditRateParams = {oldAuditRate: number; newAuditRate: number}
 type UpdatedPolicyManualApprovalThresholdParams = {oldLimit: string; newLimit: string};
 
 type ChangeTypeParams = {oldType: string; newType: string};
-
-type DelegateSubmitParams = {delegateUser: string; originalManager: string};
 
 type AccountOwnerParams = {accountOwnerEmail: string};
 
@@ -813,6 +818,14 @@ type BusinessTaxIDParams = {
     country: string;
 };
 
+type EmptyCategoriesSubtitleWithAccountingParams = {
+    accountingPageURL: string;
+};
+
+type EmptyTagsSubtitleWithAccountingParams = {
+    accountingPageURL: string;
+};
+
 type SettlementAccountInfoParams = {
     reconciliationAccountSettingsLink: string;
     accountNumber: string;
@@ -1013,7 +1026,6 @@ export type {
     ChangeReportPolicyParams,
     ChangeTypeParams,
     ExportedToIntegrationParams,
-    DelegateSubmitParams,
     AccountOwnerParams,
     IntegrationsMessageParams,
     MarkedReimbursedParams,
@@ -1080,6 +1092,7 @@ export type {
     SettlementDateParams,
     PolicyExpenseChatNameParams,
     YourPlanPriceValueParams,
+    BusinessBankAccountParams,
     NeedCategoryForExportToIntegrationParams,
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyManualApprovalThresholdParams,
@@ -1093,6 +1106,7 @@ export type {
     UpdatedPolicyCategoryExpenseLimitTypeParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     SubscriptionSettingsSummaryParams,
+    BankAccountLastFourParams,
     ReviewParams,
     CreateExpensesParams,
     CurrencyInputDisabledTextParams,
@@ -1104,5 +1118,7 @@ export type {
     WorkspacesListRouteParams,
     WorkspaceRouteParams,
     BusinessTaxIDParams,
+    EmptyCategoriesSubtitleWithAccountingParams,
+    EmptyTagsSubtitleWithAccountingParams,
     SettlementAccountInfoParams,
 };
