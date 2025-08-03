@@ -380,6 +380,9 @@ type MenuItemBaseProps = {
     /** The value to copy on secondary interaction */
     copyValue?: string;
 
+    /** Should disable copy to clipboard action */
+    disableCopyToClipboard?: boolean;
+
     /** Plaid image for the bank */
     plaidUrl?: string;
 };
@@ -501,8 +504,9 @@ function MenuItem(
         shouldBreakWord = false,
         pressableTestID,
         shouldTeleportPortalToModalLayer,
-        copyValue,
         plaidUrl,
+        copyValue = title,
+        disableCopyToClipboard = false,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -969,7 +973,7 @@ function MenuItem(
                                                         additionalStyles={styles.alignSelfCenter}
                                                     />
                                                 )}
-                                                {hasHoverSupport() && isHovered && !!copyValue && (
+                                                {!disableCopyToClipboard && hasHoverSupport() && !interactive && isHovered && !!copyValue && (
                                                     <View style={styles.justifyContentCenter}>
                                                         <CopyTextToClipboard
                                                             urlToCopy={copyValue}
