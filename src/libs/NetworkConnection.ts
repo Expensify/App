@@ -70,7 +70,8 @@ function setOfflineStatus(isCurrentlyOffline: boolean, reason = ''): void {
 let shouldForceOffline = false;
 let isPoorConnectionSimulated: boolean | undefined;
 let connectionChanges: ConnectionChanges | undefined;
-Onyx.connect({
+// We have used `connectWithoutView` here because it is not connected to any UI component.
+Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
@@ -106,7 +107,8 @@ Onyx.connect({
 });
 
 let accountID = 0;
-Onyx.connect({
+// We have used `connectWithoutView` here because it is not connected to any UI component.
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
         if (!session?.accountID) {
