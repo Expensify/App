@@ -9,8 +9,8 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as Session from '@userActions/Session';
+import {getErrorsWithTranslationData} from '@libs/ErrorUtils';
+import {requestUnlinkValidationLink} from '@userActions/Session';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -59,7 +59,7 @@ function UnlinkLoginForm() {
                 <DotIndicatorMessage
                     style={[styles.mb5]}
                     type="error"
-                    messages={ErrorUtils.getErrorsWithTranslationData(account.errors)}
+                    messages={getErrorsWithTranslationData(account.errors)}
                 />
             )}
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
@@ -73,7 +73,7 @@ function UnlinkLoginForm() {
                     success
                     text={translate('unlinkLoginForm.unlink')}
                     isLoading={account?.isLoading && account.loadingForm === CONST.FORMS.UNLINK_LOGIN_FORM}
-                    onPress={() => Session.requestUnlinkValidationLink()}
+                    onPress={() => requestUnlinkValidationLink()}
                     isDisabled={!!isOffline || !!account?.message}
                 />
             </View>
