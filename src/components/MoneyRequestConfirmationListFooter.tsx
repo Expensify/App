@@ -250,7 +250,7 @@ function MoneyRequestConfirmationListFooter({
     isReceiptEditable = false,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
@@ -283,8 +283,10 @@ function MoneyRequestConfirmationListFooter({
     const transactionReport = !!transaction?.reportID && Object.values(allReports ?? {}).find((report) => report?.reportID === transaction.reportID);
     const policyID = selectedParticipants?.at(0)?.policyID;
     const reportOwnerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
-    const shouldUseTransactionReport = !!transactionReport && isReportOutstanding(transactionReport, policyID);
-    const firstOutstandingReport = getOutstandingReportsForUser(policyID, reportOwnerAccountID, allReports ?? {}).at(0);
+    const shouldUseTransactionReport = !!transactionReport && isReportOutstanding(transactionReport, policyID, undefined, false);
+    const firstOutstandingReport = getOutstandingReportsForUser(policyID, reportOwnerAccountID, allReports ?? {}, undefined, false)
+        .sort((a, b) => localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''))
+        .at(0);
     let reportName: string | undefined;
     if (shouldUseTransactionReport) {
         reportName = transactionReport.reportName;
