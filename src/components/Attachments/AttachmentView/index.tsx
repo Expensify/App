@@ -317,7 +317,11 @@ function AttachmentView({
                         }}
                     />
                 </View>
-                <View style={safeAreaPaddingBottomStyle}>{isHighResolution && <HighResolutionInfo isUploaded={isUploaded} />}</View>
+                {isHighResolution && (
+                    <View style={safeAreaPaddingBottomStyle}>
+                        <HighResolutionInfo isUploaded={isUploaded} />
+                    </View>
+                )}
             </>
         );
     }
