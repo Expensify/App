@@ -534,7 +534,7 @@ function isTransactionReportGroupListItemType(item: ListItem): item is Transacti
  * Type guard that checks if something is a TransactionMemberGroupListItemType
  */
 function isTransactionMemberGroupListItemType(item: ListItem): item is TransactionMemberGroupListItemType {
-    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.MEMBERS;
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.FROM;
 }
 
 /**
@@ -1297,7 +1297,7 @@ function getSections(
         switch (groupBy) {
             case CONST.SEARCH.GROUP_BY.REPORTS:
                 return getReportSections(data, metadata, currentSearch, reportActions);
-            case CONST.SEARCH.GROUP_BY.MEMBERS:
+            case CONST.SEARCH.GROUP_BY.FROM:
                 return getMemberSections(data, metadata);
             case CONST.SEARCH.GROUP_BY.CARDS:
                 return getCardSections(data, metadata);
@@ -1332,7 +1332,7 @@ function getSortedSections(
         switch (groupBy) {
             case CONST.SEARCH.GROUP_BY.REPORTS:
                 return getSortedReportData(data as TransactionReportGroupListItemType[], localeCompare);
-            case CONST.SEARCH.GROUP_BY.MEMBERS:
+            case CONST.SEARCH.GROUP_BY.FROM:
                 return getSortedMemberData(data as TransactionMemberGroupListItemType[]);
             case CONST.SEARCH.GROUP_BY.CARDS:
                 return getSortedCardData(data as TransactionCardGroupListItemType[]);
@@ -1828,7 +1828,7 @@ function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefi
             return taskStatusOptions;
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         default:
-            return groupBy === CONST.SEARCH.GROUP_BY.REPORTS || groupBy === CONST.SEARCH.GROUP_BY.MEMBERS ? expenseReportedStatusOptions : expenseStatusOptions;
+            return groupBy === CONST.SEARCH.GROUP_BY.REPORTS || groupBy === CONST.SEARCH.GROUP_BY.FROM ? expenseReportedStatusOptions : expenseStatusOptions;
     }
 }
 

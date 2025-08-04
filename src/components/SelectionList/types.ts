@@ -353,7 +353,7 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         to: SearchPersonalDetails;
     };
 
-type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MEMBERS} & SearchPersonalDetails;
+type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & SearchPersonalDetails;
 
 type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARDS} & SearchPersonalDetails & SearchCard;
 
