@@ -12,9 +12,9 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
-import {getSubmitToAccountID, getValidConnectedIntegration} from '@libs/PolicyUtils';
+import {getPersonalPolicy, getSubmitToAccountID, getValidConnectedIntegration} from '@libs/PolicyUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
-import {buildOptimisticExportIntegrationAction, hasHeldExpenses} from '@libs/ReportUtils';
+import {buildOptimisticExportIntegrationAction, hasHeldExpenses, isExpenseReport, isInvoiceReport, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -23,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {LastPaymentMethod, LastPaymentMethodType, Policy} from '@src/types/onyx';
+import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
@@ -79,18 +80,50 @@ function handleActionButtonPress(
     }
 }
 
-function getLastPolicyPaymentMethod(policyID: string | undefined, lastPaymentMethods: OnyxEntry<LastPaymentMethod>) {
+function getLastPolicyBankAccountID(
+    policyID: string | undefined,
+    lastPaymentMethods: OnyxEntry<LastPaymentMethod>,
+    reportType: keyof LastPaymentMethodType = 'lastUsed',
+): number | undefined {
     if (!policyID) {
-        return null;
+        return undefined;
     }
-    let lastPolicyPaymentMethod = null;
-    if (typeof lastPaymentMethods?.[policyID] === 'string') {
-        lastPolicyPaymentMethod = lastPaymentMethods?.[policyID] as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
-    } else {
-        lastPolicyPaymentMethod = (lastPaymentMethods?.[policyID] as LastPaymentMethodType)?.lastUsed.name as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    const lastPolicyPaymentMethod = lastPaymentMethods?.[policyID];
+    return typeof lastPolicyPaymentMethod === 'string' ? undefined : (lastPolicyPaymentMethod?.[reportType] as PaymentInformation)?.bankAccountID;
+}
+
+function getLastPolicyPaymentMethod(
+    policyID: string | undefined,
+    lastPaymentMethods: OnyxEntry<LastPaymentMethod>,
+    reportType: keyof LastPaymentMethodType = 'lastUsed',
+    isIOUReport?: boolean,
+): ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined {
+    if (!policyID) {
+        return undefined;
     }
 
-    return lastPolicyPaymentMethod;
+    const personalPolicy = getPersonalPolicy();
+
+    const lastPolicyPaymentMethod = lastPaymentMethods?.[policyID] ?? (isIOUReport && personalPolicy ? lastPaymentMethods?.[personalPolicy.id] : undefined);
+    const result = typeof lastPolicyPaymentMethod === 'string' ? lastPolicyPaymentMethod : (lastPolicyPaymentMethod?.[reportType] as PaymentInformation)?.name;
+
+    return result as ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined;
+}
+
+function getReportType(reportID?: string) {
+    if (isIOUReportUtil(reportID)) {
+        return CONST.REPORT.TYPE.IOU;
+    }
+
+    if (isInvoiceReport(reportID)) {
+        return CONST.REPORT.TYPE.INVOICE;
+    }
+
+    if (isExpenseReport(reportID)) {
+        return CONST.REPORT.TYPE.EXPENSE;
+    }
+
+    return undefined;
 }
 
 function getPayActionCallback(
@@ -102,9 +135,9 @@ function getPayActionCallback(
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>,
     currentSearchKey?: SearchKey,
 ) {
-    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, lastPaymentMethod);
+    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, lastPaymentMethod, getReportType(item.reportID));
 
-    if (!lastPolicyPaymentMethod) {
+    if (!lastPolicyPaymentMethod || !Object.values(CONST.IOU.PAYMENT_TYPE).includes(lastPolicyPaymentMethod)) {
         goToItem();
         return;
     }
@@ -538,5 +571,6 @@ export {
     openSearchFiltersCardPage,
     openSearchPage as openSearch,
     getLastPolicyPaymentMethod,
+    getLastPolicyBankAccountID,
     exportToIntegrationOnSearch,
 };
