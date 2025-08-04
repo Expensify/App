@@ -76,7 +76,8 @@ let authPromiseResolver: ((value: boolean) => void) | null = null;
 let isHybridAppSetupFinished = false;
 let hasSwitchedAccountInHybridMode = false;
 
-Onyx.connect({
+// Use connectWithoutView because it doesn't get value to use in UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         session = value ?? {};
@@ -93,7 +94,8 @@ Onyx.connect({
     },
 });
 
-Onyx.connect({
+// Use connectWithoutView because it is only for fullstory initialization
+Onyx.connectWithoutView({
     key: ONYXKEYS.USER_METADATA,
     callback: Fullstory.consentAndIdentify,
 });
