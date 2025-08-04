@@ -83,25 +83,9 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID();
 
-            navigateAfterOnboardingWithMicrotaskQueue(
-                isSmallScreenWidth,
-                isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-                lastAccessReport,
-                onboardingPolicyID,
-                mergedAccountConciergeReportID,
-                false,
-            );
+            navigateAfterOnboardingWithMicrotaskQueue(isSmallScreenWidth, lastAccessReport, onboardingPolicyID, mergedAccountConciergeReportID, false);
         },
-        [
-            onboardingPurposeSelected,
-            onboardingAdminsChatReportID,
-            onboardingMessages,
-            onboardingPolicyID,
-            lastAccessReport,
-            isBetaEnabled,
-            isSmallScreenWidth,
-            mergedAccountConciergeReportID,
-        ],
+        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingMessages, onboardingPolicyID, lastAccessReport, isSmallScreenWidth, mergedAccountConciergeReportID],
     );
 
     const handleSubmit = useCallback(

@@ -233,7 +233,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         // We need to wait the policy is created before navigating out the onboarding flow
         navigateAfterOnboardingWithMicrotaskQueue(
             isSmallScreenWidth,
-            isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
             lastAccessReport,
             policyID,
             adminsChatReportID,
@@ -254,7 +253,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         currentUserPersonalDetails?.firstName,
         currentUserPersonalDetails?.lastName,
         isSmallScreenWidth,
-        isBetaEnabled,
         lastAccessReport,
         shouldPreventOpenAdminRoom,
     ]);

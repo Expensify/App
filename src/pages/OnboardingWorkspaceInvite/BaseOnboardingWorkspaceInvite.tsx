@@ -238,7 +238,6 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
 
         navigateAfterOnboardingWithMicrotaskQueue(
             isSmallScreenWidth,
-            isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
             lastAccessReport,
             onboardingPolicyID,
             onboardingAdminsChatReportID,
@@ -253,7 +252,6 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         onboardingAdminsChatReportID,
         onboardingPolicyID,
         isSmallScreenWidth,
-        isBetaEnabled,
         lastAccessReport,
         shouldPreventOpenAdminRoom,
     ]);

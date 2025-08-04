@@ -91,7 +91,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         setOnboardingAdminsChatReportID();
         setOnboardingPolicyID();
 
-        navigateAfterOnboardingWithMicrotaskQueue(isSmallScreenWidth, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), lastAccessReport, onboardingPolicyID, mergedAccountConciergeReportID, false);
+        navigateAfterOnboardingWithMicrotaskQueue(isSmallScreenWidth, lastAccessReport, onboardingPolicyID, mergedAccountConciergeReportID, false);
     }, [
         onboardingPurposeSelected,
         currentUserPersonalDetails.firstName,
@@ -101,7 +101,6 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         onboardingPolicyID,
         lastAccessReport,
         isSmallScreenWidth,
-        isBetaEnabled,
         mergedAccountConciergeReportID,
     ]);
 

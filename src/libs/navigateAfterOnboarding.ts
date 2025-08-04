@@ -7,7 +7,6 @@ import {isConciergeChatReport} from './ReportUtils';
 
 const navigateAfterOnboarding = (
     isSmallScreenWidth: boolean,
-    canUseDefaultRooms: boolean | undefined,
     lastAccessedReport: OnyxEntry<Report>,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
@@ -53,14 +52,13 @@ const navigateAfterOnboarding = (
 
 const navigateAfterOnboardingWithMicrotaskQueue = (
     isSmallScreenWidth: boolean,
-    canUseDefaultRooms: boolean | undefined,
     lastAccessedReport: OnyxEntry<Report>,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
 ) => {
     Navigation.setNavigationActionToMicrotaskQueue(() => {
-        navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, lastAccessedReport, onboardingPolicyID, onboardingAdminsChatReportID, shouldPreventOpenAdminRoom);
+        navigateAfterOnboarding(isSmallScreenWidth, lastAccessedReport, onboardingPolicyID, onboardingAdminsChatReportID, shouldPreventOpenAdminRoom);
     });
 };
 

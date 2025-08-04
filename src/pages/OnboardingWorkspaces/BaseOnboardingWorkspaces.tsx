@@ -76,16 +76,9 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID(policy.policyID);
 
-            navigateAfterOnboardingWithMicrotaskQueue(
-                isSmallScreenWidth,
-                isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-                lastAccessReport,
-                policy.automaticJoiningEnabled ? policy.policyID : undefined,
-                undefined,
-                false,
-            );
+            navigateAfterOnboardingWithMicrotaskQueue(isSmallScreenWidth, lastAccessReport, policy.automaticJoiningEnabled ? policy.policyID : undefined, undefined, false);
         },
-        [onboardingMessages, onboardingPersonalDetails?.firstName, onboardingPersonalDetails?.lastName, lastAccessReport, isSmallScreenWidth, isBetaEnabled],
+        [onboardingMessages, onboardingPersonalDetails?.firstName, onboardingPersonalDetails?.lastName, lastAccessReport, isSmallScreenWidth],
     );
 
     const policyIDItems = useMemo(() => {
