@@ -204,7 +204,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         });
 
         if (shouldOnboardingRedirectToOldDot(onboardingCompanySize, newUserReportedIntegration)) {
-            // TODO
             if (CONFIG.IS_HYBRID_APP) {
                 return;
             }

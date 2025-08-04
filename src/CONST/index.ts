@@ -400,6 +400,8 @@ const CONST = {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-travel-expense/id471713959',
         DESKTOP: `${ACTIVE_EXPENSIFY_URL}NewExpensify.dmg`,
+        OLD_DOT_ANDROID: 'https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg&hl=en_US&pli=1',
+        OLD_DOT_IOS: 'https://apps.apple.com/us/app/expensify-expense-tracker/id471713959',
     },
     COMPANY_WEBSITE_DEFAULT_SCHEME: 'http',
     DATE: {
