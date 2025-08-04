@@ -160,6 +160,8 @@ import Workflows from '@assets/images/simple-illustrations/simple-illustration__
 import ExpensifyApprovedLogoLight from '@assets/images/subscription-details__approvedlogo--light.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
+import BankCoin from '@assets/images/simple-illustrations/simple-illustration__bankcoin.svg';
+import WalletAlt2 from '@assets/images/simple-illustrations/simple-illustration__wallet-alt2.svg';
 
 export {
     Abracadabra,
@@ -324,4 +326,6 @@ export {
     ReceiptsStackedOnPin,
     PaperAirplane,
     CardReplacementSuccess,
+    BankCoin,
+    WalletAlt2,
 };
