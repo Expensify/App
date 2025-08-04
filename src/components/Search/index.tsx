@@ -233,6 +233,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             }
         });
 
+        /**
+         * The total should be calculated for all accounting queries (statements, unapprovedCash and unapprovedCard)
+         * We can't use `searchKey` directly because we want to also match similar queries e.g. the statements suggested search query with a custom feed should be matched too.
+         */
         const isStatementsLikeQuery = queryJSON.flatFilters.length === 2 && hasFeedFilter && hasPostedFilter;
         const isUnapprovedCashLikeQuery =
             queryJSON.flatFilters.length === 1 &&
