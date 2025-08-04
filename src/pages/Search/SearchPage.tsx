@@ -724,7 +724,7 @@ function SearchPage({route}: SearchPageProps) {
                 <ConfirmModal
                     isVisible={isExportWithTemplateModalVisible}
                     onConfirm={() => {
-                        setIsExportWithTemplateModalVisible(false)
+                        setIsExportWithTemplateModalVisible(false);
                         clearSelectedTransactions(undefined, true);
                     }}
                     title={translate('export.exportInProgress')}
