@@ -132,7 +132,7 @@ const report5 = {
     total: 0,
     type: 'expense',
     unheldTotal: 0,
-};
+} as const;
 
 const allViolations = {
     [`transactionViolations_${transactionID2}`]: [
