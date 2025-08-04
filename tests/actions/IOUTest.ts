@@ -6892,8 +6892,8 @@ describe('actions/IOU', () => {
 
             // Then: Verify IOU actions were marked as deleted
             const updatedReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
-            expect(updatedReportActions?.action456?.originalMessage).toHaveProperty('deleted');
-            expect(updatedReportActions?.action789?.originalMessage).toHaveProperty('deleted');
+            expect(getOriginalMessage(updatedReportActions?.action456)).toHaveProperty('deleted');
+            expect(getOriginalMessage(updatedReportActions?.action789)).toHaveProperty('deleted');
 
             // Then: Verify API was called with correct parameters
             expect(writeSpy).toHaveBeenCalledWith(
