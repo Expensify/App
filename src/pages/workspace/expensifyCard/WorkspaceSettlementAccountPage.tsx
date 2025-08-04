@@ -164,7 +164,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                                 <View style={[styles.renderHTML, styles.mh5, styles.mb6]}>
                                     <RenderHTML
                                         html={translate('workspace.expensifyCard.settlementAccountInfo', {
-                                            reconciliationAccountSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connectionParam, Navigation.getActiveRoute())}`,
+                                            reconciliationAccountSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connectionParam)}`,
                                             accountNumber: `${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(paymentBankAccountNumber)}`,
                                         })}
                                     />
