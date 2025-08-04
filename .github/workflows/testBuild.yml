@@ -38,6 +38,8 @@ on:
 env:
   # This variable is needed for fastlane to construct correct path
   PULL_REQUEST_NUMBER: ${{ inputs.APP_PULL_REQUEST_NUMBER || github.event.number }}
+  # YAML anchor for reusable AWS region
+  AWS_REGION: &aws_region us-east-1
 
 jobs:
   prep:
@@ -202,7 +204,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-region: *aws_region
 
       - name: Build desktop app for testing
         run: npm run desktop-build-adhoc
@@ -243,7 +245,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-region: *aws_region
 
       - name: Build web for testing
         run: npm run build-adhoc
@@ -348,7 +350,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-region: *aws_region
 
       - name: Upload Android AdHoc build to S3
         run: bundle exec fastlane android upload_s3
@@ -456,7 +458,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-region: *aws_region
 
       - name: Upload AdHoc build to S3
         run: bundle exec fastlane ios upload_s3
