@@ -40,7 +40,7 @@ import {
     isFilterSupported,
     isSearchDatePreset,
 } from '@libs/SearchQueryUtils';
-import {getFeedOptions, getGroupByOptions, getStatusOptions, getTypeOptions} from '@libs/SearchUIUtils';
+import {getDatePresets, getFeedOptions, getGroupByOptions, getStatusOptions, getTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -250,17 +250,19 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                 updateFilterForm(dateFormValues);
             };
 
+            const hasFeed = !!filterFormValues.feed;
+
             return (
                 <DateSelectPopup
                     label={translate('search.filters.posted')}
                     value={posted}
                     onChange={onChange}
                     closeOverlay={closeOverlay}
-                    presets={CONST.SEARCH.FILTER_DATE_PRESETS[CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED]}
+                    presets={getDatePresets(CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED, hasFeed)}
                 />
             );
         },
-        [posted, translate, updateFilterForm],
+        [posted, filterFormValues.feed, translate, updateFilterForm],
     );
 
     const statusComponent = useCallback(

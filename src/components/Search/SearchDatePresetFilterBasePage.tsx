@@ -9,7 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
+import {getDatePresets, type SearchDateModifier, type SearchDateModifierLower} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,12 +24,9 @@ type SearchDatePresetFilterBasePageProps = {
 
     /** The translation key for the page title */
     titleKey: TranslationPaths;
-
-    /** The date presets */
-    presets?: SearchDatePreset[];
 };
 
-function SearchDatePresetFilterBasePage({dateKey, titleKey, presets}: SearchDatePresetFilterBasePageProps) {
+function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFilterBasePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -42,6 +39,11 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey, presets}: SearchDate
         [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: searchAdvancedFiltersForm?.[`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`],
         [CONST.SEARCH.DATE_MODIFIERS.AFTER]: searchAdvancedFiltersForm?.[`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`],
     };
+
+    const presets = useMemo(() => {
+        const hasFeed = !!searchAdvancedFiltersForm?.feed?.length;
+        return getDatePresets(dateKey, hasFeed);
+    }, [dateKey, searchAdvancedFiltersForm?.feed]);
 
     const title = useMemo(() => {
         if (selectedDateModifier) {

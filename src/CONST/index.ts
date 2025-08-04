@@ -6449,12 +6449,6 @@ const CONST = {
             LAST_MONTH: 'last-month',
             LAST_STATEMENT: 'last-statement',
         },
-        get FILTER_DATE_PRESETS() {
-            return {
-                [this.SYNTAX_FILTER_KEYS.POSTED]: [this.DATE_PRESETS.LAST_STATEMENT, this.DATE_PRESETS.LAST_MONTH],
-                [this.SYNTAX_FILTER_KEYS.EXPORTED]: [this.DATE_PRESETS.NEVER],
-            };
-        },
         SNAPSHOT_ONYX_KEYS: [
             ONYXKEYS.COLLECTION.REPORT,
             ONYXKEYS.COLLECTION.POLICY,
