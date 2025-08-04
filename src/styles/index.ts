@@ -5764,6 +5764,10 @@ const styles = (theme: ThemeColors) =>
             width: Animated.add(variables.sideBarWidth, receiptPaneRHPWidth),
         },
 
+        smallMoreButton: {
+            marginRight: 12,
+        },
+
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
             flex: 1,
             justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
