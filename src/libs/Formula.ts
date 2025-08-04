@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import {getCurrencySymbol} from './CurrencyUtils';
-import {getAllReportActions, getSortedReportActions} from './ReportActionsUtils';
+import {getAllReportActions} from './ReportActionsUtils';
 
 type FormulaPart = {
     /** The original definition from the formula */
@@ -242,7 +242,6 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         case 'type':
             return 'Expense Report'; // Default report type for now
         case 'startdate':
-            console.log('morwa report', report);
             return formatDate(getOldestReportActionDate(report.reportID));
         case 'total':
             return formatAmount(report.total, getCurrencySymbol(report.currency ?? '') ?? report.currency);
@@ -388,12 +387,17 @@ function getOldestReportActionDate(reportID: string): string | undefined {
         return undefined;
     }
 
-    const sortedActions = getSortedReportActions(Object.values(reportActions), false);
-    if (sortedActions.length === 0) {
-        return undefined;
-    }
+    let oldestDate: string | undefined;
 
-    return sortedActions[0]?.created;
+    Object.values(reportActions).forEach((action) => {
+        if (action?.created) {
+            if (!oldestDate || action.created < oldestDate) {
+                oldestDate = action.created;
+            }
+        }
+    });
+
+    return oldestDate;
 }
 
 /**

@@ -1,13 +1,11 @@
 import {compute, extract, FORMULA_PART_TYPES, isFormula, parse} from '@libs/Formula';
 import type {FormulaContext} from '@libs/Formula';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 
 // Mock ReportActionsUtils
 jest.mock('@libs/ReportActionsUtils', () => ({
     getAllReportActions: jest.fn(),
-    getSortedReportActions: jest.fn(),
 }));
-
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 
 const mockReportActionsUtils = ReportActionsUtils as jest.Mocked<typeof ReportActionsUtils>;
 
@@ -103,8 +101,8 @@ describe('CustomFormula', () => {
 
         beforeEach(() => {
             jest.clearAllMocks();
-            
-            // Mock report actions - oldest action has earlier date
+
+            // Mock report actions - test the iteration logic for finding oldest date
             const mockReportActions = {
                 '1': {
                     reportActionID: '1',
@@ -112,17 +110,18 @@ describe('CustomFormula', () => {
                     actionName: 'CREATED',
                 },
                 '2': {
-                    reportActionID: '2', 
+                    reportActionID: '2',
                     created: '2025-01-15T10:30:00Z', // Later action
                     actionName: 'IOU',
+                },
+                '3': {
+                    reportActionID: '3',
+                    created: '2025-01-12T14:20:00Z', // Middle action
+                    actionName: 'COMMENT',
                 },
             };
 
             mockReportActionsUtils.getAllReportActions.mockReturnValue(mockReportActions as any);
-            mockReportActionsUtils.getSortedReportActions.mockReturnValue([
-                mockReportActions['1'],
-                mockReportActions['2'],
-            ] as any);
         });
 
         test('should compute basic report formula', () => {
@@ -209,9 +208,12 @@ describe('CustomFormula', () => {
 
         test('should handle missing report actions for startdate', () => {
             mockReportActionsUtils.getAllReportActions.mockReturnValue({});
-            mockReportActionsUtils.getSortedReportActions.mockReturnValue([]);
-            
-            const result = compute('{report:startdate}', mockContext);
+            const context: FormulaContext = {
+                report: {total: undefined} as any,
+                policy: null,
+            };
+
+            const result = compute('{report:startdate}', context);
             expect(result).toBe('');
         });
     });
