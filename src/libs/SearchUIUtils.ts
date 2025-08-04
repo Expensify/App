@@ -1359,9 +1359,9 @@ function getSortedSections(
             case CONST.SEARCH.GROUP_BY.REPORTS:
                 return getSortedReportData(data as TransactionReportGroupListItemType[], localeCompare);
             case CONST.SEARCH.GROUP_BY.FROM:
-                return getSortedMemberData(data as TransactionMemberGroupListItemType[]);
+                return getSortedMemberData(data as TransactionMemberGroupListItemType[], localeCompare);
             case CONST.SEARCH.GROUP_BY.CARDS:
-                return getSortedCardData(data as TransactionCardGroupListItemType[]);
+                return getSortedCardData(data as TransactionCardGroupListItemType[], localeCompare);
         }
     }
 
@@ -1546,16 +1546,16 @@ function getSortedReportData(data: TransactionReportGroupListItemType[], localeC
  * @private
  * Sorts report sections based on a specified column and sort order.
  */
-function getSortedMemberData(data: TransactionMemberGroupListItemType[]) {
-    return data;
+function getSortedMemberData(data: TransactionMemberGroupListItemType[], localeCompare: LocaleContextProps['localeCompare']) {
+    return data.sort((a, b) => localeCompare(a.displayName ?? a.login ?? '', b.displayName ?? b.login ?? ''));
 }
 
 /**
  * @private
  * Sorts report sections based on a specified column and sort order.
  */
-function getSortedCardData(data: TransactionCardGroupListItemType[]) {
-    return data;
+function getSortedCardData(data: TransactionCardGroupListItemType[], localeCompare: LocaleContextProps['localeCompare']) {
+    return data.sort((a, b) => localeCompare(a.displayName ?? a.login ?? '', b.displayName ?? b.login ?? ''));
 }
 
 /**
