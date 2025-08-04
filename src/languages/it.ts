@@ -6047,7 +6047,7 @@ const translations = {
             reimbursable: 'Rimborsabile',
             groupBy: {
                 reports: 'Rapporto',
-                members: 'Membro',
+                from: 'Da',
                 cards: 'Carta',
             },
             feed: 'Feed',

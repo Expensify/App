@@ -6039,7 +6039,7 @@ const translations = {
             reimbursable: 'Vergoedbaar',
             groupBy: {
                 reports: 'Verslag',
-                members: 'Lid',
+                from: 'Van',
                 cards: 'Kaart',
             },
             feed: 'Feed',
