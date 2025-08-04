@@ -112,6 +112,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                             defaultValue={currentUserDetails.lastName ?? ''}
                             spellCheck={false}
                             autoCapitalize="words"
+                            autoFocus={false}
                         />
                     </View>
                 </FormProvider>
