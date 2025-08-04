@@ -120,8 +120,8 @@ function StatusPage() {
                 emojiCode: !emojiCode && statusText ? initialEmoji : emojiCode,
                 clearAfter: clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER ? clearAfterTime : '',
             });
-            clearDraftCustomStatus();
             navigateBackToPreviousScreenTask.current = InteractionManager.runAfterInteractions(() => {
+                clearDraftCustomStatus();
                 navigateBackToPreviousScreen();
             });
         },
