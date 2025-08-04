@@ -24,7 +24,6 @@ export default function addUtilsToWindow() {
         window.Onyx.get = function (key) {
             return new Promise((resolve) => {
                 // We have opted for `connectWithoutView` here as this is a debugging utility and does not relate to any view.
-                // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
                 const connection = Onyx.connectWithoutView({
                     key,
                     callback: (value) => {
