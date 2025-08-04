@@ -174,11 +174,7 @@ function MagicCodeInput(
     }, [value]);
 
     useEffect(() => {
-        // Reset wasSubmitted when value changes to allow retry attempts
-        // This fixes Android issue where magic code submission gets stuck after first attempt
-        if (value.length >= maxLength) {
-            return;
-        }
+        // Reset wasSubmitted when value changes fix android issue where user is prevented from submitting
         setWasSubmitted(false);
     }, [value, maxLength]);
 
