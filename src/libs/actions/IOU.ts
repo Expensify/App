@@ -3133,7 +3133,6 @@ function getSendInvoiceInformation(
     const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;
     let receiver = getPersonalDetailsForAccountID(receiverAccountID);
     let optimisticPersonalDetailListAction = {};
-    const receiverType = getReceiverType(receiverParticipant);
 
     // STEP 1: Get existing chat report OR build a new optimistic one
     let isNewChatReport = false;
