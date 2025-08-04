@@ -50,6 +50,7 @@ function ImportTagsPage({route}: ImportTagsPageProps) {
                     }
                     return ROUTES.WORKSPACE_TAGS_IMPORTED.getRoute(policyID);
                 })()}
+                isImportingMultiLevelTags={spreadsheet?.isImportingMultiLevelTags}
             />
         </AccessOrNotFoundWrapper>
     );
