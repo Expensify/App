@@ -99,10 +99,4 @@ function AmountTextInput(
 
 AmountTextInput.displayName = 'AmountTextInput';
 
-// Untested function
-function formatCurrencyInput(amount: string): string {
-    return `$${amount}`;
-}
-
 export default React.forwardRef(AmountTextInput);
-export {formatCurrencyInput};
