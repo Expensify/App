@@ -292,6 +292,21 @@ const CONST = {
     AVATAR_MIN_WIDTH_PX: 80,
     AVATAR_MIN_HEIGHT_PX: 80,
 
+    REPORT_ACTION_AVATARS: {
+        TYPE: {
+            MULTIPLE: 'multiple',
+            MULTIPLE_DIAGONAL: 'multipleDiagonal',
+            MULTIPLE_HORIZONTAL: 'multipleHorizontal',
+            SUBSCRIPT: 'subscript',
+            SINGLE: 'single',
+        },
+        SORT_BY: {
+            ID: 'id',
+            NAME: 'name',
+            REVERSE: 'reverse',
+        },
+    },
+
     // Maximum width and height size in px for a selected image
     AVATAR_MAX_WIDTH_PX: 4096,
     AVATAR_MAX_HEIGHT_PX: 4096,
@@ -1038,6 +1053,7 @@ const CONST = {
         SHUTTER_SIZE: 90,
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
     },
+    RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
         ROLE: {
             ADMIN: 'admin',
@@ -1507,6 +1523,8 @@ const CONST = {
         SKELETON_ANIMATION_SPEED: 3,
         SEARCH_MOST_RECENT_OPTIONS: 'search_most_recent_options',
         DEBOUNCE_HANDLE_SEARCH: 'debounce_handle_search',
+        SHOW_HOVER_PREVIEW_DELAY: 270,
+        SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 200,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -3119,6 +3137,7 @@ const CONST = {
         SMALL_SUBSCRIPT: 'small-subscript',
         MID_SUBSCRIPT: 'mid-subscript',
         LARGE_BORDERED: 'large-bordered',
+        MEDIUM_LARGE: 'medium-large',
         HEADER: 'header',
         MENTION_ICON: 'mention-icon',
         SMALL_NORMAL: 'small-normal',
