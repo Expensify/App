@@ -816,19 +816,22 @@ function BaseSelectionList<TItem extends ListItem>(
         ) {
             return;
         }
-        // Reset the current page to 1 when the user types something
-        if (prevTextInputValue !== textInputValue) {
-            setCurrentPage(1);
-        }
 
-        // When clearing the search, scroll to the selected item if one exists and is different from last one
+        // Handle clearing search
         if (prevTextInputValue !== '' && textInputValue === '') {
             const foundSelectedItemIndex = flattenedSections.allOptions.findIndex(isItemSelected);
             const singleSectionList = slicedSections.length < 2;
             if (foundSelectedItemIndex !== -1 && singleSectionList && !canSelectMultiple) {
+                const requiredPage = Math.ceil((foundSelectedItemIndex + 1) / CONST.MAX_SELECTION_LIST_PAGE_LENGTH);
+                setCurrentPage(requiredPage);
                 updateAndScrollToFocusedIndex(foundSelectedItemIndex);
                 return;
             }
+        }
+
+        // Reset the current page to 1 when the user types something
+        if (prevTextInputValue !== textInputValue) {
+            setCurrentPage(1);
         }
 
         // Remove the focus if the search input is empty and prev search input not empty or selected options length is changed (and allOptions length remains the same)
