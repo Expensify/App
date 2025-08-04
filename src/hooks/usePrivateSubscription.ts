@@ -9,10 +9,12 @@ function usePrivateSubscription() {
         return undefined;
     }
 
-    return privateSubscription ? {
-        ...privateSubscription,
-        autoRenew: privateSubscription.autoRenew ?? true,
-    } : undefined;
+    return privateSubscription
+        ? {
+              ...privateSubscription,
+              autoRenew: privateSubscription.autoRenew ?? true,
+          }
+        : undefined;
 }
 
 export default usePrivateSubscription;
