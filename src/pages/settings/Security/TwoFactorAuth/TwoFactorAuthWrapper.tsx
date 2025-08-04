@@ -43,7 +43,7 @@ function TwoFactorAuthWrapper({
     shouldEnableViewportOffsetTop = false,
     children,
 }: TwoFactorAuthWrapperProps) {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
