@@ -8,7 +8,7 @@ import type {PopoverWithMeasuredContentProps} from './types';
 
 /**
  * Logic for PopoverWithMeasuredContent is in PopoverWithMeasuredContentBase.
- * This component is a perf optimization, it return BOTTOM_DOCKED early, for small screens avoiding Popover measurement logic calculations.
+ * This component is a perf optimization, it returns BOTTOM_DOCKED early, for small screens avoiding Popover measurement logic calculations.
  */
 function PopoverWithMeasuredContent({...props}: PopoverWithMeasuredContentProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth

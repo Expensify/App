@@ -46,7 +46,7 @@ function Container({
 
     return (
         <Animated.View
-            style={[style, styles.modalContainer, type !== CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && styles.modalAnimatedContainer, animatedStyles, {zIndex: 1}]}
+            style={[style, type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && [styles.modalContainer, styles.modalAnimatedContainer], animatedStyles, {zIndex: 1}]}
             exiting={Exiting}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}

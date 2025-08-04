@@ -32,7 +32,7 @@ import ReanimatedModal from './ReanimatedModal';
 import type ReanimatedModalProps from './ReanimatedModal/types';
 import type BaseModalProps from './types';
 
-const REANIMATED_MODAL_TYPES: Array<ValueOf<typeof CONST.MODAL.MODAL_TYPE>> = [CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED, CONST.MODAL.MODAL_TYPE.FULLSCREEN];
+const REANIMATED_MODAL_TYPES: Array<ValueOf<typeof CONST.MODAL.MODAL_TYPE>> = [CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED, CONST.MODAL.MODAL_TYPE.FULLSCREEN, CONST.MODAL.MODAL_TYPE.POPOVER];
 
 type ModalComponentProps = (ReactNativeModalProps | ReanimatedModalProps) & {
     type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
