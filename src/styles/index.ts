@@ -445,6 +445,11 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeSmall,
         },
 
+        textExtraSmall: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeExtraSmall,
+        },
+
         textMicro: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
@@ -2384,6 +2389,13 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 52,
         },
 
+        singleAvatarMediumLarge: {
+            height: 60,
+            width: 60,
+            backgroundColor: theme.icon,
+            borderRadius: 80,
+        },
+
         secondAvatar: {
             position: 'absolute',
             right: -18,
@@ -2411,10 +2423,25 @@ const styles = (theme: ThemeColors) =>
             borderColor: 'transparent',
         },
 
+        secondAvatarMediumLarge: {
+            position: 'absolute',
+            right: -42,
+            bottom: -42,
+            borderWidth: 3,
+            borderRadius: 80,
+            borderColor: 'transparent',
+        },
+
         secondAvatarSubscript: {
             position: 'absolute',
             right: -6,
             bottom: -6,
+        },
+
+        secondAvatarSubscriptXLarge: {
+            position: 'absolute',
+            right: -10,
+            bottom: -10,
         },
 
         secondAvatarSubscriptCompact: {
@@ -2483,6 +2510,11 @@ const styles = (theme: ThemeColors) =>
         emptyAvatarLarge: {
             height: variables.avatarSizeLarge,
             width: variables.avatarSizeLarge,
+        },
+
+        emptyAvatarXLarge: {
+            height: variables.avatarSizeXLarge,
+            width: variables.avatarSizeXLarge,
         },
 
         emptyAvatarMargin: {
@@ -4489,6 +4521,15 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 0,
         },
 
+        dropDownButtonCartIcon: {
+            minWidth: 22,
+        },
+
+        dropDownSmallButtonArrowContain: {
+            marginLeft: 3,
+            marginRight: 6,
+        },
+
         dropDownMediumButtonArrowContain: {
             marginLeft: 12,
             marginRight: 16,
@@ -4701,6 +4742,16 @@ const styles = (theme: ThemeColors) =>
         justSignedInModalAnimation: (is2FARequired: boolean) => ({
             height: is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight,
         }),
+
+        settlementButtonListContainer: {
+            maxHeight: 500,
+            paddingBottom: 0,
+            paddingTop: 0,
+        },
+
+        settlementButtonShortFormWidth: {
+            minWidth: 90,
+        },
 
         moneyRequestViewImage: {
             ...spacing.mh5,
@@ -5671,6 +5722,32 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             paddingHorizontal: 0,
             aspectRatio: 1.7,
+        },
+
+        receiptPreview: {
+            position: 'absolute',
+            left: 60,
+            top: 60,
+            width: 380,
+            maxHeight: 'calc(100vh - 120px)',
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
+            borderColor: theme.border,
+            overflow: 'hidden',
+            boxShadow: theme.shadow,
+            backgroundColor: theme.appBG,
+        },
+
+        receiptPreviewEReceiptsContainer: {
+            ...sizing.w100,
+            ...sizing.h100,
+            backgroundColor: colors.green800,
+        },
+
+        receiptPreviewEReceipt: {
+            ...flex.flexColumn,
+            ...flex.justifyContentCenter,
+            ...flex.alignItemsCenter,
         },
 
         topBarWrapper: {
