@@ -1,4 +1,6 @@
 import React, {useState} from 'react';
+import {RenderHTMLSource} from 'react-native-render-html';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import type TextWithTooltipProps from './types';
@@ -7,7 +9,7 @@ type LayoutChangeEvent = {
     target: HTMLElement;
 };
 
-function TextWithTooltip({text, shouldShowTooltip, style, numberOfLines = 1}: TextWithTooltipProps) {
+function TextWithTooltip({text, shouldShowTooltip, style, numberOfLines = 1, shouldRenderAsHTML}: TextWithTooltipProps) {
     const [showTooltip, setShowTooltip] = useState(false);
 
     return (
@@ -30,7 +32,7 @@ function TextWithTooltip({text, shouldShowTooltip, style, numberOfLines = 1}: Te
                     setShowTooltip(false);
                 }}
             >
-                {text}
+                {shouldRenderAsHTML ? <RenderHTML html={text} /> : text}
             </Text>
         </Tooltip>
     );
