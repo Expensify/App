@@ -136,6 +136,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.NVP_PREFERRED_LOCALE,
     ONYXKEYS.CREDENTIALS,
     ONYXKEYS.PRESERVED_USER_SESSION,
+    ONYXKEYS.HYBRID_APP,
 ];
 
 Onyx.connect({
@@ -437,6 +438,7 @@ function endSignOnTransition() {
  * @param [routeToNavigateAfterCreate], Optional, route to navigate after creating a workspace
  * @param [isAnnualSubscription] Optional, does user have an annual subscription
  */
+// eslint-disable-next-line @typescript-eslint/max-params
 function createWorkspaceWithPolicyDraftAndNavigateToIt(
     policyOwnerEmail = '',
     policyName = '',
@@ -447,6 +449,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
     currency?: string,
     file?: File,
     routeToNavigateAfterCreate?: Route,
+    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
     isAnnualSubscription = false,
 ) {
     const policyIDWithDefault = policyID || generatePolicyID();
@@ -458,7 +461,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
                 Navigation.goBack();
             }
             const routeToNavigate = routeToNavigateAfterCreate ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithDefault, backTo);
-            savePolicyDraftByNewWorkspace(policyIDWithDefault, policyName, policyOwnerEmail, makeMeAdmin, currency, file, isAnnualSubscription);
+            savePolicyDraftByNewWorkspace(policyIDWithDefault, policyName, policyOwnerEmail, makeMeAdmin, currency, file, lastUsedPaymentMethod, isAnnualSubscription);
             Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
         })
         .then(endSignOnTransition);
@@ -475,8 +478,27 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
  * @param [file] Optional, avatar file for workspace
  * @param [isAnnualSubscription] Optional, does user have an annual subscription
  */
-function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, policyOwnerEmail = '', makeMeAdmin = false, currency = '', file?: File, isAnnualSubscription = false) {
-    createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID, CONST.ONBOARDING_CHOICES.MANAGE_TEAM, currency, file, undefined, undefined, undefined, isAnnualSubscription);
+function savePolicyDraftByNewWorkspace(
+    policyID?: string,
+    policyName?: string,
+    policyOwnerEmail = '',
+    makeMeAdmin = false,
+    currency = '',
+    file?: File,
+    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
+    isAnnualSubscription = false,
+) {
+    createWorkspace({
+        policyOwnerEmail,
+        makeMeAdmin,
+        policyName,
+        policyID,
+        engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+        currency,
+        file,
+        lastUsedPaymentMethod,
+        isAnnualSubscription,
+    });
 }
 
 /**

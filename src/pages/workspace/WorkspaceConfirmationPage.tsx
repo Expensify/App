@@ -10,6 +10,7 @@ import getCurrentUrl from '@libs/Navigation/currentUrl';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {LastPaymentMethodType} from '@src/types/onyx';
 
 function WorkspaceConfirmationPage() {
     // It is necessary to use here isSmallScreenWidth because on a wide layout we should always navigate to ROUTES.WORKSPACE_OVERVIEW.
@@ -18,11 +19,23 @@ function WorkspaceConfirmationPage() {
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: false});
     const isAnnualSubscription = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
-
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         const policyID = params.policyID || generatePolicyID();
         const routeToNavigate = isSmallScreenWidth ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
-        createWorkspaceWithPolicyDraftAndNavigateToIt('', params.name, false, false, '', policyID, params.currency, params.avatarFile as File, routeToNavigate, isAnnualSubscription);
+        createWorkspaceWithPolicyDraftAndNavigateToIt(
+            '',
+            params.name,
+            false,
+            false,
+            '',
+            policyID,
+            params.currency,
+            params.avatarFile as File,
+            routeToNavigate,
+            lastPaymentMethod?.[policyID] as LastPaymentMethodType,
+            isAnnualSubscription,
+        );
     };
     const currentUrl = getCurrentUrl();
     // Approved Accountants and Guides can enter a flow where they make a workspace for other users,

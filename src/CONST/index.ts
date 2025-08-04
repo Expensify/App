@@ -656,6 +656,7 @@ const CONST = {
         TRACK_FLOWS: 'trackFlows',
         EUR_BILLING: 'eurBilling',
         MANUAL_DISTANCE: 'manualDistance',
+        VACATION_DELEGATE: 'vacationDelegate',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -889,7 +890,6 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     DEFAULT_NUMBER_ID,
-    FAKE_REPORT_ID: 'FAKE_REPORT_ID',
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
     EXPENSIFY_MOBILE_URL,
@@ -1122,7 +1122,6 @@ const CONST = {
                 CHRONOS_OOO_LIST: 'CHRONOSOOOLIST',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
-                DELEGATE_SUBMIT: 'DELEGATESUBMIT', // OldDot Action
                 DELETED_ACCOUNT: 'DELETEDACCOUNT', // Deprecated OldDot Action
                 DELETED_TRANSACTION: 'DELETEDTRANSACTION',
                 DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
@@ -1275,6 +1274,7 @@ const CONST = {
                 RECEIPT: 'receipt',
                 DATE: 'date',
                 MERCHANT: 'merchant',
+                DESCRIPTION: 'description',
                 FROM: 'from',
                 TO: 'to',
                 CATEGORY: 'category',
@@ -1462,6 +1462,8 @@ const CONST = {
         ANIMATION_TIMING: {
             DEFAULT_IN: 300,
             DEFAULT_OUT: 200,
+            DEFAULT_RIGHT_DOCKED_IOS_IN: 500,
+            DEFAULT_RIGHT_DOCKED_IOS_OUT: 400,
             FAB_IN: 350,
             FAB_OUT: 200,
         },
@@ -1593,6 +1595,7 @@ const CONST = {
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
         INCORRECT_MAGIC_CODE: 451,
+        POLICY_DIFF_WARNING: 305,
     },
     HTTP_STATUS: {
         // When Cloudflare throttles
@@ -1833,6 +1836,7 @@ const CONST = {
         MSWORD: 'application/msword',
         ZIP: 'application/zip',
         RFC822: 'message/rfc822',
+        HEIC: 'image/heic',
     },
 
     SHARE_FILE_MIMETYPE: {
@@ -1843,6 +1847,7 @@ const CONST = {
         WEBP: 'image/webp',
         TIF: 'image/tif',
         TIFF: 'image/tiff',
+        HEIC: 'image/heic',
         IMG: 'image/*',
         PDF: 'application/pdf',
         MSWORD: 'application/msword',
@@ -3184,6 +3189,7 @@ const CONST = {
         },
         LIMIT_VALUE: 21474836,
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
+        ASSIGNEE_EXCLUDED_STEP_NAMES: ['1', '2', '3', '4', '5'],
         STEP: {
             ASSIGNEE: 'Assignee',
             CARD_TYPE: 'CardType',
@@ -3464,6 +3470,10 @@ const CONST = {
         EMOJIS: /[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}](\u200D[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/du,
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJI_SKIN_TONES: /[\u{1f3fb}-\u{1f3ff}]/gu,
+        /** Regex to match emojis that are not wrapped in `<emoji>` tags */
+        get UNWRAPPED_EMOJI() {
+            return new RegExp(`(?:(?!<emoji[^>]*>))(${this.EMOJIS.source})(?:(?!</emoji[^>]*>))`, 'gu');
+        },
 
         PRIVATE_USER_AREA: /[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]/u,
 
@@ -5318,6 +5328,7 @@ const CONST = {
         TAX_REQUIRED: 'taxRequired',
         HOLD: 'hold',
         RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
+        OVER_TRIP_LIMIT: 'overTripLimit',
     },
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',
@@ -6448,6 +6459,9 @@ const CONST = {
             UNAPPROVED_CASH: 'unapprovedCash',
             UNAPPROVED_CARD: 'unapprovedCard',
         },
+        ANIMATION: {
+            FADE_DURATION: 200,
+        },
     },
 
     EXPENSE: {
@@ -6890,9 +6904,9 @@ const CONST = {
     },
     LAST_PAYMENT_METHOD: {
         LAST_USED: 'lastUsed',
-        IOU: 'Iou',
-        EXPENSE: 'Expense',
-        INVOICE: 'Invoice',
+        IOU: 'iou',
+        EXPENSE: 'expense',
+        INVOICE: 'invoice',
     },
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
     SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
@@ -6923,6 +6937,24 @@ const CONST = {
     },
 
     SIGNIN_ROUTE: '/signin',
+
+    ONBOARDING_TASK_TYPE: {
+        CREATE_REPORT: 'createReport',
+        CREATE_WORKSPACE: 'createWorkspace',
+        VIEW_TOUR: 'viewTour',
+        SETUP_CATEGORIES: 'setupCategories',
+        SUBMIT_EXPENSE: 'submitExpense',
+        TRACK_EXPENSE: 'trackExpense',
+        ADD_ACCOUNTING_INTEGRATION: 'addAccountingIntegration',
+        CONNECT_CORPORATE_CARD: 'connectCorporateCard',
+        INVITE_TEAM: 'inviteTeam',
+        SETUP_CATEGORIES_AND_TAGS: 'setupCategoriesAndTags',
+        SETUP_TAGS: 'setupTags',
+        START_CHAT: 'startChat',
+        SPLIT_EXPENSE: 'splitExpense',
+        REVIEW_WORKSPACE_SETTINGS: 'reviewWorkspaceSettings',
+        INVITE_ACCOUNTANT: 'inviteAccountant',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
