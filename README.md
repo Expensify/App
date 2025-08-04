@@ -832,7 +832,7 @@ Some pointers:
 `src/languages/en.ts` is the source of truth for static strings in the App. `src/languages/es.ts` is (for now) manually-curated. The remainder are AI-generated. The script to perform this transformation is `scripts/generateTranslations.ts`.
 
 ### Running the translation script
-To run the translation script:
+To run the translation script
 
 ```bash
 npx ts-node scripts/generateTranslations.ts
