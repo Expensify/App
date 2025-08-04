@@ -3140,10 +3140,6 @@ function getSendInvoiceInformation(
     let chatReport = !isEmptyObject(invoiceChatReport) && invoiceChatReport?.reportID ? invoiceChatReport : null;
 
     if (!chatReport) {
-        chatReport = getInvoiceChatByParticipants(receiverAccountID, receiverType, senderWorkspaceID) ?? null;
-    }
-
-    if (!chatReport) {
         isNewChatReport = true;
         chatReport = buildOptimisticChatReport({
             participantList: [receiverAccountID, currentUserAccountID],
@@ -12101,6 +12097,7 @@ export {
     detachReceipt,
     dismissHoldUseExplanation,
     getIOURequestPolicyID,
+    getReceiverType,
     initMoneyRequest,
     checkIfScanFileCanBeRead,
     dismissModalAndOpenReportInInboxTab,
