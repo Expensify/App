@@ -2042,7 +2042,7 @@ function findLastAccessedReport(
 }
 
 /**
- * This function is used to retrieve the last accessed report with data from Onyx.connect
+ * This function is used to retrieve the last accessed report in background
  * It's used in the case we need to get the last accessed report in a listener like openReportFromDeepLink
  * Please use useLastAccessedReport hook instead if we need to get the last accessed report from the UI
  */
