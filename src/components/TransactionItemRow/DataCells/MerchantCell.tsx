@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
@@ -13,7 +13,10 @@ function MerchantOrDescriptionCell({
     shouldShowTooltip: boolean;
 }) {
     const styles = useThemeStyles();
-    const html = Parser.replace(merchantOrDescription, {shouldEscapeText: false});
+
+    const html = useMemo(() => {
+        return Parser.replace(merchantOrDescription, {shouldEscapeText: false});
+    }, [merchantOrDescription]);
 
     return (
         <TextWithTooltip
