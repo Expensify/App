@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -9,10 +9,12 @@ import {usePolicyCategories, usePolicyTags} from '@components/OnyxListItemProvid
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useActiveRoute from '@hooks/useActiveRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import useViolations from '@hooks/useViolations';
@@ -467,17 +469,24 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
         );
     });
 
+    // In this case we want to use this value. The  shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {wideRHPRouteKeys} = useContext(WideRHPContext);
+
     return (
         <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <>
-                <MoneyRequestReceiptView
-                    allReports={allReports}
-                    report={report}
-                    readonly={readonly}
-                    updatedTransaction={updatedTransaction}
-                    isFromReviewDuplicates={isFromReviewDuplicates}
-                />
+                {(wideRHPRouteKeys.length === 0 || isSmallScreenWidth) && (
+                    <MoneyRequestReceiptView
+                        allReports={allReports}
+                        report={report}
+                        readonly={readonly}
+                        updatedTransaction={updatedTransaction}
+                        isFromReviewDuplicates={isFromReviewDuplicates}
+                    />
+                )}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount') ?? (amountTitle ? getPendingFieldAction('customUnitRateID') : undefined)}>
                     <MenuItemWithTopDescription
                         title={amountTitle}
