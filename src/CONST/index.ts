@@ -3472,7 +3472,7 @@ const CONST = {
         EMOJI_SKIN_TONES: /[\u{1f3fb}-\u{1f3ff}]/gu,
         /** Regex to match emojis that are not wrapped in `<emoji>` tags */
         get UNWRAPPED_EMOJI() {
-            return new RegExp(`(?:(?!<emoji[^>]*>))(${CONST.REGEX.EMOJIS.source})(?:(?!</emoji[^>]*>))`, 'gu');
+            return new RegExp(`(?:(?!<emoji[^>]*>))(${this.EMOJIS.source})(?:(?!</emoji[^>]*>))`, 'gu');
         },
 
         PRIVATE_USER_AREA: /[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]/u,
