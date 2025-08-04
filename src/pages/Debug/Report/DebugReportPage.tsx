@@ -60,6 +60,8 @@ function DebugReportPage({
         selector: (attributes) => attributes?.reports?.[reportID],
         canBeMissing: true,
     });
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
     const isReportArchived = useReportIsArchived(reportID);
 
@@ -76,7 +78,7 @@ function DebugReportPage({
             DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, chatReport, reportActions, transactions, hasViolations, reportAttributes?.reportErrors ?? {}, isReportArchived) ?? {};
         const hasRBR = !!reasonRBR;
         const hasGBR = !hasRBR && !!reasonGBR;
-        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report, chatReport, hasRBR, isReportArchived);
+        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN({report, chatReport, betas, hasRBR, isReportArchived, isInFocusMode: priorityMode === CONST.PRIORITY_MODE.GSD});
 
         return [
             {
@@ -121,7 +123,7 @@ function DebugReportPage({
                         : undefined,
             },
         ];
-    }, [chatReport, report, transactionViolations, reportID, reportActions, transactions, reportAttributes?.reportErrors, isReportArchived, translate]);
+    }, [report, transactionViolations, reportID, isReportArchived, chatReport, reportActions, transactions, reportAttributes?.reportErrors, betas, priorityMode, translate]);
 
     const DebugDetailsTab = useCallback(
         () => (

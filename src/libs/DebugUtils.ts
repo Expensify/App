@@ -87,28 +87,12 @@ const TRANSACTION_REQUIRED_PROPERTIES: Array<keyof Transaction> = ['transactionI
 
 const TRANSACTION_VIOLATION_REQUIRED_PROPERTIES: Array<keyof TransactionViolation> = ['type', 'name'] satisfies Array<keyof TransactionViolation>;
 
-let isInFocusMode: OnyxEntry<boolean>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIORITY_MODE,
-    callback: (priorityMode) => {
-        isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
-    },
-});
-
 let transactionViolations: OnyxCollection<TransactionViolation[]>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     waitForCollectionCallback: true,
     callback: (value) => {
         transactionViolations = value;
-    },
-});
-
-let betas: OnyxEntry<Beta[]>;
-Onyx.connect({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => {
-        betas = value;
     },
 });
 
@@ -1329,7 +1313,21 @@ function validateTransactionViolationJSON(json: string) {
 /**
  * Gets the reason for showing LHN row
  */
-function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, chatReport: OnyxEntry<Report>, hasRBR = false, isReportArchived = false): TranslationPaths | null {
+function getReasonForShowingRowInLHN({
+    report,
+    chatReport,
+    hasRBR = false,
+    isReportArchived = false,
+    isInFocusMode = false,
+    betas = undefined,
+}: {
+    report: OnyxEntry<Report>;
+    chatReport: OnyxEntry<Report>;
+    hasRBR?: boolean;
+    isReportArchived?: boolean;
+    isInFocusMode?: boolean;
+    betas?: OnyxEntry<Beta[]>;
+}): TranslationPaths | null {
     if (!report) {
         return null;
     }
@@ -1341,7 +1339,7 @@ function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, chatReport: Onyx
         chatReport,
         // We can't pass report.reportID because it will cause reason to always be isFocused
         currentReportId: '-1',
-        isInFocusMode: !!isInFocusMode,
+        isInFocusMode,
         betas,
         excludeEmptyChats: true,
         doesReportHaveViolations,
