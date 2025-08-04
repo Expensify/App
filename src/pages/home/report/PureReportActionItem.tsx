@@ -1626,7 +1626,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.reimbursementDeQueuedOrCanceledActionMessage === nextProps.reimbursementDeQueuedOrCanceledActionMessage &&
         prevProps.modifiedExpenseMessage === nextProps.modifiedExpenseMessage &&
         prevProps.userBillingFundID === nextProps.userBillingFundID &&
-        deepEqual(prevProps.taskReport, nextProps.taskReport)
+        deepEqual(prevProps.taskReport, nextProps.taskReport) &&
         prevProps.shouldHighlight === nextProps.shouldHighlight
     );
 });
