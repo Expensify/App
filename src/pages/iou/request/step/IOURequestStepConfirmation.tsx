@@ -793,7 +793,8 @@ function IOURequestStepConfirmation({
             }
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
-                sendInvoice(currentUserPersonalDetails.accountID, transaction, report ?? existingInvoiceReport, currentTransactionReceiptFile, policy, policyTags, policyCategories);
+                const invoiceChatReport = !isEmptyObject(report) && report?.reportID ? report : existingInvoiceReport;
+                sendInvoice(currentUserPersonalDetails.accountID, transaction, invoiceChatReport, currentTransactionReceiptFile, policy, policyTags, policyCategories);
                 return;
             }
 
