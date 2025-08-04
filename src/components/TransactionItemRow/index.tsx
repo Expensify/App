@@ -13,7 +13,6 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
-import Parser from '@libs/Parser';
 import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
