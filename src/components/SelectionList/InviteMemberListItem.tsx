@@ -16,6 +16,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils';
+import RandomAvatarUtils from '@libs/RandomAvatarUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -72,6 +73,8 @@ function InviteMemberListItem<TItem extends ListItem>({
             onSelectRow(item);
         }
     }, [item, onCheckboxPress, onSelectRow]);
+
+    const fallBackAvatar = RandomAvatarUtils.getAvatarForContact(item.login);
 
     return (
         <BaseListItem
