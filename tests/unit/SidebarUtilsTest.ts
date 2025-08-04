@@ -1264,7 +1264,6 @@ describe('SidebarUtils', () => {
 
                 iouReportR14932.reportID = '5';
                 chatReportR14932.reportID = '6';
-                iouReportR14932.lastActorAccountID = undefined;
 
                 const report: Report = {
                     ...createRandomReport(1),
@@ -1311,7 +1310,7 @@ describe('SidebarUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportR14932.reportID}`, {[linkedCreateAction.reportActionID]: linkedCreateAction});
 
                 const result = SidebarUtils.getOptionData({
-                    report: iouReportR14932,
+                    report: {...iouReportR14932, lastActorAccountID: undefined},
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
                     personalDetails: {},
