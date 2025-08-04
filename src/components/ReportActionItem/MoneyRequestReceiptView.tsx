@@ -265,6 +265,7 @@ function MoneyRequestReceiptView({allReports, report, readonly = false, updatedT
                                 enablePreviewModal
                                 readonly={readonly || !canEditReceipt}
                                 isFromReviewDuplicates={isFromReviewDuplicates}
+                                report={report}
                             />
                         </View>
                     )}

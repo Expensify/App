@@ -19,7 +19,7 @@ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Transaction} from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ReportActionItemImageProps = {
@@ -66,6 +66,9 @@ type ReportActionItemImageProps = {
 
     /** Whether the receipt empty state should extend to the full height of the container. */
     shouldUseFullHeight?: boolean;
+
+    /** The report associated with this image, if any. Used for additional context or logic. */
+    report?: OnyxEntry<Report>;
 };
 
 /**
@@ -90,6 +93,7 @@ function ReportActionItemImage({
     isFromReviewDuplicates = false,
     onPress,
     shouldUseFullHeight,
+    report: reportProp,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -154,7 +158,12 @@ function ReportActionItemImage({
                         style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
                         onPress={() =>
                             Navigation.navigate(
-                                ROUTES.TRANSACTION_RECEIPT.getRoute(transactionThreadReport?.reportID ?? report?.reportID, transaction?.transactionID, readonly, isFromReviewDuplicates),
+                                ROUTES.TRANSACTION_RECEIPT.getRoute(
+                                    transactionThreadReport?.reportID ?? report?.reportID ?? reportProp?.reportID,
+                                    transaction?.transactionID,
+                                    readonly,
+                                    isFromReviewDuplicates,
+                                ),
                             )
                         }
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
