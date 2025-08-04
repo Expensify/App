@@ -3,7 +3,9 @@
 These rules are used to conduct structured code reviews on pull request diffs. Each rule includes:
 
 - A unique **Rule ID**
-- **Severity level**: MUST / SHOULD
+- **Severity level**:
+  - MUST: Mandatory to update this as it causes issues.
+  - SHOULD: Strong recommendation to consider changing this and think about future implications.
 - **Pass/Fail condition**
 - Examples of good and bad usage
 
@@ -136,7 +138,6 @@ const handleSelect = useCallback(() => {
     style={reportActionItemStyle}
     onSelect={handleSelect}
     reportID={report.reportID}
-    isPinned={report.isPinned}
 />
 ```
 
@@ -145,7 +146,7 @@ Bad:
 <ReportActionItem
     style={[styles.container, styles.flex]}
     onSelect={() => onSelectRow(item)}
-    report={report}
+    reportID={report.reportID}
 />
 ```
 
