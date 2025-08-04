@@ -332,8 +332,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (groupBy && (isChat || isTask)) {
             return [];
         }
-        return getSections(type, searchResults.data, searchResults.search, groupBy, exportReportActions, searchKey, archivedReportsIdSet);
-    }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet]);
+        return getSections(type, searchResults.data, searchResults.search, accountID, groupBy, exportReportActions, searchKey, archivedReportsIdSet);
+    }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, accountID]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -552,10 +552,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (!searchResults?.data) {
             return [];
         }
-        const columns = getColumnsToShow(searchResults?.data);
+        const columns = getColumnsToShow(searchResults?.data, accountID);
 
         return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
-    }, [searchResults?.data]);
+    }, [searchResults?.data, accountID]);
 
     // Custom animation for fade effect
     const opacity = useSharedValue(1);

@@ -1,6 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useMemo, useState} from 'react';
+import useOnyx from '@hooks/useOnyx';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import Checkbox from '@components/Checkbox';
@@ -30,6 +31,7 @@ import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -104,6 +106,7 @@ function MoneyRequestReportTransactionList({
     const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
+    const [currentAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (s) => s?.accountID});
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
@@ -161,9 +164,9 @@ function MoneyRequestReportTransactionList({
     }, [newTransactions, sortBy, sortOrder, transactions, localeCompare]);
 
     const columnsToShow = useMemo(() => {
-        const columns = getColumnsToShow(transactions, true);
+        const columns = getColumnsToShow(transactions, currentAccountID, true);
         return (Object.keys(columns) as SortableColumnName[]).filter((column) => columns[column]);
-    }, [transactions]);
+    }, [transactions, currentAccountID]);
 
     const navigateToTransaction = useCallback(
         (activeTransactionID: string) => {

@@ -163,13 +163,6 @@ const taskStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
     {translation: 'search.filters.completed', value: CONST.SEARCH.STATUS.TASK.COMPLETED},
 ];
 
-let currentAccountID: number | undefined;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (session) => {
-        currentAccountID = session?.accountID;
-    },
-});
 
 const emptyPersonalDetails = {
     accountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
@@ -725,7 +718,7 @@ function getTransactionViolations(allViolations: OnyxCollection<OnyxTypes.Transa
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search'], currentSearch: SearchKey): TransactionListItemType[] {
+function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search'], currentSearch: SearchKey, currentAccountID: number | undefined): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
@@ -759,7 +752,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 
         const transactionSection: TransactionListItemType = {
-            action: getAction(data, allViolations, key, currentSearch),
+            action: getAction(data, allViolations, key, currentSearch, currentAccountID),
             from,
             to,
             formattedFrom,
@@ -883,6 +876,7 @@ function getReportNameValuePairsFromKey(data: OnyxTypes.SearchResults['data'], r
 function getReviewerPermissionFlags(
     report: OnyxTypes.Report,
     policy: OnyxTypes.Policy,
+    currentAccountID: number | undefined,
 ): {
     isSubmitter: boolean;
     isAdmin: boolean;
@@ -905,6 +899,7 @@ function getAction(
     allViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     key: string,
     currentSearch: SearchKey,
+    currentAccountID: number | undefined,
     reportActions: OnyxTypes.ReportAction[] = [],
 ): SearchTransactionAction {
     const isTransaction = isTransactionEntry(key);
@@ -952,7 +947,7 @@ function getAction(
         allReportTransactions = transaction ? [transaction] : [];
     }
 
-    const {isSubmitter, isAdmin, isApprover} = getReviewerPermissionFlags(report, policy);
+    const {isSubmitter, isAdmin, isApprover} = getReviewerPermissionFlags(report, policy, currentAccountID);
 
     const reportNVP = getReportNameValuePairsFromKey(data, report);
     const isIOUReportArchived = isArchivedReport(reportNVP);
@@ -1148,6 +1143,7 @@ function getReportSections(
     data: OnyxTypes.SearchResults['data'],
     metadata: OnyxTypes.SearchResults['search'],
     currentSearch: SearchKey,
+    currentAccountID: number | undefined,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
 ): TransactionGroupListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
@@ -1172,7 +1168,7 @@ function getReportSections(
             const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
             reportIDToTransactions[reportKey] = {
                 ...reportItem,
-                action: getAction(data, allViolations, key, currentSearch, actions),
+                action: getAction(data, allViolations, key, currentSearch, currentAccountID, actions),
                 groupedBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 keyForList: reportItem.reportID,
                 from: data.personalDetailsList?.[reportItem.accountID ?? CONST.DEFAULT_NUMBER_ID],
@@ -1200,7 +1196,7 @@ function getReportSections(
 
             const transaction = {
                 ...transactionItem,
-                action: getAction(data, allViolations, key, currentSearch, actions),
+                action: getAction(data, allViolations, key, currentSearch, currentAccountID, actions),
                 from,
                 to,
                 formattedFrom,
@@ -1275,6 +1271,7 @@ function getSections(
     type: SearchDataTypes,
     data: OnyxTypes.SearchResults['data'],
     metadata: OnyxTypes.SearchResults['search'],
+    currentAccountID: number | undefined,
     groupBy?: SearchGroupBy,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
     currentSearch: SearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
@@ -1292,7 +1289,7 @@ function getSections(
         // eslint-disable-next-line default-case
         switch (groupBy) {
             case CONST.SEARCH.GROUP_BY.REPORTS:
-                return getReportSections(data, metadata, currentSearch, reportActions);
+                return getReportSections(data, metadata, currentSearch, currentAccountID, reportActions);
             case CONST.SEARCH.GROUP_BY.MEMBERS:
                 return getMemberSections(data, metadata);
             case CONST.SEARCH.GROUP_BY.CARDS:
@@ -1300,7 +1297,7 @@ function getSections(
         }
     }
 
-    return getTransactionsSections(data, metadata, currentSearch);
+    return getTransactionsSections(data, metadata, currentSearch, currentAccountID);
 }
 
 /**
@@ -1342,7 +1339,7 @@ function getSortedSections(
  * Determines what columns to show based on available data
  * @param isExpenseReportView: true when we are inside an expense report view, false if we're in the Reports page.
  */
-function getColumnsToShow(data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[], isExpenseReportView = false): Record<SortableColumnName, boolean> {
+function getColumnsToShow(data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[], currentAccountID: number | undefined, isExpenseReportView = false): Record<SortableColumnName, boolean> {
     const columns: Record<string, boolean> = isExpenseReportView
         ? {
               [CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT]: true,
