@@ -8,10 +8,9 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {TranslationPaths} from '@src/languages/types';
 
 type MultiSelectItem<T> = {
-    translation: TranslationPaths;
+    text: string;
     value: T;
 };
 
@@ -41,7 +40,7 @@ function MultiSelectPopup<T extends string>({label, value, items, closeOverlay, 
 
     const listData: ListItem[] = useMemo(() => {
         return items.map((item) => ({
-            text: translate(item.translation),
+            text: item.text,
             keyForList: item.value,
             isSelected: !!selectedItems.find((i) => i.value === item.value),
         }));

@@ -107,7 +107,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
             .find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)
             ?.filters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO)?.value;
         const options = getFeedOptions(allFeeds, allCards);
-        const value = options.find((option) => option.value === feedFilterValue) ?? null;
+        const value = feedFilterValue ? options.filter((option) => option.value === feedFilterValue) : [];
         return [options, value];
     }, [flatFilters, allFeeds, allCards]);
 
@@ -226,12 +226,12 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     const feedComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
             return (
-                <SingleSelectPopup
+                <MultiSelectPopup
                     label={translate('search.filters.feed')}
                     items={feedOptions}
                     value={feed}
                     closeOverlay={closeOverlay}
-                    onChange={(item) => updateFilterForm({feed: item ? [item.value] : undefined})}
+                    onChange={(items) => updateFilterForm({feed: items.map((item) => item.value)})}
                 />
             );
         },
@@ -356,7 +356,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                       {
                           label: translate('search.filters.feed'),
                           PopoverComponent: feedComponent,
-                          value: feed?.text ?? null,
+                          value: feed.map((option) => option.text),
                           filterKey: FILTER_KEYS.FEED,
                       },
                   ]
@@ -374,7 +374,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
             {
                 label: translate('common.status'),
                 PopoverComponent: statusComponent,
-                value: status.map((option) => translate(option.translation)),
+                value: status.map((option) => option.translation ? translate(option.translation) : '').filter(Boolean),
                 filterKey: FILTER_KEYS.STATUS,
             },
             {
