@@ -70,7 +70,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
             addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, feedDetails, cardFeeds, undefined, undefined, lastSelectedFeed);
             Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
         },
-        [addNewCard?.data, policyID, cardFeeds, lastSelectedFeed],
+        [addNewCard?.data, policyID, cardFeeds, lastSelectedFeed, shouldSelectStatementCloseDate],
     );
 
     const handleBackButtonPress = () => {
