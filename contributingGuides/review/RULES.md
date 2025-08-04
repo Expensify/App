@@ -7,6 +7,7 @@ These rules are used to conduct structured code reviews on pull request diffs. E
   - MUST: Mandatory to update this as it causes issues.
   - SHOULD: Strong recommendation to consider changing this and think about future implications.
 - **Pass/Fail condition**
+- **Reasoning**: Technical explanation of why the rule is important
 - Examples of good and bad usage
 
 ---
@@ -16,6 +17,7 @@ These rules are used to conduct structured code reviews on pull request diffs. E
 ### [PERF-1] No spread in list item's renderItem
 - **Severity**: MUST
 - **Condition**: When passing data to components in renderItem functions, avoid using spread operators to extend objects. Instead, pass the base object and additional properties as separate props to prevent unnecessary object creation on each render.
+- **Reasoning**: `renderItem` functions execute for every visible list item on each render. Creating new objects with spread operators forces React to treat each item as changed, preventing reconciliation optimizations and causing unnecessary re-renders of child components.
 
 Good:
 ```tsx
@@ -42,6 +44,7 @@ Bad:
 ### [PERF-2] Use early returns in array iteration methods
 - **Severity**: SHOULD
 - **Condition**: When using `.every()`, `.some()`, or similar methods, perform simple checks first with early returns before expensive operations.
+- **Reasoning**: Expensive operations can be any long-running synchronous tasks (like complex calculations) and should be avoided when simple property checks can eliminate items early. This reduces unnecessary computation and improves iteration performance, especially on large datasets.
 
 Good:
 ```tsx
@@ -65,6 +68,7 @@ const areAllTransactionsValid = transactions.every((transaction) => {
 ### [PERF-3] Use OnyxListItemProvider hooks instead of useOnyx in renderItem
 - **Severity**: MUST
 - **Condition**: Components rendered inside `renderItem` functions should use dedicated hooks from `OnyxListItemProvider` instead of individual `useOnyx` calls.
+- **Reasoning**: Individual `useOnyx` calls in renderItem create separate subscriptions for each list item, causing memory overhead and update cascades. `OnyxListItemProvider` hooks provide optimized data access patterns specifically designed for list rendering performance.
 
 Good:
 ```tsx
@@ -83,6 +87,7 @@ const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 ### [PERF-4] Memoize objects and functions passed as props
 - **Severity**: MUST
 - **Condition**: Objects and functions passed as props should be properly memoized or simplified to primitive values to prevent unnecessary re-renders.
+- **Reasoning**: React uses referential equality to determine if props changed. New object/function instances on every render trigger unnecessary re-renders of child components, even when the actual data hasn't changed. Memoization preserves referential stability.
 
 Good:
 ```tsx
@@ -107,6 +112,7 @@ return <ReportActionItem report={report} />
 ### [PERF-5] Avoid inline object/array/function creation in JSX
 - **Severity**: SHOULD
 - **Condition**: Objects, arrays, and functions should not be created inline in JSX. Use `useMemo` or `useCallback` to memoize them when there's actual performance benefit.
+- **Reasoning**: Inline creation generates new instances on every render, breaking React's reconciliation optimizations and forcing child component re-renders. Memoization moves the creation cost outside the render cycle and enables proper optimization.
 
 Good:
 ```tsx
@@ -136,6 +142,7 @@ Bad:
 ### [PERF-6] Use shallow comparisons instead of deep comparisons
 - **Severity**: SHOULD
 - **Condition**: In `React.memo` and similar optimization functions, compare only specific relevant properties instead of using deep equality checks.
+- **Reasoning**: Deep equality checks recursively compare all nested properties, creating performance overhead that often exceeds the re-render cost they aim to prevent. Shallow comparisons of specific relevant properties provide the same optimization benefits with minimal computational cost.
 
 Good:
 ```tsx
@@ -159,6 +166,7 @@ memo(ReportActionItem, (prevProps, nextProps) =>
 ### [PERF-7] Use specific properties as hook dependencies
 - **Severity**: SHOULD
 - **Condition**: In `useEffect`, `useMemo`, and `useCallback`, specify individual object properties as dependencies instead of passing entire objects.
+- **Reasoning**: Passing entire objects as dependencies causes hooks to re-execute whenever any property changes, even unrelated ones. Specifying individual properties creates more granular dependency tracking, reducing unnecessary hook executions and improving performance predictability.
 
 Good:
 ```tsx
