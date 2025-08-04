@@ -3,11 +3,8 @@ import React, {useCallback, useContext, useEffect, useMemo, useState} from 'reac
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-<<<<<<< HEAD
-import useInvoiceChatByParticipants from '@hooks/useInvoiceChatByParticipants';
-=======
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
->>>>>>> main
+import useInvoiceChatByParticipants from '@hooks/useInvoiceChatByParticipants';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
