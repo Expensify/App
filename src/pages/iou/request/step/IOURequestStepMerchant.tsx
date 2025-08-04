@@ -1,5 +1,5 @@
 import React, {useCallback, useRef} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -42,7 +42,7 @@ function IOURequestStepMerchant({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef, inputRef} = useAutoFocusInput();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, report, CONST.EDIT_REQUEST_FIELD.MERCHANT);
@@ -144,6 +144,11 @@ function IOURequestStepMerchant({
                 </View>
             </FormProvider>
             <DiscardChangesConfirmation
+                onCancel={() => {
+                    InteractionManager.runAfterInteractions(() => {
+                        inputRef.current?.focus();
+                    });
+                }}
                 getHasUnsavedChanges={() => {
                     if (isSavedRef.current) {
                         return false;
