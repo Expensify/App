@@ -107,6 +107,7 @@ function OptionRowLHNData({
         invoiceReceiverPolicy,
         lastMessageTextFromReport,
         reportAttributes,
+        card,
     ]);
 
     return (

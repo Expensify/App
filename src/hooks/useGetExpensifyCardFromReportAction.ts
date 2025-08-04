@@ -10,7 +10,7 @@ function useGetExpensifyCardFromReportAction({reportAction, policyID}: {reportAc
     const [allExpensifyCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {
         selector: (val) => {
             const workspaceAccountID = getWorkspaceAccountID(policyID);
-            return val?.[`cards_${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`] ?? {};
+            return val?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`] ?? {};
         },
         canBeMissing: true,
     });
