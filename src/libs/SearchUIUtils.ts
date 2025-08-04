@@ -163,7 +163,6 @@ const taskStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
     {translation: 'search.filters.completed', value: CONST.SEARCH.STATUS.TASK.COMPLETED},
 ];
 
-
 const emptyPersonalDetails = {
     accountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
     avatar: '',
@@ -718,7 +717,12 @@ function getTransactionViolations(allViolations: OnyxCollection<OnyxTypes.Transa
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search'], currentSearch: SearchKey, currentAccountID: number | undefined): TransactionListItemType[] {
+function getTransactionsSections(
+    data: OnyxTypes.SearchResults['data'],
+    metadata: OnyxTypes.SearchResults['search'],
+    currentSearch: SearchKey,
+    currentAccountID: number | undefined,
+): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
@@ -1343,7 +1347,11 @@ function getSortedSections(
  * Determines what columns to show based on available data
  * @param isExpenseReportView: true when we are inside an expense report view, false if we're in the Reports page.
  */
-function getColumnsToShow(data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[], currentAccountID: number | undefined, isExpenseReportView = false): Record<SortableColumnName, boolean> {
+function getColumnsToShow(
+    data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[],
+    currentAccountID: number | undefined,
+    isExpenseReportView = false,
+): Record<SortableColumnName, boolean> {
     const columns: Record<string, boolean> = isExpenseReportView
         ? {
               [CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT]: true,
