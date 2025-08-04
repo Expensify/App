@@ -19,9 +19,9 @@ type ConfirmationProps = SubStepProps;
 function Confirmation({onNext, isEditing}: ConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const privateSubscription = usePrivateSubscription();
-    const [subscriptionSizeFormDraft] = useOnyx(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM_DRAFT);
+    const [subscriptionSizeFormDraft] = useOnyx(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM_DRAFT, {canBeMissing: true});
     const subscriptionRenewalDate = getNewSubscriptionRenewalDate();
     const subscriptionSizeDraft = subscriptionSizeFormDraft ? Number(subscriptionSizeFormDraft[INPUT_IDS.SUBSCRIPTION_SIZE]) : 0;
     const subscriptionSize = subscriptionSizeDraft || (privateSubscription?.userCount ?? 0);
