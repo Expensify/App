@@ -106,7 +106,7 @@ function MoneyRequestReportTransactionList({
     const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
-    const [currentAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (s) => s?.accountID});
+    const [currentAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: false});
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);

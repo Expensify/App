@@ -1148,7 +1148,7 @@ function getReportSections(
     data: OnyxTypes.SearchResults['data'],
     metadata: OnyxTypes.SearchResults['search'],
     currentSearch: SearchKey,
-    currentAccountID: number,
+    currentAccountID: number | undefined,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
 ): TransactionGroupListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
