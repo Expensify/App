@@ -1894,14 +1894,14 @@ describe('SearchUIUtils', () => {
 
             // When currentAccountID matches ownerAccountID, user is submitter
             const actionAsSubmitter = SearchUIUtils.getAction(testSearchResults, {}, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, submitterAccountID);
-            
-            // When currentAccountID matches managerID, user is approver 
+
+            // When currentAccountID matches managerID, user is approver
             const actionAsApprover = SearchUIUtils.getAction(testSearchResults, {}, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID);
-            
+
             // Actions should be different based on permissions
             expect(actionAsSubmitter).toBeTruthy();
             expect(actionAsApprover).toBeTruthy();
-            
+
             // Both should have valid action types
             const validActions = Object.values(CONST.SEARCH.ACTION_TYPES);
             expect(validActions).toContain(actionAsSubmitter);
