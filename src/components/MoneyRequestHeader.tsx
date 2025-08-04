@@ -3,6 +3,7 @@ import React, {memo, useCallback, useContext, useEffect, useMemo, useState} from
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -85,7 +86,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, backTo, onBackB
         },
     );
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
-
+    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transaction?.transactionID ? [transaction.transactionID] : []);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
@@ -244,8 +245,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, backTo, onBackB
         if (!transaction || !reportActions) {
             return [];
         }
-        return getSecondaryTransactionThreadActions(parentReport, transaction, Object.values(reportActions), policy);
-    }, [parentReport, policy, transaction]);
+        return getSecondaryTransactionThreadActions(parentReport, transaction, Object.values(reportActions), policy, report);
+    }, [report, parentReport, policy, transaction]);
 
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>,
@@ -286,7 +287,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, backTo, onBackB
                 icon: Expensicons.ArrowSplit,
                 value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
                 onSelected: () => {
-                    initSplitExpense(transaction, reportID ?? String(CONST.DEFAULT_NUMBER_ID));
+                    initSplitExpense(transaction);
                 },
             },
             [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS]: {
