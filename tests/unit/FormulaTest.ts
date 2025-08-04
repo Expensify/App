@@ -1,6 +1,16 @@
 import {compute, extract, FORMULA_PART_TYPES, isFormula, parse} from '@libs/Formula';
 import type {FormulaContext} from '@libs/Formula';
 
+// Mock ReportActionsUtils
+jest.mock('@libs/ReportActionsUtils', () => ({
+    getAllReportActions: jest.fn(),
+    getSortedReportActions: jest.fn(),
+}));
+
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+
+const mockReportActionsUtils = ReportActionsUtils as jest.Mocked<typeof ReportActionsUtils>;
+
 describe('CustomFormula', () => {
     describe('extract()', () => {
         test('should extract formula parts with default braces', () => {
@@ -91,6 +101,30 @@ describe('CustomFormula', () => {
             },
         };
 
+        beforeEach(() => {
+            jest.clearAllMocks();
+            
+            // Mock report actions - oldest action has earlier date
+            const mockReportActions = {
+                '1': {
+                    reportActionID: '1',
+                    created: '2025-01-10T08:00:00Z', // Oldest action
+                    actionName: 'CREATED',
+                },
+                '2': {
+                    reportActionID: '2', 
+                    created: '2025-01-15T10:30:00Z', // Later action
+                    actionName: 'IOU',
+                },
+            };
+
+            mockReportActionsUtils.getAllReportActions.mockReturnValue(mockReportActions as any);
+            mockReportActionsUtils.getSortedReportActions.mockReturnValue([
+                mockReportActions['1'],
+                mockReportActions['2'],
+            ] as any);
+        });
+
         test('should compute basic report formula', () => {
             const result = compute('{report:type} {report:total}', mockContext);
             expect(result).toBe('Expense ReportUSD100.00'); // No space between parts
@@ -98,7 +132,7 @@ describe('CustomFormula', () => {
 
         test('should compute date formula', () => {
             const result = compute('{report:startdate}', mockContext);
-            expect(result).toBe('01/15/2025');
+            expect(result).toBe('01/10/2025'); // Should use oldest report action date
         });
 
         test('should compute policy name', () => {
@@ -170,6 +204,14 @@ describe('CustomFormula', () => {
                 policy: null,
             };
             const result = compute('{report:total}', context);
+            expect(result).toBe('');
+        });
+
+        test('should handle missing report actions for startdate', () => {
+            mockReportActionsUtils.getAllReportActions.mockReturnValue({});
+            mockReportActionsUtils.getSortedReportActions.mockReturnValue([]);
+            
+            const result = compute('{report:startdate}', mockContext);
             expect(result).toBe('');
         });
     });
