@@ -17,10 +17,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {requestRefund as requestRefundByUser} from '@libs/actions/User';
 import DateUtils from '@libs/DateUtils';
-import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
+import shouldShowSubscriptionPaymentOption from '@libs/shouldShowSubscriptionPaymentOption/index.native';
 import {hasCardAuthenticatedError, hasUserFreeTrialEnded, isUserOnFreeTrial, shouldShowDiscountBanner, shouldShowPreTrialBillingBanner} from '@libs/SubscriptionUtils';
 import {verifySetupIntent} from '@userActions/PaymentMethods';
 import {clearOutstandingBalance} from '@userActions/Subscription';
@@ -59,8 +59,6 @@ function CardSection() {
     const {isOffline} = useNetwork();
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
     const cardMonth = useMemo(() => DateUtils.getMonthNames()[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth]);
-    const platform = getPlatform();
-    const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
 
     const requestRefund = useCallback(() => {
         requestRefundByUser();
@@ -177,7 +175,7 @@ function CardSection() {
                 </View>
 
                 <View style={styles.mb3}>{isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}</View>
-                {billingStatus?.isRetryAvailable !== undefined && !isNative && (
+                {billingStatus?.isRetryAvailable !== undefined && shouldShowSubscriptionPaymentOption() && (
                     <Button
                         text={translate('subscription.cardSection.retryPaymentButton')}
                         isDisabled={isOffline || !billingStatus?.isRetryAvailable}
@@ -187,7 +185,7 @@ function CardSection() {
                         large
                     />
                 )}
-                {hasCardAuthenticatedError() && !isNative && (
+                {hasCardAuthenticatedError() && shouldShowSubscriptionPaymentOption() && (
                     <Button
                         text={translate('subscription.cardSection.authenticatePayment')}
                         isDisabled={isOffline || !billingStatus?.isAuthenticationRequired}
