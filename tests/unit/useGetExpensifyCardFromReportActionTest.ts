@@ -13,6 +13,8 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 jest.mock('@libs/PolicyUtils');
 jest.mock('@libs/ReportActionsUtils');
 
+// This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+// eslint-disable-next-line deprecation/deprecation
 const mockGetPolicy = getPolicy as jest.MockedFunction<typeof getPolicy>;
 const mockGetWorkspaceAccountID = getWorkspaceAccountID as jest.MockedFunction<typeof getWorkspaceAccountID>;
 const mockIsPolicyAdmin = isPolicyAdmin as jest.MockedFunction<typeof isPolicyAdmin>;
@@ -141,7 +143,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
             it('returns card from allExpensifyCards when card exists', async () => {
                 const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}123_${CONST.EXPENSIFY_CARD.BANK}` as OnyxKey;
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                Onyx.set(workspaceCardsKey, {123: mockCard})
+                Onyx.set(workspaceCardsKey, {123: mockCard});
                 await waitForBatchedUpdatesWithAct();
 
                 const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
@@ -199,7 +201,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}123_${CONST.EXPENSIFY_CARD.BANK}` as OnyxKey;
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            Onyx.set(workspaceCardsKey, {123: mockCard})
+            Onyx.set(workspaceCardsKey, {123: mockCard});
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current).toEqual(mockCard);
