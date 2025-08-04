@@ -44,7 +44,7 @@ function MultiSelectPopup<T extends string>({label, value, items, closeOverlay, 
             keyForList: item.value,
             isSelected: !!selectedItems.find((i) => i.value === item.value),
         }));
-    }, [items, selectedItems, translate]);
+    }, [items, selectedItems]);
 
     const updateSelectedItems = useCallback(
         (item: ListItem) => {

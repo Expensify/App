@@ -374,7 +374,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
             {
                 label: translate('common.status'),
                 PopoverComponent: statusComponent,
-                value: status.map((option) => option.translation ? translate(option.translation) : '').filter(Boolean),
+                value: status.map((option) => option.text).filter(Boolean),
                 filterKey: FILTER_KEYS.STATUS,
             },
             {
