@@ -14,6 +14,7 @@ import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
 import * as Report from '@src/libs/actions/Report';
+import {add, clearByKey} from '@src/libs/actions/CachedPDFPaths';
 import * as User from '@src/libs/actions/User';
 import DateUtils from '@src/libs/DateUtils';
 import Log from '@src/libs/Log';
@@ -34,6 +35,11 @@ import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 jest.mock('@libs/NextStepUtils', () => ({
     buildNextStep: jest.fn(),
+}));
+
+jest.mock('react-native-fs', () => ({
+    exists: jest.fn(),
+    unlink: jest.fn(),
 }));
 
 jest.mock('@libs/ReportUtils', () => {
@@ -1936,5 +1942,132 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('CachedPDFPaths functionality', () => {
+        // Import mocked functions
+        const {exists: mockExists, unlink: mockUnlink} = jest.requireMock('react-native-fs');
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        describe('add function', () => {
+
+            it('should add new PDF path to cache because caching PDF paths is needed for cleanup', async () => {
+                // Given a new PDF ID and path
+                const id = 'pdf123';
+                const path = '/path/to/pdf.pdf';
+                const existingPaths = {};
+
+                // When adding the PDF path
+                await add(id, path, existingPaths);
+
+                await waitForBatchedUpdates();
+
+                // Then it should merge the path into Onyx cache
+                const cachedPaths = await new Promise<Record<string, string>>((resolve) => {
+                    const connection = Onyx.connect({
+                        key: ONYXKEYS.CACHED_PDF_PATHS,
+                        callback: (val) => {
+                            Onyx.disconnect(connection);
+                            resolve(val ?? {});
+                        },
+                    });
+                });
+
+                expect(cachedPaths[id]).toBe(path);
+            });
+
+            it('should not add duplicate PDF path because existing cached paths should not be overwritten', async () => {
+                // Given an existing PDF ID in cache  
+                const id = 'pdf123';
+                const path = '/path/to/pdf.pdf';
+                const existingPath = '/existing/path.pdf';
+                const existingPaths = {[id]: existingPath};
+
+                // When attempting to add the same ID
+                await add(id, path, existingPaths);
+
+                await waitForBatchedUpdates();
+
+                // Then it should resolve immediately without changing cache
+                const cachedPaths = await new Promise<Record<string, string>>((resolve) => {
+                    const connection = Onyx.connect({
+                        key: ONYXKEYS.CACHED_PDF_PATHS,
+                        callback: (val) => {
+                            Onyx.disconnect(connection);
+                            resolve(val ?? {});
+                        },
+                    });
+                });
+
+                // Should not have the new path since it was skipped
+                expect(cachedPaths[id]).not.toBe(path);
+            });
+        });
+
+        describe('clearByKey function', () => {
+
+            it('should clear cached PDF by key and remove from Onyx because specific PDFs need targeted cleanup', async () => {
+                // Given a cached PDF with specific ID
+                const id = 'pdf123';
+                const path = '/path/to/cached.pdf';
+                const pdfPaths = {[id]: path};
+                mockExists.mockResolvedValue(true);
+                mockUnlink.mockResolvedValue(undefined);
+
+                // When clearing by key
+                clearByKey(id, pdfPaths);
+                
+                // Allow promises to resolve
+                await new Promise(resolve => setTimeout(resolve, 10));
+                await waitForBatchedUpdates();
+
+                // Then it should clear the file and remove from cache
+                expect(mockExists).toHaveBeenCalledWith(path);
+                expect(mockUnlink).toHaveBeenCalledWith(path);
+
+                const cachedPaths = await new Promise<Record<string, string>>((resolve) => {
+                    const connection = Onyx.connect({
+                        key: ONYXKEYS.CACHED_PDF_PATHS,
+                        callback: (val) => {
+                            Onyx.disconnect(connection);
+                            resolve(val ?? {});
+                        },
+                    });
+                });
+
+                expect(cachedPaths[id]).toBeUndefined();
+            });
+
+            it('should handle missing key gracefully because nonexistent keys should not cause errors', async () => {
+                // Given PDF paths without the target key
+                const id = 'nonexistent';
+                const pdfPaths = {'other': '/other/path.pdf'};
+
+                // When clearing by missing key
+                clearByKey(id, pdfPaths);
+
+                // Allow promises to resolve
+                await new Promise(resolve => setTimeout(resolve, 10));
+                await waitForBatchedUpdates();
+
+                // Then it should still remove the key from cache even if no file to clear
+                expect(mockExists).not.toHaveBeenCalled();
+                expect(mockUnlink).not.toHaveBeenCalled();
+
+                const cachedPaths = await new Promise<Record<string, string>>((resolve) => {
+                    const connection = Onyx.connect({
+                        key: ONYXKEYS.CACHED_PDF_PATHS,
+                        callback: (val) => {
+                            Onyx.disconnect(connection);
+                            resolve(val ?? {});
+                        },
+                    });
+                });
+
+                expect(cachedPaths[id]).toBeUndefined();
+            });
+        });
+    });
 
 });
