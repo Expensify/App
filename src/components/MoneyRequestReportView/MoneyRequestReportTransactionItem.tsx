@@ -129,7 +129,7 @@ function MoneyRequestReportTransactionItem({
                     onCheckboxPress={toggleTransaction}
                     columns={columns as Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>}
                     isDisabled={isPendingDelete}
-                    style={[styles.p3, shouldUseNarrowLayout ? styles.pt2 : {}]}
+                    style={[styles.p3]}
                 />
             </PressableWithFeedback>
         </OfflineWithFeedback>
