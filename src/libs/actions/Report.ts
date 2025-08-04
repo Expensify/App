@@ -2036,7 +2036,13 @@ function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMar
 }
 
 /** Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI. */
-function editReportComment(reportID: string | undefined, originalReportAction: OnyxEntry<ReportAction>, textForNewComment: string, videoAttributeCache?: Record<string, string>, pdfsPaths?: Record<string, string>) {
+function editReportComment(
+    reportID: string | undefined,
+    originalReportAction: OnyxEntry<ReportAction>,
+    textForNewComment: string,
+    videoAttributeCache?: Record<string, string>,
+    pdfsPaths?: Record<string, string>,
+) {
     const originalReportID = getOriginalReportID(reportID, originalReportAction);
     if (!originalReportID || !originalReportAction) {
         return;

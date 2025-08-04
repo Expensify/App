@@ -11,10 +11,10 @@ import HttpUtils from '@libs/HttpUtils';
 import {buildNextStep} from '@libs/NextStepUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
+import {add, clearByKey} from '@src/libs/actions/CachedPDFPaths';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
 import * as Report from '@src/libs/actions/Report';
-import {add, clearByKey} from '@src/libs/actions/CachedPDFPaths';
 import * as User from '@src/libs/actions/User';
 import DateUtils from '@src/libs/DateUtils';
 import Log from '@src/libs/Log';
@@ -1951,7 +1951,6 @@ describe('actions/Report', () => {
         });
 
         describe('add function', () => {
-
             it('should add new PDF path to cache because caching PDF paths is needed for cleanup', async () => {
                 // Given a new PDF ID and path
                 const id = 'pdf123';
@@ -1978,7 +1977,7 @@ describe('actions/Report', () => {
             });
 
             it('should not add duplicate PDF path because existing cached paths should not be overwritten', async () => {
-                // Given an existing PDF ID in cache  
+                // Given an existing PDF ID in cache
                 const id = 'pdf123';
                 const path = '/path/to/pdf.pdf';
                 const existingPath = '/existing/path.pdf';
@@ -2006,7 +2005,6 @@ describe('actions/Report', () => {
         });
 
         describe('clearByKey function', () => {
-
             it('should clear cached PDF by key and remove from Onyx because specific PDFs need targeted cleanup', async () => {
                 // Given a cached PDF with specific ID
                 const id = 'pdf123';
@@ -2017,9 +2015,9 @@ describe('actions/Report', () => {
 
                 // When clearing by key
                 clearByKey(id, pdfPaths);
-                
+
                 // Allow promises to resolve
-                await new Promise(resolve => setTimeout(resolve, 10));
+                await new Promise((resolve) => setTimeout(resolve, 10));
                 await waitForBatchedUpdates();
 
                 // Then it should clear the file and remove from cache
@@ -2042,13 +2040,13 @@ describe('actions/Report', () => {
             it('should handle missing key gracefully because nonexistent keys should not cause errors', async () => {
                 // Given PDF paths without the target key
                 const id = 'nonexistent';
-                const pdfPaths = {'other': '/other/path.pdf'};
+                const pdfPaths = {other: '/other/path.pdf'};
 
                 // When clearing by missing key
                 clearByKey(id, pdfPaths);
 
                 // Allow promises to resolve
-                await new Promise(resolve => setTimeout(resolve, 10));
+                await new Promise((resolve) => setTimeout(resolve, 10));
                 await waitForBatchedUpdates();
 
                 // Then it should still remove the key from cache even if no file to clear
@@ -2069,5 +2067,4 @@ describe('actions/Report', () => {
             });
         });
     });
-
 });
