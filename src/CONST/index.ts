@@ -656,7 +656,7 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         ASAP_SUBMIT: 'asapSubmit',
-        AUTH_AUTO_REPORT_TITLES: 'authAutoReportTitles',
+        USE_CUSTOM_REPORT_NAMES: 'useCustomReportNamesNewExpensify',
         DEFAULT_ROOMS: 'defaultRooms',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         SPOTNANA_TRAVEL: 'spotnanaTravel',

@@ -8,8 +8,8 @@ function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 // eslint-disable-next-line rulesdir/no-beta-handler
-function canUseAuthAutoReportTitles(betas: OnyxEntry<Beta[]>): boolean {
-    return isBetaEnabled(CONST.BETAS.AUTH_AUTO_REPORT_TITLES, betas);
+function canUseCustomReportNames(betas: OnyxEntry<Beta[]>): boolean {
+    return isBetaEnabled(CONST.BETAS.USE_CUSTOM_REPORT_NAMES, betas);
 }
 
 // eslint-disable-next-line rulesdir/no-beta-handler
@@ -35,7 +35,7 @@ function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>): boolean {
 }
 
 export default {
-    canUseAuthAutoReportTitles,
+    canUseCustomReportNames,
     canUseLinkPreviews,
     isBlockedFromSpotnanaTravel,
     isBetaEnabled,

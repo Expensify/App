@@ -279,10 +279,10 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
     });
 
     const {betas, allReports} = context;
-
+    console.log('morwa Permissions.canUseCustomReportNames(betas)', Permissions.canUseCustomReportNames(betas));
     // Check if the feature is enabled
     // TODO: change this condition later (implemented only for testing purposes)
-    if (false && !Permissions.canUseAuthAutoReportTitles(betas)) {
+    if (!Permissions.canUseCustomReportNames(betas)) {
         Performance.markEnd(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
         Timing.end(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
         return updates;
