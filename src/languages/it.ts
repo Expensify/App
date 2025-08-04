@@ -3527,6 +3527,7 @@ const translations = {
             defaultCategory: 'Categoria predefinita',
             viewTransactions: 'Visualizza transazioni',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Spese di ${displayName}`,
+            deepDiveExpensifyCard: `<muted-text-label>Le transazioni della carta Expensify verranno esportate automaticamente in un “Conto di responsabilità della carta Expensify” creato con la <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nostra integrazione</a>.</muted-text-label>`,
         },
         perDiem: {
             subtitle: 'Imposta le tariffe di diaria per controllare la spesa giornaliera dei dipendenti.',
@@ -3591,8 +3592,6 @@ const translations = {
             exportJournalEntryDescription: "Creeremo una registrazione contabile dettagliata per ogni report di Expensify e la pubblicheremo sull'account qui sotto.",
             exportVendorBillDescription:
                 "Creeremo una fattura dettagliata del fornitore per ogni report di Expensify e la aggiungeremo all'account sottostante. Se questo periodo è chiuso, la registreremo al 1° del prossimo periodo aperto.",
-            deepDiveExpensifyCard: 'Le transazioni della Expensify Card verranno esportate automaticamente in un "Conto di responsabilità della Expensify Card" creato con',
-            deepDiveExpensifyCardIntegration: 'la nostra integrazione.',
             outOfPocketTaxEnabledDescription:
                 'QuickBooks Desktop non supporta le tasse sulle esportazioni delle registrazioni contabili. Poiché hai le tasse abilitate nel tuo spazio di lavoro, questa opzione di esportazione non è disponibile.',
             outOfPocketTaxEnabledError: "Le registrazioni contabili non sono disponibili quando le tasse sono abilitate. Si prega di scegliere un'opzione di esportazione diversa.",
@@ -3674,8 +3673,6 @@ const translations = {
             date: 'Data di esportazione',
             exportInvoices: 'Esporta fatture su',
             exportExpensifyCard: 'Esporta le transazioni della Expensify Card come',
-            deepDiveExpensifyCard: 'Le transazioni della Expensify Card verranno esportate automaticamente in un "Conto di responsabilità della Expensify Card" creato con',
-            deepDiveExpensifyCardIntegration: 'la nostra integrazione.',
             exportDate: {
                 label: 'Data di esportazione',
                 description: 'Usa questa data quando esporti i rapporti su QuickBooks Online.',
