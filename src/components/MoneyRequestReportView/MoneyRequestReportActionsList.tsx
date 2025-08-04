@@ -10,12 +10,12 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
-import FlatList from '@components/FlatList';
-import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
+import BaseFlatList from '@components/FlatList/BaseFlatList';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
+import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@hooks/useFlatListScrollKey';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -26,6 +26,7 @@ import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import {parseFSAttributes} from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -51,6 +52,7 @@ import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Visibility from '@libs/Visibility';
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
 import FloatingMessageCounter from '@pages/home/report/FloatingMessageCounter';
+import getInitialNumToRender from '@pages/home/report/getInitialNumReportActionsToRender';
 import ReportActionsListItemRenderer from '@pages/home/report/ReportActionsListItemRenderer';
 import shouldDisplayNewMarkerOnReportAction from '@pages/home/report/shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from '@pages/home/report/useReportUnreadMessageScrollTracking';
@@ -70,7 +72,6 @@ import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyS
  */
 const EmptyParentReportActionForTransactionThread = undefined;
 
-const INITIAL_NUM_TO_RENDER = 20;
 // Amount of time to wait until all list items should be rendered and scrollToEnd will behave well
 const DELAY_FOR_SCROLLING_TO_END = 100;
 
@@ -580,6 +581,22 @@ function MoneyRequestReportActionsList({
     const isSelectAllChecked = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length;
     // Wrapped into useCallback to stabilize children re-renders
     const keyExtractor = useCallback((item: OnyxTypes.ReportAction) => item.reportActionID, []);
+
+    const {windowHeight} = useWindowDimensions();
+    /**
+     * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
+     * the height of the smallest report action possible.
+     */
+    const initialNumToRender = useMemo((): number | undefined => {
+        const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
+        const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
+        const numToRender = Math.ceil(availableHeight / minimumReportActionHeight);
+        if (linkedReportActionID) {
+            return getInitialNumToRender(numToRender);
+        }
+        return numToRender || undefined;
+    }, [styles.chatItem.paddingBottom, styles.chatItem.paddingTop, windowHeight, linkedReportActionID]);
+
     return (
         <View
             style={[styles.flex1]}
@@ -659,8 +676,8 @@ function MoneyRequestReportActionsList({
                         <SearchMoneyRequestReportEmptyState />
                     </>
                 ) : (
-                    <FlatList
-                        initialNumToRender={INITIAL_NUM_TO_RENDER}
+                    <BaseFlatList
+                        initialNumToRender={initialNumToRender}
                         accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                         testID="money-request-report-actions-list"
                         style={styles.overscrollBehaviorContain}
@@ -695,6 +712,7 @@ function MoneyRequestReportActionsList({
                         ref={reportScrollManager.ref}
                         ListEmptyComponent={!isOffline && showReportActionsLoadingState ? <ReportActionsListLoadingSkeleton /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
                         removeClippedSubviews={false}
+                        initialScrollKey={linkedReportActionID}
                     />
                 )}
             </View>
