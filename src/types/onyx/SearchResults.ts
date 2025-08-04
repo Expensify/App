@@ -479,20 +479,46 @@ type SearchTask = {
     statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 };
 
-/** Model of card search result */
-// s77rt sync with BE
-type SearchCard = {
+/** Model of member grouped search result */
+type SearchMemberGroup = {
+    /** Account ID */
+    accountID: number;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+};
+
+/** Model of card grouped search result */
+type SearchCardGroup = {
+    /** Cardholder account ID */
+    accountID: number;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+
     /** Bank name */
     bank: string;
-
-    /** Last four Primary Account Number digits */
-    lastFourPAN: string;
 
     /** Card name */
     cardName: string;
 
-    /** Cardholder account ID */
-    accountID: number;
+    /** Card name */
+    cardID: string;
+
+    /** Last four Primary Account Number digits */
+    lastFourPAN: string;
 };
 
 /** Types of searchable transactions */
@@ -516,9 +542,9 @@ type SearchResults = {
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, SearchPolicy> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, SearchCard> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>;
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
+        PrefixedRecord<typeof CONST.SEARCH.GROUP_PREFIX, SearchMemberGroup | SearchCardGroup>;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
@@ -541,6 +567,7 @@ export type {
     SearchReport,
     SearchReportAction,
     SearchPolicy,
-    SearchCard,
     SearchResultsInfo,
+    SearchMemberGroup,
+    SearchCardGroup,
 };

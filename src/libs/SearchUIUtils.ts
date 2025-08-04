@@ -37,6 +37,7 @@ import type {
     ListItemDataType,
     ListItemType,
     SearchDataTypes,
+    SearchMemberGroup,
     SearchPersonalDetails,
     SearchPolicy,
     SearchReport,
@@ -187,6 +188,8 @@ type ReportActionKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
 type PolicyKey = `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`;
 
 type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
+
+type GroupKey = `${typeof CONST.SEARCH.GROUP_PREFIX}${string}`;
 
 type SearchKey = ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>;
 
@@ -480,8 +483,8 @@ function isReportEntry(key: string): key is ReportKey {
 /**
  * @private
  */
-function isTransactionEntry(key: string): key is TransactionKey {
-    return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
+function isGroupEntry(key: string): key is GroupKey {
+    return key.startsWith(CONST.SEARCH.GROUP_PREFIX);
 }
 
 /**
@@ -500,6 +503,13 @@ function isViolationEntry(key: string): key is ViolationKey {
  */
 function isReportActionEntry(key: string): key is ReportActionKey {
     return key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+}
+
+/**
+ * @private
+ */
+function isTransactionEntry(key: string): key is TransactionKey {
+    return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
 }
 
 /**
@@ -1243,7 +1253,23 @@ function getReportSections(
  * Do not use directly, use only via `getSections()` facade.
  */
 function getMemberSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): TransactionMemberGroupListItemType[] {
-    return data && metadata ? [] : []; // s77rt TODO
+    const memberSections: Record<string, TransactionMemberGroupListItemType> = {};
+
+    for (const key in data) {
+        if (isGroupEntry(key)) {
+            const memberGroup = data[key] as SearchMemberGroup;
+            const personalDetails = data.personalDetailsList[memberGroup.accountID];
+
+            memberSections[key] = {
+                groupedBy: CONST.SEARCH.GROUP_BY.FROM,
+                transactions: [],
+                ...personalDetails,
+                ...memberGroup,
+            };
+        }
+    }
+
+    return Object.values(memberSections);
 }
 
 /**
@@ -1521,7 +1547,7 @@ function getSortedReportData(data: TransactionReportGroupListItemType[], localeC
  * Sorts report sections based on a specified column and sort order.
  */
 function getSortedMemberData(data: TransactionMemberGroupListItemType[]) {
-    return data ? [] : []; // s77rt TODO
+    return data;
 }
 
 /**
@@ -1529,7 +1555,7 @@ function getSortedMemberData(data: TransactionMemberGroupListItemType[]) {
  * Sorts report sections based on a specified column and sort order.
  */
 function getSortedCardData(data: TransactionCardGroupListItemType[]) {
-    return data ? [] : []; // s77rt TODO
+    return data;
 }
 
 /**

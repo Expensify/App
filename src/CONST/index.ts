@@ -6481,6 +6481,7 @@ const CONST = {
         ANIMATION: {
             FADE_DURATION: 200,
         },
+        GROUP_PREFIX: 'group_',
     },
 
     EXPENSE: {
