@@ -139,13 +139,13 @@ function MoneyRequestHeader({report, parentReportAction, policy, backTo, onBackB
             return;
         }
         if (isTrackExpenseAction(parentReportAction)) {
-            deleteTrackExpense(report?.parentReportID, transaction.transactionID, parentReportAction, true);
+            deleteTrackExpense(report?.parentReportID, transaction.transactionID, parentReportAction, duplicateTransactions, duplicateTransactionViolations, true);
         } else {
-            deleteMoneyRequest(transaction.transactionID, parentReportAction, true);
+            deleteMoneyRequest(transaction.transactionID, parentReportAction, duplicateTransactions, duplicateTransactionViolations, true);
             removeTransaction(transaction.transactionID);
         }
         onBackButtonPress();
-    }, [parentReportAction, transaction, report?.parentReportID, removeTransaction, onBackButtonPress]);
+    }, [parentReportAction, transaction, report?.parentReportID, removeTransaction, onBackButtonPress, duplicateTransactions, duplicateTransactionViolations]);
 
     const getStatusIcon = useCallback(
         (src: IconAsset) => (
@@ -307,7 +307,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, backTo, onBackB
                 },
             },
         }),
-        [translate, parentReportAction, isDelegateAccessRestricted, showDelegateNoAccessModal, transaction, reportID, report],
+        [translate, parentReportAction, isDelegateAccessRestricted, showDelegateNoAccessModal, transaction, report],
     );
 
     const applicableSecondaryActions = useMemo(() => secondaryActions.map((action) => secondaryActionsImplementation[action]), [secondaryActions, secondaryActionsImplementation]);
