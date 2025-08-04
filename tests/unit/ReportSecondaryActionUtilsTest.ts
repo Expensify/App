@@ -1248,7 +1248,7 @@ describe('getSecondaryExportReportActions', () => {
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
     });
 
-    it('includes REMOVE HOLD option for admin', () => {
+    it('includes REMOVE HOLD option for admin if he is not the holder', () => {
         const report = {} as unknown as Report;
         const policy = {
             role: CONST.POLICY.ROLE.ADMIN,
@@ -1311,8 +1311,9 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
 
-    it('includes REMOVE HOLD option for admin', () => {
+    it('includes REMOVE HOLD option for transaction thread report admin if he is not the holder', () => {
         const report = {} as unknown as Report;
+        const transactionThreadReport = {} as unknown as Report;
         const policy = {
             role: CONST.POLICY.ROLE.ADMIN,
         } as unknown as Policy;
@@ -1322,8 +1323,14 @@ describe('getSecondaryTransactionThreadActions', () => {
             },
         } as unknown as Transaction;
 
-        const result = getSecondaryTransactionThreadActions(report, transaction, [], policy);
-        expect(result).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD);
+        jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(false);
+        const result = getSecondaryTransactionThreadActions(report, transaction, [], policy, transactionThreadReport);
+        expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
+
+        // Do not show if admin is the holder
+        jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(true);
+        const result2 = getSecondaryTransactionThreadActions(report, transaction, [], policy, transactionThreadReport);
+        expect(result2).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
 
     it('includes DELETE option for expense report submitter', async () => {
