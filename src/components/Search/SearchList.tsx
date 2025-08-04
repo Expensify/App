@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
-import type {FlashListProps, ViewToken} from '@shopify/flash-list';
+import type {FlashListProps, FlashListRef, ViewToken} from '@shopify/flash-list';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
@@ -25,7 +25,6 @@ import type {
 } from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
-import useInitialWindowDimensions from '@hooks/useInitialWindowDimensions';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
@@ -40,8 +39,6 @@ import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlight
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {createItemHeightCalculator} from './itemHeightCalculator';
-import ITEM_HEIGHTS from './itemHeights';
 import type {SearchQueryJSON} from './types';
 
 const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
@@ -90,16 +87,13 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     columns: SortableColumnName[];
 
     /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
-    onViewableItemsChanged?: (info: {changed: ViewToken[]; viewableItems: ViewToken[]}) => void;
+    onViewableItemsChanged?: (info: {changed: Array<ViewToken<SearchListItem>>; viewableItems: Array<ViewToken<SearchListItem>>}) => void;
 
     /** Invoked on mount and layout changes */
     onLayout?: () => void;
 
     /** Styles to apply to the content container */
     contentContainerStyle?: StyleProp<ViewStyle>;
-
-    /** The estimated height of an item in the list */
-    estimatedItemSize?: number;
 
     /** Whether mobile selection mode is enabled */
     isMobileSelectionModeEnabled: boolean;
@@ -136,15 +130,13 @@ function SearchList(
         columns,
         onViewableItemsChanged,
         onLayout,
-        estimatedItemSize = ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD,
         isMobileSelectionModeEnabled,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
     const styles = useThemeStyles();
 
-    const {initialHeight, initialWidth} = useInitialWindowDimensions();
-    const {hash, groupBy, type} = queryJSON;
+    const {hash, groupBy} = queryJSON;
     const flattenedItems = useMemo(() => {
         if (groupBy) {
             if (!isTransactionGroupListItemArray(data)) {
@@ -166,7 +158,7 @@ function SearchList(
 
     const {translate} = useLocalize();
     const isFocused = useIsFocused();
-    const listRef = useRef<FlashList<SearchListItem>>(null);
+    const listRef = useRef<FlashListRef<SearchListItem>>(null);
     const hasKeyBeenPressed = useRef(false);
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -175,7 +167,7 @@ function SearchList(
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here because there is a race condition that causes shouldUseNarrowLayout to change indefinitely in this component
     // See https://github.com/Expensify/App/issues/48675 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
@@ -373,51 +365,6 @@ function SearchList(
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedItemsWithoutPendingDelete.length;
 
-    const getItemHeight = useMemo(
-        () =>
-            createItemHeightCalculator({
-                isLargeScreenWidth,
-                shouldUseNarrowLayout,
-                type,
-            }),
-        [isLargeScreenWidth, shouldUseNarrowLayout, type],
-    );
-
-    const overrideItemLayout = useCallback(
-        (layout: {span?: number; size?: number}, item: SearchListItem) => {
-            if (!layout) {
-                return;
-            }
-            const height = getItemHeight(item);
-            // eslint-disable-next-line no-param-reassign
-            return (layout.size = height > 0 ? height : estimatedItemSize);
-        },
-        [getItemHeight, estimatedItemSize],
-    );
-
-    const calculatedListHeight = useMemo(() => {
-        return initialHeight - variables.contentHeaderHeight;
-    }, [initialHeight]);
-
-    const calculatedListWidth = useMemo(() => {
-        if (shouldUseNarrowLayout) {
-            return initialWidth;
-        }
-
-        if (isLargeScreenWidth) {
-            return initialWidth - variables.navigationTabBarSize - variables.sideBarWithLHBWidth;
-        }
-
-        return initialWidth;
-    }, [initialWidth, shouldUseNarrowLayout, isLargeScreenWidth]);
-
-    const estimatedListSize = useMemo(() => {
-        return {
-            height: calculatedListHeight,
-            width: calculatedListWidth,
-        };
-    }, [calculatedListHeight, calculatedListWidth]);
-
     return (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
             {tableHeaderVisible && (
@@ -466,11 +413,7 @@ function SearchList(
                 onLayout={onLayout}
                 removeClippedSubviews
                 drawDistance={1000}
-                estimatedItemSize={estimatedItemSize}
-                overrideItemLayout={overrideItemLayout}
-                estimatedListSize={estimatedListSize}
                 contentContainerStyle={contentContainerStyle}
-                overrideProps={{estimatedHeightSize: calculatedListHeight}}
             />
             <Modal
                 isVisible={isModalVisible}
