@@ -11,6 +11,23 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
+  # fingerprint:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+
+  #     - name: Setup Node
+  #       uses: ./.github/actions/composite/setupNode
+  #       with:
+  #         IS_HYBRID_BUILD: 'false'
+
+  #     - name: Run RNEF Fingerprint
+  #       run: |
+  #         FINGERPRINT_OUTPUT=$(npx rnef fingerprint -p android --raw 2>&1)
+  #         echo "FINGERPRINT_OUTPUT:"
+  #         echo "$FINGERPRINT_OUTPUT"
+
   build:
     runs-on: ${{ github.repository_owner == 'Expensify' && 'ubuntu-latest-xl' || 'ubuntu-latest' }}
     strategy:
@@ -37,7 +54,10 @@ jobs:
 
       - name: RNEF Remote Build - Android
         # Commit from Jul 23, 2025
-        uses: callstackincubator/android@4bcd9a15e7e358c1d4eeb482918c1fba064b1b8d
+        # uses: callstackincubator/android@4bcd9a15e7e358c1d4eeb482918c1fba064b1b8d
+        # commit with logging errors
+        # uses: callstackincubator/android@dd791dec75f5fbb0adbd1f3d1417a3f2b3866881
+        uses: callstackincubator/android@d9a81f860e436ff2971323990244e32830dcabd1
         env:
           IS_HYBRID_APP: ${{ matrix.is_hybrid_build }}
         with:

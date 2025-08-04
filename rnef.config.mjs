@@ -7,6 +7,7 @@ const isHybrid = process.env.IS_HYBRID_APP === 'true';
 
 /** @type {import('@rnef/config').Config} */
 export default {
+    // remoteCacheProvider: null,
     remoteCacheProvider: providerGitHub({
         owner: 'Expensify',
         repository: 'App',
