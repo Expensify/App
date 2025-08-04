@@ -338,18 +338,13 @@ function updateReportsToDisplayInLHN(
 }
 
 /**
- * @returns An array of reportIDs sorted in the proper order
+ * Categorizes reports into their respective LHN groups
  */
-function sortReportsToDisplayInLHN(
+function categorizeReportsForLHN(
     reportsToDisplay: ReportsToDisplayInLHN,
-    priorityMode: OnyxEntry<PriorityMode>,
-    localeCompare: LocaleContextProps['localeCompare'],
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
-): string[] {
-    Performance.markStart(CONST.TIMING.GET_ORDERED_REPORT_IDS);
-    const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
-    const isInDefaultMode = !isInFocusMode;
+) {
     // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
     // 1. Pinned/GBR - Always sorted by reportDisplayName
     // 2. Error reports - Always sorted by reportDisplayName
@@ -368,28 +363,61 @@ function sortReportsToDisplayInLHN(
     const archivedReports: MiniReport[] = [];
 
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
-    Object.values(reportsToDisplay).forEach((reportToDisplay) => {
-        const report = reportToDisplay;
+    for (const report of Object.values(reportsToDisplay)) {
+        if (!report?.reportID) {
+            continue;
+        }
+
+        const reportID = report.reportID;
+        const isPinned = report.isPinned ?? false;
+        const hasErrors = report.hasErrorsOtherThanFailedReceipt;
+        const hasDraft = reportID ? hasValidDraftComment(reportID) : false;
+        const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
+        const rNVPs = reportNameValuePairs?.[reportNameValuePairsKey];
+
         const miniReport: MiniReport = {
-            reportID: report?.reportID,
+            reportID,
             displayName: getReportName(report),
-            lastVisibleActionCreated: report?.lastVisibleActionCreated,
+            lastVisibleActionCreated: report.lastVisibleActionCreated,
         };
 
-        const isPinned = report?.isPinned ?? false;
-        const rNVPs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-        if (isPinned || reportAttributes?.[report?.reportID]?.requiresAttention) {
+        if (isPinned || (reportID && reportAttributes?.[reportID]?.requiresAttention)) {
             pinnedAndGBRReports.push(miniReport);
-        } else if (report?.hasErrorsOtherThanFailedReceipt) {
+        } else if (hasErrors) {
             errorReports.push(miniReport);
-        } else if (hasValidDraftComment(report?.reportID)) {
+        } else if (hasDraft) {
             draftReports.push(miniReport);
         } else if (isArchivedNonExpenseReport(report, !!rNVPs?.private_isArchived)) {
             archivedReports.push(miniReport);
         } else {
             nonArchivedReports.push(miniReport);
         }
-    });
+    }
+
+    return {
+        pinnedAndGBRReports,
+        errorReports,
+        draftReports,
+        nonArchivedReports,
+        archivedReports,
+    };
+}
+
+/**
+ * Sorts categorized reports based on priority mode
+ */
+function sortCategorizedReports(
+    categories: {
+        pinnedAndGBRReports: MiniReport[];
+        errorReports: MiniReport[];
+        draftReports: MiniReport[];
+        nonArchivedReports: MiniReport[];
+        archivedReports: MiniReport[];
+    },
+    isInDefaultMode: boolean,
+    localeCompare: LocaleContextProps['localeCompare'],
+) {
+    const {pinnedAndGBRReports, errorReports, draftReports, nonArchivedReports, archivedReports} = categories;
 
     // Sort each group of reports accordingly
     pinnedAndGBRReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
@@ -411,14 +439,46 @@ function sortReportsToDisplayInLHN(
         nonArchivedReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
         archivedReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
     }
+}
 
+/**
+ * Combines sorted report categories and extracts report IDs
+ */
+function combineReportCategories(
+    pinnedAndGBRReports: MiniReport[],
+    errorReports: MiniReport[],
+    draftReports: MiniReport[],
+    nonArchivedReports: MiniReport[],
+    archivedReports: MiniReport[],
+): string[] {
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
+    return [...pinnedAndGBRReports, ...errorReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID).filter(Boolean) as string[];
+}
 
-    const LHNReports = [...pinnedAndGBRReports, ...errorReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID).filter(Boolean) as string[];
+function sortReportsToDisplayInLHN(
+    reportsToDisplay: ReportsToDisplayInLHN,
+    priorityMode: OnyxEntry<PriorityMode>,
+    localeCompare: LocaleContextProps['localeCompare'],
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
+): string[] {
+    Performance.markStart(CONST.TIMING.GET_ORDERED_REPORT_IDS);
+
+    const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
+    const isInDefaultMode = !isInFocusMode;
+
+    // Step 1: Categorize reports
+    const categories = categorizeReportsForLHN(reportsToDisplay, reportNameValuePairs, reportAttributes);
+
+    // Step 2: Sort each category
+    sortCategorizedReports(categories, isInDefaultMode, localeCompare);
+
+    // Step 3: Combine and extract IDs
+    const result = combineReportCategories(categories.pinnedAndGBRReports, categories.errorReports, categories.draftReports, categories.nonArchivedReports, categories.archivedReports);
 
     Performance.markEnd(CONST.TIMING.GET_ORDERED_REPORT_IDS);
-    return LHNReports;
+    return result;
 }
 
 type ReasonAndReportActionThatHasRedBrickRoad = {
