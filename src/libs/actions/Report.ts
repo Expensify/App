@@ -2074,7 +2074,7 @@ function editReportComment(
 
     //  Delete the comment if it's empty
     if (!htmlForNewComment) {
-        deleteReportComment(originalReportID, originalReportAction, pdfPaths);
+        deleteReportComment(originalReportID, originalReportAction, pdfsPaths ?? {});
         return;
     }
 

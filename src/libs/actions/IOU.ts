@@ -8258,7 +8258,7 @@ function deleteMoneyRequest(
 
     // STEP 3: Make the API request
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
-    clearPdfByOnyxKey(transactionID, pdfsPaths);
+    clearPdfByOnyxKey(transactionID, pdfsPaths ?? {});
 
     return urlToNavigateBack;
 }
@@ -8281,7 +8281,7 @@ function deleteTrackExpense(
     // STEP 1: Get all collections we're updating
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
     if (!isSelfDM(chatReport)) {
-        deleteMoneyRequest(transactionID, reportAction, transactions, violations, isSingleTransactionView, pdfsPaths);
+        deleteMoneyRequest(transactionID, reportAction, transactions, violations, isSingleTransactionView, undefined, pdfsPaths);
         return urlToNavigateBack;
     }
 
@@ -8300,7 +8300,9 @@ function deleteTrackExpense(
 
     // STEP 6: Make the API request
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
-    clearPdfByOnyxKey(transactionID, pdfsPaths);
+    if (transactionID && pdfsPaths) {
+        clearPdfByOnyxKey(transactionID, pdfsPaths);
+    }
 
     // STEP 7: Navigate the user depending on which page they are on and which resources were deleted
     return urlToNavigateBack;

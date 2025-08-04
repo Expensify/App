@@ -298,9 +298,9 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         if (isMoneyRequestAction(reportAction)) {
             const originalMessage = getOriginalMessage(reportAction);
             if (isTrackExpenseAction(reportAction)) {
-                deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations, pdfsPaths ?? {});
+                deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations, false, pdfsPaths ?? {});
             } else {
-                deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations, pdfsPaths ?? {});
+                deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations, false, undefined, pdfsPaths ?? {});
             }
         } else if (reportAction) {
             InteractionManager.runAfterInteractions(() => {
