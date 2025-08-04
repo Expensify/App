@@ -28,6 +28,7 @@ const reportID = '123456789';
 const reportID2 = '11111';
 const reportID3 = '99999';
 const reportID4 = '6155022250251839';
+const reportID5 = '22222';
 const transactionID = '1';
 const transactionID2 = '2';
 const transactionID3 = '3';
@@ -231,6 +232,27 @@ const searchResults: OnyxTypes.SearchResults = {
             chatType: 'policyExpenseChat',
             created: '2025-03-05 16:34:27',
             type: 'chat',
+        },
+        [`report_${reportID5}`]: {
+            accountID: adminAccountID,
+            action: 'view',
+            chatReportID: '1706144653204915',
+            created: '2024-12-21 13:05:20',
+            currency: 'USD',
+            isOneTransactionReport: true,
+            isPolicyExpenseChat: false,
+            isWaitingOnBankAccount: false,
+            managerID: adminAccountID,
+            nonReimbursableTotal: 0,
+            ownerAccountID: adminAccountID,
+            policyID,
+            reportID: reportID5,
+            reportName: 'Expense Report #123',
+            stateNum: 0,
+            statusNum: 0,
+            total: 0,
+            type: 'expense',
+            unheldTotal: 0,
         },
         [`transactions_${transactionID}`]: {
             accountID: adminAccountID,
@@ -1004,6 +1026,42 @@ const transactionReportGroupListItems = [
             login: 'approver@policy.com',
         },
         transactions: [transactionsListItems.at(2), transactionsListItems.at(3)],
+    },
+    {
+        groupedBy: 'reports',
+        accountID: 18439984,
+        action: 'view',
+        chatReportID: '1706144653204915',
+        created: '2024-12-21 13:05:20',
+        currency: 'USD',
+        from: {
+            accountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
+            avatar: '',
+            displayName: undefined,
+            login: undefined,
+        },
+        isOneTransactionReport: true,
+        isPolicyExpenseChat: false,
+        isWaitingOnBankAccount: false,
+        keyForList: reportID5,
+        managerID: 18439984,
+        nonReimbursableTotal: 0,
+        ownerAccountID: 18439984,
+        policyID: 'A1B2C3',
+        reportID: reportID5,
+        reportName: 'Expense Report #123',
+        stateNum: 0,
+        statusNum: 0,
+        to: {
+            accountID: 0,
+            avatar: '',
+            displayName: undefined,
+            login: undefined,
+        },
+        total: 0,
+        transactions: [],
+        type: 'expense',
+        unheldTotal: 0,
     },
 ] as TransactionReportGroupListItemType[];
 
