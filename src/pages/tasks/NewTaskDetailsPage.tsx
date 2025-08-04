@@ -28,6 +28,7 @@ type NewTaskDetailsPageProps = PlatformStackScreenProps<NewTaskNavigatorParamLis
 
 function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
     const [task] = useOnyx(ONYXKEYS.TASK, {canBeMissing: true});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [taskTitle, setTaskTitle] = useState(task?.title ?? '');
@@ -70,7 +71,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
 
         if (skipConfirmation) {
             setShareDestinationValue(task?.parentReportID);
-            createTaskAndNavigate(task?.parentReportID, values.taskTitle, values.taskDescription ?? '', task?.assignee ?? '', task.assigneeAccountID, task.assigneeChatReport);
+            createTaskAndNavigate(task?.parentReportID, values.taskTitle, values.taskDescription ?? '', task?.assignee ?? '', task.assigneeAccountID, task.assigneeChatReport, CONST.POLICY.OWNER_EMAIL_FAKE, false, quickAction);
         } else {
             Navigation.navigate(ROUTES.NEW_TASK.getRoute(backTo));
         }

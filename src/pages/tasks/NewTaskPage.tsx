@@ -32,6 +32,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
     const [task] = useOnyx(ONYXKEYS.TASK, {canBeMissing: true});
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const assignee = useMemo(() => getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails), [task?.assigneeAccountID, personalDetails]);
@@ -91,7 +92,17 @@ function NewTaskPage({route}: NewTaskPageProps) {
             return;
         }
 
-        createTaskAndNavigate(parentReport?.reportID, task.title, task?.description ?? '', task?.assignee ?? '', task.assigneeAccountID, task.assigneeChatReport, parentReport?.policyID);
+        createTaskAndNavigate(
+            parentReport?.reportID,
+            task.title,
+            task?.description ?? '',
+            task?.assignee ?? '',
+            task.assigneeAccountID,
+            task.assigneeChatReport,
+            parentReport?.policyID,
+            false,
+            quickAction,
+        );
     };
 
     return (
