@@ -103,11 +103,11 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     }, [unsafeGroupBy]);
 
     const [feedOptions, feed] = useMemo(() => {
-        const feedFilterValue = flatFilters
+        const feedFilterValues = flatFilters
             .find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)
-            ?.filters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO)?.value;
+            ?.filters?.map((filter) => filter.value);
         const options = getFeedOptions(allFeeds, allCards);
-        const value = feedFilterValue ? options.filter((option) => option.value === feedFilterValue) : [];
+        const value = feedFilterValues ? options.filter((option) => feedFilterValues.includes(option.value)) : [];
         return [options, value];
     }, [flatFilters, allFeeds, allCards]);
 
