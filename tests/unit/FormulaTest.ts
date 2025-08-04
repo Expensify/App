@@ -93,7 +93,7 @@ describe('CustomFormula', () => {
 
         test('should compute basic report formula', () => {
             const result = compute('{report:type} {report:total}', mockContext);
-            expect(result).toBe('Expense ReportUSD 100.00'); // No space between parts
+            expect(result).toBe('Expense ReportUSD100.00'); // No space between parts
         });
 
         test('should compute date formula', () => {
@@ -127,7 +127,12 @@ describe('CustomFormula', () => {
 
         test('should preserve free text', () => {
             const result = compute('Expense Report - {report:total}', mockContext);
-            expect(result).toBe('Expense Report - USD 100.00');
+            expect(result).toBe('Expense Report - USD100.00');
+        });
+
+        test('should preserve exact spacing around formula parts', () => {
+            const result = compute('Report with type after 4 spaces   {report:type}-and no space after computed part', mockContext);
+            expect(result).toBe('Report with type after 4 spaces   Expense Report-and no space after computed part');
         });
     });
 
