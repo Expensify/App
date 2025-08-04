@@ -138,7 +138,9 @@ const Pagination: Middleware = (requestResponse, request) => {
         if (request.command === WRITE_COMMANDS.OPEN_REPORT) {
             // Stores the oldestUnreadReportActionID in Onyx to to allow fetching the correct page initially when a report is loaded.
             // This value is reset once the report has finished loading.
-            const oldestUnreadReportActionID = 'oldestUnreadReportActionID' in response ? ((response.oldestUnreadReportActionID as string) ?? CONST.NOT_FOUND_ID) : CONST.NOT_FOUND_ID;
+            const oldestUnreadReportActionID = response.oldestUnreadReportActionID ?? CONST.NOT_FOUND_ID;
+            console.log('oldestUnreadReportActionID pag', oldestUnreadReportActionID);
+
             response.onyxData.push({
                 key: `${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${resourceID}`,
                 onyxMethod: Onyx.METHOD.SET,

@@ -807,7 +807,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // only one we will have in cache.
     const isInitiallyLoadingReport = isUnread(report, transactionThreadReport) && (reportMetadata.isLoadingInitialReportActions ?? false) && reportActions.length <= 1;
     const isInitiallyLoadingReportWhileOffline = isUnread(report, transactionThreadReport) && (reportMetadata.isLoadingInitialReportActions ?? false) && isOffline;
-    const isReportReady = !isInitiallyLoadingReport && !isInitiallyLoadingReportWhileOffline && !!oldestUnreadReportActionID;
+    const isLoadingOldestUnreadReportActionID = !isOffline && !oldestUnreadReportActionID;
+    const isReportReady = !isInitiallyLoadingReport && !isInitiallyLoadingReportWhileOffline && !isLoadingOldestUnreadReportActionID;
 
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
