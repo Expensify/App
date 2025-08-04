@@ -329,7 +329,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     }
 
     // Wait for signOut (if called), then redirect and update Onyx.
-    signOutPromise
+    return signOutPromise
         .then((response) => {
             if (response?.hasOldDotAuthCookies) {
                 Log.info('Redirecting to OldDot sign out');
