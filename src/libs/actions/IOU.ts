@@ -8300,9 +8300,7 @@ function deleteTrackExpense(
 
     // STEP 6: Make the API request
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
-    if (transactionID && pdfsPaths) {
-        clearPdfByOnyxKey(transactionID, pdfsPaths);
-    }
+    clearPdfByOnyxKey(transactionID, pdfsPaths ?? {});
 
     // STEP 7: Navigate the user depending on which page they are on and which resources were deleted
     return urlToNavigateBack;

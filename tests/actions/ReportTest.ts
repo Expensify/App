@@ -1943,8 +1943,12 @@ describe('actions/Report', () => {
     });
 
     describe('CachedPDFPaths functionality', () => {
-        // Import mocked functions
-        const {exists: mockExists, unlink: mockUnlink} = jest.requireMock('react-native-fs');
+        // Import mocked functions with proper typing
+        const mockFs = jest.requireMock<{
+            exists: jest.MockedFunction<(path: string) => Promise<boolean>>;
+            unlink: jest.MockedFunction<(path: string) => Promise<void>>;
+        }>('react-native-fs');
+        const {exists: mockExists, unlink: mockUnlink} = mockFs;
 
         beforeEach(() => {
             jest.clearAllMocks();
@@ -2011,13 +2015,17 @@ describe('actions/Report', () => {
                 const path = '/path/to/cached.pdf';
                 const pdfPaths = {[id]: path};
                 mockExists.mockResolvedValue(true);
-                mockUnlink.mockResolvedValue(undefined);
+                mockUnlink.mockResolvedValue();
 
                 // When clearing by key
                 clearByKey(id, pdfPaths);
 
                 // Allow promises to resolve
-                await new Promise((resolve) => setTimeout(resolve, 10));
+                await new Promise<void>((resolve) => {
+                    setTimeout(() => {
+                        resolve();
+                    }, 10);
+                });
                 await waitForBatchedUpdates();
 
                 // Then it should clear the file and remove from cache
@@ -2046,7 +2054,11 @@ describe('actions/Report', () => {
                 clearByKey(id, pdfPaths);
 
                 // Allow promises to resolve
-                await new Promise((resolve) => setTimeout(resolve, 10));
+                await new Promise<void>((resolve) => {
+                    setTimeout(() => {
+                        resolve();
+                    }, 10);
+                });
                 await waitForBatchedUpdates();
 
                 // Then it should still remove the key from cache even if no file to clear
