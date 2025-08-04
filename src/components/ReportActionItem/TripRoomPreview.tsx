@@ -179,7 +179,7 @@ function TripRoomPreview({
                 >
                     <View style={[styles.moneyRequestPreviewBox, styles.p4, styles.gap4, isHovered ? styles.reportPreviewBoxHoverBorder : undefined]}>
                         <View>
-                            <Text style={[styles.textStrong, styles.textNormal, styles.mb1]}>{chatReport?.reportName}</Text>
+                            <Text style={[styles.headerText, styles.mb1]}>{chatReport?.reportName}</Text>
                             <Text style={[styles.textLabelSupporting, styles.lh16]}>
                                 {dateInfo} • {reservationsData.length} {(reservationsData.length < 2 ? translate('travel.trip') : translate('travel.trips')).toLowerCase()}
                             </Text>
@@ -193,7 +193,7 @@ function TripRoomPreview({
                         )}
                         <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                             <Text style={[styles.textLabelSupporting, styles.lh16]}>{translate('common.total')}</Text>
-                            <Text style={[styles.labelStrong, styles.textNormal, styles.lineHeightXLarge]}>{displayAmount}</Text>
+                            <Text style={[styles.headerText, styles.lineHeightXLarge]}>{displayAmount}</Text>
                         </View>
 
                         <Button
