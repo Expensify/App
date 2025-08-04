@@ -3,13 +3,13 @@ import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {Platform, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {SharedValue} from 'react-native-reanimated';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import Banner from '@components/Banner';
 import BlockedReportFooter from '@components/BlockedReportFooter';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {useKeyboardDismissableFlatListContext} from '@components/KeyboardDismissableFlatList/KeyboardDismissableFlatListContext';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -77,9 +77,6 @@ type ReportFooterProps = {
     /** The native ID for this component */
     nativeID?: string;
 
-    /** The current keyboard height, updated on every keyboard movement frame */
-    keyboardHeight: SharedValue<number>;
-
     /** Callback when layout of composer changes */
     onLayout: (height: number) => void;
 
@@ -98,7 +95,6 @@ function ReportFooter({
     onComposerFocus,
     reportTransactions,
     nativeID,
-    keyboardHeight,
     onLayout,
     headerHeight,
 }: ReportFooterProps) {
@@ -110,6 +106,7 @@ function ReportFooter({
     const {unmodifiedPaddings} = useSafeAreaPaddings();
     const {isKeyboardActive} = useKeyboardState();
     const [composerHeight, setComposerHeight] = useState<number>(CONST.CHAT_FOOTER_MIN_HEIGHT);
+    const {keyboardHeight} = useKeyboardDismissableFlatListContext();
 
     const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
     const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS, canBeMissing: false});

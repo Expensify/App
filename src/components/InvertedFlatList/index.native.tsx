@@ -1,4 +1,4 @@
-import type {ForwardedRef} from 'react';
+import type {FC, ForwardedRef} from 'react';
 import React, {forwardRef} from 'react';
 import type {FlatList} from 'react-native';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
@@ -11,7 +11,7 @@ function BaseInvertedFlatListWithRef<T>(props: BaseInvertedFlatListProps<T>, ref
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
-            CellRendererComponent={CellRendererComponent}
+            CellRendererComponent={CellRendererComponent as FC}
             /**
              * To achieve absolute positioning and handle overflows for list items, the property must be disabled
              * for Android native builds.

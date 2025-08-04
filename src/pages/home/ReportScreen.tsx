@@ -4,9 +4,8 @@ import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList, LayoutChangeEvent, ViewStyle} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, Platform, View} from 'react-native';
-import {KeyboardController, KeyboardGestureArea, useKeyboardHandler} from 'react-native-keyboard-controller';
+import {KeyboardController, KeyboardGestureArea} from 'react-native-keyboard-controller';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {useAnimatedScrollHandler, useSharedValue} from 'react-native-reanimated';
 import Banner from '@components/Banner';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -135,76 +134,6 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-function useKeyboardAnimation(isModalVisible?: boolean) {
-    const height = useSharedValue(0);
-    const offset = useSharedValue(0);
-    const scrollY = useSharedValue(0);
-    const keyboardAbsoluteHeight = useSharedValue(0);
-    const contentSizeHeight = useSharedValue(0);
-    const layoutMeasurementHeight = useSharedValue(0);
-
-    useKeyboardHandler({
-        onStart: (e) => {
-            'worklet';
-
-            const scrollYValueAtStart = scrollY.get();
-            const prevHeight = height.get();
-
-            height.set(e.height);
-
-            const willKeyboardOpen = e.progress === 1;
-
-            if (willKeyboardOpen) {
-                if (e.height > 0) {
-                    keyboardAbsoluteHeight.set(e.height);
-                }
-
-                // Do nothing when the keyboard opens again after the modal closes, since the current position is preserved
-                if (isModalVisible) {
-                    return;
-                }
-            }
-
-            if (isModalVisible) {
-                // Since the keyboard will close immediately when a modal opens, this is to preserve the current scroll position before it closes
-                offset.set(scrollYValueAtStart + keyboardAbsoluteHeight.get());
-                return;
-            }
-
-            // Preserve the current scroll position the the keyboard starts its movement
-            offset.set(scrollYValueAtStart + prevHeight);
-        },
-        onInteractive: (e) => {
-            'worklet';
-
-            height.set(e.height);
-            offset.set(scrollY.get() + e.height);
-        },
-        onMove: (e) => {
-            'worklet';
-
-            height.set(e.height);
-        },
-        onEnd: (e) => {
-            'worklet';
-
-            height.set(e.height);
-        },
-    });
-
-    const onScroll = useAnimatedScrollHandler({
-        onScroll: (e) => {
-            'worklet';
-
-            scrollY.set(e.contentOffset.y);
-            contentSizeHeight.set(e.contentSize.height);
-            layoutMeasurementHeight.set(e.layoutMeasurement.height);
-        },
-    });
-
-    return {height, onScroll, offset, scrollY, contentSizeHeight, layoutMeasurementHeight};
-}
-
 function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -221,7 +150,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const currentReportIDValue = useCurrentReportID();
 
-    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: false});
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {canBeMissing: true});
     const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {canBeMissing: true});
     const [accountManagerReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(accountManagerReportID)}`, {canBeMissing: true});
@@ -237,8 +165,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     });
     const deletedParentAction = isDeletedParentAction(parentReportAction);
     const prevDeletedParentAction = usePrevious(deletedParentAction);
-    const {scrollY, height: keyboardHeight, offset: keyboardOffset, onScroll, contentSizeHeight, layoutMeasurementHeight} = useKeyboardAnimation(modal?.isPopover);
-
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
 
     useFocusEffect(
@@ -947,14 +873,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             hasOlderActions={hasOlderActions}
                                             parentReportAction={parentReportAction}
                                             transactionThreadReportID={transactionThreadReportID}
-                                            onScroll={onScroll}
-                                            scrollingVerticalOffset={scrollY}
-                                            keyboardOffset={keyboardOffset}
                                             composerHeight={composerHeight}
-                                            keyboardHeight={keyboardHeight}
                                             isComposerFullSize={isComposerFullSize}
-                                            contentSizeHeight={contentSizeHeight}
-                                            layoutMeasurementHeight={layoutMeasurementHeight}
                                         />
                                     ) : null}
                                     {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
@@ -967,13 +887,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             hasOlderActions={hasOlderActions}
                                             hasNewerActions={hasNewerActions}
                                             showReportActionsLoadingState={showReportActionsLoadingState}
-                                            keyboardHeight={keyboardHeight}
                                             composerHeight={composerHeight}
                                             isComposerFullSize={isComposerFullSize}
-                                            onScroll={onScroll}
-                                            scrollingVerticalOffset={scrollY}
-                                            contentSizeHeight={contentSizeHeight}
-                                            layoutMeasurementHeight={layoutMeasurementHeight}
                                         />
                                     ) : null}
                                     {isCurrentReportLoadedFromOnyx ? (
@@ -986,7 +901,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             lastReportAction={lastReportAction}
                                             reportTransactions={reportTransactions}
                                             nativeID="composer"
-                                            keyboardHeight={keyboardHeight}
                                             onLayout={onComposerLayout}
                                             headerHeight={headerHeight}
                                         />

@@ -1,7 +1,9 @@
-import type {ForwardedRef} from 'react';
+import type {FC, ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useRef} from 'react';
-import type {FlatList, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {FlatList} from 'react-native';
 import {DeviceEventEmitter} from 'react-native';
+import {runOnJS, useAnimatedReaction} from 'react-native-reanimated';
+import {useKeyboardDismissableFlatListContext} from '@components/KeyboardDismissableFlatList/KeyboardDismissableFlatListContext';
 import CONST from '@src/CONST';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 import type {BaseInvertedFlatListProps} from './BaseInvertedFlatList';
@@ -9,10 +11,11 @@ import CellRendererComponent from './CellRendererComponent';
 
 // This is adapted from https://codesandbox.io/s/react-native-dsyse
 // It's a HACK alert since FlatList has inverted scrolling on web
-function InvertedFlatList<T>({onScroll: onScrollProp = () => {}, ...props}: BaseInvertedFlatListProps<T>, ref: ForwardedRef<FlatList>) {
+function InvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: ForwardedRef<FlatList>) {
     const lastScrollEvent = useRef<number | null>(null);
     const scrollEndTimeout = useRef<NodeJS.Timeout | null>(null);
     const updateInProgress = useRef<boolean>(false);
+    const {scrollY} = useKeyboardDismissableFlatListContext();
 
     useEffect(
         () => () => {
@@ -27,16 +30,14 @@ function InvertedFlatList<T>({onScroll: onScrollProp = () => {}, ...props}: Base
     /**
      * Emits when the scrolling is in progress. Also,
      * invokes the onScroll callback function from props.
-     *
-     * @param event - The onScroll event from the FlatList
      */
-    const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        onScrollProp(event);
-
-        if (!updateInProgress.current) {
-            updateInProgress.current = true;
-            DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, true);
+    const onScroll = () => {
+        if (updateInProgress.current) {
+            return;
         }
+
+        updateInProgress.current = true;
+        DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, true);
     };
 
     /**
@@ -61,8 +62,9 @@ function InvertedFlatList<T>({onScroll: onScrollProp = () => {}, ...props}: Base
      * https://github.com/necolas/react-native-web/issues/1021#issuecomment-984151185
      *
      */
-    const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        onScroll(event);
+    const handleScroll = () => {
+        onScroll();
+
         const timestamp = Date.now();
 
         if (scrollEndTimeout.current) {
@@ -83,13 +85,19 @@ function InvertedFlatList<T>({onScroll: onScrollProp = () => {}, ...props}: Base
         lastScrollEvent.current = timestamp;
     };
 
+    useAnimatedReaction(
+        () => scrollY.get(),
+        () => {
+            runOnJS(handleScroll)();
+        },
+    );
+
     return (
         <BaseInvertedFlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
-            onScroll={handleScroll}
-            CellRendererComponent={CellRendererComponent}
+            CellRendererComponent={CellRendererComponent as FC}
         />
     );
 }

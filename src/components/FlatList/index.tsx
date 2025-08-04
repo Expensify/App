@@ -41,7 +41,14 @@ function getScrollableNode(flatList: FlatList | null): HTMLElement | undefined {
     return flatList?.getScrollableNode() as HTMLElement | undefined;
 }
 
-function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false, onScroll, ...props}: FlatListProps<TItem>, ref: ForwardedRef<FlatList>) {
+type AdditionalFlatListProps = {
+    /**
+     * iOS only - Uses the animated keyboard handler capabilities
+     */
+    withAnimatedKeyboardHandler?: boolean;
+};
+
+function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false, onScroll, ...props}: FlatListProps<TItem> & AdditionalFlatListProps, ref: ForwardedRef<FlatList>) {
     const {minIndexForVisible: mvcpMinIndexForVisible, autoscrollToTopThreshold: mvcpAutoscrollToTopThreshold} = maintainVisibleContentPosition ?? {};
     const scrollRef = useRef<FlatList | null>(null);
     const prevFirstVisibleOffsetRef = useRef(0);
@@ -252,5 +259,5 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
 }
 
 MVCPFlatList.displayName = 'MVCPFlatList';
-
+export type {AdditionalFlatListProps};
 export default React.forwardRef(MVCPFlatList);

@@ -3,18 +3,16 @@ import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/Vir
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, Platform, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {AnimatedScrollViewProps, SharedValue} from 'react-native-reanimated';
-import {runOnJS, useAnimatedProps, useAnimatedReaction} from 'react-native-reanimated';
-import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
+import {useAnimatedReaction} from 'react-native-reanimated';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import FlatList from '@components/FlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
+import {useKeyboardDismissableFlatListContext} from '@components/KeyboardDismissableFlatList/KeyboardDismissableFlatListContext';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -105,26 +103,11 @@ type MoneyRequestReportListProps = {
     /** Whether report actions are still loading and we load the report for the first time, since the last sign in */
     showReportActionsLoadingState?: boolean;
 
-    /** The current scroll position of the chat */
-    scrollingVerticalOffset: SharedValue<number>;
-
-    /** The current keyboard height, updated on every keyboard movement frame */
-    keyboardHeight: SharedValue<number>;
-
     /** The current composer height */
     composerHeight: number;
 
     /** Whether the composer is in full size */
     isComposerFullSize?: boolean;
-
-    /** Callback executed on scroll */
-    onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-
-    /** The content size height fired on a onScroll event */
-    contentSizeHeight: SharedValue<number>;
-
-    /** The layout measurement height fired on a onScroll event */
-    layoutMeasurementHeight: SharedValue<number>;
 };
 
 function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, parentReportActionID: string | undefined): OnyxEntry<OnyxTypes.ReportAction> {
@@ -145,13 +128,8 @@ function MoneyRequestReportActionsList({
     hasNewerActions,
     hasOlderActions,
     showReportActionsLoadingState,
-    scrollingVerticalOffset,
     composerHeight,
-    keyboardHeight,
     isComposerFullSize,
-    onScroll,
-    contentSizeHeight,
-    layoutMeasurementHeight,
 }: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -164,6 +142,7 @@ function MoneyRequestReportActionsList({
     const isFocused = useIsFocused();
     const {unmodifiedPaddings} = useSafeAreaPaddings();
     const {isKeyboardActive} = useKeyboardState();
+    const {contentSizeHeight, layoutMeasurementHeight, keyboardHeight, scrollY} = useKeyboardDismissableFlatListContext();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     // wrapped in useMemo to avoid unnecessary re-renders and improve performance
     const reportTransactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
@@ -269,8 +248,6 @@ function MoneyRequestReportActionsList({
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
-    const hasTriggeredStartRef = useRef(false);
-    const hasTriggeredEndRef = useRef(false);
 
     const reportActionIDs = useMemo(() => {
         return reportActions?.map((action) => action.reportActionID) ?? [];
@@ -303,7 +280,7 @@ function MoneyRequestReportActionsList({
     useAnimatedReaction(
         () => {
             return {
-                offsetY: scrollingVerticalOffset.get(),
+                offsetY: scrollY.get(),
                 csHeight: contentSizeHeight.get(),
                 lmHeight: layoutMeasurementHeight.get(),
             };
@@ -317,32 +294,6 @@ function MoneyRequestReportActionsList({
 
             // We additionally track the top offset to be able to scroll to the new transaction when it's added
             scrollingVerticalTopOffset.current = offsetY;
-
-            // The following implementation is due to ScrollView not supporting onStartReached and onEndReached props
-            const scrollableArea = csHeight - lmHeight;
-
-            if (scrollableArea <= 0) {
-                return;
-            }
-
-            const threshold = scrollableArea * ON_SCROLL_TO_LIMITS_THRESHOLD;
-
-            const hasReachedStartThreshold = offsetY <= threshold;
-            const hasReachedEndThreshold = offsetY >= scrollableArea - threshold;
-
-            if (hasReachedStartThreshold && !hasTriggeredStartRef.current) {
-                hasTriggeredStartRef.current = true;
-                runOnJS(onStartReached)();
-            } else if (!hasReachedStartThreshold) {
-                hasTriggeredStartRef.current = false;
-            }
-
-            if (hasReachedEndThreshold && !hasTriggeredEndRef.current) {
-                hasTriggeredEndRef.current = true;
-                runOnJS(onEndReached)();
-            } else if (!hasReachedEndThreshold) {
-                hasTriggeredEndRef.current = false;
-            }
         },
     );
 
@@ -486,7 +437,7 @@ function MoneyRequestReportActionsList({
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
         reportID: report.reportID,
-        currentVerticalScrollingOffset: scrollingVerticalOffset,
+        currentVerticalScrollingOffset: scrollY,
         readActionSkippedRef: readActionSkipped,
         hasUnreadMarkerReportAction: !!unreadMarkerReportActionID,
         keyboardHeight,
@@ -688,14 +639,6 @@ function MoneyRequestReportActionsList({
     // Wrapped into useCallback to stabilize children re-renders
     const keyExtractor = useCallback((item: OnyxTypes.ReportAction) => item.reportActionID, []);
 
-    const animatedProps = useAnimatedProps(() => {
-        return {
-            contentInset: {
-                bottom: keyboardHeight.get(),
-            },
-        };
-    });
-
     const safeAreaBottom = Platform.OS !== 'ios' || isKeyboardActive ? 0 : (unmodifiedPaddings.bottom ?? 0);
     const bottomSpacer = useMemo(
         () => (Platform.OS === 'ios' && !isComposerFullSize ? composerHeight + safeAreaBottom : safeAreaBottom),
@@ -783,6 +726,7 @@ function MoneyRequestReportActionsList({
                     </>
                 ) : (
                     <FlatList
+                        withAnimatedKeyboardHandler
                         initialNumToRender={INITIAL_NUM_TO_RENDER}
                         accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                         testID="money-request-report-actions-list"
@@ -792,6 +736,10 @@ function MoneyRequestReportActionsList({
                         onViewableItemsChanged={onViewableItemsChanged}
                         keyExtractor={keyExtractor}
                         onLayout={recordTimeToMeasureItemLayout}
+                        onStartReached={onStartReached}
+                        onStartReachedThreshold={ON_SCROLL_TO_LIMITS_THRESHOLD}
+                        onEndReached={onEndReached}
+                        onEndReachedThreshold={ON_SCROLL_TO_LIMITS_THRESHOLD}
                         ListHeaderComponent={
                             <>
                                 <MoneyRequestViewReportFields
@@ -808,23 +756,6 @@ function MoneyRequestReportActionsList({
                                     scrollToNewTransaction={scrollToNewTransaction}
                                 />
                             </>
-                        }
-                        renderScrollComponent={(props) =>
-                            renderScrollComponent?.(
-                                Platform.select<AnimatedScrollViewProps>({
-                                    ios: {
-                                        ...props,
-                                        onScroll,
-                                        animatedProps,
-                                        automaticallyAdjustContentInsets: false,
-                                        contentInsetAdjustmentBehavior: 'never',
-                                    },
-                                    default: {
-                                        ...props,
-                                        onScroll,
-                                    },
-                                }),
-                            )
                         }
                         keyboardDismissMode="interactive"
                         keyboardShouldPersistTaps="handled"
