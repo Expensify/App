@@ -52,6 +52,7 @@ import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusB
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
 import {useSearchContext} from './Search/SearchContext';
+import {WideRHPContext} from './WideRHPContextProvider';
 
 type MoneyRequestHeaderProps = {
     /** The report currently being looked at */
@@ -105,6 +106,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     // If the parent report is a selfDM, it should always be opened in the Inbox tab
     const shouldOpenParentReportInCurrentTab = !isSelfDM(parentReport);
+
+    const {wideRHPRouteKeys} = useContext(WideRHPContext);
 
     const markAsCash = useCallback(() => {
         markAsCashAction(transaction?.transactionID, reportID);
@@ -277,6 +280,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     };
 
     const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]);
+    const shouldDisplayWideRHPVersion = wideRHPRouteKeys.length > 0 && isSmallScreenWidth;
 
     return (
         <View style={[styles.pl0, styles.borderBottom]}>
@@ -315,12 +319,23 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         )}
                     </View>
                 )}
+                {!!applicableSecondaryActions.length && !shouldDisplayWideRHPVersion && (
+                    <ButtonWithDropdownMenu
+                        success={false}
+                        onPress={() => {}}
+                        shouldAlwaysShowDropdownMenu
+                        customText={translate('common.more')}
+                        options={applicableSecondaryActions}
+                        isSplitButton={false}
+                        wrapperStyle={[!primaryAction && styles.flexGrow4, {marginRight: 12}]}
+                    />
+                )}
                 {shouldDisplayTransactionNavigation && <MoneyRequestReportTransactionsNavigation currentReportID={reportID} />}
             </HeaderWithBackButton>
             {shouldUseNarrowLayout && (
                 <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     {!!primaryAction && <View style={[styles.flexGrow4]}>{primaryActionImplementation[primaryAction]}</View>}
-                    {!!applicableSecondaryActions.length && (
+                    {!!applicableSecondaryActions.length && shouldDisplayWideRHPVersion && (
                         <ButtonWithDropdownMenu
                             success={false}
                             onPress={() => {}}
