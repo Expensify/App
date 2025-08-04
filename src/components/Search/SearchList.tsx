@@ -11,6 +11,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import {easing} from '@components/Modal/ReanimatedModal/utils';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
@@ -194,6 +195,11 @@ function SearchList(
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
 
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
+    const personalDetails = usePersonalDetails();
+
+    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: (wallet) => wallet?.tierName, canBeMissing: false});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
 
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
@@ -363,6 +369,10 @@ function SearchList(
                         isDisabled={isDisabled}
                         allReports={allReports}
                         groupBy={groupBy}
+                        userWalletTierName={userWalletTierName}
+                        isUserValidated={isUserValidated}
+                        personalDetails={personalDetails}
+                        userBillingFundID={userBillingFundID}
                     />
                 </Animated.View>
             );
@@ -374,7 +384,6 @@ function SearchList(
             styles.overflowHidden,
             hasItemsBeingRemoved,
             ListItem,
-            onSelectRow,
             handleLongPressRow,
             onCheckboxPress,
             canSelectMultiple,
@@ -384,6 +393,10 @@ function SearchList(
             policies,
             allReports,
             groupBy,
+            userWalletTierName,
+            isUserValidated,
+            personalDetails,
+            userBillingFundID,
             setFocusedIndex,
         ],
     );
