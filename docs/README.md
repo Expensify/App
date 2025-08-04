@@ -2,6 +2,8 @@
 
 [Expensify Help](https://help.expensify.com/) is mainly composed of static HTML (`.html`) and Markdown (`.md`) files. We use [Jekyll](https://jekyllrb.com/) to generate a static site from those HTML and Markdown files.
 
+Making sure this file gets excluded.
+
 ### Table of Contents
 * [Testing Locally](#testing-locally)
 * [How the project is structured](#how-the-project-is-structured)
