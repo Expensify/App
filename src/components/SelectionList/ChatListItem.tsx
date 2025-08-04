@@ -2,7 +2,6 @@ import React from 'react';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isInvoiceRoom, isPolicyExpenseChat} from '@libs/ReportUtils';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -85,16 +84,6 @@ function ChatListItem<TItem extends ListItem>({
                 isFirstVisibleReportAction={false}
                 shouldDisplayContextMenu={false}
                 shouldShowDraftMessage={false}
-                shouldShowSubscriptAvatar={
-                    (isPolicyExpenseChat(report) || isInvoiceRoom(report)) &&
-                    [
-                        CONST.REPORT.ACTIONS.TYPE.IOU,
-                        CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                        CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                        CONST.REPORT.ACTIONS.TYPE.APPROVED,
-                        CONST.REPORT.ACTIONS.TYPE.FORWARDED,
-                    ].some((type) => type === reportActionItem.actionName)
-                }
                 policies={policies}
                 shouldShowBorder
                 userWalletTierName={userWalletTierName}
