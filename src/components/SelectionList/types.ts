@@ -276,11 +276,20 @@ type TransactionListItemType = ListItem &
         /** Key used internally by React */
         keyForList: string;
 
+        /** The name of the file used for a receipt */
+        filename?: string;
+
         /** Attendees in the transaction */
         attendees?: Attendee[];
 
         /** Precomputed violations */
         violations?: TransactionViolation[];
+
+        /** The CC for this transaction */
+        cardID?: number;
+
+        /** The display name of the purchaser card, if any */
+        cardName?: string;
     };
 
 type ReportActionListItemType = ListItem &
@@ -476,7 +485,6 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     groupBy?: SearchGroupBy;
-    policies?: OnyxCollection<Policy>;
     columns?: SortableColumnName[];
 };
 
