@@ -26,7 +26,7 @@ import {
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {TransactionViolation} from '@src/types/onyx';
+import type {Report, TransactionViolation} from '@src/types/onyx';
 import type {SearchPersonalDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
 import ChatBubbleCell from './DataCells/ChatBubbleCell';
@@ -79,6 +79,7 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
 type TransactionItemRowProps = {
     transactionItem: TransactionWithOptionalSearchFields;
+    report?: Report;
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
@@ -111,6 +112,7 @@ function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, t
 
 function TransactionItemRow({
     transactionItem,
+    report,
     shouldUseNarrowLayout,
     isSelected,
     shouldShowTooltip,
@@ -443,6 +445,7 @@ function TransactionItemRow({
                         )}
                         <TransactionItemRowRBRWithOnyx
                             transaction={transactionItem}
+                            report={report}
                             containerStyles={[styles.mt2, styles.minHeight4]}
                             missingFieldError={missingFieldError}
                         />
@@ -476,6 +479,7 @@ function TransactionItemRow({
             </View>
             <TransactionItemRowRBRWithOnyx
                 transaction={transactionItem}
+                report={report}
                 missingFieldError={missingFieldError}
             />
         </View>
