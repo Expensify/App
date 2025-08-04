@@ -18,7 +18,7 @@ function MerchantOrDescriptionCell({
     return (
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
-            text={merchantOrDescription}
+            text={html}
             style={[!shouldUseNarrowLayout ? styles.lineHeightLarge : styles.lh20, styles.pre, styles.justifyContentCenter, styles.flex1]}
             shouldRenderAsHTML
         />
