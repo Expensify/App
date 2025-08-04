@@ -149,6 +149,7 @@ function ReportActionCompose({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, {canBeMissing: true});
+    const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
@@ -500,6 +501,7 @@ function ReportActionCompose({
                 newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                 report,
                 parentReport: newParentReport,
+                currentDate,
             });
 
             files.forEach((file, index) => {
