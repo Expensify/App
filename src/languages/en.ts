@@ -6003,7 +6003,7 @@ const translations = {
             reimbursable: 'Reimbursable',
             groupBy: {
                 reports: 'Report', // s77rt use singular key name
-                members: 'Member', // s77rt use singular key name
+                from: 'From',
                 cards: 'Card', // s77rt use singular key name
             },
             feed: 'Feed',

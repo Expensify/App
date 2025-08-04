@@ -6031,7 +6031,7 @@ const translations = {
             reimbursable: 'Erstattungsfähig',
             groupBy: {
                 reports: 'Bericht',
-                members: 'Mitglied',
+                from: 'Von',
                 cards: 'Karte',
             },
             feed: 'Feed',
