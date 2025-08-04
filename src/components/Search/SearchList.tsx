@@ -384,6 +384,7 @@ function SearchList(
             styles.overflowHidden,
             hasItemsBeingRemoved,
             ListItem,
+            onSelectRow,
             handleLongPressRow,
             onCheckboxPress,
             canSelectMultiple,
