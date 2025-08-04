@@ -59,6 +59,7 @@ import {
     getSubmitToAccountID,
     isUserInvitedToWorkspace,
 } from './PolicyUtils';
+import RandomAvatarUtils from './RandomAvatarUtils';
 import {
     getCombinedReportActions,
     getExportIntegrationLastMessageText,
@@ -477,12 +478,14 @@ function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: OnyxEntr
     return accountIDs.map((accountID) => {
         const login = reversedDefaultValues[accountID] ?? '';
         const userPersonalDetail = personalDetails?.[accountID] ?? {login, accountID};
+        const fallBackAvatar = RandomAvatarUtils.getAvatarForContact(login);
 
         return {
             id: accountID,
             source: userPersonalDetail.avatar ?? FallbackAvatar,
             type: CONST.ICON_TYPE_AVATAR,
             name: userPersonalDetail.login ?? '',
+            fallbackIcon: fallBackAvatar,
         };
     });
 }
