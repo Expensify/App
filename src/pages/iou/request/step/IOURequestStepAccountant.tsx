@@ -38,6 +38,7 @@ function IOURequestStepAccountant({
             createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID, action);
             return;
         }
+
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID, Navigation.getActiveRoute(), action));
     }, [iouType, transactionID, reportID, action, currentUserLogin]);
 

@@ -10,6 +10,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
@@ -38,7 +39,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -70,7 +70,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
@@ -164,9 +164,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         const normalizedSearchInput = StringUtils.normalize(searchInput);
         return categoryText.includes(normalizedSearchInput) || alternateText.includes(normalizedSearchInput);
     }, []);
-    const sortCategories = useCallback((data: PolicyOption[]) => {
-        return data.sort((a, b) => localeCompare(a.text ?? '', b?.text ?? ''));
-    }, []);
+    const sortCategories = useCallback(
+        (data: PolicyOption[]) => {
+            return data.sort((a, b) => localeCompare(a.text ?? '', b?.text ?? ''));
+        },
+        [localeCompare],
+    );
     const [inputValue, setInputValue, filteredCategoryList] = useSearchResults(categoryList, filterCategory, sortCategories);
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
@@ -437,25 +440,20 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             )}
         </>
     );
-    const subtitleText = useMemo(
-        () => (
-            <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>
-                {!policyHasAccountingConnections ? translate('workspace.categories.emptyCategories.subtitle') : translate(`workspace.categories.emptyCategoriesWithAccounting.subtitle1`)}
-                {policyHasAccountingConnections && (
-                    <>
-                        <TextLink
-                            style={[styles.textAlignCenter]}
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyId))}
-                        >
-                            {translate(`workspace.categories.emptyCategoriesWithAccounting.subtitle2`)}
-                        </TextLink>
-                        {translate(`workspace.categories.emptyCategoriesWithAccounting.subtitle3`)}{' '}
-                    </>
-                )}
-            </Text>
-        ),
-        [styles.textAlignCenter, styles.textSupporting, styles.textNormal, policyHasAccountingConnections, translate, policyId],
-    );
+    const subtitleText = useMemo(() => {
+        if (!policyHasAccountingConnections) {
+            return <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{translate('workspace.categories.emptyCategories.subtitle')}</Text>;
+        }
+        return (
+            <View style={[styles.renderHTML]}>
+                <RenderHTML
+                    html={translate('workspace.categories.emptyCategories.subtitleWithAccounting', {
+                        accountingPageURL: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`,
+                    })}
+                />
+            </View>
+        );
+    }, [policyHasAccountingConnections, styles.renderHTML, styles.textAlignCenter, styles.textSupporting, styles.textNormal, translate, environmentURL, policyId]);
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}

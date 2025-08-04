@@ -12,7 +12,7 @@ import type {
     TextStyle,
     ViewStyle,
 } from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType, SearchGroupBy} from '@components/Search/types';
@@ -22,7 +22,7 @@ import type SpendCategorySelectorListItem from '@pages/workspace/categories/Spen
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
-import type {Policy, Report, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, TransactionViolation} from '@src/types/onyx';
 import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchCard, SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -219,6 +219,9 @@ type ListItem<K extends string | number = string> = {
 
 type TransactionListItemType = ListItem &
     SearchTransaction & {
+        /** Report to which the transaction belongs */
+        report: Report;
+
         /** The personal details of the user requesting money */
         from: SearchPersonalDetails;
 
@@ -243,6 +246,9 @@ type TransactionListItemType = ListItem &
         /** Whether we should show the merchant column */
         shouldShowMerchant: boolean;
 
+        /** Whether the description column should be shown */
+        shouldShowDescription: boolean;
+
         /** Whether we should show the category column */
         shouldShowCategory: boolean;
 
@@ -251,6 +257,12 @@ type TransactionListItemType = ListItem &
 
         /** Whether we should show the tax column */
         shouldShowTax: boolean;
+
+        /** Whether we should show the From column */
+        shouldShowFrom: boolean;
+
+        /** Whether we should show the to column */
+        shouldShowTo: boolean;
 
         /** Whether we should show the transaction year.
          * This is true if at least one transaction in the dataset was created in past years
@@ -264,11 +276,20 @@ type TransactionListItemType = ListItem &
         /** Key used internally by React */
         keyForList: string;
 
+        /** The name of the file used for a receipt */
+        filename?: string;
+
         /** Attendees in the transaction */
         attendees?: Attendee[];
 
         /** Precomputed violations */
         violations?: TransactionViolation[];
+
+        /** The CC for this transaction */
+        cardID?: number;
+
+        /** The display name of the purchaser card, if any */
+        cardName?: string;
     };
 
 type ReportActionListItemType = ListItem &
@@ -454,6 +475,7 @@ type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Whether the item's action is loading */
     isLoading?: boolean;
+    columns?: SortableColumnName[];
 };
 
 type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -463,6 +485,7 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     groupBy?: SearchGroupBy;
+    columns?: SortableColumnName[];
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -473,6 +496,21 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
     /** All the data of the report collection */
     allReports?: OnyxCollection<Report>;
+
+    /** The report data */
+    report?: Report;
+
+    /** The user wallet tierName */
+    userWalletTierName: string | undefined;
+
+    /** Whether the user is validated */
+    isUserValidated: boolean | undefined;
+
+    /** Personal details list */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+
+    /** User billing fund ID */
+    userBillingFundID: number | undefined;
 };
 
 type ValidListItem =
@@ -546,6 +584,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * Only use this if we're handling some non-standard items, most of the time the default value is correct
      */
     getItemHeight?: (item: TItem) => number;
+
+    /** Whether autoCorrect functionality should enable  */
+    autoCorrect?: boolean;
 
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
@@ -819,6 +860,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;
+
+    /** Whether to hide the keyboard when scrolling a list */
+    shouldHideKeyboardOnScroll?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

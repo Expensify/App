@@ -1,13 +1,15 @@
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {isTransactionCardGroupListItemType, isTransactionListItemType, isTransactionMemberGroupListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {SearchContext, SearchContextData} from './types';
+import type {SearchContext, SearchContextData, SelectedTransactions} from './types';
 
 const defaultSearchContextData: SearchContextData = {
     currentSearchHash: -1,
+    currentSearchKey: undefined,
     selectedTransactions: {},
     selectedTransactionIDs: [],
     selectedReports: [],
@@ -22,7 +24,7 @@ const defaultSearchContext: SearchContext = {
     shouldShowExportModeOption: false,
     shouldShowFiltersBarLoading: false,
     setLastSearchType: () => {},
-    setCurrentSearchHash: () => {},
+    setCurrentSearchHashAndKey: () => {},
     setSelectedTransactions: () => {},
     removeTransaction: () => {},
     clearSelectedTransactions: () => {},
@@ -41,14 +43,16 @@ function SearchContextProvider({children}: ChildrenProps) {
     const [searchContextData, setSearchContextData] = useState(defaultSearchContextData);
     const areTransactionsEmpty = useRef(true);
 
-    const setCurrentSearchHash = useCallback((searchHash: number) => {
+    const setCurrentSearchHashAndKey = useCallback((searchHash: number, searchKey: SearchKey | undefined) => {
         setSearchContextData((prevState) => {
-            if (searchHash === prevState.currentSearchHash) {
+            if (searchHash === prevState.currentSearchHash && searchKey === prevState.currentSearchKey) {
                 return prevState;
             }
+
             return {
                 ...prevState,
                 currentSearchHash: searchHash,
+                currentSearchKey: searchKey,
             };
         });
     }, []);
@@ -137,23 +141,41 @@ function SearchContextProvider({children}: ChildrenProps) {
 
     const removeTransaction: SearchContext['removeTransaction'] = useCallback(
         (transactionID) => {
-            const selectedTransactionIDs = searchContextData.selectedTransactionIDs;
-            if (!transactionID || !selectedTransactionIDs.length) {
+            if (!transactionID) {
                 return;
             }
-            setSearchContextData((prevState) => ({
-                ...prevState,
-                selectedTransactionIDs: selectedTransactionIDs.filter((ID) => transactionID !== ID),
-            }));
+            const selectedTransactionIDs = searchContextData.selectedTransactionIDs;
+
+            if (!isEmptyObject(searchContextData.selectedTransactions)) {
+                const newSelectedTransactions = Object.entries(searchContextData.selectedTransactions).reduce((acc, [key, value]) => {
+                    if (key === transactionID) {
+                        return acc;
+                    }
+                    acc[key] = value;
+                    return acc;
+                }, {} as SelectedTransactions);
+
+                setSearchContextData((prevState) => ({
+                    ...prevState,
+                    selectedTransactions: newSelectedTransactions,
+                }));
+            }
+
+            if (selectedTransactionIDs.length > 0) {
+                setSearchContextData((prevState) => ({
+                    ...prevState,
+                    selectedTransactionIDs: selectedTransactionIDs.filter((ID) => transactionID !== ID),
+                }));
+            }
         },
-        [searchContextData.selectedTransactionIDs],
+        [searchContextData.selectedTransactionIDs, searchContextData.selectedTransactions],
     );
 
     const searchContext = useMemo<SearchContext>(
         () => ({
             ...searchContextData,
             removeTransaction,
-            setCurrentSearchHash,
+            setCurrentSearchHashAndKey,
             setSelectedTransactions,
             clearSelectedTransactions,
             shouldShowFiltersBarLoading,
@@ -167,16 +189,14 @@ function SearchContextProvider({children}: ChildrenProps) {
         }),
         [
             searchContextData,
-            setCurrentSearchHash,
+            removeTransaction,
+            setCurrentSearchHashAndKey,
             setSelectedTransactions,
             clearSelectedTransactions,
             shouldShowFiltersBarLoading,
             lastSearchType,
             shouldShowExportModeOption,
-            setShouldShowExportModeOption,
             isExportMode,
-            setExportMode,
-            removeTransaction,
         ],
     );
 

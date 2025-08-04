@@ -11,9 +11,9 @@ import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/di
 import type {Api} from '@octokit/plugin-rest-endpoint-methods/dist-types/types';
 import {throttling} from '@octokit/plugin-throttling';
 import {RequestError} from '@octokit/request-error';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import arrayDifference from '@src/utils/arrayDifference';
+import arrayDifference from './arrayDifference';
 import CONST from './CONST';
+import {isEmptyObject} from './isEmptyObject';
 
 type OctokitOptions = {method: string; url: string; request: {retryCount: number}};
 
@@ -53,6 +53,8 @@ type OctokitArtifact = OctokitComponents['schemas']['artifact'];
 type OctokitPR = OctokitComponents['schemas']['pull-request-simple'];
 
 type CreateCommentResponse = RestEndpointMethodTypes['issues']['createComment']['response'];
+
+type ListCommentsResponse = RestEndpointMethodTypes['issues']['listComments']['response'];
 
 type StagingDeployCashData = {
     title: string;
@@ -323,7 +325,11 @@ class GithubUtils {
 
                     // Tag version and comparison URL
                     // eslint-disable-next-line max-len
-                    let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n`;
+                    let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n`;
+
+                    // Warn deployers about potential bugs with the new process
+                    issueBody +=
+                        '> 💡 **Deployer FYI:** This checklist was generated using a new process. PR list from original method and detail logging can be found in the most recent [deploy workflow](https://github.com/Expensify/App/actions/workflows/deploy.yml) labeled `staging`, in the `createChecklist` action. Please tag @Julesssss with any issues.\r\n\r\n';
 
                     // PR list
                     if (sortedPRList.length > 0) {
@@ -454,6 +460,19 @@ class GithubUtils {
         );
     }
 
+    static getAllCommentDetails(issueNumber: number): Promise<ListCommentsResponse['data']> {
+        return this.paginate(
+            this.octokit.issues.listComments,
+            {
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                issue_number: issueNumber,
+                per_page: 100,
+            },
+            (response) => response.data,
+        );
+    }
+
     /**
      * Create comment on pull request
      */
@@ -480,6 +499,36 @@ class GithubUtils {
                 workflow_id: workflow,
             })
             .then((response) => response.data.workflow_runs.at(0)?.id ?? -1);
+    }
+
+    /**
+     * List workflow runs for the repository.
+     */
+    static async listWorkflowRunsForRepo(
+        options: {
+            per_page?: number;
+            status?:
+                | 'completed'
+                | 'action_required'
+                | 'cancelled'
+                | 'failure'
+                | 'neutral'
+                | 'skipped'
+                | 'stale'
+                | 'success'
+                | 'timed_out'
+                | 'in_progress'
+                | 'queued'
+                | 'requested'
+                | 'waiting';
+        } = {},
+    ) {
+        return this.octokit.actions.listWorkflowRunsForRepo({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            per_page: options.per_page ?? 50,
+            ...(options.status && {status: options.status}),
+        });
     }
 
     /**
@@ -658,4 +707,4 @@ class GithubUtils {
 }
 
 export default GithubUtils;
-export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse, StagingDeployCashData, CommitType};
+export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse, ListCommentsResponse, StagingDeployCashData, CommitType};
