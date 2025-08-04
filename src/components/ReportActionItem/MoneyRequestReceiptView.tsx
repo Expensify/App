@@ -269,6 +269,7 @@ function MoneyRequestReceiptView({allReports, report, readonly = false, updatedT
                                 readonly={readonly || !canEditReceipt}
                                 isFromReviewDuplicates={isFromReviewDuplicates}
                                 mergeTransactionID={mergeTransactionID}
+                                report={report}
                             />
                         </View>
                     )}
