@@ -27,9 +27,6 @@ function setTimeSkew(skew: number) {
 }
 
 function setShouldForceOffline(shouldForceOffline: boolean) {
-    // Store preference in separate key for persistence
-    Onyx.set(ONYXKEYS.SHOULD_FORCE_OFFLINE, shouldForceOffline);
-    // Also update NETWORK key for compatibility with existing code
     Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline});
 }
 

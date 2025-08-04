@@ -30,7 +30,6 @@ function TestToolMenu() {
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
     const [account = ACCOUNT_DEFAULT] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE, {canBeMissing: true});
-    const [shouldForceOffline] = useOnyx(ONYXKEYS.SHOULD_FORCE_OFFLINE, {canBeMissing: true});
     const shouldUseStagingServer = account?.shouldUseStagingServer ?? isUsingStagingApi();
     const isDebugModeEnabled = !!account?.isDebugModeEnabled;
     const styles = useThemeStyles();
@@ -104,8 +103,8 @@ function TestToolMenu() {
             <TestToolRow title={translate('initialSettingsPage.troubleshoot.forceOffline')}>
                 <Switch
                     accessibilityLabel="Force offline"
-                    isOn={!!shouldForceOffline}
-                    onToggle={() => setShouldForceOffline(!shouldForceOffline)}
+                    isOn={!!network?.shouldForceOffline}
+                    onToggle={() => setShouldForceOffline(!network?.shouldForceOffline)}
                     disabled={!!isUsingImportedState || !!network?.shouldSimulatePoorConnection || network?.shouldFailAllRequests}
                 />
             </TestToolRow>
