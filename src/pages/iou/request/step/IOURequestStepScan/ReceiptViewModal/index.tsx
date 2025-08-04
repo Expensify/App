@@ -12,7 +12,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {getTransactionOrDraftTransaction} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {removeDraftTransaction, removeTransactionReceipt, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -37,7 +36,6 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
     const {setAttachmentError, clearAttachmentErrors} = useAttachmentErrors();
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
     const styles = useThemeStyles();
-
     const [currentReceipt, setCurrentReceipt] = useState<ReceiptWithTransactionIDAndSource | null>();
     const [page, setPage] = useState<number>(-1);
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
@@ -49,7 +47,9 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
                 .filter((receipt): receipt is ReceiptWithTransactionIDAndSource => !!receipt),
         canBeMissing: true,
     });
-
+    const secondTransactionID = receipts.at(1)?.transactionID;
+    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${secondTransactionID}`, {canBeMissing: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransactionID}`, {canBeMissing: true});
     useEffect(() => {
         if (!receipts || receipts.length === 0) {
             return;
@@ -74,8 +74,7 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
                     return;
                 }
 
-                const secondTransactionID = receipts.at(1)?.transactionID;
-                const secondTransaction = secondTransactionID ? getTransactionOrDraftTransaction(secondTransactionID) : undefined;
+                const secondTransaction = secondTransactionID ? (transaction ?? transactionDraft) : undefined;
                 replaceDefaultDraftTransaction(secondTransaction);
                 return;
             }
