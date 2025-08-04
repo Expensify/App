@@ -75,10 +75,27 @@ function DebugReportPage({
         const hasViolations = !!shouldDisplayViolations || shouldDisplayReportViolations;
         const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report, isReportArchived) ?? {};
         const {reason: reasonRBR, reportAction: reportActionRBR} =
-            DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, chatReport, reportActions, transactions, hasViolations, reportAttributes?.reportErrors ?? {}, isReportArchived) ?? {};
+            DebugUtils.getReasonAndReportActionForRBRInLHNRow(
+                report,
+                chatReport,
+                reportActions,
+                transactions,
+                transactionViolations,
+                hasViolations,
+                reportAttributes?.reportErrors ?? {},
+                isReportArchived,
+            ) ?? {};
         const hasRBR = !!reasonRBR;
         const hasGBR = !hasRBR && !!reasonGBR;
-        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN({report, chatReport, betas, hasRBR, isReportArchived, isInFocusMode: priorityMode === CONST.PRIORITY_MODE.GSD});
+        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN({
+            report,
+            chatReport,
+            betas,
+            doesReportHaveViolations: shouldDisplayViolations,
+            hasRBR,
+            isReportArchived,
+            isInFocusMode: priorityMode === CONST.PRIORITY_MODE.GSD,
+        });
 
         return [
             {

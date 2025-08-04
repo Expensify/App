@@ -3,16 +3,14 @@
 /* eslint-disable max-classes-per-file */
 import {isMatch, isValid} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Comment} from '@src/types/onyx/Transaction';
 import {getLinkedTransactionID} from './ReportActionsUtils';
-import {getReasonAndReportActionThatRequiresAttention, reasonForReportToBeInOptionList, shouldDisplayViolationsRBRInLHN} from './ReportUtils';
+import {getReasonAndReportActionThatRequiresAttention, reasonForReportToBeInOptionList} from './ReportUtils';
 import SidebarUtils from './SidebarUtils';
 import {getTransactionID as TransactionUtilsGetTransactionID} from './TransactionUtils';
 
@@ -86,15 +84,6 @@ const REPORT_ACTION_NUMBER_PROPERTIES: Array<keyof ReportAction> = [
 const TRANSACTION_REQUIRED_PROPERTIES: Array<keyof Transaction> = ['transactionID', 'reportID', 'amount', 'created', 'currency', 'merchant'] satisfies Array<keyof Transaction>;
 
 const TRANSACTION_VIOLATION_REQUIRED_PROPERTIES: Array<keyof TransactionViolation> = ['type', 'name'] satisfies Array<keyof TransactionViolation>;
-
-let transactionViolations: OnyxCollection<TransactionViolation[]>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        transactionViolations = value;
-    },
-});
 
 function stringifyJSON(data: Record<string, unknown>) {
     return JSON.stringify(data, null, 6);
@@ -1316,6 +1305,7 @@ function validateTransactionViolationJSON(json: string) {
 function getReasonForShowingRowInLHN({
     report,
     chatReport,
+    doesReportHaveViolations,
     hasRBR = false,
     isReportArchived = false,
     isInFocusMode = false,
@@ -1323,6 +1313,7 @@ function getReasonForShowingRowInLHN({
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
+    doesReportHaveViolations: boolean;
     hasRBR?: boolean;
     isReportArchived?: boolean;
     isInFocusMode?: boolean;
@@ -1331,8 +1322,6 @@ function getReasonForShowingRowInLHN({
     if (!report) {
         return null;
     }
-
-    const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
 
     const reason = reasonForReportToBeInOptionList({
         report,
@@ -1395,6 +1384,7 @@ function getReasonAndReportActionForRBRInLHNRow(
     chatReport: OnyxEntry<Report>,
     reportActions: OnyxEntry<ReportActions>,
     transactions: OnyxCollection<Transaction>,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
     hasViolations: boolean,
     reportErrors: Errors,
     isArchivedReport = false,
