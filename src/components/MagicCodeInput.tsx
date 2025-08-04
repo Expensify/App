@@ -173,6 +173,14 @@ function MagicCodeInput(
         valueRef.current = value;
     }, [value]);
 
+    useEffect(() => {
+        // Reset wasSubmitted when value changes to allow retry attempts
+        // This fixes Android issue where magic code submission gets stuck after first attempt
+        if (value.length < maxLength) {
+            setWasSubmitted(false);
+        }
+    }, [value, maxLength]);
+
     const blurMagicCodeInput = () => {
         inputRef.current?.blur();
         setFocusedIndex(undefined);
