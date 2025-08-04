@@ -9,14 +9,15 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDatePresets, type SearchDateModifier, type SearchDateModifierLower} from '@libs/SearchUIUtils';
+import {getDatePresets} from '@libs/SearchUIUtils';
+import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SearchDatePresetFilterBase from './SearchDatePresetFilterBase';
 import type {SearchDatePresetFilterBaseHandle} from './SearchDatePresetFilterBase';
-import type {SearchDateFilterKeys, SearchDatePreset} from './types';
+import type {SearchDateFilterKeys} from './types';
 
 type SearchDatePresetFilterBasePageProps = {
     /** Key used for the date filter */
