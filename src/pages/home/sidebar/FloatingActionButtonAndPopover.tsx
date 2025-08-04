@@ -17,6 +17,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,7 +43,7 @@ import {
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
-import {generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import variables from '@styles/variables';
 import {closeReactNativeApp} from '@userActions/HybridApp';
@@ -97,7 +98,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (onyxSession) => ({email: onyxSession?.email, accountID: onyxSession?.accountID})});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [quickActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`, {canBeMissing: true});
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${quickActionReport?.reportID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
@@ -120,6 +120,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
+    const isReportArchived = useReportIsArchived(quickActionReport?.reportID);
     const {isOffline} = useNetwork();
     const {isBlockedFromSpotnanaTravel, isBetaEnabled} = usePermissions();
     const isManualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
@@ -128,7 +129,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
 
     const canSendInvoice = useMemo(() => canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
-    const isValidReport = !(isEmptyObject(quickActionReport) || isArchivedReport(reportNameValuePairs));
+    const isValidReport = !(isEmptyObject(quickActionReport) || isReportArchived);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
@@ -153,16 +154,16 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
 
     const quickActionAvatars = useMemo(() => {
         if (isValidReport) {
-            const avatars = getIcons(quickActionReport, personalDetails);
+            const avatars = getIcons(quickActionReport, personalDetails, null, undefined, undefined, undefined, undefined, isReportArchived);
             return avatars.length <= 1 || isPolicyExpenseChat(quickActionReport) ? avatars : avatars.filter((avatar) => avatar.id !== session?.accountID);
         }
         if (!isEmptyObject(policyChatForActivePolicy)) {
-            return getIcons(policyChatForActivePolicy, personalDetails);
+            return getIcons(policyChatForActivePolicy, personalDetails, null, undefined, undefined, undefined, undefined, isReportArchived);
         }
         return [];
         // Policy is needed as a dependency in order to update the shortcut details when the workspace changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [personalDetails, session?.accountID, quickActionReport, quickActionPolicy, policyChatForActivePolicy]);
+    }, [personalDetails, session?.accountID, quickActionReport, quickActionPolicy, policyChatForActivePolicy, isReportArchived, isValidReport]);
 
     const quickActionTitle = useMemo(() => {
         if (isEmptyObject(quickActionReport)) {
@@ -316,8 +317,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
             label: translate('quickAction.header'),
             labelStyle: [styles.pt3, styles.pb2],
             isLabelHoverable: false,
-            floatRightAvatars: quickActionAvatars,
-            floatRightAvatarSize: CONST.AVATAR_SIZE.SMALL,
             numberOfLinesDescription: 1,
             tooltipAnchorAlignment: {
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -327,7 +326,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         };
 
         if (quickAction?.action) {
-            if (!isQuickActionAllowed(quickAction, quickActionReport, quickActionPolicy)) {
+            if (!isQuickActionAllowed(quickAction, quickActionReport, quickActionPolicy, isReportArchived)) {
                 return [];
             }
             const onSelected = () => {
@@ -344,10 +343,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                     ...baseQuickAction,
                     icon: getQuickActionIcon(quickAction?.action),
                     text: quickActionTitle,
+                    rightIconAccountID: quickActionAvatars.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID,
                     description: quickActionSubtitle,
                     onSelected,
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
-                    shouldShowSubscriptRightAvatar: isPolicyExpenseChat(quickActionReport),
+                    rightIconReportID: quickActionReport?.reportID,
                 },
             ];
         }
@@ -372,7 +372,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                     description: getReportName(policyChatForActivePolicy),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected,
-                    shouldShowSubscriptRightAvatar: true,
+                    rightIconReportID: policyChatForActivePolicy?.reportID,
                 },
             ];
         }
@@ -395,6 +395,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         shouldUseNarrowLayout,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
+        isReportArchived,
     ]);
 
     const isTravelEnabled = useMemo(() => {
