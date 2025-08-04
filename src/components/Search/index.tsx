@@ -233,12 +233,19 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const {translate, localeCompare} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
-    useFocusEffect(
-        useCallback(() => {
-            clearSelectedTransactions(hash);
-            setCurrentSearchHashAndKey(hash, searchKey);
-        }, [hash, searchKey, clearSelectedTransactions, setCurrentSearchHashAndKey]),
-    );
+    const clearTransactionsAndSetHashAndKey = useCallback(() => {
+        clearSelectedTransactions(hash);
+        setCurrentSearchHashAndKey(hash, searchKey);
+    }, [hash, searchKey, clearSelectedTransactions, setCurrentSearchHashAndKey]);
+
+    useFocusEffect(clearTransactionsAndSetHashAndKey);
+
+    useEffect(() => {
+        clearTransactionsAndSetHashAndKey();
+
+        // Trigger once on mount (e.g., on page reload), when RHP is open and screen is not focused
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
 
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults);
 
@@ -717,7 +724,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const shouldShowYear = shouldShowYearUtil(searchResults?.data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
-    const shouldShowSorting = !Array.isArray(status) && !groupBy;
+    const shouldShowSorting = !groupBy;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
 
     return (

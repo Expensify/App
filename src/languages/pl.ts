@@ -6461,6 +6461,7 @@ const translations = {
         overAutoApprovalLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Wydatek przekracza limit automatycznej akceptacji wynoszący ${formattedLimit}`,
         overCategoryLimit: ({formattedLimit}: ViolationsOverCategoryLimitParams) => `Kwota przekracza limit ${formattedLimit} na osobę w kategorii`,
         overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Kwota przekracza limit ${formattedLimit}/osobę`,
+        overTripLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Kwota przekraczająca limit ${formattedLimit}/przejazd`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Kwota przekracza limit ${formattedLimit}/osobę`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Kwota przekracza dzienny limit ${formattedLimit}/osoba dla kategorii`,
         receiptNotSmartScanned:
