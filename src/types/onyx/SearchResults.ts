@@ -515,7 +515,7 @@ type SearchCardGroup = {
     cardName: string;
 
     /** Card name */
-    cardID: string;
+    cardID: number;
 
     /** Last four Primary Account Number digits */
     lastFourPAN: string;
