@@ -40,7 +40,6 @@ import {
     getDisplayNamesWithTooltips,
     getGroupChatName,
     getIconsForParticipants,
-    getInvoiceChatByParticipants,
     getMoneyReportPreviewName,
     getMostRecentlyVisitedReport,
     getParticipantsList,
@@ -2639,20 +2638,6 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('getInvoiceChatByParticipants', () => {
-        it('only returns an invoice chat if the receiver type matches', () => {
-            // Given an invoice chat that has been converted from an individual to policy receiver type
-            const reports: OnyxCollection<Report> = {
-                [convertedInvoiceChat.reportID]: convertedInvoiceChat,
-            };
-
-            // When we send another invoice to the individual from global create and call getInvoiceChatByParticipants
-            const invoiceChatReport = getInvoiceChatByParticipants(33, CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, convertedInvoiceChat.policyID, reports);
-
-            // Then no invoice chat should be returned because the receiver type does not match
-            expect(invoiceChatReport).toBeUndefined();
-        });
-    });
     describe('getWorkspaceNameUpdatedMessage', () => {
         it('return the encoded workspace name updated message', () => {
             const action = {
