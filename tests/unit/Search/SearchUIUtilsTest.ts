@@ -1806,7 +1806,7 @@ describe('SearchUIUtils', () => {
                 [`transactions_${emptyTransaction.transactionID}`]: emptyTransaction,
                 [`transactions_${differentUsersTransaction.transactionID}`]: differentUsersTransaction,
             };
-            columns = SearchUIUtils.getColumnsToShow(data, false);
+            columns = SearchUIUtils.getColumnsToShow(data, submitterAccountID, false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.FROM]).toBe(true);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.TO]).toBe(true);
 
