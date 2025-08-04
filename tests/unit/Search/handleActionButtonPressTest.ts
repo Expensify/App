@@ -64,6 +64,9 @@ const mockReportItemWithHold = {
     },
     transactions: [
         {
+            report: {
+                reportID: '1350959062018695',
+            },
             accountID: 1206,
             action: 'view',
             amount: -1200,
@@ -139,6 +142,9 @@ const mockReportItemWithHold = {
             shouldAnimateInHighlight: false,
         },
         {
+            report: {
+                reportID: '1350959062018695',
+            },
             accountID: 1206,
             action: 'view',
             amount: -12300,
