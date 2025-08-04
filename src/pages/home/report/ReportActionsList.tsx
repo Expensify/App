@@ -1,14 +1,14 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, Platform, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {runOnJS, useAnimatedProps, useAnimatedReaction} from 'react-native-reanimated';
-import type {AnimatedScrollViewProps, SharedValue} from 'react-native-reanimated';
+import {useAnimatedReaction} from 'react-native-reanimated';
 import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
+import {useKeyboardDismissableFlatListContext} from '@components/KeyboardDismissableFlatList/KeyboardDismissableFlatListContext';
 import {PersonalDetailsContext} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -96,12 +96,6 @@ type ReportActionsListProps = {
     /** Callback executed on list layout */
     onLayout: (event: LayoutChangeEvent) => void;
 
-    /** Callback executed on scroll */
-    onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-
-    /** The current scroll position of the chat */
-    scrollingVerticalOffset: SharedValue<number>;
-
     /** Function to load more chats */
     loadOlderChats: (force?: boolean) => void;
 
@@ -117,22 +111,8 @@ type ReportActionsListProps = {
     /** Should enable auto scroll to top threshold */
     shouldEnableAutoScrollToTopThreshold?: boolean;
 
-    /** The current keyboard height, updated on every keyboard movement frame */
-    keyboardHeight: SharedValue<number>;
-
-    /** The content offset to be set on the flatlist according to the
-     * keyboard and scroll positions
-     */
-    keyboardOffset: SharedValue<number>;
-
     /** The current composer height */
     composerHeight: number;
-
-    /** The content size height fired on a onScroll event */
-    contentSizeHeight: SharedValue<number>;
-
-    /** The layout measurement height fired on a onScroll event */
-    layoutMeasurementHeight: SharedValue<number>;
 };
 
 const IS_CLOSE_TO_NEWEST_THRESHOLD = 15;
@@ -166,7 +146,6 @@ function ReportActionsList({
     parentReportAction,
     sortedReportActions,
     sortedVisibleReportActions,
-    onScroll,
     mostRecentIOUReportActionID = '',
     loadNewerChats,
     loadOlderChats,
@@ -175,12 +154,7 @@ function ReportActionsList({
     listID,
     shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
-    scrollingVerticalOffset,
-    keyboardOffset,
     composerHeight,
-    keyboardHeight,
-    contentSizeHeight,
-    layoutMeasurementHeight,
 }: ReportActionsListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -197,6 +171,7 @@ function ReportActionsList({
     const lastMessageTime = useRef<string | null>(null);
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
+    const {onScroll, scrollY, keyboardHeight} = useKeyboardDismissableFlatListContext();
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -225,14 +200,12 @@ function ReportActionsList({
     const hasHeaderRendered = useRef(false);
     const linkedReportActionID = route?.params?.reportActionID;
     const scrollingVerticalOffsetRef = useRef(0);
-    const hasTriggeredStartRef = useRef(false);
-    const hasTriggeredEndRef = useRef(false);
 
-    const onStartReached = useCallback(() => {
+    const onEndReached = useCallback(() => {
         loadOlderChats(false);
     }, [loadOlderChats]);
 
-    const onEndReached = useCallback(() => {
+    const onStartReached = useCallback(() => {
         if (!isSearchTopmostFullScreenRoute()) {
             loadNewerChats(false);
             return;
@@ -246,44 +219,14 @@ function ReportActionsList({
     useAnimatedReaction(
         () => {
             return {
-                offsetY: scrollingVerticalOffset.get(),
+                offsetY: scrollY.get(),
                 kHeight: keyboardHeight.get(),
-                csHeight: contentSizeHeight.get(),
-                lmHeight: layoutMeasurementHeight.get(),
             };
         },
-        ({offsetY, kHeight, csHeight, lmHeight}) => {
+        ({offsetY, kHeight}) => {
             const correctedOffsetY = Platform.OS === 'ios' ? kHeight + offsetY : offsetY;
 
             scrollingVerticalOffsetRef.current = correctedOffsetY;
-
-            // The following implementation is due to ScrollView not supporting onStartReached and onEndReached props
-            const scrollableArea = csHeight - lmHeight;
-
-            if (scrollableArea <= 0) {
-                return;
-            }
-
-            const threshold = scrollableArea * ON_SCROLL_TO_LIMITS_THRESHOLD;
-
-            const hasReachedStartThreshold = offsetY >= threshold;
-            const hasReachedEndThreshold = offsetY <= scrollableArea - threshold;
-
-            // Visual top/Logical bottom of the list
-            if (hasReachedStartThreshold && !hasTriggeredStartRef.current) {
-                hasTriggeredStartRef.current = true;
-                runOnJS(onStartReached)();
-            } else if (!hasReachedStartThreshold) {
-                hasTriggeredStartRef.current = false;
-            }
-
-            // Visual bottom/Logical top of the list
-            if (hasReachedEndThreshold && !hasTriggeredEndRef.current) {
-                hasTriggeredEndRef.current = true;
-                runOnJS(onEndReached)();
-            } else if (!hasReachedEndThreshold) {
-                hasTriggeredEndRef.current = false;
-            }
         },
     );
 
@@ -425,7 +368,7 @@ function ReportActionsList({
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible} = useReportUnreadMessageScrollTracking({
         reportID: report.reportID,
-        currentVerticalScrollingOffset: scrollingVerticalOffset,
+        currentVerticalScrollingOffset: scrollY,
         floatingMessageVisibleInitialValue: !isLinkedActionCloseToNewest,
         readActionSkippedRef: readActionSkipped,
         hasUnreadMarkerReportAction: !!unreadMarkerReportActionID,
@@ -847,18 +790,6 @@ function ReportActionsList({
     // Parse Fullstory attributes on initial render
     useLayoutEffect(parseFSAttributes, []);
 
-    const animatedProps = useAnimatedProps(() => {
-        return {
-            contentInset: {
-                top: keyboardHeight.get(),
-            },
-            contentOffset: {
-                x: 0,
-                y: -keyboardHeight.get() + keyboardOffset.get(),
-            },
-        };
-    });
-
     const safeAreaBottom = Platform.OS !== 'ios' || isKeyboardActive ? 0 : (unmodifiedPaddings.bottom ?? 0);
     const bottomSpacer = useMemo(
         () => (Platform.OS === 'ios' && !isComposerFullSize ? composerHeight + safeAreaBottom : safeAreaBottom),
@@ -884,23 +815,12 @@ function ReportActionsList({
                     style={styles.overscrollBehaviorContain}
                     data={sortedVisibleReportActions}
                     renderItem={renderItem}
-                    renderScrollComponent={(props) =>
-                        renderScrollComponent?.(
-                            Platform.select<AnimatedScrollViewProps>({
-                                ios: {
-                                    ...props,
-                                    onScroll,
-                                    animatedProps,
-                                    automaticallyAdjustContentInsets: false,
-                                    contentInsetAdjustmentBehavior: 'never',
-                                },
-                                default: {
-                                    ...props,
-                                    onScroll,
-                                },
-                            }),
-                        )
-                    }
+                    onStartReached={onStartReached}
+                    onEndReached={onEndReached}
+                    onStartReachedThreshold={ON_SCROLL_TO_LIMITS_THRESHOLD}
+                    onEndReachedThreshold={ON_SCROLL_TO_LIMITS_THRESHOLD}
+                    onScroll={onScroll}
+                    renderScrollComponent={renderScrollComponent}
                     contentContainerStyle={styles.chatContentScrollView}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}

@@ -1,7 +1,7 @@
-import type {ForwardedRef} from 'react';
+import type {ForwardedRef, PropsWithChildren} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList, ScrollViewProps} from 'react-native';
-import FlatList from '@components/FlatList';
+import KeyboardDismissableFlatList from '@components/KeyboardDismissableFlatList';
 import usePrevious from '@hooks/usePrevious';
 import getInitialPaginationSize from './getInitialPaginationSize';
 import RenderTaskQueue from './RenderTaskQueue';
@@ -19,11 +19,12 @@ function defaultKeyExtractor<T>(item: T | {key: string} | {id: string}, index: n
     return String(index);
 }
 
-type BaseInvertedFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'renderItem' | 'initialScrollIndex'> & {
+type BaseInvertedFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'renderItem' | 'initialScrollIndex' | 'CellRendererComponent'> & {
     shouldEnableAutoScrollToTopThreshold?: boolean;
     data: T[];
     renderItem: ListRenderItem<T>;
     initialScrollKey?: string | null;
+    CellRendererComponent?: React.FC<PropsWithChildren>;
 };
 
 const AUTOSCROLL_TO_TOP_THRESHOLD = 250;
@@ -125,7 +126,7 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
     });
 
     return (
-        <FlatList
+        <KeyboardDismissableFlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             ref={listRef}

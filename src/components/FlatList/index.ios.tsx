@@ -2,11 +2,15 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useState} from 'react';
 import type {FlatListProps} from 'react-native';
 import {FlatList} from 'react-native';
+import KeyboardDismissableFlatList from '@components/KeyboardDismissableFlatList';
+import {useKeyboardDismissableFlatListContext} from '@components/KeyboardDismissableFlatList/KeyboardDismissableFlatListContext';
+import type {AdditionalFlatListProps} from '.';
 
 // On iOS, we have to unset maintainVisibleContentPosition while the user is scrolling to prevent jumping to the beginning issue
-function CustomFlatList<T>(props: FlatListProps<T>, ref: ForwardedRef<FlatList>) {
-    const {maintainVisibleContentPosition: originalMaintainVisibleContentPosition, ...rest} = props;
+function CustomFlatList<T>(props: FlatListProps<T> & AdditionalFlatListProps, ref: ForwardedRef<FlatList>) {
+    const {maintainVisibleContentPosition: originalMaintainVisibleContentPosition, withAnimatedKeyboardHandler, ...rest} = props;
     const [isScrolling, setIsScrolling] = useState(false);
+    const {onScroll} = useKeyboardDismissableFlatListContext();
 
     const handleScrollBegin = useCallback(() => {
         setIsScrolling(true);
@@ -17,6 +21,21 @@ function CustomFlatList<T>(props: FlatListProps<T>, ref: ForwardedRef<FlatList>)
     }, []);
 
     const maintainVisibleContentPosition = isScrolling ? undefined : originalMaintainVisibleContentPosition;
+
+    if (withAnimatedKeyboardHandler) {
+        return (
+            <KeyboardDismissableFlatList
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...rest}
+                CellRendererComponent={null}
+                onScroll={onScroll}
+                ref={ref}
+                maintainVisibleContentPosition={maintainVisibleContentPosition}
+                onMomentumScrollBegin={handleScrollBegin}
+                onMomentumScrollEnd={handleScrollEnd}
+            />
+        );
+    }
 
     return (
         <FlatList<T>
