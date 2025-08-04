@@ -1,11 +1,10 @@
 import {render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 // eslint-disable-next-line no-restricted-syntax
-import * as GetPlatformModule from '@libs/getPlatform';
+import * as ShouldShowSubscriptionPaymentOptionModule from '@libs/shouldShowSubscriptionPaymentOption';
 // eslint-disable-next-line no-restricted-syntax
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import CardSection from '@pages/settings/Subscription/CardSection/CardSection';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import CardSectionUtils from '@src/pages/settings/Subscription/CardSection/utils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -28,7 +27,7 @@ describe('CardSectionTest', () => {
     });
 
     test('shows retry payment and authenticate button when retry is available and platform is web', async () => {
-        jest.spyOn(GetPlatformModule, 'default').mockReturnValue(CONST.PLATFORM.WEB);
+        jest.spyOn(ShouldShowSubscriptionPaymentOptionModule, 'default').mockReturnValue(true);
         jest.spyOn(CardSectionUtils, 'getBillingStatus').mockReturnValue({
             title: 'subscription.billingBanner.policyOwnerAmountOwed.title',
             subtitle: 'subscription.billingBanner.policyOwnerAmountOwed.subtitle',
@@ -43,7 +42,7 @@ describe('CardSectionTest', () => {
     });
 
     test('hides retry payment and authenticate button on native platforms', () => {
-        jest.spyOn(GetPlatformModule, 'default').mockReturnValue(CONST.PLATFORM.ANDROID);
+        jest.spyOn(ShouldShowSubscriptionPaymentOptionModule, 'default').mockReturnValue(false);
         jest.spyOn(CardSectionUtils, 'getBillingStatus').mockReturnValue({
             title: 'subscription.billingBanner.policyOwnerAmountOwed.title',
             subtitle: 'subscription.billingBanner.policyOwnerAmountOwed.subtitle',
