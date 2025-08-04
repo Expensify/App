@@ -14,9 +14,10 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
+import {getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
 import {canReportBeMentionedWithinPolicy, doesReportBelongToWorkspace, isGroupChat, isReportParticipant} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getSortedPersonalDetails, trimLeadingSpace} from '@libs/SuggestionUtils';
@@ -65,6 +66,7 @@ function SuggestionMention(
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
     const suggestionValuesRef = useRef(suggestionValues);
+    const policy = usePolicy(policyID);
     // eslint-disable-next-line react-compiler/react-compiler
     suggestionValuesRef.current = suggestionValues;
 
@@ -89,7 +91,7 @@ function SuggestionMention(
         [currentReport],
     );
     const weightedPersonalDetails: PersonalDetailsList | SuggestionPersonalDetailsList | undefined = useMemo(() => {
-        const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policyID);
+        const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, currentUserPersonalDetails.accountID);
         if (!isGroupChat(currentReport) && !doesReportBelongToWorkspace(currentReport, policyEmployeeAccountIDs, policyID)) {
             return personalDetails;
         }
@@ -101,7 +103,7 @@ function SuggestionMention(
                   }
                 : null,
         );
-    }, [policyID, currentReport, personalDetails, getPersonalDetailsWeight]);
+    }, [policyID, policy, currentReport, personalDetails, getPersonalDetailsWeight, currentUserPersonalDetails]);
 
     const [highlightedMentionIndex, setHighlightedMentionIndex] = useArrowKeyFocusManager({
         isActive: isMentionSuggestionsMenuVisible,

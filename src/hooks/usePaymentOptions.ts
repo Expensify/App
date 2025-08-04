@@ -4,7 +4,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import type SettlementButtonProps from '@components/SettlementButton/types';
 import type {PaymentOrApproveOption} from '@libs/PaymentUtils';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
-import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
+import {getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
 import {
     doesReportBelongToWorkspace,
     getBankAccountRoute,
@@ -19,8 +19,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, FundList, LastPaymentMethodType} from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
+import usePolicy from './usePolicy';
 import useThemeStyles from './useThemeStyles';
 
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
@@ -58,11 +60,13 @@ function usePaymentOptions({
 }: UsePaymentOptionsProps): PaymentOrApproveOption[] {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const policy = usePolicy(policyID);
+    const {accountID} = useCurrentUserPersonalDetails();
 
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
-    const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
+    const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, accountID);
     const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyEmployeeAccountIDs, policyID) : false;
     const policyIDKey = reportBelongsToWorkspace ? policyID : CONST.POLICY.ID_FAKE;
     const [lastPaymentMethod, lastPaymentMethodResult] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {

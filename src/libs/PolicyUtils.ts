@@ -609,6 +609,17 @@ function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pi
         .filter((policyMemberAccountID) => policyMemberAccountID !== currentUserAccountID);
 }
 
+function getPolicyEmployeeAccountIDs(policy: OnyxEntry<Pick<Policy, 'employeeList'>>, currentUserAccountID?: number) {
+    if (!policy) {
+        return [];
+    }
+
+    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
+    return Object.values(policyMemberEmailsToAccountIDs)
+        .map((policyMemberAccountID) => Number(policyMemberAccountID))
+        .filter((policyMemberAccountID) => policyMemberAccountID !== currentUserAccountID);
+}
+
 function goBackFromInvalidPolicy() {
     Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
 }
@@ -1657,6 +1668,7 @@ export {
     getPolicyRole,
     hasIndependentTags,
     getLengthOfTag,
+    getPolicyEmployeeAccountIDs,
 };
 
 export type {MemberEmailsToAccountIDs};
