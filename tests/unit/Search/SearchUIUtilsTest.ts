@@ -1275,41 +1275,41 @@ describe('SearchUIUtils', () => {
 
     describe('Test getSections', () => {
         it('should return getReportActionsSections result when type is CHAT', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.CHAT, searchResults.data, searchResults.search)).toStrictEqual(reportActionListItems);
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.CHAT, searchResults.data, searchResults.search, 2074551)).toStrictEqual(reportActionListItems);
         });
 
         it('should return getTransactionsSections result when groupBy is undefined', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, searchResults.search, undefined)).toStrictEqual(transactionsListItems);
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, searchResults.search, 2074551, undefined)).toStrictEqual(transactionsListItems);
         });
 
         it('should return getReportSections result when type is EXPENSE and groupBy is report', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, searchResults.search, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, searchResults.search, 2074551, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
                 transactionReportGroupListItems,
             );
         });
 
         it('should return getReportSections result when type is TRIP and groupBy is report', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.TRIP, searchResults.data, searchResults.search, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.TRIP, searchResults.data, searchResults.search, 2074551, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
                 transactionReportGroupListItems,
             );
         });
 
         it('should return getReportSections result when type is INVOICE and groupBy is report', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.INVOICE, searchResults.data, searchResults.search, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.INVOICE, searchResults.data, searchResults.search, 2074551, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
                 transactionReportGroupListItems,
             );
         });
 
         it('should return getMemberSections result when type is EXPENSE and groupBy is member', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, searchResults.search, CONST.SEARCH.GROUP_BY.MEMBERS)).toStrictEqual([]); // s77rt update test
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, searchResults.search, 2074551, CONST.SEARCH.GROUP_BY.MEMBERS)).toStrictEqual([]); // s77rt update test
         });
 
         it('should return getMemberSections result when type is TRIP and groupBy is member', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.TRIP, searchResults.data, searchResults.search, CONST.SEARCH.GROUP_BY.MEMBERS)).toStrictEqual([]); // s77rt update test
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.TRIP, searchResults.data, searchResults.search, 2074551, CONST.SEARCH.GROUP_BY.MEMBERS)).toStrictEqual([]); // s77rt update test
         });
 
         it('should return getMemberSections result when type is INVOICE and groupBy is member', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.INVOICE, searchResults.data, searchResults.search, CONST.SEARCH.GROUP_BY.MEMBERS)).toStrictEqual([]); // s77rt update test
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.INVOICE, searchResults.data, searchResults.search, 2074551, CONST.SEARCH.GROUP_BY.MEMBERS)).toStrictEqual([]); // s77rt update test
         });
 
         // s77rt add test for group by card
@@ -1695,7 +1695,7 @@ describe('SearchUIUtils', () => {
             };
 
             // Test 1: No optional fields should be shown when all transactions are empty
-            let columns = SearchUIUtils.getColumnsToShow([emptyTransaction, emptyTransaction], false);
+            let columns = SearchUIUtils.getColumnsToShow([emptyTransaction, emptyTransaction], submitterAccountID, false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(false);
@@ -1704,22 +1704,22 @@ describe('SearchUIUtils', () => {
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.TO]).toBe(false);
 
             // Test 2: Merchant column should show when at least one transaction has merchant
-            columns = SearchUIUtils.getColumnsToShow([emptyTransaction, merchantTransaction], false);
+            columns = SearchUIUtils.getColumnsToShow([emptyTransaction, merchantTransaction], submitterAccountID, false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(true);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(false);
 
             // Test 3: Category column should show when at least one transaction has category
-            columns = SearchUIUtils.getColumnsToShow([emptyTransaction, categoryTransaction], false);
+            columns = SearchUIUtils.getColumnsToShow([emptyTransaction, categoryTransaction], submitterAccountID, false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(true);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(false);
 
             // Test 4: Tag column should show when at least one transaction has tag
-            columns = SearchUIUtils.getColumnsToShow([emptyTransaction, tagTransaction], false);
+            columns = SearchUIUtils.getColumnsToShow([emptyTransaction, tagTransaction], submitterAccountID, false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(true);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(false);
 
             // Test 5: Description column should show when at least one transaction has description
-            columns = SearchUIUtils.getColumnsToShow([emptyTransaction, descriptionTransaction], false);
+            columns = SearchUIUtils.getColumnsToShow([emptyTransaction, descriptionTransaction], submitterAccountID, false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]).toBe(true);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(false);
 
@@ -1735,7 +1735,7 @@ describe('SearchUIUtils', () => {
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.TO]).toBe(true);
 
             // Test 7: Multiple columns should show when transactions have different fields
-            columns = SearchUIUtils.getColumnsToShow([merchantTransaction, categoryTransaction, tagTransaction], false);
+            columns = SearchUIUtils.getColumnsToShow([merchantTransaction, categoryTransaction, tagTransaction], submitterAccountID, false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(true);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(true);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(true);
@@ -1758,7 +1758,7 @@ describe('SearchUIUtils', () => {
             };
 
             // In expense report view, From/To columns should not be shown
-            const columns = SearchUIUtils.getColumnsToShow([testTransaction], true);
+            const columns = SearchUIUtils.getColumnsToShow([testTransaction], submitterAccountID, true);
 
             // These columns should be shown based on data
             expect(columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]).toBe(true);
@@ -1785,7 +1785,7 @@ describe('SearchUIUtils', () => {
                 managerID: adminAccountID,
             };
 
-            const columns = SearchUIUtils.getColumnsToShow([testTransaction], false);
+            const columns = SearchUIUtils.getColumnsToShow([testTransaction], submitterAccountID, false);
 
             // Should show merchant column because modifiedMerchant has value
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(true);
