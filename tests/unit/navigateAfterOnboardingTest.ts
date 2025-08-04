@@ -88,7 +88,6 @@ describe('navigateAfterOnboarding', () => {
         };
         await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, REPORT_ID);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, lastAccessedReport);
-        mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
 
         navigateAfterOnboarding(true, true, lastAccessedReport, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
@@ -97,7 +96,6 @@ describe('navigateAfterOnboarding', () => {
 
     it('should not navigate to last accessed report if it is onboarding expense chat on small screens', () => {
         const lastAccessedReport = {reportID: REPORT_ID, policyID: ONBOARDING_POLICY_ID};
-        mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
 
         navigateAfterOnboarding(true, true, lastAccessedReport, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
@@ -107,7 +105,6 @@ describe('navigateAfterOnboarding', () => {
     it('should navigate to last accessed report if shouldOpenOnAdminRoom is true on small screens', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         const lastAccessedReport = {reportID: REPORT_ID};
-        mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(true);
 
         navigateAfterOnboarding(true, true, lastAccessedReport, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
@@ -117,7 +114,6 @@ describe('navigateAfterOnboarding', () => {
     it('should navigate to Concierge room if user uses a test email', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         const lastAccessedReport = {reportID: REPORT_ID};
-        mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(true);
         const testSession = {email: 'test+account@gmail.com'};
 
