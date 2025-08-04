@@ -6,6 +6,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import ReportWelcomeText from '@components/ReportWelcomeText';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -34,12 +35,13 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined}`, {
         canBeMissing: true,
     });
+    const isReportArchived = useReportIsArchived(report?.reportID);
 
     if (!isChatReport(report)) {
         return null;
     }
 
-    let icons = getIcons(report, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
+    let icons = getIcons(report, personalDetails, null, '', -1, policy, invoiceReceiverPolicy, isReportArchived);
     const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report);
 
     if (isInvoiceRoom(report) && isCurrentUserInvoiceReceiver(report)) {
