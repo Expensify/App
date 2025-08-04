@@ -1,5 +1,4 @@
 import React, {useState} from 'react';
-import {RenderHTMLSource} from 'react-native-render-html';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
