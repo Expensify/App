@@ -712,8 +712,6 @@ function ReportActionsList({
             );
         },
         [
-            allReports,
-            policies,
             reportActions,
             draftMessage,
             emojiReactions,
