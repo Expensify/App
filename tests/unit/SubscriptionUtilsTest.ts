@@ -1,5 +1,6 @@
 import {addDays, addMinutes, format as formatDate, getUnixTime, subDays} from 'date-fns';
 import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {
     calculateRemainingFreeTrialDays,
     doesUserHavePaymentCardAdded,
@@ -13,7 +14,7 @@ import {
 } from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BillingGraceEndPeriod, BillingStatus, FundList} from '@src/types/onyx';
+import type {BillingGraceEndPeriod, BillingStatus, FundList, StripeCustomerID} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import {STRIPE_CUSTOMER_ID} from '../utils/TestHelper';
 
@@ -336,7 +337,9 @@ describe('SubscriptionUtils', () => {
         });
 
         it('should return undefined by default', () => {
-            expect(getSubscriptionStatus(stripeCustomerId)).toBeUndefined();
+            const stripeCustomerIdForDefault: Partial<OnyxEntry<StripeCustomerID>> = {};
+            // @ts-expect-error - This is a test case
+            expect(getSubscriptionStatus(stripeCustomerIdForDefault)).toBeUndefined();
         });
 
         it('should return POLICY_OWNER_WITH_AMOUNT_OWED status', async () => {
@@ -429,7 +432,14 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_BILLING_STATUS]: BILLING_STATUS_EXPIRED_CARD,
             });
 
-            expect(getSubscriptionStatus(stripeCustomerId)).toEqual({
+            const stripeCustomerIdForCardExpired: Partial<OnyxEntry<StripeCustomerID>> = {
+                paymentMethodID: '1',
+                intentsID: '2',
+                currency: 'USD',
+            };
+
+            // @ts-expect-error - This is a test case
+            expect(getSubscriptionStatus(stripeCustomerIdForCardExpired)).toEqual({
                 status: PAYMENT_STATUS.CARD_EXPIRED,
                 isError: true,
             });
@@ -442,7 +452,14 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.FUND_LIST]: FUND_LIST,
             });
 
-            expect(getSubscriptionStatus(stripeCustomerId)).toEqual({
+            const stripeCustomerIdForCardExpireSoon: Partial<OnyxEntry<StripeCustomerID>> = {
+                paymentMethodID: '1',
+                intentsID: '2',
+                currency: 'USD',
+            };
+
+            // @ts-expect-error - This is a test case
+            expect(getSubscriptionStatus(stripeCustomerIdForCardExpireSoon)).toEqual({
                 status: PAYMENT_STATUS.CARD_EXPIRE_SOON,
             });
         });
@@ -453,7 +470,13 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: true,
             });
 
-            expect(getSubscriptionStatus(stripeCustomerId)).toEqual({
+            const stripeCustomerIdForRetryBillingSuccess: Partial<OnyxEntry<StripeCustomerID>> = {
+                paymentMethodID: '1',
+                intentsID: '2',
+                currency: 'USD',
+            };
+            // @ts-expect-error - This is a test case
+            expect(getSubscriptionStatus(stripeCustomerIdForRetryBillingSuccess)).toEqual({
                 status: PAYMENT_STATUS.RETRY_BILLING_SUCCESS,
                 isError: false,
             });
@@ -466,7 +489,13 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED]: true,
             });
 
-            expect(getSubscriptionStatus(stripeCustomerId)).toEqual({
+            const stripeCustomerIdForRetryBillingError: Partial<OnyxEntry<StripeCustomerID>> = {
+                paymentMethodID: '1',
+                intentsID: '2',
+                currency: 'USD',
+            };
+            // @ts-expect-error - This is a test case
+            expect(getSubscriptionStatus(stripeCustomerIdForRetryBillingError)).toEqual({
                 status: PAYMENT_STATUS.RETRY_BILLING_ERROR,
                 isError: true,
             });
