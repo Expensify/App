@@ -908,6 +908,7 @@ function IOURequestStepConfirmation({
             trackExpense,
             submitPerDiemExpense,
             userLocation,
+            existingInvoiceReport,
         ],
     );
 
