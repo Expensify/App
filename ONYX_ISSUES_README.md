@@ -76,6 +76,14 @@ This will:
 - Link sub-issues to their parent issues using GitHub's native sub-issue functionality
 - Provide a summary of created issues
 
+### 3. Set Project Status on Parent Issues
+
+This is a manual step!
+
+1. Use the link at the end of the output from Step 2 to see all the newly created issues
+2. For all the parent "module" issues starting with the word "Refactor..."
+3. Set the project status to "To do"
+
 ## Troubleshooting
 
 ### Common Issues
