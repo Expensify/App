@@ -1,3 +1,4 @@
+import type {NavigationRoute} from '@react-navigation/native';
 import {findFocusedRoute, useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import {useCallback, useMemo, useRef} from 'react';
 import type {ValueOf} from 'type-fest';
@@ -8,6 +9,7 @@ import {isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {getSettingsTabStateFromSessionStorage, getWorkspacesTabStateFromSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import {TAB_TO_FULLSCREEN} from '@libs/Navigation/linkingConfig/RELATIONS';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, FullScreenName, SearchFullscreenNavigatorParamList, SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
@@ -75,6 +77,33 @@ function preloadInboxTab(navigation: PlatformStackNavigationProp<AuthScreensPara
     navigation.preload(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {screen: SCREENS.HOME});
 }
 
+function preloadTab(tabName: string, navigation: PlatformStackNavigationProp<AuthScreensParamList>, subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null) {
+    switch (tabName) {
+        case NAVIGATION_TABS.WORKSPACES:
+            preloadWorkspacesTab(navigation);
+            return;
+        case NAVIGATION_TABS.SEARCH:
+            preloadReportsTab(navigation);
+            return;
+        case NAVIGATION_TABS.SETTINGS:
+            preloadAccountTab(navigation, subscriptionPlan);
+            return;
+        case NAVIGATION_TABS.HOME:
+            preloadInboxTab(navigation);
+            return;
+        default:
+            return undefined;
+    }
+}
+
+function isPreloadedRouteSubscriptionScreen(preloadedRoute: NavigationRoute<AuthScreensParamList, keyof AuthScreensParamList>) {
+    return (
+        preloadedRoute.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR &&
+        preloadedRoute.params &&
+        `screen` in preloadedRoute.params &&
+        preloadedRoute.params?.screen === SCREENS.SETTINGS.SUBSCRIPTION.ROOT
+    );
+}
 /**
  * Hook that preloads all fullscreen navigators except the current one.
  * This helps improve performance by preloading navigators that might be needed soon.
@@ -87,6 +116,20 @@ function usePreloadFullScreenNavigators() {
     const subscriptionPlan = useSubscriptionPlan();
     const isAuthenticated = useIsAuthenticated();
     const hasPreloadedRef = useRef(false);
+
+    const hasSubscriptionPlanTurnedOff = useMemo(() => {
+        return !subscriptionPlan && preloadedRoutes.some(isPreloadedRouteSubscriptionScreen);
+    }, [subscriptionPlan, preloadedRoutes]);
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!hasSubscriptionPlanTurnedOff) {
+                return;
+            }
+            navigation.reset({...navigation.getState(), preloadedRoutes: preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR)});
+            Navigation.isNavigationReady().then(() => setTimeout(() => preloadAccountTab(navigation, subscriptionPlan), TIMING_TO_CALL_PRELOAD));
+        }, [hasSubscriptionPlanTurnedOff, navigation, preloadedRoutes, subscriptionPlan]),
+    );
 
     useFocusEffect(
         useCallback(() => {
@@ -102,25 +145,10 @@ function usePreloadFullScreenNavigators() {
                         return !isCurrentTab && !isRouteAlreadyPreloaded;
                     })
                     .forEach((tabName) => {
-                        switch (tabName) {
-                            case NAVIGATION_TABS.WORKSPACES:
-                                preloadWorkspacesTab(navigation);
-                                return;
-                            case NAVIGATION_TABS.SEARCH:
-                                preloadReportsTab(navigation);
-                                return;
-                            case NAVIGATION_TABS.SETTINGS:
-                                preloadAccountTab(navigation, subscriptionPlan);
-                                return;
-                            case NAVIGATION_TABS.HOME:
-                                preloadInboxTab(navigation);
-                                return;
-                            default:
-                                return undefined;
-                        }
+                        preloadTab(tabName, navigation, subscriptionPlan);
                     });
             }, TIMING_TO_CALL_PRELOAD);
-        }, [navigation, preloadedRoutes, route.name, subscriptionPlan, isAuthenticated]),
+        }, [isAuthenticated, preloadedRoutes, route.name, navigation, subscriptionPlan]),
     );
 }
 
