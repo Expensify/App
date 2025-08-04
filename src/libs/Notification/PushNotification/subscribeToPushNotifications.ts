@@ -1,3 +1,4 @@
+import {NativeModules} from 'react-native';
 import Onyx from 'react-native-onyx';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 import Log from '@libs/Log';
@@ -51,7 +52,7 @@ Onyx.connect({
 });
 
 function applyOnyxData({reportID, onyxData, lastUpdateID, previousUpdateID, hasPendingOnyxUpdates = false}: PushNotificationData): Promise<void> {
-    Log.info(`[PushNotification] Applying onyx data in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID});
+    Log.info(`[PushNotification] Applying onyx data in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, lastUpdateID});
 
     const logMissingOnyxDataInfo = (isDataMissing: boolean): boolean => {
         if (isDataMissing) {
@@ -102,7 +103,9 @@ function applyOnyxData({reportID, onyxData, lastUpdateID, previousUpdateID, hasP
      * lastUpdateIDAppliedToClient will NOT be populated in other libs. To workaround this, we manually read the value here
      * and pass it as a param
      */
-    return getLastUpdateIDAppliedToClient().then((lastUpdateIDAppliedToClient) => applyOnyxUpdatesReliably(updates, {shouldRunSync: true, clientLastUpdateID: lastUpdateIDAppliedToClient}));
+    return getLastUpdateIDAppliedToClient()
+        .then((lastUpdateIDAppliedToClient) => applyOnyxUpdatesReliably(updates, {shouldRunSync: true, clientLastUpdateID: lastUpdateIDAppliedToClient}))
+        .then(() => NativeModules.PushNotificationBridge.finishBackgroundProcessing());
 }
 
 function navigateToReport({reportID}: PushNotificationData): Promise<void> {
