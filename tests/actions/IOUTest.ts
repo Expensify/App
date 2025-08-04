@@ -6522,8 +6522,8 @@ describe('actions/IOU', () => {
             if (!transaction || !expenseReport) {
                 return;
             }
-
-            changeTransactionsReport([transaction?.transactionID], expenseReport?.reportID);
+            const currentUserEmail = 'test@test.com';
+            changeTransactionsReport([transaction?.transactionID], expenseReport?.reportID, currentUserEmail);
 
             let updatedTransaction: OnyxEntry<Transaction>;
             let updatedIOUReportActionOnSelfDMReport: OnyxEntry<ReportAction>;

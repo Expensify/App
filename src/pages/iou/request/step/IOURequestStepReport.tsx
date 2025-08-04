@@ -28,7 +28,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const reportID = isUnreported ? transaction?.participants?.at(0)?.reportID : transaction?.reportID;
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: false});
-
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const currentUserEmail = session?.email ?? '';
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreateReport = action === CONST.IOU.ACTION.CREATE;
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
@@ -91,7 +92,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             );
 
             if (isEditing) {
-                changeTransactionsReport([transaction.transactionID], item.value);
+                changeTransactionsReport([transaction.transactionID], item.value, currentUserEmail);
             }
         });
     };
@@ -122,7 +123,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         if (!transaction) {
             return;
         }
-        changeTransactionsReport([transaction.transactionID], CONST.REPORT.UNREPORTED_REPORT_ID);
+        changeTransactionsReport([transaction.transactionID], CONST.REPORT.UNREPORTED_REPORT_ID, currentUserEmail);
         Navigation.dismissModal();
     };
 
