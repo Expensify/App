@@ -13,13 +13,12 @@ import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/M
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {PromotedAction} from '@components/PromotedActionsBar';
 import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBar';
-import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -150,7 +149,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
 
-    const {lastAccessReportID} = useLastAccessedReport(false, undefined, undefined, report.reportID);
+    const {lastAccessReportID} = useLastAccessedReport(false, false, undefined, report.reportID);
 
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`, {canBeMissing: true});
@@ -574,50 +573,55 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     ) : null;
 
     const renderedAvatar = useMemo(() => {
-        if (isMoneyRequestReport || isInvoiceReport) {
+        if (!isGroupChat || isThread) {
             return (
                 <View style={styles.mb3}>
-                    <MultipleAvatars
-                        icons={icons}
-                        size={CONST.AVATAR_SIZE.LARGE}
+                    <ReportActionAvatars
+                        noRightMarginOnSubscriptContainer
+                        size={CONST.AVATAR_SIZE.X_LARGE}
+                        reportID={report?.reportID ?? moneyRequestReport?.reportID}
                     />
                 </View>
             );
         }
-        if (isGroupChat && !isThread) {
-            return (
-                <AvatarWithImagePicker
-                    source={icons.at(0)?.source}
-                    avatarID={icons.at(0)?.id}
-                    isUsingDefaultAvatar={!report.avatarUrl}
-                    size={CONST.AVATAR_SIZE.X_LARGE}
-                    avatarStyle={styles.avatarXLarge}
-                    onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
-                    onImageRemoved={() => {
-                        // Calling this without a file will remove the avatar
-                        updateGroupChatAvatar(report.reportID);
-                    }}
-                    onImageSelected={(file) => updateGroupChatAvatar(report.reportID, file)}
-                    editIcon={Expensicons.Camera}
-                    editIconStyle={styles.smallEditIconAccount}
-                    pendingAction={report.pendingFields?.avatar ?? undefined}
-                    errors={report.errorFields?.avatar ?? null}
-                    errorRowStyles={styles.mt6}
-                    onErrorClose={() => clearAvatarErrors(report.reportID)}
-                    shouldUseStyleUtilityForAnchorPosition
-                    style={[styles.w100, styles.mb3]}
-                />
-            );
-        }
         return (
-            <View style={styles.mb3}>
-                <RoomHeaderAvatars
-                    icons={icons}
-                    reportID={report?.reportID}
-                />
-            </View>
+            <AvatarWithImagePicker
+                source={icons.at(0)?.source}
+                avatarID={icons.at(0)?.id}
+                isUsingDefaultAvatar={!report.avatarUrl}
+                size={CONST.AVATAR_SIZE.X_LARGE}
+                avatarStyle={styles.avatarXLarge}
+                onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
+                onImageRemoved={() => {
+                    // Calling this without a file will remove the avatar
+                    updateGroupChatAvatar(report.reportID);
+                }}
+                onImageSelected={(file) => updateGroupChatAvatar(report.reportID, file)}
+                editIcon={Expensicons.Camera}
+                editIconStyle={styles.smallEditIconAccount}
+                pendingAction={report.pendingFields?.avatar ?? undefined}
+                errors={report.errorFields?.avatar ?? null}
+                errorRowStyles={styles.mt6}
+                onErrorClose={() => clearAvatarErrors(report.reportID)}
+                shouldUseStyleUtilityForAnchorPosition
+                style={[styles.w100, styles.mb3]}
+            />
         );
-    }, [report, icons, isMoneyRequestReport, isInvoiceReport, isGroupChat, isThread, styles]);
+    }, [
+        isGroupChat,
+        isThread,
+        icons,
+        report.avatarUrl,
+        report.pendingFields?.avatar,
+        report.errorFields?.avatar,
+        report.reportID,
+        styles.avatarXLarge,
+        styles.smallEditIconAccount,
+        styles.mt6,
+        styles.w100,
+        styles.mb3,
+        moneyRequestReport,
+    ]);
 
     const canJoin = canJoinChat(report, parentReportAction, policy, !!reportNameValuePairs?.private_isArchived);
 
