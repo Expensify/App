@@ -137,7 +137,6 @@ import {
     getApprovalChain,
     getChatByParticipants,
     getDisplayedReportID,
-    getInvoiceChatByParticipants,
     getMoneyRequestSpendBreakdown,
     getNextApproverAccountID,
     getOptimisticDataForParentReportAction,
