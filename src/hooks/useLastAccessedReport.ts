@@ -7,7 +7,7 @@ import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import useOnyx from './useOnyx';
 
 // Optimized selectors based on complete field usage analysis in findLastAccessedReport
-type ReportSelector = Pick<Report, 'reportID' | 'lastReadTime' | 'chatType' | 'type' | 'participants' | 'invoiceReceiver' | 'ownerAccountID' | 'parentReportActionID'>;
+type ReportSelector = Pick<Report, 'reportID' | 'lastReadTime' | 'chatType' | 'type' | 'participants' | 'invoiceReceiver' | 'ownerAccountID' | 'parentReportActionID' | 'policyID'>;
 
 type PolicySelector = Pick<Policy, 'id' | 'employeeList'>;
 
@@ -25,6 +25,7 @@ const reportSelector = (report: OnyxEntry<Report>): ReportSelector =>
         invoiceReceiver: report.invoiceReceiver,
         ownerAccountID: report.ownerAccountID,
         parentReportActionID: report.parentReportActionID,
+        policyID: report.policyID,
     }) as ReportSelector;
 
 const policySelector = (policy: OnyxEntry<Policy>): PolicySelector =>
