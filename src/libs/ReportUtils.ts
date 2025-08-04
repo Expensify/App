@@ -2041,6 +2041,11 @@ function findLastAccessedReport(
     return getMostRecentlyVisitedReport(reportsValues, reportMetadata);
 }
 
+/**
+ * This function is used to retrieve the last accessed report with data from Onyx.connect
+ * It's used in the case we need to get the last accessed report in a listener like openReportFromDeepLink
+ * Please use useLastAccessedReport hook instead if we need to get the last accessed report from the UI
+ */
 function findLastAccessedReportWithoutView(ignoreDomainRooms: boolean, openOnAdminRoom = false, policyID?: string, excludeReportID?: string): OnyxEntry<Report> {
     return findLastAccessedReport(allReports, allPolicies, allReportMetadata, allReportNameValuePair, ignoreDomainRooms, openOnAdminRoom, policyID, excludeReportID);
 }
