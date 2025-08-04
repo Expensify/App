@@ -35,6 +35,12 @@ type ListItemDataType<C extends SearchDataTypes, T extends SearchStatus> = C ext
 
 /** Model of columns to show for search results */
 type ColumnsToShow = {
+    /** Whether the From column should be shown */
+    shouldShowFromColumn: boolean;
+
+    /** Whether the To column should be shown */
+    shouldShowToColumn: boolean;
+
     /** Whether the category column should be shown */
     shouldShowCategoryColumn: boolean;
 
@@ -43,6 +49,9 @@ type ColumnsToShow = {
 
     /** Whether the tax column should be shown */
     shouldShowTaxColumn: boolean;
+
+    /** Whether the description column should be shown */
+    shouldShowDescriptionColumn: boolean;
 };
 
 /** Model of search result state */
@@ -400,6 +409,9 @@ type SearchTransaction = {
     /** The ID of the report the transaction is associated with */
     reportID: string;
 
+    /** The name of the file used for a receipt */
+    filename?: string;
+
     /** The report ID of the transaction thread associated with the transaction */
     transactionThreadReportID: string;
 
@@ -426,6 +438,12 @@ type SearchTransaction = {
 
     /** The type of action that's pending  */
     pendingAction?: OnyxCommon.PendingAction;
+
+    /** The CC for this transaction */
+    cardID?: number;
+
+    /** The display name of the purchaser card, if any */
+    cardName?: string;
 };
 
 /** Model of tasks search result */
