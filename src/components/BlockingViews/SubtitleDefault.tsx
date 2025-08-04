@@ -10,7 +10,7 @@ function SubtitleDefault({
     subtitle,
     subtitleStyle,
     shouldShowLink,
-    onLinkPress,
+    onLinkPress = () => {},
     linkKey,
 }: {
     /** Subtitle message below the title */
@@ -38,7 +38,7 @@ function SubtitleDefault({
                     text={subtitle}
                 />
             )}
-            {shouldShowLink ? (
+            {shouldShowLink && !!linkKey ? (
                 <TextLink
                     onPress={onLinkPress}
                     style={[styles.link, styles.mt2]}

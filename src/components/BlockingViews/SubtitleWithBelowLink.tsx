@@ -11,7 +11,7 @@ function SubtitleWithBelowLink({
     subtitle,
     subtitleStyle,
     subtitleKeyBelowLink,
-    onLinkPress,
+    onLinkPress = () => {},
     linkKey,
 }: {
     /** Subtitle message below the title */
@@ -40,17 +40,21 @@ function SubtitleWithBelowLink({
                         text={subtitle}
                     />
                 )}
-                <TextLink
-                    onPress={onLinkPress}
-                    style={[styles.link, styles.mt2, styles.textAlignCenter]}
-                >
-                    {` ${translate(linkKey)}`}
-                </TextLink>
+                {!!linkKey && (
+                    <TextLink
+                        onPress={onLinkPress}
+                        style={[styles.link, styles.mt2, styles.textAlignCenter]}
+                    >
+                        {` ${translate(linkKey)}`}
+                    </TextLink>
+                )}
             </Text>
-            <AutoEmailLink
-                style={[styles.textAlignCenter, subtitleStyle, styles.mt4]}
-                text={translate(subtitleKeyBelowLink)}
-            />
+            {!!subtitleKeyBelowLink && (
+                <AutoEmailLink
+                    style={[styles.textAlignCenter, subtitleStyle, styles.mt4]}
+                    text={translate(subtitleKeyBelowLink)}
+                />
+            )}
         </>
     );
 }
