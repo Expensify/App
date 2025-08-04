@@ -5754,6 +5754,10 @@ const styles = (theme: ThemeColors) =>
             zIndex: 15,
         },
 
+        smallMoreButton: {
+            marginRight: 12,
+        },
+
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
             flex: 1,
             justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
