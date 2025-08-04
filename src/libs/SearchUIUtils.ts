@@ -132,7 +132,7 @@ function getExpenseStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>>
         {text: translateLocal('iou.settledExpensify'), value: CONST.SEARCH.STATUS.EXPENSE.PAID},
         {text: translateLocal('iou.done'), value: CONST.SEARCH.STATUS.EXPENSE.DONE},
     ];
-};
+}
 
 function getExpenseReportedStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>> {
     return [

@@ -103,9 +103,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     }, [unsafeGroupBy]);
 
     const [feedOptions, feed] = useMemo(() => {
-        const feedFilterValues = flatFilters
-            .find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)
-            ?.filters?.map((filter) => filter.value);
+        const feedFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)?.filters?.map((filter) => filter.value);
         const options = getFeedOptions(allFeeds, allCards);
         const value = feedFilterValues ? options.filter((option) => feedFilterValues.includes(option.value)) : [];
         return [options, value];

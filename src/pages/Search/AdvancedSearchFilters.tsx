@@ -473,7 +473,7 @@ function getFilterDisplayTitle(
 }
 
 function getStatusFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, type: SearchDataTypes, groupBy: SearchGroupBy | undefined, translate: LocaleContextProps['translate']) {
-    const statusOptions = getStatusOptions(type, groupBy).concat({translation: 'common.all', value: CONST.SEARCH.STATUS.EXPENSE.ALL});
+    const statusOptions = getStatusOptions(type, groupBy).concat({text: translate('common.all'), value: CONST.SEARCH.STATUS.EXPENSE.ALL});
     let filterValue = filters?.status;
 
     if (!filterValue?.length) {
@@ -488,7 +488,7 @@ function getStatusFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>
         .reduce((acc, value) => {
             const status = statusOptions.find((statusOption) => statusOption.value === value);
             if (status) {
-                return acc.concat(translate(status.translation));
+                return acc.concat(status.text);
             }
             return acc;
         }, [] as string[])
