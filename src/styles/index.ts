@@ -441,6 +441,11 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeSmall,
         },
 
+        textExtraSmall: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeExtraSmall,
+        },
+
         textMicro: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
@@ -1317,8 +1322,8 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.lineHeightXLarge,
             color: theme.text,
-            paddingTop: 15,
-            paddingBottom: 8,
+            paddingTop: variables.inputPaddingTop,
+            paddingBottom: variables.inputPaddingBottom,
             paddingLeft: 0,
             borderWidth: 0,
         },
@@ -1329,7 +1334,7 @@ const styles = (theme: ThemeColors) =>
 
         textInputMultilineContainer: {
             height: '100%',
-            paddingTop: 15,
+            paddingTop: variables.inputPaddingTop,
         },
 
         textInputAndIconContainer: (isMarkdownEnabled: boolean) => {
@@ -1378,8 +1383,8 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            paddingTop: 15,
-            paddingBottom: 8,
+            paddingTop: variables.inputPaddingTop,
+            paddingBottom: variables.inputPaddingBottom,
             height: '100%',
         },
 
@@ -1390,8 +1395,8 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            paddingTop: 15,
-            paddingBottom: 8,
+            paddingTop: variables.inputPaddingTop,
+            paddingBottom: variables.inputPaddingBottom,
         },
 
         textInputPrefix: {
@@ -3209,6 +3214,7 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             fontSize: variables.iouAmountTextSize,
             color: theme.heading,
+            lineHeight: variables.inputHeight,
         },
 
         iouAmountTextInput: addOutlineWidth(
@@ -4085,6 +4091,10 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 16,
         },
 
+        textSuccess: {
+            color: theme.success,
+        },
+
         footerRow: {
             paddingVertical: 4,
             marginBottom: 8,
@@ -4480,6 +4490,15 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 0,
         },
 
+        dropDownButtonCartIcon: {
+            minWidth: 22,
+        },
+
+        dropDownSmallButtonArrowContain: {
+            marginLeft: 3,
+            marginRight: 6,
+        },
+
         dropDownMediumButtonArrowContain: {
             marginLeft: 12,
             marginRight: 16,
@@ -4692,6 +4711,16 @@ const styles = (theme: ThemeColors) =>
         justSignedInModalAnimation: (is2FARequired: boolean) => ({
             height: is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight,
         }),
+
+        settlementButtonListContainer: {
+            maxHeight: 500,
+            paddingBottom: 0,
+            paddingTop: 0,
+        },
+
+        settlementButtonShortFormWidth: {
+            minWidth: 90,
+        },
 
         moneyRequestViewImage: {
             ...spacing.mh5,
