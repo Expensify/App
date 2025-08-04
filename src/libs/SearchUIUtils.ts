@@ -753,6 +753,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
 
         const transactionSection: TransactionListItemType = {
             action: getAction(data, allViolations, key, currentSearch, currentAccountID),
+            report,
             from,
             to,
             formattedFrom,
@@ -1171,7 +1172,7 @@ function getReportSections(
                 action: getAction(data, allViolations, key, currentSearch, currentAccountID, actions),
                 groupedBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 keyForList: reportItem.reportID,
-                from: data.personalDetailsList?.[reportItem.accountID ?? CONST.DEFAULT_NUMBER_ID],
+                from: transactions.length > 0 ? data.personalDetailsList[data?.[reportKey as ReportKey]?.accountID ?? CONST.DEFAULT_NUMBER_ID] : emptyPersonalDetails,
                 to: !shouldShowBlankTo && reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
                 transactions,
                 ...(reportPendingAction ? {pendingAction: reportPendingAction} : {}),
@@ -1197,6 +1198,7 @@ function getReportSections(
             const transaction = {
                 ...transactionItem,
                 action: getAction(data, allViolations, key, currentSearch, currentAccountID, actions),
+                report,
                 from,
                 to,
                 formattedFrom,
@@ -1219,8 +1221,10 @@ function getReportSections(
             };
             if (reportIDToTransactions[reportKey]?.transactions) {
                 reportIDToTransactions[reportKey].transactions.push(transaction);
+                reportIDToTransactions[reportKey].from = data.personalDetailsList[data?.[reportKey as ReportKey]?.accountID ?? CONST.DEFAULT_NUMBER_ID];
             } else if (reportIDToTransactions[reportKey]) {
                 reportIDToTransactions[reportKey].transactions = [transaction];
+                reportIDToTransactions[reportKey].from = data.personalDetailsList[data?.[reportKey as ReportKey]?.accountID ?? CONST.DEFAULT_NUMBER_ID];
             }
         }
     }
