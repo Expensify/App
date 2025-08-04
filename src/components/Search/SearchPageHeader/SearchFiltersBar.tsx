@@ -250,19 +250,17 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                 updateFilterForm(dateFormValues);
             };
 
-            const hasFeed = !!filterFormValues.feed;
-
             return (
                 <DateSelectPopup
                     label={translate('search.filters.posted')}
                     value={posted}
                     onChange={onChange}
                     closeOverlay={closeOverlay}
-                    presets={getDatePresets(CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED, hasFeed)}
+                    presets={getDatePresets(CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED, true)}
                 />
             );
         },
-        [posted, filterFormValues.feed, translate, updateFilterForm],
+        [posted, translate, updateFilterForm],
     );
 
     const statusComponent = useCallback(
