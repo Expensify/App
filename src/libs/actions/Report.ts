@@ -1847,7 +1847,7 @@ function handleReportChanged(report: OnyxEntry<Report>) {
 }
 
 /** Deletes a comment from the report, basically sets it as empty string */
-function deleteReportComment(reportID: string | undefined, reportAction: ReportAction) {
+function deleteReportComment(reportID: string | undefined, reportAction: ReportAction, pdfsPaths: Record<string, string>) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
     const reportActionID = reportAction.reportActionID;
 
@@ -1969,7 +1969,7 @@ function deleteReportComment(reportID: string | undefined, reportAction: ReportA
         reportActionID,
     };
 
-    clearByKey(reportActionID);
+    clearByKey(reportActionID, pdfsPaths);
 
     API.write(
         WRITE_COMMANDS.DELETE_COMMENT,
@@ -2035,7 +2035,7 @@ function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMar
 }
 
 /** Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI. */
-function editReportComment(reportID: string | undefined, originalReportAction: OnyxEntry<ReportAction>, textForNewComment: string, videoAttributeCache?: Record<string, string>) {
+function editReportComment(reportID: string | undefined, originalReportAction: OnyxEntry<ReportAction>, textForNewComment: string, videoAttributeCache?: Record<string, string>, pdfsPaths?: Record<string, string>) {
     const originalReportID = getOriginalReportID(reportID, originalReportAction);
     if (!originalReportID || !originalReportAction) {
         return;
@@ -2067,7 +2067,7 @@ function editReportComment(reportID: string | undefined, originalReportAction: O
 
     //  Delete the comment if it's empty
     if (!htmlForNewComment) {
-        deleteReportComment(originalReportID, originalReportAction);
+        deleteReportComment(originalReportID, originalReportAction, pdfPaths);
         return;
     }
 
