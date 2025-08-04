@@ -1326,7 +1326,7 @@ function getFinishOnboardingTaskOnyxData(taskName: IntroSelectedTask): OnyxData 
 }
 function completeTestDriveTask(viewTourReport: OnyxEntry<OnyxTypes.Report>, viewTourReportID: string | undefined, shouldUpdateSelfTourViewedOnlyLocally = false) {
     setSelfTourViewed(shouldUpdateSelfTourViewedOnlyLocally);
-    completeTask(viewTourReport, viewTourReportID);
+    getFinishOnboardingTaskOnyxData('viewTour');
 }
 
 export {
