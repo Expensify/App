@@ -5,6 +5,7 @@ import {Animated, InteractionManager} from 'react-native';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import type {NavigationRoute} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
 
 type WideRHPContextType = {
     // Route keys of screens that should be displayed in wide format
@@ -51,7 +52,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             return false;
         }
 
-        if (wideRHPRouteKeys.length > 0 && !wideRHPRouteKeys.includes(focusedRoute.key) && isRHPLastRootRoute) {
+        // Check the focused route to avoid glitching when quickly close and open RHP.
+        if (wideRHPRouteKeys.length > 0 && !wideRHPRouteKeys.includes(focusedRoute.key) && isRHPLastRootRoute && focusedRoute.name !== SCREENS.SEARCH.REPORT_RHP) {
             return true;
         }
 
@@ -67,7 +69,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         const newKey = route.key;
 
         // If the key is in the array, don't add it.
-        setWideRHPRouteKeys((prev) => (prev.includes(newKey) ? prev : [...prev, newKey]));
+        setWideRHPRouteKeys((prev) => (prev.includes(newKey) ? prev : [newKey, ...prev]));
     }, []);
 
     const cleanWideRHPRouteKey = useCallback(
