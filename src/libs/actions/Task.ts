@@ -59,14 +59,6 @@ Onyx.connect({
     callback: (value) => (allPersonalDetails = value),
 });
 
-let quickAction: OnyxEntry<OnyxTypes.QuickAction> = {};
-Onyx.connect({
-    key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-    callback: (value) => {
-        quickAction = value;
-    },
-});
-
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -142,6 +134,7 @@ function createTaskAndNavigate(
     assigneeChatReport?: OnyxEntry<OnyxTypes.Report>,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
     isCreatedUsingMarkdown = false,
+    quickAction: OnyxEntry<OnyxTypes.QuickAction> = {},
 ) {
     if (!parentReportID) {
         return;
