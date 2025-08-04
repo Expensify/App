@@ -52,6 +52,7 @@ function TroubleshootPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS, {canBeMissing: true});
     const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE, {canBeMissing: true});
+    const [preservedUserSession] = useOnyx(ONYXKEYS.PRESERVED_USER_SESSION, {canBeMissing: true});
     const {resetOptions} = useOptionsList({shouldInitialize: false});
 
     const exportOnyxState = useCallback(() => {
@@ -161,7 +162,7 @@ function TroubleshootPage() {
                                 onConfirm={() => {
                                     setIsConfirmationModalVisible(false);
                                     resetOptions();
-                                    clearOnyxAndResetApp();
+                                    clearOnyxAndResetApp(preservedUserSession);
                                 }}
                                 onCancel={() => setIsConfirmationModalVisible(false)}
                                 prompt={translate('initialSettingsPage.troubleshoot.confirmResetDescription')}
