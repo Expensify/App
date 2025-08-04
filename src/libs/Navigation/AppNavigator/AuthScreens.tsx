@@ -506,6 +506,7 @@ function AuthScreens() {
                     NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
                     NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
                     NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                    NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
                     SCREENS.WORKSPACES_LIST,
                     SCREENS.SEARCH.ROOT,
                 ]}
