@@ -4,6 +4,7 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -82,7 +83,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         {canBeMissing: true},
     );
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
-
+    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transaction?.transactionID ? [transaction.transactionID] : []);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isDeclineEducationalModalVisible, setIsDeclineEducationalModalVisible] = useState(false);
@@ -222,8 +223,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (!transaction || !reportActions) {
             return [];
         }
-        return getSecondaryTransactionThreadActions(parentReport, transaction, Object.values(reportActions), policy);
-    }, [parentReport, policy, transaction]);
+        return getSecondaryTransactionThreadActions(parentReport, transaction, Object.values(reportActions), policy, report);
+    }, [report, parentReport, policy, transaction]);
 
     const hasUseDeclineDismissedRef = useRef(false);
     const dismissModalAndUpdateUseDecline = () => {
@@ -319,7 +320,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                           }
                         : undefined
                 }
-                policy={policy}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter={!isReportInRHP}
                 shouldDisplayHelpButton={!isReportInRHP}
@@ -342,12 +342,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         )}
                     </View>
                 )}
-                {shouldDisplayTransactionNavigation && !!transaction && (
-                    <MoneyRequestReportTransactionsNavigation
-                        currentTransactionID={transaction.transactionID}
-                        parentReport={parentReport}
-                    />
-                )}
+                {shouldDisplayTransactionNavigation && <MoneyRequestReportTransactionsNavigation currentReportID={reportID} />}
             </HeaderWithBackButton>
             {shouldUseNarrowLayout && (
                 <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
@@ -392,9 +387,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         throw new Error('Data missing');
                     }
                     if (isTrackExpenseAction(parentReportAction)) {
-                        deleteTrackExpense(report?.parentReportID, transaction.transactionID, parentReportAction, true);
+                        deleteTrackExpense(report?.parentReportID, transaction.transactionID, parentReportAction, duplicateTransactions, duplicateTransactionViolations, true);
                     } else {
-                        deleteMoneyRequest(transaction.transactionID, parentReportAction, true);
+                        deleteMoneyRequest(transaction.transactionID, parentReportAction, duplicateTransactions, duplicateTransactionViolations, true);
                         removeTransaction(transaction.transactionID);
                     }
                     onBackButtonPress();
