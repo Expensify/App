@@ -28,6 +28,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import '@libs/actions/Delegate';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {checkIfFeedConnectionIsBroken} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -39,7 +40,7 @@ import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_T
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import {confirmReadyToOpenApp} from '@userActions/App';
-import closeReactNativeApp from '@userActions/HybridApp';
+import {closeReactNativeApp} from '@userActions/HybridApp';
 import {openExternalLink} from '@userActions/Link';
 import {hasPaymentMethodError} from '@userActions/PaymentMethods';
 import {isSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
@@ -88,6 +89,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
+    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const [allCards] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -148,7 +150,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
      * @returns object with translationKey, style and items for the account section
      */
     const accountMenuItemsData: Menu = useMemo(() => {
-        const profileBrickRoadIndicator = getProfilePageBrickRoadIndicator(loginList, privatePersonalDetails);
+        const profileBrickRoadIndicator = getProfilePageBrickRoadIndicator(loginList, privatePersonalDetails, vacationDelegate);
         const items: MenuData[] = [
             {
                 translationKey: 'common.profile',
@@ -199,6 +201,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     }, [
         loginList,
         privatePersonalDetails,
+        vacationDelegate,
         walletBrickRoadIndicator,
         hasActivatedWallet,
         userWallet?.currentBalance,
@@ -343,9 +346,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                 badgeStyle={item.badgeStyle}
                                 fallbackIcon={item.fallbackIcon}
                                 brickRoadIndicator={item.brickRoadIndicator}
-                                floatRightAvatars={item.floatRightAvatars}
                                 shouldStackHorizontally={item.shouldStackHorizontally}
-                                floatRightAvatarSize={item.avatarSize}
                                 ref={popoverAnchor}
                                 shouldBlockSelection={!!item.link}
                                 onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}

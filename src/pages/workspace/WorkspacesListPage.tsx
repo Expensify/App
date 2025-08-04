@@ -128,6 +128,7 @@ function WorkspacesListPage() {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.WORKSPACES_LIST>>();
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -174,7 +175,7 @@ function WorkspacesListPage() {
             return;
         }
 
-        deleteWorkspace(policyIDToDelete, policyNameToDelete);
+        deleteWorkspace(policyIDToDelete, policyNameToDelete, lastPaymentMethod);
         setIsDeleteModalOpen(false);
     };
 
