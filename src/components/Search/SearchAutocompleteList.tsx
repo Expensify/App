@@ -672,35 +672,37 @@ function SearchAutocompleteList(
     return (
         // On page refresh, when the list is rendered before options are initialized the auto-focusing on initiallyFocusedOptionKey
         // will fail because the list will be empty on first render so we only render after options are initialized.
-        <SelectionList<OptionData | SearchQueryItem>
-            showLoadingPlaceholder
-            fixedNumItemsForLoader={4}
-            loaderSpeed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-            sections={sections}
-            onSelectRow={onListItemPress}
-            ListItem={SearchRouterItem}
-            containerStyle={[styles.mh100]}
-            sectionListStyle={[styles.ph2, styles.pb2, styles.overscrollBehaviorContain]}
-            listItemWrapperStyle={[styles.pr0, styles.pl0]}
-            getItemHeight={getItemHeight}
-            onLayout={() => {
-                setPerformanceTimersEnd();
-                setIsInitialRender(false);
-                if (!!textInputRef?.current && ref && 'current' in ref) {
-                    ref.current?.updateExternalTextInputFocus?.(textInputRef.current.isFocused());
-                }
-            }}
-            showScrollIndicator={!shouldUseNarrowLayout}
-            sectionTitleStyles={styles.mhn2}
-            shouldSingleExecuteRowSelect
-            onArrowFocus={onArrowFocus}
-            ref={ref}
-            initiallyFocusedOptionKey={!shouldUseNarrowLayout ? styledRecentReports.at(0)?.keyForList : undefined}
-            shouldScrollToFocusedIndex={!isInitialRender}
-            shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
-            disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
-            addBottomSafeAreaPadding
-        />
+        areOptionsInitialized && (
+            <SelectionList<OptionData | SearchQueryItem>
+                showLoadingPlaceholder
+                fixedNumItemsForLoader={4}
+                loaderSpeed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+                sections={sections}
+                onSelectRow={onListItemPress}
+                ListItem={SearchRouterItem}
+                containerStyle={[styles.mh100]}
+                sectionListStyle={[styles.ph2, styles.pb2, styles.overscrollBehaviorContain]}
+                listItemWrapperStyle={[styles.pr0, styles.pl0]}
+                getItemHeight={getItemHeight}
+                onLayout={() => {
+                    setPerformanceTimersEnd();
+                    setIsInitialRender(false);
+                    if (!!textInputRef?.current && ref && 'current' in ref) {
+                        ref.current?.updateExternalTextInputFocus?.(textInputRef.current.isFocused());
+                    }
+                }}
+                showScrollIndicator={!shouldUseNarrowLayout}
+                sectionTitleStyles={styles.mhn2}
+                shouldSingleExecuteRowSelect
+                onArrowFocus={onArrowFocus}
+                ref={ref}
+                initiallyFocusedOptionKey={!shouldUseNarrowLayout ? styledRecentReports.at(0)?.keyForList : undefined}
+                shouldScrollToFocusedIndex={!isInitialRender}
+                shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
+                disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
+                addBottomSafeAreaPadding
+            />
+        )
     );
 }
 
