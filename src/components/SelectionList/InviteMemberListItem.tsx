@@ -16,18 +16,12 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils';
+import RandomAvatarUtils from '@libs/RandomAvatarUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import BaseListItem from './BaseListItem';
 import type {InviteMemberListItemProps, ListItem} from './types';
-
-const fallbackIcon: Icon = {
-    source: FallbackAvatar,
-    type: CONST.ICON_TYPE_AVATAR,
-    name: '',
-    id: -1,
-};
 
 function InviteMemberListItem<TItem extends ListItem>({
     item,
@@ -72,6 +66,16 @@ function InviteMemberListItem<TItem extends ListItem>({
             onSelectRow(item);
         }
     }, [item, onCheckboxPress, onSelectRow]);
+
+    const fallBackAvatar = RandomAvatarUtils.getAvatarForContact(item.login);
+
+    const fallbackIcon: Icon = {
+        source: FallbackAvatar,
+        type: CONST.ICON_TYPE_AVATAR,
+        name: '',
+        id: -1,
+        fallbackIcon: fallBackAvatar,
+    };
 
     return (
         <BaseListItem
@@ -128,6 +132,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                                         isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                         hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                     ]}
+                                    fallbackIcon={fallBackAvatar}
                                 />
                             ))}
                         <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>

@@ -167,7 +167,7 @@ function MultipleAvatars({
                         name={icons.at(0)?.name}
                         avatarID={icons.at(0)?.id}
                         type={icons.at(0)?.type ?? CONST.ICON_TYPE_AVATAR}
-                        fallbackIcon={icons.at(0)?.fallbackIcon}
+                        fallbackIcon={icons.at(0)?.fallbackIcon ?? fallbackIcon}
                     />
                 </View>
             </UserDetailsTooltip>
