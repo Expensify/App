@@ -606,6 +606,7 @@ function AdvancedSearchFilters() {
     const shouldDisplayCategoryFilter = shouldDisplayFilter(nonPersonalPolicyCategoryCount, areCategoriesEnabled, !!selectedPolicyCategories);
     const shouldDisplayTagFilter = shouldDisplayFilter(tagListsUnpacked.length, areTagsEnabled, !!selectedPolicyTagLists);
     const shouldDisplayCardFilter = shouldDisplayFilter(Object.keys(allCards).length, areCardsEnabled);
+    const shouldDisplayPostedFilter = shouldDisplayCardFilter && searchAdvancedFilters.feed?.length > 0;
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length !== 0);
 
@@ -685,7 +686,7 @@ function AdvancedSearchFilters() {
                         }
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, allCards, translate);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED) {
-                        if (!shouldDisplayCardFilter) {
+                        if (!shouldDisplayPostedFilter) {
                             return;
                         }
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
