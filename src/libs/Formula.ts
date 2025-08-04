@@ -5,6 +5,7 @@ import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import {getCurrencySymbol} from './CurrencyUtils';
 import {getAllReportActions} from './ReportActionsUtils';
+import {getReportTransactions} from './ReportUtils';
 
 type FormulaPart = {
     /** The original definition from the formula */
@@ -232,7 +233,7 @@ function compute(formula: string, context: FormulaContext): string {
  */
 function computeReportPart(part: FormulaPart, context: FormulaContext): string {
     const {report, policy} = context;
-    const [field] = part.fieldPath;
+    const [field, format] = part.fieldPath;
 
     if (!field) {
         return part.definition;
@@ -242,7 +243,7 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         case 'type':
             return 'Expense Report'; // Default report type for now
         case 'startdate':
-            return formatDate(getOldestReportActionDate(report.reportID));
+            return formatDate(getOldestTransactionDate(report.reportID), format);
         case 'total':
             return formatAmount(report.total, getCurrencySymbol(report.currency ?? '') ?? report.currency);
         case 'currency':
@@ -251,7 +252,7 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         case 'workspacename':
             return policy?.name ?? '';
         case 'created':
-            return formatDate(report.lastVisibleActionCreated, CONST.DATE.FNS_FORMAT_STRING);
+            return formatDate(getOldestReportActionDate(report.reportID), format);
         default:
             return part.definition;
     }
@@ -328,9 +329,9 @@ function getSubstring(value: string, args: string[]): string {
 }
 
 /**
- * Format a date value
+ * Format a date value with support for multiple date formats
  */
-function formatDate(dateString: string | undefined, format = CONST.DATE.FNS_FORMAT_STRING): string {
+function formatDate(dateString: string | undefined, format = 'MM/dd/yyyy'): string {
     if (!dateString) {
         return '';
     }
@@ -341,16 +342,35 @@ function formatDate(dateString: string | undefined, format = CONST.DATE.FNS_FORM
             return '';
         }
 
-        // Simple date formatting - this could be enhanced with a proper date library
         const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        const shortMonthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-        if (format === CONST.DATE.FNS_FORMAT_STRING) {
-            return `${month}/${day}/${year}`;
+        switch (format) {
+            case 'M/dd/yyyy':
+                return `${month}/${day.toString().padStart(2, '0')}/${year}`;
+            case 'MMMM dd, yyyy':
+                return `${monthNames[month - 1]} ${day.toString().padStart(2, '0')}, ${year}`;
+            case 'dd MMM yyyy':
+                return `${day.toString().padStart(2, '0')} ${shortMonthNames[month - 1]} ${year}`;
+            case 'yyyy/MM/dd':
+                return `${year}/${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}`;
+            case 'yyyy-MM-dd':
+                return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+            case 'MMMM, yyyy':
+                return `${monthNames[month - 1]}, ${year}`;
+            case 'yy/MM/dd':
+                return `${year.toString().slice(-2)}/${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}`;
+            case 'dd/MM/yy':
+                return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year.toString().slice(-2)}`;
+            case 'yyyy':
+                return year.toString();
+            case 'MM/dd/yyyy':
+            default:
+                return `${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}/${year}`;
         }
-
-        return `${year}-${month}-${day}`;
     } catch {
         return '';
     }
@@ -393,6 +413,32 @@ function getOldestReportActionDate(reportID: string): string | undefined {
         if (action?.created) {
             if (!oldestDate || action.created < oldestDate) {
                 oldestDate = action.created;
+            }
+        }
+    });
+
+    return oldestDate;
+}
+
+/**
+ * Get the date of the oldest transaction for a given report
+ */
+function getOldestTransactionDate(reportID: string): string | undefined {
+    if (!reportID) {
+        return undefined;
+    }
+
+    const transactions = getReportTransactions(reportID);
+    if (!transactions || transactions.length === 0) {
+        return undefined;
+    }
+
+    let oldestDate: string | undefined;
+
+    transactions.forEach((transaction) => {
+        if (transaction?.created) {
+            if (!oldestDate || transaction.created < oldestDate) {
+                oldestDate = transaction.created;
             }
         }
     });

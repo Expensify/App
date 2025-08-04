@@ -1,13 +1,19 @@
 import {compute, extract, FORMULA_PART_TYPES, isFormula, parse} from '@libs/Formula';
 import type {FormulaContext} from '@libs/Formula';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 
-// Mock ReportActionsUtils
+// Mock ReportActionsUtils and ReportUtils
 jest.mock('@libs/ReportActionsUtils', () => ({
     getAllReportActions: jest.fn(),
 }));
 
+jest.mock('@libs/ReportUtils', () => ({
+    getReportTransactions: jest.fn(),
+}));
+
 const mockReportActionsUtils = ReportActionsUtils as jest.Mocked<typeof ReportActionsUtils>;
+const mockReportUtils = ReportUtils as jest.Mocked<typeof ReportUtils>;
 
 describe('CustomFormula', () => {
     describe('extract()', () => {
@@ -102,7 +108,7 @@ describe('CustomFormula', () => {
         beforeEach(() => {
             jest.clearAllMocks();
 
-            // Mock report actions - test the iteration logic for finding oldest date
+            // Mock report actions - test the iteration logic for finding oldest date (for 'created' field)
             const mockReportActions = {
                 '1': {
                     reportActionID: '1',
@@ -121,7 +127,27 @@ describe('CustomFormula', () => {
                 },
             };
 
+            // Mock transactions - test the iteration logic for finding oldest transaction date (for 'startdate' field)
+            const mockTransactions = [
+                {
+                    transactionID: 'trans1',
+                    created: '2025-01-08T12:00:00Z', // Oldest transaction
+                    amount: 5000,
+                },
+                {
+                    transactionID: 'trans2',
+                    created: '2025-01-14T16:45:00Z', // Later transaction
+                    amount: 3000,
+                },
+                {
+                    transactionID: 'trans3',
+                    created: '2025-01-11T09:15:00Z', // Middle transaction
+                    amount: 2000,
+                },
+            ];
+
             mockReportActionsUtils.getAllReportActions.mockReturnValue(mockReportActions as any);
+            mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions as any);
         });
 
         test('should compute basic report formula', () => {
@@ -129,9 +155,29 @@ describe('CustomFormula', () => {
             expect(result).toBe('Expense ReportUSD100.00'); // No space between parts
         });
 
-        test('should compute date formula', () => {
+        test('should compute startdate formula using transactions', () => {
             const result = compute('{report:startdate}', mockContext);
-            expect(result).toBe('01/10/2025'); // Should use oldest report action date
+            expect(result).toBe('01/08/2025'); // Should use oldest transaction date (2025-01-08)
+        });
+
+        test('should compute created formula using report actions', () => {
+            const result = compute('{report:created}', mockContext);
+            expect(result).toBe('01/10/2025'); // Should use oldest report action date (2025-01-10)
+        });
+
+        test('should compute startdate with custom format', () => {
+            const result = compute('{report:startdate:yyyy-MM-dd}', mockContext);
+            expect(result).toBe('2025-01-08'); // Should use oldest transaction date with yyyy-MM-dd format
+        });
+
+        test('should compute created with custom format', () => {
+            const result = compute('{report:created:MMMM dd, yyyy}', mockContext);
+            expect(result).toBe('January 10, 2025'); // Should use oldest report action date with MMMM dd, yyyy format
+        });
+
+        test('should compute startdate with short month format', () => {
+            const result = compute('{report:startdate:dd MMM yyyy}', mockContext);
+            expect(result).toBe('08 Jan 2025'); // Should use oldest transaction date with dd MMM yyyy format
         });
 
         test('should compute policy name', () => {
@@ -206,15 +252,46 @@ describe('CustomFormula', () => {
             expect(result).toBe('');
         });
 
-        test('should handle missing report actions for startdate', () => {
+        test('should handle missing report actions for created', () => {
             mockReportActionsUtils.getAllReportActions.mockReturnValue({});
             const context: FormulaContext = {
-                report: {total: undefined} as any,
+                report: {reportID: '123'} as any,
+                policy: null,
+            };
+
+            const result = compute('{report:created}', context);
+            expect(result).toBe('');
+        });
+
+        test('should handle missing transactions for startdate', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+            const context: FormulaContext = {
+                report: {reportID: '123'} as any,
                 policy: null,
             };
 
             const result = compute('{report:startdate}', context);
             expect(result).toBe('');
+        });
+
+        test('should call getReportTransactions with correct reportID for startdate', () => {
+            const context: FormulaContext = {
+                report: {reportID: 'test-report-123'} as any,
+                policy: null,
+            };
+
+            compute('{report:startdate}', context);
+            expect(mockReportUtils.getReportTransactions).toHaveBeenCalledWith('test-report-123');
+        });
+
+        test('should call getAllReportActions with correct reportID for created', () => {
+            const context: FormulaContext = {
+                report: {reportID: 'test-report-456'} as any,
+                policy: null,
+            };
+
+            compute('{report:created}', context);
+            expect(mockReportActionsUtils.getAllReportActions).toHaveBeenCalledWith('test-report-456');
         });
     });
 });
