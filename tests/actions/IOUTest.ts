@@ -5798,9 +5798,11 @@ describe('actions/IOU', () => {
             merchant: '(none)',
             splitPayerAccountIDs: [3],
         };
+
+        const currentDate = '2025-04-01';
         beforeEach(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, null);
-            await Onyx.merge(`${ONYXKEYS.CURRENT_DATE}`, '2025-04-01');
+            await Onyx.merge(`${ONYXKEYS.CURRENT_DATE}`, currentDate);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePersonalPolicy.id}`, fakePersonalPolicy);
@@ -5817,6 +5819,7 @@ describe('actions/IOU', () => {
                         newIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
                         report: fakeReport,
                         parentReport: fakeParentReport,
+                        currentDate,
                     });
                 })
                 .then(async () => {
@@ -5835,6 +5838,7 @@ describe('actions/IOU', () => {
                         newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                         report: fakeReport,
                         parentReport: fakeParentReport,
+                        currentDate,
                     });
                 })
                 .then(async () => {
@@ -5853,6 +5857,7 @@ describe('actions/IOU', () => {
                         newIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
                         report: fakeReport,
                         parentReport: fakeParentReport,
+                        currentDate,
                     });
                 })
                 .then(async () => {
