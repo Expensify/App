@@ -10,7 +10,8 @@ import Button from './Button';
 function ImportedStateIndicator() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE);
+    const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE, {canBeMissing: true});
+    const [preservedUserSession] = useOnyx(ONYXKEYS.PRESERVED_USER_SESSION, {canBeMissing: true});
 
     if (!isUsingImportedState) {
         return null;
@@ -24,7 +25,7 @@ function ImportedStateIndicator() {
                 shouldRemoveLeftBorderRadius
                 shouldRemoveRightBorderRadius
                 text={translate('initialSettingsPage.troubleshoot.usingImportedState')}
-                onPress={() => clearOnyxAndResetApp(true)}
+                onPress={() => clearOnyxAndResetApp(preservedUserSession, true)}
                 textStyles={[styles.fontWeightNormal]}
             />
         </View>
