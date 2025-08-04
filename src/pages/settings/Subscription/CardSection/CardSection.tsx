@@ -72,7 +72,7 @@ function CardSection() {
     }, []);
 
     const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() =>
-        CardSectionUtils.getBillingStatus({translate, accountData: defaultCard?.accountData ?? {}, purchase: purchaseList?.[0]}),
+        CardSectionUtils.getBillingStatus({translate, stripeCustomerId: privateStripeCustomerID, accountData: defaultCard?.accountData ?? {}, purchase: purchaseList?.[0]}),
     );
 
     const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
@@ -83,6 +83,7 @@ function CardSection() {
         setBillingStatus(
             CardSectionUtils.getBillingStatus({
                 translate,
+                stripeCustomerId: privateStripeCustomerID,
                 accountData: defaultCard?.accountData ?? {},
                 purchase: purchaseList?.[0],
             }),
@@ -185,7 +186,7 @@ function CardSection() {
                         large
                     />
                 )}
-                {hasCardAuthenticatedError() && (
+                {hasCardAuthenticatedError(privateStripeCustomerID) && (
                     <Button
                         text={translate('subscription.cardSection.authenticatePayment')}
                         isDisabled={isOffline || !billingStatus?.isAuthenticationRequired}
