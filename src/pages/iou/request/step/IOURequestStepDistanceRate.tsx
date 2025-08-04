@@ -3,9 +3,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
-import useCanEditStep from '@hooks/useCanEditStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getIOURequestPolicyID, setMoneyRequestDistanceRate, setMoneyRequestTaxAmount, setMoneyRequestTaxRate, updateMoneyRequestDistanceRate} from '@libs/actions/IOU';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
@@ -75,7 +75,8 @@ function IOURequestStepDistanceRate({
             isSelected,
         };
     });
-    const [canEditDistanceRate] = useCanEditStep(action, iouType, report, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE);
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, report, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE);
 
     const initiallyFocusedOption = sections.find((item) => item.isSelected)?.keyForList;
 
@@ -110,7 +111,7 @@ function IOURequestStepDistanceRate({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepDistanceRate.displayName}
-            shouldShowNotFoundPage={!canEditDistanceRate}
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate')}</Text>
 

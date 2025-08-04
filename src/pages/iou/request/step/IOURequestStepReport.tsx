@@ -1,8 +1,8 @@
 import React from 'react';
 import {InteractionManager} from 'react-native';
 import type {ListItem} from '@components/SelectionList/types';
-import useCanEditStep from '@hooks/useCanEditStep';
 import useOnyx from '@hooks/useOnyx';
+import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -127,7 +127,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         Navigation.dismissModal();
     };
 
-    const [canEditReport] = useCanEditStep(action, iouType, reportOrDraftReport, CONST.EDIT_REQUEST_FIELD.REPORT);
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportOrDraftReport, CONST.EDIT_REQUEST_FIELD.REPORT);
 
     return (
         <IOURequestEditReportCommon
@@ -138,7 +139,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             removeFromReport={removeFromReport}
             isEditing={isEditing}
             isUnreported={isUnreported}
-            shouldShowNotFoundPage={!canEditReport}
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
         />
     );
 }
