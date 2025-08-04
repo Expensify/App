@@ -1,9 +1,10 @@
-import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
 import {Receipt} from '@components/Icon/Expensicons';
 import ReceiptImage from '@components/ReceiptImage';
+import ReceiptPreview from '@components/TransactionItemRow/ReceiptPreview';
+import useHover from '@hooks/useHover';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,14 +20,13 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const backgroundStyles = isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
-
+    const {hovered, bind} = useHover();
+    const isEReceipt = transactionItem.hasEReceipt && !hasReceiptSource(transactionItem);
     let source = transactionItem?.receipt?.source ?? '';
-
-    if (source && typeof source === 'string') {
+    if (source) {
         const filename = getFileName(source);
         const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
-        const isReceiptPDF = Str.isPDF(filename);
-        source = tryResolveUrlFromApiRoot(isReceiptPDF && !receiptURIs.isLocalFile ? (receiptURIs.thumbnail ?? '') : (receiptURIs.image ?? ''));
+        source = tryResolveUrlFromApiRoot(receiptURIs.thumbnail ?? receiptURIs.image ?? '');
     }
 
     return (
@@ -38,10 +38,12 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
                 backgroundStyles,
                 style,
             ]}
+            onMouseEnter={bind.onMouseEnter}
+            onMouseLeave={bind.onMouseLeave}
         >
             <ReceiptImage
                 source={source}
-                isEReceipt={transactionItem.hasEReceipt && !hasReceiptSource(transactionItem)}
+                isEReceipt={isEReceipt}
                 transactionID={transactionItem.transactionID}
                 shouldUseThumbnailImage={!transactionItem?.receipt?.source}
                 isAuthTokenRequired
@@ -52,6 +54,12 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
                 iconSize="x-small"
                 loadingIconSize="small"
                 loadingIndicatorStyles={styles.bgTransparent}
+                transactionItem={transactionItem}
+            />
+            <ReceiptPreview
+                source={source}
+                hovered={hovered}
+                isEReceipt={!!isEReceipt}
                 transactionItem={transactionItem}
             />
         </View>
