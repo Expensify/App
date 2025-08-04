@@ -135,8 +135,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         selector: hasSeenTourSelector,
         canBeMissing: true,
     });
-    const viewTourReportID = introSelected?.viewTour;
-    const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
 
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
@@ -537,7 +535,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                       introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ||
                                       (introSelected?.choice === CONST.ONBOARDING_CHOICES.SUBMIT && introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.WORKSPACE)
                                   ) {
-                                      completeTestDriveTask(viewTourReport, viewTourReportID, isAnonymousUser());
+                                      completeTestDriveTask(isAnonymousUser());
                                       Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
                                   } else {
                                       Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);

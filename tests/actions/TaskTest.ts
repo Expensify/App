@@ -4,8 +4,6 @@ import useParentReport from '@hooks/useParentReport';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {canActionTask, canModifyTask, completeTestDriveTask, getFinishOnboardingTaskOnyxData} from '@libs/actions/Task';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
-import * as API from '@libs/API';
-import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
 import Parser from '@libs/Parser';
@@ -223,11 +221,8 @@ describe('actions/Task', () => {
         });
 
         it('Completes test drive task', () => {
-            const writeSpy = jest.spyOn(API, 'write');
-
-            completeTestDriveTask(testDriveTaskReport, testDriveTaskReport.reportID);
-
-            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.COMPLETE_TASK, expect.anything(), expect.anything());
+            completeTestDriveTask();
+            expect(Object.values(getFinishOnboardingTaskOnyxData(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR)).length).toBe(0);
         });
     });
 

@@ -1324,9 +1324,9 @@ function getFinishOnboardingTaskOnyxData(taskName: IntroSelectedTask): OnyxData 
 
     return {};
 }
-function completeTestDriveTask(viewTourReport: OnyxEntry<OnyxTypes.Report>, viewTourReportID: string | undefined, shouldUpdateSelfTourViewedOnlyLocally = false) {
+function completeTestDriveTask(shouldUpdateSelfTourViewedOnlyLocally = false) {
     setSelfTourViewed(shouldUpdateSelfTourViewedOnlyLocally);
-    getFinishOnboardingTaskOnyxData('viewTour');
+    getFinishOnboardingTaskOnyxData(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
 }
 
 export {
