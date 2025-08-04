@@ -9,9 +9,9 @@ const isHybrid = process.env.IS_HYBRID_APP === 'true';
 export default {
     // remoteCacheProvider: null,
     remoteCacheProvider: providerGitHub({
-        owner: 'callstack-internal',
-        repository: 'Expensify-App',
-        // token: process.env.GITHUB_TOKEN,
+        owner: 'Expensify',
+        repository: 'App',
+        token: process.env.GITHUB_TOKEN,
     }),
     bundler: pluginMetro(),
     platforms: {
