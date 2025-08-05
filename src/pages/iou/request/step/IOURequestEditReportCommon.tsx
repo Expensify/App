@@ -12,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
-import {getOutstandingReportsForUser, getPolicyName, isIOUReport, isOpenReport, isReportOwner, reportsByPolicyIDSelector, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {getOutstandingReportsForUser, getPolicyName, isIOUReport, isOpenReport, isReportOwner, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -49,15 +49,12 @@ function IOURequestEditReportCommon({
 }: Props) {
     const {translate, localeCompare} = useLocalize();
     const {options} = useOptionsList();
+    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const reportOwnerAccountID = useMemo(
         () => transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID,
         [transactionsReports, currentUserPersonalDetails.accountID],
     );
-    const [reportsByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: (reports) => reportsByPolicyIDSelector(reports, reportOwnerAccountID),
-        canBeMissing: true,
-    });
     const reportPolicy = usePolicy(transactionsReports.at(0)?.policyID);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, (policy) => policy?.id), canBeMissing: false});
@@ -71,7 +68,7 @@ function IOURequestEditReportCommon({
 
     const expenseReports = useMemo(() => {
         // Early return if no reports are available to prevent useless loop
-        if (!reportsByPolicyID || isEmptyObject(reportsByPolicyID)) {
+        if (!outstandingReportsByPolicyID || isEmptyObject(outstandingReportsByPolicyID)) {
             return [];
         }
 
@@ -79,14 +76,20 @@ function IOURequestEditReportCommon({
             if (!policyID || (policyIDFromProps && policyID !== policyIDFromProps)) {
                 return [];
             }
-            const reports = getOutstandingReportsForUser(policyID, reportOwnerAccountID, reportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {}, reportNameValuePairs, isEditing);
+            const reports = getOutstandingReportsForUser(
+                policyID,
+                reportOwnerAccountID,
+                outstandingReportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
+                reportNameValuePairs,
+                isEditing,
+            );
 
             return reports;
         });
-    }, [reportsByPolicyID, reportOwnerAccountID, allPoliciesID, reportNameValuePairs, policyIDFromProps, isEditing]);
+    }, [outstandingReportsByPolicyID, reportOwnerAccountID, allPoliciesID, reportNameValuePairs, policyIDFromProps, isEditing]);
 
     const reportOptions: TransactionGroupListItem[] = useMemo(() => {
-        if (!reportsByPolicyID || isEmptyObject(reportsByPolicyID)) {
+        if (!outstandingReportsByPolicyID || isEmptyObject(outstandingReportsByPolicyID)) {
             return [];
         }
 
@@ -106,7 +109,7 @@ function IOURequestEditReportCommon({
                     isSelected: onlyReport && report.reportID === onlyReport?.reportID,
                 };
             });
-    }, [reportsByPolicyID, debouncedSearchValue, expenseReports, onlyReport, options.reports, localeCompare]);
+    }, [outstandingReportsByPolicyID, debouncedSearchValue, expenseReports, onlyReport, options.reports, localeCompare]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);

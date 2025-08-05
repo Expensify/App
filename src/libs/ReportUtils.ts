@@ -33,6 +33,7 @@ import type {
     IntroSelected,
     NewGroupChatDraft,
     OnyxInputOrEntry,
+    OutstandingReportsByPolicyIDDerivedValue,
     PersonalDetails,
     PersonalDetailsList,
     Policy,
@@ -1162,40 +1163,6 @@ function reportTransactionsSelector(transactions: OnyxCollection<Transaction>, r
 
     return Object.values(transactions).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID);
 }
-
-/**
- * Selector function to group reports by policy ID for reports that are:
- * - Expense reports
- * - Owned by the ownerAccountID
- * - Are either open or submitted
- * - Belong to a workspace
- */
-const reportsByPolicyIDSelector = (reports: OnyxCollection<Report>, ownerAccountID?: number): ReportByPolicyMap => {
-    return Object.entries(reports ?? {}).reduce<ReportByPolicyMap>((acc, [reportID, report]) => {
-        if (!report) {
-            return acc;
-        }
-
-        // Get all reports, which are the ones that are:
-        // - Expense reports
-        // - Owned by the ownerAccountID
-        // - Are either open or submitted
-        // - Belong to a workspace
-        // This condition is similar to reportsByPolicyID and getOutstandingReportsForUser function
-        if (isExpenseReport(report) && report.policyID && report.ownerAccountID === ownerAccountID && (report.stateNum ?? CONST.REPORT.STATE_NUM.OPEN) <= CONST.REPORT.STATE_NUM.SUBMITTED) {
-            if (!acc[report.policyID]) {
-                acc[report.policyID] = {};
-            }
-
-            acc[report.policyID] = {
-                ...acc[report.policyID],
-                [reportID]: report,
-            };
-        }
-
-        return acc;
-    }, {});
-};
 
 function getReportTransactions(reportID: string | undefined, allReportsTransactions: Record<string, Transaction[]> = reportsTransactions): Transaction[] {
     if (!reportID) {
@@ -4204,6 +4171,7 @@ function canEditFieldOfMoneyRequest(
     fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>,
     isDeleteAction?: boolean,
     isChatReportArchived = false,
+    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
 ): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
     const restrictedFields: string[] = [
@@ -4290,7 +4258,7 @@ function canEditFieldOfMoneyRequest(
                 getOutstandingReportsForUser(
                     moneyRequestReport?.policyID,
                     moneyRequestReport?.ownerAccountID,
-                    reportsByPolicyID?.[moneyRequestReport?.policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
+                    outstandingReportsByPolicyID?.[moneyRequestReport?.policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
                 ).length > 0
             );
         }
@@ -4304,10 +4272,10 @@ function canEditFieldOfMoneyRequest(
 
         return isUnreportedExpense
             ? Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
-                  getOutstandingReportsForUser(currentPolicy?.id, currentUserAccountID, reportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
+                  getOutstandingReportsForUser(currentPolicy?.id, currentUserAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
               ).length > 0
             : Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
-                  getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, reportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
+                  getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
               ).length > 1 ||
                   (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID));
     }
@@ -11457,7 +11425,6 @@ export {
     getSearchReportName,
     getReportTransactions,
     reportTransactionsSelector,
-    reportsByPolicyIDSelector,
     getReportNotificationPreference,
     getReportOfflinePendingActionAndErrors,
     getReportParticipantsTitle,
