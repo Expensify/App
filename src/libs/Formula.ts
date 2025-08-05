@@ -452,7 +452,7 @@ function getOldestTransactionDate(reportID: string): string | undefined {
 
     const transactions = getReportTransactions(reportID);
     if (!transactions || transactions.length === 0) {
-        return undefined;
+        return new Date().toISOString();
     }
 
     let oldestDate: string | undefined;
