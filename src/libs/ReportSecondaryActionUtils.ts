@@ -146,10 +146,9 @@ function isSubmitAction(
     }
 
     const isReportSubmitter = isCurrentUserSubmitter(report);
-    const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = report.managerID === getCurrentUserAccountID();
-    if (!isReportSubmitter && !isReportApprover && !isAdmin && !isManager) {
+    if (!isReportSubmitter && !isAdmin && !isManager) {
         return false;
     }
 
