@@ -78,7 +78,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
         },
     });
 
-    const shouldShowError = true;
+    const shouldShowError = hasError;
 
     return (
         <ScreenWrapper
