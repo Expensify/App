@@ -25,9 +25,9 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {getIOUActionForTransactionID, getOriginalMessage, getReportAction, isExportIntegrationAction, isIntegrationMessageAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canEditFieldOfMoneyRequest, generateReportID} from '@libs/ReportUtils';
-import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
+import {canEditFieldOfMoneyRequest, generateReportID, isArchivedReport} from '@libs/ReportUtils';
+import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     getColumnsToShow,
     getListItem,
@@ -44,7 +44,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import type {SearchKey} from '@libs/SearchUIUtils';
+import type {ArchivedReportsIDSet, SearchKey} from '@libs/SearchUIUtils';
 import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -171,6 +171,26 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
+
+    const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        canBeMissing: true,
+        selector: (all): ArchivedReportsIDSet => {
+            const ids = new Set<string>();
+            if (!all) {
+                return ids;
+            }
+
+            const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
+            for (const [key, value] of Object.entries(all)) {
+                if (isArchivedReport(value)) {
+                    const reportID = key.slice(prefixLength);
+                    ids.add(reportID);
+                }
+            }
+            return ids;
+        },
+    });
+
     // Create a selector for only the reportActions needed to determine if a report has been exported or not, grouped by report
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
@@ -213,12 +233,19 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const {translate, localeCompare} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
-    useFocusEffect(
-        useCallback(() => {
-            clearSelectedTransactions(hash);
-            setCurrentSearchHashAndKey(hash, searchKey);
-        }, [hash, searchKey, clearSelectedTransactions, setCurrentSearchHashAndKey]),
-    );
+    const clearTransactionsAndSetHashAndKey = useCallback(() => {
+        clearSelectedTransactions(hash);
+        setCurrentSearchHashAndKey(hash, searchKey);
+    }, [hash, searchKey, clearSelectedTransactions, setCurrentSearchHashAndKey]);
+
+    useFocusEffect(clearTransactionsAndSetHashAndKey);
+
+    useEffect(() => {
+        clearTransactionsAndSetHashAndKey();
+
+        // Trigger once on mount (e.g., on page reload), when RHP is open and screen is not focused
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
 
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults);
 
@@ -305,9 +332,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (groupBy && (isChat || isTask)) {
             return [];
         }
-
-        return getSections(type, searchResults.data, searchResults.search, groupBy, exportReportActions, searchKey);
-    }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type]);
+        return getSections(type, searchResults.data, searchResults.search, groupBy, exportReportActions, searchKey, archivedReportsIdSet);
+    }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -476,26 +502,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
             const isTransactionItem = isTransactionListItemType(item);
-            const backTo = Navigation.getActiveRoute();
-
-            // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
-            if (isTransactionItem && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                const transactionThreadReportID = generateReportID();
-                const reportAction = getReportAction(item.reportID, item.moneyRequestReportActionID);
-                const iouReportID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
-
-                updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReportID);
-                Navigation.navigate(
-                    ROUTES.SEARCH_REPORT.getRoute({
-                        reportID: transactionThreadReportID,
-                        backTo,
-                        moneyRequestReportActionID: item.moneyRequestReportActionID,
-                        transactionID: item.transactionID,
-                        iouReportID,
-                    }),
-                );
-                return;
-            }
 
             const reportID =
                 isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
@@ -509,8 +515,25 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             Performance.markStart(CONST.TIMING.OPEN_REPORT_SEARCH);
             Timing.start(CONST.TIMING.OPEN_REPORT_SEARCH);
 
+            const backTo = Navigation.getActiveRoute();
+
             if (isTransactionGroupListItemType(item)) {
                 Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
+                return;
+            }
+
+            // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
+            if (isTransactionItem && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                const generatedReportID = generateReportID();
+                updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, generatedReportID);
+                Navigation.navigate(
+                    ROUTES.SEARCH_REPORT.getRoute({
+                        reportID: generatedReportID,
+                        backTo,
+                        moneyRequestReportActionID: item.moneyRequestReportActionID,
+                        transactionID: item.transactionID,
+                    }),
+                );
                 return;
             }
 
@@ -590,17 +613,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     );
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
-
-    useEffect(() => {
-        const currentRoute = Navigation.getActiveRouteWithoutParams();
-
-        if ((hasErrors || !searchResults) && currentRoute === '/') {
-            // Use requestAnimationFrame to safely update navigation params without overriding the current route
-            requestAnimationFrame(() => {
-                Navigation.setParams({q: buildCannedSearchQuery()});
-            });
-        }
-    }, [hasErrors, queryJSON, searchResults]);
 
     const fetchMoreResults = useCallback(() => {
         if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
@@ -701,7 +713,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const shouldShowYear = shouldShowYearUtil(searchResults?.data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
-    const shouldShowSorting = !Array.isArray(status) && !groupBy;
+    const shouldShowSorting = !groupBy;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
 
     return (
