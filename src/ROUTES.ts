@@ -1,3 +1,8 @@
+/**
+ * NOTE!!!!
+ *
+ * Refer to ./contributingGuides/philosophies/ROUTING.md for information on how to construct routes.
+ */
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {SearchQueryString} from './components/Search/types';
 import type CONST from './CONST';
@@ -348,6 +353,7 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER: 'settings/profile/status/clear-after',
     SETTINGS_STATUS_CLEAR_AFTER_DATE: 'settings/profile/status/clear-after/date',
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
+    SETTINGS_VACATION_DELEGATE: 'settings/profile/status/vacation-delegate',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
     SETTINGS_CONSOLE: {
         route: 'settings/troubleshoot/console',
@@ -704,11 +710,11 @@ const ROUTES = {
     },
     MONEY_REQUEST_EDIT_REPORT: {
         route: ':action/:iouType/report/:reportID/edit',
-        getRoute: (action: IOUAction, iouType: IOUType, reportID?: string, backTo = '') => {
+        getRoute: (action: IOUAction, iouType: IOUType, reportID?: string, shouldTurnOffSelectionMode?: boolean, backTo = '') => {
             if (!reportID) {
                 Log.warn('Invalid reportID while building route MONEY_REQUEST_EDIT_REPORT');
             }
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${reportID}/edit`, backTo);
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${reportID}/edit${shouldTurnOffSelectionMode ? `?shouldTurnOffSelectionMode=true` : ``}`, backTo);
         },
     },
     SETTINGS_TAGS_ROOT: {
@@ -925,6 +931,21 @@ const ROUTES = {
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 label ? `${backTo || state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''
             }` as const,
+    },
+    DISTANCE_REQUEST_CREATE: {
+        route: ':action/:iouType/start/:transactionID/:reportID/distance-new/:backToReport?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/${backToReport ?? ''}` as const,
+    },
+    DISTANCE_REQUEST_CREATE_TAB_MAP: {
+        route: 'map/:backToReport?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/map/${backToReport ?? ''}` as const,
+    },
+    DISTANCE_REQUEST_CREATE_TAB_MANUAL: {
+        route: 'manual/:backToReport?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/manual/${backToReport ?? ''}` as const,
     },
     IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
@@ -1378,11 +1399,11 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
         route: 'workspaces/:policyID/accounting/:connection/card-reconciliation/account',
-        getRoute: (policyID: string | undefined, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) => {
+        getRoute: (policyID: string | undefined, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS route');
             }
-            return `workspaces/${policyID}/accounting/${connection as string}/card-reconciliation/account` as const;
+            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/${connection as string}/card-reconciliation/account` as const, backTo);
         },
     },
     WORKSPACE_CATEGORIES: {
@@ -1809,6 +1830,10 @@ const ROUTES = {
     WORKSPACE_DISTANCE_RATE_EDIT: {
         route: 'workspaces/:policyID/distance-rates/:rateID/edit',
         getRoute: (policyID: string, rateID: string) => `workspaces/${policyID}/distance-rates/${rateID}/edit` as const,
+    },
+    WORKSPACE_DISTANCE_RATE_NAME_EDIT: {
+        route: 'workspaces/:policyID/distance-rates/:rateID/name/edit',
+        getRoute: (policyID: string, rateID: string) => `workspaces/${policyID}/distance-rates/${rateID}/name/edit` as const,
     },
     WORKSPACE_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT: {
         route: 'workspaces/:policyID/distance-rates/:rateID/tax-reclaimable/edit',

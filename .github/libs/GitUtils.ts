@@ -124,25 +124,26 @@ function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitT
     fetchTag(fromTag, previousPatchVersion);
     fetchTag(toTag, previousPatchVersion);
 
-    console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
+    core.info(`[git log] Getting pull requests merged between the following tags: ${fromTag} ${toTag}`);
+    core.startGroup('[git log] Fetching commits');
     return new Promise<string>((resolve, reject) => {
         let stdout = '';
         let stderr = '';
         const args = ['log', '--format={"commit": "%H", "authorName": "%an", "subject": "%s"},', `${fromTag}...${toTag}`];
-        console.log(`Running command: git ${args.join(' ')}`);
+        core.info(`Running command: git ${args.join(' ')}`);
         const spawnedProcess = spawn('git', args);
-        spawnedProcess.on('message', console.log);
+        spawnedProcess.on('message', core.info);
         spawnedProcess.stdout.on('data', (chunk: Buffer) => {
-            console.log(chunk.toString());
+            core.info(chunk.toString());
             stdout += chunk.toString();
         });
         spawnedProcess.stderr.on('data', (chunk: Buffer) => {
-            console.error(chunk.toString());
+            core.error(chunk.toString());
             stderr += chunk.toString();
         });
         spawnedProcess.on('close', (code) => {
             if (code !== 0) {
-                console.log('code: ', code);
+                core.error(`Git command failed with code: ${code}`);
                 return reject(new Error(`${stderr}`));
             }
 
@@ -156,6 +157,7 @@ function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitT
         // Then remove newlines, format as JSON and convert to a proper JS object
         const json = `[${sanitizedOutput}]`.replace(/(\r\n|\n|\r)/gm, '').replace('},]', '}]');
 
+        core.endGroup();
         return JSON.parse(json) as CommitType[];
     });
 }
@@ -192,9 +194,6 @@ function getValidMergedPRs(commits: CommitType[]): number[] {
 
 /**
  * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
- *
- * This function is being refactored to use the GitHub API instead of the git log command, but for now the
- * issues retrieved from the GitHub API are just being logged for testing: https://github.com/Expensify/App/issues/58775
  */
 async function getPullRequestsDeployedBetween(fromTag: string, toTag: string) {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
@@ -202,20 +201,22 @@ async function getPullRequestsDeployedBetween(fromTag: string, toTag: string) {
     const gitCommitList = await getCommitHistoryAsJSON(fromTag, toTag);
     const gitLogPullRequestNumbers = getValidMergedPRs(gitCommitList).sort((a, b) => a - b);
     console.log(`[git log] Found ${gitCommitList.length} commits.`);
-    core.startGroup('[git log] Parsed PRs:');
-    core.info(JSON.stringify(gitLogPullRequestNumbers));
-    core.endGroup();
+    core.info(`[git log] Checklist PRs: ${gitLogPullRequestNumbers.join(', ')}`);
 
-    // Test the new GitHub API method
-    // eslint-disable-next-line deprecation/deprecation
     const apiCommitList = await GithubUtils.getCommitHistoryBetweenTags(fromTag, toTag);
     const apiPullRequestNumbers = getValidMergedPRs(apiCommitList).sort((a, b) => a - b);
+
     console.log(`[api] Found ${apiCommitList.length} commits.`);
     core.startGroup('[api] Parsed PRs:');
-    core.info(JSON.stringify(apiPullRequestNumbers));
+    core.info(apiPullRequestNumbers.join(', '));
     core.endGroup();
 
-    return gitLogPullRequestNumbers;
+    // Print diff between git log and API results for debugging
+    const onlyInGitLog = gitLogPullRequestNumbers.filter((pr) => !apiPullRequestNumbers.includes(pr));
+    const onlyInAPI = apiPullRequestNumbers.filter((pr) => !gitLogPullRequestNumbers.includes(pr));
+    core.info(`PR list diff - git log only: [${onlyInGitLog.join(', ')}], API only: [${onlyInAPI.join(', ')}]`);
+
+    return apiPullRequestNumbers;
 }
 
 export default {
