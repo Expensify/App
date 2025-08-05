@@ -2,13 +2,17 @@ import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials, HybridApp, Session, TryNewDot} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {closeReactNativeApp, setReadyToShowAuthScreens, setUseNewDotSignInPage} from './actions/HybridApp';
-import {isAnonymousUser} from './actions/Session';
 import Log from './Log';
 import {getCurrentUserEmail} from './Network/NetworkStore';
+
+function isAnonymousUser(sessionParam: OnyxEntry<Session>): boolean {
+    return sessionParam?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
+}
 
 let currentHybridApp: OnyxEntry<HybridApp>;
 let currentTryNewDot: OnyxEntry<TryNewDot>;
@@ -81,7 +85,7 @@ function handleChangeInHybridAppSignInFlow(
         return;
     }
 
-    if (isAnonymousUser()) {
+    if (isAnonymousUser(session)) {
         setUseNewDotSignInPage(false).then(() => {
             setReadyToShowAuthScreens(true);
         });
