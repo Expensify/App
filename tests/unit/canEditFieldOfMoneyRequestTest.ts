@@ -12,6 +12,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const currentUserAccountID = 5;
 const currentUserEmail = 'bjorn@vikings.net';
+const secondUserAccountID = 6;
 
 const policy: Policy = {
     id: '1',
@@ -215,7 +216,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 expect(canEditReportField).toBe(false);
             });
 
-            it('should return false when there is only one outstanding report', async () => {
+            it('should return false when there is only one outstanding report and the current user is not the submitter', async () => {
                 // Given that other reports in the policy are not outstanding (approved and reimbursed)
                 const approvedReport1 = {
                     ...outstandingExpenseReport1,
@@ -227,7 +228,10 @@ describe('canEditFieldOfMoneyRequest', () => {
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                     statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 };
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, expenseReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, {
+                    ...expenseReport,
+                    ownerAccountID: secondUserAccountID,
+                });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_1_ID}`, approvedReport1);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_2_ID}`, reimbursedReport2);
                 await waitForBatchedUpdates();
