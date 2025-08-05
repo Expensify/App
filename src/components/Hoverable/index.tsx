@@ -24,7 +24,7 @@ function Hoverable({isDisabled, ...props}: HoverableProps, ref: Ref<HTMLElement>
         <ActiveHoverable
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            ref={ref}
+            outerRef={ref}
         />
     );
 }
