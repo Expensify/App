@@ -6004,6 +6004,7 @@ const translations = {
                 reports: 'Verslag',
                 members: 'Lid',
                 cards: 'Kaart',
+                bankWithdrawal: 'Bankafhaling',
             },
             feed: 'Feed',
         },

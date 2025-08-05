@@ -5991,6 +5991,7 @@ const translations = {
                 reports: 'Informe',
                 members: 'Miembro',
                 cards: 'Tarjeta',
+                bankWithdrawal: 'Retirada de banco',
             },
             feed: 'Feed',
         },

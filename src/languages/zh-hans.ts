@@ -5894,6 +5894,7 @@ const translations = {
                 reports: '报告',
                 members: '成员',
                 cards: '卡片',
+                bankWithdrawal: '银行提款',
             },
             feed: '通道',
         },

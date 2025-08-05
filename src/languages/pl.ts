@@ -5989,6 +5989,7 @@ const translations = {
                 reports: 'Raport',
                 members: 'Członek',
                 cards: 'Karta',
+                bankWithdrawal: 'Wypłata z banku',
             },
             feed: 'Kanal',
         },

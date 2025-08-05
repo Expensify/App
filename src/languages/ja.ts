@@ -5970,6 +5970,7 @@ const translations = {
                 reports: '報告',
                 members: 'メンバー',
                 cards: 'カード',
+                bankWithdrawal: '銀行引出',
             },
             feed: 'フィード',
         },

@@ -5969,6 +5969,7 @@ const translations = {
                 reports: 'Report', // s77rt use singular key name
                 members: 'Member', // s77rt use singular key name
                 cards: 'Card', // s77rt use singular key name
+                bankWithdrawal: 'Bank withdrawal',
             },
             feed: 'Feed',
         },
