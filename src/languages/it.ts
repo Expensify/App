@@ -1776,9 +1776,7 @@ const translations = {
         changePaymentCurrency: 'Cambia la valuta di pagamento',
         paymentCurrency: 'Valuta di pagamento',
         paymentCurrencyDescription: 'Seleziona una valuta standard a cui tutte le spese personali dovrebbero essere convertite',
-        note: 'Nota: Cambiare la valuta di pagamento può influire su quanto pagherai per Expensify. Consulta il nostro',
-        noteLink: 'pagina dei prezzi',
-        noteDetails: 'per i dettagli completi.',
+        note: `Nota: la modifica della valuta di pagamento può influire sul costo di Expensify. Per maggiori dettagli, consultare la <a href="${CONST.PRICING}">pagina dei prezzi</a>.`,
     },
     addDebitCardPage: {
         addADebitCard: 'Aggiungi una carta di debito',
