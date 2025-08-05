@@ -24,7 +24,7 @@ import {
     isProcessingReport,
     isReportOwner,
 } from './ReportUtils';
-import { isPendingCardOrScanningTransaction, isPendingCardOrUncompleteTransaction } from './TransactionUtils';
+import { isPendingCardOrScanningTransaction, isPendingCardOrIncompleteTransaction } from './TransactionUtils';
 
 let currentUserAccountID = -1;
 let currentUserEmail = '';
@@ -154,7 +154,7 @@ function buildOptimisticFixIssueNextStep() {
 function getReportNextStep(currentNextStep: ReportNextStep | undefined, moneyRequestReport: OnyxEntry<Report>, transactions: Array<OnyxEntry<Transaction>>, policy: OnyxEntry<Policy>) {
     const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
 
-    if (isOpenExpenseReport(moneyRequestReport) && transactions.length > 0 && transactions.every((transaction) => isPendingCardOrUncompleteTransaction(transaction))) {
+    if (isOpenExpenseReport(moneyRequestReport) && transactions.length > 0 && transactions.every((transaction) => isPendingCardOrIncompleteTransaction(transaction))) {
         return buildOptimisticFixIssueNextStep();
     }
 

@@ -43,7 +43,7 @@ import {
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
     isPendingCardOrScanningTransaction,
-    isPendingCardOrUncompleteTransaction,
+    isPendingCardOrIncompleteTransaction,
     isScanning,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
@@ -83,7 +83,7 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
     const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
 
-    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPendingCardOrUncompleteTransaction(transaction))) {
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPendingCardOrIncompleteTransaction(transaction))) {
         return false;
     }
 

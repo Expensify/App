@@ -80,7 +80,7 @@ describe('getPrimaryAction', () => {
         );
     });
 
-    it('should not return SUBMIT option for admin with only pending/uncomplete transactions', async () => {
+    it('should not return SUBMIT option for admin with only pending/incomplete transactions', async () => {
         const report = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,

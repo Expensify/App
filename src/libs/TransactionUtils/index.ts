@@ -242,7 +242,7 @@ function isPendingCardOrScanningTransaction(transaction: OnyxEntry<Transaction>)
     return (isExpensifyCardTransaction(transaction) && isPending(transaction)) || isPartialTransaction(transaction) || (isScanRequest(transaction) && isScanning(transaction));
 }
 
-function isPendingCardOrUncompleteTransaction(transaction: OnyxEntry<Transaction>): boolean {
+function isPendingCardOrIncompleteTransaction(transaction: OnyxEntry<Transaction>): boolean {
     return (isExpensifyCardTransaction(transaction) && isPending(transaction)) || (isAmountMissing(transaction) && isMerchantMissing(transaction));
 }
 
@@ -1974,7 +1974,7 @@ export {
     isDemoTransaction,
     shouldShowViolation,
     isUnreportedAndHasInvalidDistanceRateTransaction,
-    isPendingCardOrUncompleteTransaction,
+    isPendingCardOrIncompleteTransaction,
 };
 
 export type {TransactionChanges};
