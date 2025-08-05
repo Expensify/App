@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -20,7 +19,6 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
-import shouldShowSubscriptionPaymentOption from '@libs/shouldShowSubscriptionPaymentOption/index.native';
 import {hasCardAuthenticatedError, hasUserFreeTrialEnded, isUserOnFreeTrial, shouldShowDiscountBanner, shouldShowPreTrialBillingBanner} from '@libs/SubscriptionUtils';
 import {verifySetupIntent} from '@userActions/PaymentMethods';
 import {clearOutstandingBalance} from '@userActions/Subscription';
@@ -34,6 +32,7 @@ import SubscriptionBillingBanner from './BillingBanner/SubscriptionBillingBanner
 import TrialEndedBillingBanner from './BillingBanner/TrialEndedBillingBanner';
 import TrialStartedBillingBanner from './BillingBanner/TrialStartedBillingBanner';
 import CardSectionActions from './CardSectionActions';
+import CardSectionButton from './CardSectionButton';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
 import RequestEarlyCancellationMenuItem from './RequestEarlyCancellationMenuItem';
 import type {BillingStatusResult} from './utils';
@@ -175,8 +174,8 @@ function CardSection() {
                 </View>
 
                 <View style={styles.mb3}>{isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}</View>
-                {billingStatus?.isRetryAvailable !== undefined && shouldShowSubscriptionPaymentOption() && (
-                    <Button
+                {billingStatus?.isRetryAvailable !== undefined && (
+                    <CardSectionButton
                         text={translate('subscription.cardSection.retryPaymentButton')}
                         isDisabled={isOffline || !billingStatus?.isRetryAvailable}
                         isLoading={subscriptionRetryBillingStatusPending}
@@ -185,8 +184,8 @@ function CardSection() {
                         large
                     />
                 )}
-                {hasCardAuthenticatedError() && shouldShowSubscriptionPaymentOption() && (
-                    <Button
+                {hasCardAuthenticatedError() && (
+                    <CardSectionButton
                         text={translate('subscription.cardSection.authenticatePayment')}
                         isDisabled={isOffline || !billingStatus?.isAuthenticationRequired}
                         isLoading={subscriptionRetryBillingStatusPending}
