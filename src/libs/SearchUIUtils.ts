@@ -372,6 +372,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 groupBy: CONST.SEARCH.GROUP_BY.BANK_WITHDRAWAL,
+                withdrawalType: CONST.SEARCH.WITHDRAWAL_TYPE.BANK_WITHDRAWAL,
             }),
             get hash() {
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
