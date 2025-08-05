@@ -24,7 +24,7 @@ import {
     isProcessingReport,
     isReportOwner,
 } from './ReportUtils';
-import { isPendingCardOrScanningTransaction, isPendingCardOrIncompleteTransaction } from './TransactionUtils';
+import {isPendingCardOrIncompleteTransaction, isPendingCardOrScanningTransaction} from './TransactionUtils';
 
 let currentUserAccountID = -1;
 let currentUserEmail = '';
@@ -133,7 +133,7 @@ function buildOptimisticFixIssueNextStep() {
         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
         message: [
             {
-                text: "Waiting for ",
+                text: 'Waiting for ',
             },
             {
                 text: `you`,
@@ -163,7 +163,7 @@ function getReportNextStep(currentNextStep: ReportNextStep | undefined, moneyReq
     }
 
     const isSubmitterSameAsNextApprover = isReportOwner(moneyRequestReport) && nextApproverAccountID === moneyRequestReport?.ownerAccountID;
-    
+
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
     // We should always show this optimistic message for policies with preventSelfApproval
     // to avoid any flicker during transitions between online/offline states
