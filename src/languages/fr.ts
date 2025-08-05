@@ -1522,8 +1522,8 @@ const translations = {
             clearCacheAndRestart: 'Effacer le cache et redémarrer',
             viewConsole: 'Afficher la console de débogage',
             debugConsole: 'Console de débogage',
-            description: "Utilisez les outils ci-dessous pour vous aider à résoudre les problèmes liés à l'expérience Expensify. Si vous rencontrez des problèmes, veuillez",
-            submitBug: 'soumettre un bug',
+            description:
+                "<muted-text>Utilisez les outils ci-dessous pour vous aider à résoudre les problèmes liés à l'utilisation d'Expensify. Si vous rencontrez des problèmes, veuillez <concierge-link>soumettre un bug</concierge-link>.</muted-text>",
             confirmResetDescription: 'Tous les brouillons de messages non envoyés seront perdus, mais le reste de vos données est en sécurité.',
             resetAndRefresh: 'Réinitialiser et actualiser',
             clientSideLogging: 'Journalisation côté client',
@@ -3520,6 +3520,7 @@ const translations = {
             defaultCategory: 'Catégorie par défaut',
             viewTransactions: 'Voir les transactions',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Les dépenses de ${displayName}`,
+            deepDiveExpensifyCard: `<muted-text-label>Les transactions Expensify Card seront automatiquement exportées vers un « Expensify Card Liability Account » créé avec <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">notre intégration</a>.</muted-text-label>`,
         },
         perDiem: {
             subtitle: 'Définissez des taux de per diem pour contrôler les dépenses quotidiennes des employés.',
@@ -3584,8 +3585,6 @@ const translations = {
             exportJournalEntryDescription: 'Nous créerons une écriture de journal détaillée pour chaque rapport Expensify et la publierons sur le compte ci-dessous.',
             exportVendorBillDescription:
                 "Nous créerons une facture détaillée pour chaque rapport Expensify et l'ajouterons au compte ci-dessous. Si cette période est clôturée, nous la publierons au 1er de la prochaine période ouverte.",
-            deepDiveExpensifyCard: 'Les transactions de la carte Expensify seront automatiquement exportées vers un "Compte de responsabilité de carte Expensify" créé avec',
-            deepDiveExpensifyCardIntegration: 'notre intégration.',
             outOfPocketTaxEnabledDescription:
                 "QuickBooks Desktop ne prend pas en charge les taxes sur les exportations d'écritures de journal. Comme vous avez activé les taxes dans votre espace de travail, cette option d'exportation n'est pas disponible.",
             outOfPocketTaxEnabledError: "Les écritures de journal ne sont pas disponibles lorsque les taxes sont activées. Veuillez choisir une autre option d'exportation.",
@@ -3668,8 +3667,6 @@ const translations = {
             date: "Date d'exportation",
             exportInvoices: 'Exporter les factures vers',
             exportExpensifyCard: 'Exporter les transactions de la carte Expensify en tant que',
-            deepDiveExpensifyCard: 'Les transactions de la carte Expensify seront automatiquement exportées vers un "Compte de responsabilité de carte Expensify" créé avec',
-            deepDiveExpensifyCardIntegration: 'notre intégration.',
             exportDate: {
                 label: "Date d'exportation",
                 description: "Utilisez cette date lors de l'exportation des rapports vers QuickBooks Online.",
