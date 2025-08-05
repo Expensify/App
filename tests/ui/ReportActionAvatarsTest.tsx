@@ -442,5 +442,10 @@ describe('ReportActionAvatars', () => {
             const retrievedData = await retrieveDataFromAvatarView({reportID: iouDMSingleExpenseReport.reportID});
             isSingleAvatarRendered(retrievedData);
         });
+
+        it('renders workspace avatar if policyID is passed as a prop', async () => {
+            const retrievedData = await retrieveDataFromAvatarView({policyID: policy.id});
+            isSingleAvatarRendered({...retrievedData, userAvatar: getDefaultWorkspaceAvatar().name});
+        });
     });
 });

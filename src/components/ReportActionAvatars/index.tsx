@@ -13,11 +13,14 @@ import useReportActionAvatars from './useReportActionAvatars';
 type ReportActionAvatarsProps = {
     horizontalStacking?: HorizontalStacking | boolean;
 
-    /** IOU Report ID for single avatar */
+    /** Report ID for the report action avatars */
     reportID?: string;
 
-    /** IOU Report ID for single avatar */
+    /** Action for the report action avatars */
     action?: OnyxEntry<ReportAction>;
+
+    /** Policy ID for the workspace avatar */
+    policyID?: string;
 
     /** Single avatar container styles */
     singleAvatarContainerStyle?: ViewStyle[];
@@ -53,6 +56,7 @@ type ReportActionAvatarsProps = {
 /**
  * The component that renders proper user avatars based on either:
  *
+ * - policyID - this can be passed if we have no other option, and we want to display workspace avatar, it makes component ignore the props below
  * - accountIDs - if this is passed, it is prioritized and render even if report or action has different avatars attached, useful for option items, menu items etc.
  * - action - this is useful when we want to display avatars of chat threads, messages, report/trip previews etc.
  * - reportID - this can be passed without above props, when we want to display chat report avatars, DM chat avatars etc.
@@ -62,6 +66,7 @@ function ReportActionAvatars({
     reportID: potentialReportID,
     action,
     accountIDs: passedAccountIDs = [],
+    policyID,
     size = CONST.AVATAR_SIZE.DEFAULT,
     shouldShowTooltip = true,
     horizontalStacking,
@@ -96,6 +101,7 @@ function ReportActionAvatars({
         shouldStackHorizontally,
         shouldUseCardFeed: !!subscriptCardFeed,
         accountIDs,
+        policyID,
     });
 
     let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE> = notPreciseAvatarType;
