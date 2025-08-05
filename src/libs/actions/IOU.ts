@@ -8959,6 +8959,7 @@ function getPayMoneyRequestParams(
     bankAccountID?: number,
     paymentPolicyID?: string | undefined,
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
+    existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>,
 ): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -9006,7 +9007,7 @@ function getPayMoneyRequestParams(
     if (isIndividualInvoiceRoom(chatReport) && payAsBusiness && activePolicyID) {
         const existingB2BInvoiceRoom = getInvoiceChatByParticipants(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport.policyID);
         if (existingB2BInvoiceRoom) {
-            chatReport = existingB2BInvoiceRoom;
+            chatReport = existingB2BInvoiceReport ?? existingB2BInvoiceRoom;
         }
     }
 
@@ -10392,6 +10393,7 @@ function payInvoice(
     chatReport: OnyxTypes.Report,
     invoiceReport: OnyxEntry<OnyxTypes.Report>,
     payAsBusiness = false,
+    existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>,
     methodID?: number,
     paymentMethod?: PaymentMethod,
 ) {
@@ -10412,7 +10414,7 @@ function payInvoice(
             ownerEmail,
             policyName,
         },
-    } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true, payAsBusiness, methodID);
+    } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true, payAsBusiness, methodID, undefined, undefined, existingB2BInvoiceReport);
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
     completePaymentOnboarding(paymentSelected);
