@@ -175,7 +175,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
                 accessibilityLabel={translate('travel.bookTravel')}
                 style={styles.w100}
                 isLoading={isLoading}
-                isDisabled={!isLoading && activePolicyID}
+                isDisabled={!isLoading && !activePolicyID}
                 success
                 large
             />
