@@ -13,6 +13,7 @@ import {
     cancelPayment,
     canIOUBePaid,
     canUnapproveIOU,
+    completeSplitBill,
     createDistanceRequest,
     deleteMoneyRequest,
     getIOUReportActionToApproveOrPay,
@@ -28,6 +29,7 @@ import {
     setDraftSplitTransaction,
     setMoneyRequestCategory,
     splitBill,
+    startSplitBill,
     submitReport,
     trackExpense,
     unholdRequest,
@@ -44,6 +46,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiCommand} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {translateLocal} from '@libs/Localize';
+import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {
@@ -1613,7 +1616,7 @@ describe('actions/IOU', () => {
                     comment: '',
                 },
             });
-            expect(notifyNewAction).toHaveBeenCalledTimes(1);
+            expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -2314,6 +2317,63 @@ describe('actions/IOU', () => {
             });
             expect(report?.participants?.[RORY_ACCOUNT_ID].notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
         });
+
+        it('the description should not be parsed again after completing the scan split bill without changing the description', async () => {
+            const reportID = '1';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                participants: {
+                    [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            });
+
+            // Start a scan split bill
+            const {splitTransactionID} = startSplitBill({
+                participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                comment: '# test',
+                currency: CONST.CURRENCY.USD,
+                existingSplitChatReportID: reportID,
+                receipt: {},
+                category: undefined,
+                tag: undefined,
+                taxCode: '',
+                taxAmount: 0,
+            });
+
+            await waitForBatchedUpdates();
+
+            let splitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`);
+
+            // Then the description should be parsed correctly
+            expect(splitTransaction?.comment?.comment).toBe('<h1>test</h1>');
+
+            const updatedSplitTransaction = splitTransaction
+                ? {
+                      ...splitTransaction,
+                      amount: 100,
+                  }
+                : undefined;
+
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            const iouAction = Object.values(reportActions ?? {}).find((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU));
+
+            expect(iouAction).toBeTruthy();
+
+            // Complete this split bill without changing the description
+            completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, RORY_EMAIL);
+
+            await waitForBatchedUpdates();
+
+            splitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`);
+
+            // Then the description should be the same since it was not changed
+            expect(splitTransaction?.comment?.comment).toBe('<h1>test</h1>');
+        });
     });
 
     describe('saveSplitTransactions', () => {
@@ -2655,7 +2715,11 @@ describe('actions/IOU', () => {
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    createWorkspace({
+                        policyOwnerEmail: CARLOS_EMAIL,
+                        makeMeAdmin: true,
+                        policyName: "Carlos's Workspace",
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -2711,7 +2775,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (chatReport && expenseReport) {
-                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.VBBA, chatReport, expenseReport);
+                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.VBBA, chatReport, expenseReport, undefined);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -2783,7 +2847,11 @@ describe('actions/IOU', () => {
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    createWorkspace({
+                        policyOwnerEmail: CARLOS_EMAIL,
+                        makeMeAdmin: true,
+                        policyName: "Carlos's Workspace",
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -2840,7 +2908,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     mockFetch?.fail?.();
                     if (chatReport && expenseReport) {
-                        payMoneyRequest('ACH', chatReport, expenseReport);
+                        payMoneyRequest('ACH', chatReport, expenseReport, undefined);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -2980,7 +3048,7 @@ describe('actions/IOU', () => {
                 })
                 .then(() => {
                     // When partially paying  an iou report from the chat report via the report preview
-                    payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, {reportID: topMostReportID}, iouReport, false);
+                    payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, {reportID: topMostReportID}, iouReport, undefined, false);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -3008,7 +3076,11 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(() => {
                     // Which owns a workspace
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    createWorkspace({
+                        policyOwnerEmail: CARLOS_EMAIL,
+                        makeMeAdmin: true,
+                        policyName: "Carlos's Workspace",
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() =>
@@ -3055,7 +3127,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     // When the expense report is paid elsewhere (but really, any payment option would work)
                     if (chatReport && expenseReport) {
-                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, expenseReport);
+                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, expenseReport, undefined);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -3224,7 +3296,7 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When the expense is deleted
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, true);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, true);
             }
             await waitForBatchedUpdates();
 
@@ -3303,7 +3375,7 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When the IOU expense is deleted
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, true);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, true);
             }
             await waitForBatchedUpdates();
 
@@ -3364,7 +3436,7 @@ describe('actions/IOU', () => {
             // When we attempt to delete an expense from the IOU report
             mockFetch?.pause?.();
             if (transaction && createIOUAction) {
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, false);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {});
             }
             await waitForBatchedUpdates();
 
@@ -3459,7 +3531,7 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When Deleting an expense
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, false);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {});
             }
             await waitForBatchedUpdates();
 
@@ -3533,6 +3605,7 @@ describe('actions/IOU', () => {
             createIOUAction = Object.values(reportActionsForIOUReport ?? {}).find((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
                 isMoneyRequestAction(reportAction),
             );
+
             expect(createIOUAction?.childReportID).toBe(thread.reportID);
 
             await waitForBatchedUpdates();
@@ -3541,7 +3614,9 @@ describe('actions/IOU', () => {
             if (transaction && createIOUAction) {
                 updateMoneyRequestAmountAndCurrency({
                     transactionID: transaction.transactionID,
+                    transactions: {},
                     transactionThreadReportID: thread.reportID,
+                    transactionViolations: {},
                     amount: 20000,
                     currency: CONST.CURRENCY.USD,
                     taxAmount: 0,
@@ -3581,7 +3656,7 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When Deleting an expense
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, false);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {});
             }
             await waitForBatchedUpdates();
 
@@ -3655,7 +3730,7 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When deleting expense
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, false);
+                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {});
             }
             await waitForBatchedUpdates();
 
@@ -3806,7 +3881,7 @@ describe('actions/IOU', () => {
             mockFetch?.pause?.();
             if (transaction && createIOUAction) {
                 // When we delete the expense
-                deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
+                deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {});
             }
             await waitForBatchedUpdates();
 
@@ -3897,7 +3972,7 @@ describe('actions/IOU', () => {
             mockFetch?.pause?.();
             jest.advanceTimersByTime(10);
             if (transaction && createIOUAction) {
-                deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
+                deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {});
             }
             await waitForBatchedUpdates();
 
@@ -3972,7 +4047,7 @@ describe('actions/IOU', () => {
 
             let navigateToAfterDelete;
             if (transaction && createIOUAction) {
-                navigateToAfterDelete = deleteMoneyRequest(transaction.transactionID, createIOUAction, true);
+                navigateToAfterDelete = deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, true);
             }
 
             let allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
@@ -4020,7 +4095,7 @@ describe('actions/IOU', () => {
             let navigateToAfterDelete;
             if (transaction && createIOUAction) {
                 // When we delete the expense and we should delete the IOU report
-                navigateToAfterDelete = deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
+                navigateToAfterDelete = deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {});
             }
             // Then we expect to navigate to the chat report
             expect(chatReport?.reportID).not.toBeUndefined();
@@ -4041,7 +4116,12 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(() => {
                     const policyID = generatePolicyID();
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", policyID);
+                    createWorkspace({
+                        policyOwnerEmail: CARLOS_EMAIL,
+                        makeMeAdmin: true,
+                        policyName: "Carlos's Workspace",
+                        policyID,
+                    });
 
                     // Change the approval mode for the policy since default is Submit and Close
                     setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
@@ -4153,7 +4233,13 @@ describe('actions/IOU', () => {
 
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", undefined, CONST.ONBOARDING_CHOICES.CHAT_SPLIT);
+                    createWorkspace({
+                        policyOwnerEmail: CARLOS_EMAIL,
+                        makeMeAdmin: true,
+                        policyName: "Carlos's Workspace",
+                        policyID: undefined,
+                        engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -4318,7 +4404,13 @@ describe('actions/IOU', () => {
 
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", undefined, CONST.ONBOARDING_CHOICES.CHAT_SPLIT);
+                    createWorkspace({
+                        policyOwnerEmail: CARLOS_EMAIL,
+                        makeMeAdmin: true,
+                        policyName: "Carlos's Workspace",
+                        policyID: undefined,
+                        engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -5668,6 +5760,14 @@ describe('actions/IOU', () => {
             type: CONST.POLICY.TYPE.TEAM,
             outputCurrency: 'USD',
         };
+
+        const fakeParentReport: Report = {
+            ...createRandomReport(1),
+            reportID: fakeReport.reportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID: '1',
+            managerID: CARLOS_ACCOUNT_ID,
+        };
         const fakePersonalPolicy: Policy = {
             ...createRandomPolicy(2),
             type: CONST.POLICY.TYPE.PERSONAL,
@@ -5715,6 +5815,8 @@ describe('actions/IOU', () => {
                         policy: fakePolicy,
                         isFromGlobalCreate: true,
                         newIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        report: fakeReport,
+                        parentReport: fakeParentReport,
                     });
                 })
                 .then(async () => {
@@ -5731,6 +5833,8 @@ describe('actions/IOU', () => {
                         isFromGlobalCreate: true,
                         currentIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
                         newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                        report: fakeReport,
+                        parentReport: fakeParentReport,
                     });
                 })
                 .then(async () => {
@@ -5747,6 +5851,8 @@ describe('actions/IOU', () => {
                         reportID: fakeReport.reportID,
                         isFromGlobalCreate: true,
                         newIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        report: fakeReport,
+                        parentReport: fakeParentReport,
                     });
                 })
                 .then(async () => {
@@ -5797,6 +5903,8 @@ describe('actions/IOU', () => {
                 },
                 policyTagList: {},
                 policyCategories: {},
+                transactions: {},
+                transactionViolations: {},
             });
 
             await waitForBatchedUpdates();
@@ -5855,6 +5963,8 @@ describe('actions/IOU', () => {
                 },
                 policyTagList: {},
                 policyCategories: {},
+                transactions: {},
+                transactionViolations: {},
             });
 
             await waitForBatchedUpdates();
@@ -5893,7 +6003,11 @@ describe('actions/IOU', () => {
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             // Which owns a workspace
             await waitForBatchedUpdates();
-            createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+            createWorkspace({
+                policyOwnerEmail: CARLOS_EMAIL,
+                makeMeAdmin: true,
+                policyName: "Carlos's Workspace",
+            });
             await waitForBatchedUpdates();
 
             // Get the policy expense chat report
@@ -5973,7 +6087,11 @@ describe('actions/IOU', () => {
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             // Which owns a workspace
             await waitForBatchedUpdates();
-            createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+            createWorkspace({
+                policyOwnerEmail: CARLOS_EMAIL,
+                makeMeAdmin: true,
+                policyName: "Carlos's Workspace",
+            });
             await waitForBatchedUpdates();
 
             // Get the policy expense chat report
@@ -6058,9 +6176,7 @@ describe('actions/IOU', () => {
                 reportID: '456',
             };
 
-            const reportID = '456';
-
-            initSplitExpense(transaction, reportID);
+            initSplitExpense(transaction);
             await waitForBatchedUpdates();
 
             const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -6072,7 +6188,7 @@ describe('actions/IOU', () => {
             expect(draftTransaction?.amount).toBe(100);
             expect(draftTransaction?.currency).toBe('USD');
             expect(draftTransaction?.merchant).toBe('Test Merchant');
-            expect(draftTransaction?.reportID).toBe(reportID);
+            expect(draftTransaction?.reportID).toBe(transaction.reportID);
 
             expect(splitExpenses?.[0].amount).toBe(50);
             expect(splitExpenses?.[0].description).toBe('Test comment');
@@ -6086,9 +6202,8 @@ describe('actions/IOU', () => {
         });
         it('should not initialize split expense for null transaction', async () => {
             const transaction: Transaction | undefined = undefined;
-            const reportID = '456';
 
-            initSplitExpense(transaction, reportID);
+            initSplitExpense(transaction);
             await waitForBatchedUpdates();
 
             expect(transaction).toBeFalsy();
@@ -6336,7 +6451,12 @@ describe('actions/IOU', () => {
             const creatorPersonalDetails = personalDetailsList?.[CARLOS_ACCOUNT_ID] ?? {accountID: CARLOS_ACCOUNT_ID};
 
             const policyID = generatePolicyID();
-            createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", policyID);
+            createWorkspace({
+                policyOwnerEmail: CARLOS_EMAIL,
+                makeMeAdmin: true,
+                policyName: "Carlos's Workspace",
+                policyID,
+            });
             createNewReport(creatorPersonalDetails, policyID);
             // Create a tracked expense
             const selfDMReport: Report = {
@@ -6443,7 +6563,12 @@ describe('actions/IOU', () => {
                 let originalTransactionID;
 
                 const policyID = generatePolicyID();
-                createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", policyID);
+                createWorkspace({
+                    policyOwnerEmail: CARLOS_EMAIL,
+                    makeMeAdmin: true,
+                    policyName: "Carlos's Workspace",
+                    policyID,
+                });
 
                 // Change the approval mode for the policy since default is Submit and Close
                 setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
