@@ -2,12 +2,14 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {FileObject} from '@components/AttachmentModal';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,6 +45,7 @@ function SubmitDetailsPage({
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, {canBeMissing: true});
     const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {canBeMissing: true});
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: false});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
@@ -54,6 +57,17 @@ function SubmitDetailsPage({
 
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+
+    const [validFilesToUpload, setValidFilesToUpload] = useState<FileObject[]>([]);
+    const {validateFiles} = useFilesValidation(setValidFilesToUpload);
+
+    useEffect(() => {
+        if (!currentAttachment || validFilesToUpload.length !== 0) {
+            return;
+        }
+
+        validateFiles([{name: currentAttachment.id, uri: currentAttachment.content, type: currentAttachment.mimeType}]);
+    }, [currentAttachment, validFilesToUpload.length, validateFiles]);
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
@@ -69,8 +83,10 @@ function SubmitDetailsPage({
             policy,
             currentIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            report,
+            parentReport,
         });
-    }, [reportOrAccountID, policy]);
+    }, [reportOrAccountID, policy, report, parentReport]);
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report);
     const participants = selectedParticipants.map((participant) =>
@@ -181,12 +197,13 @@ function SubmitDetailsPage({
             return;
         }
 
+        const validatedFile = validFilesToUpload.at(0);
         readFileAsync(
-            currentAttachment?.content ?? '',
-            getFileName(currentAttachment?.content ?? 'shared_image.png'),
+            validatedFile?.uri ?? '',
+            getFileName(validatedFile?.name ?? 'shared_image.png'),
             (file) => onSuccess(file, shouldStartLocationPermissionFlow),
             () => {},
-            currentAttachment?.mimeType ?? 'image/jpeg',
+            validatedFile?.type ?? 'image/jpeg',
         );
     };
 
@@ -217,8 +234,8 @@ function SubmitDetailsPage({
                         iouComment={trimmedComment}
                         iouCategory={transaction?.category}
                         onConfirm={() => onConfirm(true)}
-                        receiptPath={currentAttachment?.content}
-                        receiptFilename={getFileName(currentAttachment?.content ?? '')}
+                        receiptPath={validFilesToUpload.at(0)?.uri}
+                        receiptFilename={getFileName(validFilesToUpload.at(0)?.name ?? '')}
                         reportID={reportOrAccountID}
                         shouldShowSmartScanFields={false}
                         isDistanceRequest={false}
