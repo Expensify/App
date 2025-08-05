@@ -90,7 +90,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             if (membersRolesColumn !== -1 && membersRoles?.[containsHeader ? index + 1 : index]) {
                 role = membersRoles?.[containsHeader ? index + 1 : index];
             }
-            if (membersRolesColumn !== -1 && !membersRoles?.[containsHeader ? index + 1 : index]) {
+            if (membersRolesColumn !== -1 && !role) {
                 isRoleMissing = true;
             }
             let submitsTo = '';
