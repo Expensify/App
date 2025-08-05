@@ -15,7 +15,7 @@ type MouseEvents = 'onMouseEnter' | 'onMouseLeave' | 'onMouseMove';
 
 type OnMouseEvents = Record<MouseEvents, (e: React.MouseEvent) => void>;
 
-function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreezeCapture, children, outerRef}: ActiveHoverableProps) {
+function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreezeCapture, children, ref}: ActiveHoverableProps) {
     const [isHovered, setIsHovered] = useState(false);
     const elementRef = useRef<HTMLElement | null>(null);
     const isScrollingRef = useRef(false);
@@ -110,7 +110,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
     const {onMouseEnter, onMouseLeave} = child.props as OnMouseEvents;
 
     return cloneElement(child, {
-        ref: mergeRefs(elementRef, outerRef, child.ref),
+        ref: mergeRefs(elementRef, ref, child.ref),
         onMouseEnter: (e: React.MouseEvent) => {
             handleMouseEvents('enter')();
             onMouseEnter?.(e);
