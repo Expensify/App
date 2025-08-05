@@ -576,11 +576,14 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     <ReportActionAvatars
                         noRightMarginOnSubscriptContainer
                         size={CONST.AVATAR_SIZE.X_LARGE}
+                        useProfileAvatars
+                        singleAvatarContainerStyle={[]}
                         reportID={report?.reportID ?? moneyRequestReport?.reportID}
                     />
                 </View>
             );
         }
+
         return (
             <AvatarWithImagePicker
                 source={icons.at(0)?.source}

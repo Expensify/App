@@ -51,6 +51,9 @@ type ReportActionAvatarsProps = {
 
     /** Subscript card feed to display instead of the second avatar */
     subscriptCardFeed?: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK;
+
+    /** Whether we want to be redirected to profile on avatars click */
+    useProfileAvatars?: boolean;
 };
 
 /**
@@ -77,6 +80,7 @@ function ReportActionAvatars({
     secondaryAvatarContainerStyle,
     useMidSubscriptSizeForMultipleAvatars = false,
     isInReportAction = false,
+    useProfileAvatars,
 }: ReportActionAvatarsProps) {
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
 
@@ -126,6 +130,7 @@ function ReportActionAvatars({
                 noRightMarginOnContainer={noRightMarginOnSubscriptContainer}
                 subscriptAvatarBorderColor={subscriptAvatarBorderColor}
                 subscriptCardFeed={subscriptCardFeed}
+                useProfileAvatars={useProfileAvatars}
             />
         );
     }
@@ -139,6 +144,7 @@ function ReportActionAvatars({
                 icons={icons}
                 isInReportAction={isInReportAction}
                 shouldShowTooltip={shouldShowTooltip}
+                useProfileAvatars={useProfileAvatars}
             />
         );
     }
@@ -153,6 +159,7 @@ function ReportActionAvatars({
                 useMidSubscriptSize={useMidSubscriptSizeForMultipleAvatars}
                 secondaryAvatarContainerStyle={secondaryAvatarContainerStyle}
                 isHovered={isHovered}
+                useProfileAvatars={useProfileAvatars}
             />
         );
     }
@@ -166,6 +173,7 @@ function ReportActionAvatars({
             accountID={Number(delegateAccountID ?? primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
             delegateAccountID={source.action?.delegateAccountID}
             fallbackIcon={primaryAvatar.fallbackIcon}
+            useProfileAvatar={useProfileAvatars}
         />
     );
 }
