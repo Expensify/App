@@ -6,9 +6,11 @@ import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import {WorkspaceBuilding} from '@components/Icon/WorkspaceDefaultAvatars';
+import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -18,9 +20,11 @@ import {getCardFeedIcon} from '@libs/CardUtils';
 import localeCompare from '@libs/LocaleCompare';
 import {getUserDetailTooltipText} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
+import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeed, OnyxInputOrEntry, PersonalDetailsList} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 
@@ -61,6 +65,38 @@ type AvatarSizeToStyles = typeof CONST.AVATAR_SIZE.SMALL | typeof CONST.AVATAR_S
 
 type AvatarSizeToStylesMap = Record<AvatarSizeToStyles, AvatarStyles>;
 
+function ProfileAvatar(props: Parameters<typeof Avatar>[0] & {useProfileNavigationWrapper?: boolean}) {
+    const {translate} = useLocalize();
+    const {avatarID, useProfileNavigationWrapper, type} = props;
+
+    if (!useProfileNavigationWrapper) {
+        return (
+            /* eslint-disable-next-line react/jsx-props-no-spreading */
+            <Avatar {...{...props, useProfileNavigationWrapper: undefined}} />
+        );
+    }
+
+    const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
+
+    const onPress = () => {
+        if (isWorkspace) {
+            return Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(String(avatarID)));
+        }
+        return Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(Number(avatarID), Navigation.getActiveRoute()));
+    };
+
+    return (
+        <PressableWithoutFocus
+            onPress={onPress}
+            accessibilityLabel={translate(isWorkspace ? 'common.workspaces' : 'common.profile')}
+            accessibilityRole={CONST.ROLE.BUTTON}
+        >
+            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+            <Avatar {...{...props, useProfileNavigationWrapper: undefined}} />
+        </PressableWithoutFocus>
+    );
+}
+
 function ReportActionAvatarSingle({
     avatar,
     size,
@@ -70,6 +106,7 @@ function ReportActionAvatarSingle({
     accountID,
     fallbackIcon,
     isInReportAction,
+    useProfileNavigationWrapper,
 }: {
     avatar: IconType | undefined;
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -79,6 +116,7 @@ function ReportActionAvatarSingle({
     delegateAccountID?: number;
     fallbackIcon?: AvatarSource;
     isInReportAction?: boolean;
+    useProfileNavigationWrapper?: boolean;
 }) {
     const StyleUtils = useStyleUtils();
     const avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
@@ -94,7 +132,8 @@ function ReportActionAvatarSingle({
             shouldRender={shouldShowTooltip}
         >
             <View>
-                <Avatar
+                <ProfileAvatar
+                    useProfileNavigationWrapper={useProfileNavigationWrapper}
                     containerStyles={containerStyles ?? avatarContainerStyles}
                     source={avatar?.source}
                     type={avatar?.type ?? CONST.ICON_TYPE_AVATAR}
@@ -118,6 +157,7 @@ function ReportActionAvatarSubscript({
     noRightMarginOnContainer,
     subscriptAvatarBorderColor,
     subscriptCardFeed,
+    useProfileNavigationWrapper,
 }: {
     primaryAvatar: IconType;
     secondaryAvatar: IconType;
@@ -126,6 +166,7 @@ function ReportActionAvatarSubscript({
     noRightMarginOnContainer?: boolean;
     subscriptAvatarBorderColor?: ColorValue;
     subscriptCardFeed?: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK;
+    useProfileNavigationWrapper?: boolean;
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -167,7 +208,8 @@ function ReportActionAvatarSubscript({
                 }}
             >
                 <View>
-                    <Avatar
+                    <ProfileAvatar
+                        useProfileNavigationWrapper={useProfileNavigationWrapper}
                         containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size || CONST.AVATAR_SIZE.DEFAULT))}
                         source={primaryAvatar.source}
                         size={size}
@@ -191,7 +233,8 @@ function ReportActionAvatarSubscript({
                         // https://stackoverflow.com/questions/56338939/hover-in-css-is-not-working-with-electron
                         dataSet={{dragArea: false}}
                     >
-                        <Avatar
+                        <ProfileAvatar
+                            useProfileNavigationWrapper={useProfileNavigationWrapper}
                             iconAdditionalStyles={[
                                 StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : subscriptAvatarSize),
                                 StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor ?? theme.componentBG),
@@ -266,11 +309,13 @@ function ReportActionAvatarMultipleHorizontal({
     icons: unsortedIcons,
     isInReportAction,
     sort: sortAvatars,
+    useProfileNavigationWrapper,
 }: HorizontalStacking & {
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
     shouldShowTooltip: boolean;
     icons: IconType[];
     isInReportAction: boolean;
+    useProfileNavigationWrapper?: boolean;
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -335,7 +380,8 @@ function ReportActionAvatarMultipleHorizontal({
                     shouldRender={shouldShowTooltip}
                 >
                     <View style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(size, icon.type)]}>
-                        <Avatar
+                        <ProfileAvatar
+                            useProfileNavigationWrapper={useProfileNavigationWrapper}
                             iconAdditionalStyles={[
                                 StyleUtils.getHorizontalStackedAvatarBorderStyle({
                                     theme,
@@ -404,6 +450,7 @@ function ReportActionAvatarMultipleDiagonal({
     useMidSubscriptSize,
     secondaryAvatarContainerStyle,
     isHovered = false,
+    useProfileNavigationWrapper,
 }: {
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
     shouldShowTooltip: boolean;
@@ -412,6 +459,7 @@ function ReportActionAvatarMultipleDiagonal({
     useMidSubscriptSize: boolean;
     secondaryAvatarContainerStyle?: StyleProp<ViewStyle>;
     isHovered?: boolean;
+    useProfileNavigationWrapper?: boolean;
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -478,7 +526,8 @@ function ReportActionAvatarMultipleDiagonal({
                 >
                     {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                     <View>
-                        <Avatar
+                        <ProfileAvatar
+                            useProfileNavigationWrapper={useProfileNavigationWrapper}
                             source={icons.at(0)?.source ?? WorkspaceBuilding}
                             size={avatarSize}
                             imageStyles={[singleAvatarStyle]}
@@ -507,7 +556,8 @@ function ReportActionAvatarMultipleDiagonal({
                             shouldRender={shouldShowTooltip}
                         >
                             <View>
-                                <Avatar
+                                <ProfileAvatar
+                                    useProfileNavigationWrapper={useProfileNavigationWrapper}
                                     source={icons.at(1)?.source ?? WorkspaceBuilding}
                                     size={avatarSize}
                                     imageStyles={[singleAvatarStyle]}
