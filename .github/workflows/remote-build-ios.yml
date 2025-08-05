@@ -38,15 +38,14 @@ jobs:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
 
       - name: RNEF Remote Build - iOS
-        # commit from Jul 23, 2025
-        # uses: callstackincubator/ios@0a70afc8f4ab36ead9c304bb3059f2e0cfe5f25a 
-        # commit with logging errors
+        # rnef v2
         uses: callstackincubator/ios@7847e0676242cefa801cba8ede6736140b7bae91 
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IS_HYBRID_APP: ${{ matrix.is_hybrid_build }}
         with:
           destination: simulator
           scheme: ${{ matrix.scheme }}
           configuration: ${{ matrix.configuration }}
-          github-token: ${{ github.token }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           comment-bot: false
