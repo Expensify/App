@@ -29,7 +29,7 @@ type BaseTwoFactorAuthFormProps = {
 
 const isMobile = !canFocusInputOnScreenFocus();
 
-function BaseTwoFactorAuthForm({ autoComplete, validateInsteadOfDisable, onFocus, shouldAutoFocusOnMobile = true}: BaseTwoFactorAuthFormProps, ref: ForwardedRef<BaseTwoFactorAuthFormRef>) {
+function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, onFocus, shouldAutoFocusOnMobile = true}: BaseTwoFactorAuthFormProps, ref: ForwardedRef<BaseTwoFactorAuthFormRef>) {
     const {translate} = useLocalize();
     const [formError, setFormError] = useState<{twoFactorAuthCode?: string}>({});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
