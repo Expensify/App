@@ -29,7 +29,7 @@ import * as VideoUtils from './utils';
 import VideoErrorIndicator from './VideoErrorIndicator';
 import VideoPlayerControls from './VideoPlayerControls';
 
-function NewBaseVideoPlayer({
+function BaseVideoPlayer({
     url,
     isLooping = false,
     style,
@@ -409,7 +409,7 @@ function NewBaseVideoPlayer({
                                 )}
                             </PressableWithoutFeedback>
                             {hasError && !isBuffering && !isOffline && <VideoErrorIndicator isPreview={isPreview} />}
-                            {((isLoading && !isOffline && !hasError) || (bufferedPosition <= 0 && !isPlaying && !hasError)) && (
+                            {((isLoading && !isOffline && !hasError) || (isBuffering && !isPlaying && !hasError)) && (
                                 <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />
                             )}
                             {isLoading && (isOffline || !isBuffering) && <AttachmentOfflineIndicator isPreview={isPreview} />}
@@ -442,6 +442,6 @@ function NewBaseVideoPlayer({
     );
 }
 
-NewBaseVideoPlayer.displayName = 'NewBaseVideoPlayer';
+BaseVideoPlayer.displayName = 'BaseVideoPlayer';
 
-export default NewBaseVideoPlayer;
+export default BaseVideoPlayer;

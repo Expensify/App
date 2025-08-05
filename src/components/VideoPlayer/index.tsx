@@ -1,6 +1,6 @@
 import React from 'react';
 import uniqueIDForVideoWithoutReport from '@components/VideoPlayerContexts/PlaybackContext/uniqueID';
-import NewBaseVideoPlayer from './BaseVideoPlayer';
+import BaseVideoPlayer from './BaseVideoPlayer';
 import type VideoPlayerProps from './types';
 
 function VideoPlayer(props: VideoPlayerProps) {
@@ -8,7 +8,7 @@ function VideoPlayer(props: VideoPlayerProps) {
     const {reportID} = props;
 
     return (
-        <NewBaseVideoPlayer
+        <BaseVideoPlayer
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             reportID={reportID ?? fakeReportID}

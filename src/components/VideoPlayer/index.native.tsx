@@ -1,7 +1,7 @@
 import React from 'react';
 import uniqueIDForVideoWithoutReport from '@components/VideoPlayerContexts/PlaybackContext/uniqueID';
 import CONST from '@src/CONST';
-import NewBaseVideoPlayer from './BaseVideoPlayer';
+import BaseVideoPlayer from './BaseVideoPlayer';
 import type VideoPlayerProps from './types';
 
 function VideoPlayer({videoControlsStyle, shouldUseControlsBottomMargin = true, ...props}: VideoPlayerProps) {
@@ -9,7 +9,7 @@ function VideoPlayer({videoControlsStyle, shouldUseControlsBottomMargin = true, 
     const {reportID} = props;
 
     return (
-        <NewBaseVideoPlayer
+        <BaseVideoPlayer
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             isVideoHovered
