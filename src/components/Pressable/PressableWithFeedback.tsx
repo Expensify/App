@@ -5,7 +5,6 @@ import OpacityView from '@components/OpacityView';
 import type {Color} from '@styles/theme/types';
 import variables from '@styles/variables';
 import GenericPressable from './GenericPressable';
-import type {PressableRef} from './GenericPressable/types';
 import type PressableProps from './GenericPressable/types';
 
 type PressableWithFeedbackProps = PressableProps & {
@@ -43,11 +42,6 @@ type PressableWithFeedbackProps = PressableProps & {
      * This is needed for buttons that allow content to display under them.
      */
     shouldBlendOpacity?: boolean;
-
-    /**
-     * Reference to the outer element.
-     */
-    ref?: PressableRef;
 };
 
 function PressableWithFeedback(
