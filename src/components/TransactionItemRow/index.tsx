@@ -70,6 +70,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     /** information about whether to show the description, that is provided on Reports page */
     shouldShowDescription?: boolean;
 
+    /** whether all optional columns are hidden */
+    isAllOptionalColumnsHidden?: boolean;
+
     /** Type of transaction */
     transactionType?: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
@@ -95,7 +98,6 @@ type TransactionItemRowProps = {
     isActionLoading?: boolean;
     isInSingleTransactionReport?: boolean;
     isDisabled?: boolean;
-    isAllOptionalColumnsHidden?: boolean;
 };
 
 function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string) {
@@ -129,9 +131,9 @@ function TransactionItemRow({
     isActionLoading,
     isInSingleTransactionReport = false,
     isDisabled = false,
-    isAllOptionalColumnsHidden = false,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
+    console.log('TransactionItemRow rendered', transactionItem, transactionItem.isAllOptionalColumnsHidden, columns);
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
 
@@ -217,7 +219,7 @@ function TransactionItemRow({
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE]: (
                 <View
                     key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, undefined, undefined, isAllOptionalColumnsHidden)]}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, undefined, undefined, transactionItem.isAllOptionalColumnsHidden)]}
                 >
                     <DateCell
                         created={createdAt}
@@ -362,7 +364,6 @@ function TransactionItemRow({
             shouldShowTooltip,
             shouldUseNarrowLayout,
             transactionItem,
-            isAllOptionalColumnsHidden,
         ],
     );
     const safeColumnWrapperStyle = columnWrapperStyles ?? [styles.p3, styles.expenseWidgetRadius];

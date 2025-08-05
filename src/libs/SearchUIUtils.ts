@@ -733,7 +733,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
     const shouldShowCategory = metadata?.columnsToShow?.shouldShowCategoryColumn;
     const shouldShowTag = metadata?.columnsToShow?.shouldShowTagColumn;
     const shouldShowTax = metadata?.columnsToShow?.shouldShowTaxColumn;
-    const shouldShowTo = metadata?.columnsToShow?.shouldShowToColumn;
+    const shouldShowTo = metadata?.columnsToShow?.shouldShowToColumn
     const shouldShowFrom = metadata?.columnsToShow?.shouldShowFromColumn;
     const shouldShowDescription = metadata?.columnsToShow?.shouldShowDescriptionColumn;
     const isAllOptionalColumnsHidden = !shouldShowCategory && !shouldShowTag && !shouldShowTax && !shouldShowTo && !shouldShowFrom && !shouldShowDescription;
@@ -776,7 +776,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             shouldShowTo,
             shouldShowFrom,
             shouldShowDescription,
-            isAllOptionalColumnsHidden,
+            isAllOptionalColumnsHidden: isAllOptionalColumnsHidden && !!transactionItem.managerID && transactionItem.managerID !== currentAccountID,
             keyForList: transactionItem.transactionID,
             shouldShowYear: doesDataContainAPastYearTransaction,
             isAmountColumnWide: shouldShowAmountInWideColumn,
