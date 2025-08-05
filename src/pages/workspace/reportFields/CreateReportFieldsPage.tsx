@@ -113,8 +113,6 @@ function WorkspaceCreateReportFieldsPage({
         setInitialCreateReportFieldsForm();
     }, []);
 
-    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
-
     const listValues = [...(formDraft?.[INPUT_IDS.LIST_VALUES] ?? [])].sort(localeCompare).join(', ');
 
     return (
@@ -143,7 +141,6 @@ function WorkspaceCreateReportFieldsPage({
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                     shouldValidateOnBlur={false}
-                    disablePressOnEnter={!!modal?.isVisible}
                     addBottomSafeAreaPadding
                 >
                     {({inputValues}) => (
