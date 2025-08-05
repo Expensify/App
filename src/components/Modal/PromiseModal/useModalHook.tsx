@@ -4,7 +4,7 @@ import type {ModalProps} from './ModalContext';
 
 type ConfirmModalOptions = Omit<React.ComponentProps<typeof ConfirmModalWrapper>, keyof ModalProps>;
 
-const useModalHook = () => {
+const useConfirmModal = () => {
     const context = useModal();
 
     const showConfirmModal = (options: ConfirmModalOptions) => {
@@ -20,4 +20,4 @@ const useModalHook = () => {
     };
 };
 
-export default useModalHook;
+export default useConfirmModal;

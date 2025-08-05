@@ -6,7 +6,7 @@ import usePrevious from '@hooks/usePrevious';
 
 const noop = () => {};
 
-export type ModalProps = {
+type ModalProps = {
     closeModal: (param?: PromiseResolvePayload<'CLOSE'>) => void;
 };
 
@@ -27,25 +27,25 @@ const ModalContext = React.createContext<ModalContextType>({
     closeModal: noop,
 });
 
-export const useModal = () => useContext(ModalContext);
+const useModal = () => useContext(ModalContext);
 
 let modalId = 1;
 
 type ModalInfo = {
     id: string;
-    component: React.FunctionComponent<any>;
+    component: React.FunctionComponent<ModalProps>;
     props?: Record<string, unknown>;
-    deferred: DeferredPromise<PromiseResolvePayload<any>>;
+    deferred: DeferredPromise<PromiseResolvePayload>;
     closeable: boolean;
 };
 
-export function ModalProvider({children}: {children: React.ReactNode}) {
+function PromiseModalProvider({children}: {children: React.ReactNode}) {
     const [state, setState] = useState<{modals: ModalInfo[]}>({modals: []});
     const stateRef = usePrevious(state);
 
     const showModal = useCallback<ModalContextType['showModal']>(
         ({component, props, id, closeable = true}) => {
-            const existingModal = id ? stateRef.current.modals.find((modal) => modal.id === id) : undefined;
+            const existingModal = id && stateRef.current ? stateRef.current.modals.find((modal: ModalInfo) => modal.id === id) : undefined;
 
             if (existingModal) {
                 return existingModal.deferred.promise;
@@ -55,7 +55,7 @@ export function ModalProvider({children}: {children: React.ReactNode}) {
 
             setState((prevState) =>
                 produce(prevState, (draft) => {
-                    draft.modals.push({component, props, deferred, closeable, id: id || String(modalId++)});
+                    draft.modals.push({component, props, deferred, closeable, id: id ?? String(modalId++)});
                     return draft;
                 }),
             );
@@ -95,4 +95,5 @@ export function ModalProvider({children}: {children: React.ReactNode}) {
     );
 }
 
-export type {PromiseResolvePayload, ModalContextType, ModalInfo};
+export type {PromiseResolvePayload, ModalContextType, ModalInfo, ModalProps};
+export {PromiseModalProvider, useModal};
