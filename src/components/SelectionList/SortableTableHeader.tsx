@@ -14,6 +14,7 @@ type ColumnConfig = {
     columnName: SortableColumnName;
     translationKey: TranslationPaths | undefined;
     isColumnSortable?: boolean;
+    canBeMissing?: boolean;
 };
 
 type SearchTableHeaderProps = {
@@ -45,6 +46,9 @@ function SortableTableHeader({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
+    const optionalColumnNames = columns.map(({canBeMissing, columnName}) => canBeMissing ? columnName : null).filter(Boolean) as SortableColumnName[];
+    const isAllOptionalColumnsHidden = optionalColumnNames.every((columnName) => !shouldShowColumn(columnName));
+
     return (
         <View style={[styles.flex1]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, containerStyles]}>
@@ -70,6 +74,7 @@ function SortableTableHeader({
                                     dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isAllOptionalColumnsHidden && optionalColumnNames.length > 0,
                                 ),
                             ]}
                             isSortable={isSortable}

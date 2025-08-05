@@ -12,6 +12,7 @@ type SearchColumnConfig = {
     columnName: SearchColumnType;
     translationKey: TranslationPaths;
     isColumnSortable?: boolean;
+    canBeMissing?: boolean;
 };
 
 const expenseHeaders: SearchColumnConfig[] = [
@@ -32,31 +33,38 @@ const expenseHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
         translationKey: 'common.merchant',
+        canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
         translationKey: 'common.description',
+        canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
         translationKey: 'common.from',
+        canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TO,
         translationKey: 'common.to',
+        canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
         translationKey: 'common.category',
+        canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAG,
         translationKey: 'common.tag',
+        canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
         translationKey: 'common.tax',
         isColumnSortable: false,
+        canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
