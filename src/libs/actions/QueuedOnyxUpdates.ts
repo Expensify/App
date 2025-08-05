@@ -8,7 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 let queuedOnyxUpdates: OnyxUpdate[] = [];
 let currentAccountID: number | undefined;
 
-// Use connectWithoutView because this is for non-UI task.
+// We use `connectWithoutView` because it is not connected to any UI component.
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
