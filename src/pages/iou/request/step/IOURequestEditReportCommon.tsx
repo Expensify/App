@@ -6,10 +6,12 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {getCompanyFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOutstandingReportsForUser, getPolicyName, isIOUReport, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -73,7 +75,14 @@ function IOURequestEditReportCommon({
     const onlyReport = transactionsReports.length === 1 ? transactionsReports.at(0) : undefined;
     const isOwner = onlyReport ? onlyReport.ownerAccountID === currentUserPersonalDetails.accountID : false;
     const isReportIOU = onlyReport ? isIOUReport(onlyReport) : false;
-    const shouldShowRemoveFromReport = isEditing && isOwner && !isReportIOU && !isUnreported;
+
+    const [cardFeeds] = useCardFeeds(policyIDFromProps);
+    const companyFeeds = getCompanyFeeds(cardFeeds);
+
+    // Check if any company card feed restricts transaction deletion
+    const hasRestrictedCompanyCardFeed = Object.values(companyFeeds).some((feed) => feed?.liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.RESTRICT);
+
+    const shouldShowRemoveFromReport = isEditing && isOwner && !isReportIOU && !isUnreported && !hasRestrictedCompanyCardFeed;
 
     const expenseReports = useMemo(
         () =>
