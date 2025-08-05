@@ -5,7 +5,7 @@ type ChildrenProps = {
     children: ReactNode;
 
     /** Reference to the outer element */
-    ref: unknown
+    ref?: unknown
 };
 
 export default ChildrenProps;
