@@ -45,6 +45,10 @@ type SignInPageProps = {
     ref?: Ref<SignInPageRef>;
 };
 
+type SignInPageWrapperProps = SignInPageProps & {
+    shouldUseStyles?: boolean;
+};
+
 type SignInPageRef = {
     navigateBack: () => void;
 };
@@ -300,6 +304,7 @@ function SignInPage({ref}: SignInPageProps) {
     useImperativeHandle(ref, () => ({
         navigateBack,
     }));
+
     return (
         <ThemeProvider theme={CONST.THEME.DARK}>
             <ThemeStylesProvider>
@@ -348,11 +353,15 @@ function SignInPage({ref}: SignInPageProps) {
     );
 }
 
-function SignInPageWrapper({ref}: SignInPageProps) {
+function SignInPageWrapper({ref, shouldUseStyles = true}: SignInPageWrapperProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const safeAreaInsets = useSafeAreaInsets();
     const {isInNarrowPaneModal} = useResponsiveLayout();
+
+    const screenWrapperStyles = shouldUseStyles
+        ? [styles.signInPage, StyleUtils.getPlatformSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]
+        : undefined;
 
     return (
         // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
@@ -360,7 +369,7 @@ function SignInPageWrapper({ref}: SignInPageProps) {
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             shouldEnableMaxHeight
-            style={[styles.signInPage, StyleUtils.getPlatformSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]}
+            style={screenWrapperStyles}
             testID={SignInPageWrapper.displayName}
         >
             <SignInPage ref={ref} />
@@ -370,11 +379,11 @@ function SignInPageWrapper({ref}: SignInPageProps) {
 
 SignInPageWrapper.displayName = 'SignInPage';
 
-// Use of SignInPageWrapper with shouldEnableMaxHeight prop is a workaround for Safari not supporting interactive-widget=resizes-content.
+// Use of SignInPageWrapper with shouldEnableMaxHeight prop and without additional styles is a workaround for Safari not supporting interactive-widget=resizes-content.
 // This allows better scrolling experience after keyboard shows for modals with input, that are larger than remaining screen height.
 // More info https://github.com/Expensify/App/pull/62799#issuecomment-2943136220.
 // eslint-disable-next-line rulesdir/no-inline-named-export
-export const SignInPageBase = isMobileSafari() ? SignInPageWrapper : SignInPage;
+export const SignInPageBase = isMobileSafari() ? ({ref}: SignInPageProps) => SignInPageWrapper({ref, shouldUseStyles: false}) : SignInPage;
 
 export default SignInPageWrapper;
 
