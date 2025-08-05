@@ -43,10 +43,11 @@ jobs:
         # commit with logging errors
         uses: callstackincubator/ios@7847e0676242cefa801cba8ede6736140b7bae91 
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IS_HYBRID_APP: ${{ matrix.is_hybrid_build }}
         with:
           destination: simulator
           scheme: ${{ matrix.scheme }}
           configuration: ${{ matrix.configuration }}
-          github-token: ${{ github.token }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           comment-bot: false
