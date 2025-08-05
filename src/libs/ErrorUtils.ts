@@ -209,13 +209,7 @@ function isReceiptError(message: unknown): message is ReceiptError {
  * Check if the error includes a translation key.
  */
 function isTranslationKeyError(message: unknown): message is TranslationKeyError {
-    if (!message) {
-        return false;
-    }
-    if (typeof message === 'string') {
-        return false;
-    }
-    if (Array.isArray(message)) {
+    if (!message || typeof message === 'string' || Array.isArray(message)) {
         return false;
     }
     if (Object.keys(message as Record<string, unknown>).length !== 1) {
