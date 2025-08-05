@@ -100,7 +100,7 @@ function getAuthToken(): string | null | undefined {
 function isSupportRequest(command: string): boolean {
     return [
         WRITE_COMMANDS.OPEN_APP,
-        READ_COMMANDS.SEARCH,
+        WRITE_COMMANDS.SEARCH,
         WRITE_COMMANDS.UPDATE_NEWSLETTER_SUBSCRIPTION,
         WRITE_COMMANDS.OPEN_REPORT,
         SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP,
