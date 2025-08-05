@@ -11,6 +11,7 @@ type ColumnConfig = {
     columnName: SortableColumnName;
     translationKey: TranslationPaths | undefined;
     isColumnSortable?: boolean;
+    canBeMissing?: boolean;
 };
 
 const columnConfig: ColumnConfig[] = [
@@ -31,18 +32,22 @@ const columnConfig: ColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
         translationKey: 'common.merchant',
+        canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
         translationKey: 'common.description',
+        canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
         translationKey: 'common.category',
+        canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAG,
         translationKey: 'common.tag',
+        canBeMissing: true,
     },
     {
         columnName: CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS,

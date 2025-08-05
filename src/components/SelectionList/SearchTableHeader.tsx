@@ -191,4 +191,4 @@ SearchTableHeader.displayName = 'SearchTableHeader';
 
 export default SearchTableHeader;
 
-export {expenseHeaders}
+export {expenseHeaders};
