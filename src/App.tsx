@@ -3,7 +3,6 @@ import React from 'react';
 import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {PickerStateProvider} from 'react-native-picker-select';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
 import {ActionSheetAwareScrollViewProvider} from './components/ActionSheetAwareScrollView';
 import ActiveElementRoleProvider from './components/ActiveElementRoleProvider';
@@ -17,7 +16,7 @@ import FullScreenLoaderContextProvider from './components/FullScreenLoaderContex
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {InputBlurContextProvider} from './components/InputBlurContext';
-import {KeyboardDismissableFlatListContextProvider} from './components/KeyboardDismissableFlatList/KeyboardDismissableFlatListContext';
+import {KeyboardDismissibleFlatListContextProvider} from './components/KeyboardDismissableFlatList/KeyboardDismissableFlatListContext';
 import KeyboardProvider from './components/KeyboardProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import NavigationBar from './components/NavigationBar';
@@ -76,7 +75,6 @@ function App() {
                                 ThemeProvider,
                                 ThemeStylesProvider,
                                 ThemeIllustrationsProvider,
-                                SafeAreaProvider,
                                 HTMLEngineProvider,
                                 PortalProvider,
                                 SafeArea,
@@ -96,7 +94,7 @@ function App() {
                                 VideoPopoverMenuContextProvider,
                                 KeyboardProvider,
                                 KeyboardStateProvider,
-                                KeyboardDismissableFlatListContextProvider,
+                                KeyboardDismissibleFlatListContextProvider,
                                 SearchRouterContextProvider,
                                 ProductTrainingContextProvider,
                                 InputBlurContextProvider,

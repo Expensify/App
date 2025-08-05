@@ -3,7 +3,7 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useRef} from 'react';
 import type {FlatListProps, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {FlatList} from 'react-native';
-import KeyboardDismissableFlatList from '@components/KeyboardDismissableFlatList';
+import KeyboardDismissibleFlatList from '@components/KeyboardDismissibleFlatList';
 import type {AdditionalFlatListProps} from '.';
 
 // FlatList wrapped with the freeze component will lose its scroll state when frozen (only for Android).
@@ -36,7 +36,7 @@ function CustomFlatList<T>(props: FlatListProps<T> & AdditionalFlatListProps, re
 
     if (props.withAnimatedKeyboardHandler) {
         return (
-            <KeyboardDismissableFlatList
+            <KeyboardDismissibleFlatList
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 ref={ref}
