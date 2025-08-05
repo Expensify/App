@@ -6,6 +6,7 @@ import type Report from '@src/types/onyx/Report';
 import {getCurrencySymbol} from './CurrencyUtils';
 import {getAllReportActions} from './ReportActionsUtils';
 import {getReportTransactions} from './ReportUtils';
+import {getCreated, isPartialTransaction} from './TransactionUtils';
 
 type FormulaPart = {
     /** The original definition from the formula */
@@ -458,11 +459,17 @@ function getOldestTransactionDate(reportID: string): string | undefined {
     let oldestDate: string | undefined;
 
     transactions.forEach((transaction) => {
-        if (transaction?.created) {
-            if (!oldestDate || transaction.created < oldestDate) {
-                oldestDate = transaction.created;
-            }
+        const created = getCreated(transaction);
+        if (!created) {
+            return;
         }
+        if (oldestDate && created >= oldestDate) {
+            return;
+        }
+        if (isPartialTransaction(transaction)) {
+            return;
+        }
+        oldestDate = created;
     });
 
     return oldestDate;
