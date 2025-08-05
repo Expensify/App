@@ -1,498 +1,392 @@
-import {format, setDate} from 'date-fns';
-import {Str} from 'expensify-common';
-import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, Report, ReportNextStep, TransactionViolations} from '@src/types/onyx';
-import type {Message} from '@src/types/onyx/ReportNextStep';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import EmailUtils from './EmailUtils';
-import Permissions from './Permissions';
-import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
-import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
+import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import {isApprover as isApproverUtils} from './actions/Policy/Member';
+import {getCurrentUserAccountID} from './actions/Report';
 import {
-    getDisplayNameForParticipant,
-    getNextApproverAccountID,
-    getPersonalDetailsForAccountID,
-    hasViolations as hasViolationsReportUtils,
-    isExpenseReport,
-    isInvoiceReport,
+    arePaymentsEnabled as arePaymentsEnabledUtils,
+    getCorrectedAutoReportingFrequency,
+    getSubmitToAccountID,
+    getValidConnectedIntegration,
+    hasIntegrationAutoSync,
+    isPreferredExporter,
+} from './PolicyUtils';
+import {getAllReportActions, getOneTransactionThreadReportID, isMoneyRequestAction} from './ReportActionsUtils';
+import {
+    canAddTransaction as canAddTransactionUtil,
+    canHoldUnholdReportAction,
+    getMoneyRequestSpendBreakdown,
+    getParentReport,
+    hasExportError as hasExportErrorUtil,
+    hasOnlyHeldExpenses,
+    hasReportBeenReopened as hasReportBeenReopenedUtils,
+    isArchivedReport,
+    isClosedReport as isClosedReportUtils,
+    isCurrentUserSubmitter,
+    isExpenseReport as isExpenseReportUtils,
+    isExported as isExportedUtil,
+    isHoldCreator,
+    isInvoiceReport as isInvoiceReportUtils,
+    isIOUReport as isIOUReportUtils,
+    isOpenReport as isOpenReportUtils,
     isPayer,
+    isProcessingReport as isProcessingReportUtils,
+    isReportApproved as isReportApprovedUtils,
+    isReportManager,
+    isSettled,
 } from './ReportUtils';
+import {getSession} from './SessionUtils';
+import {
+    allHavePendingRTERViolation,
+    hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
+    isDuplicate,
+    isOnHold as isOnHoldTransactionUtils,
+    isPendingCardOrScanningTransaction,
+    isPendingCardOrUncompleteTransaction,
+    isScanning,
+    shouldShowBrokenConnectionViolationForMultipleTransactions,
+    shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
+} from './TransactionUtils';
 
-let currentUserAccountID = -1;
-let currentUserEmail = '';
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
+type GetReportPrimaryActionParams = {
+    report: Report;
+    chatReport: OnyxEntry<Report>;
+    reportTransactions: Transaction[];
+    violations: OnyxCollection<TransactionViolation[]>;
+    policy?: Policy;
+    reportNameValuePairs?: ReportNameValuePairs;
+    reportActions?: ReportAction[];
+    isChatReportArchived: boolean;
+    invoiceReceiverPolicy?: Policy;
+};
 
-        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-        currentUserEmail = value?.email ?? '';
-    },
-});
-
-let allPolicies: OnyxCollection<Policy>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
-});
-
-let allBetas: OnyxEntry<Beta[]>;
-Onyx.connect({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => (allBetas = value),
-});
-
-let transactionViolations: OnyxCollection<TransactionViolations>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        transactionViolations = value;
-    },
-});
-
-function parseMessage(messages: Message[] | undefined) {
-    let nextStepHTML = '';
-    messages?.forEach((part, index) => {
-        const isEmail = Str.isValidEmail(part.text);
-        let tagType = part.type ?? 'span';
-        let content = Str.safeEscape(part.text);
-
-        const previousPart = index !== 0 ? messages.at(index - 1) : undefined;
-        const nextPart = messages.at(index + 1);
-
-        if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
-            tagType = 'strong';
-            content = nextPart?.text === `'s` ? 'your' : 'you';
-        } else if (part.text === `'s` && (previousPart?.text === currentUserEmail || previousPart?.clickToCopyText === currentUserEmail)) {
-            content = '';
-        } else if (isEmail) {
-            tagType = 'next-step-email';
-            content = EmailUtils.prefixMailSeparatorsWithBreakOpportunities(content);
-        }
-
-        nextStepHTML += `<${tagType}>${content}</${tagType}>`;
-    });
-
-    const formattedHtml = nextStepHTML
-        .replace(/%expenses/g, 'expense(s)')
-        .replace(/%Expenses/g, 'Expense(s)')
-        .replace(/%tobe/g, 'are');
-
-    return `<next-step>${formattedHtml}</next-step>`;
-}
-
-function getNextApproverDisplayName(report: OnyxEntry<Report>, isUnapprove?: boolean) {
-    const approverAccountID = getNextApproverAccountID(report, isUnapprove);
-
-    return getDisplayNameForParticipant({accountID: approverAccountID}) ?? getPersonalDetailsForAccountID(approverAccountID).login;
-}
-
-function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
-    const optimisticNextStep: ReportNextStep = {
-        type: 'alert',
-        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-        message: [
-            {
-                text: "Oops! Looks like you're submitting to ",
-            },
-            {
-                text: 'yourself',
-                type: 'next-step-email',
-            },
-            {
-                text: '. Approving your own reports is ',
-            },
-            {
-                text: 'forbidden',
-                type: 'next-step-email',
-            },
-            {
-                text: ' by your workspace. Please submit this report to someone else or contact your admin to change the person you submit to.',
-            },
-        ],
-    };
-
-    return optimisticNextStep;
-}
-
-/**
- * Generates an optimistic nextStep based on a current report status and other properties.
- *
- * @param report
- * @param predictedNextStatus - a next expected status of the report
- * @param shouldFixViolations - whether to show `fix the issue` next step
- * @param isUnapprove - whether a report is being unapproved
- * @param isReopen - whether a report is being reopened
- * @returns nextStep
- */
-function buildNextStep(
-    report: OnyxEntry<Report>,
-    predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>,
-    shouldFixViolations?: boolean,
-    isUnapprove?: boolean,
-    isReopen?: boolean,
-): ReportNextStep | null {
-    if (!isExpenseReport(report)) {
-        return null;
+function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived: boolean) {
+    if (isChatReportArchived) {
+        return false;
     }
 
-    const {policyID = '', ownerAccountID = -1} = report ?? {};
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
-    const {harvesting, autoReportingOffset} = policy;
-    const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
-    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
-    const isInstantSubmitEnabled = autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
-    const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
-    const [policyOwnerPersonalDetails, ownerPersonalDetails] = getPersonalDetailsByIDs({
-        accountIDs: [policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, ownerAccountID],
-        currentUserAccountID,
-        shouldChangeUserDisplayName: true,
-    });
-    const isReportContainingTransactions =
-        report &&
-        ((report.total !== 0 && report.total !== undefined) ||
-            (report.unheldTotal !== 0 && report.unheldTotal !== undefined) ||
-            (report.unheldNonReimbursableTotal !== 0 && report.unheldNonReimbursableTotal !== undefined));
+    const isExpenseReport = isExpenseReportUtils(report);
+    const canAddTransaction = canAddTransactionUtil(report);
 
-    const ownerDisplayName = ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID});
-    const policyOwnerDisplayName = policyOwnerPersonalDetails?.displayName ?? policyOwnerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: policy.ownerAccountID});
-    const nextApproverDisplayName = getNextApproverDisplayName(report, isUnapprove);
-    const approverAccountID = getNextApproverAccountID(report, isUnapprove);
-    const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
-
-    const reimburserAccountID = getReimburserAccountID(policy);
-    const hasValidAccount = !!policy?.achAccount?.accountNumber || policy.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-    const type: ReportNextStep['type'] = 'neutral';
-    let optimisticNextStep: ReportNextStep | null;
-
-    const nextStepPayExpense = {
-        type,
-        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-        message: [
-            {
-                text: 'Waiting for ',
-            },
-            ownerAccountID === -1 || !policy.ownerAccountID
-                ? {
-                      text: 'an admin',
-                  }
-                : {
-                      text: shouldShowFixMessage ? ownerDisplayName : policyOwnerDisplayName,
-                      type: 'strong',
-                  },
-            {
-                text: ' to ',
-            },
-            ...(shouldShowFixMessage ? [{text: 'fix the issue(s)'}] : [{text: 'pay'}, {text: ' %expenses.'}]),
-        ],
-    };
-
-    const noActionRequired = {
-        icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
-        type,
-        message: [
-            {
-                text: 'No further action required!',
-            },
-        ],
-    };
-
-    switch (predictedNextStatus) {
-        // Generates an optimistic nextStep once a report has been opened
-        case CONST.REPORT.STATUS_NUM.OPEN:
-            if ((isASAPSubmitBetaEnabled && hasViolations && isInstantSubmitEnabled) || shouldFixViolations) {
-                optimisticNextStep = {
-                    type,
-                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                    message: [
-                        {
-                            text: 'Waiting for ',
-                        },
-                        {
-                            text: `${ownerDisplayName}`,
-                            type: 'strong',
-                            clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
-                        },
-                        {
-                            text: ' to ',
-                        },
-                        {
-                            text: 'fix the issue(s)',
-                        },
-                    ],
-                };
-                break;
-            }
-            if (isReopen) {
-                optimisticNextStep = {
-                    type,
-                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                    message: [
-                        {
-                            text: 'Waiting for ',
-                        },
-                        {
-                            text: `${ownerDisplayName}`,
-                            type: 'strong',
-                            clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
-                        },
-                        {
-                            text: ' to ',
-                        },
-                        {
-                            text: 'submit',
-                        },
-                        {
-                            text: ' %expenses.',
-                        },
-                    ],
-                };
-                break;
-            }
-
-            // Self review
-            optimisticNextStep = {
-                type,
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: `${ownerDisplayName}`,
-                        type: 'strong',
-                        clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'add',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ],
-            };
-
-            // Scheduled submit enabled
-            if (harvesting?.enabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL && isReportContainingTransactions) {
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: `${ownerDisplayName}`,
-                        type: 'strong',
-                        clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
-                    },
-                    {
-                        text: `'s`,
-                        type: 'strong',
-                    },
-                    {
-                        text: ' %expenses to automatically submit',
-                    },
-                ];
-                let harvestingSuffix = '';
-
-                if (autoReportingFrequency) {
-                    const currentDate = new Date();
-                    let autoSubmissionDate = '';
-                    let monthlyText = '';
-
-                    if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
-                        monthlyText = 'on the last day of the month';
-                    } else if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
-                        monthlyText = 'on the last business day of the month';
-                    } else if (autoReportingOffset !== undefined) {
-                        autoSubmissionDate = format(setDate(currentDate, autoReportingOffset), CONST.DATE.ORDINAL_DAY_OF_MONTH);
-                    }
-
-                    const harvestingSuffixes: Record<DeepValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, string> = {
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: 'later today',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: 'on Sunday',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: 'on the 1st and 16th of each month',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: autoSubmissionDate ? `on the ${autoSubmissionDate} of each month` : monthlyText,
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'at the end of their trip',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: '',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: '',
-                    };
-
-                    if (harvestingSuffixes[autoReportingFrequency]) {
-                        harvestingSuffix = `${harvestingSuffixes[autoReportingFrequency]}`;
-                    }
-                }
-
-                optimisticNextStep.message.push({
-                    text: ` ${harvestingSuffix}`,
-                });
-            }
-
-            // Manual submission
-            if (report?.total !== 0 && !harvesting?.enabled && autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL) {
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: `${ownerDisplayName}`,
-                        type: 'strong',
-                        clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'submit',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
-            }
-
-            break;
-
-        // Generates an optimistic nextStep once a report has been submitted
-        case CONST.REPORT.STATUS_NUM.SUBMITTED: {
-            if (policy.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
-                optimisticNextStep = nextStepPayExpense;
-                break;
-            }
-            // Another owner
-            optimisticNextStep = {
-                type,
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-            };
-            // We want to show pending approval next step for cases where the policy has approvals enabled
-            const policyApprovalMode = getApprovalWorkflow(policy);
-            if ([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policyApprovalMode)) {
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: nextApproverDisplayName,
-                        type: 'strong',
-                        clickToCopyText: approvers.at(0),
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'approve',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
-            } else {
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    isPayer(
-                        {
-                            accountID: currentUserAccountID,
-                            email: currentUserEmail,
-                        },
-                        report,
-                    )
-                        ? {
-                              text: `you`,
-                              type: 'strong',
-                          }
-                        : {
-                              text: `an admin`,
-                          },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'pay',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
-            }
-
-            break;
-        }
-
-        // Generates an optimistic nextStep once a report has been closed for example in the case of Submit and Close approval flow
-        case CONST.REPORT.STATUS_NUM.CLOSED:
-            optimisticNextStep = noActionRequired;
-
-            break;
-
-        // Generates an optimistic nextStep once a report has been paid
-        case CONST.REPORT.STATUS_NUM.REIMBURSED:
-            optimisticNextStep = noActionRequired;
-
-            break;
-
-        // Generates an optimistic nextStep once a report has been approved
-        case CONST.REPORT.STATUS_NUM.APPROVED:
-            if (
-                isInvoiceReport(report) ||
-                !isPayer(
-                    {
-                        accountID: currentUserAccountID,
-                        email: currentUserEmail,
-                    },
-                    report,
-                )
-            ) {
-                optimisticNextStep = noActionRequired;
-
-                break;
-            }
-            // Self review
-            optimisticNextStep = {
-                type,
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    reimburserAccountID === -1
-                        ? {
-                              text: 'an admin',
-                          }
-                        : {
-                              text: getDisplayNameForParticipant({accountID: reimburserAccountID}),
-                              type: 'strong',
-                          },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: hasValidAccount ? 'pay' : 'finish setting up',
-                    },
-                    {
-                        text: hasValidAccount ? ' %expenses.' : ' a business bank account.',
-                    },
-                ],
-            };
-            break;
-
-        // Resets a nextStep
-        default:
-            optimisticNextStep = null;
-    }
-
-    return optimisticNextStep;
+    return isExpenseReport && canAddTransaction && reportTransactions.length === 0;
 }
 
-export {parseMessage, buildNextStep, buildOptimisticNextStepForPreventSelfApprovalsEnabled};
+function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs, reportActions?: ReportAction[]) {
+    if (isArchivedReport(reportNameValuePairs)) {
+        return false;
+    }
+
+    const isExpenseReport = isExpenseReportUtils(report);
+    const isReportSubmitter = isCurrentUserSubmitter(report);
+    const isOpenReport = isOpenReportUtils(report);
+    const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
+    const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
+
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPendingCardOrUncompleteTransaction(transaction))) {
+        return false;
+    }
+
+    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
+    const hasReportBeenReopened = hasReportBeenReopenedUtils(reportActions);
+
+    if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
+    const submitToAccountID = getSubmitToAccountID(policy, report);
+
+    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
+        return false;
+    }
+
+    const baseIsSubmit = isExpenseReport && isReportSubmitter && isOpenReport && reportTransactions.length !== 0 && transactionAreComplete;
+    if (hasReportBeenReopened && baseIsSubmit) {
+        return true;
+    }
+
+    return isManualSubmitEnabled && baseIsSubmit;
+}
+
+function isApproveAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {
+    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
+
+    if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
+    const currentUserAccountID = getCurrentUserAccountID();
+    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const isCurrentUserManager = managerID === currentUserAccountID;
+    if (!isCurrentUserManager) {
+        return false;
+    }
+    const isExpenseReport = isExpenseReportUtils(report);
+    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+
+    if (!isExpenseReport || !isApprovalEnabled || reportTransactions.length === 0) {
+        return false;
+    }
+
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPendingCardOrScanningTransaction(transaction))) {
+        return false;
+    }
+
+    const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
+    const isReportSubmitter = isCurrentUserSubmitter(report);
+
+    if (isPreventSelfApprovalEnabled && isReportSubmitter) {
+        return false;
+    }
+
+    return isProcessingReportUtils(report);
+}
+
+function isPrimaryPayAction(report: Report, policy?: Policy, reportNameValuePairs?: ReportNameValuePairs, isChatReportArchived?: boolean, invoiceReceiverPolicy?: Policy) {
+    if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
+        return false;
+    }
+    const isExpenseReport = isExpenseReportUtils(report);
+    const isReportPayer = isPayer(getSession(), report, false, policy);
+    const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
+    const isReportApproved = isReportApprovedUtils({report});
+    const isReportClosed = isClosedReportUtils(report);
+    const isProcessingReport = isProcessingReportUtils(report);
+
+    const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
+    const isSubmittedWithoutApprovalsEnabled = !isApprovalEnabled && isProcessingReport;
+
+    const isReportFinished = (isReportApproved && !report.isWaitingOnBankAccount) || isSubmittedWithoutApprovalsEnabled || isReportClosed;
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+
+    if (isReportPayer && isExpenseReport && arePaymentsEnabled && isReportFinished && reimbursableSpend > 0) {
+        return true;
+    }
+
+    if (!isProcessingReport) {
+        return false;
+    }
+
+    const isIOUReport = isIOUReportUtils(report);
+
+    if (isIOUReport && isReportPayer && reimbursableSpend > 0) {
+        return true;
+    }
+
+    const isInvoiceReport = isInvoiceReportUtils(report);
+
+    if (!isInvoiceReport) {
+        return false;
+    }
+
+    const parentReport = getParentReport(report);
+    if (parentReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL && reimbursableSpend > 0) {
+        return parentReport?.invoiceReceiver?.accountID === getCurrentUserAccountID();
+    }
+
+    return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
+}
+
+function isExportAction(report: Report, policy?: Policy, reportActions?: ReportAction[]) {
+    if (!policy) {
+        return false;
+    }
+
+    const connectedIntegration = getValidConnectedIntegration(policy);
+    const isInvoiceReport = isInvoiceReportUtils(report);
+
+    if (!connectedIntegration || isInvoiceReport) {
+        return false;
+    }
+
+    const isReportExporter = isPreferredExporter(policy);
+    if (!isReportExporter) {
+        return false;
+    }
+
+    const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
+    const isExported = isExportedUtil(reportActions);
+    if (isExported) {
+        return false;
+    }
+
+    const hasExportError = hasExportErrorUtil(reportActions);
+    if (syncEnabled && !hasExportError) {
+        return false;
+    }
+
+    if (report.isWaitingOnBankAccount) {
+        return false;
+    }
+
+    const isReportReimbursed = isSettled(report);
+    const isReportApproved = isReportApprovedUtils({report});
+    const isReportClosed = isClosedReportUtils(report);
+
+    if (isReportApproved || isReportReimbursed || isReportClosed) {
+        return true;
+    }
+
+    return false;
+}
+
+function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, reportTransactions: Transaction[]) {
+    const isReportOnHold = reportTransactions.some(isOnHoldTransactionUtils);
+
+    if (!isReportOnHold) {
+        return false;
+    }
+
+    const reportActions = getAllReportActions(report.reportID);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions);
+
+    if (!transactionThreadReportID) {
+        return false;
+    }
+
+    // Transaction is attached to expense report but hold action is attached to transaction thread report
+    const isHolder = reportTransactions.some((transaction) => isHoldCreator(transaction, transactionThreadReportID));
+
+    return isHolder;
+}
+
+function isReviewDuplicatesAction(report: Report, reportTransactions: Transaction[]) {
+    const hasDuplicates = reportTransactions.some((transaction) => isDuplicate(transaction));
+
+    if (!hasDuplicates) {
+        return false;
+    }
+
+    const isReportApprover = isReportManager(report);
+    const isReportSubmitter = isCurrentUserSubmitter(report);
+    const isProcessingReport = isProcessingReportUtils(report);
+    const isReportOpen = isOpenReportUtils(report);
+
+    const isSubmitterOrApprover = isReportSubmitter || isReportApprover;
+    const isReportActive = isReportOpen || isProcessingReport;
+
+    if (isSubmitterOrApprover && isReportActive) {
+        return true;
+    }
+
+    return false;
+}
+
+function isMarkAsCashAction(report: Report, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
+    const isOneExpenseReport = isExpenseReportUtils(report) && reportTransactions.length === 1;
+
+    if (!isOneExpenseReport) {
+        return false;
+    }
+
+    const transactionIDs = reportTransactions.map((t) => t.transactionID);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations);
+
+    if (hasAllPendingRTERViolations) {
+        return true;
+    }
+
+    const isReportSubmitter = isCurrentUserSubmitter(report);
+    const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
+    const userControlsReport = isReportSubmitter || isReportApprover || isAdmin;
+    return userControlsReport && shouldShowBrokenConnectionViolation;
+}
+
+function getAllExpensesToHoldIfApplicable(report?: Report, reportActions?: ReportAction[]) {
+    if (!report || !reportActions || !hasOnlyHeldExpenses(report?.reportID)) {
+        return [];
+    }
+
+    return reportActions?.filter((action) => isMoneyRequestAction(action) && action.childType === CONST.REPORT.TYPE.CHAT && canHoldUnholdReportAction(action).canUnholdRequest);
+}
+
+function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
+    const {report, reportTransactions, violations, policy, reportNameValuePairs, reportActions, isChatReportArchived, chatReport, invoiceReceiverPolicy} = params;
+
+    const isPayActionWithAllExpensesHeld = isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived) && hasOnlyHeldExpenses(report?.reportID);
+
+    if (isAddExpenseAction(report, reportTransactions, isChatReportArchived)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE;
+    }
+
+    if (isMarkAsCashAction(report, reportTransactions, violations, policy)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
+    }
+
+    if (isReviewDuplicatesAction(report, reportTransactions)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
+    }
+
+    if (isRemoveHoldAction(report, chatReport, reportTransactions) || isPayActionWithAllExpensesHeld) {
+        return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
+    }
+
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
+    }
+
+    if (isApproveAction(report, reportTransactions, policy)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.APPROVE;
+    }
+
+    if (isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.PAY;
+    }
+
+    if (isExportAction(report, policy, reportActions)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING;
+    }
+
+    if (getAllExpensesToHoldIfApplicable(report, reportActions).length) {
+        return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
+    }
+
+    return '';
+}
+
+function isMarkAsCashActionForTransaction(parentReport: Report, violations: TransactionViolation[], policy?: Policy): boolean {
+    const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(violations);
+
+    if (hasPendingRTERViolation) {
+        return true;
+    }
+
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(parentReport, policy, violations);
+
+    if (!shouldShowBrokenConnectionViolation) {
+        return false;
+    }
+
+    const isReportSubmitter = isCurrentUserSubmitter(parentReport);
+    const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+
+    return isReportSubmitter || isReportApprover || isAdmin;
+}
+
+function getTransactionThreadPrimaryAction(
+    transactionThreadReport: Report,
+    parentReport: Report,
+    reportTransaction: Transaction,
+    violations: TransactionViolation[],
+    policy?: Policy,
+): ValueOf<typeof CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS> | '' {
+    if (isHoldCreator(reportTransaction, transactionThreadReport.reportID)) {
+        return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD;
+    }
+
+    if (isReviewDuplicatesAction(parentReport, [reportTransaction])) {
+        return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES;
+    }
+
+    if (isMarkAsCashActionForTransaction(parentReport, violations, policy)) {
+        return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH;
+    }
+
+    return '';
+}
+
+export {getReportPrimaryAction, getTransactionThreadPrimaryAction, isAddExpenseAction, isPrimaryPayAction, isExportAction, getAllExpensesToHoldIfApplicable, isReviewDuplicatesAction};
