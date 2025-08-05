@@ -35,6 +35,9 @@ const FILTER_KEYS = {
     POSTED_ON: 'postedOn',
     POSTED_AFTER: 'postedAfter',
     POSTED_BEFORE: 'postedBefore',
+    WITHDRAWN_ON: 'withdrawnOn',
+    WITHDRAWN_AFTER: 'withdrawnAfter',
+    WITHDRAWN_BEFORE: 'withdrawnBefore',
     CURRENCY: 'currency',
     CATEGORY: 'category',
     POLICY_ID: 'policyID',
@@ -241,6 +244,9 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.POSTED_ON]: string;
         [FILTER_KEYS.POSTED_AFTER]: string;
         [FILTER_KEYS.POSTED_BEFORE]: string;
+        [FILTER_KEYS.WITHDRAWN_ON]: string;
+        [FILTER_KEYS.WITHDRAWN_AFTER]: string;
+        [FILTER_KEYS.WITHDRAWN_BEFORE]: string;
         [FILTER_KEYS.CURRENCY]: string[];
         [FILTER_KEYS.CATEGORY]: string[];
         [FILTER_KEYS.POLICY_ID]: string[];
