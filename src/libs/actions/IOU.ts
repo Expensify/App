@@ -2385,6 +2385,8 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
     const searchUpdate = getSearchOnyxUpdate({
         transaction,
         participant,
+        iouReport: iou.report,
+        policy: policyParams.policy,
         isInvoice: true,
         transactionThreadReportID: transactionParams.threadReport.reportID,
     });
