@@ -662,7 +662,7 @@ function getSecondaryExportReportActions(report: Report, policy?: Policy, report
         options.push(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
     }
 
-    options.push(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV);
+    options.push(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV, CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT);
 
     return options;
 }
