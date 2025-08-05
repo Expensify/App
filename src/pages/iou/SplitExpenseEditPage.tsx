@@ -54,8 +54,6 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const [draftTransactionWithSplitExpenses] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
     const splitExpensesList = draftTransactionWithSplitExpenses?.comment?.splitExpenses;
-    const childTransactions = getChildTransactions(transactionID);
-    const isCreationOfSplits = !childTransactions.length;
 
     const currentAmount = transactionDetailsAmount >= 0 ? Math.abs(Number(splitExpenseDraftTransactionDetails?.amount)) : Number(splitExpenseDraftTransactionDetails?.amount);
     const currentDescription = getParsedComment(Parser.htmlToMarkdown(splitExpenseDraftTransactionDetails?.comment ?? ''));
@@ -200,7 +198,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                         />
                     </ScrollView>
                     <FixedFooter style={styles.mtAuto}>
-                        {Number(splitExpensesList?.length) > (isCreationOfSplits ? 1 : 2) && (
+                        {Number(splitExpensesList?.length) > 1 && (
                             <Button
                                 danger
                                 large

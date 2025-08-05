@@ -11893,13 +11893,14 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
 
     // List of all child transactions that have been created after split
-    let childTransactions = getChildTransactions(originalTransactionID);
-    const isCreationOfSplits = !childTransactions.length;
+    const originalChildTransactions = getChildTransactions(originalTransactionID);
+    const isCreationOfSplits = originalChildTransactions.length === 0;
+    const processedChildTransactionIDs: string[] = [];
 
     const reportTotal = transactionReport?.total ?? 0;
     const splitExpensesTotal = draftTransaction?.comment?.splitExpensesTotal ?? 0;
 
-    const isReverseSplitOperation = splitExpenses.length === 1 && !!childTransactions.length;
+    const isReverseSplitOperation = splitExpenses.length === 1 && originalChildTransactions.length > 0;
 
     let changesInReportTotal = 0;
     const splits: SplitTransactionSplitsParam =
@@ -11927,6 +11928,10 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     splitExpenses.forEach((splitExpense, index) => {
         const existingTransactionID = isReverseSplitOperation ? originalTransactionID : splitExpense.transactionID;
         const splitTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`];
+        if (splitTransaction) {
+            processedChildTransactionIDs.push(splitTransaction.transactionID);
+        }
+
         const splitReportActions = getAllReportActions(isReverseSplitOperation ? expenseReport?.reportID : splitTransaction?.reportID);
         const currentReportAction = Object.values(splitReportActions).find((action) => {
             const transactionID = isMoneyRequestAction(action) ? (getOriginalMessage(action)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
@@ -11998,20 +12003,16 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         // For existing split transactions, update the field change messages
         // For new transactions, skip this step
         if (splitTransaction) {
-            childTransactions = childTransactions.filter((undeletedTransaction) => undeletedTransaction?.transactionID !== splitTransaction.transactionID);
             const currentSplit = splits.at(index);
             const existing = getTransactionDetails(splitTransaction);
-
-            const split = splits.at(index);
-
             const transactionChanges = {
                 ...currentSplit,
                 comment: currentSplit?.comment?.comment,
             } as TransactionChanges;
 
-            if (split) {
-                split.reimbursable = splitTransaction?.reimbursable;
-                split.billable = splitTransaction?.billable;
+            if (currentSplit) {
+                currentSplit.reimbursable = splitTransaction.reimbursable;
+                currentSplit.billable = splitTransaction.billable;
             }
 
             Object.keys(transactionChanges).forEach((key) => {
@@ -12041,7 +12042,6 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             }
         }
 
-        // For request params we need to have the transactionThreadReportID, createdReportActionIDForThread and splitReportActionID which we get from moneyRequestInformation
         const split = splits.at(index);
         if (split) {
             split.transactionThreadReportID = transactionThreadReportID;
@@ -12055,7 +12055,8 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     });
 
     // All transactions that were deleted in the split list will be marked as deleted in onyx
-    childTransactions.forEach((undeletedTransaction) => {
+    const undeletedTransactions = originalChildTransactions.filter((currentTransaction) => !processedChildTransactionIDs.includes(currentTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
+    undeletedTransactions.forEach((undeletedTransaction) => {
         const splitTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${undeletedTransaction?.transactionID}`];
         const splitReportActions = getAllReportActions(splitTransaction?.reportID);
         const currentReportAction = Object.values(splitReportActions).find((action) => {
@@ -12155,8 +12156,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     const splitApiParams = {} as Record<string, string | number | boolean>;
     splits.forEach((split, i) => {
         Object.entries(split).forEach(([key, value]) => {
-            const formattedValue = value !== null && typeof value === 'object' ? JSON.stringify(value) : value;
-            splitApiParams[`splits[${i}][${key}]`] = formattedValue;
+            splitApiParams[`splits[${i}][${key}]`] = value !== null && typeof value === 'object' ? JSON.stringify(value) : value;
         });
     });
     const parameters: SplitTransactionParams = {
