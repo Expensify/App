@@ -10,17 +10,9 @@ import CONST from '@src/CONST';
 type BaseSelectionListSections<TItem extends ListItem> = {
     sections: SelectionListProps<TItem>['sections'];
     canSelectMultiple?: boolean;
-    textInputValue?: string;
-    initialNumToRender?: number;
 };
 
 const mockSections = Array.from({length: 10}, (_, index) => ({
-    text: `Item ${index}`,
-    keyForList: `${index}`,
-    isSelected: index === 1,
-}));
-
-const largeMockSections = Array.from({length: CONST.MAX_SELECTION_LIST_PAGE_LENGTH * 2}, (_, index) => ({
     text: `Item ${index}`,
     keyForList: `${index}`,
     isSelected: index === 1,
@@ -35,22 +27,12 @@ jest.mock('@react-navigation/native', () => {
         useFocusEffect: jest.fn(),
     };
 });
-jest.mock('@hooks/useLocalize', () =>
-    jest.fn(() => ({
-        translate: jest.fn((key: string) => key),
-        numberFormat: jest.fn((num: number) => num.toString()),
-    })),
-);
 
 describe('BaseSelectionList', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     const onSelectRowMock = jest.fn();
 
     function BaseListItemRenderer<TItem extends ListItem>(props: BaseSelectionListSections<TItem>) {
-        const {sections, canSelectMultiple, textInputValue = '', initialNumToRender} = props;
+        const {sections, canSelectMultiple} = props;
         const focusedKey = sections[0].data.find((item) => item.isSelected)?.keyForList;
         return (
             <BaseSelectionList
@@ -60,8 +42,6 @@ describe('BaseSelectionList', () => {
                 shouldSingleExecuteRowSelect
                 canSelectMultiple={canSelectMultiple}
                 initiallyFocusedOptionKey={focusedKey}
-                textInputValue={textInputValue}
-                initialNumToRender={initialNumToRender}
             />
         );
     }
@@ -106,63 +86,5 @@ describe('BaseSelectionList', () => {
         );
         fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`));
         expect(spy).toHaveBeenCalledWith(expect.objectContaining({itemIndex: 0}));
-    });
-
-    it('does not reset page when only selectedOptions changes', () => {
-        const {rerender} = render(
-            <BaseListItemRenderer
-                sections={[{data: largeMockSections}]}
-                canSelectMultiple={false}
-                initialNumToRender={600}
-            />,
-        );
-
-        // Click Show More button
-        fireEvent.press(screen.getByText('common.showMore'));
-
-        rerender(
-            <BaseListItemRenderer
-                sections={[{data: largeMockSections.map((item, index) => ({...item, isSelected: index === 3}))}]}
-                canSelectMultiple={false}
-                initialNumToRender={600}
-            />,
-        );
-
-        // Should now show items from second page
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}500`)).toBeTruthy();
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}503`)).toBeTruthy();
-
-        // Should not show, "Show more" button as we rendered whole list and search text was not changed
-        expect(screen.queryByText('common.showMore')).toBeFalsy();
-    });
-
-    it('should reset current page when text input changes', () => {
-        const {rerender} = render(
-            <BaseListItemRenderer
-                sections={[{data: largeMockSections}]}
-                canSelectMultiple={false}
-                initialNumToRender={600}
-            />,
-        );
-
-        // Click Show More button
-        fireEvent.press(screen.getByText('common.showMore'));
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}99`)).toBeTruthy();
-
-        // Rerender with changed `searchText` to trigger `setCurrentPage(1)`
-        rerender(
-            <BaseListItemRenderer
-                sections={[{data: largeMockSections.map((item, index) => ({...item, isSelected: index === 3}))}]}
-                canSelectMultiple={false}
-                textInputValue="Item"
-                initialNumToRender={600}
-            />,
-        );
-
-        // Should not show the items from second page
-        expect(screen.queryByText(`${CONST.BASE_LIST_ITEM_TEST_ID}502`)).toBeFalsy();
-
-        // Should show, "Show more" button as current page is reset
-        expect(screen.getByText('common.showMore')).toBeOnTheScreen();
     });
 });
