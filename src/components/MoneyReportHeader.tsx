@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
@@ -40,7 +41,6 @@ import {
     changeMoneyRequestHoldStatus,
     getArchiveReason,
     getIntegrationExportIcon,
-    getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
     getNextApproverAccountID,
     getNonHeldAndFullAmount,
     getTransactionsWithReceipts,
@@ -99,7 +99,6 @@ import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
-import ConfirmModal from './ConfirmModal';
 import DecisionModal from './DecisionModal';
 import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
 import Header from './Header';
@@ -110,7 +109,7 @@ import KYCWall from './KYCWall';
 import type {PaymentMethod} from './KYCWall/types';
 import LoadingBar from './LoadingBar';
 import Modal from './Modal';
-import {ModalProvider, useModal} from './Modal/PromiseModal';
+import useConfirmModal from './Modal/PromiseModal/useModalHook';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import MoneyReportHeaderStatusBarSkeleton from './MoneyReportHeaderStatusBarSkeleton';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
@@ -130,6 +129,7 @@ type MoneyReportHeaderProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Array of report actions for the report */
+    // eslint-disable-next-line react/no-unused-prop-types
     reportActions: OnyxTypes.ReportAction[];
 
     /** The reportID of the transaction thread report associated with this current report, if any */
@@ -137,16 +137,19 @@ type MoneyReportHeaderProps = {
     transactionThreadReportID: string | undefined;
 
     /** whether we are loading report data in openReport command */
+    // eslint-disable-next-line react/no-unused-prop-types
     isLoadingInitialReportActions?: boolean;
 
     /** Whether back button should be displayed in header */
+    // eslint-disable-next-line react/no-unused-prop-types
     shouldDisplayBackButton?: boolean;
 
     /** Method to trigger when pressing close button of the header */
+    // eslint-disable-next-line react/no-unused-prop-types
     onBackButtonPress: () => void;
 };
 
-function MoneyReportHeaderInternal({
+function MoneyReportHeader({
     policy,
     report: moneyRequestReport,
     transactionThreadReportID,
@@ -222,19 +225,11 @@ function MoneyReportHeaderInternal({
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactions.map((t) => t.transactionID));
     const isExported = useMemo(() => isExportedUtils(reportActions), [reportActions]);
-    // wrapped in useMemo to improve performance because this is an operation on array
-    const integrationNameFromExportMessage = useMemo(() => {
-        if (!isExported) {
-            return null;
-        }
-        return getIntegrationNameFromExportMessageUtils(reportActions);
-    }, [isExported, reportActions]);
 
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
-    const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
 
-    const {showConfirmModal} = useModal();
+    const {showConfirmModal} = useConfirmModal();
 
     const [exportModalStatus, setExportModalStatus] = useState<ExportType | null>(null);
 
@@ -294,13 +289,27 @@ function MoneyReportHeaderInternal({
 
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
 
+    const showExportProgressModal = useCallback(() => {
+        return showConfirmModal({
+            title: translate('export.exportInProgress'),
+            prompt: translate('export.conciergeWillSend'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+            shouldCenterContent: true,
+        });
+    }, [showConfirmModal, translate]);
+
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => {
             if (!moneyRequestReport) {
                 return;
             }
 
-            setIsExportWithTemplateModalVisible(true);
+            showExportProgressModal().then((result) => {
+                if (result.action === 'confirm') {
+                    clearSelectedTransactions(undefined, true);
+                }
+            });
             queueExportSearchWithTemplate({
                 templateName,
                 templateType,
@@ -310,11 +319,11 @@ function MoneyReportHeaderInternal({
                 policyID,
             });
         },
-        [moneyRequestReport],
+        [moneyRequestReport, policy, showExportProgressModal],
     );
 
     const {
-        options: selectedTransactionsOptions,
+        options: originalSelectedTransactionsOptions,
         handleDeleteTransactions,
         isDeleteModalVisible: hookDeleteModalVisible,
         hideDeleteModal,
@@ -327,8 +336,6 @@ function MoneyReportHeaderInternal({
         policy,
         beginExportWithTemplate: (templateName, templateType, transactionIDList, policyID) => beginExportWithTemplate(templateName, templateType, transactionIDList, policyID),
     });
-
-    const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
 
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
     const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
@@ -816,8 +823,30 @@ function MoneyReportHeaderInternal({
         if (!moneyRequestReport) {
             return [];
         }
-        return getSecondaryExportReportActions(moneyRequestReport, policy, reportActions, integrationsExportTemplates ?? [], customInAppTemplates ?? []);
-    }, [moneyRequestReport, policy, reportActions, integrationsExportTemplates, customInAppTemplates]);
+        return getSecondaryExportReportActions(moneyRequestReport, policy, reportActions, integrationsExportTemplates ?? []);
+    }, [moneyRequestReport, policy, reportActions, integrationsExportTemplates]);
+
+    const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', {connectionName: connectedIntegration}) : '';
+
+    const unapproveWarningText = useMemo(
+        () => (
+            <Text>
+                <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')}</Text>{' '}
+                <Text>{translate('iou.unapproveWithIntegrationWarning', {accountingIntegration: connectedIntegrationName})}</Text>
+            </Text>
+        ),
+        [connectedIntegrationName, styles.noWrap, styles.textStrong, translate],
+    );
+
+    const reopenExportedReportWarningText = useMemo(
+        () => (
+            <Text>
+                <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')} </Text>
+                <Text>{translate('iou.reopenExportedReportConfirmation', {connectionName: connectedIntegrationName})}</Text>
+            </Text>
+        ),
+        [connectedIntegrationName, styles.noWrap, styles.textStrong, translate],
+    );
 
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
@@ -871,19 +900,23 @@ function MoneyReportHeaderInternal({
             text: translate('iou.unapprove'),
             icon: Expensicons.CircularArrowBackwards,
             value: CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE,
-            onSelected: async () => {
+            onSelected: () => {
                 if (isDelegateAccessRestricted) {
                     showDelegateNoAccessModal();
                     return;
                 }
 
                 if (isExported) {
-                    await showConfirmModal({
-                        title: translate('iou.cannotUnapproveDueToIntegration', {integration: connectedIntegration ?? connectedIntegrationFallback}),
-                        prompt: translate('iou.unapprovingIntegrationWarning'),
-                        confirmText: translate('common.buttonConfirm'),
-                        shouldShowCancelButton: false,
-                        shouldCenterContent: true,
+                    showConfirmModal({
+                        title: translate('iou.unapproveReport'),
+                        prompt: unapproveWarningText,
+                        confirmText: translate('iou.unapproveReport'),
+                        cancelText: translate('common.cancel'),
+                        danger: true,
+                    }).then((result) => {
+                        if (result.action === 'CONFIRM') {
+                            unapproveExpenseReport(moneyRequestReport);
+                        }
                     });
                     return;
                 }
@@ -895,18 +928,19 @@ function MoneyReportHeaderInternal({
             text: translate('iou.cancelPayment'),
             icon: Expensicons.Clear,
             value: CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT,
-            onSelected: async () => {
-                const result = await showConfirmModal({
+            onSelected: () => {
+                showConfirmModal({
                     title: translate('iou.cancelPayment'),
                     prompt: translate('iou.cancelPaymentConfirmation'),
                     confirmText: translate('iou.cancelPayment'),
                     cancelText: translate('common.dismiss'),
                     danger: true,
-                });
-
-                if (result.action === 'CONFIRM' && chatReport) {
+                }).then((result) => {
+                    if (result.action !== 'CONFIRM' || !chatReport) {
+                        return;
+                    }
                     cancelPayment(moneyRequestReport, chatReport);
-                }
+                });
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.HOLD]: {
@@ -992,17 +1026,18 @@ function MoneyReportHeaderInternal({
             text: translate('common.delete'),
             icon: Expensicons.Trashcan,
             value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
-            onSelected: async () => {
+            onSelected: () => {
                 if (Object.keys(transactions).length === 1) {
-                    const result = await showConfirmModal({
+                    showConfirmModal({
                         title: translate('iou.deleteExpense', {count: 1}),
                         prompt: translate('iou.deleteConfirmation', {count: 1}),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
                         danger: true,
-                    });
-
-                    if (result.action === 'CONFIRM') {
+                    }).then((result) => {
+                        if (result.action !== 'CONFIRM') {
+                            return;
+                        }
                         let goBackRoute: Route | undefined;
                         if (transactionThreadReportID) {
                             if (!requestParentReportAction || !transaction?.transactionID) {
@@ -1017,22 +1052,23 @@ function MoneyReportHeaderInternal({
                         if (goBackRoute) {
                             Navigation.setNavigationActionToMicrotaskQueue(() => navigateOnDeleteExpense(goBackRoute));
                         }
-                    }
+                    });
                 } else {
-                    const result = await showConfirmModal({
+                    showConfirmModal({
                         title: translate('iou.deleteExpense', {count: Object.keys(transactions).length}),
                         prompt: translate('iou.deleteConfirmation', {count: Object.keys(transactions).length}),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
                         danger: true,
-                    });
-
-                    if (result.action === 'CONFIRM') {
+                    }).then((result) => {
+                        if (result.action !== 'CONFIRM') {
+                            return;
+                        }
                         const reportID = moneyRequestReport?.reportID;
                         if (reportID) {
                             deleteAppReport(reportID);
                         }
-                    }
+                    });
                 }
             },
         },
@@ -1048,14 +1084,19 @@ function MoneyReportHeaderInternal({
             text: translate('iou.retract'),
             icon: Expensicons.CircularArrowBackwards,
             value: CONST.REPORT.SECONDARY_ACTIONS.REOPEN,
-            onSelected: async () => {
+            onSelected: () => {
                 if (isExported) {
-                    await showConfirmModal({
-                        title: translate('iou.cannotReopenDueToIntegration'),
-                        prompt: translate('iou.reopeningIntegrationWarning'),
-                        confirmText: translate('common.buttonConfirm'),
-                        shouldShowCancelButton: false,
-                        shouldCenterContent: true,
+                    showConfirmModal({
+                        title: translate('iou.reopenReport'),
+                        prompt: reopenExportedReportWarningText,
+                        confirmText: translate('iou.reopenReport'),
+                        cancelText: translate('common.cancel'),
+                        danger: true,
+                    }).then((result) => {
+                        if (result.action !== 'CONFIRM') {
+                            return;
+                        }
+                        reopenReport(moneyRequestReport);
                     });
                     return;
                 }
@@ -1091,6 +1132,62 @@ function MoneyReportHeaderInternal({
     const applicableSecondaryActions = secondaryActions
         .map((action) => secondaryActionsImplementation[action])
         .filter((action) => action?.shouldShow !== false && action?.value !== primaryAction);
+
+    const showDeleteModal = useCallback(() => {
+        showConfirmModal({
+            title: translate('iou.deleteExpense', {count: selectedTransactionIDs.length}),
+            prompt: translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length}),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        }).then((result) => {
+            if (result.action !== 'CONFIRM') {
+                return;
+            }
+            if (transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length) {
+                Navigation.goBack(route.params?.backTo);
+            }
+            handleDeleteTransactions();
+        });
+    }, [showConfirmModal, translate, selectedTransactionIDs.length, transactions, handleDeleteTransactions, route.params?.backTo]);
+
+    const showExportModal = useCallback(() => {
+        if (!connectedIntegration) {
+            return;
+        }
+        showConfirmModal({
+            title: translate('workspace.exportAgainModal.title'),
+            prompt: translate('workspace.exportAgainModal.description', {
+                connectionName: connectedIntegration ?? connectedIntegrationFallback,
+                reportName: moneyRequestReport?.reportName ?? '',
+            }),
+            confirmText: translate('workspace.exportAgainModal.confirmText'),
+            cancelText: translate('workspace.exportAgainModal.cancelText'),
+        }).then((result) => {
+            if (result.action === 'CONFIRM') {
+                confirmExport();
+            }
+        });
+    }, [showConfirmModal, translate, connectedIntegration, connectedIntegrationFallback, moneyRequestReport?.reportName, confirmExport]);
+
+    useEffect(() => {
+        if (exportModalStatus) {
+            showExportModal();
+        }
+    }, [exportModalStatus, showExportModal]);
+
+    const selectedTransactionsOptions = useMemo(() => {
+        return originalSelectedTransactionsOptions.map((option) => {
+            if (option.text === translate('common.delete')) {
+                return {
+                    ...option,
+                    onSelected: showDeleteModal,
+                };
+            }
+            return option;
+        });
+    }, [originalSelectedTransactionsOptions, translate, showDeleteModal]);
+
     useEffect(() => {
         if (!transactionThreadReportID) {
             return;
@@ -1103,16 +1200,7 @@ function MoneyReportHeaderInternal({
 
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
 
-    const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', {connectionName: connectedIntegration}) : '';
-    const unapproveWarningText = useMemo(
-        () => (
-            <Text>
-                <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')}</Text>{' '}
-                <Text>{translate('iou.unapproveWithIntegrationWarning', {accountingIntegration: connectedIntegrationName})}</Text>
-            </Text>
-        ),
-        [connectedIntegrationName, styles.noWrap, styles.textStrong, translate],
-    );
+    const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
@@ -1133,12 +1221,6 @@ function MoneyReportHeaderInternal({
         );
     }
 
-    const reopenExportedReportWarningText = (
-        <Text>
-            <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')} </Text>
-            <Text>{translate('iou.reopenExportedReportConfirmation', {connectionName: integrationNameFromExportMessage ?? ''})}</Text>
-        </Text>
-    );
     const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) =>
         selectPaymentType(event, iouPaymentType, triggerKYCFlow, policy, confirmPayment, isUserValidated, confirmApproval, moneyRequestReport);
 
@@ -1282,33 +1364,6 @@ function MoneyReportHeaderInternal({
                 isVisible={downloadErrorModalVisible}
                 onClose={() => setDownloadErrorModalVisible(false)}
             />
-            <ConfirmModal
-                title={translate('iou.deleteExpense', {count: selectedTransactionIDs.length})}
-                isVisible={hookDeleteModalVisible}
-                onConfirm={() => {
-                    if (transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length) {
-                        Navigation.goBack(route.params?.backTo);
-                    }
-                    handleDeleteTransactions();
-                }}
-                onCancel={hideDeleteModal}
-                prompt={translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length})}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                danger
-                shouldEnableNewFocusManagement
-            />
-            {!!connectedIntegration && (
-                <ConfirmModal
-                    title={translate('workspace.exportAgainModal.title')}
-                    onConfirm={confirmExport}
-                    onCancel={() => setExportModalStatus(null)}
-                    prompt={translate('workspace.exportAgainModal.description', {connectionName: connectedIntegration, reportName: moneyRequestReport?.reportName ?? ''})}
-                    confirmText={translate('workspace.exportAgainModal.confirmText')}
-                    cancelText={translate('workspace.exportAgainModal.cancelText')}
-                    isVisible={!!exportModalStatus}
-                />
-            )}
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
                 prompt={translate('common.downloadFailedDescription')}
@@ -1369,28 +1424,7 @@ function MoneyReportHeaderInternal({
                     )}
                 </View>
             </Modal>
-            <ConfirmModal
-                onConfirm={() => {
-                    setIsExportWithTemplateModalVisible(false);
-                    clearSelectedTransactions(undefined, true);
-                }}
-                isVisible={isExportWithTemplateModalVisible}
-                title={translate('export.exportInProgress')}
-                prompt={translate('export.conciergeWillSend')}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-            />
         </View>
-    );
-}
-
-MoneyReportHeaderInternal.displayName = 'MoneyReportHeaderInternal';
-
-function MoneyReportHeader(props: MoneyReportHeaderProps) {
-    return (
-        <ModalProvider>
-            <MoneyReportHeaderInternal {...props} />
-        </ModalProvider>
     );
 }
 
