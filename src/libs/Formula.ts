@@ -291,6 +291,9 @@ function applyFunctions(value: string, functions: string[]): string {
             case 'substr':
                 result = getSubstring(result, args);
                 break;
+            case 'domain':
+                result = getDomainName(result);
+                break;
             default:
                 // Unknown function, leave value as is
                 break;
@@ -313,6 +316,20 @@ function getFrontPart(value: string): string {
 
     // Otherwise, return the first word
     return trimmed.split(' ')[0];
+}
+
+/**
+ * Get the domain name of an email or URL
+ */
+function getDomainName(value: string): string {
+    const trimmed = value.trim();
+
+    // If it's an email, return the part after @
+    if (trimmed.includes('@')) {
+        return trimmed.split('@')[1];
+    }
+
+    return '';
 }
 
 /**
