@@ -1,4 +1,4 @@
-import React, {forwardRef, useState} from 'react';
+import React, {useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import OpacityView from '@components/OpacityView';
@@ -43,6 +43,11 @@ type PressableWithFeedbackProps = PressableProps & {
      * This is needed for buttons that allow content to display under them.
      */
     shouldBlendOpacity?: boolean;
+
+    /**
+     * Reference to the outer element.
+     */
+    ref?: PressableRef;
 };
 
 function PressableWithFeedback(
@@ -54,9 +59,9 @@ function PressableWithFeedback(
         hoverDimmingValue = variables.hoverDimValue,
         dimAnimationDuration,
         shouldBlendOpacity,
+        ref,
         ...rest
     }: PressableWithFeedbackProps,
-    ref: PressableRef,
 ) {
     const [isPressed, setIsPressed] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
@@ -107,5 +112,5 @@ function PressableWithFeedback(
 
 PressableWithFeedback.displayName = 'PressableWithFeedback';
 
-export default forwardRef(PressableWithFeedback);
+export default PressableWithFeedback;
 export type {PressableWithFeedbackProps};

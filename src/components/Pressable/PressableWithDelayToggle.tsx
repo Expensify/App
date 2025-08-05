@@ -1,5 +1,5 @@
 /* eslint-disable react-native-a11y/has-valid-accessibility-descriptors */
-import React, {forwardRef} from 'react';
+import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -50,6 +50,11 @@ type PressableWithDelayToggleProps = PressableProps & {
      */
     inline?: boolean;
     accessibilityRole?: string;
+
+    /**
+     * Reference to the outer element
+     */
+    ref?: PressableRef;
 };
 
 function PressableWithDelayToggle(
@@ -66,8 +71,8 @@ function PressableWithDelayToggle(
         iconStyles,
         icon,
         accessibilityRole,
+        ref,
     }: PressableWithDelayToggleProps,
-    ref: PressableRef,
 ) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -142,4 +147,4 @@ function PressableWithDelayToggle(
 
 PressableWithDelayToggle.displayName = 'PressableWithDelayToggle';
 
-export default forwardRef(PressableWithDelayToggle);
+export default PressableWithDelayToggle;
