@@ -21,7 +21,7 @@ export default createOnyxDerivedValueConfig({
             // - Are either open or submitted
             // - Are not pending delete
             // - Belong to a workspace
-            // This condition is similar to reportsByPolicyID and getOutstandingReportsForUser function
+            // This condition is similar to getOutstandingReportsForUser function
             if (
                 isExpenseReport(report) &&
                 report.policyID &&

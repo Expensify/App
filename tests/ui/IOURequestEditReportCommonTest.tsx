@@ -4,6 +4,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
@@ -63,6 +64,8 @@ describe('IOURequestEditReportCommon', () => {
                     [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL},
                 },
             });
+            initOnyxDerivedValues();
+            return waitForBatchedUpdates();
         });
 
         beforeEach(() => {
