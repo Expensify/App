@@ -9,7 +9,7 @@ type ImportedSpreadsheetMemberData = {
     /** The email of the member who approves this member's expenses */
     submitsTo: string;
 
-   /** The email of the member to whom the expenses approved by this member are forwarded *
+    /** The email of the member to whom the expenses approved by this member are forwarded */
     forwardsTo: string;
 };
 
