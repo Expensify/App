@@ -18,7 +18,7 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
     getCommaSeparatedTagNameWithSanitizedColons,
     getDistanceRateCustomUnitRate,
@@ -736,18 +736,29 @@ function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
  */
 function getAttendees(transaction: OnyxInputOrEntry<Transaction>): Attendee[] {
     const attendees = transaction?.modifiedAttendees ? transaction.modifiedAttendees : (transaction?.comment?.attendees ?? []);
-    if (attendees.length === 0) {
-        const details = getPersonalDetailByEmail(currentUserEmail);
-        attendees.push({
-            email: currentUserEmail,
-            login: details?.login ?? currentUserEmail,
-            displayName: details?.displayName ?? currentUserEmail,
-            accountID: currentUserAccountID,
-            text: details?.displayName ?? currentUserEmail,
-            searchText: details?.displayName ?? currentUserEmail,
-            avatarUrl: details?.avatarThumbnail ?? '',
-            selected: true,
-        });
+    if (attendees.length === 0 && transaction?.reportID) {
+        // Get the creator of the transaction by looking at the owner of the report linked to the transaction
+        const report = getReportOrDraftReport(transaction.reportID);
+        const creatorAccountID = report?.ownerAccountID;
+
+        if (creatorAccountID) {
+            const [creatorDetails] = getPersonalDetailsByIDs({accountIDs: [creatorAccountID], currentUserAccountID});
+            const creatorEmail = creatorDetails?.login ?? '';
+            const creatorDisplayName = creatorDetails?.displayName ?? creatorEmail;
+
+            if (creatorEmail) {
+                attendees.push({
+                    email: creatorEmail,
+                    login: creatorEmail,
+                    displayName: creatorDisplayName,
+                    accountID: creatorAccountID,
+                    text: creatorDisplayName,
+                    searchText: creatorDisplayName,
+                    avatarUrl: creatorDetails?.avatarThumbnail ?? '',
+                    selected: true,
+                });
+            }
+        }
     }
     return attendees;
 }
