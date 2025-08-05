@@ -95,6 +95,10 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
         [onContentSizeChange],
     );
 
+    // When we are initially showing a message on the first page of the whole dataset,
+    // we don't want to immediately start rendering the list.
+    // Instead, we wait for the initial data to be displayed, scroll to the item manually and
+    // then start rendering more items.
     useEffect(() => {
         if (didScroll.current || !isMessageOnFirstPage.current || !didInitialContentRender) {
             return;
@@ -130,6 +134,7 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
 
     const handleStartReached = useCallback(
         (info: RenderInfo) => {
+            // Same as above, we want to prevent rendering more items until the linked item on the first page has been scrolled to.
             const startRendering = didScroll.current || !isMessageOnFirstPage.current;
             renderQueue.add(info, startRendering);
         },
