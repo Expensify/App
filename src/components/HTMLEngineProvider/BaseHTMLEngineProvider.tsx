@@ -73,6 +73,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 mixedUAStyles: {...styles.mutedNormalTextLabel, ...styles.mb0},
                 contentModel: HTMLContentModel.block,
             }),
+            'centered-text': HTMLElementModel.fromCustomModel({
+                tagName: 'centered-text',
+                mixedUAStyles: {...styles.textAlignCenter},
+                contentModel: HTMLContentModel.block,
+            }),
             comment: HTMLElementModel.fromCustomModel({
                 tagName: 'comment',
                 getMixedUAStyles: (tnode) => {
@@ -125,6 +130,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             'mention-report': HTMLElementModel.fromCustomModel({tagName: 'mention-report', contentModel: HTMLContentModel.textual}),
             'mention-here': HTMLElementModel.fromCustomModel({tagName: 'mention-here', contentModel: HTMLContentModel.textual}),
             'mention-short': HTMLElementModel.fromCustomModel({tagName: 'mention-short', contentModel: HTMLContentModel.textual}),
+            'concierge-link': HTMLElementModel.fromCustomModel({tagName: 'concierge-link', contentModel: HTMLContentModel.textual}),
             'next-step': HTMLElementModel.fromCustomModel({
                 tagName: 'next-step',
                 mixedUAStyles: {...styles.textLabelSupporting, ...styles.lh16},
@@ -173,6 +179,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.blockquote,
             styles.onlyEmojisTextLineHeight,
             styles.subTextFileUpload,
+            styles.textAlignCenter,
             styles.textSuccess,
         ],
     );
