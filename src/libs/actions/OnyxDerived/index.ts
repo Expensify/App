@@ -63,26 +63,32 @@ function init() {
                 }
             };
 
+            // Create base context once outside the function
+            const baseContext: DerivedValueContext<typeof key, typeof dependencies> = {
+                currentValue: undefined,
+                sourceValues: undefined,
+                areAllConnectionsSet: false,
+            };
+
             const recomputeDerivedValue = (sourceKey?: string, sourceValue?: unknown, triggeredByIndex?: number) => {
                 // If this recompute was triggered by a connection callback, check if it initializes the connection
                 if (triggeredByIndex !== undefined) {
                     checkAndMarkConnectionInitialized(triggeredByIndex);
                 }
 
-                const context: DerivedValueContext<typeof key, typeof dependencies> = {
-                    currentValue: derivedValue,
-                    sourceValues: undefined,
-                    areAllConnectionsSet,
-                };
+                baseContext.currentValue = derivedValue;
+                baseContext.areAllConnectionsSet = areAllConnectionsSet;
+                baseContext.sourceValues = sourceKey && sourceValue !== undefined ? {[sourceKey]: sourceValue} : undefined;
 
                 // If we got a source key and value, add it to the sourceValues object
                 if (sourceKey && sourceValue !== undefined) {
-                    context.sourceValues = {
+                    baseContext.sourceValues = {
                         [sourceKey]: sourceValue,
                     };
                 }
                 // @ts-expect-error TypeScript can't confirm the shape of dependencyValues matches the compute function's parameters
-                const newDerivedValue = compute(dependencyValues, context);
+                const newDerivedValue = compute(dependencyValues, baseContext);
+
                 Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);
                 derivedValue = newDerivedValue;
                 setDerivedValue(key, derivedValue);
