@@ -12122,6 +12122,7 @@ export {
     detachReceipt,
     dismissHoldUseExplanation,
     getIOURequestPolicyID,
+    getReceiverType,
     initMoneyRequest,
     checkIfScanFileCanBeRead,
     dismissModalAndOpenReportInInboxTab,

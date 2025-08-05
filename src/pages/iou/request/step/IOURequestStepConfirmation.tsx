@@ -16,6 +16,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useFilesValidation from '@hooks/useFilesValidation';
+import useInvoiceChatByParticipants from '@hooks/useInvoiceChatByParticipants';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -43,6 +44,7 @@ import {
     checkIfScanFileCanBeRead,
     createDistanceRequest as createDistanceRequestIOUActions,
     getIOURequestPolicyID,
+    getReceiverType,
     requestMoney as requestMoneyIOUActions,
     sendInvoice,
     sendMoneyElsewhere,
@@ -66,6 +68,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {InvoiceReceiver} from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -142,6 +145,12 @@ function IOURequestStepConfirmation({
     const policy = policyReal ?? policyDraft;
     const isDraftPolicy = policy === policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
+    const receiverParticipant: Participant | InvoiceReceiver | undefined = transaction?.participants?.find((participant) => participant?.accountID) ?? report?.invoiceReceiver;
+    const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;
+    const receiverType = getReceiverType(receiverParticipant);
+    const senderWorkspaceID = transaction?.participants?.find((participant) => participant?.isSender)?.policyID;
+
+    const existingInvoiceReport = useInvoiceChatByParticipants(receiverAccountID, receiverType, senderWorkspaceID);
 
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -783,7 +792,8 @@ function IOURequestStepConfirmation({
             }
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
-                sendInvoice(currentUserPersonalDetails.accountID, transaction, report, currentTransactionReceiptFile, policy, policyTags, policyCategories);
+                const invoiceChatReport = !isEmptyObject(report) && report?.reportID ? report : existingInvoiceReport;
+                sendInvoice(currentUserPersonalDetails.accountID, transaction, invoiceChatReport, currentTransactionReceiptFile, policy, policyTags, policyCategories);
                 return;
             }
 
@@ -898,6 +908,7 @@ function IOURequestStepConfirmation({
             trackExpense,
             submitPerDiemExpense,
             userLocation,
+            existingInvoiceReport,
         ],
     );
 
