@@ -515,6 +515,7 @@ const transactionsListItems = [
             displayName: 'Admin',
             login: adminEmail,
         },
+        isAllOptionalColumnsHidden: false,
         hasEReceipt: false,
         isFromOneTransactionReport: true,
         keyForList: '1',

@@ -176,7 +176,6 @@ function TransactionItemRow({
         }
     }, [transactionItem, translate]);
 
-
     const columnComponent: ColumnComponents = useMemo(
         () => ({
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE]: (

@@ -1714,7 +1714,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
     },
 
-    getReportTableColumnStyles: (columnName: string, isDateColumnWide = false, isAmountColumnWide = false, isTaxAmountColumnWide = false, isAllOptionalColumnsHidden?: boolean): ViewStyle => {
+    getReportTableColumnStyles: (
+        columnName: string,
+        isDateColumnWide = false,
+        isAmountColumnWide = false,
+        isTaxAmountColumnWide = false,
+        isAllOptionalColumnsHidden?: boolean,
+    ): ViewStyle => {
         let columnWidth;
         switch (columnName) {
             case CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS:

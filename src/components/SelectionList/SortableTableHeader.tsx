@@ -46,7 +46,7 @@ function SortableTableHeader({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
-    const optionalColumnNames = columns.map(({canBeMissing, columnName}) => canBeMissing ? columnName : null).filter(Boolean) as SortableColumnName[];
+    const optionalColumnNames = columns.map(({canBeMissing, columnName}) => (canBeMissing ? columnName : null)).filter(Boolean) as SortableColumnName[];
     const isAllOptionalColumnsHidden = optionalColumnNames.every((columnName) => !shouldShowColumn(columnName));
 
     return (
