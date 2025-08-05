@@ -68,7 +68,30 @@ function getPolicyByID(policyID: string, allPolicies: Record<string, Policy>): P
  * Get all reports associated with a policy ID
  */
 function getReportsByPolicyID(policyID: string, allReports: Record<string, Report>): Report[] {
-    return Object.values(allReports).filter((report) => report?.policyID === policyID);
+    return Object.values(allReports).filter((report) => {
+        // 1. Filter by policy ID
+        if (report?.policyID !== policyID) {
+            return false;
+        }
+
+        // 2. Filter by type - only reports that support custom names
+        if (!isValidReportType(report.type)) {
+            return false;
+        }
+
+        // 3. Filter by state - exclude reports in high states (like approved or higher)
+        const stateThreshold = CONST.REPORT.STATE_NUM.APPROVED;
+        if (report.stateNum && report.stateNum > stateThreshold) {
+            return false;
+        }
+
+        // 4. Filter by isArchived - exclude archived reports
+        if (ReportUtils.isArchivedReport(ReportUtils.getReportNameValuePairs(report?.reportID))) {
+            return false;
+        }
+
+        return true;
+    });
 }
 
 /**
