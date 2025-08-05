@@ -23,7 +23,7 @@ type TransactionGroupListItem = ListItem & {
 type IOURequestStepReportProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_REPORT> & WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_REPORT>;
 
 function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
-    const {backTo, action, iouType, transactionID} = route.params;
+    const {backTo, action, iouType, transactionID, reportID: reportIDFromRoute} = route.params;
     const [allReports] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`, {canBeMissing: false});
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const transactionReport = Object.values(allReports ?? {}).find((report) => report?.reportID === transaction?.reportID);
@@ -38,7 +38,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
         return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`];
     }, [allReports, selectedReportID]);
-
+    const reportOrDraftReport = getReportOrDraftReport(reportIDFromRoute);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreateReport = action === CONST.IOU.ACTION.CREATE;
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
@@ -142,7 +142,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             backTo={backTo}
             selectReport={selectReport}
             selectedReportID={selectedReport?.reportID}
-            selectedPolicyID={!isEditing && !isFromGlobalCreate ? selectedReport?.policyID : undefined}
+            selectedPolicyID={!isEditing && !isFromGlobalCreate ? reportOrDraftReport?.policyID : undefined}
             removeFromReport={removeFromReport}
             isEditing={isEditing}
             isUnreported={isUnreported}
