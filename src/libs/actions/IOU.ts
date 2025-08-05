@@ -3362,7 +3362,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             ? buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeAccountID, amount, currency, undefined, undefined, optimisticIOUReportID)
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency, undefined, undefined, optimisticIOUReportID);
     } else if (isPolicyExpenseChat) {
-        // Splitting doesn’t affect the amount, so no adjustment is needed
+        // Splitting doesn't affect the amount, so no adjustment is needed
         // The amount remains constant after the split
         if (!isSplitExpense) {
             iouReport = {...iouReport};
@@ -11755,7 +11755,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     // Build optimistic data updates
     const optimisticData: OnyxUpdate[] = [];
 
-    // TODO: Define successData and failureData.
+    // Build successData and failureData to prevent duplication
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
@@ -11863,20 +11863,40 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         });
     }
 
-    // Create system messages in both expense report and expense thread
-    const optimisticDeclineReportAction = buildOptimisticDeclineReportAction();
+    // Create only the comment action optimistically - let the server create the decline action
     const optimisticDeclineReportActionComment = buildOptimisticDeclinedReportActionComment(comment);
 
+    // Add optimistic comment action to the child report
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
         value: {
-            [optimisticDeclineReportAction.reportActionID]: optimisticDeclineReportAction,
             [optimisticDeclineReportActionComment.reportActionID]: optimisticDeclineReportActionComment,
         },
     });
 
-    const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(optimisticDeclineReportAction.created, 1);
+    // Add successData to clear pending action when the server confirms
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
+        value: {
+            [optimisticDeclineReportActionComment.reportActionID]: {
+                ...optimisticDeclineReportActionComment,
+                pendingAction: null,
+            },
+        },
+    });
+
+    // Add failureData to remove optimistic action if the request fails
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
+        value: {
+            [optimisticDeclineReportActionComment.reportActionID]: null,
+        },
+    });
+
+    const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(optimisticDeclineReportActionComment.created, 1);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -11898,6 +11918,27 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         },
     });
 
+    // Add successData for the remove action
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: {
+            [optimisticRemoveReportAction.reportActionID]: {
+                ...optimisticRemoveReportAction,
+                pendingAction: null,
+            },
+        },
+    });
+
+    // Add failureData for the remove action
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: {
+            [optimisticRemoveReportAction.reportActionID]: null,
+        },
+    });
+
     // Build API parameters
     const parameters: DeclineMoneyRequestParams = {
         transactionID,
@@ -11906,7 +11947,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         movedToReportID,
         autoAddedActionReportActionID,
         removedFromReportActionID,
-        declinedActionReportActionID: optimisticDeclineReportAction.reportActionID,
+        declinedActionReportActionID: '', // Let the server create the decline action
         declinedCommentReportActionID: optimisticDeclineReportActionComment.reportActionID,
     };
 
@@ -11925,7 +11966,6 @@ function markDeclineViolationAsResolved(transactionID: string, reportID?: string
     const currentViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const updatedViolations = currentViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
     const optimisticMarkedAsResolvedReportAction = buildOptimisticMarkedAsResolvedReportAction();
-    const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
     // Build optimistic data
     const optimisticData: OnyxUpdate[] = [
