@@ -6,6 +6,7 @@ import MagicCodeInput from '@components/MagicCodeInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {isMobileSafari} from '@libs/Browser';
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isValidTwoFactorCode} from '@libs/ValidationUtils';
 import {clearAccountMessages, toggleTwoFactorAuth, validateTwoFactorAuth} from '@userActions/Session';
@@ -22,9 +23,13 @@ type BaseTwoFactorAuthFormProps = {
 
     /** Callback that is called when the text input is focused */
     onFocus?: () => void;
+
+    shouldAutoFocusOnMobile?: boolean;
 };
 
-function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, onFocus}: BaseTwoFactorAuthFormProps, ref: ForwardedRef<BaseTwoFactorAuthFormRef>) {
+const isMobile = !canFocusInputOnScreenFocus();
+
+function BaseTwoFactorAuthForm({ autoComplete, validateInsteadOfDisable, onFocus, shouldAutoFocusOnMobile = true}: BaseTwoFactorAuthFormProps, ref: ForwardedRef<BaseTwoFactorAuthFormRef>) {
     const {translate} = useLocalize();
     const [formError, setFormError] = useState<{twoFactorAuthCode?: string}>({});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
@@ -95,7 +100,7 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, onFocus}
 
     useFocusEffect(
         useCallback(() => {
-            if (!inputRef.current) {
+            if (!inputRef.current || (isMobile && !shouldAutoFocusOnMobile)) {
                 return;
             }
             // Keyboard won't show if we focus the input with a delay, so we need to focus immediately.
@@ -106,7 +111,7 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, onFocus}
             } else {
                 inputRef.current?.focusLastSelected();
             }
-        }, []),
+        }, [shouldAutoFocusOnMobile]),
     );
 
     return (

@@ -155,7 +155,7 @@ function MagicCodeInput(
     const StyleUtils = useStyleUtils();
     const inputRef = useRef<BaseTextInputRef | null>(null);
     const [input, setInput] = useState(TEXT_INPUT_EMPTY_STATE);
-    const [focusedIndex, setFocusedIndex] = useState<number | undefined>(0);
+    const [focusedIndex, setFocusedIndex] = useState<number | undefined>(autoFocus ? 0 : undefined);
     const editIndex = useRef(0);
     const [wasSubmitted, setWasSubmitted] = useState(false);
     const shouldFocusLast = useRef(false);
@@ -201,6 +201,7 @@ function MagicCodeInput(
         },
         focusLastSelected() {
             inputRef.current?.focus();
+            setFocusedIndex(lastFocusedIndex.current);
         },
         resetFocus() {
             setInput(TEXT_INPUT_EMPTY_STATE);
