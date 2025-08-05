@@ -10,6 +10,8 @@ type TransactionThreadInfo = {
     transactionThreadReportID?: string;
     transactionThreadCreatedReportActionID?: string;
     unheldReportActionID?: string;
+    selfDMReportID?: string;
+    selfDMCreatedReportActionID?: string;
 };
 
 type ChangeTransactionsReportParams = {

@@ -1,17 +1,17 @@
 import {deepEqual} from 'fast-equals';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
+import {reportAttributesSelector} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import useCurrentReportID from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useDiffPrevious from './useDiffPrevious';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useResponsiveLayout from './useResponsiveLayout';
@@ -45,6 +45,8 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PartialPolicyForSi
         employeeList: policy.employeeList,
     }) as PartialPolicyForSidebar;
 
+const policiesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => mapOnyxCollectionItems(policies, policySelector);
+
 function SidebarOrderedReportsContextProvider({
     children,
     /**
@@ -57,16 +59,16 @@ function SidebarOrderedReportsContextProvider({
      */
     currentReportIDForTests,
 }: SidebarOrderedReportsContextProviderProps) {
+    const {localeCompare} = useLocalize();
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
     const [chatReports, {sourceValue: reportUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [policies, {sourceValue: policiesUpdates}] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector), canBeMissing: true});
+    const [policies, {sourceValue: policiesUpdates}] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
     const [transactions, {sourceValue: transactionsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [transactionViolations, {sourceValue: transactionViolationsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
-    const [drafts = getEmptyObject<OnyxTypes.DraftReportComments>()] = useOnyx(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, {canBeMissing: true});
-    const reportsDraftsUpdates = useDiffPrevious(drafts);
+    const [, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector, canBeMissing: true});
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -97,8 +99,8 @@ function SidebarOrderedReportsContextProvider({
             reportsToUpdate = Object.keys(transactionViolationsUpdates ?? {})
                 .map((key) => key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ONYXKEYS.COLLECTION.TRANSACTION))
                 .map((key) => `${ONYXKEYS.COLLECTION.REPORT}${transactions?.[key]?.reportID}`);
-        } else if (reportsDraftsUpdates.length > 0) {
-            reportsToUpdate = reportsDraftsUpdates.map((key) => `${ONYXKEYS.COLLECTION.REPORT}${key}`);
+        } else if (reportsDraftsUpdates) {
+            reportsToUpdate = Object.keys(reportsDraftsUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, ONYXKEYS.COLLECTION.REPORT));
         } else if (policiesUpdates) {
             const updatedPolicies = Object.keys(policiesUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.POLICY, ''));
             reportsToUpdate = Object.entries(chatReports ?? {})
@@ -149,10 +151,10 @@ function SidebarOrderedReportsContextProvider({
                 derivedCurrentReportID,
                 priorityMode === CONST.PRIORITY_MODE.GSD,
                 betas,
+                policies,
                 transactionViolations,
                 reportNameValuePairs,
                 reportAttributes,
-                drafts,
             );
         } else {
             reportsToDisplay = SidebarUtils.getReportsToDisplayInLHN(
@@ -164,23 +166,22 @@ function SidebarOrderedReportsContextProvider({
                 transactionViolations,
                 reportNameValuePairs,
                 reportAttributes,
-                drafts,
             );
         }
         return reportsToDisplay;
         // Rule disabled intentionally — triggering a re-render on currentReportsToDisplay would cause an infinite loop
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [getUpdatedReports, chatReports, derivedCurrentReportID, priorityMode, betas, policies, transactionViolations, reportNameValuePairs, reportAttributes, reportsDraftsUpdates]);
+    }, [getUpdatedReports, chatReports, derivedCurrentReportID, priorityMode, betas, policies, transactionViolations, reportNameValuePairs, reportAttributes]);
 
     useEffect(() => {
         setCurrentReportsToDisplay(reportsToDisplayInLHN);
     }, [reportsToDisplayInLHN]);
 
     const getOrderedReportIDs = useCallback(
-        () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, reportNameValuePairs, reportAttributes, drafts),
+        () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, localeCompare, reportNameValuePairs, reportAttributes),
         // Rule disabled intentionally - reports should be sorted only when the reportsToDisplayInLHN changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [reportsToDisplayInLHN],
+        [reportsToDisplayInLHN, localeCompare],
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);

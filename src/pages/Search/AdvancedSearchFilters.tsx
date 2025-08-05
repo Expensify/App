@@ -363,7 +363,7 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
     return [...feedNames, ...cardNames].join(', ');
 }
 
-function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails: PersonalDetailsList | undefined) {
+function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails: PersonalDetailsList | undefined, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
     const selectedPersonalDetails = accountIDs.map((id) => personalDetails?.[id]);
 
     return selectedPersonalDetails
@@ -372,7 +372,7 @@ function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails:
                 return '';
             }
 
-            return createDisplayName(personalDetail.login ?? '', personalDetail);
+            return createDisplayName(personalDetail.login ?? '', personalDetail, formatPhoneNumber);
         })
         .filter(Boolean)
         .join(', ');
@@ -436,7 +436,7 @@ function getFilterDisplayTitle(
     if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY && filters[nonDateFilterKey]) {
         const filterArray = filters[nonDateFilterKey] ?? [];
         return filterArray
-            .sort(sortOptionsWithEmptyValue)
+            .sort((a, b) => sortOptionsWithEmptyValue(a, b, localeCompare))
             .map((value) => (value === CONST.SEARCH.CATEGORY_EMPTY_VALUE ? translate('search.noCategory') : value))
             .join(', ');
     }
@@ -444,7 +444,7 @@ function getFilterDisplayTitle(
     if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG && filters[nonDateFilterKey]) {
         const filterArray = filters[nonDateFilterKey] ?? [];
         return filterArray
-            .sort(sortOptionsWithEmptyValue)
+            .sort((a, b) => sortOptionsWithEmptyValue(a, b, localeCompare))
             .map((value) => (value === CONST.SEARCH.TAG_EMPTY_VALUE ? translate('search.noTag') : getCleanedTagName(value)))
             .join(', ');
     }
@@ -543,7 +543,7 @@ function isFeatureEnabledInPolicies(policies: OnyxCollection<Policy>, featureNam
 }
 
 function AdvancedSearchFilters() {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {isDevelopment} = useEnvironment();
     const {singleExecution} = useSingleExecution();
@@ -587,6 +587,7 @@ function AdvancedSearchFilters() {
         shouldShowPendingDeletePolicy: false,
         selectedPolicyIDs: undefined,
         searchTerm: '',
+        localeCompare,
     });
 
     // When looking if a user has any categories to display, we want to ignore the policies that are of type PERSONAL
@@ -696,7 +697,7 @@ function AdvancedSearchFilters() {
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE) {
-                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails);
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails, formatPhoneNumber);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
