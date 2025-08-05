@@ -6,6 +6,7 @@ import type {Policy, Report} from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
 import getIconForAction from './getIconForAction';
+import {shouldShowPolicy} from './PolicyUtils';
 import {canCreateRequest} from './ReportUtils';
 
 const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
@@ -91,16 +92,16 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
     }
 };
 
-const isQuickActionAllowed = (quickAction: QuickAction, quickActionReport: Report | undefined, quickActionPolicy: Policy | undefined) => {
+const isQuickActionAllowed = (quickAction: QuickAction, quickActionReport: Report | undefined, quickActionPolicy: Policy | undefined, isReportArchived = false) => {
     const iouType = getIOUType(quickAction?.action);
     if (iouType) {
-        return canCreateRequest(quickActionReport, quickActionPolicy, iouType);
+        return canCreateRequest(quickActionReport, quickActionPolicy, iouType, isReportArchived);
     }
     if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM) {
         return !!quickActionPolicy?.arePerDiemRatesEnabled;
     }
     if (quickAction?.action === CONST.QUICK_ACTIONS.CREATE_REPORT) {
-        return !!quickActionPolicy;
+        return shouldShowPolicy(quickActionPolicy, false, undefined) && !!quickActionPolicy?.isPolicyExpenseChatEnabled;
     }
     return true;
 };
