@@ -19,6 +19,8 @@ import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 const Onyx = MockedOnyx as typeof ReactNativeOnyxMock;
 
+jest.mock('axios');
+
 jest.mock('@src/libs/Log');
 
 Onyx.init({
@@ -40,9 +42,10 @@ type XhrCalls = Array<{
 }>;
 
 const originalXHR = HttpUtils.xhr;
+let mockAxios: TestHelper.MockAxios;
 
 beforeEach(() => {
-    global.fetch = TestHelper.getGlobalFetchMock();
+    mockAxios = TestHelper.setupGlobalAxiosMock();
     HttpUtils.xhr = originalXHR;
 
     MainQueue.clear();
@@ -212,15 +215,55 @@ describe('APITests', () => {
     // Given a retry response create a mock and run some expectations for retrying requests
 
     const retryExpectations = (response: Response) => {
-        const successfulResponse: Response = {
-            ok: true,
-            jsonCode: CONST.JSON_CODE.SUCCESS,
-            // We have to mock response.json() too
-            json: () => Promise.resolve(successfulResponse),
-        };
+        // Reset the mock before setting up new behavior
+        mockAxios.mockReset();
 
-        // Given a mock where a retry response is returned twice before a successful response
-        global.fetch = jest.fn().mockResolvedValueOnce(response).mockResolvedValueOnce(response).mockResolvedValueOnce(successfulResponse);
+        // Set up axios mock to fail twice then succeed
+        if (response.ok === false && response.status !== undefined) {
+            // For HTTP status errors, axios throws an error with the status
+            const axiosError = {
+                response: {
+                    status: response.status,
+                    statusText: 'Error',
+                    data: JSON.stringify({jsonCode: response.status}),
+                },
+                code: 'HTTP_ERROR',
+            };
+            mockAxios
+                .mockRejectedValueOnce(axiosError)
+                .mockRejectedValueOnce(axiosError)
+                .mockResolvedValueOnce({
+                    status: 200,
+                    statusText: 'OK',
+                    data: JSON.stringify({jsonCode: CONST.JSON_CODE.SUCCESS}),
+                    headers: {},
+                    config: {} as never,
+                });
+        } else {
+            // For other errors (like auth down), return the error response
+            mockAxios
+                .mockResolvedValueOnce({
+                    status: 200,
+                    statusText: 'OK',
+                    data: JSON.stringify(response),
+                    headers: {},
+                    config: {} as never,
+                })
+                .mockResolvedValueOnce({
+                    status: 200,
+                    statusText: 'OK',
+                    data: JSON.stringify(response),
+                    headers: {},
+                    config: {} as never,
+                })
+                .mockResolvedValueOnce({
+                    status: 200,
+                    statusText: 'OK',
+                    data: JSON.stringify({jsonCode: CONST.JSON_CODE.SUCCESS}),
+                    headers: {},
+                    config: {} as never,
+                });
+        }
 
         // Given we have a request made while we're offline
         return (
@@ -236,7 +279,7 @@ describe('APITests', () => {
                 .then(waitForBatchedUpdates)
                 .then(() => {
                     // Then there has only been one request so far
-                    expect(global.fetch).toHaveBeenCalledTimes(1);
+                    expect(mockAxios.mock.calls.length).toEqual(1);
 
                     // And we still have 1 persisted request since it failed
                     expect(PersistedRequests.getAll().length).toEqual(1);
@@ -249,7 +292,7 @@ describe('APITests', () => {
                 })
                 .then(() => {
                     // Then we have retried the failing request
-                    expect(global.fetch).toHaveBeenCalledTimes(2);
+                    expect(mockAxios.mock.calls.length).toEqual(2);
 
                     // And we still have 1 persisted request since it failed
                     expect(PersistedRequests.getAll().length).toEqual(1);
@@ -262,7 +305,7 @@ describe('APITests', () => {
                 })
                 .then(() => {
                     // Then the request is retried again
-                    expect(global.fetch).toHaveBeenCalledTimes(3);
+                    expect(mockAxios.mock.calls.length).toEqual(3);
 
                     // The request succeeds so the queue is empty
                     expect(PersistedRequests.getAll().length).toEqual(0);

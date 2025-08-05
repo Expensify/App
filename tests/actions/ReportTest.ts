@@ -28,10 +28,11 @@ import {createRandomReport} from '../utils/collections/reports';
 import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
+import type {MockAxios} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
+jest.mock('axios');
 jest.mock('@libs/NextStepUtils', () => ({
     buildNextStep: jest.fn(),
 }));
@@ -61,6 +62,7 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
 }));
 
 const originalXHR = HttpUtils.xhr;
+let mockAxios: MockAxios;
 OnyxUpdateManager();
 describe('actions/Report', () => {
     beforeAll(() => {
@@ -82,7 +84,7 @@ describe('actions/Report', () => {
             // Onyx.clear() promise is resolved in batch which happens after the current microtasks cycle
             setImmediate(jest.runOnlyPendingTimers);
         }
-        global.fetch = TestHelper.getGlobalFetchMock();
+        TestHelper.setupGlobalAxiosMock();
 
         // Clear the queue before each test to avoid test pollution
         SequentialQueue.resetQueue();
@@ -96,7 +98,7 @@ describe('actions/Report', () => {
     });
 
     it('should store a new report action in Onyx when onyxApiUpdate event is handled via Pusher', () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        TestHelper.setupGlobalAxiosMock();
 
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
@@ -250,7 +252,7 @@ describe('actions/Report', () => {
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID))
             .then(() => {
-                global.fetch = TestHelper.getGlobalFetchMock();
+                TestHelper.setupGlobalAxiosMock();
 
                 // WHEN we add enough logs to send a packet
                 for (let i = 0; i <= LOGGER_MAX_LOG_LINES; i++) {
@@ -268,14 +270,12 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // THEN only ONE call to AddComment will happen
-                const URL_ARGUMENT_INDEX = 0;
-                const addCommentCalls = (global.fetch as jest.Mock).mock.calls.filter((callArguments: string[]) => callArguments.at(URL_ARGUMENT_INDEX)?.includes('AddComment'));
-                expect(addCommentCalls.length).toBe(1);
+                TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
             });
     });
 
     it('should be updated correctly when new comments are added, deleted or marked as unread', () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        TestHelper.setupGlobalAxiosMock();
         const REPORT_ID = '1';
         let report: OnyxEntry<OnyxTypes.Report>;
         let reportActionCreatedDate: string;
@@ -516,7 +516,7 @@ describe('actions/Report', () => {
          * already in the comment and the user deleted it on purpose.
          */
 
-        global.fetch = TestHelper.getGlobalFetchMock();
+        TestHelper.setupGlobalAxiosMock();
 
         // User edits comment to add link
         // We should generate link
@@ -628,7 +628,7 @@ describe('actions/Report', () => {
     });
 
     it('should properly toggle reactions on a message', () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        TestHelper.setupGlobalAxiosMock();
 
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
@@ -758,7 +758,7 @@ describe('actions/Report', () => {
     });
 
     it("shouldn't add the same reaction twice when changing preferred skin color and reaction doesn't support skin colors", () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        TestHelper.setupGlobalAxiosMock();
 
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
@@ -828,7 +828,7 @@ describe('actions/Report', () => {
     });
 
     it('should send only one OpenReport, replacing any extra ones with same reportIDs', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        TestHelper.setupGlobalAxiosMock();
 
         const REPORT_ID = '1';
 
@@ -846,11 +846,11 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
         await waitForBatchedUpdates();
 
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
     });
 
     it('should replace duplicate OpenReport commands with the same reportID', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        TestHelper.setupGlobalAxiosMock();
 
         const REPORT_ID = '1';
 
@@ -872,11 +872,11 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
         await waitForBatchedUpdates();
 
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 4);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 4);
     });
 
     it('should remove AddComment and UpdateComment without sending any request when DeleteComment is set', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        TestHelper.setupGlobalAxiosMock();
 
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
@@ -942,13 +942,13 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
     });
 
     it('should send DeleteComment request and remove UpdateComment accordingly', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        TestHelper.setupGlobalAxiosMock();
 
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
@@ -990,14 +990,22 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
     });
 
     it('should send DeleteComment request after AddComment is rollback', async () => {
-        global.fetch = jest.fn().mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
-
+        mockAxios = TestHelper.setupGlobalAxiosMock();
+        mockAxios.mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
+        mockAxios.mockAPICommand('AddComment', () => ({
+            jsonCode: 500,
+            message: 'Internal Server Error',
+        }));
+        mockAxios.mockAPICommand('DeleteComment', () => ({
+            jsonCode: 500,
+            message: 'Internal Server Error',
+        }));
         const mockedXhr = jest.fn();
         mockedXhr.mockImplementation(originalXHR);
 
@@ -1047,7 +1055,7 @@ describe('actions/Report', () => {
     });
 
     it('should send not DeleteComment request and remove AddAttachment accordingly', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        TestHelper.setupGlobalAxiosMock();
 
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
@@ -1111,12 +1119,12 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_ATTACHMENT, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.ADD_ATTACHMENT, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
     });
 
     it('should send not DeleteComment request and remove AddTextAndAttachment accordingly', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        TestHelper.setupGlobalAxiosMock();
 
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
@@ -1180,12 +1188,12 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
     });
 
     it('should not send DeleteComment request and remove any Reactions accordingly', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        TestHelper.setupGlobalAxiosMock();
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         jest.doMock('@libs/EmojiUtils', () => ({
             ...jest.requireActual('@libs/EmojiUtils'),
@@ -1277,14 +1285,14 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_EMOJI_REACTION, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.REMOVE_EMOJI_REACTION, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.ADD_EMOJI_REACTION, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.REMOVE_EMOJI_REACTION, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
     });
 
     it('should send DeleteComment request and remove any Reactions accordingly', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        TestHelper.setupGlobalAxiosMock();
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         jest.doMock('@libs/EmojiUtils', () => ({
             ...jest.requireActual('@libs/EmojiUtils'),
@@ -1350,14 +1358,14 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_EMOJI_REACTION, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.REMOVE_EMOJI_REACTION, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.ADD_EMOJI_REACTION, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.REMOVE_EMOJI_REACTION, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
     });
 
     it('should create and delete thread processing all the requests', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        TestHelper.setupGlobalAxiosMock();
 
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
@@ -1410,13 +1418,13 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
     });
 
     it('should update AddComment text with the UpdateComment text, sending just an AddComment request', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        TestHelper.setupGlobalAxiosMock();
 
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
@@ -1454,12 +1462,12 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 0);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 0);
     });
 
     it('it should only send the last sequential UpdateComment request to BE', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        TestHelper.setupGlobalAxiosMock();
         const reportID = '123';
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
@@ -1483,7 +1491,7 @@ describe('actions/Report', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 1);
+        TestHelper.expectAxiosCommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 1);
     });
 
     it('should clears lastMentionedTime when all mentions to the current user are deleted', async () => {
@@ -1536,7 +1544,6 @@ describe('actions/Report', () => {
     it('should create new report and "create report" quick action, when createNewReport gets called', async () => {
         const accountID = 1234;
         const policyID = '5678';
-        const mockFetchData = fetch as MockFetch;
         // Given a policy with harvesting is disabled
         const policy = {
             ...createRandomPolicy(Number(policyID)),
@@ -1547,11 +1554,13 @@ describe('actions/Report', () => {
             },
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
-
-        mockFetchData.pause();
+        mockAxios = TestHelper.setupGlobalAxiosMock();
+        mockAxios.mockAPICommand('CreateAppReport', () => ({
+            jsonCode: 500,
+            message: 'Internal Server Error',
+        }));
         const reportID = Report.createNewReport({accountID}, policyID);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
-
         const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
@@ -1564,7 +1573,6 @@ describe('actions/Report', () => {
         });
         expect(getOriginalMessage(reportPreviewAction)?.linkedReportID).toBe(reportID);
         expect(reportPreviewAction?.actorAccountID).toBe(accountID);
-
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT,
@@ -1585,6 +1593,7 @@ describe('actions/Report', () => {
             });
         });
 
+        // Temporarily skip the quick action test to see if other parts work
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
@@ -1598,12 +1607,8 @@ describe('actions/Report', () => {
                 },
             });
         });
-
-        // When the request fails
-        mockFetchData.fail();
-        await mockFetchData.resume();
+        mockAxios?.resume();
         await waitForBatchedUpdates();
-
         // Then the onyx data should be reverted to the state before the request
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
@@ -1613,7 +1618,6 @@ describe('actions/Report', () => {
                     Onyx.disconnect(connection);
                     const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
                     expect(parentPolicyExpenseChat?.hasOutstandingChildRequest).toBe(parentReport?.hasOutstandingChildRequest);
-
                     resolve();
                 },
             });
@@ -1660,7 +1664,7 @@ describe('actions/Report', () => {
     describe('completeOnboarding', () => {
         const TEST_USER_LOGIN = 'test@gmail.com';
         const TEST_USER_ACCOUNT_ID = 1;
-        global.fetch = TestHelper.getGlobalFetchMock();
+        TestHelper.setupGlobalAxiosMock();
 
         it('should set "isOptimisticAction" to false/null for all actions in admins report after completing onboarding setup', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
@@ -1745,12 +1749,12 @@ describe('actions/Report', () => {
 
     describe('updateDescription', () => {
         it('should not call UpdateRoomDescription API if the description is not changed', async () => {
-            global.fetch = TestHelper.getGlobalFetchMock();
+            TestHelper.setupGlobalAxiosMock();
             Report.updateDescription('1', '<h1>test</h1>', '# test');
 
             await waitForBatchedUpdates();
 
-            expect(global.fetch).toHaveBeenCalledTimes(0);
+            TestHelper.expectAxiosCommandToHaveBeenCalled('UpdateRoomDescription', 0);
         });
 
         it('should revert to correct previous description if UpdateRoomDescription API fails', async () => {
@@ -1758,22 +1762,33 @@ describe('actions/Report', () => {
                 ...createRandomReport(1),
                 description: '<h1>test</h1>',
             };
-            const mockFetch = fetch as MockFetch;
+            mockAxios = TestHelper.setupGlobalAxiosMock();
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
-            mockFetch?.fail?.();
+            // Mock a server error response (500) to trigger failure data application
+            mockAxios.mockAPICommand('UpdateRoomDescription', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
+
             Report.updateDescription('1', '<h1>test</h1>', '# test1');
 
             await waitForBatchedUpdates();
-            let updateReport: OnyxEntry<OnyxTypes.Report>;
 
-            await TestHelper.getOnyxData({
-                key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-                callback: (val) => (updateReport = val),
+            const updateReport: OnyxEntry<OnyxTypes.Report> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+                    callback: (val) => {
+                        if (!val) {
+                            return;
+                        }
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
             });
             expect(updateReport?.description).toBe('<h1>test</h1>');
-            mockFetch.mockReset();
         });
     });
 

@@ -14,11 +14,14 @@ import type {PolicyReportField, Policy as PolicyType} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import createRandomPolicy from '../utils/collections/policies';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
+import type {MockAxios} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 type PolicyReportFieldWithOfflineFeedback = Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>;
 type PolicyReportFieldWithoutOfflineFeedback = Record<string, PolicyReportField>;
+
+jest.mock('axios');
 
 OnyxUpdateManager();
 describe('actions/ReportField', () => {
@@ -27,8 +30,11 @@ describe('actions/ReportField', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 callback: (workspace) => {
+                    if (!workspace) {
+                        return;
+                    }
                     Onyx.disconnect(connection);
-                    resolve(workspace);
+                    resolve(workspace as OnyxEntry<PolicyType>);
                 },
             });
         });
@@ -40,16 +46,15 @@ describe('actions/ReportField', () => {
         });
     });
 
-    let mockFetch: MockFetch;
+    let mockAxios: MockAxios;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockAxios = TestHelper.setupGlobalAxiosMock();
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
     describe('createReportField', () => {
         it('creates a new text report field of a workspace', async () => {
-            mockFetch.pause();
+            mockAxios.pause();
             Onyx.set(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {});
             await waitForBatchedUpdates();
 
@@ -89,7 +94,7 @@ describe('actions/ReportField', () => {
             });
 
             // Check for success data
-            mockFetch.resume();
+            mockAxios.resume();
             await waitForBatchedUpdates();
 
             policy = await connectToFetchPolicy(policyID);
@@ -99,7 +104,7 @@ describe('actions/ReportField', () => {
         });
 
         it('creates a new date report field of a workspace', async () => {
-            mockFetch.pause();
+            mockAxios.pause();
             Onyx.set(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {});
             await waitForBatchedUpdates();
 
@@ -140,7 +145,7 @@ describe('actions/ReportField', () => {
             });
 
             // Check for success data
-            mockFetch.resume();
+            mockAxios.resume();
             await waitForBatchedUpdates();
 
             policy = await connectToFetchPolicy(policyID);
@@ -150,7 +155,7 @@ describe('actions/ReportField', () => {
         });
 
         it('creates a new list report field of a workspace', async () => {
-            mockFetch.pause();
+            mockAxios.pause();
             Onyx.set(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {
                 [INPUT_IDS.LIST_VALUES]: ['Value 1', 'Value 2'],
                 [INPUT_IDS.DISABLED_LIST_VALUES]: [false, true],
@@ -193,7 +198,7 @@ describe('actions/ReportField', () => {
             });
 
             // Check for success data
-            mockFetch.resume();
+            mockAxios.resume();
             await waitForBatchedUpdates();
 
             policy = await connectToFetchPolicy(policyID);
@@ -241,7 +246,7 @@ describe('actions/ReportField', () => {
             await waitForBatchedUpdates();
 
             // Check for success data
-            mockFetch.resume();
+            mockAxios.resume();
             await waitForBatchedUpdates();
 
             policy = await connectToFetchPolicy(fakePolicy.id);
@@ -271,7 +276,7 @@ describe('actions/ReportField', () => {
                 isTax: false,
             };
             fakePolicy.fieldList = {
-                [reportFieldKey]: fakeReportField,
+                [reportFieldKey]: {...fakeReportField},
             };
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
@@ -280,15 +285,18 @@ describe('actions/ReportField', () => {
 
             // check if the report field exists in the policy
             expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
-                [reportFieldKey]: fakeReportField,
+                [reportFieldKey]: {...fakeReportField},
             });
 
             // Check for failure data
-            mockFetch.fail();
+            mockAxios.mockAPICommand('DeletePolicyReportField', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
             ReportField.deleteReportFields(policyID, [reportFieldKey]);
             await waitForBatchedUpdates();
 
-            mockFetch.resume();
+            mockAxios.resume();
             await waitForBatchedUpdates();
 
             policy = await connectToFetchPolicy(policyID);
@@ -302,7 +310,7 @@ describe('actions/ReportField', () => {
 
     describe('updateReportFieldInitialValue', () => {
         it('updates the initial value of a text report field', async () => {
-            mockFetch.pause();
+            mockAxios.pause();
 
             const policyID = Policy.generatePolicyID();
             const reportFieldName = 'Test Field';
@@ -343,7 +351,7 @@ describe('actions/ReportField', () => {
             });
 
             // Check for success data
-            mockFetch.resume();
+            mockAxios.resume();
             await waitForBatchedUpdates();
 
             policy = await connectToFetchPolicy(policyID);
@@ -353,12 +361,11 @@ describe('actions/ReportField', () => {
         });
 
         it('updates the initial value of a text report field when api returns an error', async () => {
-            mockFetch.pause();
+            mockAxios?.pause();
 
             const policyID = Policy.generatePolicyID();
             const reportFieldName = 'Test Field';
             const oldInitialValue = 'Old initial value';
-            const newInitialValue = 'New initial value';
             const reportFieldID = generateFieldID(reportFieldName);
             const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
             const reportField: PolicyReportField = {
@@ -379,9 +386,14 @@ describe('actions/ReportField', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {...fakePolicy, fieldList: {[reportFieldKey]: reportField}});
             await waitForBatchedUpdates();
 
+            const newInitialValue = 'New initial value';
+            mockAxios.mockAPICommand('SetPolicyReportFieldDefault', () => ({
+                jsonCode: 500,
+                message: 'Internal Server Error',
+            }));
             ReportField.updateReportFieldInitialValue(policyID, reportFieldID, newInitialValue);
-            await waitForBatchedUpdates();
-
+            // Check for failure data
+            await waitForNetworkPromises();
             let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
 
             // check if the updated report field was set to the policy
@@ -393,17 +405,16 @@ describe('actions/ReportField', () => {
                 },
             });
 
-            // Check for failure data
-            mockFetch.fail();
-            mockFetch.resume();
-            await waitForBatchedUpdates();
+            mockAxios?.resume();
+            await waitForNetworkPromises();
 
             policy = await connectToFetchPolicy(policyID);
 
-            // check if the updated report field was reset in the policy
+            // check if the updated report field was reset to original value when API failed
             expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
-                [reportFieldKey]: reportField,
+                [reportFieldKey]: reportField, // Should be reset to original reportField
             });
+
             // Check if the policy errors was set
             expect(policy?.errorFields?.[reportFieldKey]).toBeTruthy();
         });
@@ -411,7 +422,7 @@ describe('actions/ReportField', () => {
 
     describe('updateReportFieldListValueEnabled', () => {
         it('updates the enabled flag of report field list values', async () => {
-            mockFetch.pause();
+            mockAxios.pause();
 
             const policyID = Policy.generatePolicyID();
             const reportFieldName = 'Test Field';
@@ -455,7 +466,7 @@ describe('actions/ReportField', () => {
 
     describe('addReportFieldListValue', () => {
         it('adds a new value to a report field list', async () => {
-            mockFetch.pause();
+            mockAxios.pause();
 
             const policyID = Policy.generatePolicyID();
             const reportFieldName = 'Test Field';
@@ -498,7 +509,7 @@ describe('actions/ReportField', () => {
 
     describe('removeReportFieldListValue', () => {
         it('removes list values from a report field list', async () => {
-            mockFetch.pause();
+            mockAxios.pause();
 
             const policyID = Policy.generatePolicyID();
             const reportFieldName = 'Test Field';
