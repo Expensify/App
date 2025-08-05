@@ -136,7 +136,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                 onPress={toggleFabAction}
                 onLongPress={longPressFabAction}
                 role={role}
-                shouldUseHapticsOnLongPress={true}
+                shouldUseHapticsOnLongPress
                 testID="floating-action-button"
             >
                 <Animated.View style={[styles.floatingActionButton, {borderRadius}, isLHBVisible && styles.floatingActionButtonSmall, animatedStyle]}>
