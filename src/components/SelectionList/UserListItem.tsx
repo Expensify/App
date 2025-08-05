@@ -112,7 +112,7 @@ function UserListItem<TItem extends ListItem>({
                             accountIDs={[Number(item.accountID)]}
                             policyID={!item.reportID && !item.accountID ? item.policyID : undefined}
                             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
-                            fallbackUsername={item.text ?? item.alternateText ?? undefined}
+                            fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
                         />
                     )}
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>

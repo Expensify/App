@@ -107,7 +107,7 @@ function ReportActionAvatarSingle({
     fallbackIcon,
     isInReportAction,
     useProfileNavigationWrapper,
-    fallbackUsername,
+    fallbackDisplayName,
 }: {
     avatar: IconType | undefined;
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -118,7 +118,7 @@ function ReportActionAvatarSingle({
     fallbackIcon?: AvatarSource;
     isInReportAction?: boolean;
     useProfileNavigationWrapper?: boolean;
-    fallbackUsername?: string;
+    fallbackDisplayName?: string;
 }) {
     const StyleUtils = useStyleUtils();
     const avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
@@ -130,7 +130,7 @@ function ReportActionAvatarSingle({
             icon={avatar}
             fallbackUserDetails={{
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                displayName: fallbackUsername || avatar?.name,
+                displayName: fallbackDisplayName || avatar?.name,
             }}
             shouldRender={shouldShowTooltip}
         >
@@ -160,7 +160,7 @@ function ReportActionAvatarSubscript({
     noRightMarginOnContainer,
     subscriptAvatarBorderColor,
     subscriptCardFeed,
-    fallbackUsername,
+    fallbackDisplayName,
     useProfileNavigationWrapper,
 }: {
     primaryAvatar: IconType;
@@ -170,7 +170,7 @@ function ReportActionAvatarSubscript({
     noRightMarginOnContainer?: boolean;
     subscriptAvatarBorderColor?: ColorValue;
     subscriptCardFeed?: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK;
-    fallbackUsername?: string;
+    fallbackDisplayName?: string;
     useProfileNavigationWrapper?: boolean;
 }) {
     const theme = useTheme();
@@ -210,7 +210,7 @@ function ReportActionAvatarSubscript({
                 icon={primaryAvatar}
                 fallbackUserDetails={{
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    displayName: fallbackUsername || primaryAvatar.name,
+                    displayName: fallbackDisplayName || primaryAvatar.name,
                 }}
             >
                 <View>
@@ -316,13 +316,13 @@ function ReportActionAvatarMultipleHorizontal({
     isInReportAction,
     sort: sortAvatars,
     useProfileNavigationWrapper,
-    fallbackUsername,
+    fallbackDisplayName,
 }: HorizontalStacking & {
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
     shouldShowTooltip: boolean;
     icons: IconType[];
     isInReportAction: boolean;
-    fallbackUsername?: string;
+    fallbackDisplayName?: string;
     useProfileNavigationWrapper?: boolean;
 }) {
     const theme = useTheme();
@@ -384,7 +384,7 @@ function ReportActionAvatarMultipleHorizontal({
                     icon={icon}
                     fallbackUserDetails={{
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        displayName: fallbackUsername || icon.name,
+                        displayName: fallbackDisplayName || icon.name,
                     }}
                     shouldRender={shouldShowTooltip}
                 >
@@ -460,7 +460,7 @@ function ReportActionAvatarMultipleDiagonal({
     secondaryAvatarContainerStyle,
     isHovered = false,
     useProfileNavigationWrapper,
-    fallbackUsername,
+    fallbackDisplayName,
 }: {
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
     shouldShowTooltip: boolean;
@@ -470,7 +470,7 @@ function ReportActionAvatarMultipleDiagonal({
     secondaryAvatarContainerStyle?: StyleProp<ViewStyle>;
     isHovered?: boolean;
     useProfileNavigationWrapper?: boolean;
-    fallbackUsername?: string;
+    fallbackDisplayName?: string;
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -532,7 +532,7 @@ function ReportActionAvatarMultipleDiagonal({
                     icon={icons.at(0)}
                     fallbackUserDetails={{
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        displayName: fallbackUsername || icons.at(0)?.name,
+                        displayName: fallbackDisplayName || icons.at(0)?.name,
                     }}
                     shouldRender={shouldShowTooltip}
                 >
@@ -564,7 +564,7 @@ function ReportActionAvatarMultipleDiagonal({
                             icon={icons.at(1)}
                             fallbackUserDetails={{
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                displayName: fallbackUsername || icons.at(1)?.name,
+                                displayName: fallbackDisplayName || icons.at(1)?.name,
                             }}
                             shouldRender={shouldShowTooltip}
                         >

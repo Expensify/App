@@ -55,8 +55,8 @@ type ReportActionAvatarsProps = {
     /** Whether we want to be redirected to profile on avatars click */
     useProfileNavigationWrapper?: boolean;
 
-    /** Username used as a fallback for avatar tooltip */
-    fallbackUsername?: string;
+    /** Display name used as a fallback for avatar tooltip */
+    fallbackDisplayName?: string;
 };
 
 /**
@@ -84,7 +84,7 @@ function ReportActionAvatars({
     useMidSubscriptSizeForMultipleAvatars = false,
     isInReportAction = false,
     useProfileNavigationWrapper,
-    fallbackUsername,
+    fallbackDisplayName,
 }: ReportActionAvatarsProps) {
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
 
@@ -135,7 +135,7 @@ function ReportActionAvatars({
                 subscriptAvatarBorderColor={subscriptAvatarBorderColor}
                 subscriptCardFeed={subscriptCardFeed}
                 useProfileNavigationWrapper={useProfileNavigationWrapper}
-                fallbackUsername={fallbackUsername}
+                fallbackDisplayName={fallbackDisplayName}
             />
         );
     }
@@ -150,7 +150,7 @@ function ReportActionAvatars({
                 isInReportAction={isInReportAction}
                 shouldShowTooltip={shouldShowTooltip}
                 useProfileNavigationWrapper={useProfileNavigationWrapper}
-                fallbackUsername={fallbackUsername}
+                fallbackDisplayName={fallbackDisplayName}
             />
         );
     }
@@ -165,7 +165,7 @@ function ReportActionAvatars({
                 useMidSubscriptSize={useMidSubscriptSizeForMultipleAvatars}
                 secondaryAvatarContainerStyle={secondaryAvatarContainerStyle}
                 isHovered={isHovered}
-                fallbackUsername={fallbackUsername}
+                fallbackDisplayName={fallbackDisplayName}
                 useProfileNavigationWrapper={useProfileNavigationWrapper}
             />
         );
@@ -180,7 +180,7 @@ function ReportActionAvatars({
             accountID={Number(delegateAccountID ?? primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
             delegateAccountID={source.action?.delegateAccountID}
             fallbackIcon={primaryAvatar.fallbackIcon}
-            fallbackUsername={fallbackUsername}
+            fallbackDisplayName={fallbackDisplayName}
             useProfileNavigationWrapper={useProfileNavigationWrapper}
         />
     );
