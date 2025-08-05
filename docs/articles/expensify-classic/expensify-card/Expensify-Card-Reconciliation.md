@@ -63,14 +63,15 @@ If your workspace is integrated with QuickBooks Online, Xero, NetSuite, or Sage 
 2. *(Optional)* For Sage Intacct users:
    - Specify cash-only or accrual-only journals.
    - Choose **No Selection** for journals that do not apply.
-3. Navigate to the **Advanced** tab and enable **Auto-Sync**. Click **Save**.
-4. Go to **Settings > Workspaces**.
-5. Open the workspace linked to the integration.
-6. Click the **Connections** tab.
-7. Next to the desired integration, click **Configure**.
-8. Under the **Export** tab:
+3. Go to **Settings > Workspaces**.
+4. Open the workspace linked to the integration.
+5. Click the **Connections** tab.
+6. Next to the desired integration, click **Configure**.
+7. Under the **Export** tab:
    - Ensure the **Preferred Exporter** is a Workspace Admin.
    - Verify their email matches the domain of the Expensify Cards (e.g., name@company.com).
+8. Under the **Advanced** tab, enable **Auto-Sync**.
+9. Click **Save**.
 
 ---
 
