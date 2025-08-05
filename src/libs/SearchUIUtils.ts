@@ -1377,7 +1377,7 @@ function getColumnsToShow(data: OnyxTypes.SearchResults['data'] | OnyxTypes.Tran
               [CONST.SEARCH.TABLE_COLUMNS.IN]: true,
           };
 
-    const updateColumns = (transaction: OnyxTypes.Transaction | SearchTransaction) => {
+    const updateColumnsForTransaction = (transaction: OnyxTypes.Transaction | SearchTransaction) => {
         const merchant = transaction.modifiedMerchant ? transaction.modifiedMerchant : (transaction.merchant ?? '');
         if ((merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) || isScanning(transaction)) {
             columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT] = true;
@@ -1416,14 +1416,33 @@ function getColumnsToShow(data: OnyxTypes.SearchResults['data'] | OnyxTypes.Tran
         }
     };
 
+    const updateColumnsForTask = (task: TaskListItemType) => {
+        const accountID = task.accountID;
+        const managerID = task.managerID;
+        if (!managerID) {
+            columns[CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE] = false;
+        }
+        if (task.description) {
+            columns[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION] = true;
+        }
+        if (accountID) {
+            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM] = true;
+        }
+    };
+
     if (Array.isArray(data)) {
-        data.forEach(updateColumns);
+        data.forEach(updateColumnsForTransaction);
     } else {
         Object.keys(data).forEach((key) => {
+            if (isReportEntry(key) && isTaskListItemType(data[key] as SearchListItem)) {
+                // If the entry is a task, we need to update columns for task
+                updateColumnsForTask(data[key] as TaskListItemType);
+                return;
+            }
             if (!isTransactionEntry(key)) {
                 return;
             }
-            updateColumns(data[key]);
+            updateColumnsForTransaction(data[key]);
         });
     }
 

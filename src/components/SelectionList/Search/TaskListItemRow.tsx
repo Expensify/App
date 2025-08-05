@@ -214,33 +214,39 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                         isLargeScreenWidth
                     />
                 </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION)]}>
-                    <DescriptionCell
-                        taskItem={item}
-                        showTooltip={showTooltip}
-                        isLargeScreenWidth
-                    />
-                </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
-                    <UserInfoCell
-                        accountID={item.createdBy.accountID}
-                        avatar={item.createdBy.avatar}
-                        displayName={item.formattedCreatedBy}
-                    />
-                </View>
+                {!!item.description && (
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION)]}>
+                        <DescriptionCell
+                            taskItem={item}
+                            showTooltip={showTooltip}
+                            isLargeScreenWidth
+                        />
+                    </View>
+                )}
+                {!!item.createdBy.accountID && (
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
+                        <UserInfoCell
+                            accountID={item.createdBy.accountID}
+                            avatar={item.createdBy.avatar}
+                            displayName={item.formattedCreatedBy}
+                        />
+                    </View>
+                )}
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.IN)]}>
                     <AvatarWithTextCell
                         reportName={item?.parentReportName}
                         icon={item?.parentReportIcon}
                     />
                 </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE)]}>
-                    <UserInfoCell
-                        accountID={item.assignee.accountID}
-                        avatar={item.assignee.avatar}
-                        displayName={item.formattedAssignee}
-                    />
-                </View>
+                {!!item.assignee.accountID && (
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE)]}>
+                        <UserInfoCell
+                            accountID={item.assignee.accountID}
+                            avatar={item.assignee.avatar}
+                            displayName={item.formattedAssignee}
+                        />
+                    </View>
+                )}
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
                     <ActionCell
                         taskItem={item}
