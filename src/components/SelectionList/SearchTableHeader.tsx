@@ -8,10 +8,31 @@ import type * as OnyxTypes from '@src/types/onyx';
 import SortableTableHeader from './SortableTableHeader';
 import type {SortableColumnName} from './types';
 
+type ShouldShowSearchColumnFn = (data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) => boolean;
+
 type SearchColumnConfig = {
     columnName: SearchColumnType;
     translationKey: TranslationPaths;
     isColumnSortable?: boolean;
+};
+
+const shouldShowColumnConfig: Record<SortableColumnName, ShouldShowSearchColumnFn> = {
+    [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.TYPE]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.DATE]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.FROM]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.TO]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: (data, metadata) => metadata?.columnsToShow?.shouldShowCategoryColumn ?? false,
+    [CONST.SEARCH.TABLE_COLUMNS.TAG]: (data, metadata) => metadata?.columnsToShow?.shouldShowTagColumn ?? false,
+    [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: (data, metadata) => metadata?.columnsToShow?.shouldShowTaxColumn ?? false,
+    [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.ACTION]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.TITLE]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.IN]: () => true,
+    // This column is never displayed on Search
+    [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: () => false,
 };
 
 const expenseHeaders: SearchColumnConfig[] = [
@@ -32,10 +53,6 @@ const expenseHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
         translationKey: 'common.merchant',
-    },
-    {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
-        translationKey: 'common.description',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
@@ -111,6 +128,7 @@ const SearchColumns = {
 };
 
 type SearchTableHeaderProps = {
+    data: OnyxTypes.SearchResults['data'];
     metadata: OnyxTypes.SearchResults['search'];
     sortBy?: SearchColumnType;
     sortOrder?: SortOrder;
@@ -120,10 +138,10 @@ type SearchTableHeaderProps = {
     isTaxAmountColumnWide: boolean;
     shouldShowSorting: boolean;
     canSelectMultiple: boolean;
-    columns: SortableColumnName[];
 };
 
 function SearchTableHeader({
+    data,
     metadata,
     sortBy,
     sortOrder,
@@ -133,7 +151,6 @@ function SearchTableHeader({
     canSelectMultiple,
     isAmountColumnWide,
     isTaxAmountColumnWide,
-    columns,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -142,9 +159,10 @@ function SearchTableHeader({
 
     const shouldShowColumn = useCallback(
         (columnName: SortableColumnName) => {
-            return columns.includes(columnName);
+            const shouldShowFun = shouldShowColumnConfig[columnName];
+            return shouldShowFun(data, metadata);
         },
-        [columns],
+        [data, metadata],
     );
 
     if (displayNarrowVersion) {

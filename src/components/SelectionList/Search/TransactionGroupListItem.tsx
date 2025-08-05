@@ -44,8 +44,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
-    columns,
     groupBy,
+    policies,
     shouldAnimateInHighlight,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
@@ -127,6 +127,23 @@ function TransactionGroupListItem<TItem extends ListItem>({
         return headers[groupBy];
     }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, groupBy]);
 
+    const sampleTransaction = groupItem.transactions.at(0);
+    const {COLUMNS} = CONST.REPORT.TRANSACTION_LIST;
+
+    const columns = [
+        COLUMNS.RECEIPT,
+        COLUMNS.TYPE,
+        COLUMNS.DATE,
+        COLUMNS.MERCHANT,
+        COLUMNS.FROM,
+        COLUMNS.TO,
+        ...(sampleTransaction?.shouldShowCategory ? [COLUMNS.CATEGORY] : []),
+        ...(sampleTransaction?.shouldShowTag ? [COLUMNS.TAG] : []),
+        ...(sampleTransaction?.shouldShowTax ? [COLUMNS.TAX] : []),
+        COLUMNS.TOTAL_AMOUNT,
+        COLUMNS.ACTION,
+    ] satisfies Array<ValueOf<typeof COLUMNS>>;
+
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
 
@@ -186,7 +203,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 shouldUseNarrowLayout={!isLargeScreenWidth}
                                 shouldShowCheckbox={!!canSelectMultiple}
                                 onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                columns={columns as Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>}
+                                columns={columns}
                                 onButtonPress={() => {
                                     openReportInRHP(transaction);
                                 }}

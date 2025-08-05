@@ -6343,7 +6343,6 @@ const CONST = {
             RECEIPT: 'receipt',
             DATE: 'date',
             MERCHANT: 'merchant',
-            DESCRIPTION: 'description',
             FROM: 'from',
             TO: 'to',
             CATEGORY: 'category',
@@ -6479,9 +6478,6 @@ const CONST = {
             STATEMENTS: 'statements',
             UNAPPROVED_CASH: 'unapprovedCash',
             UNAPPROVED_CARD: 'unapprovedCard',
-        },
-        ANIMATION: {
-            FADE_DURATION: 200,
         },
     },
 

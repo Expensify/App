@@ -76,22 +76,17 @@ import {
     isInvoiceReport,
     isMoneyRequestReport,
     isOpenExpenseReport,
-    isOpenReport,
     isSettled,
 } from './ReportUtils';
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getTodoSearchQuery} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
-    getCategory,
-    getDescription,
-    getTag,
     getTaxAmount,
     getAmount as getTransactionAmount,
     getCreated as getTransactionCreatedDate,
     getMerchant as getTransactionMerchant,
     isPendingCardOrScanningTransaction,
-    isScanning,
     isUnreportedAndHasInvalidDistanceRateTransaction,
     isViolationDismissed,
 } from './TransactionUtils';
@@ -731,9 +726,6 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
     const shouldShowCategory = metadata?.columnsToShow?.shouldShowCategoryColumn;
     const shouldShowTag = metadata?.columnsToShow?.shouldShowTagColumn;
     const shouldShowTax = metadata?.columnsToShow?.shouldShowTaxColumn;
-    const shouldShowTo = metadata?.columnsToShow?.shouldShowToColumn;
-    const shouldShowFrom = metadata?.columnsToShow?.shouldShowFromColumn;
-    const shouldShowDescription = metadata?.columnsToShow?.shouldShowDescriptionColumn;
 
     // Pre-filter transaction keys to avoid repeated checks
     const transactionKeys = Object.keys(data).filter(isTransactionEntry);
@@ -772,9 +764,6 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             shouldShowCategory,
             shouldShowTag,
             shouldShowTax,
-            shouldShowTo,
-            shouldShowFrom,
-            shouldShowDescription,
             keyForList: transactionItem.transactionID,
             shouldShowYear: doesDataContainAPastYearTransaction,
             isAmountColumnWide: shouldShowAmountInWideColumn,
@@ -1209,9 +1198,6 @@ function getReportSections(
                 formattedMerchant,
                 date,
                 shouldShowMerchant,
-                shouldShowDescription: metadata?.columnsToShow.shouldShowDescriptionColumn,
-                shouldShowFrom: metadata?.columnsToShow.shouldShowFromColumn,
-                shouldShowTo: metadata?.columnsToShow.shouldShowToColumn,
                 shouldShowCategory: metadata?.columnsToShow?.shouldShowCategoryColumn,
                 shouldShowTag: metadata?.columnsToShow?.shouldShowTagColumn,
                 shouldShowTax: metadata?.columnsToShow?.shouldShowTaxColumn,
@@ -1886,7 +1872,6 @@ export {
     isReportActionEntry,
     isTaskListItemType,
     getAction,
-    getColumnsToShow,
     createTypeMenuSections,
     createBaseSavedSearchMenuItem,
     shouldShowEmptyState,

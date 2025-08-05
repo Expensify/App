@@ -87,9 +87,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** The search query */
     queryJSON: SearchQueryJSON;
 
-    /** Columns to show */
-    columns: SortableColumnName[];
-
     /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
     onViewableItemsChanged?: (info: {changed: ViewToken[]; viewableItems: ViewToken[]}) => void;
 
@@ -134,7 +131,6 @@ function SearchList(
         shouldPreventDefaultFocusOnSelectRow,
         shouldPreventLongPressRow,
         queryJSON,
-        columns,
         onViewableItemsChanged,
         onLayout,
         estimatedItemSize = ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD,
@@ -350,7 +346,6 @@ function SearchList(
                     }}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     queryJSONHash={hash}
-                    columns={columns}
                     policies={policies}
                     isDisabled={isDisabled}
                     allReports={allReports}
@@ -371,7 +366,6 @@ function SearchList(
             onCheckboxPress,
             onSelectRow,
             policies,
-            columns,
             hash,
             groupBy,
             setFocusedIndex,
@@ -473,7 +467,7 @@ function SearchList(
                 onScroll={onScroll}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
-                extraData={[focusedIndex, isFocused, columns]}
+                extraData={[focusedIndex, isFocused]}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}
