@@ -26,6 +26,8 @@ import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -49,6 +51,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT, {canBeMissing: true});
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
 
     const viewportOffsetTop = useViewportOffsetTop();
     const [welcomeNote, setWelcomeNote] = useState<string>();
