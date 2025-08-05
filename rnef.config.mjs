@@ -10,7 +10,7 @@ export default {
     remoteCacheProvider: providerGitHub({
         owner: 'callstack-internal',
         repository: 'Expensify-App',
-        // token: process.env.GITHUB_TOKEN,
+        token: process.env.GITHUB_TOKEN,
     }),
     bundler: pluginMetro(),
     platforms: {
