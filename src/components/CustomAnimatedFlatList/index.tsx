@@ -23,7 +23,7 @@ const createCellRendererComponent = <Item,>(
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
                 layout={itemLayoutAnimationRef?.current as any}
                 onLayout={props.onLayout}
-                style={props.style}
+                style={CellRendererComponentProp ? undefined : props.style}
             >
                 {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                 {CellRendererComponentProp ? <CellRendererComponentProp {...props}>{props.children}</CellRendererComponentProp> : props.children}
