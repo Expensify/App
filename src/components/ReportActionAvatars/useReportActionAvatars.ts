@@ -8,6 +8,7 @@ import {
     getDisplayNameForParticipant,
     getIcons,
     getReportActionActorAccountID,
+    getWorkspaceIcon,
     isChatThread,
     isInvoiceReport,
     isPolicyExpenseChat,
@@ -26,12 +27,14 @@ function useReportActionAvatars({
     shouldStackHorizontally = false,
     shouldUseCardFeed = false,
     accountIDs = [],
+    policyID: passedPolicyID,
 }: {
     report: OnyxEntry<Report>;
     action: OnyxEntry<ReportAction>;
     shouldStackHorizontally?: boolean;
     shouldUseCardFeed?: boolean;
     accountIDs?: number[];
+    policyID?: string;
 }) {
     /* Get avatar type */
 
@@ -57,8 +60,32 @@ function useReportActionAvatars({
         chatReport,
     });
 
-    const policyID = chatReport?.policyID === CONST.POLICY.ID_FAKE || !chatReport?.policyID ? (iouReport?.policyID ?? chatReport?.policyID) : chatReport?.policyID;
+    const policyID = passedPolicyID ?? (chatReport?.policyID === CONST.POLICY.ID_FAKE || !chatReport?.policyID ? (iouReport?.policyID ?? chatReport?.policyID) : chatReport?.policyID);
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+
+    const {chatReportIDAdmins, chatReportIDAnnounce, workspaceAccountID} = policy ?? {};
+    const [policyChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportIDAnnounce ?? chatReportIDAdmins}`, {canBeMissing: true});
+
+    if (passedPolicyID) {
+        const policyChatReportAvatar = {...getWorkspaceIcon(policyChatReport, policy), id: policyID, name: policy?.name};
+
+        return {
+            avatars: [policyChatReportAvatar],
+            avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE,
+            details: {
+                ...(personalDetails?.[workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
+                shouldDisplayAllActors: false,
+                isWorkspaceActor: false,
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                actorHint: String(policyID).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
+                accountID: workspaceAccountID,
+                delegateAccountID: undefined,
+            },
+            source: {
+                policyChatReport,
+            },
+        };
+    }
 
     const isATripRoom = isTripRoom(chatReport);
     const isWorkspaceWithoutChatReportProp = !chatReport && policy?.type !== CONST.POLICY.TYPE.PERSONAL;

@@ -637,15 +637,16 @@ function BaseSelectionList<TItem extends ListItem>(
         const isItemFocused = (!isDisabled || selected) && focusedIndex === normalizedIndex;
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
 
+        const newItem = item;
+        if (!item.isSelected) {
+            newItem.isSelected = selected;
+        }
+
         return (
             <View onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}>
                 <BaseSelectionListItemRenderer
                     ListItem={ListItem}
-                    item={{
-                        shouldAnimateInHighlight: isItemHighlighted,
-                        isSelected: selected,
-                        ...item,
-                    }}
+                    item={newItem}
                     shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                     index={index}
                     isFocused={isItemFocused}
@@ -671,6 +672,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     singleExecution={singleExecution}
                     titleContainerStyles={listItemTitleContainerStyles}
                     canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
+                    shouldAnimateInHighlight={isItemHighlighted}
                 />
             </View>
         );
