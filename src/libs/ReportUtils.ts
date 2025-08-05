@@ -9818,10 +9818,6 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isRe
         return true;
     }
 
-    if (isMoneyRequestReport(report) && currentUserAccountID !== report?.managerID && currentUserAccountID !== report?.ownerAccountID && !isPolicyAdminPolicyUtils(policy)) {
-        return true;
-    }
-
     if (isPublicRoom(report) && isAnonymousUserSession()) {
         return false;
     }
@@ -11276,10 +11272,6 @@ function getReportStatusTranslation(stateNum?: number, statusNum?: number): stri
     return '';
 }
 
-function reportAttributesSelector(reportAttributes: OnyxEntry<ReportAttributesDerivedValue>) {
-    return reportAttributes?.reports;
-}
-
 export {
     areAllRequestsBeingSmartScanned,
     buildOptimisticAddCommentReportAction,
@@ -11660,7 +11652,6 @@ export {
     isWorkspaceTaskReport,
     isWorkspaceThread,
     getReportStatusTranslation,
-    reportAttributesSelector,
 };
 
 export type {
