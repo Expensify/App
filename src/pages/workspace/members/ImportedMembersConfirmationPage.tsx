@@ -7,9 +7,9 @@ import ConfirmModal from '@components/ConfirmModal';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import MultipleAvatars from '@components/MultipleAvatars';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useCloseImportPage from '@hooks/useCloseImportPage';
@@ -23,7 +23,6 @@ import {importPolicyMembers} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {isPolicyMember} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -67,8 +66,6 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [importedSpreadsheetMemberData, personalDetails]);
-
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
 
     /** Opens privacy url as an external link */
     const openPrivacyURL = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
@@ -140,12 +137,13 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             />
             <View style={styles.ph5}>
                 <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                    <MultipleAvatars
+                    <ReportActionAvatars
                         size={CONST.AVATAR_SIZE.LARGE}
-                        icons={getAvatarsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {}, invitedEmailsToAccountIDsDraft ?? {})}
-                        shouldStackHorizontally
-                        shouldDisplayAvatarsInRows
-                        secondAvatarStyle={[styles.secondAvatarInline]}
+                        accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
+                        horizontalStacking={{
+                            displayInRows: true,
+                        }}
+                        secondaryAvatarContainerStyle={[styles.secondAvatarInline]}
                     />
                 </View>
                 <View style={[styles.mb5]}>
