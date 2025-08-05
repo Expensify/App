@@ -448,7 +448,7 @@ const ViolationsUtils = {
             member,
             category,
             rejectedBy = '',
-            rejectReason = '',
+            comment = '',
             formattedLimit = '',
             surcharge = 0,
             invoiceMarkup = 0,
@@ -461,13 +461,15 @@ const ViolationsUtils = {
             errorIndexes = [],
         } = violation.data ?? {};
 
+        console.log('Violations', violation.data);
+
         switch (violation.name) {
             case 'allTagLevelsRequired':
                 return translate('violations.allTagLevelsRequired');
             case 'autoReportedRejectedExpense':
                 return translate('violations.autoReportedRejectedExpense', {
                     rejectedBy,
-                    rejectReason,
+                    comment,
                 });
             case 'billableExpense':
                 return translate('violations.billableExpense');

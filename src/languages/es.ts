@@ -6907,7 +6907,7 @@ const translations = {
     },
     violations: {
         allTagLevelsRequired: 'Todas las etiquetas son obligatorias',
-        autoReportedRejectedExpense: ({rejectedBy, rejectReason}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rechazó la solicitud y comentó "${rejectReason}"`,
+        autoReportedRejectedExpense: ({rejectedBy, comment}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rechazó la solicitud y comentó "${comment}"`,
         billableExpense: 'La opción facturable ya no es válida',
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Recibo obligatorio para cantidades mayores de ${formattedLimit}`,
         categoryOutOfPolicy: 'La categoría ya no es válida',
