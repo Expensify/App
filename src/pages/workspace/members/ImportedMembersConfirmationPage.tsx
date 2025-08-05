@@ -133,7 +133,6 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                 onBackButtonPress={() => {
                     Navigation.goBack();
                 }}
-                // onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
             />
             <View style={styles.ph5}>
                 <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
