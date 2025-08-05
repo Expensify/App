@@ -1053,7 +1053,6 @@ const CONST = {
         SHUTTER_SIZE: 90,
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
     },
-    RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
         ROLE: {
             ADMIN: 'admin',
@@ -1528,8 +1527,6 @@ const CONST = {
         SEARCH_MOST_RECENT_OPTIONS: 'search_most_recent_options',
         DEBOUNCE_HANDLE_SEARCH: 'debounce_handle_search',
         FAST_SEARCH_TREE_CREATION: 'fast_search_tree_creation',
-        SHOW_HOVER_PREVIEW_DELAY: 270,
-        SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 200,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
