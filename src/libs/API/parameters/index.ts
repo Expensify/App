@@ -76,6 +76,7 @@ export type {default as SignInWithSupportAuthTokenParams} from './SignInWithSupp
 export type {default as UnlinkLoginParams} from './UnlinkLoginParams';
 export type {default as UpdateAutomaticTimezoneParams} from './UpdateAutomaticTimezoneParams';
 export type {default as UpdateChatPriorityModeParams} from './UpdateChatPriorityModeParams';
+export type {default as DuplicateWorkspaceParams} from './DuplicateWorkspaceParams';
 export type {default as UpdateDateOfBirthParams} from './UpdateDateOfBirthParams';
 export type {default as UpdateDisplayNameParams} from './UpdateDisplayNameParams';
 export type {default as UpdateChatNameParams} from './UpdateChatNameParams';

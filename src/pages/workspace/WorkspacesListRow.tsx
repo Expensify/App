@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
@@ -16,6 +17,7 @@ import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
+import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -23,9 +25,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserUtils';
-import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {AnchorPosition} from '@src/styles';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
@@ -75,6 +77,9 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     /** Whether the bill is loading */
     isLoadingBill?: boolean;
 
+    /** Whether the list item is highlighted */
+    shouldAnimateInHighlight?: boolean;
+
     /** Function to reset loading spinner icon index */
     resetLoadingSpinnerIconIndex?: () => void;
 };
@@ -117,6 +122,7 @@ function WorkspacesListRow({
     rowStyles,
     style,
     brickRoadIndicator,
+    shouldAnimateInHighlight,
     shouldDisableThreeDotsMenu,
     isJoinRequestPending,
     policyID,
@@ -128,9 +134,16 @@ function WorkspacesListRow({
     const {translate} = useLocalize();
     const threeDotsMenuContainerRef = useRef<View>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const theme = useTheme();
 
     const ownerDetails = ownerAccountID && getPersonalDetailsByIDs({accountIDs: [ownerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        borderRadius: variables.componentBorderRadius,
+        shouldHighlight: !!shouldAnimateInHighlight,
+        highlightColor: theme.messageHighlightBG,
+        backgroundColor: theme.highlightBG,
+    });
 
     useEffect(() => {
         if (isLoadingBill) {
@@ -218,7 +231,7 @@ function WorkspacesListRow({
     );
 
     return (
-        <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, isWide && styles.gap5, styles.br3, styles.p5]}>
+        <Animated.View style={[styles.flexRow, styles.highlightBG, rowStyles, style, isWide && styles.gap5, styles.br3, styles.p5, animatedHighlightStyle]}>
             <View style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}>
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex2, isNarrow && styles.mb3, styles.alignItemsCenter]}>
                     <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
@@ -291,7 +304,7 @@ function WorkspacesListRow({
             </View>
 
             {!shouldUseNarrowLayout && ThreeDotMenuOrPendingIcon}
-        </View>
+        </Animated.View>
     );
 }
 

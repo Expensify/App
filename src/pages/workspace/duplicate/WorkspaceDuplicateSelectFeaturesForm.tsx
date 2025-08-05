@@ -13,7 +13,14 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getAllValidConnectedIntegration, getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
+import Navigation from '@navigation/Navigation';
+import {openPolicyCategoriesPage} from '@userActions/Policy/Category';
+import {openPolicyDistanceRatesPage} from '@userActions/Policy/DistanceRate';
 import {openWorkspaceMembersPage} from '@userActions/Policy/Member';
+import {openPolicyPerDiemPage} from '@userActions/Policy/PerDiem';
+import {duplicateWorkspace as duplicateWorkspaceAction, openPolicyTaxesPage, openPolicyWorkflowsPage} from '@userActions/Policy/Policy';
+import {openPolicyReportFieldsPage} from '@userActions/Policy/ReportField';
+import {openPolicyTagsPage} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Rate} from '@src/types/onyx/Policy';
@@ -53,7 +60,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const invoiceCompany =
         policy?.invoice?.companyName && policy?.invoice?.companyWebsite
             ? `${policy?.invoice?.companyName}, ${policy?.invoice?.companyWebsite}`
-            : (policy?.invoice?.companyName ?? policy?.invoice?.companyWebsite);
+            : (policy?.invoice?.companyName ?? policy?.invoice?.companyWebsite ?? '');
 
     const [street1, street2] = (policy?.address?.addressStreet ?? '').split('\n');
     const formattedAddress =
@@ -103,11 +110,13 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                       alternateText: totalTags ? `${totalTags} ${translate('workspace.common.tags').toLowerCase()}` : undefined,
                   }
                 : undefined,
-            {
-                translation: translate('workspace.common.categories'),
-                value: 'categories',
-                alternateText: categoriesCount ? `${categoriesCount} ${translate('workspace.duplicateWorkspace.categories').toLowerCase()}` : undefined,
-            },
+            categoriesCount > 0
+                ? {
+                      translation: translate('workspace.common.categories'),
+                      value: 'categories',
+                      alternateText: categoriesCount ? `${categoriesCount} ${translate('workspace.duplicateWorkspace.categories').toLowerCase()}` : undefined,
+                  }
+                : undefined,
             taxesLength > 0
                 ? {
                       translation: translate('workspace.common.taxes'),
@@ -131,11 +140,13 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                           : undefined,
                   }
                 : undefined,
-            {
-                translation: translate('workspace.common.distanceRates'),
-                value: 'distanceRates',
-                alternateText: ratesCount ? `${ratesCount} ${translate('iou.rates').toLowerCase()}` : undefined,
-            },
+            ratesCount > 0
+                ? {
+                      translation: translate('workspace.common.distanceRates'),
+                      value: 'distanceRates',
+                      alternateText: ratesCount ? `${ratesCount} ${translate('iou.rates').toLowerCase()}` : undefined,
+                  }
+                : undefined,
             allRates > 0
                 ? {
                       translation: translate('workspace.common.perDiem'),
@@ -143,11 +154,14 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                       alternateText: allRates ? `${allRates}${translate('workspace.common.perDiem').toLowerCase()}` : undefined,
                   }
                 : undefined,
-            {
-                translation: translate('workspace.common.invoices'),
-                value: 'invoices',
-                alternateText: bankAccountList ? `${Object.keys(bankAccountList).length} ${translate('common.bankAccounts').toLowerCase()}, ${invoiceCompany}` : invoiceCompany,
-            },
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            (bankAccountList && Object.keys(bankAccountList).length) || !!invoiceCompany
+                ? {
+                      translation: translate('workspace.common.invoices'),
+                      value: 'invoices',
+                      alternateText: bankAccountList ? `${Object.keys(bankAccountList).length} ${translate('common.bankAccounts').toLowerCase()}, ${invoiceCompany}` : invoiceCompany,
+                  }
+                : undefined,
         ];
 
         return result.filter((item): item is NonNullable<typeof item> => item !== undefined);
@@ -176,16 +190,46 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         }));
     }, [items, selectedItems]);
 
-    const getWorkspaceMembers = useCallback(() => {
+    const fetchWorkspaceRelatedData = useCallback(() => {
         if (!policyID) {
             return;
         }
         openWorkspaceMembersPage(policyID, Object.keys(allIds ?? {}));
+        openPolicyCategoriesPage(policyID);
+        openPolicyDistanceRatesPage(policyID);
+        openPolicyPerDiemPage(policyID);
+        openPolicyReportFieldsPage(policyID);
+        openPolicyTagsPage(policyID);
+        openPolicyTaxesPage(policyID);
+        openPolicyWorkflowsPage(policyID);
     }, [policyID, allIds]);
 
     const confirmDuplicateAndHideModal = useCallback(() => {
         setIsDuplicateModalOpen(false);
-    }, []);
+        if (!policy || !duplicateWorkspace?.name || !duplicateWorkspace?.policyID) {
+            return;
+        }
+        duplicateWorkspaceAction(policy, {
+            policyName: duplicateWorkspace.name,
+            policyID: duplicateWorkspace.policyID,
+            welcomeNote: `${translate('workspace.duplicateWorkspace.welcomeNote')} ${duplicateWorkspace.name}`,
+            parts: {
+                people: selectedItems.includes('members'),
+                reports: selectedItems.includes('reports'),
+                connections: selectedItems.includes('accounting'),
+                categories: selectedItems.includes('categories'),
+                tags: selectedItems.includes('tags'),
+                taxes: selectedItems.includes('taxes'),
+                reimbursements: selectedItems.includes('invoices'),
+                expenses: selectedItems.includes('reports'),
+                customUnits: selectedItems.includes('distanceRates'),
+                invoices: selectedItems.includes('invoices'),
+                exportLayouts: selectedItems.includes('workflows'),
+            },
+            file: duplicateWorkspace?.file,
+        });
+        Navigation.closeRHPFlow();
+    }, [duplicateWorkspace?.file, duplicateWorkspace?.name, duplicateWorkspace?.policyID, policy, selectedItems, translate]);
 
     const updateSelectedItems = useCallback(
         (listItem: ListItem) => {
@@ -220,8 +264,10 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     );
 
     useEffect(() => {
-        getWorkspaceMembers();
-    }, [getWorkspaceMembers]);
+        fetchWorkspaceRelatedData();
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <>

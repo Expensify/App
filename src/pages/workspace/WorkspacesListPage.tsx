@@ -264,6 +264,7 @@ function WorkspacesListPage() {
                                 workspaceIcon={item.icon}
                                 ownerAccountID={item.ownerAccountID}
                                 workspaceType={item.type}
+                                shouldAnimateInHighlight={item.shouldAnimateInHighlight}
                                 isJoinRequestPending={item?.isJoinRequestPending}
                                 rowStyles={hovered && styles.hoveredComponentBG}
                                 layoutWidth={isLessThanMediumScreen ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}

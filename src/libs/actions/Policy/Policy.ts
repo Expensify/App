@@ -15,6 +15,7 @@ import type {
     DeleteWorkspaceParams,
     DisablePolicyBillableModeParams,
     DowngradeToTeamParams,
+    DuplicateWorkspaceParams,
     EnablePolicyAutoApprovalOptionsParams,
     EnablePolicyAutoReimbursementLimitParams,
     EnablePolicyCompanyCardsParams,
@@ -75,7 +76,7 @@ import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
+import {getMemberAccountIDsForWorkspace, goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
@@ -157,6 +158,14 @@ type BuildPolicyDataOptions = {
     userReportedIntegration?: OnboardingAccounting;
     featuresMap?: Feature[];
     lastUsedPaymentMethod?: LastPaymentMethodType;
+};
+
+type DuplicatePolicyDataOptions = {
+    policyName: string;
+    policyID?: string;
+    welcomeNote: string;
+    parts: Record<string, boolean>;
+    file?: File;
 };
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -2461,6 +2470,261 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
     };
 
     Onyx.update(optimisticData);
+
+    return params;
+}
+
+function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOptions) {
+    const {policyName = '', policyID = generatePolicyID(), file, welcomeNote, parts} = options;
+    const {customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(policy?.outputCurrency);
+
+    const {
+        adminsChatReportID,
+        adminsChatData,
+        adminsReportActionData,
+        adminsCreatedReportActionID,
+        expenseChatReportID,
+        expenseChatData,
+        expenseReportActionData,
+        expenseCreatedReportActionID,
+        pendingChatMembers,
+    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, policyName);
+    const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
+
+    const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(policyID, [...policyMemberAccountIDs]);
+    const announceRoomChat = optimisticAnnounceChat.announceChatData;
+
+    const optimisticCategoriesData = buildOptimisticPolicyCategories(policyID, Object.values(CONST.POLICY.DEFAULT_CATEGORIES));
+
+    // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                ...policy,
+                id: policyID,
+                name: policyName,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                pendingFields: {
+                    autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    outputCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    address: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                avatarURL: file?.uri,
+                originalFileName: file?.name,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseChatReportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                ...adminsChatData,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminsChatReportID}`,
+            value: {
+                pendingChatMembers,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+            value: adminsReportActionData,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                ...expenseChatData,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+            value: expenseReportActionData,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${expenseChatReportID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${adminsChatReportID}`,
+            value: null,
+        },
+        ...announceRoomChat.onyxOptimisticData,
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingAction: null,
+                pendingFields: {
+                    autoReporting: null,
+                    approvalMode: null,
+                    reimbursementChoice: null,
+                    name: null,
+                    outputCurrency: null,
+                    address: null,
+                    description: null,
+                    type: null,
+                    areReportFieldsEnabled: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: null,
+                },
+                pendingAction: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminsChatReportID}`,
+            value: {
+                isOptimisticReport: false,
+                pendingChatMembers: [],
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+            value: {
+                [adminsCreatedReportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: null,
+                },
+                pendingAction: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseChatReportID}`,
+            value: {
+                isOptimisticReport: false,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+            value: {
+                [expenseCreatedReportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+        ...announceRoomChat.onyxSuccessData,
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {employeeList: null},
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+            value: null,
+        },
+        ...announceRoomChat.onyxFailureData,
+    ];
+
+    if (optimisticCategoriesData.optimisticData) {
+        optimisticData.push(...optimisticCategoriesData.optimisticData);
+    }
+
+    if (optimisticCategoriesData.failureData) {
+        failureData.push(...optimisticCategoriesData.failureData);
+    }
+
+    if (optimisticCategoriesData.successData) {
+        successData.push(...optimisticCategoriesData.successData);
+    }
+
+    // We need to clone the file to prevent non-indexable errors.
+    const clonedFile = file ? createFile(file) : undefined;
+
+    const params: DuplicateWorkspaceParams = {
+        policyID: policy.id,
+        adminsChatReportID,
+        expenseChatReportID,
+        policyName,
+        adminsCreatedReportActionID,
+        expenseCreatedReportActionID,
+        announceChatReportID: optimisticAnnounceChat.announceChatReportID,
+        announceChatReportActionID: optimisticAnnounceChat.announceChatReportActionID,
+        customUnitID,
+        parts,
+        welcomeNote,
+        customUnitRateID,
+        file: clonedFile,
+    };
+
+    return {successData, optimisticData, failureData, params};
+}
+
+function duplicateWorkspace(policy: Policy, options: DuplicatePolicyDataOptions): DuplicateWorkspaceParams {
+    const {optimisticData, failureData, successData, params} = buildDuplicatePolicyData(policy, options);
+
+    API.write(WRITE_COMMANDS.DUPLICATE_POLICY, params, {optimisticData, successData, failureData});
 
     return params;
 }
@@ -5697,6 +5961,7 @@ export {
     clearBillingReceiptDetailsErrors,
     clearQuickbooksOnlineAutoSyncErrorField,
     setIsForcedToChangeCurrency,
+    duplicateWorkspace,
     setIsComingFromGlobalReimbursementsFlow,
     setPolicyAttendeeTrackingEnabled,
     updateInterestedFeatures,

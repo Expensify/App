@@ -4859,6 +4859,7 @@ const translations = {
             categories: 'categories and your auto-categorization rules',
             reimbursementAccount: 'reimbursement account',
             delayedSubmission: 'delayed submission',
+            welcomeNote: 'Please start using my new workspace',
             confirmTitle: ({newWorkspaceName, oldWorkspaceName, totalMembers}: {newWorkspaceName?: string; oldWorkspaceName?: string; totalMembers?: number}) =>
                 `You are about to share ${newWorkspaceName ?? ''} this with the ${totalMembers ?? 0} people who have ${oldWorkspaceName ?? ''} shared with them. Please be aware that each of these people will receive a notification informing them that they are now on the ${newWorkspaceName ?? ''}.`,
         },
