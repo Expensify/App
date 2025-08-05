@@ -70,7 +70,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {selectedTransactions, setExportMode, isExportMode, shouldShowExportModeOption, shouldShowFiltersBarLoading} = useSearchContext();
+    const {selectedTransactions, selectAllMatchingItems, areAllMatchingItemsSelected, showSelectAllMatchingItems, shouldShowFiltersBarLoading} = useSearchContext();
 
     const [email] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (onyxSession) => onyxSession?.email});
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
@@ -425,7 +425,9 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         return <SearchFiltersSkeleton shouldAnimate />;
     }
 
-    const selectionButtonText = isExportMode ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: selectedTransactionsKeys.length});
+    const selectionButtonText = areAllMatchingItemsSelected
+        ? translate('search.exportAll.allMatchingItemsSelected')
+        : translate('workspace.common.selected', {count: selectedTransactionsKeys.length});
 
     return (
         <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchFiltersBarContainer]}>
@@ -444,13 +446,13 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                         }}
                         popoverHorizontalOffsetType={CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT}
                     />
-                    {!isExportMode && shouldShowExportModeOption && (
+                    {!areAllMatchingItemsSelected && showSelectAllMatchingItems && (
                         <Button
                             link
                             small
                             shouldUseDefaultHover={false}
                             innerStyles={styles.p0}
-                            onPress={() => setExportMode(true)}
+                            onPress={() => selectAllMatchingItems(true)}
                             text={translate('search.exportAll.selectAllMatchingItems')}
                         />
                     )}

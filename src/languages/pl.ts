@@ -566,7 +566,6 @@ const translations = {
         userID: 'ID użytkownika',
         disable: 'Wyłącz',
         export: 'Eksportuj',
-        basicExport: 'Eksport podstawowy',
         initialValue: 'Wartość początkowa',
         currentDate: 'Aktualna data',
         value: 'Wartość',
@@ -7026,6 +7025,13 @@ const translations = {
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} zaprosił Cię do wypróbowania Expensify\nHej! Właśnie zdobyłem dla nas *3 miesiące za darmo*, aby wypróbować Expensify, najszybszy sposób na rozliczanie wydatków.\n\nOto *przykładowy paragon*, aby pokazać Ci, jak to działa:`,
+    },
+    export: {
+        basicExport: 'Eksport podstawowy',
+        reportLevelExport: 'Wszystkie dane - poziom raportu',
+        expenseLevelExport: 'Wszystkie dane - poziom wydatków',
+        exportInProgress: 'Trwa eksport',
+        conciergeWillSend: 'Concierge wkrótce prześle plik.',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

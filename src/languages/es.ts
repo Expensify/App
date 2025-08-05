@@ -550,7 +550,6 @@ const translations = {
         userID: 'Usuario ID',
         disable: 'Deshabilitar',
         export: 'Exportar',
-        basicExport: 'Exportar básico',
         initialValue: 'Valor inicial',
         currentDate: 'Fecha actual',
         value: 'Valor',
@@ -7492,6 +7491,13 @@ const translations = {
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} te invitó a probar Expensify\n\n¡Hola! Acabo de conseguirnos *3 meses gratis* para probar Expensify, la forma más rápida de gestionar gastos.\n\nAquí tienes un *recibo de prueba* para mostrarte cómo funciona:`,
+    },
+    export: {
+        basicExport: 'Exportar básico',
+        reportLevelExport: 'Todos los datos - a nivel de informe',
+        expenseLevelExport: 'Todos los datos - a nivel de gasto',
+        exportInProgress: 'Exportación en curso',
+        conciergeWillSend: 'Concierge te enviará el archivo en breve.',
     },
 };
 

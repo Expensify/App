@@ -7039,6 +7039,13 @@ const translations = {
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} convidou você para experimentar o Expensify\nEi! Acabei de conseguir *3 meses grátis* para testarmos o Expensify, a maneira mais rápida de lidar com despesas.\n\nAqui está um *recibo de teste* para mostrar como funciona:`,
     },
+    export: {
+        basicExport: 'Exportação básica',
+        reportLevelExport: 'Todos os dados - nível de relatório',
+        expenseLevelExport: 'Todos os dados - nível de despesa',
+        exportInProgress: 'Exportação em andamento',
+        conciergeWillSend: 'Concierge enviará o arquivo em breve.',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

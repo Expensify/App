@@ -1431,10 +1431,16 @@ const CONST = {
             EXPORT_TO_INTEGRATION: 'exportToIntegration',
             MARK_AS_EXPORTED: 'markAsExported',
             DOWNLOAD_CSV: 'downloadCSV',
+            REPORT_LEVEL_EXPORT: 'report_level_export',
+            EXPENSE_LEVEL_EXPORT: 'detailed_export',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
         },
+    },
+    EXPORT_TEMPLATE_TYPES: {
+        INTEGRATIONS: 'integrations',
+        IN_APP: 'in-app',
     },
     NEXT_STEP: {
         ICONS: {

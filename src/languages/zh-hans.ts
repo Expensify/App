@@ -566,7 +566,6 @@ const translations = {
         userID: '用户 ID',
         disable: '禁用',
         export: '导出',
-        basicExport: '基本导出',
         initialValue: '初始值',
         currentDate: '当前日期',
         value: '值',
@@ -6906,6 +6905,13 @@ const translations = {
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name}邀请你试用Expensify\n嘿！我刚为我们获得了*3个月免费*试用Expensify，这是处理费用的最快方式。\n\n这里有一个*测试收据*来向你展示它的工作原理：`,
+    },
+    export: {
+        basicExport: '基本导出',
+        reportLevelExport: '所有数据 - 报告级别',
+        expenseLevelExport: '所有数据 - 费用级别',
+        exportInProgress: '正在导出',
+        conciergeWillSend: 'Concierge 很快会将文件发送给您。',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
