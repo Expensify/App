@@ -1,9 +1,8 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {Pressable} from 'react-native';
-import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -38,9 +37,9 @@ function GenericPressable(
         fullDisabled = false,
         interactive = true,
         isNested = false,
+        ref,
         ...rest
     }: PressableProps,
-    ref: PressableRef,
 ) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -200,4 +199,4 @@ function GenericPressable(
 
 GenericPressable.displayName = 'GenericPressable';
 
-export default forwardRef(GenericPressable);
+export default GenericPressable;
