@@ -190,3 +190,5 @@ function SearchTableHeader({
 SearchTableHeader.displayName = 'SearchTableHeader';
 
 export default SearchTableHeader;
+
+export {expenseHeaders}

@@ -29,19 +29,10 @@ import variables from '@styles/variables';
 import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import {expenseHeaders} from '../SearchTableHeader';
 import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
-
-const missingColumns = [
-    CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
-    CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
-    CONST.SEARCH.TABLE_COLUMNS.FROM,
-    CONST.SEARCH.TABLE_COLUMNS.TO,
-    CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
-    CONST.SEARCH.TABLE_COLUMNS.TAG,
-    CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
-];
 
 function TransactionGroupListItem<TItem extends ListItem>({
     item,
@@ -148,7 +139,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
     }, [item, onLongPressRow]);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
-    const isAllOptionalColumnsHidden = missingColumns.every((column) => !columns?.includes(column));
+    const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
+    const isAllOptionalColumnsHidden = canBeMissingColumns.every((column) => !columns?.includes(column));
 
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>

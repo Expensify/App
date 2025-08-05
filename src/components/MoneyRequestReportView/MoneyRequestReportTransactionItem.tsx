@@ -5,6 +5,7 @@ import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {TableColumnSize} from '@components/Search/types';
+import {expenseHeaders} from '@components/SelectionList/SearchTableHeader';
 import type {SortableColumnName} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -58,17 +59,6 @@ type MoneyRequestReportTransactionItemProps = {
     scrollToNewTransaction?: (offset: number) => void;
 };
 
-const missingColumns = [
-    CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
-    CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
-    CONST.SEARCH.TABLE_COLUMNS.FROM,
-    CONST.SEARCH.TABLE_COLUMNS.TO,
-    CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
-    CONST.SEARCH.TABLE_COLUMNS.TAG,
-    CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
-];
-
-
 function MoneyRequestReportTransactionItem({
     transaction,
     columns,
@@ -109,8 +99,8 @@ function MoneyRequestReportTransactionItem({
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
     });
-
-    const isAllOptionalColumnsHidden = missingColumns.every((column) => !columns.includes(column as SortableColumnName));
+    const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
+    const isAllOptionalColumnsHidden = canBeMissingColumns.every((column) => !columns.includes(column as SortableColumnName));
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>

@@ -19,17 +19,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
+import {expenseHeaders} from '../SearchTableHeader';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
-
-const missingColumns = [
-    CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
-    CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
-    CONST.SEARCH.TABLE_COLUMNS.FROM,
-    CONST.SEARCH.TABLE_COLUMNS.TO,
-    CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
-    CONST.SEARCH.TABLE_COLUMNS.TAG,
-    CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
-];
 
 function TransactionListItem<TItem extends ListItem>({
     item,
@@ -112,8 +103,8 @@ function TransactionListItem<TItem extends ListItem>({
     const pressableRef = useRef<View>(null);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
-
-    const isAllOptionalColumnsHidden = missingColumns.every((column) => !columns?.includes(column));
+    const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
+    const isAllOptionalColumnsHidden = canBeMissingColumns.every((column) => !columns?.includes(column));
 
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
