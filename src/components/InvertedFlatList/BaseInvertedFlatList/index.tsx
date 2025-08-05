@@ -1,6 +1,6 @@
-import type {ForwardedRef, PropsWithChildren} from 'react';
+import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList, ScrollViewProps} from 'react-native';
+import type {CellRendererProps, FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList, ScrollViewProps} from 'react-native';
 import KeyboardDismissableFlatList from '@components/KeyboardDismissableFlatList';
 import usePrevious from '@hooks/usePrevious';
 import getInitialPaginationSize from './getInitialPaginationSize';
@@ -24,7 +24,7 @@ type BaseInvertedFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'renderItem'
     data: T[];
     renderItem: ListRenderItem<T>;
     initialScrollKey?: string | null;
-    CellRendererComponent?: React.FC<PropsWithChildren>;
+    CellRendererComponent?: React.ComponentType<CellRendererProps<T>> | null;
 };
 
 const AUTOSCROLL_TO_TOP_THRESHOLD = 250;
