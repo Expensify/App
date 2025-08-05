@@ -1,4 +1,5 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -199,13 +200,13 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                         return;
                     }
                     Navigation.dismissModal();
-
-                    if (report && isIOUReport(report)) {
-                        convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID);
-                    } else {
-                        changeTransactionsReport([...selectedIds], report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID, policy);
-                    }
-
+                    InteractionManager.runAfterInteractions(() => {
+                        if (report && isIOUReport(report)) {
+                            convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID);
+                        } else {
+                            changeTransactionsReport([...selectedIds], report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID, policy);
+                        }
+                    });
                     setErrorMessage('');
                 }}
                 onEndReached={fetchMoreUnreportedTransactions}

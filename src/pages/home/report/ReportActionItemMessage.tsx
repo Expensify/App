@@ -7,6 +7,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     getLinkedTransactionID,
@@ -50,7 +51,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getLinkedTransactionID(action)}`, {canBeMissing: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(getLinkedTransactionID(action))}`, {canBeMissing: true});
 
     const fragments = getReportActionMessageFragments(action);
     const isIOUReport = isMoneyRequestAction(action);
@@ -91,7 +92,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
         const originalMessage = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? getOriginalMessage(action) : null;
         const iouReportID = originalMessage?.IOUReportID;
         if (iouReportID) {
-            iouMessage = getIOUReportActionDisplayMessage(action, transaction);
+            iouMessage = getIOUReportActionDisplayMessage(action, transaction, report);
         }
     }
 
@@ -156,7 +157,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                         <Button
                             style={[styles.mt2, styles.alignSelfStart]}
                             success
-                            text={translate('workspace.invoices.paymentMethods.addBankAccount')}
+                            text={translate('bankAccount.addBankAccount')}
                             onPress={openWorkspaceInvoicesPage}
                         />
                     )}
