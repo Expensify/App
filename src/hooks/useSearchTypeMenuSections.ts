@@ -23,6 +23,8 @@ const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         employeeList: policy.employeeList,
         reimbursementChoice: policy.reimbursementChoice,
         areCompanyCardsEnabled: policy.areCompanyCardsEnabled,
+        areExpensifyCardsEnabled: policy.areExpensifyCardsEnabled,
+        achAccount: policy.achAccount,
     };
 
 /**

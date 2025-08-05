@@ -406,9 +406,9 @@ function getSuggestedSearchesVisibility(
         const isApprover = policy.approver === currentUserEmail;
         const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
         const isPaymentEnabled = arePaymentsEnabled(policy);
-        const hasVBBA = !!policy?.achAccount?.bankAccountID;
-        const hasReimburser = !!policy?.achAccount?.reimburser;
-        const isECardEnabled = !!policy?.areExpensifyCardsEnabled;
+        const hasVBBA = !!policy.achAccount?.bankAccountID;
+        const hasReimburser = !!policy.achAccount?.reimburser;
+        const isECardEnabled = !!policy.areExpensifyCardsEnabled;
         const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
             return employee.submitsTo === currentUserEmail || employee.forwardsTo === currentUserEmail;
         });
@@ -420,7 +420,7 @@ function getSuggestedSearchesVisibility(
         const isEligibleForStatementsSuggestion = isPaidPolicy && !!policy.areCompanyCardsEnabled && cardFeedsByPolicy[policy.id]?.length > 0;
         const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && isPaymentEnabled;
         const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && cardFeedsByPolicy[policy.id]?.length > 0;
-        const isEligibleForReconciliationSuggestion = isPaidPolicy && isAdmin && ((isPaymentEnabled && hasReimburser && hasVBBA) || isECardEnabled)
+        const isEligibleForReconciliationSuggestion = isPaidPolicy && isAdmin && ((isPaymentEnabled && hasReimburser && hasVBBA) || isECardEnabled);
 
         shouldShowSubmitSuggestion ||= isEligibleForSubmitSuggestion;
         shouldShowPaySuggestion ||= isEligibleForPaySuggestion;
