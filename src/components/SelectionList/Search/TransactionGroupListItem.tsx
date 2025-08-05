@@ -5,6 +5,7 @@ import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchGroupBy} from '@components/Search/types';
+import {expenseHeaders} from '@components/SelectionList/SearchTableHeader';
 import type {
     ListItem,
     TransactionCardGroupListItemType,
@@ -29,7 +30,6 @@ import variables from '@styles/variables';
 import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import {expenseHeaders} from '../SearchTableHeader';
 import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
