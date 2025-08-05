@@ -736,7 +736,6 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
     const shouldShowTo = metadata?.columnsToShow?.shouldShowToColumn;
     const shouldShowFrom = metadata?.columnsToShow?.shouldShowFromColumn;
     const shouldShowDescription = metadata?.columnsToShow?.shouldShowDescriptionColumn;
-    const isAllOptionalColumnsHidden = !shouldShowCategory && !shouldShowTag && !shouldShowTax && !shouldShowTo && !shouldShowFrom && !shouldShowDescription;
 
     // Pre-filter transaction keys to avoid repeated checks
     const transactionKeys = Object.keys(data).filter(isTransactionEntry);
@@ -776,7 +775,6 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             shouldShowTo,
             shouldShowFrom,
             shouldShowDescription,
-            isAllOptionalColumnsHidden: isAllOptionalColumnsHidden && !!transactionItem.managerID && transactionItem.managerID !== currentAccountID,
             keyForList: transactionItem.transactionID,
             shouldShowYear: doesDataContainAPastYearTransaction,
             isAmountColumnWide: shouldShowAmountInWideColumn,
@@ -1200,14 +1198,6 @@ function getReportSections(
             const to = transactionItem.managerID && !shouldShowBlankTo ? (data.personalDetailsList?.[transactionItem.managerID] ?? emptyPersonalDetails) : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
-            const shouldShowDescription = metadata?.columnsToShow?.shouldShowDescriptionColumn;
-            const shouldShowFrom = metadata?.columnsToShow?.shouldShowFromColumn;
-            const shouldShowTo = metadata?.columnsToShow?.shouldShowToColumn;
-            const shouldShowCategory = metadata?.columnsToShow?.shouldShowCategoryColumn;
-            const shouldShowTag = metadata?.columnsToShow?.shouldShowTagColumn;
-            const shouldShowTax = metadata?.columnsToShow?.shouldShowTaxColumn;
-
-            const isAllOptionalColumnsHidden = !shouldShowCategory && !shouldShowTag && !shouldShowTax && !shouldShowTo && !shouldShowFrom && !shouldShowDescription;
 
             const transaction = {
                 ...transactionItem,
@@ -1221,13 +1211,12 @@ function getReportSections(
                 formattedMerchant,
                 date,
                 shouldShowMerchant,
-                shouldShowCategory,
-                shouldShowTag,
-                shouldShowTax,
-                shouldShowTo,
-                shouldShowFrom,
-                shouldShowDescription,
-                isAllOptionalColumnsHidden: isAllOptionalColumnsHidden && !!transactionItem.managerID && transactionItem.managerID !== currentAccountID,
+                shouldShowDescription: metadata?.columnsToShow.shouldShowDescriptionColumn,
+                shouldShowFrom: metadata?.columnsToShow.shouldShowFromColumn,
+                shouldShowTo: metadata?.columnsToShow.shouldShowToColumn,
+                shouldShowCategory: metadata?.columnsToShow?.shouldShowCategoryColumn,
+                shouldShowTag: metadata?.columnsToShow?.shouldShowTagColumn,
+                shouldShowTax: metadata?.columnsToShow?.shouldShowTaxColumn,
                 keyForList: transactionItem.transactionID,
                 shouldShowYear: doesDataContainAPastYearTransaction,
                 violations: transactionViolations,
