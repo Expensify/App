@@ -8956,9 +8956,6 @@ function getPayMoneyRequestParams(
     paymentMethodType: PaymentMethodType,
     full: boolean,
     payAsBusiness?: boolean,
-    bankAccountID?: number,
-    paymentPolicyID?: string | undefined,
-    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
 ): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -9025,8 +9022,6 @@ function getPayMoneyRequestParams(
         paymentType: paymentMethodType,
         iouReportID: iouReport?.reportID,
         isSettlingUp: true,
-        payAsBusiness,
-        bankAccountID,
     });
 
     // In some instances, the report preview action might not be available to the payer (only whispered to the requestor)
@@ -9100,23 +9095,12 @@ function getPayMoneyRequestParams(
     );
 
     if (iouReport?.policyID) {
-        const prevLastUsedPaymentMethod = lastUsedPaymentMethod?.lastUsed?.name;
-        const usedPaymentOption = paymentPolicyID ?? paymentMethodType;
-
-        const optimisticLastPaymentMethod = {
-            [iouReport.policyID]: {
-                ...(iouReport.type ? {[iouReport.type]: {name: usedPaymentOption}} : {}),
-                ...(isInvoiceReport ? {invoice: {name: paymentMethodType, bankAccountID}} : {}),
-                lastUsed: {
-                    name: prevLastUsedPaymentMethod !== usedPaymentOption && !!prevLastUsedPaymentMethod ? prevLastUsedPaymentMethod : usedPaymentOption,
-                },
-            },
-        };
-
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-            value: optimisticLastPaymentMethod,
+            value: {
+                [iouReport.policyID]: paymentMethodType,
+            },
         });
     }
 
@@ -10366,7 +10350,7 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
         wasInvited: true,
     });
 }
-function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxEntry<OnyxTypes.Report>, paymentPolicyID?: string, full = true) {
+function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxEntry<OnyxTypes.Report>, full = true) {
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
         return;
@@ -10376,7 +10360,7 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
     completePaymentOnboarding(paymentSelected);
 
     const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
-    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType, full, undefined, undefined, paymentPolicyID);
+    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType, full);
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
     // Expensify Wallets.
@@ -10412,7 +10396,7 @@ function payInvoice(
             ownerEmail,
             policyName,
         },
-    } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true, payAsBusiness, methodID);
+    } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true, payAsBusiness);
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
     completePaymentOnboarding(paymentSelected);
@@ -11177,26 +11161,9 @@ function checkIfScanFileCanBeRead(
     return readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
 
-/** Save the preferred payment method for a policy or personal DM */
-function savePreferredPaymentMethod(
-    policyID: string | undefined,
-    paymentMethod: string,
-    type: ValueOf<typeof CONST.LAST_PAYMENT_METHOD> | undefined,
-    prevPaymentMethod?: OnyxTypes.LastPaymentMethodType | string,
-) {
-    if (!policyID) {
-        return;
-    }
-
-    // to make it easier to revert to the previous last payment method, we will save it to this key
-    Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {
-        [policyID]: type
-            ? {
-                  [type]: {name: paymentMethod},
-                  [CONST.LAST_PAYMENT_METHOD.LAST_USED]: {name: typeof prevPaymentMethod === 'string' ? prevPaymentMethod : (prevPaymentMethod?.lastUsed?.name ?? paymentMethod)},
-              }
-            : paymentMethod,
-    });
+/** Save the preferred payment method for a policy */
+function savePreferredPaymentMethod(policyID: string, paymentMethod: PaymentMethodType, type: ValueOf<typeof CONST.LAST_PAYMENT_METHOD> | undefined) {
+    Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {[policyID]: type ? {[type]: paymentMethod, [CONST.LAST_PAYMENT_METHOD.LAST_USED]: {name: paymentMethod}} : paymentMethod});
 }
 
 /** Get report policy id of IOU request */

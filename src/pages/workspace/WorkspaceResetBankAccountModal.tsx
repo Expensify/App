@@ -40,17 +40,12 @@ function WorkspaceResetBankAccountModal({
 }: WorkspaceResetBankAccountModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const policyID = reimbursementAccount?.achData?.policyID;
     const achData = reimbursementAccount?.achData;
     const isInOpenState = achData?.state === BankAccount.STATE.OPEN;
     const bankAccountID = achData?.bankAccountID;
     const bankShortName = `${achData?.addressName ?? ''} ${(achData?.accountNumber ?? '').slice(-4)}`;
-
-    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
-        canBeMissing: true,
-        selector: (paymentMethods) => (policyID ? (paymentMethods?.[policyID] as OnyxTypes.LastPaymentMethodType) : undefined),
-    });
 
     const handleConfirm = () => {
         if (isNonUSDWorkspace) {
@@ -68,7 +63,7 @@ function WorkspaceResetBankAccountModal({
                 setNonUSDBankAccountStep(null);
             }
         } else {
-            resetUSDBankAccount(bankAccountID, session, policyID, lastPaymentMethod);
+            resetUSDBankAccount(bankAccountID, session, policyID);
 
             if (setShouldShowContinueSetupButton) {
                 setShouldShowContinueSetupButton(false);

@@ -91,8 +91,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     IntroSelected,
     InvitedEmailsToAccountIDs,
-    LastPaymentMethod,
-    LastPaymentMethodType,
     PersonalDetailsList,
     Policy,
     PolicyCategory,
@@ -155,7 +153,6 @@ type BuildPolicyDataOptions = {
     companySize?: OnboardingCompanySize;
     userReportedIntegration?: OnboardingAccounting;
     featuresMap?: Feature[];
-    lastUsedPaymentMethod?: LastPaymentMethodType;
 };
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -343,7 +340,7 @@ function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>>
 /**
  * Delete the workspace
  */
-function deleteWorkspace(policyID: string, policyName: string, lastUsedPaymentMethods?: LastPaymentMethod) {
+function deleteWorkspace(policyID: string, policyName: string) {
     if (!allPolicies) {
         return;
     }
@@ -501,46 +498,6 @@ function deleteWorkspace(policyID: string, policyName: string, lastUsedPaymentMe
                     value: violations,
                 });
             }
-        }
-    });
-
-    Object.keys(lastUsedPaymentMethods ?? {})?.forEach((paymentMethodKey) => {
-        const lastUsedPaymentMethod = lastUsedPaymentMethods?.[paymentMethodKey];
-
-        if (typeof lastUsedPaymentMethod === 'string' || !lastUsedPaymentMethod) {
-            return;
-        }
-
-        if (lastUsedPaymentMethod?.iou?.name === policyID) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-                value: {
-                    [paymentMethodKey]: {
-                        iou: {
-                            name: policyID !== lastUsedPaymentMethod?.lastUsed?.name ? lastUsedPaymentMethod?.lastUsed?.name : '',
-                        },
-                        lastUsed: {
-                            name: policyID !== lastUsedPaymentMethod?.lastUsed?.name ? lastUsedPaymentMethod?.lastUsed?.name : '',
-                        },
-                    },
-                },
-            });
-
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-                value: {
-                    [paymentMethodKey]: {
-                        iou: {
-                            name: lastUsedPaymentMethod?.iou?.name,
-                        },
-                        lastUsed: {
-                            name: lastUsedPaymentMethod?.iou?.name,
-                        },
-                    },
-                },
-            });
         }
     });
 
@@ -1933,7 +1890,6 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         companySize,
         userReportedIntegration,
         featuresMap,
-        lastUsedPaymentMethod,
     } = options;
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
@@ -2236,32 +2192,6 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
 
     if (optimisticCategoriesData.successData) {
         successData.push(...optimisticCategoriesData.successData);
-    }
-
-    if (getAdminPolicies().length === 0 && lastUsedPaymentMethod) {
-        Object.values(allReports ?? {})
-            .filter((iouReport) => iouReport?.type === CONST.REPORT.TYPE.IOU)
-            .forEach((iouReport) => {
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (lastUsedPaymentMethod?.iou?.name || !iouReport?.policyID) {
-                    return;
-                }
-
-                successData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-                    value: {
-                        [iouReport?.policyID]: {
-                            iou: {
-                                name: policyID,
-                            },
-                            lastUsed: {
-                                name: policyID,
-                            },
-                        },
-                    },
-                });
-            });
     }
 
     // We need to clone the file to prevent non-indexable errors.

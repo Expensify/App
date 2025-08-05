@@ -136,7 +136,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const imageStyle: StyleProp<ImageStyle> = shouldUseNarrowLayout ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
     const shouldShowAddress = !readOnly || !!formattedAddress;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
-    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
 
     const fetchPolicyData = useCallback(() => {
         if (policyDraft?.id) {
@@ -183,10 +182,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
 
-        deleteWorkspace(policy.id, policyName, lastPaymentMethod);
+        deleteWorkspace(policy.id, policyName);
         setIsDeleteModalOpen(false);
         goBackFromInvalidPolicy();
-    }, [policy?.id, policyName, lastPaymentMethod]);
+    }, [policy?.id, policyName]);
 
     useEffect(() => {
         if (isLoadingBill) {

@@ -310,19 +310,7 @@ function Button(
         const textComponent = secondLineText ? (
             <View style={[styles.alignItemsCenter, styles.flexColumn, styles.flexShrink1]}>
                 {primaryText}
-                <Text
-                    style={[
-                        isLoading && styles.opacity0,
-                        styles.pointerEventsNone,
-                        styles.fontWeightNormal,
-                        styles.textDoubleDecker,
-                        !!secondLineText && styles.textExtraSmallSupporting,
-                        styles.textWhite,
-                        styles.textBold,
-                    ]}
-                >
-                    {secondLineText}
-                </Text>
+                <Text style={[isLoading && styles.opacity0, styles.pointerEventsNone, styles.fontWeightNormal, styles.textDoubleDecker]}>{secondLineText}</Text>
             </View>
         ) : (
             primaryText
