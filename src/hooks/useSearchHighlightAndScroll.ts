@@ -3,6 +3,7 @@ import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
 import type {SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import useNetwork from '@hooks/useNetwork';
 import {search} from '@libs/actions/Search';
 import {isReportActionEntry} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
@@ -38,6 +39,7 @@ function useSearchHighlightAndScroll({
     shouldCalculateTotals,
 }: UseSearchHighlightAndScroll) {
     const isFocused = useIsFocused();
+    const {isOffline} = useNetwork();
     // Ref to track if the search was triggered by this hook
     const triggeredByHookRef = useRef(false);
     const searchTriggeredRef = useRef(false);
@@ -81,8 +83,8 @@ function useSearchHighlightAndScroll({
 
         // Check if there is a change in the transactions or report actions list
         if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange || hasPendingSearchRef.current) {
-            // If we're not focused, don't trigger search
-            if (!isFocused) {
+            // If we're not focused or offline, don't trigger search
+            if (!isFocused || isOffline) {
                 hasPendingSearchRef.current = true;
                 return;
             }
@@ -128,6 +130,7 @@ function useSearchHighlightAndScroll({
         isChat,
         searchResults?.data,
         existingSearchResultIDs,
+        isOffline,
     ]);
 
     // Initialize the set with existing IDs only once
