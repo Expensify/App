@@ -6,7 +6,7 @@ import type {Report} from '@src/types/onyx';
 import type {InvoiceReceiverType} from '@src/types/onyx/Report';
 import useOnyx from './useOnyx';
 
-function useInvoiceChatByParticipants(receiverID: string | number, receiverType: InvoiceReceiverType, policyID?: string): OnyxEntry<Report> {
+function useInvoiceChatByParticipants(receiverID: string | number | undefined, receiverType: InvoiceReceiverType, policyID?: string): OnyxEntry<Report> {
     const [invoiceReport, setInvoiceReport] = useState<OnyxEntry<Report>>(undefined);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [allReportNameValuePair] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});

@@ -2,7 +2,7 @@
 import {beforeAll} from '@jest/globals';
 import {renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
@@ -82,7 +82,6 @@ import type {Participant} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {chatReportR14932 as mockedChatReport} from '../../__mocks__/reportData/reports';
 import * as NumberUtils from '../../src/libs/NumberUtils';
-import {convertedInvoiceChat} from '../data/Invoice';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction, {getRandomDate} from '../utils/collections/reportActions';
 import {
