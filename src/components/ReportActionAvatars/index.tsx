@@ -53,7 +53,7 @@ type ReportActionAvatarsProps = {
     subscriptCardFeed?: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK;
 
     /** Whether we want to be redirected to profile on avatars click */
-    useProfileAvatars?: boolean;
+    useProfileNavigationWrapper?: boolean;
 };
 
 /**
@@ -80,7 +80,7 @@ function ReportActionAvatars({
     secondaryAvatarContainerStyle,
     useMidSubscriptSizeForMultipleAvatars = false,
     isInReportAction = false,
-    useProfileAvatars,
+    useProfileNavigationWrapper,
 }: ReportActionAvatarsProps) {
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
 
@@ -130,7 +130,7 @@ function ReportActionAvatars({
                 noRightMarginOnContainer={noRightMarginOnSubscriptContainer}
                 subscriptAvatarBorderColor={subscriptAvatarBorderColor}
                 subscriptCardFeed={subscriptCardFeed}
-                useProfileAvatars={useProfileAvatars}
+                useProfileNavigationWrapper={useProfileNavigationWrapper}
             />
         );
     }
@@ -144,7 +144,7 @@ function ReportActionAvatars({
                 icons={icons}
                 isInReportAction={isInReportAction}
                 shouldShowTooltip={shouldShowTooltip}
-                useProfileAvatars={useProfileAvatars}
+                useProfileNavigationWrapper={useProfileNavigationWrapper}
             />
         );
     }
@@ -159,7 +159,7 @@ function ReportActionAvatars({
                 useMidSubscriptSize={useMidSubscriptSizeForMultipleAvatars}
                 secondaryAvatarContainerStyle={secondaryAvatarContainerStyle}
                 isHovered={isHovered}
-                useProfileAvatars={useProfileAvatars}
+                useProfileNavigationWrapper={useProfileNavigationWrapper}
             />
         );
     }
@@ -173,7 +173,7 @@ function ReportActionAvatars({
             accountID={Number(delegateAccountID ?? primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
             delegateAccountID={source.action?.delegateAccountID}
             fallbackIcon={primaryAvatar.fallbackIcon}
-            useProfileAvatar={useProfileAvatars}
+            useProfileNavigationWrapper={useProfileNavigationWrapper}
         />
     );
 }

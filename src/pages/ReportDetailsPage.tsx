@@ -576,7 +576,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     <ReportActionAvatars
                         noRightMarginOnSubscriptContainer
                         size={CONST.AVATAR_SIZE.X_LARGE}
-                        useProfileAvatars
+                        useProfileNavigationWrapper
                         singleAvatarContainerStyle={[]}
                         reportID={report?.reportID ?? moneyRequestReport?.reportID}
                     />

@@ -65,14 +65,14 @@ type AvatarSizeToStyles = typeof CONST.AVATAR_SIZE.SMALL | typeof CONST.AVATAR_S
 
 type AvatarSizeToStylesMap = Record<AvatarSizeToStyles, AvatarStyles>;
 
-function ProfileAvatar(props: Parameters<typeof Avatar>[0] & {useOriginal?: boolean}) {
+function ProfileAvatar(props: Parameters<typeof Avatar>[0] & {useProfileNavigationWrapper?: boolean}) {
     const {translate} = useLocalize();
-    const {avatarID, useOriginal, type} = props;
+    const {avatarID, useProfileNavigationWrapper, type} = props;
 
-    if (useOriginal) {
+    if (!useProfileNavigationWrapper) {
         return (
             /* eslint-disable-next-line react/jsx-props-no-spreading */
-            <Avatar {...{...props, useOriginal: undefined}} />
+            <Avatar {...{...props, useProfileNavigationWrapper: undefined}} />
         );
     }
 
@@ -92,7 +92,7 @@ function ProfileAvatar(props: Parameters<typeof Avatar>[0] & {useOriginal?: bool
             accessibilityRole={CONST.ROLE.BUTTON}
         >
             {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-            <Avatar {...{...props, useOriginal: undefined}} />
+            <Avatar {...{...props, useProfileNavigationWrapper: undefined}} />
         </PressableWithoutFocus>
     );
 }
@@ -106,7 +106,7 @@ function ReportActionAvatarSingle({
     accountID,
     fallbackIcon,
     isInReportAction,
-    useProfileAvatar,
+    useProfileNavigationWrapper,
 }: {
     avatar: IconType | undefined;
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -116,7 +116,7 @@ function ReportActionAvatarSingle({
     delegateAccountID?: number;
     fallbackIcon?: AvatarSource;
     isInReportAction?: boolean;
-    useProfileAvatar?: boolean;
+    useProfileNavigationWrapper?: boolean;
 }) {
     const StyleUtils = useStyleUtils();
     const avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
@@ -133,7 +133,7 @@ function ReportActionAvatarSingle({
         >
             <View>
                 <ProfileAvatar
-                    useOriginal={!useProfileAvatar}
+                    useProfileNavigationWrapper={useProfileNavigationWrapper}
                     containerStyles={containerStyles ?? avatarContainerStyles}
                     source={avatar?.source}
                     type={avatar?.type ?? CONST.ICON_TYPE_AVATAR}
@@ -157,7 +157,7 @@ function ReportActionAvatarSubscript({
     noRightMarginOnContainer,
     subscriptAvatarBorderColor,
     subscriptCardFeed,
-    useProfileAvatars,
+    useProfileNavigationWrapper,
 }: {
     primaryAvatar: IconType;
     secondaryAvatar: IconType;
@@ -166,7 +166,7 @@ function ReportActionAvatarSubscript({
     noRightMarginOnContainer?: boolean;
     subscriptAvatarBorderColor?: ColorValue;
     subscriptCardFeed?: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK;
-    useProfileAvatars?: boolean;
+    useProfileNavigationWrapper?: boolean;
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -209,7 +209,7 @@ function ReportActionAvatarSubscript({
             >
                 <View>
                     <ProfileAvatar
-                        useOriginal={!useProfileAvatars}
+                        useProfileNavigationWrapper={useProfileNavigationWrapper}
                         containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size || CONST.AVATAR_SIZE.DEFAULT))}
                         source={primaryAvatar.source}
                         size={size}
@@ -234,7 +234,7 @@ function ReportActionAvatarSubscript({
                         dataSet={{dragArea: false}}
                     >
                         <ProfileAvatar
-                            useOriginal={!useProfileAvatars}
+                            useProfileNavigationWrapper={useProfileNavigationWrapper}
                             iconAdditionalStyles={[
                                 StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : subscriptAvatarSize),
                                 StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor ?? theme.componentBG),
@@ -309,13 +309,13 @@ function ReportActionAvatarMultipleHorizontal({
     icons: unsortedIcons,
     isInReportAction,
     sort: sortAvatars,
-    useProfileAvatars,
+    useProfileNavigationWrapper,
 }: HorizontalStacking & {
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
     shouldShowTooltip: boolean;
     icons: IconType[];
     isInReportAction: boolean;
-    useProfileAvatars?: boolean;
+    useProfileNavigationWrapper?: boolean;
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -381,7 +381,7 @@ function ReportActionAvatarMultipleHorizontal({
                 >
                     <View style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(size, icon.type)]}>
                         <ProfileAvatar
-                            useOriginal={!useProfileAvatars}
+                            useProfileNavigationWrapper={useProfileNavigationWrapper}
                             iconAdditionalStyles={[
                                 StyleUtils.getHorizontalStackedAvatarBorderStyle({
                                     theme,
@@ -450,7 +450,7 @@ function ReportActionAvatarMultipleDiagonal({
     useMidSubscriptSize,
     secondaryAvatarContainerStyle,
     isHovered = false,
-    useProfileAvatars,
+    useProfileNavigationWrapper,
 }: {
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
     shouldShowTooltip: boolean;
@@ -459,7 +459,7 @@ function ReportActionAvatarMultipleDiagonal({
     useMidSubscriptSize: boolean;
     secondaryAvatarContainerStyle?: StyleProp<ViewStyle>;
     isHovered?: boolean;
-    useProfileAvatars?: boolean;
+    useProfileNavigationWrapper?: boolean;
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -527,7 +527,7 @@ function ReportActionAvatarMultipleDiagonal({
                     {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                     <View>
                         <ProfileAvatar
-                            useOriginal={!useProfileAvatars}
+                            useProfileNavigationWrapper={useProfileNavigationWrapper}
                             source={icons.at(0)?.source ?? WorkspaceBuilding}
                             size={avatarSize}
                             imageStyles={[singleAvatarStyle]}
@@ -557,7 +557,7 @@ function ReportActionAvatarMultipleDiagonal({
                         >
                             <View>
                                 <ProfileAvatar
-                                    useOriginal={!useProfileAvatars}
+                                    useProfileNavigationWrapper={useProfileNavigationWrapper}
                                     source={icons.at(1)?.source ?? WorkspaceBuilding}
                                     size={avatarSize}
                                     imageStyles={[singleAvatarStyle]}
