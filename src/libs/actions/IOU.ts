@@ -12088,7 +12088,9 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     });
 
     // All transactions that were deleted in the split list will be marked as deleted in onyx
-    const undeletedTransactions = originalChildTransactions.filter((currentTransaction) => !processedChildTransactionIDs.includes(currentTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
+    const undeletedTransactions = originalChildTransactions.filter(
+        (currentTransaction) => !processedChildTransactionIDs.includes(currentTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID),
+    );
     undeletedTransactions.forEach((undeletedTransaction) => {
         const splitTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${undeletedTransaction?.transactionID}`];
         const splitReportActions = getAllReportActions(splitTransaction?.reportID);
