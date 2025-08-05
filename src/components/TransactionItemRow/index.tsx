@@ -98,6 +98,7 @@ type TransactionItemRowProps = {
     isActionLoading?: boolean;
     isInSingleTransactionReport?: boolean;
     isDisabled?: boolean;
+    isAllOptionalColumnsHidden?: boolean;
 };
 
 function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string) {
@@ -131,9 +132,9 @@ function TransactionItemRow({
     isActionLoading,
     isInSingleTransactionReport = false,
     isDisabled = false,
+    isAllOptionalColumnsHidden = false,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
-    console.log('TransactionItemRow rendered', transactionItem, transactionItem.isAllOptionalColumnsHidden, columns);
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
 
@@ -219,7 +220,7 @@ function TransactionItemRow({
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE]: (
                 <View
                     key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, undefined, undefined, transactionItem.isAllOptionalColumnsHidden)]}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, undefined, undefined, isAllOptionalColumnsHidden)]}
                 >
                     <DateCell
                         created={createdAt}

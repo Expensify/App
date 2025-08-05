@@ -21,6 +21,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
+const missingColumns = [
+    CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
+    CONST.SEARCH.TABLE_COLUMNS.FROM,
+    CONST.SEARCH.TABLE_COLUMNS.TO,
+    CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
+    CONST.SEARCH.TABLE_COLUMNS.TAG,
+    CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
+];
+
 function TransactionListItem<TItem extends ListItem>({
     item,
     isFocused,
@@ -103,6 +113,8 @@ function TransactionListItem<TItem extends ListItem>({
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
+    const isAllOptionalColumnsHidden = missingColumns.every((column) => !columns?.includes(column));
+
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
@@ -145,6 +157,7 @@ function TransactionListItem<TItem extends ListItem>({
                     amountColumnSize={amountColumnSize}
                     taxAmountColumnSize={taxAmountColumnSize}
                     shouldShowCheckbox={!!canSelectMultiple}
+                    isAllOptionalColumnsHidden={isAllOptionalColumnsHidden}
                 />
             </PressableWithFeedback>
         </OfflineWithFeedback>

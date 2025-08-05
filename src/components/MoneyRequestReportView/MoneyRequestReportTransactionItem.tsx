@@ -58,6 +58,17 @@ type MoneyRequestReportTransactionItemProps = {
     scrollToNewTransaction?: (offset: number) => void;
 };
 
+const missingColumns = [
+    CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
+    CONST.SEARCH.TABLE_COLUMNS.FROM,
+    CONST.SEARCH.TABLE_COLUMNS.TO,
+    CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
+    CONST.SEARCH.TABLE_COLUMNS.TAG,
+    CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
+];
+
+
 function MoneyRequestReportTransactionItem({
     transaction,
     columns,
@@ -99,6 +110,8 @@ function MoneyRequestReportTransactionItem({
         backgroundColor: theme.highlightBG,
     });
 
+    const isAllOptionalColumnsHidden = missingColumns.every((column) => !columns.includes(column as SortableColumnName));
+
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
             <PressableWithFeedback
@@ -135,6 +148,7 @@ function MoneyRequestReportTransactionItem({
                     onCheckboxPress={toggleTransaction}
                     columns={columns as Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>}
                     isDisabled={isPendingDelete}
+                    isAllOptionalColumnsHidden={isAllOptionalColumnsHidden}
                 />
             </PressableWithFeedback>
         </OfflineWithFeedback>

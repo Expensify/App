@@ -33,6 +33,16 @@ import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 
+const missingColumns = [
+    CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
+    CONST.SEARCH.TABLE_COLUMNS.FROM,
+    CONST.SEARCH.TABLE_COLUMNS.TO,
+    CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
+    CONST.SEARCH.TABLE_COLUMNS.TAG,
+    CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
+];
+
 function TransactionGroupListItem<TItem extends ListItem>({
     item,
     isFocused,
@@ -138,6 +148,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     }, [item, onLongPressRow]);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
+    const isAllOptionalColumnsHidden = missingColumns.every((column) => !columns?.includes(column));
 
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
@@ -192,6 +203,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 columnWrapperStyles={[styles.ph3, styles.pv1Half]}
                                 isReportItemChild
                                 isInSingleTransactionReport={groupItem.transactions.length === 1}
+                                isAllOptionalColumnsHidden={isAllOptionalColumnsHidden}
                             />
                         ))
                     )}
