@@ -9,8 +9,8 @@ import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
-import usePrevious from './usePrevious';
 import useNetwork from './useNetwork';
+import usePrevious from './usePrevious';
 
 type UseSearchHighlightAndScroll = {
     searchResults: OnyxEntry<SearchResults>;
