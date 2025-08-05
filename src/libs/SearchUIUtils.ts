@@ -1882,14 +1882,14 @@ function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCa
     }));
 }
 
-function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): SearchDatePreset[] | undefined {
+function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): SearchDatePreset[] {
     switch (filterKey) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
             return [...(hasFeed ? [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT] : []), CONST.SEARCH.DATE_PRESETS.LAST_MONTH];
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
             return [CONST.SEARCH.DATE_PRESETS.NEVER];
         default:
-            return undefined;
+            return [];
     }
 }
 
