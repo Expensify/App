@@ -30,6 +30,7 @@ import {
     canHoldUnholdReportAction,
     canJoinChat,
     canLeaveChat,
+    canSeeDefaultRoom,
     canUserPerformWriteAction,
     findLastAccessedReport,
     getAllAncestorReportActions,
@@ -44,7 +45,6 @@ import {
     getMostRecentlyVisitedReport,
     getParticipantsList,
     getPolicyExpenseChat,
-    getQuickActionDetails,
     getReasonAndReportActionThatRequiresAttention,
     getReportIDFromLink,
     getReportName,
@@ -107,6 +107,7 @@ import {
 import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
+import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
@@ -226,6 +227,10 @@ const personalDetails: PersonalDetailsList = {
         accountID: 7,
         login: 'owner@test.com',
     },
+    '8': {
+        accountID: 8,
+        login: CONST.EMAIL.GUIDES_DOMAIN,
+    },
 };
 
 const rules = {
@@ -319,7 +324,7 @@ describe('ReportUtils', () => {
                     message: 'This is a test',
                     tasks: [
                         {
-                            type: 'test',
+                            type: CONST.ONBOARDING_TASK_TYPE.CREATE_REPORT,
                             title,
                             description: () => '',
                             autoCompleted: false,
@@ -348,7 +353,7 @@ describe('ReportUtils', () => {
                     message: 'This is a test',
                     tasks: [
                         {
-                            type: 'test',
+                            type: CONST.ONBOARDING_TASK_TYPE.CREATE_REPORT,
                             title: () => '',
                             description,
                             autoCompleted: false,
@@ -464,13 +469,13 @@ describe('ReportUtils', () => {
             const report1 = LHNTestUtils.getFakeReport();
             const report2 = LHNTestUtils.getFakeReport();
             const selectedReportID = report1.reportID;
-            expect(sortOutstandingReportsBySelected(report1, report2, selectedReportID)).toBe(-1);
+            expect(sortOutstandingReportsBySelected(report1, report2, selectedReportID, localeCompare)).toBe(-1);
         });
         it('should return 1 when report2 is selected and report1 is not', () => {
             const report1 = LHNTestUtils.getFakeReport();
             const report2 = LHNTestUtils.getFakeReport();
             const selectedReportID = report2.reportID;
-            expect(sortOutstandingReportsBySelected(report1, report2, selectedReportID)).toBe(1);
+            expect(sortOutstandingReportsBySelected(report1, report2, selectedReportID, localeCompare)).toBe(1);
         });
     });
 
@@ -1092,6 +1097,16 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
                 };
                 const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID]);
+                expect(moneyRequestOptions.length).toBe(0);
+            });
+
+            it('its archived report', () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], true);
                 expect(moneyRequestOptions.length).toBe(0);
             });
 
@@ -1889,27 +1904,6 @@ describe('ReportUtils', () => {
 
             // canUnholdRequest should be true after the transaction is held.
             expect(canHoldUnholdReportAction(expenseCreatedAction)).toEqual({canHoldRequest: false, canUnholdRequest: true});
-        });
-    });
-
-    describe('getQuickActionDetails', () => {
-        it('if the report is archived, the quick action will hide the subtitle and avatar', () => {
-            // Create a fake archived report as quick action report
-            const archivedReport: Report = {
-                ...LHNTestUtils.getFakeReport(),
-                reportID: '1',
-            };
-            const reportNameValuePairs = {
-                type: 'chat',
-                private_isArchived: DateUtils.getDBTime(),
-            };
-
-            // Get the quick action detail
-            const quickActionDetails = getQuickActionDetails(archivedReport, undefined, undefined, reportNameValuePairs);
-
-            // Expect the quickActionAvatars is empty array and hideQABSubtitle is true since the quick action report is archived
-            expect(quickActionDetails.quickActionAvatars.length).toEqual(0);
-            expect(quickActionDetails.hideQABSubtitle).toEqual(true);
         });
     });
 
@@ -4490,6 +4484,80 @@ describe('ReportUtils', () => {
 
             expect(canLeaveChat(report, reportPolicy)).toBe(true);
         });
+
+        describe('when the report is a money report', () => {
+            it('should return false for the owner of the report', async () => {
+                const report: Report = {
+                    ...createRandomReport(1),
+                    chatType: undefined,
+                    type: CONST.REPORT.TYPE.IOU,
+                    ownerAccountID: currentUserAccountID,
+                };
+
+                await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+                const reportPolicy: Policy = {
+                    ...createRandomPolicy(1),
+                    role: CONST.POLICY.ROLE.USER,
+                };
+
+                expect(canLeaveChat(report, reportPolicy)).toBe(false);
+            });
+
+            it('should return false for the manager of the report', async () => {
+                const report: Report = {
+                    ...createRandomReport(1),
+                    chatType: undefined,
+                    type: CONST.REPORT.TYPE.IOU,
+                    managerID: currentUserAccountID,
+                };
+
+                await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+                const reportPolicy: Policy = {
+                    ...createRandomPolicy(1),
+                    role: CONST.POLICY.ROLE.USER,
+                };
+
+                expect(canLeaveChat(report, reportPolicy)).toBe(false);
+            });
+
+            it('should return false for the admin of the policy', async () => {
+                const report: Report = {
+                    ...createRandomReport(1),
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+
+                await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+                const reportPolicy: Policy = {
+                    ...createRandomPolicy(1),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                };
+
+                expect(canLeaveChat(report, reportPolicy)).toBe(false);
+            });
+
+            it('should return true for the invited user', async () => {
+                const report: Report = {
+                    ...createRandomReport(1),
+                    chatType: undefined,
+                    type: CONST.REPORT.TYPE.IOU,
+                    ownerAccountID: 1,
+                    managerID: 2,
+                };
+
+                await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+                const reportPolicy: Policy = {
+                    ...createRandomPolicy(1),
+                    role: CONST.POLICY.ROLE.USER,
+                };
+
+                expect(canLeaveChat(report, reportPolicy)).toBe(true);
+            });
+        });
     });
 
     describe('canJoinChat', () => {
@@ -4909,6 +4977,37 @@ describe('ReportUtils', () => {
             expect(getReportStatusTranslation(undefined, undefined)).toBe('');
             expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.OPEN, undefined)).toBe('');
             expect(getReportStatusTranslation(undefined, CONST.REPORT.STATUS_NUM.OPEN)).toBe('');
+        });
+    });
+    describe('canSeeDefaultRoom', () => {
+        it('should return true if report is archived room ', () => {
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            const report: Report = {
+                ...createRandomReport(40002),
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+            };
+            expect(canSeeDefaultRoom(report, betas, true)).toBe(true);
+        });
+        it('should return true if the room has an assigned guide', () => {
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            const report: Report = {
+                ...createRandomReport(40002),
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 8]),
+            };
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
+                expect(canSeeDefaultRoom(report, betas, false)).toBe(true);
+            });
+        });
+        it('should return true if the report is admin room', () => {
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            const report: Report = {
+                ...createRandomReport(40002),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+            };
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
+                expect(canSeeDefaultRoom(report, betas, false)).toBe(true);
+            });
         });
     });
 });

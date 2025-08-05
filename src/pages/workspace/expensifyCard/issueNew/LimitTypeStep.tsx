@@ -17,13 +17,19 @@ import type * as OnyxTypes from '@src/types/onyx';
 type LimitTypeStepProps = {
     // The policy that the card will be issued under
     policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Start from step index */
+    startStepIndex: number;
+
+    /** Array of step names */
+    stepNames: readonly string[];
 };
 
-function LimitTypeStep({policy}: LimitTypeStepProps) {
+function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
 
     const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const defaultType = areApprovalsConfigured ? CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART : CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY;
@@ -89,8 +95,8 @@ function LimitTypeStep({policy}: LimitTypeStepProps) {
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={2}
-            stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
+            startStepIndex={startStepIndex}
+            stepNames={stepNames}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.chooseLimitType')}</Text>

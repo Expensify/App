@@ -34,10 +34,20 @@ type Props = {
     removeFromReport?: () => void;
     isEditing?: boolean;
     isUnreported?: boolean;
+    shouldShowNotFoundPage?: boolean;
 };
 
-function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, policyID: policyIDFromProps, removeFromReport, isEditing = false, isUnreported}: Props) {
-    const {translate} = useLocalize();
+function IOURequestEditReportCommon({
+    backTo,
+    transactionsReports,
+    selectReport,
+    policyID: policyIDFromProps,
+    removeFromReport,
+    isEditing = false,
+    isUnreported,
+    shouldShowNotFoundPage: shouldShowNotFoundPageFromProps = false,
+}: Props) {
+    const {translate, localeCompare} = useLocalize();
     const {options} = useOptionsList();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const reportOwnerAccountID = useMemo(
@@ -81,7 +91,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
         }
 
         return expenseReports
-            .sort((report1, report2) => sortOutstandingReportsBySelected(report1, report2, onlyReport?.reportID))
+            .sort((report1, report2) => sortOutstandingReportsBySelected(report1, report2, onlyReport?.reportID, localeCompare))
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
             .filter((report): report is NonNullable<typeof report> => report !== undefined)
             .map((report) => {
@@ -96,7 +106,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
                     isSelected: onlyReport && report.reportID === onlyReport?.reportID,
                 };
             });
-    }, [reportsByPolicyID, debouncedSearchValue, expenseReports, options.reports, onlyReport]);
+    }, [reportsByPolicyID, debouncedSearchValue, expenseReports, onlyReport, options.reports, localeCompare]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -106,7 +116,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {
-        if (expenseReports.length === 0) {
+        if (expenseReports.length === 0 || shouldShowNotFoundPageFromProps) {
             return true;
         }
 
@@ -120,7 +130,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
         const isSubmitter = isReportOwner(transactionReport);
         // If the report is Open, then only submitters, admins can move expenses
         return isOpen && !isAdmin && !isSubmitter;
-    }, [transactionsReports, reportPolicy, expenseReports.length]);
+    }, [transactionsReports, shouldShowNotFoundPageFromProps, reportPolicy, expenseReports.length]);
 
     return (
         <StepScreenWrapper
