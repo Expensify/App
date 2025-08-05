@@ -1757,9 +1757,7 @@ const translations = {
         changePaymentCurrency: '更改支付货币',
         paymentCurrency: '付款货币',
         paymentCurrencyDescription: '选择一个标准化货币，将所有个人费用转换为该货币。',
-        note: '注意：更改您的支付货币可能会影响您为Expensify支付的金额。请参阅我们的',
-        noteLink: '定价页面',
-        noteDetails: '查看完整详情。',
+        note: `注意：更改支付货币会影响您为 Expensify 支付的费用。请参阅我们的<a href="${CONST.PRICING}">定价页面</a>了解详情。`,
     },
     addDebitCardPage: {
         addADebitCard: '添加借记卡',
@@ -6777,9 +6775,8 @@ const translations = {
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `请输入发送到${contactMethod}的验证码以更新您的副驾驶。`,
         notAllowed: '慢着...',
         noAccessMessage: '作为副驾驶员，您无权访问此页面。抱歉！',
-        notAllowedMessageStart: `作为一名`,
-        notAllowedMessageHyperLinked: 'copilot',
-        notAllowedMessageEnd: ({accountOwnerEmail}: AccountOwnerParams) => `对于${accountOwnerEmail}，您没有权限执行此操作。抱歉！`,
+        notAllowedMessage: ({accountOwnerEmail}: AccountOwnerParams) =>
+            `作为 ${accountOwnerEmail} 的<a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">副驾驶员</a>，您无权执行此操作。对不起！`,
         copilotAccess: 'Copilot访问权限',
     },
     debug: {

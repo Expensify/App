@@ -1781,9 +1781,7 @@ const translations = {
         changePaymentCurrency: 'Zahlungswährung ändern',
         paymentCurrency: 'Zahlungswährung',
         paymentCurrencyDescription: 'Wählen Sie eine standardisierte Währung, in die alle persönlichen Ausgaben umgerechnet werden sollen.',
-        note: 'Hinweis: Das Ändern Ihrer Zahlungsmethode kann beeinflussen, wie viel Sie für Expensify bezahlen. Beziehen Sie sich auf unsere',
-        noteLink: 'Preisseite',
-        noteDetails: 'für vollständige Details.',
+        note: `Hinweis: Wenn Sie Ihre Zahlungswährung ändern, kann sich dies auf Ihre Kosten für Expensify auswirken. Auf unserer <a href="${CONST.PRICING}">Preisseite</a> finden Sie alle Details.`,
     },
     addDebitCardPage: {
         addADebitCard: 'Fügen Sie eine Debitkarte hinzu',
@@ -6908,9 +6906,8 @@ const translations = {
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `Bitte geben Sie den magischen Code ein, der an ${contactMethod} gesendet wurde, um Ihren Copilot zu aktualisieren.`,
         notAllowed: 'Nicht so schnell...',
         noAccessMessage: 'Als Copilot hast du keinen Zugriff auf diese Seite. Entschuldigung!',
-        notAllowedMessageStart: `Als ein`,
-        notAllowedMessageHyperLinked: 'Copilot',
-        notAllowedMessageEnd: ({accountOwnerEmail}: AccountOwnerParams) => `Für ${accountOwnerEmail} haben Sie keine Berechtigung, diese Aktion auszuführen. Entschuldigung!`,
+        notAllowedMessage: ({accountOwnerEmail}: AccountOwnerParams) =>
+            `Als <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">Copilot</a> für ${accountOwnerEmail} haben Sie nicht die Erlaubnis, diese Aktion durchzuführen. Entschuldigung!`,
         copilotAccess: 'Copilot-Zugriff',
     },
     debug: {

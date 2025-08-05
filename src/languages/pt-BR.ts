@@ -1774,9 +1774,7 @@ const translations = {
         changePaymentCurrency: 'Alterar moeda de pagamento',
         paymentCurrency: 'Moeda de pagamento',
         paymentCurrencyDescription: 'Selecione uma moeda padronizada para a qual todas as despesas pessoais devem ser convertidas.',
-        note: 'Nota: Alterar sua moeda de pagamento pode impactar quanto você pagará pelo Expensify. Consulte nosso',
-        noteLink: 'página de preços',
-        noteDetails: 'para detalhes completos.',
+        note: `Observação: a alteração da moeda de pagamento pode afetar o valor que você pagará pela Expensify. Consulte nossa <a href="${CONST.PRICING}">página de preços</a> para obter detalhes completos.`,
     },
     addDebitCardPage: {
         addADebitCard: 'Adicionar um cartão de débito',
@@ -6906,9 +6904,8 @@ const translations = {
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `Por favor, insira o código mágico enviado para ${contactMethod} para atualizar seu copiloto.`,
         notAllowed: 'Não tão rápido...',
         noAccessMessage: 'Como copiloto, você não tem acesso a esta página. Desculpe!',
-        notAllowedMessageStart: `Como um(a)`,
-        notAllowedMessageHyperLinked: 'copilot',
-        notAllowedMessageEnd: ({accountOwnerEmail}: AccountOwnerParams) => `para ${accountOwnerEmail}, você não tem permissão para realizar esta ação. Desculpe!`,
+        notAllowedMessage: ({accountOwnerEmail}: AccountOwnerParams) =>
+            `Como <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">copiloto</a> do ${accountOwnerEmail}, você não tem permissão para realizar essa ação. Desculpe-me!`,
         copilotAccess: 'Acesso ao Copilot',
     },
     debug: {
