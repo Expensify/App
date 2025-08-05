@@ -79,6 +79,7 @@ function SearchPage({route}: SearchPageProps) {
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReport?.parentReportID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: false});
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
@@ -196,6 +197,20 @@ function SearchPage({route}: SearchPageProps) {
                     shouldCloseModalOnSelect: true,
                     shouldCallAfterModalHide: true,
                 });
+            }
+
+            // If the user has any custom integration export templates, add them as export options
+            if (integrationsExportTemplates && integrationsExportTemplates.length > 0) {
+                for (const template of integrationsExportTemplates) {
+                    exportOptions.push({
+                        text: template.name,
+                        icon: Expensicons.Table,
+                        onSelected: () => {
+                            // Custom IS templates are not policy specific, so we don't need to pass a policyID
+                            beginExportWithTemplate(template.name, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
+                        },
+                    });
+                }
             }
 
             return exportOptions;
@@ -433,6 +448,7 @@ function SearchPage({route}: SearchPageProps) {
         styles.fontWeightNormal,
         styles.textWrap,
         beginExportWithTemplate,
+        integrationsExportTemplates,
     ]);
 
     const handleDeleteExpenses = () => {

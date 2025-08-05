@@ -171,6 +171,7 @@ function useSelectedTransactionsActions({
         }
 
         // Gets the list of options for the export sub-menu
+        const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: false});
         const getExportOptions = (): PopoverMenuItem[] => {
             // We provide the basic and expense level export options by default
             const exportOptions: PopoverMenuItem[] = [
@@ -208,6 +209,17 @@ function useSelectedTransactionsActions({
                         // The report level export template is not policy specific, so we don't need to pass a policyID
                         beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, selectedTransactionIDs),
                 });
+            }
+
+            // If the user has any custom integration export templates, add them as export options
+            if (integrationsExportTemplates && integrationsExportTemplates.length > 0) {
+                for (const template of integrationsExportTemplates) {
+                    exportOptions.push({
+                        text: template.name,
+                        icon: Expensicons.Table,
+                        onSelected: () => beginExportWithTemplate(template.name, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, selectedTransactionIDs),
+                    });
+                }
             }
 
             return exportOptions;
@@ -279,6 +291,7 @@ function useSelectedTransactionsActions({
         session?.accountID,
         showDeleteModal,
         beginExportWithTemplate,
+        integrationsExportTemplates,
     ]);
 
     return {
