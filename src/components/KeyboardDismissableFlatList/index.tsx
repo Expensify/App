@@ -3,10 +3,10 @@ import React from 'react';
 import type {FlatList} from 'react-native';
 import type {CustomAnimatedFlatListProps} from '@components/CustomAnimatedFlatList';
 import CustomAnimatedFlatList from '@components/CustomAnimatedFlatList';
-import {useKeyboardDismissableFlatListContext} from './KeyboardDismissableFlatListContext';
+import {useKeyboardDismissibleFlatListContext} from './KeyboardDismissibleFlatListContext';
 
-function KeyboardDismissableFlatList<T>(props: CustomAnimatedFlatListProps<T>, ref: ForwardedRef<FlatList>) {
-    const {onScroll} = useKeyboardDismissableFlatListContext();
+function KeyboardDismissibleFlatList<T>(props: CustomAnimatedFlatListProps<T>, ref: ForwardedRef<FlatList>) {
+    const {onScroll} = useKeyboardDismissibleFlatListContext();
 
     return (
         <CustomAnimatedFlatList
@@ -18,4 +18,4 @@ function KeyboardDismissableFlatList<T>(props: CustomAnimatedFlatListProps<T>, r
     );
 }
 
-export default React.forwardRef(KeyboardDismissableFlatList);
+export default React.forwardRef(KeyboardDismissibleFlatList);

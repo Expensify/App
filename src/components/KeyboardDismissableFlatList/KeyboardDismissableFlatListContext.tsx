@@ -7,7 +7,7 @@ import type {ScrollHandlerProcessed, SharedValue} from 'react-native-reanimated'
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type KeyboardDismissableFlatListContextValues = {
+type KeyboardDismissibleFlatListContextValues = {
     keyboardHeight: SharedValue<number>;
     keyboardOffset: SharedValue<number>;
     contentSizeHeight: SharedValue<number>;
@@ -24,7 +24,7 @@ const createDummySharedValue = (): SharedValue<number> =>
         modify: () => {},
     }) as unknown as SharedValue<number>;
 
-const KeyboardDismissableFlatListContext = React.createContext<KeyboardDismissableFlatListContextValues>({
+const KeyboardDismissibleFlatListContext = React.createContext<KeyboardDismissibleFlatListContextValues>({
     keyboardHeight: createDummySharedValue(),
     keyboardOffset: createDummySharedValue(),
     scrollY: createDummySharedValue(),
@@ -33,7 +33,7 @@ const KeyboardDismissableFlatListContext = React.createContext<KeyboardDismissab
     layoutMeasurementHeight: createDummySharedValue(),
 });
 
-function KeyboardDismissableFlatListContextProvider(props: PropsWithChildren) {
+function KeyboardDismissibleFlatListContextProvider(props: PropsWithChildren) {
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: false});
     const isModalVisible = useMemo(() => modal?.isPopover, [modal?.isPopover]);
 
@@ -101,7 +101,7 @@ function KeyboardDismissableFlatListContextProvider(props: PropsWithChildren) {
         },
     });
 
-    const value = useMemo<KeyboardDismissableFlatListContextValues>(
+    const value = useMemo<KeyboardDismissibleFlatListContextValues>(
         () => ({
             keyboardHeight: height,
             keyboardOffset: offset,
@@ -113,15 +113,15 @@ function KeyboardDismissableFlatListContextProvider(props: PropsWithChildren) {
         [height, offset, onScroll, scrollY, contentSizeHeight, layoutMeasurementHeight],
     );
 
-    return <KeyboardDismissableFlatListContext.Provider value={value}>{props.children}</KeyboardDismissableFlatListContext.Provider>;
+    return <KeyboardDismissibleFlatListContext.Provider value={value}>{props.children}</KeyboardDismissibleFlatListContext.Provider>;
 }
 
-function useKeyboardDismissableFlatListContext() {
-    return useContext(KeyboardDismissableFlatListContext);
+function useKeyboardDismissibleFlatListContext() {
+    return useContext(KeyboardDismissibleFlatListContext);
 }
 
-KeyboardDismissableFlatListContextProvider.propTypes = {
+KeyboardDismissibleFlatListContextProvider.propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-export {KeyboardDismissableFlatListContext, KeyboardDismissableFlatListContextProvider, useKeyboardDismissableFlatListContext};
+export {KeyboardDismissibleFlatListContext, KeyboardDismissibleFlatListContextProvider, useKeyboardDismissibleFlatListContext};

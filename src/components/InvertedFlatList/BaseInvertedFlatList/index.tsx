@@ -1,7 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {CellRendererProps, FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList, ScrollViewProps} from 'react-native';
-import KeyboardDismissableFlatList from '@components/KeyboardDismissableFlatList';
+import KeyboardDismissibleFlatList from '@components/KeyboardDismissibleFlatList';
 import usePrevious from '@hooks/usePrevious';
 import getInitialPaginationSize from './getInitialPaginationSize';
 import RenderTaskQueue from './RenderTaskQueue';
@@ -126,7 +126,7 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
     });
 
     return (
-        <KeyboardDismissableFlatList
+        <KeyboardDismissibleFlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             ref={listRef}
