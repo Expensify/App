@@ -3791,16 +3791,6 @@ const styles = (theme: ThemeColors) =>
             zIndex: 2,
         },
 
-        dropInnerWrapper: {
-            borderWidth: 2,
-            borderStyle: 'dashed',
-        },
-
-        reportDropOverlay: {
-            backgroundColor: theme.dropUIBG,
-            zIndex: 2,
-        },
-
         fileDropOverlay: {
             backgroundColor: theme.fileDropUIBG,
         },
@@ -4595,10 +4585,6 @@ const styles = (theme: ThemeColors) =>
 
         expenseAndReportPreviewTextContainer: {
             gap: 8,
-        },
-
-        reportPreviewAmountSubtitleContainer: {
-            gap: 4,
         },
 
         expenseAndReportPreviewTextButtonContainer: {
@@ -5455,20 +5441,6 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
-        tripReservationRow: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            maxWidth: '50%',
-            flexShrink: 1,
-        },
-
-        iconWrapper: {
-            justifyContent: 'center',
-            alignItems: 'center',
-            alignSelf: 'flex-start', // Keeps icon from dropping below
-            paddingTop: 2, // Adjust slightly for vertical centering
-        },
-
         textLineThrough: {
             textDecorationLine: 'line-through',
         },
@@ -5610,13 +5582,6 @@ const styles = (theme: ThemeColors) =>
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
             borderLeftColor: theme.border,
         }),
-        reportPreviewCarouselDots: {
-            borderRadius: 50,
-            width: 8,
-            height: 8,
-            alignItems: 'center',
-            justifyContent: 'center',
-        },
         reportPreviewArrowButton: {
             borderRadius: 50,
             width: variables.w28,
