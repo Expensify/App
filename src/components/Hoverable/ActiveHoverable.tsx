@@ -1,6 +1,5 @@
 /* eslint-disable react-compiler/react-compiler */
-import type {Ref} from 'react';
-import {cloneElement, forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {cloneElement, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -16,7 +15,7 @@ type MouseEvents = 'onMouseEnter' | 'onMouseLeave' | 'onMouseMove';
 
 type OnMouseEvents = Record<MouseEvents, (e: React.MouseEvent) => void>;
 
-function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreezeCapture, children}: ActiveHoverableProps, outerRef: Ref<HTMLElement>) {
+function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreezeCapture, children, outerRef}: ActiveHoverableProps) {
     const [isHovered, setIsHovered] = useState(false);
     const elementRef = useRef<HTMLElement | null>(null);
     const isScrollingRef = useRef(false);
@@ -123,4 +122,4 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
     } as React.HTMLAttributes<HTMLElement>);
 }
 
-export default forwardRef(ActiveHoverable);
+export default ActiveHoverable;
