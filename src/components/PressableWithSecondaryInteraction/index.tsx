@@ -1,6 +1,5 @@
-import React, {forwardRef, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,9 +20,9 @@ function PressableWithSecondaryInteraction(
         onSecondaryInteraction,
         activeOpacity = 1,
         opacityAnimationDuration,
+        ref,
         ...rest
     }: PressableWithSecondaryInteractionProps,
-    ref: PressableRef,
 ) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -113,4 +112,4 @@ function PressableWithSecondaryInteraction(
 
 PressableWithSecondaryInteraction.displayName = 'PressableWithSecondaryInteraction';
 
-export default forwardRef(PressableWithSecondaryInteraction);
+export default PressableWithSecondaryInteraction;
