@@ -780,7 +780,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         if (wasSubmittedViaHarvesting) {
             lastMessageTextFromReport = translateLocal('iou.automaticallySubmitted');
         } else {
-            lastMessageTextFromReport = translateLocal('iou.submitted');
+            lastMessageTextFromReport = translateLocal('iou.submitted', {memo: getOriginalMessage(lastReportAction)?.message});
         }
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};

@@ -581,7 +581,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     if (harvesting) {
                         setClipboardMessage(translateLocal('iou.automaticallySubmitted'));
                     } else {
-                        Clipboard.setString(translateLocal('iou.submitted'));
+                        Clipboard.setString(translateLocal('iou.submitted', {memo: getOriginalMessage(reportAction)?.message}));
                     }
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
                     const {automaticAction} = getOriginalMessage(reportAction) ?? {};
