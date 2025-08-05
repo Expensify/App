@@ -798,6 +798,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     columns={columnsToShow}
                     onLayout={onLayoutWithScrollRestore}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                    shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
                 />
             </Animated.View>
         </SearchScopeProvider>
