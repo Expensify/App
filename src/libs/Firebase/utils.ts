@@ -2,7 +2,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getAllTransactions, getAllTransactionViolationsLength} from '@libs/actions/Transaction';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import {getActivePolicy, getAllPoliciesLength} from '@libs/PolicyUtils';
+import {getAllPoliciesLength} from '@libs/PolicyUtils';
 import {getReportActionsLength} from '@libs/ReportActionsUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,7 +20,6 @@ Onyx.connect({
 
 function getAttributes<T extends keyof PerfAttributes>(attributes?: T[]): Pick<PerfAttributes, T> {
     const session = SessionUtils.getSession();
-    const policy = getActivePolicy();
 
     const allAttributes: PerfAttributes = {
         accountId: session?.accountID?.toString() ?? 'N/A',
@@ -30,8 +29,6 @@ function getAttributes<T extends keyof PerfAttributes>(attributes?: T[]): Pick<P
         transactionViolationsLength: getAllTransactionViolationsLength().toString(),
         policiesLength: getAllPoliciesLength().toString(),
         transactionsLength: getAllTransactions().toString(),
-        policyType: policy?.type ?? 'N/A',
-        policyRole: policy?.role ?? 'N/A',
     };
 
     if (attributes && attributes.length > 0) {
