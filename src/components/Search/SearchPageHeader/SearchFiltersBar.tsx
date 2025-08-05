@@ -165,6 +165,27 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         return [value, displayText];
     }, [filterFormValues.postedOn, filterFormValues.postedAfter, filterFormValues.postedBefore, translate]);
 
+    const [withdrawn, displayWithdrawn] = useMemo(() => {
+        const value: SearchDateValues = {
+            [CONST.SEARCH.DATE_MODIFIERS.ON]: filterFormValues.withdrawnOn,
+            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterFormValues.withdrawnAfter,
+            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterFormValues.withdrawnBefore,
+        };
+
+        const displayText: string[] = [];
+        if (value.On) {
+            displayText.push(isSearchDatePreset(value.On) ? translate(`search.filters.date.presets.${value.On}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On)}`);
+        }
+        if (value.After) {
+            displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After)}`);
+        }
+        if (value.Before) {
+            displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
+        }
+
+        return [value, displayText];
+    }, [filterFormValues.withdrawnOn, filterFormValues.withdrawnAfter, filterFormValues.withdrawnBefore, translate]);
+
     const updateFilterForm = useCallback(
         (values: Partial<SearchAdvancedFiltersForm>) => {
             const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
@@ -263,6 +284,31 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         [posted, translate, updateFilterForm],
     );
 
+    const withdrawnPickerComponent = useCallback(
+        ({closeOverlay}: PopoverComponentProps) => {
+            const onChange = (selectedDates: SearchDateValues) => {
+                const dateFormValues = {
+                    withdrawnOn: selectedDates[CONST.SEARCH.DATE_MODIFIERS.ON],
+                    withdrawnAfter: selectedDates[CONST.SEARCH.DATE_MODIFIERS.AFTER],
+                    withdrawnBefore: selectedDates[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
+                };
+
+                updateFilterForm(dateFormValues);
+            };
+
+            return (
+                <DateSelectPopup
+                    label={translate('search.filters.withdrawn')}
+                    value={withdrawn}
+                    onChange={onChange}
+                    closeOverlay={closeOverlay}
+                    presets={getDatePresets(CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN, true)}
+                />
+            );
+        },
+        [withdrawn, translate, updateFilterForm],
+    );
+
     const statusComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
             const onChange = (selectedItems: Array<MultiSelectItem<SingularSearchStatus>>) => {
@@ -333,6 +379,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         const shouldDisplayGroupByFilter = isDevelopment;
         const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues.feed;
         const shouldDisplayPostedFilter = !!filterFormValues.feed && (!!filterFormValues.postedOn || !!filterFormValues.postedAfter || !!filterFormValues.postedBefore);
+        const shouldDisplayWithdrawnFilter = true;
 
         const filterList = [
             {
@@ -371,6 +418,16 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                       },
                   ]
                 : []),
+            ...(shouldDisplayWithdrawnFilter
+                ? [
+                      {
+                          label: translate('search.filters.withdrawn'),
+                          PopoverComponent: withdrawnPickerComponent,
+                          value: displayWithdrawn,
+                          filterKey: FILTER_KEYS.WITHDRAWN_ON,
+                      },
+                  ]
+                : []),
             {
                 label: translate('common.status'),
                 PopoverComponent: statusComponent,
@@ -402,6 +459,9 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         filterFormValues.postedOn,
         filterFormValues.postedAfter,
         filterFormValues.postedBefore,
+        filterFormValues.withdrawnOn,
+        filterFormValues.withdrawnAfter,
+        filterFormValues.withdrawnBefore,
         translate,
         typeComponent,
         groupByComponent,
@@ -409,6 +469,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         datePickerComponent,
         userPickerComponent,
         postedPickerComponent,
+        withdrawnPickerComponent,
         status,
         personalDetails,
         isDevelopment,
