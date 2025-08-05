@@ -198,7 +198,7 @@ function WorkspacesListRow({
             )}
             {!isJoinRequestPending && (
                 <View style={[styles.flexRow, styles.ml2, styles.gap1]}>
-                    <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, shouldUseNarrowLayout && styles.workspaceListRBR]}>
+                    <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, isNarrow && styles.workspaceListRBR]}>
                         <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
                     </View>
                     <View ref={threeDotsMenuContainerRef}>
@@ -220,7 +220,7 @@ function WorkspacesListRow({
     return (
         <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, isWide && styles.gap5, styles.br3, styles.p5]}>
             <View style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}>
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex2, shouldUseNarrowLayout && styles.mb3, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex2, isNarrow && styles.mb3, styles.alignItemsCenter]}>
                     <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
                         <Avatar
                             imageStyles={[styles.alignSelfCenter]}
