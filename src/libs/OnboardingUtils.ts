@@ -18,7 +18,7 @@ function shouldOnboardingRedirectToOldDot(companySize: OnboardingCompanySize | u
     }
 
     // Check if the integration is supported in NewDot
-    const isSupportedIntegration = (!!userReportedIntegration && supportedIntegrationsInNewDot.includes(userReportedIntegration)) || userReportedIntegration === null;
+    const isSupportedIntegration = (!!userReportedIntegration && supportedIntegrationsInNewDot.includes(userReportedIntegration)) || userReportedIntegration === undefined;
 
     // Don't redirect if integration is supported and company size is MICRO or SMALL
     const isMicroOrSmallCompany = companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO || companySize === CONST.ONBOARDING_COMPANY_SIZE.SMALL;
