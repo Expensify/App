@@ -404,7 +404,8 @@ function categorizeReportsForLHN(
 }
 
 /**
- * Sorts categorized reports based on priority mode
+ * Sorts categorized reports and returns new sorted arrays (pure function).
+ * This function does not mutate the input and returns new arrays for better testability.
  */
 function sortCategorizedReports(
     categories: {
@@ -416,16 +417,25 @@ function sortCategorizedReports(
     },
     isInDefaultMode: boolean,
     localeCompare: LocaleContextProps['localeCompare'],
-) {
+): {
+    pinnedAndGBRReports: MiniReport[];
+    errorReports: MiniReport[];
+    draftReports: MiniReport[];
+    nonArchivedReports: MiniReport[];
+    archivedReports: MiniReport[];
+} {
     const {pinnedAndGBRReports, errorReports, draftReports, nonArchivedReports, archivedReports} = categories;
 
     // Sort each group of reports accordingly
-    pinnedAndGBRReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
-    errorReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
-    draftReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
+    const sortedPinnedAndGBRReports = [...pinnedAndGBRReports].sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
+    const sortedErrorReports = [...errorReports].sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
+    const sortedDraftReports = [...draftReports].sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
+
+    let sortedNonArchivedReports: MiniReport[];
+    let sortedArchivedReports: MiniReport[];
 
     if (isInDefaultMode) {
-        nonArchivedReports.sort((a, b) => {
+        sortedNonArchivedReports = [...nonArchivedReports].sort((a, b) => {
             const compareDates = a?.lastVisibleActionCreated && b?.lastVisibleActionCreated ? compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated) : 0;
             if (compareDates) {
                 return compareDates;
@@ -434,11 +444,21 @@ function sortCategorizedReports(
             return compareDisplayNames;
         });
         // For archived reports ensure that most recent reports are at the top by reversing the order
-        archivedReports.sort((a, b) => (a?.lastVisibleActionCreated && b?.lastVisibleActionCreated ? compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated) : 0));
+        sortedArchivedReports = [...archivedReports].sort((a, b) =>
+            a?.lastVisibleActionCreated && b?.lastVisibleActionCreated ? compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated) : 0,
+        );
     } else {
-        nonArchivedReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
-        archivedReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
+        sortedNonArchivedReports = [...nonArchivedReports].sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
+        sortedArchivedReports = [...archivedReports].sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
     }
+
+    return {
+        pinnedAndGBRReports: sortedPinnedAndGBRReports,
+        errorReports: sortedErrorReports,
+        draftReports: sortedDraftReports,
+        nonArchivedReports: sortedNonArchivedReports,
+        archivedReports: sortedArchivedReports,
+    };
 }
 
 /**
@@ -472,10 +492,16 @@ function sortReportsToDisplayInLHN(
     const categories = categorizeReportsForLHN(reportsToDisplay, reportNameValuePairs, reportAttributes);
 
     // Step 2: Sort each category
-    sortCategorizedReports(categories, isInDefaultMode, localeCompare);
+    const sortedCategories = sortCategorizedReports(categories, isInDefaultMode, localeCompare);
 
     // Step 3: Combine and extract IDs
-    const result = combineReportCategories(categories.pinnedAndGBRReports, categories.errorReports, categories.draftReports, categories.nonArchivedReports, categories.archivedReports);
+    const result = combineReportCategories(
+        sortedCategories.pinnedAndGBRReports,
+        sortedCategories.errorReports,
+        sortedCategories.draftReports,
+        sortedCategories.nonArchivedReports,
+        sortedCategories.archivedReports,
+    );
 
     Performance.markEnd(CONST.TIMING.GET_ORDERED_REPORT_IDS);
     return result;
