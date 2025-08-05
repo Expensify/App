@@ -1049,6 +1049,21 @@ function allHavePendingRTERViolation(transactions: OnyxEntry<Transaction[] | Sea
     return transactionsWithRTERViolations.length > 0 && transactionsWithRTERViolations.every((value) => value === true);
 }
 
+function hasPendingAutoReportedRejectedExpenseViolation(transactions: OnyxEntry<Transaction[] | SearchTransaction[]>, transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
+    if (!transactions) {
+        return false;
+    }
+
+    const transactionsWithAutoReportedRejectedExpenseViolations = transactions.map((transaction) => {
+        const filteredTransactionViolations = getTransactionViolations(transaction, transactionViolations);
+        return !!filteredTransactionViolations?.some(
+            (transactionViolation: TransactionViolation) =>
+                transactionViolation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE
+        );
+    });
+    return transactionsWithAutoReportedRejectedExpenseViolations.length > 0 && transactionsWithAutoReportedRejectedExpenseViolations.every((value) => value === true);
+}
+
 function checkIfShouldShowMarkAsCashButton(hasRTERPendingViolation: boolean, shouldDisplayBrokenConnectionViolation: boolean, report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
     if (hasRTERPendingViolation) {
         return true;
@@ -1970,6 +1985,7 @@ export {
     isDemoTransaction,
     shouldShowViolation,
     isUnreportedAndHasInvalidDistanceRateTransaction,
+    hasPendingAutoReportedRejectedExpenseViolation
 };
 
 export type {TransactionChanges};

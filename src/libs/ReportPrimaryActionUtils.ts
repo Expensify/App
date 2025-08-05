@@ -39,6 +39,7 @@ import {
 import {getSession} from './SessionUtils';
 import {
     allHavePendingRTERViolation,
+    hasPendingAutoReportedRejectedExpenseViolation,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
@@ -294,8 +295,8 @@ function isMarkAsCashAction(report: Report, reportTransactions: Transaction[], v
     return userControlsReport && shouldShowBrokenConnectionViolation;
 }
 
-function isMarkAsResolvedAction(report?: Report, transaction?: Transaction) {
-    if (!report || !transaction) {
+function isMarkAsResolvedReportAction(report?: Report, reportTransactions?: Transaction[], violations?: OnyxCollection<TransactionViolation[]>) {
+    if (!report || !reportTransactions || !violations) {
         return false;
     }
 
@@ -303,9 +304,20 @@ function isMarkAsResolvedAction(report?: Report, transaction?: Transaction) {
     if (!isReportSubmitter) {
         return false;
     }
+    return hasPendingAutoReportedRejectedExpenseViolation(reportTransactions, violations);
+}
 
-    // Check if transaction has been declined (has rterRejectedExpense in comment)
-    return !!transaction.comment?.[CONST.VIOLATIONS.REJECTED_EXPENSE];
+function isMarkAsResolvedAction(report?: Report, violations?: TransactionViolation[]) {
+    if (!report || !violations) {
+        return false;
+    }
+
+    const isReportSubmitter = isCurrentUserSubmitter(report);
+    if (!isReportSubmitter) {
+        return false;
+    }
+    
+    return violations?.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
 }
 
 function getAllExpensesToHoldIfApplicable(report?: Report, reportActions?: ReportAction[]) {
@@ -320,6 +332,10 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     const {report, reportTransactions, violations, policy, reportNameValuePairs, reportActions, isChatReportArchived, chatReport, invoiceReceiverPolicy} = params;
 
     const isPayActionWithAllExpensesHeld = isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived) && hasOnlyHeldExpenses(report?.reportID);
+
+    if (isMarkAsResolvedReportAction(report, reportTransactions, violations)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED;
+    }
 
     if (isAddExpenseAction(report, reportTransactions, isChatReportArchived)) {
         return CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE;
@@ -387,7 +403,8 @@ function getTransactionThreadPrimaryAction(
     violations: TransactionViolation[],
     policy?: Policy,
 ): ValueOf<typeof CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS> | '' {
-    if (isMarkAsResolvedAction(parentReport, reportTransaction)) {
+
+    if (isMarkAsResolvedAction(parentReport, violations)) {
         return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_RESOLVED;
     }
 
