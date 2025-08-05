@@ -986,7 +986,7 @@ const CONST = {
     STORYLANE: {
         ADMIN_TOUR: 'https://app.storylane.io/demo/bbcreg8vccag?embed=inline',
         ADMIN_TOUR_MOBILE: 'https://app.storylane.io/demo/b6faqcdsxgww?embed=inline',
-        TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/agmsfwgasaed?embed=inline',
+        TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/mqzy3huvtrhx?embed=inline',
         TRACK_WORKSPACE_TOUR_MOBILE: 'https://app.storylane.io/share/wq4hiwsqvoho?embed=inline',
 
         // At the moment we are using Navattic links, but it will be changed to Storylane in the future.
@@ -5501,6 +5501,8 @@ const CONST = {
             },
         },
     },
+
+    /* If we update these values, let's ensure this logic is consistent with the logic in the backend (Auth), since we're using the same method to calculate the rate value in distance requests created via Concierge. */
     CURRENCY_TO_DEFAULT_MILEAGE_RATE: JSON.parse(`{
         "AED": {
             "rate": 414,
