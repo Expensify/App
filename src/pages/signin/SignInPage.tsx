@@ -46,6 +46,8 @@ type SignInPageProps = {
 };
 
 type SignInPageWrapperProps = SignInPageProps & {
+    /** Whether to use screenWrapper styles intended for pages
+     * (that may disturb other ScreenWrapper styles - like those from higher order component e.g. SignInModal) */
     shouldUseStyles?: boolean;
 };
 
