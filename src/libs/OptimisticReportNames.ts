@@ -98,7 +98,7 @@ function shouldComputeReportName(report: Report, policy: Policy | undefined): bo
     }
 
     // Check if the report is an expense report
-    if (!ReportUtils.isExpenseReport(report)) {
+    if (!isValidReportType(report.type)) {
         return false;
     }
 
@@ -110,6 +110,19 @@ function shouldComputeReportName(report: Report, policy: Policy | undefined): bo
 
     // Check if the formula contains formula parts
     return Formula.isFormula(titleField.defaultValue);
+}
+ 
+function isValidReportType(reportType?: string): boolean {
+    if (!reportType) {
+        return false;
+    }
+    return (
+        reportType === CONST.REPORT.TYPE.EXPENSE ||
+        reportType === CONST.REPORT.TYPE.INVOICE ||
+        reportType === CONST.REPORT.UNSUPPORTED_TYPE.BILL ||
+        reportType === CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK ||
+        reportType === 'trip'
+    );
 }
 
 /**
