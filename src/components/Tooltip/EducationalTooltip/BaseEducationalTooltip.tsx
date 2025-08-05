@@ -32,10 +32,10 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
 
     const isResizing = useIsResizing();
 
-    const shouldHideOnBlur = !isFocused && shouldHideOnNavigate;
+    const shouldSuppressTooltip = !isFocused && shouldHideOnNavigate;
 
     const renderTooltip = useCallback(() => {
-        if (!tooltipElementRef.current || !genericTooltipStateRef.current || shouldHideOnBlur) {
+        if (!tooltipElementRef.current || !genericTooltipStateRef.current || shouldSuppressTooltip) {
             return;
         }
 
@@ -68,7 +68,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
                 showTooltip();
             }
         });
-    }, [insets, shouldHideOnBlur]);
+    }, [insets, shouldSuppressTooltip]);
 
     useEffect(() => {
         if (!genericTooltipStateRef.current || !shouldRender) {
@@ -123,7 +123,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
     }, []);
 
     useEffect(() => {
-        if (!shouldMeasure || shouldHideOnBlur) {
+        if (!shouldMeasure || shouldSuppressTooltip) {
             return;
         }
         if (!shouldRender) {
@@ -137,7 +137,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
         return () => {
             clearTimeout(timerID);
         };
-    }, [shouldMeasure, shouldRender, shouldHideOnBlur]);
+    }, [shouldMeasure, shouldRender, shouldSuppressTooltip]);
 
     useEffect(() => {
         if (!navigator) {
