@@ -1678,7 +1678,7 @@ const CONST = {
         },
     },
     // The number of milliseconds for an idle session to expire
-    SESSION_EXPIRATION_TIME_MS: 2 * 3600 * 1000, // 2 hours
+    SESSION_EXPIRATION_TIME_MS: 60 * 1000, // 1 minute (for testing)
     WEEK_STARTS_ON: 1, // Monday
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
