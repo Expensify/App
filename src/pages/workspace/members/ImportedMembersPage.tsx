@@ -87,7 +87,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const membersForwardsTo = membersForwardsToColumn !== -1 ? spreadsheet?.data[membersForwardsToColumn].map((forwardsTo) => forwardsTo) : [];
         const members = membersEmails?.slice(containsHeader ? 1 : 0).map((email, index) => {
             const isPolicyMember = isPolicyMemberWithoutPendingDelete(email, policyID);
-            let role = isPolicyMember ? policy?.employeeList?.[email]?.role ?? '' : '';
+            let role = isPolicyMember ? (policy?.employeeList?.[email]?.role ?? '') : '';
             if (membersRolesColumn !== -1 && membersRoles?.[containsHeader ? index + 1 : index]) {
                 role = membersRoles?.[containsHeader ? index + 1 : index];
             }

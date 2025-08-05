@@ -289,7 +289,10 @@ function isPolicyMemberWithoutPendingDelete(currentUserLogin: string | undefined
         return false;
     }
 
-    return isPolicyMember(currentUserLogin, policyID) && allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList?.[currentUserLogin]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    return (
+        isPolicyMember(currentUserLogin, policyID) &&
+        allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList?.[currentUserLogin]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+    );
 }
 
 function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean {
