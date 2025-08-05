@@ -114,8 +114,8 @@ import {
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
-    buildOptimisticDeclinedReportActionComment,
     buildOptimisticDeclineReportAction,
+    buildOptimisticDeclinedReportActionComment,
     buildOptimisticDetachReceipt,
     buildOptimisticDismissedViolationReportAction,
     buildOptimisticExpenseReport,
@@ -11755,6 +11755,10 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     // Build optimistic data updates
     const optimisticData: OnyxUpdate[] = [];
 
+    // Create system messages in both expense report and expense thread
+    const optimisticDeclineReportAction = buildOptimisticDeclineReportAction();
+    const optimisticDeclineReportActionComment = buildOptimisticDeclinedReportActionComment(comment);
+
     // Build successData and failureData to prevent duplication
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
@@ -11863,10 +11867,17 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         });
     }
 
-    // Create only the comment action optimistically - let the server create the decline action
-    const optimisticDeclineReportActionComment = buildOptimisticDeclinedReportActionComment(comment);
+    // Add optimistic decline actions to the child report
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
+        value: {
+            [optimisticDeclineReportAction.reportActionID]: optimisticDeclineReportAction,
+            [optimisticDeclineReportActionComment.reportActionID]: optimisticDeclineReportActionComment,
+        },
+    });
 
-    // Add optimistic comment action to the child report
+    // Add optimistic comment action to the child report (already created above)
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
@@ -11875,11 +11886,12 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         },
     });
 
-    // Add successData to clear pending action when the server confirms
+    // Add successData to clear pending actions when the server confirms
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
         value: {
+            [optimisticDeclineReportAction.reportActionID]: null, // Remove optimistic decline action
             [optimisticDeclineReportActionComment.reportActionID]: {
                 ...optimisticDeclineReportActionComment,
                 pendingAction: null,
@@ -11887,11 +11899,12 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         },
     });
 
-    // Add failureData to remove optimistic action if the request fails
+    // Add failureData to remove optimistic actions if the request fails
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
         value: {
+            [optimisticDeclineReportAction.reportActionID]: null, // Remove optimistic decline action
             [optimisticDeclineReportActionComment.reportActionID]: null,
         },
     });
@@ -11962,7 +11975,6 @@ function markDeclineViolationAsResolved(transactionID: string, reportID?: string
         return;
     }
 
-    const markedAsResolvedReportActionID = NumberUtils.rand64();
     const currentViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const updatedViolations = currentViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
     const optimisticMarkedAsResolvedReportAction = buildOptimisticMarkedAsResolvedReportAction();
@@ -11989,6 +12001,13 @@ function markDeclineViolationAsResolved(transactionID: string, reportID?: string
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
             value: updatedViolations,
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticMarkedAsResolvedReportAction.reportActionID]: null,
+            },
+        },
     ];
 
     const failureData: OnyxUpdate[] = [
@@ -11997,11 +12016,18 @@ function markDeclineViolationAsResolved(transactionID: string, reportID?: string
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
             value: currentViolations,
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticMarkedAsResolvedReportAction.reportActionID]: null,
+            },
+        },
     ];
 
     const parameters: MarkTransactionViolationAsResolvedParams = {
         transactionID,
-        markedAsResolvedReportActionID,
+        markedAsResolvedReportActionID: NumberUtils.rand64(),
     };
 
     // Make API call
