@@ -316,7 +316,7 @@ function isMarkAsResolvedAction(report?: Report, violations?: TransactionViolati
     if (!isReportSubmitter) {
         return false;
     }
-    
+
     return violations?.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
 }
 
@@ -403,7 +403,6 @@ function getTransactionThreadPrimaryAction(
     violations: TransactionViolation[],
     policy?: Policy,
 ): ValueOf<typeof CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS> | '' {
-
     if (isMarkAsResolvedAction(parentReport, violations)) {
         return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_RESOLVED;
     }

@@ -11926,7 +11926,7 @@ function markDeclineViolationAsResolved(transactionID: string, reportID?: string
     const updatedViolations = currentViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
     const optimisticMarkedAsResolvedReportAction = buildOptimisticMarkedAsResolvedReportAction();
     const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    
+
     // Build optimistic data
     const optimisticData: OnyxUpdate[] = [
         {
@@ -11949,13 +11949,6 @@ function markDeclineViolationAsResolved(transactionID: string, reportID?: string
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
             value: updatedViolations,
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                comment: updatedComment,
-            },
-        },
     ];
 
     const failureData: OnyxUpdate[] = [
@@ -11963,13 +11956,6 @@ function markDeclineViolationAsResolved(transactionID: string, reportID?: string
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
             value: currentViolations,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                comment: currentTransaction?.comment,
-            },
         },
     ];
 

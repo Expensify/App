@@ -77,6 +77,7 @@ import {
     dismissDeclineUseExplanation,
     getNavigationUrlOnMoneyRequestDelete,
     initSplitExpense,
+    markDeclineViolationAsResolved,
     payInvoice,
     payMoneyRequest,
     reopenReport,
@@ -84,7 +85,6 @@ import {
     startMoneyRequest,
     submitReport,
     unapproveExpenseReport,
-    markDeclineViolationAsResolved
 } from '@userActions/IOU';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
