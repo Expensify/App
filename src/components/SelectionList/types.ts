@@ -219,6 +219,9 @@ type ListItem<K extends string | number = string> = {
 
 type TransactionListItemType = ListItem &
     SearchTransaction & {
+        /** Report to which the transaction belongs */
+        report: Report;
+
         /** The personal details of the user requesting money */
         from: SearchPersonalDetails;
 
@@ -273,11 +276,20 @@ type TransactionListItemType = ListItem &
         /** Key used internally by React */
         keyForList: string;
 
+        /** The name of the file used for a receipt */
+        filename?: string;
+
         /** Attendees in the transaction */
         attendees?: Attendee[];
 
         /** Precomputed violations */
         violations?: TransactionViolation[];
+
+        /** The CC for this transaction */
+        cardID?: number;
+
+        /** The display name of the purchaser card, if any */
+        cardName?: string;
     };
 
 type ReportActionListItemType = ListItem &
@@ -381,6 +393,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
+
+    /** Whether to animate in highlight */
+    shouldAnimateInHighlight?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -401,6 +416,7 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     testID?: string;
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
+    shouldAnimateInHighlight?: boolean;
 };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -473,7 +489,6 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     groupBy?: SearchGroupBy;
-    policies?: OnyxCollection<Policy>;
     columns?: SortableColumnName[];
 };
 
