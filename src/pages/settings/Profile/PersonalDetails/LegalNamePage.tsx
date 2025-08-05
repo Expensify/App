@@ -6,6 +6,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -21,8 +22,8 @@ import INPUT_IDS from '@src/types/form/LegalNameForm';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-const updateLegalName = (values: PrivatePersonalDetails) => {
-    updateLegalNamePersonalDetails(values.legalFirstName?.trim() ?? '', values.legalLastName?.trim() ?? '');
+const updateLegalName = (values: PrivatePersonalDetails, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) => {
+    updateLegalNamePersonalDetails(values.legalFirstName?.trim() ?? '', values.legalLastName?.trim() ?? '', formatPhoneNumber);
 };
 
 function LegalNamePage() {
@@ -30,7 +31,7 @@ function LegalNamePage() {
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
 
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const legalFirstName = privatePersonalDetails?.legalFirstName ?? '';
     const legalLastName = privatePersonalDetails?.legalLastName ?? '';
 
@@ -95,7 +96,7 @@ function LegalNamePage() {
                         style={[styles.flexGrow1, styles.ph5]}
                         formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
                         validate={validate}
-                        onSubmit={updateLegalName}
+                        onSubmit={(values) => updateLegalName(values, formatPhoneNumber)}
                         submitButtonText={translate('common.save')}
                         enabledWhenOffline
                     >
