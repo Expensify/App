@@ -5887,6 +5887,7 @@ const translations = {
             paid: '支付日期',
             exported: '导出日期',
             posted: '发布日期',
+            withdrawn: '撤回日期',
             billable: '可计费的',
             reimbursable: '可报销的',
             groupBy: {

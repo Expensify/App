@@ -5990,6 +5990,7 @@ const translations = {
             paid: 'Zahlungsdatum',
             exported: 'Exportiertes Datum',
             posted: 'Buchungsdatum',
+            withdrawn: 'Storniert',
             billable: 'Abrechenbar',
             reimbursable: 'Erstattungsfähig',
             groupBy: {

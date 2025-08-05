@@ -5997,6 +5997,7 @@ const translations = {
             paid: 'Betaaldatum',
             exported: 'Geëxporteerde datum',
             posted: 'Geplaatste datum',
+            withdrawn: 'Teruggetrokken datum',
             billable: 'Factureerbaar',
             reimbursable: 'Vergoedbaar',
             groupBy: {
