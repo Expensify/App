@@ -127,8 +127,6 @@ jest.mock(
                 this.handler = handler;
             }
 
-            setOnEndReached() {}
-
             cancel() {}
         },
 );

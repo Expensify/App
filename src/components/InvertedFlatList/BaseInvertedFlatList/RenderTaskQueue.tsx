@@ -11,8 +11,6 @@ class RenderTaskQueue {
 
     private handler: ((info: RenderInfo) => void) | undefined = undefined;
 
-    private onEndReached: (() => void) | undefined = undefined;
-
     private timeout: NodeJS.Timeout | null = null;
 
     add(info: RenderInfo, startRendering = true) {
@@ -34,10 +32,6 @@ class RenderTaskQueue {
         this.handler = handler;
     }
 
-    setOnEndReached(onEndReached: (() => void) | undefined) {
-        this.onEndReached = onEndReached;
-    }
-
     cancel() {
         this.isRendering = false;
         if (this.timeout == null) {
@@ -49,7 +43,6 @@ class RenderTaskQueue {
     private render() {
         const info = this.renderInfos.shift();
         if (!info) {
-            this.onEndReached?.();
             this.isRendering = false;
             return;
         }
