@@ -406,4 +406,13 @@ function getTransactionThreadPrimaryAction(
     return '';
 }
 
-export {getReportPrimaryAction, getTransactionThreadPrimaryAction, isAddExpenseAction, isPrimaryPayAction, isExportAction, isMarkAsResolvedAction, getAllExpensesToHoldIfApplicable, isReviewDuplicatesAction};
+export {
+    getReportPrimaryAction,
+    getTransactionThreadPrimaryAction,
+    isAddExpenseAction,
+    isPrimaryPayAction,
+    isExportAction,
+    isMarkAsResolvedAction,
+    getAllExpensesToHoldIfApplicable,
+    isReviewDuplicatesAction,
+};
