@@ -7,6 +7,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -38,7 +39,6 @@ import Timing from './actions/Timing';
 import {getEnabledCategoriesCount} from './CategoryUtils';
 import filterArrayByMatch from './filterArrayByMatch';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
-import localeCompare from './LocaleCompare';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
@@ -461,30 +461,6 @@ Onyx.connect({
     key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
     callback: (value) => (nvpDismissedProductTraining = value),
 });
-
-/**
- * @param defaultValues {login: accountID} In workspace invite page, when new user is added we pass available data to opt in
- * @returns Returns avatar data for a list of user accountIDs
- */
-function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: OnyxEntry<PersonalDetailsList>, defaultValues: Record<string, number> = {}): Icon[] {
-    const reversedDefaultValues: Record<number, string> = {};
-
-    Object.entries(defaultValues).forEach((item) => {
-        reversedDefaultValues[item[1]] = item[0];
-    });
-
-    return accountIDs.map((accountID) => {
-        const login = reversedDefaultValues[accountID] ?? '';
-        const userPersonalDetail = personalDetails?.[accountID] ?? {login, accountID};
-
-        return {
-            id: accountID,
-            source: userPersonalDetail.avatar ?? FallbackAvatar,
-            type: CONST.ICON_TYPE_AVATAR,
-            name: userPersonalDetail.login ?? '',
-        };
-    });
-}
 
 /**
  * Returns the personal details for an array of accountIDs
@@ -1032,7 +1008,7 @@ function createOption(
     }
 
     result.text = reportName;
-    result.icons = getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, null);
+    result.icons = getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, null, undefined, !!result?.private_isArchived);
     result.subtitle = subtitle;
 
     return result;
@@ -1618,6 +1594,9 @@ function getUserToInviteContactOption({
     const userToInvite = {
         item: userDetails,
         text: displayName,
+        displayName,
+        firstName,
+        lastName,
         alternateText: displayName !== effectiveSearchValue ? effectiveSearchValue : undefined,
         brickRoadIndicator: null,
         icons: [
@@ -2684,7 +2663,7 @@ function filterSelectedOptions(options: Options, selectedOptions: Set<number | u
     return filteredOptions;
 }
 
-function sortAlphabetically<T extends Partial<Record<TKey, string | undefined>>, TKey extends keyof T>(items: T[], key: TKey): T[] {
+function sortAlphabetically<T extends Partial<Record<TKey, string | undefined>>, TKey extends keyof T>(items: T[], key: TKey, localeCompare: LocaleContextProps['localeCompare']): T[] {
     return items.sort((a, b) => localeCompare(a[key]?.toLowerCase() ?? '', b[key]?.toLowerCase() ?? ''));
 }
 
@@ -2746,7 +2725,6 @@ export {
     formatSectionsFromSearchTerm,
     getAlternateText,
     getAttendeeOptions,
-    getAvatarsForAccountIDs,
     getCurrentUserSearchTerms,
     getEmptyOptions,
     getFirstKeyForList,
