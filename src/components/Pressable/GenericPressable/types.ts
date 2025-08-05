@@ -153,6 +153,11 @@ type PressableProps = RNPressableProps &
          * Whether the pressable is nested in another one.
          */
         isNested?: boolean;
+
+        /**
+         * Reference to the outer element.
+         */
+        ref?: PressableRef
     };
 
 type PressableRef = ForwardedRef<HTMLDivElement | View | RNText | undefined>;
