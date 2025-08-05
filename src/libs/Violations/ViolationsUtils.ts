@@ -461,8 +461,6 @@ const ViolationsUtils = {
             errorIndexes = [],
         } = violation.data ?? {};
 
-        console.log('Violations', violation.data);
-
         switch (violation.name) {
             case 'allTagLevelsRequired':
                 return translate('violations.allTagLevelsRequired');
