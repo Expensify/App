@@ -807,7 +807,6 @@ function ReportActionsList({
                     onEndReached={onEndReached}
                     onStartReachedThreshold={ON_SCROLL_TO_LIMITS_THRESHOLD}
                     onEndReachedThreshold={ON_SCROLL_TO_LIMITS_THRESHOLD}
-                    onScroll={onScroll}
                     renderScrollComponent={renderScrollComponent}
                     contentContainerStyle={styles.chatContentScrollView}
                     keyExtractor={keyExtractor}
