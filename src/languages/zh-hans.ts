@@ -3485,6 +3485,7 @@ const translations = {
             defaultCategory: '默认类别',
             viewTransactions: '查看交易记录',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}的费用`,
+            deepDiveExpensifyCard: `<muted-text-label>Expensify 卡交易将自动导出到与<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">我们集成</a>创建的 “Expensify 卡责任账户”。</muted-text-label>`,
         },
         perDiem: {
             subtitle: '设置每日津贴标准以控制员工的日常支出。',
@@ -3548,8 +3549,6 @@ const translations = {
             exportCheckDescription: '我们将为每个Expensify报告创建一张分项支票，并从以下银行账户发送。',
             exportJournalEntryDescription: '我们将为每个Expensify报告创建一项分项日记账分录，并将其发布到以下账户。',
             exportVendorBillDescription: '我们将为每个Expensify报告创建一张分项供应商账单，并将其添加到以下账户中。如果此期间已关闭，我们将发布到下一个开放期间的第一天。',
-            deepDiveExpensifyCard: 'Expensify 卡交易将自动导出到使用创建的“Expensify 卡负债账户”中',
-            deepDiveExpensifyCardIntegration: '我们的集成。',
             outOfPocketTaxEnabledDescription: 'QuickBooks Desktop 不支持日记账分录导出的税款。由于您在工作区启用了税款，此导出选项不可用。',
             outOfPocketTaxEnabledError: '启用税收时，日记分录不可用。请选择其他导出选项。',
             accounts: {
@@ -3624,8 +3623,6 @@ const translations = {
             date: '导出日期',
             exportInvoices: '导出发票到',
             exportExpensifyCard: '将 Expensify 卡交易导出为',
-            deepDiveExpensifyCard: 'Expensify 卡交易将自动导出到使用创建的“Expensify 卡负债账户”中',
-            deepDiveExpensifyCardIntegration: '我们的集成。',
             exportDate: {
                 label: '导出日期',
                 description: '在导出报告到QuickBooks Online时使用此日期。',

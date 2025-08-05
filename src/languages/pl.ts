@@ -3525,6 +3525,7 @@ const translations = {
             defaultCategory: 'Domyślna kategoria',
             viewTransactions: 'Wyświetl transakcje',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Wydatki ${displayName}`,
+            deepDiveExpensifyCard: `<muted-text-label>Transakcje kartą Expensify będą automatycznie eksportowane na „Konto odpowiedzialności karty Expensify” utworzone za pomocą <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">naszej integracji</a>.</muted-text-label>`,
         },
         perDiem: {
             subtitle: 'Ustaw stawki diety, aby kontrolować dzienne wydatki pracowników.',
@@ -3589,8 +3590,6 @@ const translations = {
             exportJournalEntryDescription: 'Utworzymy szczegółowy wpis do dziennika dla każdego raportu Expensify i opublikujemy go na poniższym koncie.',
             exportVendorBillDescription:
                 'Utworzymy wyszczególnioną fakturę od dostawcy dla każdego raportu Expensify i dodamy ją do konta poniżej. Jeśli ten okres jest zamknięty, zaksięgujemy na 1. dzień następnego otwartego okresu.',
-            deepDiveExpensifyCard: 'Transakcje z karty Expensify będą automatycznie eksportowane do "Konta Zobowiązań Karty Expensify" utworzonego z',
-            deepDiveExpensifyCardIntegration: 'nasza integracja.',
             outOfPocketTaxEnabledDescription:
                 'QuickBooks Desktop nie obsługuje podatków przy eksportach zapisów księgowych. Ponieważ masz włączone podatki w swoim obszarze roboczym, ta opcja eksportu jest niedostępna.',
             outOfPocketTaxEnabledError: 'Dzienniki księgowe są niedostępne, gdy podatki są włączone. Proszę wybrać inną opcję eksportu.',
@@ -3670,8 +3669,6 @@ const translations = {
             date: 'Data eksportu',
             exportInvoices: 'Eksportuj faktury do',
             exportExpensifyCard: 'Eksportuj transakcje z karty Expensify jako',
-            deepDiveExpensifyCard: 'Transakcje z karty Expensify będą automatycznie eksportowane do "Konta Zobowiązań Karty Expensify" utworzonego z',
-            deepDiveExpensifyCardIntegration: 'nasza integracja.',
             exportDate: {
                 label: 'Data eksportu',
                 description: 'Użyj tej daty podczas eksportowania raportów do QuickBooks Online.',
