@@ -1387,6 +1387,7 @@ type MoneyRequestNavigatorParamList = {
         currency: never;
         pageIndex?: string;
         backToReport?: string;
+        reportActionID?: string;
     };
     [SCREENS.MONEY_REQUEST.START]: {
         iouType: IOUType;
@@ -1403,6 +1404,7 @@ type MoneyRequestNavigatorParamList = {
         pageIndex?: string;
         currency?: string;
         backToReport?: string;
+        reportActionID?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE]: {
         action: IOUAction;
