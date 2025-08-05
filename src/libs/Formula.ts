@@ -241,7 +241,7 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
 
     switch (field.toLowerCase()) {
         case 'type':
-            return 'Expense Report'; // Default report type for now
+            return formatType(report.type);
         case 'startdate':
             return formatDate(getOldestTransactionDate(report.reportID), format);
         case 'total':
@@ -418,6 +418,28 @@ function getOldestReportActionDate(reportID: string): string | undefined {
     });
 
     return oldestDate;
+}
+
+/**
+ * Format a report type to its human-readable string
+ */
+function formatType(type: string | undefined): string {
+    if (!type) {
+        return '';
+    }
+
+    const typeMapping: Record<string, string> = {
+        expense: 'Expense Report',
+        invoice: 'Invoice',
+        chat: 'Chat',
+        bill: 'Bill',
+        paycheck: 'Paycheck',
+        iou: 'IOU',
+        task: 'Task',
+        trip: 'Trip',
+    };
+
+    return typeMapping[type.toLowerCase()] || type;
 }
 
 /**
