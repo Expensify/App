@@ -382,8 +382,19 @@ SignInPageWrapper.displayName = 'SignInPage';
 // Use of SignInPageWrapper with shouldEnableMaxHeight prop and without additional styles is a workaround for Safari not supporting interactive-widget=resizes-content.
 // This allows better scrolling experience after keyboard shows for modals with input, that are larger than remaining screen height.
 // More info https://github.com/Expensify/App/pull/62799#issuecomment-2943136220.
-// eslint-disable-next-line rulesdir/no-inline-named-export
-export const SignInPageBase = isMobileSafari() ? ({ref}: SignInPageProps) => SignInPageWrapper({ref, shouldUseStyles: false}) : SignInPage;
+function SignInPageBase({ref}: SignInPageProps) {
+    if (isMobileSafari()) {
+        return (
+            <SignInPageWrapper
+                ref={ref}
+                shouldUseStyles={false}
+            />
+        );
+    }
+    return <SignInPage ref={ref} />;
+}
+
+export {SignInPageBase};
 
 export default SignInPageWrapper;
 
