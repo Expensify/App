@@ -19,7 +19,7 @@ import type {AttachmentModalScreenParams} from '@pages/media/AttachmentModalScre
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
-import type {Route as ExpensifyRoute, HybridAppRoute, Route as Routes} from '@src/ROUTES';
+import type {Route as ExpensifyRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import type {CompanyCardFeed} from '@src/types/onyx';
@@ -169,6 +169,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
+    [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
     [SCREENS.WORKSPACE.ADDRESS]: {
         policyID: string;
@@ -314,6 +315,10 @@ type SettingsNavigatorParamList = {
         rateID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATE_EDIT]: {
+        policyID: string;
+        rateID: string;
+    };
+    [SCREENS.WORKSPACE.DISTANCE_RATE_NAME_EDIT]: {
         policyID: string;
         rateID: string;
     };
@@ -1267,6 +1272,7 @@ type MoneyRequestNavigatorParamList = {
         iouType: IOUType;
         reportID: string;
         backTo: Routes;
+        shouldTurnOffSelectionMode?: boolean;
     };
     [SCREENS.MONEY_REQUEST.STEP_REPORT]: {
         action: IOUAction;
@@ -1411,7 +1417,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         pageIndex?: string;
-        backTo?: string;
+        backTo?: Routes;
         participantsAutoAssigned?: string;
         backToReport?: string;
     };
@@ -1514,6 +1520,35 @@ type MoneyRequestNavigatorParamList = {
         action: IOUAction;
         pageIndex: string;
         transactionID: string;
+    };
+    [SCREENS.MONEY_REQUEST.DISTANCE_CREATE]: {
+        iouType: IOUType;
+        reportID: string;
+        transactionID: string;
+
+        // These are not used in the screen, but are needed for the navigation
+        // for IOURequestStepDistanceManual and IOURequestStepDistanceMap components
+        backTo: never;
+        action: never;
+        currency: never;
+        pageIndex?: string;
+        backToReport?: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL]: {
+        action: IOUAction;
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes;
+        backToReport?: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MAP]: {
+        action: IOUAction;
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes;
+        backToReport?: string;
     };
 };
 
@@ -1929,6 +1964,9 @@ type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING.ACCOUNTING]: {
         backTo?: string;
     };
+    [SCREENS.ONBOARDING.INTERESTED_FEATURES]: {
+        backTo?: string;
+    };
     [SCREENS.ONBOARDING.WORK_EMAIL]: {
         backTo?: string;
     };
@@ -1983,7 +2021,7 @@ type SharedScreensParamList = {
         shortLivedToken?: string;
         authTokenType?: ValueOf<typeof CONST.AUTH_TOKEN_TYPES>;
         // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-        exitTo?: Routes | HybridAppRoute;
+        exitTo?: Routes;
         shouldForceLogin: string;
         domain?: Routes;
         delegatorEmail?: string;
@@ -1992,7 +2030,7 @@ type SharedScreensParamList = {
         accountID: string;
         validateCode: string;
         // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-        exitTo?: Routes | HybridAppRoute;
+        exitTo?: Routes;
     };
 };
 
