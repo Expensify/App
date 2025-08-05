@@ -123,45 +123,57 @@ const taskColumnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.IN]: 'parentReportID' as const,
 };
 
-const expenseStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
-    {translation: 'common.unreported', value: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED},
-    {translation: 'common.drafts', value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
-    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
-    {translation: 'iou.approved', value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
-    {translation: 'iou.settledExpensify', value: CONST.SEARCH.STATUS.EXPENSE.PAID},
-    {translation: 'iou.done', value: CONST.SEARCH.STATUS.EXPENSE.DONE},
-];
+function getExpenseStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>> {
+    return [
+        {text: translateLocal('common.unreported'), value: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED},
+        {text: translateLocal('common.drafts'), value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
+        {text: translateLocal('common.outstanding'), value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
+        {text: translateLocal('iou.approved'), value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
+        {text: translateLocal('iou.settledExpensify'), value: CONST.SEARCH.STATUS.EXPENSE.PAID},
+        {text: translateLocal('iou.done'), value: CONST.SEARCH.STATUS.EXPENSE.DONE},
+    ];
+}
 
-const expenseReportedStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
-    {translation: 'common.drafts', value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
-    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
-    {translation: 'iou.approved', value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
-    {translation: 'iou.settledExpensify', value: CONST.SEARCH.STATUS.EXPENSE.PAID},
-    {translation: 'iou.done', value: CONST.SEARCH.STATUS.EXPENSE.DONE},
-];
+function getExpenseReportedStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>> {
+    return [
+        {text: translateLocal('common.drafts'), value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
+        {text: translateLocal('common.outstanding'), value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
+        {text: translateLocal('iou.approved'), value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
+        {text: translateLocal('iou.settledExpensify'), value: CONST.SEARCH.STATUS.EXPENSE.PAID},
+        {text: translateLocal('iou.done'), value: CONST.SEARCH.STATUS.EXPENSE.DONE},
+    ];
+}
 
-const chatStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
-    {translation: 'common.unread', value: CONST.SEARCH.STATUS.CHAT.UNREAD},
-    {translation: 'common.sent', value: CONST.SEARCH.STATUS.CHAT.SENT},
-    {translation: 'common.attachments', value: CONST.SEARCH.STATUS.CHAT.ATTACHMENTS},
-    {translation: 'common.links', value: CONST.SEARCH.STATUS.CHAT.LINKS},
-    {translation: 'search.filters.pinned', value: CONST.SEARCH.STATUS.CHAT.PINNED},
-];
+function getChatStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>> {
+    return [
+        {text: translateLocal('common.unread'), value: CONST.SEARCH.STATUS.CHAT.UNREAD},
+        {text: translateLocal('common.sent'), value: CONST.SEARCH.STATUS.CHAT.SENT},
+        {text: translateLocal('common.attachments'), value: CONST.SEARCH.STATUS.CHAT.ATTACHMENTS},
+        {text: translateLocal('common.links'), value: CONST.SEARCH.STATUS.CHAT.LINKS},
+        {text: translateLocal('search.filters.pinned'), value: CONST.SEARCH.STATUS.CHAT.PINNED},
+    ];
+}
 
-const invoiceStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
-    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.INVOICE.OUTSTANDING},
-    {translation: 'iou.settledExpensify', value: CONST.SEARCH.STATUS.INVOICE.PAID},
-];
+function getInvoiceStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>> {
+    return [
+        {text: translateLocal('common.outstanding'), value: CONST.SEARCH.STATUS.INVOICE.OUTSTANDING},
+        {text: translateLocal('iou.settledExpensify'), value: CONST.SEARCH.STATUS.INVOICE.PAID},
+    ];
+}
 
-const tripStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
-    {translation: 'search.filters.current', value: CONST.SEARCH.STATUS.TRIP.CURRENT},
-    {translation: 'search.filters.past', value: CONST.SEARCH.STATUS.TRIP.PAST},
-];
+function getTripStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>> {
+    return [
+        {text: translateLocal('search.filters.current'), value: CONST.SEARCH.STATUS.TRIP.CURRENT},
+        {text: translateLocal('search.filters.past'), value: CONST.SEARCH.STATUS.TRIP.PAST},
+    ];
+}
 
-const taskStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
-    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.TASK.OUTSTANDING},
-    {translation: 'search.filters.completed', value: CONST.SEARCH.STATUS.TASK.COMPLETED},
-];
+function getTaskStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>> {
+    return [
+        {text: translateLocal('common.outstanding'), value: CONST.SEARCH.STATUS.TASK.OUTSTANDING},
+        {text: translateLocal('search.filters.completed'), value: CONST.SEARCH.STATUS.TASK.COMPLETED},
+    ];
+}
 
 let currentAccountID: number | undefined;
 Onyx.connect({
@@ -761,10 +773,12 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
         const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const shouldShowBlankTo = !report || isOpenExpenseReport(report);
+
         const transactionViolations = getTransactionViolations(allViolations, transactionItem);
         // Use Map.get() for faster lookups with default values
         const from = personalDetailsMap.get(transactionItem.accountID.toString()) ?? emptyPersonalDetails;
         const to = transactionItem.managerID && !shouldShowBlankTo ? (personalDetailsMap.get(transactionItem.managerID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
+
         const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 
         const transactionSection: TransactionListItemType = {
@@ -789,7 +803,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             isAmountColumnWide: shouldShowAmountInWideColumn,
             isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
             violations: transactionViolations,
-            filename: transactionItem.filename,
+
             // Manually copying all the properties from transactionItem
             transactionID: transactionItem.transactionID,
             created: transactionItem.created,
@@ -827,8 +841,6 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             errors: transactionItem.errors,
             isActionLoading: transactionItem.isActionLoading,
             hasViolation: transactionItem.hasViolation,
-            cardID: transactionItem.cardID,
-            cardName: transactionItem.cardName,
         };
 
         transactionsSections.push(transactionSection);
@@ -1844,16 +1856,16 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
 function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefined) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.CHAT:
-            return chatStatusOptions;
+            return getChatStatusOptions();
         case CONST.SEARCH.DATA_TYPES.INVOICE:
-            return invoiceStatusOptions;
+            return getInvoiceStatusOptions();
         case CONST.SEARCH.DATA_TYPES.TRIP:
-            return tripStatusOptions;
+            return getTripStatusOptions();
         case CONST.SEARCH.DATA_TYPES.TASK:
-            return taskStatusOptions;
+            return getTaskStatusOptions();
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         default:
-            return groupBy === CONST.SEARCH.GROUP_BY.REPORTS || groupBy === CONST.SEARCH.GROUP_BY.FROM ? expenseReportedStatusOptions : expenseStatusOptions;
+            return groupBy === CONST.SEARCH.GROUP_BY.REPORTS || groupBy === CONST.SEARCH.GROUP_BY.FROM ? getExpenseReportedStatusOptions() : getExpenseStatusOptions();
     }
 }
 

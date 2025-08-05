@@ -1058,7 +1058,6 @@ const CONST = {
         SHUTTER_SIZE: 90,
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
     },
-    RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
         ROLE: {
             ADMIN: 'admin',
@@ -1539,8 +1538,6 @@ const CONST = {
         SEARCH_MOST_RECENT_OPTIONS: 'search_most_recent_options',
         DEBOUNCE_HANDLE_SEARCH: 'debounce_handle_search',
         FAST_SEARCH_TREE_CREATION: 'fast_search_tree_creation',
-        SHOW_HOVER_PREVIEW_DELAY: 270,
-        SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 200,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -3500,10 +3497,6 @@ const CONST = {
         EMOJIS: /[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}](\u200D[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/du,
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJI_SKIN_TONES: /[\u{1f3fb}-\u{1f3ff}]/gu,
-        /** Regex to match emojis that are not wrapped in `<emoji>` tags */
-        get UNWRAPPED_EMOJI() {
-            return new RegExp(`(?:(?!<emoji[^>]*>))(${this.EMOJIS.source})(?:(?!</emoji[^>]*>))`, 'gu');
-        },
 
         PRIVATE_USER_AREA: /[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]/u,
 
