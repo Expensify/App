@@ -1515,8 +1515,8 @@ const translations = {
             clearCacheAndRestart: 'キャッシュをクリアして再起動',
             viewConsole: 'デバッグコンソールを表示',
             debugConsole: 'デバッグコンソール',
-            description: 'Expensifyの体験をトラブルシューティングするために、以下のツールを使用してください。問題が発生した場合は、どうぞ',
-            submitBug: 'バグを提出する',
+            description:
+                '<muted-text>Expensifyのトラブルシューティングには以下のツールをご利用ください。問題が発生した場合は、<concierge-link>バグをご報告</concierge-link>ください。</muted-text>',
             confirmResetDescription: '送信されていないすべての下書きメッセージは失われますが、その他のデータは安全です。',
             resetAndRefresh: 'リセットして更新',
             clientSideLogging: 'クライアントサイドのログ記録',

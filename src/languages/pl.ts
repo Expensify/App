@@ -1513,8 +1513,8 @@ const translations = {
             clearCacheAndRestart: 'Wyczyść pamięć podręczną i uruchom ponownie',
             viewConsole: 'Wyświetl konsolę debugowania',
             debugConsole: 'Konsola debugowania',
-            description: 'Użyj poniższych narzędzi, aby pomóc w rozwiązywaniu problemów z działaniem Expensify. Jeśli napotkasz jakiekolwiek problemy, proszę',
-            submitBug: 'zgłoś błąd',
+            description:
+                '<muted-text>Skorzystaj z poniższych narzędzi, aby pomóc w rozwiązywaniu problemów z Expensify. Jeśli napotkasz jakiekolwiek problemy, <concierge-link>zgłoś błąd</concierge-link>.</muted-text>',
             confirmResetDescription: 'Wszystkie niesłane wiadomości robocze zostaną utracone, ale reszta Twoich danych jest bezpieczna.',
             resetAndRefresh: 'Zresetuj i odśwież',
             clientSideLogging: 'Logowanie po stronie klienta',

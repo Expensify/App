@@ -1501,8 +1501,8 @@ const translations = {
             clearCacheAndRestart: 'Clear cache and restart',
             viewConsole: 'View debug console',
             debugConsole: 'Debug console',
-            description: 'Use the tools below to help troubleshoot the Expensify experience. If you encounter any issues, please',
-            submitBug: 'submit a bug',
+            description:
+                '<muted-text>Use the tools below to help troubleshoot the Expensify experience. If you encounter any issues, please <concierge-link>submit a bug</concierge-link>.</muted-text>',
             confirmResetDescription: 'All unsent draft messages will be lost, but the rest of your data is safe.',
             resetAndRefresh: 'Reset and refresh',
             clientSideLogging: 'Client side logging',
