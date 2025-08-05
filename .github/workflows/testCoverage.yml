@@ -57,11 +57,15 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
+      - name: Get Number of CPU Cores
+        id: cpu-cores
+        uses: SimenB/github-actions-cpu-cores@31e91de0f8654375a21e8e83078be625380e2b18
+
       - name: Check Changed Coverage src/ Files
         id: check-src-changes
         run: ./.github/scripts/checkCoverageChanges.sh
 
-      - name: Wait for Jest Tests to Complete
+      - name: Await Jest Unit Tests Completion Before Coverage
         if: steps.check-src-changes.outputs.run_coverage == 'true'
         uses: ./.github/actions/javascript/waitforJestTests
         with:
@@ -71,11 +75,13 @@ jobs:
         if: steps.check-src-changes.outputs.run_coverage == 'true'
         run: ./.github/scripts/runCoverage.sh
         env:
-          CI: true
+          MAX_WORKERS: ${{ steps.cpu-cores.outputs.count }}
 
       - name: Generate Baseline Coverage From The Main Branch
         if: steps.check-src-changes.outputs.run_coverage == 'true'
         run: ./.github/scripts/generateBaselineCoverage.sh
+        env:
+          MAX_WORKERS: ${{ steps.cpu-cores.outputs.count }}
 
       - name: Configure AWS Credentials
         if: steps.check-src-changes.outputs.run_coverage == 'true'
