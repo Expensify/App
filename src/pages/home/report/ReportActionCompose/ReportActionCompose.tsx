@@ -27,6 +27,7 @@ import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitl
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -150,7 +151,7 @@ function ReportActionCompose({
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, {canBeMissing: true});
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
-
+    const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     /**
      * Updates the Highlight state of the composer
      */
@@ -217,6 +218,7 @@ function ReportActionCompose({
     const includesConcierge = useMemo(() => chatIncludesConcierge({participants: report?.participants}), [report?.participants]);
     const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
+    const isReportArchived = useReportIsArchived(report?.reportID);
 
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
     const isExpensesReport = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
@@ -241,8 +243,8 @@ function ReportActionCompose({
     const shouldDisplayDualDropZone = useMemo(() => {
         const parentReport = getParentReport(report);
         const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
-        return (shouldAddOrReplaceReceipt && !isSettledOrApproved) || !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs).length;
-    }, [shouldAddOrReplaceReceipt, report, policy, reportParticipantIDs]);
+        return (shouldAddOrReplaceReceipt && !isSettledOrApproved) || !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, isReportArchived).length;
+    }, [shouldAddOrReplaceReceipt, report, policy, reportParticipantIDs, isReportArchived]);
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
@@ -496,6 +498,8 @@ function ReportActionCompose({
             const initialTransaction = initMoneyRequest({
                 reportID,
                 newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                report,
+                parentReport: newParentReport,
             });
 
             files.forEach((file, index) => {
@@ -534,7 +538,7 @@ function ReportActionCompose({
             const file = e?.dataTransfer?.files?.[0];
             if (file) {
                 file.uri = URL.createObjectURL(file);
-                validateFiles([file]);
+                validateFiles([file], Array.from(e.dataTransfer?.items ?? []));
                 return;
             }
         }
@@ -548,7 +552,7 @@ function ReportActionCompose({
             file.uri = URL.createObjectURL(file);
         });
 
-        validateFiles(files);
+        validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };
 
     return (
@@ -596,14 +600,14 @@ function ReportActionCompose({
                                             file.uri = URL.createObjectURL(file);
                                             return file;
                                         });
-                                        displayFilesInModal(files);
+                                        displayFilesInModal(files, Array.from(event.dataTransfer?.items ?? []));
                                         return;
                                     }
 
                                     const data = event.dataTransfer?.files[0];
                                     if (data) {
                                         data.uri = URL.createObjectURL(data);
-                                        displayFilesInModal([data]);
+                                        displayFilesInModal([data], Array.from(event.dataTransfer?.items ?? []));
                                     }
                                 };
 
