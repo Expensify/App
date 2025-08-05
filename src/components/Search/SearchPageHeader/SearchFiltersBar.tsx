@@ -6,9 +6,8 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
-import type {DateSelectPopupValue} from '@components/Search/FilterDropdowns/DateSelectPopup';
 import DateSelectPopup from '@components/Search/FilterDropdowns/DateSelectPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
@@ -17,6 +16,7 @@ import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopu
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import {useSearchContext} from '@components/Search/SearchContext';
+import type {SearchDateValues} from '@components/Search/SearchDatePresetFilterBase';
 import type {SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import useEnvironment from '@hooks/useEnvironment';
@@ -32,21 +32,31 @@ import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, isFilterSupported} from '@libs/SearchQueryUtils';
+import {
+    buildFilterFormValuesFromQuery,
+    buildQueryStringFromFilterFormValues,
+    buildSearchQueryJSON,
+    buildSearchQueryString,
+    isFilterSupported,
+    isSearchDatePreset,
+} from '@libs/SearchQueryUtils';
 import {getFeedOptions, getGroupByOptions, getStatusOptions, getTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
+import type {CurrencyList} from '@src/types/onyx';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
 
 type SearchFiltersBarProps = {
     queryJSON: SearchQueryJSON;
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
+    isMobileSelectionModeEnabled: boolean;
 };
 
-function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarProps) {
+function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionModeEnabled}: SearchFiltersBarProps) {
     const scrollRef = useRef<RNScrollView>(null);
 
     // type, groupBy and status values are not guaranteed to respect the ts type as they come from user input
@@ -66,11 +76,10 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
+    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const [searchResultsErrors] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true, selector: (data) => data?.errors});
 
@@ -79,7 +88,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
 
     const hasErrors = Object.keys(searchResultsErrors ?? {}).length > 0 && !isOffline;
-    const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || (!!selectionMode && selectionMode.isEnabled));
+    const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || isMobileSelectionModeEnabled);
 
     const [typeOptions, type] = useMemo(() => {
         const options = getTypeOptions(allPolicies, email);
@@ -113,6 +122,48 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const filterFormValues = useMemo(() => {
         return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
     }, [allCards, currencyList, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
+
+    const [date, displayDate] = useMemo(() => {
+        const value: SearchDateValues = {
+            [CONST.SEARCH.DATE_MODIFIERS.ON]: filterFormValues.dateOn,
+            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterFormValues.dateAfter,
+            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterFormValues.dateBefore,
+        };
+
+        const displayText: string[] = [];
+        if (value.On) {
+            displayText.push(isSearchDatePreset(value.On) ? translate(`search.filters.date.presets.${value.On}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On)}`);
+        }
+        if (value.After) {
+            displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After)}`);
+        }
+        if (value.Before) {
+            displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
+        }
+
+        return [value, displayText];
+    }, [filterFormValues.dateOn, filterFormValues.dateAfter, filterFormValues.dateBefore, translate]);
+
+    const [posted, displayPosted] = useMemo(() => {
+        const value: SearchDateValues = {
+            [CONST.SEARCH.DATE_MODIFIERS.ON]: filterFormValues.postedOn,
+            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterFormValues.postedAfter,
+            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterFormValues.postedBefore,
+        };
+
+        const displayText: string[] = [];
+        if (value.On) {
+            displayText.push(isSearchDatePreset(value.On) ? translate(`search.filters.date.presets.${value.On}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On)}`);
+        }
+        if (value.After) {
+            displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After)}`);
+        }
+        if (value.Before) {
+            displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
+        }
+
+        return [value, displayText];
+    }, [filterFormValues.postedOn, filterFormValues.postedAfter, filterFormValues.postedBefore, translate]);
 
     const updateFilterForm = useCallback(
         (values: Partial<SearchAdvancedFiltersForm>) => {
@@ -187,6 +238,31 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         [translate, feedOptions, feed, updateFilterForm],
     );
 
+    const postedPickerComponent = useCallback(
+        ({closeOverlay}: PopoverComponentProps) => {
+            const onChange = (selectedDates: SearchDateValues) => {
+                const dateFormValues = {
+                    postedOn: selectedDates[CONST.SEARCH.DATE_MODIFIERS.ON],
+                    postedAfter: selectedDates[CONST.SEARCH.DATE_MODIFIERS.AFTER],
+                    postedBefore: selectedDates[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
+                };
+
+                updateFilterForm(dateFormValues);
+            };
+
+            return (
+                <DateSelectPopup
+                    label={translate('search.filters.posted')}
+                    value={posted}
+                    onChange={onChange}
+                    closeOverlay={closeOverlay}
+                    presets={CONST.SEARCH.FILTER_DATE_PRESETS[CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED]}
+                />
+            );
+        },
+        [posted, translate, updateFilterForm],
+    );
+
     const statusComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
             const onChange = (selectedItems: Array<MultiSelectItem<SingularSearchStatus>>) => {
@@ -209,17 +285,11 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
 
     const datePickerComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
-            const value: DateSelectPopupValue = {
-                [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterFormValues.dateAfter ?? null,
-                [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterFormValues.dateBefore ?? null,
-                [CONST.SEARCH.DATE_MODIFIERS.ON]: filterFormValues.dateOn ?? null,
-            };
-
-            const onChange = (selectedDates: DateSelectPopupValue) => {
+            const onChange = (selectedDates: SearchDateValues) => {
                 const dateFormValues = {
-                    dateAfter: selectedDates[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? undefined,
-                    dateBefore: selectedDates[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? undefined,
-                    dateOn: selectedDates[CONST.SEARCH.DATE_MODIFIERS.ON] ?? undefined,
+                    dateOn: selectedDates[CONST.SEARCH.DATE_MODIFIERS.ON],
+                    dateAfter: selectedDates[CONST.SEARCH.DATE_MODIFIERS.AFTER],
+                    dateBefore: selectedDates[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
                 };
 
                 updateFilterForm(dateFormValues);
@@ -227,13 +297,14 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
 
             return (
                 <DateSelectPopup
-                    closeOverlay={closeOverlay}
-                    value={value}
+                    label={translate('common.date')}
+                    value={date}
                     onChange={onChange}
+                    closeOverlay={closeOverlay}
                 />
             );
         },
-        [filterFormValues.dateAfter, filterFormValues.dateBefore, filterFormValues.dateOn, updateFilterForm],
+        [date, translate, updateFilterForm],
     );
 
     const userPickerComponent = useCallback(
@@ -256,17 +327,12 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
      * filter bar
      */
     const filters = useMemo(() => {
-        const dateValue = [
-            filterFormValues.dateAfter ? `${translate('common.after')} ${DateUtils.formatToReadableString(filterFormValues.dateAfter)}` : null,
-            filterFormValues.dateBefore ? `${translate('common.before')} ${DateUtils.formatToReadableString(filterFormValues.dateBefore)}` : null,
-            filterFormValues.dateOn ? `${translate('common.on')} ${DateUtils.formatToReadableString(filterFormValues.dateOn)}` : null,
-        ].filter(Boolean) as string[];
         const fromValue = filterFormValues.from?.map((accountID) => personalDetails?.[accountID]?.displayName ?? accountID) ?? [];
 
         // s77rt remove DEV lock
         const shouldDisplayGroupByFilter = isDevelopment;
-        // s77rt remove DEV lock
-        const shouldDisplayFeedFilter = isDevelopment && feedOptions.length > 1;
+        const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues?.feed;
+        const shouldDisplayPostedFilter = groupBy?.value === CONST.SEARCH.GROUP_BY.CARDS;
 
         const filterList = [
             {
@@ -295,6 +361,16 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                       },
                   ]
                 : []),
+            ...(shouldDisplayPostedFilter
+                ? [
+                      {
+                          label: translate('search.filters.posted'),
+                          PopoverComponent: postedPickerComponent,
+                          value: displayPosted,
+                          filterKey: FILTER_KEYS.POSTED_ON,
+                      },
+                  ]
+                : []),
             {
                 label: translate('common.status'),
                 PopoverComponent: statusComponent,
@@ -304,7 +380,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             {
                 label: translate('common.date'),
                 PopoverComponent: datePickerComponent,
-                value: dateValue,
+                value: displayDate,
                 filterKey: FILTER_KEYS.DATE_ON,
             },
             {
@@ -319,16 +395,17 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     }, [
         type,
         groupBy,
-        filterFormValues.dateAfter,
-        filterFormValues.dateBefore,
-        filterFormValues.dateOn,
+        displayDate,
+        displayPosted,
         filterFormValues.from,
+        filterFormValues.feed,
         translate,
         typeComponent,
         groupByComponent,
         statusComponent,
         datePickerComponent,
         userPickerComponent,
+        postedPickerComponent,
         status,
         personalDetails,
         isDevelopment,

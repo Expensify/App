@@ -20,6 +20,7 @@ type WindowDimensions = {
     windowWidth: number;
     windowHeight: number;
     isSmallScreenWidth: boolean;
+    shouldUseNarrowLayout?: boolean;
 };
 
 type GetModalStyles = {
@@ -43,7 +44,11 @@ type GetModalStylesStyleUtil = {
         innerContainerStyle?: ViewStyle,
         outerStyle?: ViewStyle,
         shouldUseModalPaddingStyle?: boolean,
-        modalOverlapsWithTopSafeArea?: boolean,
+        safeAreaOptions?: {
+            shouldDisableBottomSafeAreaPadding?: boolean;
+            modalOverlapsWithTopSafeArea?: boolean;
+        },
+        shouldUseReanimatedModal?: boolean,
     ) => GetModalStyles;
 };
 
@@ -55,7 +60,8 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
         innerContainerStyle = {},
         outerStyle = {},
         shouldUseModalPaddingStyle = true,
-        modalOverlapsWithTopSafeArea = false,
+        safeAreaOptions = {modalOverlapsWithTopSafeArea: false, shouldDisableBottomSafeAreaPadding: false},
+        shouldUseReanimatedModal = false,
     ): GetModalStyles => {
         const {windowWidth, isSmallScreenWidth} = windowDimensions;
 
@@ -239,8 +245,8 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     modalContainerStyle.paddingBottom = variables.componentBorderRadiusLarge;
                 }
 
-                shouldAddBottomSafeAreaPadding = innerContainerStyle.paddingBottom !== 0;
-                shouldAddTopSafeAreaMargin = modalOverlapsWithTopSafeArea;
+                shouldAddBottomSafeAreaPadding = !safeAreaOptions?.shouldDisableBottomSafeAreaPadding;
+                shouldAddTopSafeAreaMargin = !!safeAreaOptions?.modalOverlapsWithTopSafeArea;
                 swipeDirection = undefined;
                 animationIn = 'slideInUp';
                 animationOut = 'slideOutDown';
@@ -285,23 +291,28 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     overflow: 'hidden',
                 };
 
-                animationIn = {
-                    from: {
-                        translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
-                    },
-                    to: {
-                        translateX: 0,
-                    },
-                };
-                animationOut = {
-                    from: {
-                        translateX: 0,
-                    },
-                    to: {
-                        translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
-                    },
-                };
-                hideBackdrop = true;
+                if (shouldUseReanimatedModal) {
+                    animationIn = 'slideInRight';
+                    animationOut = 'slideOutRight';
+                } else {
+                    animationIn = {
+                        from: {
+                            translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
+                        },
+                        to: {
+                            translateX: 0,
+                        },
+                    };
+                    animationOut = {
+                        from: {
+                            translateX: 0,
+                        },
+                        to: {
+                            translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
+                        },
+                    };
+                }
+
                 swipeDirection = undefined;
                 shouldAddBottomSafeAreaPadding = true;
                 shouldAddTopSafeAreaPadding = true;

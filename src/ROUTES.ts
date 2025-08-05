@@ -90,12 +90,14 @@ const ROUTES = {
             backTo,
             moneyRequestReportActionID,
             transactionID,
+            iouReportID,
         }: {
             reportID: string | undefined;
             reportActionID?: string;
             backTo?: string;
             moneyRequestReportActionID?: string;
             transactionID?: string;
+            iouReportID?: string;
         }) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the SEARCH_REPORT route');
@@ -110,6 +112,10 @@ const ROUTES = {
             }
             if (moneyRequestReportActionID) {
                 queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
+            }
+
+            if (iouReportID) {
+                queryParams.push(`iouReportID=${iouReportID}`);
             }
 
             const queryString = queryParams.length > 0 ? (`${baseRoute}?${queryParams.join('&')}` as const) : baseRoute;
@@ -385,10 +391,19 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, moneyRequestReportActionID?: string, transactionID?: string, backTo?: string) => {
+        getRoute: (
+            reportID: string | undefined,
+            reportActionID?: string,
+            referrer?: string,
+            moneyRequestReportActionID?: string,
+            transactionID?: string,
+            backTo?: string,
+            iouReportID?: string,
+        ) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
             }
+
             const baseRoute = reportActionID ? (`r/${reportID}/${reportActionID}` as const) : (`r/${reportID}` as const);
 
             const queryParams: string[] = [];
@@ -400,6 +415,10 @@ const ROUTES = {
             if (moneyRequestReportActionID && transactionID) {
                 queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
                 queryParams.push(`transactionID=${transactionID}`);
+            }
+
+            if (iouReportID) {
+                queryParams.push(`iouReportID=${iouReportID}`);
             }
 
             const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
@@ -579,10 +598,15 @@ const ROUTES = {
     },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':type/edit/reason/:transactionID?/:searchHash?',
-        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string, backTo: string, searchHash?: number) => {
-            const route = searchHash
-                ? (`${type as string}/edit/reason/${transactionID}/${searchHash}/?backTo=${backTo}&reportID=${reportID}` as const)
-                : (`${type as string}/edit/reason/${transactionID}/?backTo=${backTo}&reportID=${reportID}` as const);
+        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string | undefined, backTo: string, searchHash?: number) => {
+            let route = searchHash
+                ? (`${type as string}/edit/reason/${transactionID}/${searchHash}/?backTo=${backTo}` as const)
+                : (`${type as string}/edit/reason/${transactionID}/?backTo=${backTo}` as const);
+
+            if (reportID) {
+                route = `${route}&reportID=${reportID}` as const;
+            }
+
             return route;
         },
     },
@@ -602,10 +626,11 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_CONFIRMATION: {
         route: ':action/:iouType/confirmation/:transactionID/:reportID/:backToReport?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string | undefined, backToReport?: string, participantsAutoAssigned?: boolean) =>
-            `${action as string}/${iouType as string}/confirmation/${transactionID}/${reportID}/${backToReport ?? ''}${
-                participantsAutoAssigned ? '?participantsAutoAssigned=true' : ''
-            }` as const,
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string | undefined, backToReport?: string, participantsAutoAssigned?: boolean, backTo?: string) =>
+            getUrlWithBackToParam(
+                `${action as string}/${iouType as string}/confirmation/${transactionID}/${reportID}/${backToReport ?? ''}${participantsAutoAssigned ? '?participantsAutoAssigned=true' : ''}`,
+                backTo,
+            ),
     },
     MONEY_REQUEST_STEP_AMOUNT: {
         route: ':action/:iouType/amount/:transactionID/:reportID/:pageIndex?/:backToReport?',
@@ -703,11 +728,11 @@ const ROUTES = {
     },
     MONEY_REQUEST_EDIT_REPORT: {
         route: ':action/:iouType/report/:reportID/edit',
-        getRoute: (action: IOUAction, iouType: IOUType, reportID?: string, backTo = '') => {
+        getRoute: (action: IOUAction, iouType: IOUType, reportID?: string, shouldTurnOffSelectionMode?: boolean, backTo = '') => {
             if (!reportID) {
                 Log.warn('Invalid reportID while building route MONEY_REQUEST_EDIT_REPORT');
             }
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${reportID}/edit`, backTo);
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${reportID}/edit${shouldTurnOffSelectionMode ? `?shouldTurnOffSelectionMode=true` : ``}`, backTo);
         },
     },
     SETTINGS_TAGS_ROOT: {
@@ -926,19 +951,19 @@ const ROUTES = {
             }` as const,
     },
     DISTANCE_REQUEST_CREATE: {
-        route: ':action/:iouType/start/:transactionID/:reportID/distance/:backToReport?',
+        route: ':action/:iouType/start/:transactionID/:reportID/distance-new/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
-            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance/${backToReport ?? ''}` as const,
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/${backToReport ?? ''}` as const,
     },
     DISTANCE_REQUEST_CREATE_TAB_MAP: {
-        route: 'distance-map/:backToReport?',
+        route: 'map/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
-            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance/distance-map/${backToReport ?? ''}` as const,
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/map/${backToReport ?? ''}` as const,
     },
     DISTANCE_REQUEST_CREATE_TAB_MANUAL: {
-        route: 'distance-manual/:backToReport?',
+        route: 'manual/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
-            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance/distance-manual/${backToReport ?? ''}` as const,
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/manual/${backToReport ?? ''}` as const,
     },
     IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
@@ -1133,7 +1158,12 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/advanced',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-desktop/advanced` as const,
+        getRoute: (policyID?: string, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED route');
+            }
+            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-desktop/advanced` as const, backTo);
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/export/date-select',
@@ -1387,11 +1417,11 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
         route: 'workspaces/:policyID/accounting/:connection/card-reconciliation/account',
-        getRoute: (policyID: string | undefined, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) => {
+        getRoute: (policyID: string | undefined, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS route');
             }
-            return `workspaces/${policyID}/accounting/${connection as string}/card-reconciliation/account` as const;
+            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/${connection as string}/card-reconciliation/account` as const, backTo);
         },
     },
     WORKSPACE_CATEGORIES: {
@@ -1819,6 +1849,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/distance-rates/:rateID/edit',
         getRoute: (policyID: string, rateID: string) => `workspaces/${policyID}/distance-rates/${rateID}/edit` as const,
     },
+    WORKSPACE_DISTANCE_RATE_NAME_EDIT: {
+        route: 'workspaces/:policyID/distance-rates/:rateID/name/edit',
+        getRoute: (policyID: string, rateID: string) => `workspaces/${policyID}/distance-rates/${rateID}/name/edit` as const,
+    },
     WORKSPACE_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT: {
         route: 'workspaces/:policyID/distance-rates/:rateID/tax-reclaimable/edit',
         getRoute: (policyID: string, rateID: string) => `workspaces/${policyID}/distance-rates/${rateID}/tax-reclaimable/edit` as const,
@@ -1934,6 +1968,10 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('change-workspace-educational', backTo),
     },
     TRAVEL_MY_TRIPS: 'travel',
+    TRAVEL_DOT_LINK_WEB_VIEW: {
+        route: 'travel-dot-link',
+        getRoute: (token: string, isTestAccount?: boolean) => `travel-dot-link?token=${token}&isTestAccount=${isTestAccount}` as const,
+    },
     TRAVEL_TCS: {
         route: 'travel/terms/:domain/accept',
         getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}/accept`, backTo),
@@ -1996,6 +2034,10 @@ const ROUTES = {
     ONBOARDING_ACCOUNTING: {
         route: 'onboarding/accounting',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/accounting`, backTo),
+    },
+    ONBOARDING_INTERESTED_FEATURES: {
+        route: 'onboarding/interested-features',
+        getRoute: (userReportedIntegration?: string, backTo?: string) => getUrlWithBackToParam(`onboarding/interested-features?userReportedIntegration=${userReportedIntegration}`, backTo),
     },
     ONBOARDING_PURPOSE: {
         route: 'onboarding/purpose',
@@ -2116,7 +2158,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES: {
         route: 'workspaces/:policyID/accounting/xero/import/tracking-categories',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/xero/import/tracking-categories` as const,
+        getRoute: (policyID?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES route');
+            }
+            return `workspaces/${policyID}/accounting/xero/import/tracking-categories` as const;
+        },
     },
     POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP: {
         route: 'workspaces/:policyID/accounting/xero/import/tracking-categories/mapping/:categoryId/:categoryName',
@@ -2156,17 +2203,45 @@ const ROUTES = {
             return `workspaces/${policyID}/accounting/xero/advanced` as const;
         },
     },
+    POLICY_ACCOUNTING_XERO_AUTO_SYNC: {
+        route: 'workspaces/:policyID/accounting/xero/advanced/autosync',
+        getRoute: (policyID: string | undefined, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_AUTO_SYNC route');
+            }
+            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/xero/advanced/autosync` as const, backTo);
+        },
+    },
+    POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD: {
+        route: 'workspaces/:policyID/accounting/xero/advanced/autosync/accounting-method',
+        getRoute: (policyID: string | undefined, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD route');
+            }
+            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/xero/advanced/autosync/accounting-method` as const, backTo);
+        },
+    },
     POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR: {
         route: 'workspaces/:policyID/accounting/xero/export/purchase-bill-status-selector',
         getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/xero/export/purchase-bill-status-selector` as const, backTo),
     },
     POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR: {
         route: 'workspaces/:policyID/accounting/xero/advanced/invoice-account-selector',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/xero/advanced/invoice-account-selector` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR route');
+            }
+            return `workspaces/${policyID}/accounting/xero/advanced/invoice-account-selector` as const;
+        },
     },
     POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR: {
         route: 'workspaces/:policyID/accounting/xero/advanced/bill-payment-account-selector',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/xero/advanced/bill-payment-account-selector` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR route');
+            }
+            return `workspaces/${policyID}/accounting/xero/advanced/bill-payment-account-selector` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import',
@@ -2237,8 +2312,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING: {
         route: 'workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField',
-        getRoute: (policyID: string, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>) =>
-            `workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField as string}` as const,
+        getRoute: (policyID: string | undefined, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING route');
+            }
+            return `workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField as string}` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW: {
         route: 'workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField/view/:valueIndex',
@@ -2247,8 +2326,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_EDIT: {
         route: 'workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField/edit/:valueIndex/:fieldName',
-        getRoute: (policyID: string, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>, valueIndex: number, fieldName: string) =>
-            `workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField as string}/edit/${valueIndex}/${fieldName}` as const,
+        getRoute: (policyID: string | undefined, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>, valueIndex: number, fieldName: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_EDIT route');
+            }
+            return `workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField as string}/edit/${valueIndex}/${fieldName}` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_ADD: {
         route: 'workspaces/:policyID/accounting/netsuite/import/custom-list/new',
@@ -2596,21 +2679,10 @@ const ROUTES = {
         getRoute: (reportID: string) => `r/${reportID}/schedule-call/confirmation` as const,
     },
 
-    TEST_TOOLS_MODAL: 'test-tools',
-} as const;
-
-/**
- * Proxy routes can be used to generate a correct url with dynamic values
- *
- * It will be used by HybridApp, that has no access to methods generating dynamic routes in NewDot
- */
-const HYBRID_APP_ROUTES = {
-    MONEY_REQUEST_CREATE: '/request/new/scan',
-    MONEY_REQUEST_CREATE_TAB_SCAN: '/submit/new/scan',
-    MONEY_REQUEST_CREATE_TAB_MANUAL: '/submit/new/manual',
-    MONEY_REQUEST_CREATE_TAB_DISTANCE: '/submit/new/distance',
-    DISTANCE_REQUEST_CREATE_TAB_MAP: '/submit/new/distance/distance-map',
-    DISTANCE_REQUEST_CREATE_TAB_MANUAL: '/submit/new/distance/distance-manual',
+    TEST_TOOLS_MODAL: {
+        route: 'test-tools',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools' as const, backTo),
+    },
 } as const;
 
 /**
@@ -2626,7 +2698,7 @@ const SHARED_ROUTE_PARAMS: Partial<Record<Screen, string[]>> = {
     [SCREENS.WORKSPACE.INITIAL]: ['backTo'],
 } as const;
 
-export {HYBRID_APP_ROUTES, getUrlWithBackToParam, PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS};
+export {getUrlWithBackToParam, PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS};
 export default ROUTES;
 
 type AttachmentsRoute = typeof ROUTES.ATTACHMENTS.route;
@@ -2674,6 +2746,4 @@ type RoutesValidationError = 'Error: One or more routes defined within `ROUTES` 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type RouteIsPlainString = AssertTypesNotEqual<string, Route, RoutesValidationError>;
 
-type HybridAppRoute = (typeof HYBRID_APP_ROUTES)[keyof typeof HYBRID_APP_ROUTES];
-
-export type {HybridAppRoute, Route};
+export type {Route};

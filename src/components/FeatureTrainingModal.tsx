@@ -6,6 +6,7 @@ import {Image, InteractionManager, View} from 'react-native';
 import type {ImageResizeMode, ImageSourcePropType, LayoutChangeEvent, ScrollView as RNScrollView, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {MergeExclusive} from 'type-fest';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -215,6 +216,7 @@ function FeatureTrainingModal({
     const [containerHeight, setContainerHeight] = useState(0);
     const [contentHeight, setContentHeight] = useState(0);
     const insets = useSafeAreaInsets();
+    const {isKeyboardActive} = useKeyboardState();
 
     useEffect(() => {
         InteractionManager.runAfterInteractions(() => {
@@ -371,7 +373,10 @@ function FeatureTrainingModal({
 
     const Wrapper = shouldUseScrollView ? ScrollView : View;
 
-    const wrapperStyles = useMemo(() => (shouldUseScrollView ? StyleUtils.getScrollableFeatureTrainingModalStyles(insets) : {}), [shouldUseScrollView, StyleUtils, insets]);
+    const wrapperStyles = useMemo(
+        () => (shouldUseScrollView ? StyleUtils.getScrollableFeatureTrainingModalStyles(insets, isKeyboardActive) : {}),
+        [shouldUseScrollView, StyleUtils, insets, isKeyboardActive],
+    );
 
     return (
         <Modal
@@ -400,6 +405,7 @@ function FeatureTrainingModal({
                 onHelp();
             }}
             shouldUseReanimatedModal
+            shouldDisableBottomSafeAreaPadding={shouldUseScrollView}
         >
             <Wrapper
                 scrollsToTop={false}

@@ -8,6 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSpreadsheetData} from '@libs/actions/ImportSpreadsheet';
+import {setImportedSpreadsheetIsImportingMultiLevelTags} from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -24,6 +25,7 @@ import FilePicker from './FilePicker';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
+import RenderHTML from './RenderHTML';
 import ScreenWrapper from './ScreenWrapper';
 import Text from './Text';
 
@@ -123,6 +125,20 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
             });
     };
 
+    const getTextForImportModal = () => {
+        let text = '';
+        if (spreadsheet?.isImportingMultiLevelTags) {
+            text = isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheetMultiLevelTag') : translate('spreadsheet.dragAndDropMultiLevelTag');
+        } else {
+            text = isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheet') : translate('spreadsheet.dragAndDrop');
+        }
+        return text;
+    };
+
+    const acceptableFileTypes = spreadsheet?.isImportingMultiLevelTags
+        ? CONST.MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS.map((extension) => `.${extension}`).join(',')
+        : CONST.ALLOWED_SPREADSHEET_EXTENSIONS.map((extension) => `.${extension}`).join(',');
+
     const desktopView = (
         <>
             <View onLayout={({nativeEvent}) => setFileTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}>
@@ -139,12 +155,12 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
                 // eslint-disable-next-line react-compiler/react-compiler, react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >
-                <Text style={[styles.textFileUpload, styles.mb1]}>{translate('spreadsheet.upload')}</Text>
-                <Text style={[styles.subTextFileUpload, styles.textSupporting]}>
-                    {isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheet') : translate('spreadsheet.dragAndDrop')}
-                </Text>
+                <Text style={[styles.textFileUpload, styles.mb1]}>{spreadsheet?.isImportingMultiLevelTags ? translate('spreadsheet.import') : translate('spreadsheet.upload')}</Text>
+                <View style={[styles.flexRow]}>
+                    <RenderHTML html={getTextForImportModal()} />
+                </View>
             </View>
-            <FilePicker acceptableFileTypes={CONST.ALLOWED_SPREADSHEET_EXTENSIONS.map((extension) => `.${extension}`).join(',')}>
+            <FilePicker acceptableFileTypes={acceptableFileTypes}>
                 {({openPicker}) => (
                     <Button
                         success
@@ -182,7 +198,12 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
                             title={translate('spreadsheet.importSpreadsheet')}
-                            onBackButtonPress={() => Navigation.goBack(backTo)}
+                            onBackButtonPress={() => {
+                                if (spreadsheet?.isImportingMultiLevelTags) {
+                                    setImportedSpreadsheetIsImportingMultiLevelTags(false);
+                                }
+                                Navigation.goBack(backTo);
+                            }}
                         />
 
                         <View style={[styles.flex1, styles.uploadFileView(isSmallScreenWidth)]}>

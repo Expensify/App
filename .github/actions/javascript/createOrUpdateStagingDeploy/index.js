@@ -11570,11 +11570,27 @@ async function run() {
         const currentChecklistData = shouldCreateNewDeployChecklist ? undefined : GithubUtils_1.default.getStagingDeployCashData(mostRecentChecklist);
         // Find the list of PRs merged between the current checklist and the previous checklist
         const mergedPRs = await GitUtils_1.default.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag);
+        // mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out
+        const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
+        core.startGroup('Filtering PRs:');
+        core.info('mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out');
+        core.info(`Found ${previousPRNumbers.size} PRs in the previous checklist:`);
+        core.info(JSON.stringify(Array.from(previousPRNumbers)));
+        const newPRNumbers = mergedPRs.filter((prNum) => !previousPRNumbers.has(prNum));
+        core.info(`Found ${newPRNumbers.length} PRs deployed since the previous checklist:`);
+        core.info(JSON.stringify(newPRNumbers));
+        // Log the PRs that were filtered out
+        const removedPRs = mergedPRs.filter((prNum) => previousPRNumbers.has(prNum));
+        if (removedPRs.length > 0) {
+            core.info(`⚠️⚠️ Filtered out the following cherry-picked PRs that were released with the previous checklist: ${removedPRs.join(', ')} ⚠️⚠️`);
+        }
+        core.endGroup();
+        console.info(`[api] Checklist PRs: ${newPRNumbers.join(', ')}`);
         // Next, we generate the checklist body
         let checklistBody = '';
         let checklistAssignees = [];
         if (shouldCreateNewDeployChecklist) {
-            const stagingDeployCashBodyAndAssignees = await GithubUtils_1.default.generateStagingDeployCashBodyAndAssignees(newVersion, mergedPRs.map((value) => GithubUtils_1.default.getPullRequestURLFromNumber(value)));
+            const stagingDeployCashBodyAndAssignees = await GithubUtils_1.default.generateStagingDeployCashBodyAndAssignees(newVersion, newPRNumbers.map((value) => GithubUtils_1.default.getPullRequestURLFromNumber(value)));
             if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
                 checklistAssignees = stagingDeployCashBodyAndAssignees.issueAssignees.filter(Boolean);
@@ -11582,7 +11598,7 @@ async function run() {
         }
         else {
             // Generate the updated PR list, preserving the previous state of `isVerified` for existing PRs
-            const PRList = mergedPRs.map((prNum) => {
+            const PRList = newPRNumbers.map((prNum) => {
                 const indexOfPRInCurrentChecklist = currentChecklistData?.PRList.findIndex((pr) => pr.number === prNum) ?? -1;
                 const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData?.PRList[indexOfPRInCurrentChecklist].isVerified : false;
                 return {
@@ -11668,8 +11684,8 @@ exports["default"] = run;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const GIT_CONST = {
-    GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER,
-    APP_REPO: process.env.GITHUB_REPOSITORY.split('/').at(1) ?? '',
+    GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER ?? 'Expensify',
+    APP_REPO: (process.env.GITHUB_REPOSITORY ?? 'Expensify/App').split('/').at(1) ?? '',
     MOBILE_EXPENSIFY_REPO: 'Mobile-Expensify',
 };
 const CONST = {
@@ -11682,6 +11698,13 @@ const CONST = {
         INTERNAL_QA: 'InternalQA',
         HELP_WANTED: 'Help Wanted',
         CP_STAGING: 'CP Staging',
+    },
+    STATE: {
+        OPEN: 'open',
+    },
+    COMMENT: {
+        TYPE_BOT: 'Bot',
+        NAME_GITHUB_ACTIONS: 'github-actions',
     },
     ACTIONS: {
         CREATED: 'created',
@@ -11701,6 +11724,7 @@ const CONST = {
     NO_ACTION: 'NO_ACTION',
     ACTION_EDIT: 'ACTION_EDIT',
     ACTION_REQUIRED: 'ACTION_REQUIRED',
+    ACTION_HIDE_DUPLICATE: 'ACTION_HIDE_DUPLICATE',
 };
 exports["default"] = CONST;
 
@@ -11855,25 +11879,26 @@ function getCommitHistoryAsJSON(fromTag, toTag) {
     const previousPatchVersion = getPreviousExistingTag(fromTag.replace('-staging', ''), fromTag.endsWith('-staging') ? versionUpdater_1.SEMANTIC_VERSION_LEVELS.PATCH : versionUpdater_1.SEMANTIC_VERSION_LEVELS.MINOR);
     fetchTag(fromTag, previousPatchVersion);
     fetchTag(toTag, previousPatchVersion);
-    console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
+    core.info(`[git log] Getting pull requests merged between the following tags: ${fromTag} ${toTag}`);
+    core.startGroup('[git log] Fetching commits');
     return new Promise((resolve, reject) => {
         let stdout = '';
         let stderr = '';
         const args = ['log', '--format={"commit": "%H", "authorName": "%an", "subject": "%s"},', `${fromTag}...${toTag}`];
-        console.log(`Running command: git ${args.join(' ')}`);
+        core.info(`Running command: git ${args.join(' ')}`);
         const spawnedProcess = (0, child_process_1.spawn)('git', args);
-        spawnedProcess.on('message', console.log);
+        spawnedProcess.on('message', core.info);
         spawnedProcess.stdout.on('data', (chunk) => {
-            console.log(chunk.toString());
+            core.info(chunk.toString());
             stdout += chunk.toString();
         });
         spawnedProcess.stderr.on('data', (chunk) => {
-            console.error(chunk.toString());
+            core.error(chunk.toString());
             stderr += chunk.toString();
         });
         spawnedProcess.on('close', (code) => {
             if (code !== 0) {
-                console.log('code: ', code);
+                core.error(`Git command failed with code: ${code}`);
                 return reject(new Error(`${stderr}`));
             }
             resolve(stdout);
@@ -11884,6 +11909,7 @@ function getCommitHistoryAsJSON(fromTag, toTag) {
         const sanitizedOutput = stdout.replace(/(?<="subject": ").*?(?="})/g, (subject) => (0, sanitizeStringForJSONParse_1.default)(subject));
         // Then remove newlines, format as JSON and convert to a proper JS object
         const json = `[${sanitizedOutput}]`.replace(/(\r\n|\n|\r)/gm, '').replace('},]', '}]');
+        core.endGroup();
         return JSON.parse(json);
     });
 }
@@ -11914,27 +11940,24 @@ function getValidMergedPRs(commits) {
 }
 /**
  * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
- *
- * This function is being refactored to use the GitHub API instead of the git log command, but for now the
- * issues retrieved from the GitHub API are just being logged for testing: https://github.com/Expensify/App/issues/58775
  */
 async function getPullRequestsDeployedBetween(fromTag, toTag) {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
     const gitCommitList = await getCommitHistoryAsJSON(fromTag, toTag);
     const gitLogPullRequestNumbers = getValidMergedPRs(gitCommitList).sort((a, b) => a - b);
     console.log(`[git log] Found ${gitCommitList.length} commits.`);
-    core.startGroup('[git log] Parsed PRs:');
-    core.info(JSON.stringify(gitLogPullRequestNumbers));
-    core.endGroup();
-    // Test the new GitHub API method
-    // eslint-disable-next-line deprecation/deprecation
+    core.info(`[git log] Checklist PRs: ${gitLogPullRequestNumbers.join(', ')}`);
     const apiCommitList = await GithubUtils_1.default.getCommitHistoryBetweenTags(fromTag, toTag);
     const apiPullRequestNumbers = getValidMergedPRs(apiCommitList).sort((a, b) => a - b);
     console.log(`[api] Found ${apiCommitList.length} commits.`);
     core.startGroup('[api] Parsed PRs:');
-    core.info(JSON.stringify(apiPullRequestNumbers));
+    core.info(apiPullRequestNumbers.join(', '));
     core.endGroup();
-    return gitLogPullRequestNumbers;
+    // Print diff between git log and API results for debugging
+    const onlyInGitLog = gitLogPullRequestNumbers.filter((pr) => !apiPullRequestNumbers.includes(pr));
+    const onlyInAPI = apiPullRequestNumbers.filter((pr) => !gitLogPullRequestNumbers.includes(pr));
+    core.info(`PR list diff - git log only: [${onlyInGitLog.join(', ')}], API only: [${onlyInAPI.join(', ')}]`);
+    return apiPullRequestNumbers;
 }
 exports["default"] = {
     getPreviousExistingTag,
@@ -11983,9 +12006,9 @@ const utils_1 = __nccwpck_require__(3030);
 const plugin_paginate_rest_1 = __nccwpck_require__(4193);
 const plugin_throttling_1 = __nccwpck_require__(9968);
 const request_error_1 = __nccwpck_require__(537);
-const EmptyObject_1 = __nccwpck_require__(8227);
-const arrayDifference_1 = __importDefault(__nccwpck_require__(7034));
+const arrayDifference_1 = __importDefault(__nccwpck_require__(7532));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
+const isEmptyObject_1 = __nccwpck_require__(6497);
 class GithubUtils {
     static internalOctokit;
     /**
@@ -12176,7 +12199,7 @@ class GithubUtils {
     static generateStagingDeployCashBodyAndAssignees(tag, PRList, verifiedPRList = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isFirebaseChecked = false, isGHStatusChecked = false) {
         return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
             .then((data) => {
-            const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !(0, EmptyObject_1.isEmptyObject)(pr.labels.find((item) => item.name === CONST_1.default.LABELS.INTERNAL_QA))) : [];
+            const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !(0, isEmptyObject_1.isEmptyObject)(pr.labels.find((item) => item.name === CONST_1.default.LABELS.INTERNAL_QA))) : [];
             return Promise.all(internalQAPRs.map((pr) => this.getPullRequestMergerLogin(pr.number).then((mergerLogin) => ({ url: pr.html_url, mergerLogin })))).then((results) => {
                 // The format of this map is following:
                 // {
@@ -12195,7 +12218,10 @@ class GithubUtils {
                 const sortedDeployBlockers = [...new Set(deployBlockers)].sort((a, b) => GithubUtils.getIssueOrPullRequestNumberFromURL(a) - GithubUtils.getIssueOrPullRequestNumberFromURL(b));
                 // Tag version and comparison URL
                 // eslint-disable-next-line max-len
-                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n`;
+                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n`;
+                // Warn deployers about potential bugs with the new process
+                issueBody +=
+                    '> 💡 **Deployer FYI:** This checklist was generated using a new process. PR list from original method and detail logging can be found in the most recent [deploy workflow](https://github.com/Expensify/App/actions/workflows/deploy.yml) labeled `staging`, in the `createChecklist` action. Please tag @Julesssss with any issues.\r\n\r\n';
                 // PR list
                 if (sortedPRList.length > 0) {
                     issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
@@ -12206,7 +12232,7 @@ class GithubUtils {
                     issueBody += '\r\n\r\n';
                 }
                 // Internal QA PR list
-                if (!(0, EmptyObject_1.isEmptyObject)(internalQAPRMap)) {
+                if (!(0, isEmptyObject_1.isEmptyObject)(internalQAPRMap)) {
                     console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
                     issueBody += '**Internal QA:**\r\n';
                     Object.keys(internalQAPRMap).forEach((URL) => {
@@ -12299,6 +12325,14 @@ class GithubUtils {
             per_page: 100,
         }, (response) => response.data.map((comment) => comment.body));
     }
+    static getAllCommentDetails(issueNumber) {
+        return this.paginate(this.octokit.issues.listComments, {
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            issue_number: issueNumber,
+            per_page: 100,
+        }, (response) => response.data);
+    }
     /**
      * Create comment on pull request
      */
@@ -12324,6 +12358,17 @@ class GithubUtils {
             workflow_id: workflow,
         })
             .then((response) => response.data.workflow_runs.at(0)?.id ?? -1);
+    }
+    /**
+     * List workflow runs for the repository.
+     */
+    static async listWorkflowRunsForRepo(options = {}) {
+        return this.octokit.actions.listWorkflowRunsForRepo({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            per_page: options.per_page ?? 50,
+            ...(options.status && { status: options.status }),
+        });
     }
     /**
      * Generate the URL of an New Expensify pull request given the PR number.
@@ -12407,6 +12452,24 @@ class GithubUtils {
             .then((response) => response.url);
     }
     /**
+     * Get the contents of a file from the API at a given ref as a string.
+     */
+    static async getFileContents(path, ref = 'main') {
+        const { data } = await this.octokit.repos.getContent({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            path,
+            ref,
+        });
+        if (Array.isArray(data)) {
+            throw new Error(`Provided path ${path} refers to a directory, not a file`);
+        }
+        if (!('content' in data)) {
+            throw new Error(`Provided path ${path} is invalid`);
+        }
+        return Buffer.from(data.content, 'base64').toString('utf8');
+    }
+    /**
      * Get commits between two tags via the GitHub API
      */
     static async getCommitHistoryBetweenTags(fromTag, toTag) {
@@ -12466,6 +12529,39 @@ class GithubUtils {
     }
 }
 exports["default"] = GithubUtils;
+
+
+/***/ }),
+
+/***/ 7532:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+/**
+ * This function is an equivalent of _.difference, it takes two arrays and returns the difference between them.
+ * It returns an array of items that are in the first array but not in the second array.
+ */
+function arrayDifference(array1, array2) {
+    return [array1, array2].reduce((a, b) => a.filter((c) => !b.includes(c)));
+}
+exports["default"] = arrayDifference;
+
+
+/***/ }),
+
+/***/ 6497:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.isEmptyObject = void 0;
+function isEmptyObject(obj) {
+    return Object.keys(obj ?? {}).length === 0;
+}
+exports.isEmptyObject = isEmptyObject;
 
 
 /***/ }),
@@ -12604,39 +12700,6 @@ function getPreviousVersion(currentVersion, level) {
     return getVersionStringFromNumber(major, minor, patch, build - 1);
 }
 exports.getPreviousVersion = getPreviousVersion;
-
-
-/***/ }),
-
-/***/ 8227:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.isEmptyObject = void 0;
-function isEmptyObject(obj) {
-    return Object.keys(obj ?? {}).length === 0;
-}
-exports.isEmptyObject = isEmptyObject;
-
-
-/***/ }),
-
-/***/ 7034:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-/**
- * This function is an equivalent of _.difference, it takes two arrays and returns the difference between them.
- * It returns an array of items that are in the first array but not in the second array.
- */
-function arrayDifference(array1, array2) {
-    return [array1, array2].reduce((a, b) => a.filter((c) => !b.includes(c)));
-}
-exports["default"] = arrayDifference;
 
 
 /***/ }),

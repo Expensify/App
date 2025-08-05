@@ -10,12 +10,11 @@ import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
-import {generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {HybridAppRoute, Route} from '@src/ROUTES';
-import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
@@ -117,27 +116,6 @@ const getTopmostReportActionId = (state = navigationRef.getState()) => getTopmos
 const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
 
 /**
- * Function that generates dynamic urls from paths passed from OldDot.
- */
-function parseHybridAppUrl(url: HybridAppRoute | Route): Route {
-    switch (url) {
-        case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL:
-            return ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, generateReportID());
-        case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE:
-            return ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, generateReportID());
-        case HYBRID_APP_ROUTES.DISTANCE_REQUEST_CREATE_TAB_MANUAL:
-            return ROUTES.DISTANCE_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, generateReportID());
-        case HYBRID_APP_ROUTES.DISTANCE_REQUEST_CREATE_TAB_MAP:
-            return ROUTES.DISTANCE_REQUEST_CREATE_TAB_MAP.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, generateReportID());
-        case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE:
-        case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN:
-            return ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, generateReportID());
-        default:
-            return url;
-    }
-}
-
-/**
  * Returns the current active route.
  */
 function getActiveRoute(): string {
@@ -165,6 +143,15 @@ function getReportRHPActiveRoute(): string {
 }
 
 /**
+ * Cleans the route path by removing redundant slashes and query parameters.
+ * @param routePath The route path to clean.
+ * @returns The cleaned route path.
+ */
+function cleanRoutePath(routePath: string): string {
+    return routePath.replace(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (match, p1) => (p1 ? '/' : '')).replace(/\?.*/, '');
+}
+
+/**
  * Check whether the passed route is currently Active or not.
  *
  * Building path with getPathFromState since navigationRef.current.getCurrentRoute().path
@@ -174,11 +161,11 @@ function getReportRHPActiveRoute(): string {
  * @return is active
  */
 function isActiveRoute(routePath: Route): boolean {
-    let activeRoute = getActiveRoute();
+    let activeRoute = getActiveRouteWithoutParams();
     activeRoute = activeRoute.startsWith('/') ? activeRoute.substring(1) : activeRoute;
 
     // We remove redundant (consecutive and trailing) slashes from path before matching
-    return activeRoute === routePath.replace(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (match, p1) => (p1 ? '/' : ''));
+    return cleanRoutePath(activeRoute) === cleanRoutePath(routePath);
 }
 
 /**
@@ -556,6 +543,10 @@ function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navig
 const dismissModal = (ref = navigationRef) => {
     isNavigationReady().then(() => {
         ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
+        // Let React Navigation finish modal transition
+        InteractionManager.runAfterInteractions(() => {
+            fireModalDismissed();
+        });
     });
 };
 
@@ -647,6 +638,20 @@ function isOnboardingFlow() {
     return isOnboardingFlowName(currentFocusedRoute?.name);
 }
 
+const modalDismissedListeners: Array<() => void> = [];
+
+function onModalDismissedOnce(callback: () => void) {
+    modalDismissedListeners.push(callback);
+}
+
+// Wrap modal dismissal so listeners get called
+function fireModalDismissed() {
+    while (modalDismissedListeners.length) {
+        const cb = modalDismissedListeners.pop();
+        cb?.();
+    }
+}
+
 export default {
     setShouldPopToSidebar,
     getShouldPopToSidebar,
@@ -666,7 +671,6 @@ export default {
     getRouteNameFromStateEvent,
     getTopmostReportActionId,
     waitForProtectedRoutes,
-    parseHybridAppUrl,
     resetToHome,
     goBackToHome,
     closeRHPFlow,
@@ -680,6 +684,8 @@ export default {
     replaceWithSplitNavigator,
     isTopmostRouteModalScreen,
     isOnboardingFlow,
+    onModalDismissedOnce,
+    fireModalDismissed,
 };
 
 export {navigationRef};

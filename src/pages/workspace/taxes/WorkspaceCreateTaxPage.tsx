@@ -7,7 +7,6 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -112,15 +111,15 @@ function WorkspaceCreateTaxPage({
                                     title={(v) => (v ? getTaxValueWithPercentage(v) : '')}
                                     description={translate('workspace.taxes.value')}
                                     rightLabel={translate('common.required')}
-                                    hideCurrencySymbol
-                                    // The default currency uses 2 decimal places, so we subtract it
-                                    extraDecimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES - 2}
-                                    // We increase the amount max length to support the extra decimals.
-                                    amountMaxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
-                                    extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
+                                    decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
+                                    maxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
+                                    isSymbolPressable={false}
+                                    symbol="%"
+                                    symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX}
                                     autoGrowExtraSpace={variables.w80}
                                     autoGrowMarginSide="left"
                                     style={[styles.iouAmountTextInput, styles.textAlignRight]}
+                                    containerStyle={styles.iouAmountTextInputContainer}
                                 />
                             </View>
                         </FormProvider>

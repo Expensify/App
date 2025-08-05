@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -41,6 +41,7 @@ import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmModal from './ConfirmModal';
 import DecisionModal from './DecisionModal';
+import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -82,7 +83,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
-    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true, canBeMissing: false});
+    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
     const shouldShowLoadingBar = useLoadingBarVisibility();
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
     const styles = useThemeStyles();
@@ -92,7 +93,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const isDuplicate = isDuplicateTransactionUtils(transaction);
     const reportID = report?.reportID;
     const {removeTransaction} = useSearchContext();
-
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
 
@@ -214,6 +215,23 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     throw new Error('Parent action does not exist');
                 }
 
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
+                changeMoneyRequestHoldStatus(parentReportAction);
+            },
+        },
+        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD]: {
+            text: translate('iou.unhold'),
+            icon: Expensicons.Stopwatch,
+            value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD,
+            onSelected: () => {
+                if (!parentReportAction) {
+                    throw new Error('Parent action does not exist');
+                }
+
                 changeMoneyRequestHoldStatus(parentReportAction);
             },
         },
@@ -222,7 +240,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             icon: Expensicons.ArrowSplit,
             value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {
-                initSplitExpense(transaction, reportID ?? String(CONST.DEFAULT_NUMBER_ID));
+                initSplitExpense(transaction);
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS]: {
@@ -230,7 +248,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             text: translate('iou.viewDetails'),
             icon: Expensicons.Info,
             onSelected: () => {
-                navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute());
+                navigateToDetailsPage(report, Navigation.getActiveRoute());
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE]: {
@@ -283,7 +301,12 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         )}
                     </View>
                 )}
-                {shouldDisplayTransactionNavigation && <MoneyRequestReportTransactionsNavigation currentReportID={reportID} />}
+                {shouldDisplayTransactionNavigation && !!transaction && (
+                    <MoneyRequestReportTransactionsNavigation
+                        currentTransactionID={transaction.transactionID}
+                        parentReport={parentReport}
+                    />
+                )}
             </HeaderWithBackButton>
             {shouldUseNarrowLayout && (
                 <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>

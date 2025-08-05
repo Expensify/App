@@ -34,7 +34,7 @@ function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
     const policy = usePolicy(policyID);
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const customUnit = getDistanceRateCustomUnit(policy);
-    const customUnitID = customUnit?.customUnitID ?? '';
+    const customUnitID = customUnit?.customUnitID;
     const customUnitRateID = generateCustomUnitID();
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -46,6 +46,10 @@ function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
     );
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
+        if (!customUnitID) {
+            return;
+        }
+
         const newRate: Rate = {
             currency,
             name: getOptimisticRateName(customUnit?.rates ?? {}),
@@ -87,7 +91,7 @@ function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
                         <InputWrapperWithRef
                             InputComponent={AmountForm}
                             inputID={INPUT_IDS.RATE}
-                            fixedDecimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
+                            decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
                             isCurrencyPressable={false}
                             currency={currency}
                             ref={inputCallbackRef}
