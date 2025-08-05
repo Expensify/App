@@ -111,8 +111,6 @@ function SearchPage({route}: SearchPageProps) {
 
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, policyID: string | undefined) => {
-            setIsExportWithTemplateModalVisible(true);
-
             // If the user has selected a large number of items, we'll use the queryJSON to search for the reportIDs and transactionIDs necessary for the export
             if (areAllMatchingItemsSelected) {
                 queueExportSearchWithTemplate({templateName, templateType, jsonQuery: JSON.stringify(queryJSON), reportIDList: [], transactionIDList: [], policyID});
@@ -121,6 +119,8 @@ function SearchPage({route}: SearchPageProps) {
                 const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
                 queueExportSearchWithTemplate({templateName, templateType, jsonQuery: '{}', reportIDList, transactionIDList: selectedTransactionsKeys, policyID});
             }
+
+            setIsExportWithTemplateModalVisible(true);
         },
         [queryJSON, selectedReports, selectedTransactionsKeys, areAllMatchingItemsSelected],
     );
@@ -174,6 +174,7 @@ function SearchPage({route}: SearchPageProps) {
                         beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
                     },
                     shouldCloseModalOnSelect: true,
+                    shouldCallAfterModalHide: true,
                 },
             ];
 
@@ -193,6 +194,7 @@ function SearchPage({route}: SearchPageProps) {
                         beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
                     },
                     shouldCloseModalOnSelect: true,
+                    shouldCallAfterModalHide: true,
                 });
             }
 
