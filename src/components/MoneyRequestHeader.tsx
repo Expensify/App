@@ -293,7 +293,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                           }
                         : undefined
                 }
-                policy={policy}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter={!isReportInRHP}
                 shouldDisplayHelpButton={!isReportInRHP}
