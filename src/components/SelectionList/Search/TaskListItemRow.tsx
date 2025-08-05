@@ -7,7 +7,7 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {useSession} from '@components/OnyxListItemProvider';
-import type {TaskListItemType} from '@components/SelectionList/types';
+import type {SortableColumnName, TaskListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useParentReport from '@hooks/useParentReport';
@@ -25,18 +25,26 @@ import DateCell from './DateCell';
 import UserInfoCell from './UserInfoCell';
 
 type TaskListItemRowProps = {
+    /** The item to display */
     item: TaskListItemType;
+    /** Whether the item is focused */
     showTooltip: boolean;
+    /** Style to apply to the container */
     containerStyle?: StyleProp<ViewStyle>;
+    /** Columns that are visible in the table */
+    columns?: SortableColumnName[];
 };
 
 type CellProps = {
+    /** Whether to show tooltip */
     // eslint-disable-next-line react/no-unused-prop-types
     showTooltip: boolean;
+    /** Whether the screen is large */
     isLargeScreenWidth: boolean;
 };
 
 type TaskCellProps = {
+    /** The task item to display */
     taskItem: TaskListItemType;
 } & CellProps;
 
@@ -112,7 +120,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
     );
 }
 
-function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowProps) {
+function TaskListItemRow({item, containerStyle, showTooltip, columns}: TaskListItemRowProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -214,7 +222,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                         isLargeScreenWidth
                     />
                 </View>
-                {!!item.description && (
+                {!!columns?.includes(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION) && (
                     <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION)]}>
                         <DescriptionCell
                             taskItem={item}
@@ -223,7 +231,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                         />
                     </View>
                 )}
-                {!!item.createdBy.accountID && (
+                {!!columns?.includes(CONST.SEARCH.TABLE_COLUMNS.FROM) && (
                     <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                         <UserInfoCell
                             accountID={item.createdBy.accountID}
@@ -238,7 +246,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                         icon={item?.parentReportIcon}
                     />
                 </View>
-                {!!item.assignee.accountID && (
+                {!!columns?.includes(CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE) && (
                     <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE)]}>
                         <UserInfoCell
                             accountID={item.assignee.accountID}

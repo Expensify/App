@@ -19,6 +19,7 @@ function TaskListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     shouldAnimateInHighlight,
+    columns = [],
 }: TaskListItemProps<TItem>) {
     const taskItem = item as unknown as TaskListItemType;
     const styles = useThemeStyles();
@@ -71,6 +72,7 @@ function TaskListItem<TItem extends ListItem>({
             <TaskListItemRow
                 item={taskItem}
                 showTooltip={showTooltip}
+                columns={columns}
             />
         </BaseListItem>
     );

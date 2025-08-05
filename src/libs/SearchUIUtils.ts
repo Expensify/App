@@ -1430,9 +1430,7 @@ function getColumnsToShow(data: OnyxTypes.SearchResults['data'] | OnyxTypes.Tran
     const updateColumnsForTask = (task: TaskListItemType) => {
         const accountID = task.accountID;
         const managerID = task.managerID;
-        if (!managerID) {
-            columns[CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE] = false;
-        }
+        columns[CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE] = !!managerID;
         if (task.description) {
             columns[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION] = true;
         }
