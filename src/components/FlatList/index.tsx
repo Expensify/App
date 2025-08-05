@@ -43,7 +43,7 @@ function getScrollableNode(flatList: FlatList | null): HTMLElement | undefined {
 
 type AdditionalFlatListProps = {
     /**
-     * iOS only - Uses the animated keyboard handler capabilities
+     * iOS and Android only - Uses the animated keyboard handler capabilities
      */
     withAnimatedKeyboardHandler?: boolean;
 };
