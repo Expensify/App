@@ -1,16 +1,16 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import type {FlashListProps} from '@shopify/flash-list';
+import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import TextBlock from '@components/TextBlock';
-import useLHNEstimatedListSize from '@hooks/useLHNEstimatedListSize';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -42,7 +42,7 @@ const keyExtractor = (item: Report) => `report_${item.reportID}`;
 function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
     const {isOffline} = useNetwork();
-    const flashListRef = useRef<FlashList<Report>>(null);
+    const flashListRef = useRef<FlashListRef<Report>>(null);
     const route = useRoute();
     const isScreenFocused = useIsFocused();
 
@@ -63,7 +63,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
-    const estimatedListSize = useLHNEstimatedListSize();
     const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
     const shouldShowEmptyLHN = data.length === 0;
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
@@ -372,6 +371,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         }
     }, [data, shouldShowEmptyLHN, route, reports, reportActions, policy, personalDetails]);
 
+    const contentContainerStyle = StyleSheet.flatten(contentContainerStyles) as StyleProp<ViewStyle>;
+
     return (
         <View style={[style ?? styles.flex1, shouldShowEmptyLHN ? styles.emptyLHNWrapper : undefined]}>
             {shouldShowEmptyLHN ? (
@@ -390,18 +391,15 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     indicatorStyle="white"
                     keyboardShouldPersistTaps="always"
                     CellRendererComponent={OptionRowRendererComponent}
-                    contentContainerStyle={StyleSheet.flatten(contentContainerStyles)}
+                    contentContainerStyle={contentContainerStyle}
                     data={data}
                     testID="lhn-options-list"
                     keyExtractor={keyExtractor}
                     renderItem={renderItem}
-                    estimatedItemSize={estimatedItemSize}
-                    overrideProps={{estimatedHeightSize: estimatedItemSize * CONST.LHN_VIEWPORT_ITEM_COUNT}}
                     extraData={extraData}
                     showsVerticalScrollIndicator={false}
                     onLayout={onLayout}
                     onScroll={onScroll}
-                    estimatedListSize={estimatedListSize}
                     initialScrollIndex={isWebOrDesktop ? getScrollIndex(route) : undefined}
                 />
             )}
