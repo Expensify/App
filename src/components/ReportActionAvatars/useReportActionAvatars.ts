@@ -178,6 +178,7 @@ function useReportActionAvatars({
     }));
 
     const shouldUseMappedAccountIDs = avatarsForAccountIDs.length > 0 && (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE || shouldUseActorAccountID);
+    const shouldUsePrimaryAvatarID = isWorkspaceActor && !!primaryAvatar.id;
 
     return {
         avatars: shouldUseMappedAccountIDs ? avatarsForAccountIDs : [primaryAvatar, secondaryAvatar],
@@ -187,7 +188,7 @@ function useReportActionAvatars({
             shouldDisplayAllActors: displayAllActors,
             isWorkspaceActor,
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            actorHint: String(isWorkspaceActor ? primaryAvatar.id : login || (defaultDisplayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
+            actorHint: String(shouldUsePrimaryAvatarID ? primaryAvatar.id : login || defaultDisplayName || 'Unknown user').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
             accountID,
             delegateAccountID: !isWorkspaceActor && delegatePersonalDetails ? actorAccountID : undefined,
         },

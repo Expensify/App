@@ -48,6 +48,9 @@ type ReportActionAvatarsProps = {
 
     /** Subscript card feed to display instead of the second avatar */
     subscriptCardFeed?: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK;
+
+    /** Username used as a fallback for avatar tooltip */
+    fallbackUsername?: string;
 };
 
 /**
@@ -72,6 +75,7 @@ function ReportActionAvatars({
     secondaryAvatarContainerStyle,
     useMidSubscriptSizeForMultipleAvatars = false,
     isInReportAction = false,
+    fallbackUsername,
 }: ReportActionAvatarsProps) {
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
 
@@ -120,6 +124,7 @@ function ReportActionAvatars({
                 noRightMarginOnContainer={noRightMarginOnSubscriptContainer}
                 subscriptAvatarBorderColor={subscriptAvatarBorderColor}
                 subscriptCardFeed={subscriptCardFeed}
+                fallbackUsername={fallbackUsername}
             />
         );
     }
@@ -133,6 +138,7 @@ function ReportActionAvatars({
                 icons={icons}
                 isInReportAction={isInReportAction}
                 shouldShowTooltip={shouldShowTooltip}
+                fallbackUsername={fallbackUsername}
             />
         );
     }
@@ -147,6 +153,7 @@ function ReportActionAvatars({
                 useMidSubscriptSize={useMidSubscriptSizeForMultipleAvatars}
                 secondaryAvatarContainerStyle={secondaryAvatarContainerStyle}
                 isHovered={isHovered}
+                fallbackUsername={fallbackUsername}
             />
         );
     }
@@ -160,6 +167,7 @@ function ReportActionAvatars({
             accountID={Number(delegateAccountID ?? primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
             delegateAccountID={source.action?.delegateAccountID}
             fallbackIcon={primaryAvatar.fallbackIcon}
+            fallbackUsername={fallbackUsername}
         />
     );
 }
