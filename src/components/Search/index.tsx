@@ -333,7 +333,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (groupBy && (isChat || isTask)) {
             return [];
         }
-        return getSections(type, searchResults.data, searchResults.search, groupBy, exportReportActions, searchKey, archivedReportsIdSet);
+        const results = getSections(type, searchResults.data, searchResults.search, groupBy, exportReportActions, searchKey, archivedReportsIdSet);
+        console.log(results);
+        return results;
     }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet]);
 
     useEffect(() => {
@@ -727,7 +729,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
     const shouldShowSorting = !groupBy;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
-
+    console.log(sortedSelectedData);
     return (
         <SearchScopeProvider isOnSearch>
             <Animated.View

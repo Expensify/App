@@ -12,6 +12,10 @@ type LastSearchParams = {
      */
     previousLengthOfResults?: number;
     /**
+     * The number of results returned in the previous search.
+     */
+    willUpdateCountInFeature?: boolean;
+    /**
      * Indicates whether there are more results available beyond the last search.
      */
     hasMoreResults?: boolean;

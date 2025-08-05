@@ -2,8 +2,13 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import PrevNextButtons from '@components/PrevNextButtons';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
+import {isArchivedReport} from '@libs/ReportUtils';
+import {getSections, getSortedSections} from '@libs/SearchUIUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import Navigation from '@navigation/Navigation';
 import saveLastSearchParams from '@userActions/ReportNavigation';
 import {search} from '@userActions/Search';
@@ -20,10 +25,46 @@ type MoneyRequestReportNavigationProps = {
 function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion, backTo}: MoneyRequestReportNavigationProps) {
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {canBeMissing: true});
+    const {localeCompare} = useLocalize();
 
-    const allReports = Object.keys(currentSearchResults?.data ?? {})
-        .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
-        .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
+    const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+        canEvict: false,
+        canBeMissing: true,
+        selector: (allReportActions) => {
+            return Object.fromEntries(
+                Object.entries(allReportActions ?? {}).map(([reporTID, reportActionsGroup]) => {
+                    const filteredReportActions = Object.values(reportActionsGroup ?? {}).filter((action) => isExportIntegrationAction(action) || isIntegrationMessageAction(action));
+                    return [reporTID, filteredReportActions];
+                }),
+            );
+        },
+    });
+    const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        canBeMissing: true,
+        selector: (all): ArchivedReportsIDSet => {
+            const ids = new Set<string>();
+            if (!all) {
+                return ids;
+            }
+
+            const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
+            for (const [key, value] of Object.entries(all)) {
+                if (isArchivedReport(value)) {
+                    const reporTID = key.slice(prefixLength);
+                    ids.add(reporTID);
+                }
+            }
+            return ids;
+        },
+    });
+
+    const {type, status, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
+    let results: string[] = [];
+    if (!!type && !!groupBy && !!currentSearchResults?.data && !!currentSearchResults?.search) {
+        const temp = getSections(type, currentSearchResults.data, currentSearchResults.search, groupBy, exportReportActions, lastSearchQuery?.searchKey, archivedReportsIdSet);
+        results = getSortedSections(type, status ?? '', temp, localeCompare, sortBy, sortOrder, groupBy).map((value) => value.reportID);
+    }
+    const allReports = results;
 
     const currentIndex = allReports.indexOf(reportID ?? CONST.REPORT.DEFAULT_REPORT_ID);
     const allReportsCount = lastSearchQuery?.previousLengthOfResults ?? 0;
@@ -34,9 +75,14 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion, bac
     const shouldDisplayNavigationArrows = allReports && allReports.length > 0;
 
     useEffect(() => {
-        if (currentIndex < allReportsCount - 1 || !lastSearchQuery?.queryJSON) {
+        if (!lastSearchQuery?.queryJSON) {
             return;
         }
+
+        if (currentIndex < allReportsCount - 1 && allReports.length >= (lastSearchQuery?.previousLengthOfResults ?? 0)) {
+            return;
+        }
+
         saveLastSearchParams({
             ...lastSearchQuery,
             previousLengthOfResults: allReports.length,
