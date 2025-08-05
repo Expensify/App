@@ -35,6 +35,7 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
+    BankAccountLastFourParams,
     BeginningOfArchivedRoomParams,
     BeginningOfChatHistoryAdminRoomParams,
     BeginningOfChatHistoryAnnounceRoomParams,
@@ -49,6 +50,7 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessBankAccountParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -83,7 +85,6 @@ import type {
     DefaultAmountParams,
     DefaultVendorDescriptionParams,
     DelegateRoleParams,
-    DelegateSubmitParams,
     DelegatorParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -97,6 +98,8 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EmployeeInviteMessageParams,
+    EmptyCategoriesSubtitleWithAccountingParams,
+    EmptyTagsSubtitleWithAccountingParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -133,6 +136,9 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeFailureDescriptionGenericParams,
+    MergeFailureUncreatedAccountDescriptionParams,
+    MergeSuccessDescriptionParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
@@ -160,6 +166,7 @@ import type {
     PolicyDisabledReportFieldAllOptionsParams,
     PolicyDisabledReportFieldOptionParams,
     PolicyExpenseChatNameParams,
+    QBDSetupErrorBodyParams,
     RailTicketParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
@@ -475,7 +482,6 @@ const translations = {
         message: '消息',
         leaveThread: '离开线程',
         you: '你',
-        me: '我',
         youAfterPreposition: '你',
         your: '你的',
         conciergeHelp: '请联系Concierge寻求帮助。',
@@ -548,9 +554,11 @@ const translations = {
         type: '类型',
         action: '操作',
         expenses: '费用',
+        totalSpend: '总支出',
         tax: '税务',
         shared: '共享',
         drafts: '草稿',
+        draft: '草稿',
         finished: '完成',
         upgrade: '升级',
         downgradeWorkspace: '降级工作区',
@@ -624,6 +632,7 @@ const translations = {
         getTheApp: '获取应用程序',
         scanReceiptsOnTheGo: '用手机扫描收据',
         headsUp: '\u6CE8\u610F\uFF01',
+        unstableInternetConnection: '互联网连接不稳定。请检查你的网络，然后重试。',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -924,9 +933,9 @@ const translations = {
     spreadsheet: {
         upload: '上传电子表格',
         import: '导入电子表格',
-        dragAndDrop: '将您的电子表格拖放到此处，或在下方选择一个文件。支持的格式：.csv、.txt、.xls 和 .xlsx。',
+        dragAndDrop: '<muted-link>将您的电子表格拖放到此处，或在下方选择一个文件。支持的格式：.csv、.txt、.xls 和 .xlsx。</muted-link>',
         dragAndDropMultiLevelTag: `<muted-link>将您的电子表格拖放到此处，或在下方选择一个文件。 <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">了解更多</a> 支持的文件格式。</muted-link>`,
-        chooseSpreadsheet: '选择要导入的电子表格文件。支持的格式：.csv、.txt、.xls 和 .xlsx。',
+        chooseSpreadsheet: '<muted-link>选择要导入的电子表格文件。支持的格式：.csv、.txt、.xls 和 .xlsx。</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>选择要导入的电子表格文件。 <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">了解更多</a> 支持的文件格式。</muted-link>`,
         fileContainsHeader: '文件包含列标题',
         column: ({name}: SpreadSheetColumnParams) => `列 ${name}`,
@@ -1049,7 +1058,7 @@ const translations = {
         canceled: '已取消',
         posted: '已发布',
         deleteReceipt: '删除收据',
-        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `在此报告中删除了一笔费用，${merchant} - ${amount}`,
+        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `删除了一笔费用 (${merchant} 的 ${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `移动了一笔费用${reportName ? `来自${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `移动了此费用${reportName ? `至 <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: '已将此费用移动到您的个人空间',
@@ -1066,6 +1075,8 @@ const translations = {
         scanMultipleReceiptsDescription: '一次拍摄所有收据的照片，然后自行确认详细信息或让SmartScan处理。',
         receiptScanInProgress: '正在扫描收据',
         receiptScanInProgressDescription: '收据扫描中。稍后查看或立即输入详细信息。',
+        removeFromReport: '不在此报告中',
+        moveToPersonalSpace: '移动费用到个人空间',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) => (!isSubmitted ? '发现潜在的重复费用。请查看重复项以启用提交。' : '发现潜在的重复费用。请审查重复项以启用批准。'),
         receiptIssuesFound: () => ({
             one: '发现问题',
@@ -1123,10 +1134,20 @@ const translations = {
         individual: '个人',
         business: '商务',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `使用 Expensify 支付 ${formattedAmount}` : `使用Expensify支付`),
-        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `以个人身份支付${formattedAmount}` : `以个人身份支付`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `以个人身份支付${formattedAmount}` : `用个人账户支付`),
+        settleWallet: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `用钱包支付${formattedAmount}` : `用钱包支付`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `支付 ${formattedAmount}`,
-        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `以企业身份支付${formattedAmount}` : `以企业身份支付`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `在其他地方支付${formattedAmount}` : `在其他地方支付`),
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `以企业身份支付${formattedAmount}` : `用企业账户支付`),
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `标记${formattedAmount}为已支付` : `标记为已支付`),
+        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `已用个人账户${last4Digits}支付${amount}` : `已用个人账户支付`),
+        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `已用企业账户${last4Digits}支付${amount}` : `已用企业账户支付`),
+        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
+            formattedAmount ? `通过${policyName}支付${formattedAmount}` : `通过${policyName}支付`,
+        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `已用银行账户${last4Digits}支付${amount} ` : `已用银行账户${last4Digits}支付 `),
+        automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
+            `已使用尾号为${last4Digits}的银行账户支付${amount} 通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>`,
+        invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `个人账户 • ${lastFour}`,
+        invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `企业账户 • ${lastFour}`,
         nextStep: '下一步',
         finished: '完成',
         sendInvoice: ({amount}: RequestAmountParams) => `发送 ${amount} 发票`,
@@ -1159,8 +1180,8 @@ const translations = {
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}取消了付款`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) => `取消了${amount}付款，因为${submitterDisplayName}在30天内未启用他们的Expensify Wallet。`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) => `${submitterDisplayName} 添加了一个银行账户。${amount} 付款已完成。`,
-        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}在其他地方支付`,
-        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}通过Expensify支付`,
+        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}已标记为已支付`,
+        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}已用钱包支付`,
         automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) =>
             `${payer ? `${payer} ` : ''}通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>使用Expensify支付`,
         noReimbursableExpenses: '此报告的金额无效',
@@ -1482,8 +1503,7 @@ const translations = {
             clearCacheAndRestart: '清除缓存并重启',
             viewConsole: '查看调试控制台',
             debugConsole: '调试控制台',
-            description: '使用以下工具帮助解决Expensify体验中的问题。如果您遇到任何问题，请',
-            submitBug: '提交错误报告',
+            description: '<muted-text>使用以下工具帮助排除 Expensify 体验中的故障。如果遇到任何问题，<concierge-link>请提交错误</concierge-link>。</muted-text>',
             confirmResetDescription: '所有未发送的草稿消息将会丢失，但您的其他数据是安全的。',
             resetAndRefresh: '重置并刷新',
             clientSideLogging: '客户端日志记录',
@@ -1570,67 +1590,32 @@ const translations = {
         },
         mergeSuccess: {
             accountsMerged: '账户已合并！',
-            successfullyMergedAllData: {
-                beforeFirstEmail: `您已成功合并所有数据从`,
-                beforeSecondEmail: `进入`,
-                afterSecondEmail: `. 今后，您可以使用任一登录方式访问此账户。`,
-            },
+            description: ({from, to}: MergeSuccessDescriptionParams) =>
+                `<muted-text><centered-text>您已成功将 <strong>${from}</strong> 中的所有数据合并到 <strong>${to}</strong>。今后，您可以使用该账户的任意一个登录名。</centered-text></muted-text>`,
         },
         mergePendingSAML: {
             weAreWorkingOnIt: '我们正在处理此事',
             limitedSupport: '我们尚未支持在 New Expensify 上合并账户。请在 Expensify Classic 上执行此操作。',
-            reachOutForHelp: {
-                beforeLink: '随意',
-                linkText: '联系Concierge',
-                afterLink: '如果您有任何问题！',
-            },
+            reachOutForHelp: '<muted-text><centered-text>如有任何疑问，请随时<concierge-link>联系Concierge</concierge-link>！</centered-text></muted-text>',
             goToExpensifyClassic: '前往 Expensify Classic',
         },
-        mergeFailureSAMLDomainControl: {
-            beforeFirstEmail: '无法合并',
-            beforeDomain: '因为它由…控制',
-            afterDomain: '. 请',
-            linkText: '联系Concierge',
-            afterLink: '以获取帮助。',
-        },
-        mergeFailureSAMLAccount: {
-            beforeEmail: '无法合并',
-            afterEmail: '因为您的域管理员已将其设置为您的主要登录方式，因此无法合并到其他帐户。请将其他帐户合并到此帐户中。',
-        },
+        mergeFailureSAMLDomainControlDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>您无法合并 <strong>${email}</strong>，因为它受 <strong>${email.split('@').at(1) ?? ''}</strong> 控制。请<concierge-link>联系Concierge</concierge-link>寻求帮助。</centered-text></muted-text>`,
+        mergeFailureSAMLAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>您不能将 <strong>${email}</strong> 并入其他账户，因为您的域名管理员已将其设置为您的主登录名。请将其他账户合并到该账户中。</centered-text></muted-text>`,
         mergeFailure2FA: {
-            oldAccount2FAEnabled: {
-                beforeFirstEmail: '您无法合并账户，因为',
-                beforeSecondEmail: '已启用双因素认证 (2FA)。请为',
-                afterSecondEmail: '并重试。',
-            },
+            description: ({email}: MergeFailureDescriptionGenericParams) =>
+                `<muted-text><centered-text>您无法合并账户，因为 <strong>${email}</strong> 启用了双因素身份验证 (2FA)。请禁用 <strong>${email}</strong> 的 2FA，然后重试。</centered-text></muted-text>`,
             learnMore: '了解更多关于合并账户的信息。',
         },
-        mergeFailureAccountLocked: {
-            beforeEmail: '无法合并',
-            afterEmail: '因为它被锁定了。请',
-            linkText: '联系Concierge',
-            afterLink: `以获得帮助。`,
-        },
-        mergeFailureUncreatedAccount: {
-            noExpensifyAccount: {
-                beforeEmail: '您无法合并账户，因为',
-                afterEmail: '没有Expensify账户。',
-            },
-            addContactMethod: {
-                beforeLink: 'Please',
-                linkText: '将其添加为联系方式',
-                afterLink: 'instead.',
-            },
-        },
-        mergeFailureSmartScannerAccount: {
-            beforeEmail: '无法合并',
-            afterEmail: '到其他账户。请将其他账户合并到此账户中。',
-        },
-        mergeFailureInvoicedAccount: {
-            beforeEmail: '无法合并账户到 ',
-            afterEmail: '，因为该账户拥有已开具发票的计费关系。',
-        },
-
+        mergeFailureAccountLockedDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>您无法合并 <strong>${email}</strong>，因为它已被锁定。请<concierge-link>联系Concierge</concierge-link>寻求帮助。</centered-text></muted-text>`,
+        mergeFailureUncreatedAccountDescription: ({email, contactMethodLink}: MergeFailureUncreatedAccountDescriptionParams) =>
+            `<muted-text><centered-text>您无法合并账户，因为 <strong>${email}</strong> 没有 Expensify 账户。请将<a href="${contactMethodLink}">其添加为联系方式</a>。</centered-text></muted-text>`,
+        mergeFailureSmartScannerAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>您不能将 <strong>${email}</strong> 并入其他账户。请将其他账户合并到其中。</centered-text></muted-text>`,
+        mergeFailureInvoicedAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>您不能将账户合并到 <strong>${email}</strong>，因为该账户拥有发票账单关系。</centered-text></muted-text>`,
         mergeFailureTooManyAttempts: {
             heading: '请稍后再试',
             description: '尝试合并账户的次数过多。请稍后再试。',
@@ -1739,9 +1724,7 @@ const translations = {
         changePaymentCurrency: '更改支付货币',
         paymentCurrency: '付款货币',
         paymentCurrencyDescription: '选择一个标准化货币，将所有个人费用转换为该货币。',
-        note: '注意：更改您的支付货币可能会影响您为Expensify支付的金额。请参阅我们的',
-        noteLink: '定价页面',
-        noteDetails: '查看完整详情。',
+        note: `注意：更改支付货币会影响您为 Expensify 支付的费用。请参阅我们的<a href="${CONST.PRICING}">定价页面</a>了解详情。`,
     },
     addDebitCardPage: {
         addADebitCard: '添加借记卡',
@@ -1811,8 +1794,8 @@ const translations = {
         expensifyWallet: 'Expensify Wallet（测试版）',
         sendAndReceiveMoney: '与朋友发送和接收资金。仅限美国银行账户。',
         enableWallet: '启用钱包',
-        addBankAccountToSendAndReceive: '获得报销您提交到工作区的费用。',
-        addBankAccount: '添加银行账户',
+        addBankAccountToSendAndReceive: '添加银行账户以进行付款或收款。',
+        addDebitOrCreditCard: '添加借记卡或信用卡',
         assignedCards: '已分配的卡片',
         assignedCardsDescription: '这些是由工作区管理员分配的卡片，用于管理公司支出。',
         expensifyCard: 'Expensify Card',
@@ -1823,6 +1806,8 @@ const translations = {
         chooseYourBankAccount: '选择您的银行账户',
         chooseAccountBody: '确保您选择正确的选项。',
         confirmYourBankAccount: '确认您的银行账户',
+        personalBankAccounts: '个人银行账户',
+        businessBankAccounts: '企业银行账户',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -1876,7 +1861,6 @@ const translations = {
         addApprovalButton: '添加审批工作流程',
         addApprovalTip: '此默认工作流程适用于所有成员，除非存在更具体的工作流程。',
         approver: '审批人',
-        connectBankAccount: '连接银行账户',
         addApprovalsDescription: '在授权付款之前需要额外批准。',
         makeOrTrackPaymentsTitle: '进行或跟踪付款',
         makeOrTrackPaymentsDescription: '添加授权付款人以便在Expensify中进行付款或跟踪在其他地方进行的付款。',
@@ -2020,6 +2004,7 @@ const translations = {
         cardLastFour: '卡号末尾为',
         addFirstPaymentMethod: '添加支付方式以便直接在应用中发送和接收付款。',
         defaultPaymentMethod: '默认',
+        bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `银行账户 • ${lastFour}`,
     },
     preferencesPage: {
         appSection: {
@@ -3108,7 +3093,6 @@ const translations = {
         termsAndConditions: '条款和条件',
     },
     connectBankAccountStep: {
-        connectBankAccount: '连接银行账户',
         finishButtonText: '完成设置',
         validateYourBankAccount: '验证您的银行账户',
         validateButtonText: '验证',
@@ -3198,7 +3182,6 @@ const translations = {
         pleaseUploadTheDirect: '请上传直接借记协议和 Docusign 签名页。',
     },
     finishStep: {
-        connect: '连接银行账户',
         letsFinish: '让我们在聊天中完成！',
         thanksFor: '感谢您提供这些详细信息。专属客服人员将会审核您的信息。如果我们需要其他信息，会再联系您。同时，如果您有任何问题，请随时联系我们。',
         iHaveA: '我有一个问题',
@@ -3386,7 +3369,6 @@ const translations = {
             plan: '计划',
             profile: '概述',
             bankAccount: '银行账户',
-            connectBankAccount: '连接银行账户',
             testTransactions: '测试交易',
             issueAndManageCards: '发行和管理卡片',
             reconcileCards: '对账卡片',
@@ -3470,6 +3452,7 @@ const translations = {
             defaultCategory: '默认类别',
             viewTransactions: '查看交易记录',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}的费用`,
+            deepDiveExpensifyCard: `<muted-text-label>Expensify 卡交易将自动导出到与<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">我们集成</a>创建的 “Expensify 卡责任账户”。</muted-text-label>`,
         },
         perDiem: {
             subtitle: '设置每日津贴标准以控制员工的日常支出。',
@@ -3533,8 +3516,6 @@ const translations = {
             exportCheckDescription: '我们将为每个Expensify报告创建一张分项支票，并从以下银行账户发送。',
             exportJournalEntryDescription: '我们将为每个Expensify报告创建一项分项日记账分录，并将其发布到以下账户。',
             exportVendorBillDescription: '我们将为每个Expensify报告创建一张分项供应商账单，并将其添加到以下账户中。如果此期间已关闭，我们将发布到下一个开放期间的第一天。',
-            deepDiveExpensifyCard: 'Expensify 卡交易将自动导出到使用创建的“Expensify 卡负债账户”中',
-            deepDiveExpensifyCardIntegration: '我们的集成。',
             outOfPocketTaxEnabledDescription: 'QuickBooks Desktop 不支持日记账分录导出的税款。由于您在工作区启用了税款，此导出选项不可用。',
             outOfPocketTaxEnabledError: '启用税收时，日记分录不可用。请选择其他导出选项。',
             accounts: {
@@ -3566,9 +3547,8 @@ const translations = {
                 title: '打开此链接进行连接',
                 body: '要完成设置，请在运行QuickBooks Desktop的计算机上打开以下链接。',
                 setupErrorTitle: '出现错误',
-                setupErrorBody1: 'QuickBooks Desktop 连接目前无法使用。请稍后再试或',
-                setupErrorBody2: '如果问题仍然存在。',
-                setupErrorBodyContactConcierge: '联系Concierge',
+                setupErrorBody: ({conciergeLink}: QBDSetupErrorBodyParams) =>
+                    `<muted-text><centered-text>QuickBooks Desktop 连接暂时无法正常工作。请稍后再试，如果问题仍然存在，<a href="${conciergeLink}">请联系Concierge</a>。</centered-text></muted-text>`,
             },
             importDescription: '选择从 QuickBooks Desktop 导入到 Expensify 的编码配置。',
             classes: '类',
@@ -3609,8 +3589,6 @@ const translations = {
             date: '导出日期',
             exportInvoices: '导出发票到',
             exportExpensifyCard: '将 Expensify 卡交易导出为',
-            deepDiveExpensifyCard: 'Expensify 卡交易将自动导出到使用创建的“Expensify 卡负债账户”中',
-            deepDiveExpensifyCardIntegration: '我们的集成。',
             exportDate: {
                 label: '导出日期',
                 description: '在导出报告到QuickBooks Online时使用此日期。',
@@ -4389,11 +4367,8 @@ const translations = {
             emptyCategories: {
                 title: '您尚未创建任何类别',
                 subtitle: '添加一个类别来组织您的支出。',
-            },
-            emptyCategoriesWithAccounting: {
-                subtitle1: '您的类别目前正在从会计连接中导入。前往',
-                subtitle2: '会计',
-                subtitle3: '进行任何更改。',
+                subtitleWithAccounting: ({accountingPageURL}: EmptyCategoriesSubtitleWithAccountingParams) =>
+                    `<muted-text><centered-text>您的类别目前是从会计连接导入的。请前往<a href="${accountingPageURL}">会计</a>部门进行更改。</centered-text></muted-text>`,
             },
             updateFailureMessage: '更新类别时发生错误，请重试。',
             createFailureMessage: '创建类别时发生错误，请重试。',
@@ -4653,14 +4628,9 @@ const translations = {
                 title: '您尚未创建任何标签',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: '添加标签以跟踪项目、地点、部门等。',
-                subtitle1: '导入电子表格以添加标签，用于跟踪项目、地点、部门等。',
-                subtitle2: '了解更多',
-                subtitle3: '关于格式化标签文件。',
-            },
-            emptyTagsWithAccounting: {
-                subtitle1: '您的标签目前正在从会计连接导入。前往',
-                subtitle2: '会计',
-                subtitle3: '进行任何更改。',
+                subtitleHTML: `<muted-text><centered-text>导入电子表格，为跟踪项目、地点、部门等添加标签。<a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">了解有关</a>标签文件格式的更多信息。</centered-text></muted-text>`,
+                subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
+                    `<muted-text><centered-text>您的标签目前是从会计连接导入的。请前往<a href="${accountingPageURL}">会计</a>部门进行更改。</centered-text></muted-text>`,
             },
             deleteTag: '删除标签',
             deleteTags: '删除标签',
@@ -5101,7 +5071,6 @@ const translations = {
                 personal: '个人',
                 business: '商务',
                 chooseInvoiceMethod: '请选择以下付款方式：',
-                addBankAccount: '添加银行账户',
                 payingAsIndividual: '以个人身份付款',
                 payingAsBusiness: '以企业身份付款',
             },
@@ -5161,6 +5130,10 @@ const translations = {
                 one: '您确定要删除此费率吗？',
                 other: '您确定要删除这些费率吗？',
             }),
+            errors: {
+                rateNameRequired: '费率名称是必需的',
+                existingRateName: '具有此名称的距离费率已存在',
+            },
         },
         editor: {
             descriptionInputLabel: '描述',
@@ -5857,9 +5830,8 @@ const translations = {
             },
         },
         statements: '发言',
-        unapproved: '未经批准',
         unapprovedCash: '未经批准的现金',
-        unapprovedCompanyCards: '未经批准的公司卡',
+        unapprovedCard: '未批准的卡',
         saveSearch: '保存搜索',
         deleteSavedSearch: '删除已保存的搜索',
         deleteSavedSearchConfirm: '您确定要删除此搜索吗？',
@@ -6058,7 +6030,6 @@ const translations = {
                     return `已将工作区更改为 ${toPolicyName}${fromPolicyName ? `（之前为 ${fromPolicyName}）` : ''}`;
                 },
                 changeType: ({oldType, newType}: ChangeTypeParams) => `类型从${oldType}更改为${newType}`,
-                delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `由于${originalManager}正在休假，已将此报告发送给${delegateUser}。`,
                 exportedToCSV: `导出为CSV`,
                 exportedToIntegration: {
                     automatic: ({label}: ExportedToIntegrationParams) => `导出到${label}`,
@@ -6285,14 +6256,12 @@ const translations = {
     },
     referralProgram: {
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
-            buttonText1: '开始聊天，',
-            buttonText2: '推荐朋友。',
+            buttonText: '开始聊天，<success><strong>推荐朋友</strong></success>。',
             header: '开始聊天，推荐朋友',
             body: '想让你的朋友也使用Expensify吗？只需与他们开始聊天，我们会处理剩下的事情。',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText1: '提交报销，',
-            buttonText2: '推荐你的老板。',
+            buttonText: '提交费用，<success><strong>推荐你的老板</strong></success>。',
             header: '提交报销，推荐给您的老板',
             body: '想让你的老板也使用Expensify吗？只需向他们提交一笔费用，其余的交给我们。',
         },
@@ -6351,6 +6320,7 @@ const translations = {
         overAutoApprovalLimit: ({formattedLimit}: ViolationsOverLimitParams) => `费用超出了自动批准限额 ${formattedLimit}`,
         overCategoryLimit: ({formattedLimit}: ViolationsOverCategoryLimitParams) => `金额超过 ${formattedLimit}/人类别限制`,
         overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `金额超过${formattedLimit}/人限制`,
+        overTripLimit: ({formattedLimit}: ViolationsOverLimitParams) => `超过 ${formattedLimit}/次限额的金额`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `金额超过${formattedLimit}/人限制`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `金额超过每日 ${formattedLimit}/人类别限制`,
         receiptNotSmartScanned: '收据和费用详情手动添加。<a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">了解更多。</a>',
@@ -6768,9 +6738,8 @@ const translations = {
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `请输入发送到${contactMethod}的验证码以更新您的副驾驶。`,
         notAllowed: '慢着...',
         noAccessMessage: '作为副驾驶员，您无权访问此页面。抱歉！',
-        notAllowedMessageStart: `作为一名`,
-        notAllowedMessageHyperLinked: 'copilot',
-        notAllowedMessageEnd: ({accountOwnerEmail}: AccountOwnerParams) => `对于${accountOwnerEmail}，您没有权限执行此操作。抱歉！`,
+        notAllowedMessage: ({accountOwnerEmail}: AccountOwnerParams) =>
+            `作为 ${accountOwnerEmail} 的<a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">副驾驶员</a>，您无权执行此操作。对不起！`,
         copilotAccess: 'Copilot访问权限',
     },
     debug: {

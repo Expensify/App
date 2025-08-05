@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
@@ -15,7 +16,6 @@ import type {FilteredCardList} from '@src/types/onyx/Card';
 import type {CardFeedData, CompanyCardFeedWithNumber, CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import localeCompare from './LocaleCompare';
 import {translateLocal} from './Localize';
 import {filterObject} from './ObjectUtils';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
@@ -39,14 +39,6 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => {
         allWorkspaceCards = value;
-    },
-});
-
-let customCardNames: OnyxEntry<Record<string, string>> = {};
-Onyx.connect({
-    key: ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES,
-    callback: (value) => {
-        customCardNames = value;
     },
 });
 
@@ -271,7 +263,7 @@ function getCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, poli
     return Object.values(cards).filter((card: Card) => card.accountID && policyMembersAccountIDs.includes(card.accountID));
 }
 
-function sortCardsByCardholderName(cards: Card[], personalDetails: OnyxEntry<PersonalDetailsList>): Card[] {
+function sortCardsByCardholderName(cards: Card[], personalDetails: OnyxEntry<PersonalDetailsList>, localeCompare: LocaleContextProps['localeCompare']): Card[] {
     return cards.sort((cardA: Card, cardB: Card) => {
         const userA = cardA.accountID ? (personalDetails?.[cardA.accountID] ?? {}) : {};
         const userB = cardB.accountID ? (personalDetails?.[cardB.accountID] ?? {}) : {};
@@ -691,10 +683,6 @@ function getFundIdFromSettingsKey(key: string) {
     return Number.isNaN(fundID) ? CONST.DEFAULT_NUMBER_ID : fundID;
 }
 
-function getCustomCardName(cardID: string) {
-    return customCardNames?.[cardID];
-}
-
 export {
     isExpensifyCard,
     getDomainCards,
@@ -745,5 +733,4 @@ export {
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
     getCorrectStepForPlaidSelectedBank,
-    getCustomCardName,
 };

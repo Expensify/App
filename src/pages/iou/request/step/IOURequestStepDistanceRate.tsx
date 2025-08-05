@@ -5,6 +5,7 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getIOURequestPolicyID, setMoneyRequestDistanceRate, setMoneyRequestTaxAmount, setMoneyRequestTaxRate, updateMoneyRequestDistanceRate} from '@libs/actions/IOU';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
@@ -32,15 +33,15 @@ function IOURequestStepDistanceRate({
     report,
     reportDraft,
     route: {
-        params: {action, reportID, backTo, transactionID},
+        params: {action, reportID, backTo, transactionID, iouType},
     },
     transaction,
 }: IOURequestStepDistanceRateProps) {
-    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getIOURequestPolicyID(transaction, reportDraft)}`);
+    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getIOURequestPolicyID(transaction, reportDraft)}`, {canBeMissing: true});
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
+    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
     const policy: OnyxEntry<OnyxTypes.Policy> = policyReal ?? policyDraft;
@@ -61,21 +62,21 @@ function IOURequestStepDistanceRate({
         Navigation.goBack(backTo);
     };
 
-    const sections = Object.values(rates)
-        .sort((rateA, rateB) => (rateA?.rate ?? 0) - (rateB?.rate ?? 0))
-        .map((rate) => {
-            const unit = transaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID ? DistanceRequestUtils.getDistanceUnit(transaction, rate) : rate.unit;
-            const isSelected = currentRateID ? currentRateID === rate.customUnitRateID : rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE;
-            const rateForDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit);
-            return {
-                text: rate.name ?? rateForDisplay,
-                alternateText: rate.name ? rateForDisplay : '',
-                keyForList: rate.customUnitRateID,
-                value: rate.customUnitRateID,
-                isDisabled: !rate.enabled,
-                isSelected,
-            };
-        });
+    const sections = Object.values(rates).map((rate) => {
+        const unit = transaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID ? DistanceRequestUtils.getDistanceUnit(transaction, rate) : rate.unit;
+        const isSelected = currentRateID ? currentRateID === rate.customUnitRateID : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
+        const rateForDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit);
+        return {
+            text: rate.name ?? rateForDisplay,
+            alternateText: rate.name ? rateForDisplay : '',
+            keyForList: rate.customUnitRateID,
+            value: rate.customUnitRateID,
+            isDisabled: !rate.enabled,
+            isSelected,
+        };
+    });
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, report, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE);
 
     const initiallyFocusedOption = sections.find((item) => item.isSelected)?.keyForList;
 
@@ -110,6 +111,7 @@ function IOURequestStepDistanceRate({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepDistanceRate.displayName}
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate')}</Text>
 

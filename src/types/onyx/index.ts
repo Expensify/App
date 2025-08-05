@@ -112,6 +112,7 @@ import type TryNewDot from './TryNewDot';
 import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
+import type VacationDelegate from './VacationDelegate';
 import type ValidateMagicCodeAction from './ValidateMagicCodeAction';
 import type ValidateUserAndGetAccessiblePolicies from './ValidateUserAndGetAccessiblePolicies';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
@@ -263,6 +264,7 @@ export type {
     ReportTransactionsAndViolationsDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
+    VacationDelegate,
     BillingReceiptDetails,
     IntegrationServerExportTemplate,
     HybridApp,

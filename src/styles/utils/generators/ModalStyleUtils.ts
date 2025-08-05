@@ -208,6 +208,8 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     boxShadow: theme.shadow,
                     borderRadius: variables.componentBorderRadiusLarge,
                     borderWidth: 0,
+                    marginTop: 'auto',
+                    marginBottom: 'auto',
                 };
 
                 // Allow this modal to be dismissed with a swipe down or swipe right
@@ -313,7 +315,6 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     };
                 }
 
-                hideBackdrop = true;
                 swipeDirection = undefined;
                 shouldAddBottomSafeAreaPadding = true;
                 shouldAddTopSafeAreaPadding = true;

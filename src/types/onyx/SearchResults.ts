@@ -35,6 +35,12 @@ type ListItemDataType<C extends SearchDataTypes, T extends SearchStatus> = C ext
 
 /** Model of columns to show for search results */
 type ColumnsToShow = {
+    /** Whether the From column should be shown */
+    shouldShowFromColumn: boolean;
+
+    /** Whether the To column should be shown */
+    shouldShowToColumn: boolean;
+
     /** Whether the category column should be shown */
     shouldShowCategoryColumn: boolean;
 
@@ -43,6 +49,9 @@ type ColumnsToShow = {
 
     /** Whether the tax column should be shown */
     shouldShowTaxColumn: boolean;
+
+    /** Whether the description column should be shown */
+    shouldShowDescriptionColumn: boolean;
 };
 
 /** Model of search result state */
@@ -68,6 +77,15 @@ type SearchResultsInfo = {
 
     /** The optional columns that should be shown according to policy settings */
     columnsToShow: ColumnsToShow;
+
+    /** The number of results */
+    count?: number;
+
+    /** The total spend */
+    total?: number;
+
+    /** The currency of the total spend */
+    currency?: string;
 };
 
 /** Model of personal details search result */
@@ -515,4 +533,5 @@ export type {
     SearchReportAction,
     SearchPolicy,
     SearchCard,
+    SearchResultsInfo,
 };

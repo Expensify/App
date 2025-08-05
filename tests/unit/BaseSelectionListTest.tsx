@@ -87,7 +87,6 @@ describe('BaseSelectionList', () => {
         fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`));
         expect(onSelectRowMock).toHaveBeenCalledWith({
             ...mockSections.at(1),
-            shouldAnimateInHighlight: false,
         });
     });
 
@@ -208,7 +207,7 @@ describe('BaseSelectionList', () => {
         // Clear the search text
         fireEvent.changeText(screen.getByTestId('selection-list-text-input'), '');
 
-        // Should scroll back to and show the preselected item 70
+        // Should show the preselected item 70
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}70`)).toBeTruthy();
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}70`)).toBeSelected();
     });
