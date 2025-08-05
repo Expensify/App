@@ -1,5 +1,4 @@
 import React from 'react';
-import {InteractionManager} from 'react-native';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import useOnyx from '@hooks/useOnyx';
@@ -43,14 +42,12 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         if (!transactionReport || selectedTransactionIDs.length === 0) {
             return;
         }
-        Navigation.dismissModal();
-        InteractionManager.runAfterInteractions(() => {
-            changeTransactionsReport(selectedTransactionIDs, CONST.REPORT.UNREPORTED_REPORT_ID);
-        });
+        changeTransactionsReport(selectedTransactionIDs, CONST.REPORT.UNREPORTED_REPORT_ID);
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
         }
         clearSelectedTransactions(true);
+        Navigation.dismissModal();
     };
 
     return (
