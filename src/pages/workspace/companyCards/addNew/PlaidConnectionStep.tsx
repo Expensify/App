@@ -7,7 +7,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import PlaidLink from '@components/PlaidLink';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -27,7 +26,6 @@ import type {CompanyCardFeed} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 function PlaidConnectionStep({feed, policyID}: {feed?: CompanyCardFeed; policyID?: string}) {
-    const {isDevelopment} = useEnvironment();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -43,9 +41,6 @@ function PlaidConnectionStep({feed, policyID}: {feed?: CompanyCardFeed; policyID
     const plaidDataErrorMessage = !isEmptyObject(plaidErrors) ? (Object.values(plaidErrors).at(0) as string) : '';
     const {isOffline} = useNetwork();
     const domain = getDomainNameForPolicy(policyID);
-
-    // s77rt remove DEV lock
-    const shouldSelectStatementCloseDate = isDevelopment;
 
     const isAuthenticatedWithPlaid = useCallback(() => !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors), [plaidData]);
 
@@ -163,7 +158,7 @@ function PlaidConnectionStep({feed, policyID}: {feed?: CompanyCardFeed; policyID
                         }
 
                         setAddNewCompanyCardStepAndData({
-                            step: shouldSelectStatementCloseDate ? CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE : CONST.COMPANY_CARDS.STEP.BANK_CONNECTION,
+                            step: CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE,
                             data: {
                                 publicToken,
                                 plaidConnectedFeed,

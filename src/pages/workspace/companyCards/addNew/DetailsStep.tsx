@@ -11,45 +11,29 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useCardFeeds from '@hooks/useCardFeeds';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
-import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
-import {addNewCompanyCardsFeed, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/AddNewCardFeedForm';
 
-type DetailsStepProps = {
-    /** ID of the current policy */
-    policyID: string | undefined;
-};
-
-function DetailsStep({policyID}: DetailsStepProps) {
+function DetailsStep() {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
-    const {isDevelopment} = useEnvironment();
 
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
-
-    const [cardFeeds] = useCardFeeds(policyID);
 
     const feedProvider = addNewCard?.data?.feedType;
     const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
     const bank = addNewCard?.data?.selectedBank;
     const isOtherBankSelected = bank === CONST.COMPANY_CARDS.BANKS.OTHER;
-
-    // s77rt remove DEV lock
-    const shouldSelectStatementCloseDate = isDevelopment;
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>) => {
@@ -62,15 +46,9 @@ function DetailsStep({policyID}: DetailsStepProps) {
                 bankName: addNewCard.data.bankName ?? 'Amex',
             };
 
-            if (shouldSelectStatementCloseDate) {
-                setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE, data: {feedDetails}});
-                return;
-            }
-
-            addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, feedDetails, cardFeeds, undefined, undefined, lastSelectedFeed);
-            Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE, data: {feedDetails}});
         },
-        [addNewCard?.data, policyID, cardFeeds, lastSelectedFeed, shouldSelectStatementCloseDate],
+        [addNewCard?.data],
     );
 
     const handleBackButtonPress = () => {
@@ -214,7 +192,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM}
-                submitButtonText={shouldSelectStatementCloseDate ? translate('common.next') : translate('common.submit')}
+                submitButtonText={translate('common.next')}
                 onSubmit={submit}
                 validate={validate}
                 style={[styles.mh5, styles.flexGrow1]}
