@@ -1057,7 +1057,7 @@ describe('SidebarUtils', () => {
                     parentReportID: policyExpenseChat.reportID,
                     parentReportActionID: lastReportPreviewAction.reportActionID,
                     chatReportID: policyExpenseChat.reportID,
-                } as Report;
+                };
                 const iouAction = {
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     originalMessage: {
