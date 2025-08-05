@@ -6010,7 +6010,6 @@ const translations = {
                 reports: 'Rapport',
                 members: 'Membre',
                 cards: 'Carte',
-                bankWithdrawal: 'Retrait bancaire',
             },
             feed: 'Flux',
         },

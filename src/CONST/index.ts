@@ -6292,7 +6292,6 @@ const CONST = {
             REPORTS: 'reports',
             MEMBERS: 'members',
             CARDS: 'cards',
-            BANK_WITHDRAWAL: 'bankWithdrawal',
         },
         BOOLEAN: {
             YES: 'yes',

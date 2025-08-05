@@ -1293,6 +1293,7 @@ function getSections(
         // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
         // eslint-disable-next-line default-case
         switch (groupBy) {
+            case CONST.SEARCH.GROUP_BY.BANK_WITHDRAWAL:
             case CONST.SEARCH.GROUP_BY.REPORTS:
                 return getReportSections(data, metadata, currentSearch, reportActions);
             case CONST.SEARCH.GROUP_BY.MEMBERS:

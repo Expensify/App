@@ -6012,7 +6012,6 @@ const translations = {
                 reports: 'Rapporto',
                 members: 'Membro',
                 cards: 'Carta',
-                bankWithdrawal: 'Ritiro bancario',
             },
             feed: 'Feed',
         },
