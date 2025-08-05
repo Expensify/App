@@ -1358,6 +1358,7 @@ function getColumnsToShow(data: OnyxTypes.SearchResults['data'] | OnyxTypes.Tran
               [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG]: false,
               [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: true,
               [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT]: true,
+              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.ACTION]: false,
           }
         : {
               [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: true,
