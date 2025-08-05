@@ -55,6 +55,7 @@ function KYCWall({
     const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
 
     const {formatPhoneNumber} = useLocalize();
 
@@ -121,7 +122,7 @@ function KYCWall({
             } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT || policy) {
                 if (iouReport && isIOUReport(iouReport)) {
                     if (policy) {
-                        const policyExpenseChatReportID = getPolicyExpenseChat(iouReport.ownerAccountID, policy.id)?.reportID;
+                        const policyExpenseChatReportID = getPolicyExpenseChat(iouReport.ownerAccountID, policy.id, allReports)?.reportID;
                         if (!policyExpenseChatReportID) {
                             const {policyExpenseChatReportID: newPolicyExpenseChatReportID} = moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy.id, formatPhoneNumber) ?? {};
                             savePreferredPaymentMethod(iouReport.policyID, policy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[policy.id]);
