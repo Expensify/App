@@ -113,7 +113,8 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                     return 1;
                 }
                 return 0;
-            });
+            })
+            .filter((option) => option.accountID !== accountID);
 
         const recentReportsList = filteredOptions.recentReports.map((report) => {
             const isSelected = selectedOptions.some((selectedOption) => selectedOption.reportID === report.reportID);
