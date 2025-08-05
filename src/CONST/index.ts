@@ -630,6 +630,9 @@ const CONST = {
         },
         BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX: 'accountHolder',
     },
+    ENTER_SIGNER_INFO: {
+        ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
+    },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
         CORPORATION: 'Corp',

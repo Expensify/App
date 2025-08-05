@@ -1,35 +1,32 @@
 import React, {useMemo, useState} from 'react';
 import AddressStep from '@components/SubStepForms/AddressStep';
+import useEnterSignerInfoStepFormSubmit from '@hooks/useEnterSignerInfoStepFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
 
-type NameProps = SubStepProps;
-
-const {STREET, CITY, STATE, ZIP_CODE, COUNTRY} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
-
-function Address({onNext, isEditing, onMove}: NameProps) {
+function Address({onNext, isEditing, onMove}: SubStepProps) {
     const {translate} = useLocalize();
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT);
 
     const inputKeys = {
-        street: STREET,
-        city: CITY,
-        state: STATE,
-        zipCode: ZIP_CODE,
-        country: COUNTRY,
+        street: INPUT_IDS.SIGNER_STREET,
+        city: INPUT_IDS.SIGNER_CITY,
+        state: INPUT_IDS.SIGNER_STATE,
+        zipCode: INPUT_IDS.SIGNER_ZIP_CODE,
+        country: INPUT_IDS.SIGNER_COUNTRY,
     } as const;
 
     const defaultValues = {
-        street: String(reimbursementAccountDraft?.[inputKeys.street] ?? ''),
-        city: String(reimbursementAccountDraft?.[inputKeys.city] ?? ''),
-        state: String(reimbursementAccountDraft?.[inputKeys.state] ?? ''),
-        zipCode: String(reimbursementAccountDraft?.[inputKeys.zipCode] ?? ''),
-        country: (reimbursementAccountDraft?.[inputKeys.country] ?? '') as Country | '',
+        street: String(enterSignerInfoFormDraft?.[inputKeys.street] ?? ''),
+        city: String(enterSignerInfoFormDraft?.[inputKeys.city] ?? ''),
+        state: String(enterSignerInfoFormDraft?.[inputKeys.state] ?? ''),
+        zipCode: String(enterSignerInfoFormDraft?.[inputKeys.zipCode] ?? ''),
+        country: (enterSignerInfoFormDraft?.[inputKeys.country] ?? '') as Country | '',
     };
 
     const formTitle = translate('ownershipInfoStep.whatsYourAddress');
@@ -59,28 +56,18 @@ function Address({onNext, isEditing, onMove}: NameProps) {
         setShouldValidateZipCodeFormat(country === CONST.COUNTRY.US);
     };
 
-    const handleNextStep = () => {
-        // owner is US based we need to gather last four digits of his SSN
-        if (reimbursementAccountDraft?.[inputKeys.country] === CONST.COUNTRY.US) {
-            onNext();
-            // owner is not US based so we skip SSN step
-        } else {
-            onMove(4, false);
-        }
-    };
-
-    const handleSubmit = useReimbursementAccountStepFormSubmit({
+    const handleSubmit = useEnterSignerInfoStepFormSubmit({
         fieldIds: stepFields,
-        onNext: handleNextStep,
+        onNext,
         shouldSaveDraft: isEditing,
     });
 
     return (
-        <AddressStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>
+        <AddressStep<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>
             isEditing={isEditing}
             onNext={onNext}
             onMove={onMove}
-            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+            formID={ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM}
             formTitle={formTitle}
             formPOBoxDisclaimer={translate('common.noPO')}
             onSubmit={handleSubmit}

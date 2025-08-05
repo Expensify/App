@@ -24,7 +24,6 @@ import {
     isThreadParentMessage,
 } from '@libs/ReportActionsUtils';
 import {getIOUReportActionDisplayMessage, getReportName, hasMissingInvoiceBankAccount, isSettled} from '@libs/ReportUtils';
-import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -89,18 +88,17 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
         );
     }
 
-    const handleEnterSignerInfoPress = () => {
-        const policyID = report?.policyID;
-
-        if (!policyID) {
+    const handleEnterSignerInfoPress = (policyID: string | undefined, bankAccountID: string | undefined, isCompleted: boolean) => {
+        if (!policyID || !bankAccountID) {
             return;
         }
 
-        navigateToBankAccountRoute(policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID));
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.getRoute(policyID, bankAccountID, isCompleted));
     };
 
     if (isReimbursementDirectionInformationRequiredAction(action)) {
-        const {bankAccountLastFour, currency} = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED>(action) ?? {};
+        const {bankAccountLastFour, currency, policyID, bankAccountID, completed} =
+            getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED>(action) ?? {};
 
         return (
             <View style={[styles.chatItemMessage, style]}>
@@ -108,8 +106,9 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                 <Button
                     style={[styles.mt2, styles.alignSelfStart]}
                     success
-                    text={translate('signerInfoStep.enterSignerInfo')}
-                    onPress={handleEnterSignerInfoPress}
+                    isDisabled={completed}
+                    text={translate(completed ? 'signerInfoStep.thisStep' : 'signerInfoStep.enterSignerInfo')}
+                    onPress={() => handleEnterSignerInfoPress(policyID, bankAccountID, !!completed)}
                 />
             </View>
         );

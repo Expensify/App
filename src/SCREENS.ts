@@ -726,6 +726,7 @@ const SCREENS = {
     },
     FLAG_COMMENT_ROOT: 'FlagComment_Root',
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
+    REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO: 'Reimbursement_Account_Signer_Info',
     REFERRAL_DETAILS: 'Referral_Details',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
     SHARE: {

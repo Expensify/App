@@ -192,7 +192,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
         >
             {currentSubStep === SUBSTEP.IS_DIRECTOR && (
                 <YesNoStep
-                    title={translate('signerInfoStep.areYouDirector', {companyName})}
+                    title={currency === CONST.CURRENCY.CAD ? translate('signerInfoStep.areYouAnAuthorized') : translate('signerInfoStep.areYouDirector', {companyName})}
                     description={translate('signerInfoStep.regulationRequiresUs')}
                     defaultValue={isUserDirector}
                     onSelectedValue={handleNextSubStep}

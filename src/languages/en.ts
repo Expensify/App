@@ -3173,6 +3173,7 @@ const translations = {
     signerInfoStep: {
         signerInfo: 'Signer info',
         areYouDirector: ({companyName}: CompanyNameParams) => `Are you a director or senior officer at ${companyName}?`,
+        areYouAnAuthorized: 'Are you an authorized user for this bank account?',
         regulationRequiresUs: 'Regulation requires us to verify if the signer has the authority to take this action on behalf of the business.',
         whatsYourName: "What's your legal name",
         fullName: 'Legal full name',
@@ -3201,6 +3202,7 @@ const translations = {
             "Our partnership with Corpay utilizes an API connection to take advantage of their vast network of international banking partners to power Global Reimbursements in Expensify. As per Australian regulation we are providing you with Corpay's Financial Services Guide (FSG) and Product Disclosure Statement (PDS).\n\nPlease read the FSG and PDS documents carefully as they contain full details and important information on the products and services Corpay offers. Retain these documents for future reference.",
         pleaseUpload: 'Please upload additional documentation below to help us verify your identity as a director or senior officer of the business entity.',
         enterSignerInfo: 'Enter signer info',
+        thisStep: 'This step has been completed',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `is connecting a ${currency} business bank account ending in ${bankAccountLastFour} to Expensify to pay employees in ${currency}. The next step requires signer info from a director or senior officer.`,
     },

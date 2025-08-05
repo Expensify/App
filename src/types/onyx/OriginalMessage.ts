@@ -878,6 +878,12 @@ type OriginalMessageReimbursementDirectorInformationRequired = {
 
     /** ID of policy */
     policyID: string;
+
+    /** ID of bank account */
+    bankAccountID: string;
+
+    /** Whether user added signer information */
+    completed: boolean;
 };
 
 /** The map type of original message */

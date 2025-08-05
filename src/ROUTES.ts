@@ -175,6 +175,15 @@ const ROUTES = {
             return getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}`, backTo);
         },
     },
+    BANK_ACCOUNT_ENTER_SIGNER_INFO: {
+        route: 'bank-account/enter-signer-info',
+        getRoute: (policyID: string | undefined, bankAccountID: string | undefined, isCompleted: boolean) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the BANK_ACCOUNT_ENTER_SIGNER_INFO route');
+            }
+            return `bank-account/enter-signer-info?policyID=${policyID}&bankAccountID=${bankAccountID}&isCompleted=${isCompleted}` as const;
+        },
+    },
     PUBLIC_CONSOLE_DEBUG: {
         route: 'troubleshoot/console',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`troubleshoot/console`, backTo),
