@@ -326,7 +326,8 @@ const CONST = {
     OLD_DEFAULT_AVATAR_COUNT: 8,
 
     DISPLAY_NAME: {
-        MAX_LENGTH: 50,
+        // This value is consistent with the BE display name max length limit.
+        MAX_LENGTH: 100,
         RESERVED_NAMES: ['Expensify', 'Concierge'],
         EXPENSIFY_CONCIERGE: 'Expensify Concierge',
     },
@@ -341,6 +342,10 @@ const CONST = {
 
     LEGAL_NAME: {
         MAX_LENGTH: 40,
+    },
+
+    NAME: {
+        MAX_LENGTH: 50,
     },
 
     REPORT_DESCRIPTION: {
