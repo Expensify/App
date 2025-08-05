@@ -63,6 +63,7 @@ import type {
 import type UpdatePolicyMembersCustomFieldsParams from '@libs/API/parameters/UpdatePolicyMembersCustomFieldsParams';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -165,7 +166,7 @@ type DuplicatePolicyDataOptions = {
     policyID?: string;
     welcomeNote: string;
     parts: Record<string, boolean>;
-    file?: File;
+    file?: File | CustomRNImageManipulatorResult;
 };
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -2700,7 +2701,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
     }
 
     // We need to clone the file to prevent non-indexable errors.
-    const clonedFile = file ? createFile(file) : undefined;
+    const clonedFile = file ? createFile(file as File) : undefined;
 
     const params: DuplicateWorkspaceParams = {
         policyID: policy.id,

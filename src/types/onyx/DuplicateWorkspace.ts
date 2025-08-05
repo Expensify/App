@@ -1,3 +1,4 @@
+import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Model of plaid data */
@@ -9,7 +10,7 @@ type DuplicateWorkspace = {
     name?: string;
 
     /** Workspace avatar */
-    file?: File;
+    file?: File | CustomRNImageManipulatorResult;
 
     /** Whether the data is being fetched from server */
     isLoading?: boolean;
