@@ -136,7 +136,7 @@ function Expensify() {
 
         setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
         HybridAppModule.clearOldDotAfterSignOut();
-    }, [hasAttemptedToOpenPublicRoom, hybridApp?.loggedOutFromOldDot, isNavigationReady, isSplashReadyToBeHidden, setSplashScreenState, shouldInit, splashScreenState]);
+    }, [hasAttemptedToOpenPublicRoom, hybridApp?.loggedOutFromOldDot, isNavigationReady, isSplashReadyToBeHidden, setSplashScreenState]);
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
