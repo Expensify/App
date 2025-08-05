@@ -17,6 +17,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
@@ -126,6 +127,7 @@ function WorkspacesListRow({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const threeDotsMenuContainerRef = useRef<View>(null);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
 
     const ownerDetails = ownerAccountID && getPersonalDetailsByIDs({accountIDs: [ownerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
@@ -144,7 +146,7 @@ function WorkspacesListRow({
     }, [isLoadingBill, resetLoadingSpinnerIconIndex]);
 
     const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
-        if (isNarrow) {
+        if (shouldUseNarrowLayout) {
             return Promise.resolve({horizontal: 0, vertical: 0});
         }
         return new Promise<AnchorPosition>((resolve) => {
@@ -155,7 +157,7 @@ function WorkspacesListRow({
                 });
             });
         });
-    }, [isNarrow]);
+    }, [shouldUseNarrowLayout]);
 
     if (layoutWidth === CONST.LAYOUT_WIDTH.NONE) {
         // To prevent layout from jumping or rendering for a split second, when
@@ -168,7 +170,7 @@ function WorkspacesListRow({
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
 
     const ThreeDotMenuOrPendingIcon = (
-        <View style={[styles.flexRow, !isNarrow && styles.workspaceThreeDotMenu]}>
+        <View style={[styles.flexRow, !shouldUseNarrowLayout && styles.workspaceThreeDotMenu]}>
             {!!isJoinRequestPending && (
                 <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
                     <Badge
@@ -196,7 +198,7 @@ function WorkspacesListRow({
             )}
             {!isJoinRequestPending && (
                 <View style={[styles.flexRow, styles.ml2, styles.gap1]}>
-                    <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, isNarrow && styles.workspaceListRBR]}>
+                    <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, shouldUseNarrowLayout && styles.workspaceListRBR]}>
                         <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
                     </View>
                     <View ref={threeDotsMenuContainerRef}>
@@ -218,7 +220,7 @@ function WorkspacesListRow({
     return (
         <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, isWide && styles.gap5, styles.br3, styles.p5]}>
             <View style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}>
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex2, isNarrow && styles.mb3, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex2, shouldUseNarrowLayout && styles.mb3, styles.alignItemsCenter]}>
                     <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
                         <Avatar
                             imageStyles={[styles.alignSelfCenter]}
