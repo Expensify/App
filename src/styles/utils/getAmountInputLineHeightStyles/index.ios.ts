@@ -1,4 +1,4 @@
-import type AmountInputLineHeightStyle from './type';
+import type {TextStyle} from 'react-native';
 
 /**
  * On iOS (React Native), when the device Dynamic Type font size is set to minimum,
@@ -18,7 +18,7 @@ import type AmountInputLineHeightStyle from './type';
  * This adjustment is only required on iOS native builds; on web, mWeb, and Android,
  * the default text layout correctly aligns glyphs without further intervention.
  */
-function getAmountInputLineHeightStyles(): AmountInputLineHeightStyle {
+function getAmountInputLineHeightStyles(): TextStyle {
     return {lineHeight: undefined};
 }
 
