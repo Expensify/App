@@ -13,6 +13,7 @@ import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
+import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 import {defaultTheme} from './theme';
 import colors from './theme/colors';
@@ -400,6 +401,10 @@ const styles = (theme: ThemeColors) =>
             lineHeight: undefined,
         },
 
+        heightUndefined: {
+            height: undefined,
+        },
+
         lineHeightLarge: {
             lineHeight: variables.lineHeightLarge,
         },
@@ -438,6 +443,11 @@ const styles = (theme: ThemeColors) =>
         textSmall: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
+        },
+
+        textExtraSmall: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeExtraSmall,
         },
 
         textMicro: {
@@ -1316,8 +1326,8 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.lineHeightXLarge,
             color: theme.text,
-            paddingTop: 15,
-            paddingBottom: 8,
+            paddingTop: variables.inputPaddingTop,
+            paddingBottom: variables.inputPaddingBottom,
             paddingLeft: 0,
             borderWidth: 0,
         },
@@ -1328,7 +1338,7 @@ const styles = (theme: ThemeColors) =>
 
         textInputMultilineContainer: {
             height: '100%',
-            paddingTop: 15,
+            paddingTop: variables.inputPaddingTop,
         },
 
         textInputAndIconContainer: (isMarkdownEnabled: boolean) => {
@@ -1377,8 +1387,8 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            paddingTop: 15,
-            paddingBottom: 8,
+            paddingTop: variables.inputPaddingTop,
+            paddingBottom: variables.inputPaddingBottom,
             height: '100%',
         },
 
@@ -1389,8 +1399,8 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            paddingTop: 15,
-            paddingBottom: 8,
+            paddingTop: variables.inputPaddingTop,
+            paddingBottom: variables.inputPaddingBottom,
         },
 
         textInputPrefix: {
@@ -2379,6 +2389,13 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 52,
         },
 
+        singleAvatarMediumLarge: {
+            height: 60,
+            width: 60,
+            backgroundColor: theme.icon,
+            borderRadius: 80,
+        },
+
         secondAvatar: {
             position: 'absolute',
             right: -18,
@@ -2406,10 +2423,25 @@ const styles = (theme: ThemeColors) =>
             borderColor: 'transparent',
         },
 
+        secondAvatarMediumLarge: {
+            position: 'absolute',
+            right: -42,
+            bottom: -42,
+            borderWidth: 3,
+            borderRadius: 80,
+            borderColor: 'transparent',
+        },
+
         secondAvatarSubscript: {
             position: 'absolute',
             right: -6,
             bottom: -6,
+        },
+
+        secondAvatarSubscriptXLarge: {
+            position: 'absolute',
+            right: -10,
+            bottom: -10,
         },
 
         secondAvatarSubscriptCompact: {
@@ -2478,6 +2510,11 @@ const styles = (theme: ThemeColors) =>
         emptyAvatarLarge: {
             height: variables.avatarSizeLarge,
             width: variables.avatarSizeLarge,
+        },
+
+        emptyAvatarXLarge: {
+            height: variables.avatarSizeXLarge,
+            width: variables.avatarSizeXLarge,
         },
 
         emptyAvatarMargin: {
@@ -3754,18 +3791,37 @@ const styles = (theme: ThemeColors) =>
             zIndex: 2,
         },
 
-        dropInnerWrapper: {
-            borderWidth: 2,
-            borderStyle: 'dashed',
-        },
-
-        reportDropOverlay: {
-            backgroundColor: theme.dropUIBG,
-            zIndex: 2,
-        },
-
         fileDropOverlay: {
             backgroundColor: theme.fileDropUIBG,
+        },
+
+        activeDropzoneDashedBorder: (borderColor: string, isActive: boolean) => {
+            const browser = getBrowser();
+            const isSafariOrChromeBrowser = getPlatform() === CONST.PLATFORM.WEB && (browser === CONST.BROWSER.SAFARI || browser === CONST.BROWSER.CHROME);
+
+            return {
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                width: '100%',
+                height: '100%',
+                opacity: isActive ? 1 : 0,
+                transition: 'opacity 0.2s ease-in',
+                ...(isSafariOrChromeBrowser && {
+                    backgroundImage: `url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect x='1' y='1' width='calc(100%25 - 3px)' height='calc(100%25 - 3px)' fill='none' stroke='${encodeURIComponent(borderColor)}' stroke-width='2' stroke-dasharray='8' stroke-dashoffset='4 8' stroke-linecap='round' rx='8' ry='8' /%3e%3c/svg%3e")`,
+                    backgroundSize: '100% 100%',
+                    backgroundRepeat: 'no-repeat',
+                }),
+                // fallback for the desktop and other browsers that this svg doesn't work with
+                ...(!isSafariOrChromeBrowser && {
+                    borderWidth: 2,
+                    borderStyle: 'dashed',
+                    borderColor,
+                    borderRadius: variables.componentBorderRadiusNormal,
+                }),
+            };
         },
 
         attachmentDropOverlay: (isActive?: boolean) => ({
@@ -3777,11 +3833,6 @@ const styles = (theme: ThemeColors) =>
             color: theme.textAttachmentDropZone,
         },
 
-        attachmentDropInnerWrapper: (isActive?: boolean) => ({
-            borderColor: isActive ? theme.attachmentDropBorderColorActive : theme.attachmentDropBorderColor,
-            transition: '0.2s ease-in',
-        }),
-
         receiptDropOverlay: (isActive?: boolean) => ({
             backgroundColor: isActive ? theme.receiptDropUIBGActive : theme.receiptDropUIBG,
             transition: 'background-color 0.2s ease-in',
@@ -3790,11 +3841,6 @@ const styles = (theme: ThemeColors) =>
         receiptDropText: {
             color: theme.textReceiptDropZone,
         },
-
-        receiptDropInnerWrapper: (isActive?: boolean) => ({
-            borderColor: isActive ? theme.receiptDropBorderColorActive : theme.receiptDropBorderColor,
-            transition: '0.2s ease-in',
-        }),
 
         flashButtonContainer: {
             position: 'absolute',
@@ -4064,6 +4110,10 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeLarge,
             color: theme.success,
             marginBottom: 16,
+        },
+
+        textSuccess: {
+            color: theme.success,
         },
 
         footerRow: {
@@ -4461,6 +4511,15 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 0,
         },
 
+        dropDownButtonCartIcon: {
+            minWidth: 22,
+        },
+
+        dropDownSmallButtonArrowContain: {
+            marginLeft: 3,
+            marginRight: 6,
+        },
+
         dropDownMediumButtonArrowContain: {
             marginLeft: 12,
             marginRight: 16,
@@ -4526,10 +4585,6 @@ const styles = (theme: ThemeColors) =>
 
         expenseAndReportPreviewTextContainer: {
             gap: 8,
-        },
-
-        reportPreviewAmountSubtitleContainer: {
-            gap: 4,
         },
 
         expenseAndReportPreviewTextButtonContainer: {
@@ -4674,6 +4729,16 @@ const styles = (theme: ThemeColors) =>
             height: is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight,
         }),
 
+        settlementButtonListContainer: {
+            maxHeight: 500,
+            paddingBottom: 0,
+            paddingTop: 0,
+        },
+
+        settlementButtonShortFormWidth: {
+            minWidth: 90,
+        },
+
         moneyRequestViewImage: {
             ...spacing.mh5,
             overflow: 'hidden',
@@ -4816,6 +4881,27 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
             borderRadius: 8,
             minHeight: variables.optionRowHeight,
+        },
+
+        transactionListItemStyle: {
+            borderRadius: 8,
+            minHeight: variables.optionRowHeight,
+            backgroundColor: theme.transparent,
+            flex: 1,
+            userSelect: 'none',
+        },
+
+        transactionGroupListItemStyle: {
+            borderRadius: 8,
+            minHeight: variables.optionRowHeight,
+            backgroundColor: theme.transparent,
+            paddingVertical: 8,
+            flex: 1,
+            userSelect: 'none',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            overflow: 'hidden',
+            flexDirection: 'row',
         },
 
         searchQueryListItemStyle: {
@@ -5029,6 +5115,20 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
             paddingHorizontal: 16,
             paddingVertical: 20,
+            flexGrow: 1,
+            flexShrink: 1,
+
+            flexBasis: '35%',
+        },
+
+        onboardingInterestedFeaturesItem: {
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusNormal,
+            padding: 16,
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
             flexGrow: 1,
             flexShrink: 1,
             flexBasis: '35%',
@@ -5341,20 +5441,6 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
-        tripReservationRow: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            maxWidth: '50%',
-            flexShrink: 1,
-        },
-
-        iconWrapper: {
-            justifyContent: 'center',
-            alignItems: 'center',
-            alignSelf: 'flex-start', // Keeps icon from dropping below
-            paddingTop: 2, // Adjust slightly for vertical centering
-        },
-
         textLineThrough: {
             textDecorationLine: 'line-through',
         },
@@ -5496,13 +5582,6 @@ const styles = (theme: ThemeColors) =>
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
             borderLeftColor: theme.border,
         }),
-        reportPreviewCarouselDots: {
-            borderRadius: 50,
-            width: 8,
-            height: 8,
-            alignItems: 'center',
-            justifyContent: 'center',
-        },
         reportPreviewArrowButton: {
             borderRadius: 50,
             width: variables.w28,
@@ -5608,6 +5687,32 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             paddingHorizontal: 0,
             aspectRatio: 1.7,
+        },
+
+        receiptPreview: {
+            position: 'absolute',
+            left: 60,
+            top: 60,
+            width: 380,
+            maxHeight: 'calc(100vh - 120px)',
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
+            borderColor: theme.border,
+            overflow: 'hidden',
+            boxShadow: theme.shadow,
+            backgroundColor: theme.appBG,
+        },
+
+        receiptPreviewEReceiptsContainer: {
+            ...sizing.w100,
+            ...sizing.h100,
+            backgroundColor: colors.green800,
+        },
+
+        receiptPreviewEReceipt: {
+            ...flex.flexColumn,
+            ...flex.justifyContentCenter,
+            ...flex.alignItemsCenter,
         },
 
         topBarWrapper: {

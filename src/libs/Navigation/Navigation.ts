@@ -1,5 +1,5 @@
 import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
-import type {EventArg, NavigationAction, NavigationContainerEventMap, NavigationState} from '@react-navigation/native';
+import type {EventArg, NavigationAction, NavigationContainerEventMap} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
@@ -543,6 +543,10 @@ function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navig
 const dismissModal = (ref = navigationRef) => {
     isNavigationReady().then(() => {
         ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
+        // Let React Navigation finish modal transition
+        InteractionManager.runAfterInteractions(() => {
+            fireModalDismissed();
+        });
     });
 };
 
@@ -634,9 +638,18 @@ function isOnboardingFlow() {
     return isOnboardingFlowName(currentFocusedRoute?.name);
 }
 
-function clearPreloadedRoutes() {
-    const rootStateWithoutPreloadedRoutes = {...navigationRef.getRootState(), preloadedRoutes: []} as NavigationState;
-    navigationRef.reset(rootStateWithoutPreloadedRoutes);
+const modalDismissedListeners: Array<() => void> = [];
+
+function onModalDismissedOnce(callback: () => void) {
+    modalDismissedListeners.push(callback);
+}
+
+// Wrap modal dismissal so listeners get called
+function fireModalDismissed() {
+    while (modalDismissedListeners.length) {
+        const cb = modalDismissedListeners.pop();
+        cb?.();
+    }
 }
 
 export default {
@@ -671,7 +684,8 @@ export default {
     replaceWithSplitNavigator,
     isTopmostRouteModalScreen,
     isOnboardingFlow,
-    clearPreloadedRoutes,
+    onModalDismissedOnce,
+    fireModalDismissed,
 };
 
 export {navigationRef};

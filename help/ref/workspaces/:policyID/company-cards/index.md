@@ -17,4 +17,4 @@ Already have business credit cards? You can connect them to Expensify to automat
 
 ---
 
-More details on connecting your company card program can be found here ➡️ **[Company Card Settings](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Company-Card-Settings)**.
+More details on connecting your company card program can be found here ➡️ [Company Card Settings](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Company-Card-Settings).

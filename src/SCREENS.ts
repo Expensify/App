@@ -102,6 +102,7 @@ const SCREENS = {
             STATUS_CLEAR_AFTER: 'Settings_Status_Clear_After',
             STATUS_CLEAR_AFTER_DATE: 'Settings_Status_Clear_After_Date',
             STATUS_CLEAR_AFTER_TIME: 'Settings_Status_Clear_After_Time',
+            VACATION_DELEGATE: 'Settings_Status_Vacation_Delegate',
             STATUS: 'Settings_Status',
             PRONOUNS: 'Settings_Pronouns',
             TIMEZONE: 'Settings_Timezone',
@@ -276,6 +277,9 @@ const SCREENS = {
         EDIT_REPORT: 'Money_Request_Edit_Report',
         SPLIT_EXPENSE: 'Money_Request_Split_Expense',
         SPLIT_EXPENSE_EDIT: 'Money_Request_Split_Expense_Edit',
+        DISTANCE_CREATE: 'Money_Request_Distance_Create',
+        STEP_DISTANCE_MAP: 'Money_Request_Step_Distance_Map',
+        STEP_DISTANCE_MANUAL: 'Money_Request_Step_Distance_Manual',
     },
 
     TRANSACTION_DUPLICATE: {
@@ -614,6 +618,7 @@ const SCREENS = {
         DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',
         DISTANCE_RATE_DETAILS: 'Distance_Rate_Details',
         DISTANCE_RATE_EDIT: 'Distance_Rate_Edit',
+        DISTANCE_RATE_NAME_EDIT: 'Distance_Rate_Name_Edit',
         DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT: 'Distance_Rate_Tax_Reclaimable_On_Edit',
         DISTANCE_RATE_TAX_RATE_EDIT: 'Distance_Rate_Tax_Rate_Edit',
         UPGRADE: 'Workspace_Upgrade',
@@ -666,6 +671,7 @@ const SCREENS = {
         PRIVATE_DOMAIN: 'Onboarding_Private_Domain',
         EMPLOYEES: 'Onboarding_Employees',
         ACCOUNTING: 'Onboarding_Accounting',
+        INTERESTED_FEATURES: 'Onboarding_Interested_Features',
         WORKSPACES: 'Onboarding_Workspaces',
         WORK_EMAIL: 'Onboarding_Work_Email',
         WORK_EMAIL_VALIDATION: 'Onboarding_Work_Email_Validation',

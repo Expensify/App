@@ -86,7 +86,7 @@ function VerifyPage({route}: VerifyPageProps) {
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={styles.flexGrow1}
             >
-                <View style={[styles.ph5, styles.mt3]}>
+                <View style={[styles.ph5, styles.mt3, styles.flexGrow1]}>
                     <Text>
                         {translate('twoFactorAuth.scanCode')}
                         <TextLink href={TROUBLESHOOTING_LINK}> {translate('twoFactorAuth.authenticatorApp')}</TextLink>.
@@ -117,27 +117,27 @@ function VerifyPage({route}: VerifyPageProps) {
                     </View>
                     <Text style={styles.mt11}>{translate('twoFactorAuth.enterCode')}</Text>
                 </View>
-                <View style={[styles.mh5, styles.mb4, styles.mt2]}>
-                    <TwoFactorAuthForm
-                        innerRef={formRef}
-                        shouldHandleScrollOnVirtualViewPort={isMobileWebKit()}
+                <FixedFooter style={[styles.mt2, styles.pt2]}>
+                    <View style={[styles.mh5, styles.mb4]}>
+                        <TwoFactorAuthForm
+                            innerRef={formRef}
+                            shouldAutoFocusOnMobile={false}
+                        />
+                    </View>
+                    <Button
+                        success
+                        large
+                        text={translate('common.next')}
+                        isLoading={account?.isLoading}
+                        onPress={() => {
+                            if (!formRef.current) {
+                                return;
+                            }
+                            formRef.current.validateAndSubmitForm();
+                        }}
                     />
-                </View>
+                </FixedFooter>
             </ScrollView>
-            <FixedFooter style={[styles.mt2, styles.pt2]}>
-                <Button
-                    success
-                    large
-                    text={translate('common.next')}
-                    isLoading={account?.isLoading}
-                    onPress={() => {
-                        if (!formRef.current) {
-                            return;
-                        }
-                        formRef.current.validateAndSubmitForm();
-                    }}
-                />
-            </FixedFooter>
         </TwoFactorAuthWrapper>
     );
 }
