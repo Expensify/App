@@ -31,7 +31,7 @@ function IOURequestStepPerDiemWorkspace({
     },
     transaction,
 }: IOURequestStepPerDiemWorkspaceProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate} = useLocalize();
     const {login: currentUserLogin, accountID} = useCurrentUserPersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
@@ -46,7 +46,6 @@ function IOURequestStepPerDiemWorkspace({
                     {policyID: policy1.id, name: policy1.name},
                     {policyID: policy2.id, name: policy2.name},
                     selectedWorkspace?.policyID ? [selectedWorkspace?.policyID] : [],
-                    localeCompare,
                 ),
             )
             .map((policy) => ({
@@ -64,7 +63,7 @@ function IOURequestStepPerDiemWorkspace({
                 ],
                 isSelected: selectedWorkspace?.policyID === policy.id,
             }));
-    }, [allPolicies, currentUserLogin, selectedWorkspace, localeCompare]);
+    }, [allPolicies, currentUserLogin, selectedWorkspace]);
 
     const selectWorkspace = (item: WorkspaceListItem) => {
         const policyExpenseReportID = getPolicyExpenseChat(accountID, item.value)?.reportID;

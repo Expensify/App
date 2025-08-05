@@ -1,7 +1,6 @@
 import {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {ListItem, SectionListDataType} from '@components/SelectionList/types';
 import {isPolicyAdmin, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
@@ -24,11 +23,10 @@ type UseWorkspaceListParams = {
     shouldShowPendingDeletePolicy: boolean;
     selectedPolicyIDs: string[] | undefined;
     searchTerm: string;
-    localeCompare: LocaleContextProps['localeCompare'];
     additionalFilter?: (policy: OnyxEntry<Policy>) => boolean;
 };
 
-function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, searchTerm, shouldShowPendingDeletePolicy, localeCompare, additionalFilter}: UseWorkspaceListParams) {
+function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, searchTerm, shouldShowPendingDeletePolicy, additionalFilter}: UseWorkspaceListParams) {
     const usersWorkspaces = useMemo(() => {
         if (!policies || isEmptyObject(policies)) {
             return [];
@@ -63,9 +61,9 @@ function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, search
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
         () =>
             tokenizedSearch(usersWorkspaces, searchTerm, (policy) => [policy.text]).sort((policy1, policy2) =>
-                sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, selectedPolicyIDs, localeCompare),
+                sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, selectedPolicyIDs),
             ),
-        [searchTerm, usersWorkspaces, selectedPolicyIDs, localeCompare],
+        [searchTerm, usersWorkspaces, selectedPolicyIDs],
     );
 
     const sections = useMemo(() => {

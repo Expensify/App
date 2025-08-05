@@ -11573,71 +11573,38 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 /* eslint-disable @typescript-eslint/naming-convention */
 const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
-const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 async function waitForJestTests() {
     const maxWaitTime = 30 * 60 * 1000; // 30 minutes
     const pollInterval = 10 * 1000; // 10 seconds
     const startTime = Date.now();
-    // Get PR number from either context or manual input
-    let prNumber;
-    const inputsPRNumber = github_1.context.payload.inputs?.pr_number;
-    if (github_1.context.payload.pull_request?.number) {
-        // Regular PR context
-        prNumber = github_1.context.payload.pull_request.number;
-        console.log(`Using PR context - PR #${prNumber}`);
-    }
-    else if (inputsPRNumber) {
-        // Manual workflow dispatch
-        prNumber = Number(inputsPRNumber);
-        console.log(`Using manual dispatch - PR #${prNumber}`);
-    }
-    else {
-        core.setFailed('PR number is required but not available in context or inputs.');
-        return;
-    }
-    if (!prNumber) {
-        core.setFailed('Invalid PR number.');
-        return;
-    }
-    // Single API call to get PR details and extract headSha
-    console.log(`Getting PR details for PR #${prNumber}...`);
-    const prResponse = await GithubUtils_1.default.octokit.pulls.get({
-        owner: github_1.context.repo.owner,
-        repo: github_1.context.repo.repo,
-        pull_number: prNumber,
-    });
-    const headSha = prResponse.data.head.sha;
-    console.log(`PR #${prNumber} head SHA: ${headSha}`);
-    console.log(`Looking for test workflow runs for PR #${prNumber}`);
-    console.log(`Head SHA: ${headSha}`);
+    console.log(`Looking for test workflow runs for PR #${github_1.context.payload.pull_request?.number}`);
+    console.log(`Head SHA: ${github_1.context.sha}`);
     while (Date.now() - startTime < maxWaitTime) {
         // Get all recent workflow runs for this repo
         const workflows = await GithubUtils_1.default.listWorkflowRunsForRepo({
             per_page: 50, // Increased to handle many concurrent workflows
-            status: CONST_1.default.RUN_STATUS.COMPLETED, // Only look at completed runs
+            status: 'completed', // Only look at completed runs
         });
-        console.log(`Found ${workflows.data.workflow_runs.length} recent workflow runs.`);
+        console.log(`Found ${workflows.data.workflow_runs.length} recent workflow runs`);
         // Look for test workflow runs that match our criteria
         const testRuns = workflows.data.workflow_runs.filter((run) => {
             // Check if it's the Jest Unit Tests workflow specifically
-            const isTestWorkflow = run.name === CONST_1.default.TEST_WORKFLOW_NAME || run.path === CONST_1.default.TEST_WORKFLOW_PATH;
-            // Check if it's for our PR's head SHA
-            const matchesSHA = run.head_sha === headSha;
-            // For manual dispatch or when no PR context, be more flexible with event types
-            // For regular PR events, maintain existing strict logic
-            const isValidEvent = github_1.context.payload.pull_request
-                ? run.event === CONST_1.default.RUN_EVENT.PULL_REQUEST || run.event === CONST_1.default.RUN_EVENT.PULL_REQUEST_TARGET
-                : run.event === CONST_1.default.RUN_EVENT.PULL_REQUEST || run.event === CONST_1.default.RUN_EVENT.PULL_REQUEST_TARGET || run.event === CONST_1.default.RUN_EVENT.PUSH;
-            return isTestWorkflow && matchesSHA && isValidEvent;
+            const isTestWorkflow = run.name === 'Jest Unit Tests' || run.path === '.github/workflows/test.yml';
+            // Check if it's for our PR
+            const matchesPR = run.head_sha === github_1.context.sha;
+            // Check if it's a pull request event
+            const isPREvent = run.event === 'pull_request' || run.event === 'pull_request_target';
+            return isTestWorkflow && matchesPR && isPREvent;
         });
-        console.log(`Found ${testRuns.length} matching test runs.`);
+        console.log(`Found ${testRuns.length} matching test runs`);
         if (testRuns.length > 0) {
+            // Get the most recent matching run
             const testRun = testRuns.at(0);
             console.log(`Test workflow status: ${testRun?.status}, conclusion: ${testRun?.conclusion}`);
             console.log(`Test workflow name: ${testRun?.name}, path: ${testRun?.path}`);
-            if (testRun?.status === CONST_1.default.RUN_STATUS.COMPLETED) {
-                if (testRun?.conclusion === CONST_1.default.RUN_STATUS_CONCLUSION.SUCCESS) {
+            if (testRun?.status === 'completed') {
+                if (testRun?.conclusion === 'success') {
                     console.log('Test workflow completed successfully!');
                     return;
                 }
@@ -11651,27 +11618,23 @@ async function waitForJestTests() {
                 per_page: 50, // Same increased scope for in-progress runs
             });
             const inProgressTestRuns = inProgressWorkflows.data.workflow_runs.filter((run) => {
-                const isTestWorkflow = run.name === CONST_1.default.TEST_WORKFLOW_NAME || run.path === CONST_1.default.TEST_WORKFLOW_PATH;
-                const matchesSHA = run.head_sha === headSha;
-                const isValidEvent = github_1.context.payload.pull_request
-                    ? run.event === CONST_1.default.RUN_EVENT.PULL_REQUEST || run.event === CONST_1.default.RUN_EVENT.PULL_REQUEST_TARGET
-                    : run.event === CONST_1.default.RUN_EVENT.PULL_REQUEST || run.event === CONST_1.default.RUN_EVENT.PULL_REQUEST_TARGET || run.event === CONST_1.default.RUN_EVENT.PUSH;
-                const inProgress = run.status === CONST_1.default.RUN_STATUS.IN_PROGRESS || run.status === CONST_1.default.RUN_STATUS.QUEUED;
-                return isTestWorkflow && matchesSHA && isValidEvent && inProgress;
+                const isTestWorkflow = run.name === 'Jest Unit Tests' || run.path === '.github/workflows/test.yml';
+                const matchesPR = run.head_sha === github_1.context.sha;
+                const isPREvent = run.event === 'pull_request' || run.event === 'pull_request_target';
+                return isTestWorkflow && matchesPR && isPREvent && (run.status === 'in_progress' || run.status === 'queued');
             });
             if (inProgressTestRuns.length > 0) {
-                console.log(`Found ${inProgressTestRuns.length} in-progress test runs, awaiting completion...`);
+                console.log(`Found ${inProgressTestRuns.length} in-progress test runs, continuing to wait...`);
             }
             else {
                 console.log('No matching test workflow runs found, checking if tests are required...');
                 // Check if there might be no test workflow triggered
                 // This could happen if the PR doesn't have testable changes
-                const allRecentRuns = workflows.data.workflow_runs.filter((run) => run.head_sha === headSha);
-                console.log(`Found ${allRecentRuns.length} workflow runs for this SHA.`);
-                // Assume tests passed if no workflow runs exist
+                const allRecentRuns = workflows.data.workflow_runs.filter((run) => run.head_sha === github_1.context.sha);
+                console.log(`Found ${allRecentRuns.length} workflow runs for this SHA`);
                 if (allRecentRuns.length === 0) {
-                    console.log('No workflow runs found for this SHA, tests might not be required.');
-                    return;
+                    console.log('No workflow runs found for this SHA, tests might not be required');
+                    return; // Assume tests passed if no workflow runs exist
                 }
             }
         }
@@ -11679,7 +11642,7 @@ async function waitForJestTests() {
             setTimeout(resolve, pollInterval);
         });
     }
-    core.setFailed('Test workflow did not complete within timeout.');
+    core.setFailed('Test workflow did not complete within timeout');
 }
 // Run the action
 waitForJestTests().catch((error) => {
@@ -11729,21 +11692,6 @@ const CONST = {
     EVENTS: {
         ISSUE_COMMENT: 'issue_comment',
     },
-    RUN_EVENT: {
-        PULL_REQUEST: 'pull_request',
-        PULL_REQUEST_TARGET: 'pull_request_target',
-        PUSH: 'push',
-    },
-    RUN_STATUS: {
-        COMPLETED: 'completed',
-        IN_PROGRESS: 'in_progress',
-        QUEUED: 'queued',
-    },
-    RUN_STATUS_CONCLUSION: {
-        SUCCESS: 'success',
-    },
-    TEST_WORKFLOW_NAME: 'Jest Unit Tests',
-    TEST_WORKFLOW_PATH: '.github/workflows/test.yml',
     PROPOSAL_KEYWORD: 'Proposal',
     DATE_FORMAT_STRING: 'yyyy-MM-dd',
     PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),

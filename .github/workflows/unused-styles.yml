@@ -5,7 +5,7 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
-    paths: ['src/**', '.github/workflows/unused-styles.yml', 'scripts/findUnusedStyles.ts']
+    paths: ['src', '.github/workflows/unused-styles.yml', 'scripts/findUnusedStyles.ts']
 
 concurrency:
   group: ${{ github.ref == 'refs/heads/main' && format('{0}-{1}', github.ref, github.sha) || github.ref }}-unused-styles

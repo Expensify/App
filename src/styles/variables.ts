@@ -35,7 +35,6 @@ export default {
     avatarSizeLargeBordered: 88,
     avatarSizeXLarge: 100,
     avatarSizeLarge: 80,
-    avatarSizeMediumLarge: 60,
     avatarSizeMedium: 52,
     avatarSizeHeader: 40,
     avatarSizeNormal: 40,

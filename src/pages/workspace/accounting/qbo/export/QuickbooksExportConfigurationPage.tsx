@@ -1,10 +1,10 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import RenderHTML from '@components/RenderHTML';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
@@ -15,6 +15,7 @@ import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/t
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import {openExternalLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -121,9 +122,15 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
                     />
                 </OfflineWithFeedback>
             ))}
-            <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.mt2]}>
-                <RenderHTML html={translate('workspace.common.deepDiveExpensifyCard')} />
-            </View>
+            <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb5, styles.mt2]}>
+                <Text style={[styles.mutedNormalTextLabel]}>{`${translate('workspace.qbo.deepDiveExpensifyCard')} `}</Text>
+                <TextLink
+                    onPress={() => openExternalLink(CONST.DEEP_DIVE_EXPENSIFY_CARD)}
+                    style={[styles.mutedNormalTextLabel, styles.link]}
+                >
+                    {translate('workspace.qbo.deepDiveExpensifyCardIntegration')}
+                </TextLink>
+            </Text>
         </ConnectionLayout>
     );
 }

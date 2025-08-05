@@ -2,8 +2,8 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-// eslint-disable-next-line no-restricted-syntax
 import {signOutAndRedirectToSignIn} from '@userActions/Session';
 import type {Report} from '@src/types/onyx';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
@@ -23,6 +23,8 @@ function AnonymousReportFooter({isSmallSizeLayout = false, report}: AnonymousRep
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    const policy = usePolicy(report?.policyID);
+
     return (
         <View style={styles.anonymousRoomFooter(isSmallSizeLayout)}>
             <View style={[styles.flexRow, styles.flexShrink1]}>
@@ -30,6 +32,7 @@ function AnonymousReportFooter({isSmallSizeLayout = false, report}: AnonymousRep
                     report={report}
                     isAnonymous
                     shouldEnableDetailPageNavigation
+                    policy={policy}
                 />
             </View>
             <View style={styles.anonymousRoomFooterWordmarkAndLogoContainer(isSmallSizeLayout)}>

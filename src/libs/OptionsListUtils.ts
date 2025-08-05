@@ -464,6 +464,30 @@ Onyx.connect({
 });
 
 /**
+ * @param defaultValues {login: accountID} In workspace invite page, when new user is added we pass available data to opt in
+ * @returns Returns avatar data for a list of user accountIDs
+ */
+function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: OnyxEntry<PersonalDetailsList>, defaultValues: Record<string, number> = {}): Icon[] {
+    const reversedDefaultValues: Record<number, string> = {};
+
+    Object.entries(defaultValues).forEach((item) => {
+        reversedDefaultValues[item[1]] = item[0];
+    });
+
+    return accountIDs.map((accountID) => {
+        const login = reversedDefaultValues[accountID] ?? '';
+        const userPersonalDetail = personalDetails?.[accountID] ?? {login, accountID};
+
+        return {
+            id: accountID,
+            source: userPersonalDetail.avatar ?? FallbackAvatar,
+            type: CONST.ICON_TYPE_AVATAR,
+            name: userPersonalDetail.login ?? '',
+        };
+    });
+}
+
+/**
  * Returns the personal details for an array of accountIDs
  * @returns keys of the object are emails, values are PersonalDetails objects.
  */
@@ -1595,9 +1619,6 @@ function getUserToInviteContactOption({
     const userToInvite = {
         item: userDetails,
         text: displayName,
-        displayName,
-        firstName,
-        lastName,
         alternateText: displayName !== effectiveSearchValue ? effectiveSearchValue : undefined,
         brickRoadIndicator: null,
         icons: [
@@ -2721,6 +2742,7 @@ export {
     formatSectionsFromSearchTerm,
     getAlternateText,
     getAttendeeOptions,
+    getAvatarsForAccountIDs,
     getCurrentUserSearchTerms,
     getEmptyOptions,
     getFirstKeyForList,

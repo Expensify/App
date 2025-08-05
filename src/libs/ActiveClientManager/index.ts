@@ -24,8 +24,7 @@ let beforeunloadListenerAdded = false;
  */
 const isReady: IsReady = () => savedSelfPromise;
 
-// We have opted for `connectWithoutView` here as this code is not connected to UI at all.
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.ACTIVE_CLIENTS,
     callback: (val) => {
         if (!val) {

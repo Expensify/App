@@ -35,7 +35,9 @@ function HeaderWithBackButton({
     onDownloadButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
     report,
+    policy,
     policyAvatar,
+    singleAvatarDetails,
     shouldShowReportAvatarWithDisplay = false,
     shouldShowBackButton = true,
     shouldShowBorderBottom = false,
@@ -101,6 +103,8 @@ function HeaderWithBackButton({
             return (
                 <AvatarWithDisplayName
                     report={report}
+                    policy={policy}
+                    singleAvatarDetails={singleAvatarDetails}
                     shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
                     openParentReportInCurrentTab={openParentReportInCurrentTab}
                 />
@@ -120,6 +124,7 @@ function HeaderWithBackButton({
         StyleUtils,
         subTitleLink,
         shouldUseHeadlineHeader,
+        policy,
         progressBarPercentage,
         report,
         shouldEnableDetailPageNavigation,
@@ -135,6 +140,7 @@ function HeaderWithBackButton({
         titleColor,
         translate,
         openParentReportInCurrentTab,
+        singleAvatarDetails,
     ]);
     const ThreeDotMenuButton = useMemo(() => {
         if (shouldShowThreeDotsButton) {

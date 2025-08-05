@@ -6,7 +6,6 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import type {BusinessTypeItemType, IncorporationType} from './types';
 
@@ -47,11 +46,9 @@ function BusinessTypeSelectorModal({isVisible, currentBusinessType, onBusinessTy
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
             onClose={onClose}
-            onBackdropPress={() => {
-                onClose();
-                Navigation.dismissModal();
-            }}
-            shouldUseReanimatedModal
+            onModalHide={onClose}
+            hideModalContentWhileAnimating
+            useNativeDriver
         >
             <ScreenWrapper
                 style={[styles.pb0]}

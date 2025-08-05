@@ -69,9 +69,6 @@ type VerifiedBankAccountFlowEntryPointProps = {
 
     /** Set step for USD flow */
     setUSDBankAccountStep: (shouldShowContinueSetupButton: string | null) => void;
-
-    /** Method to set the state of shouldShowContinueSetupButton */
-    setShouldShowContinueSetupButton?: (shouldShowContinueSetupButton: boolean) => void;
 };
 
 const bankInfoStepKeys = INPUT_IDS.BANK_INFO_STEP;
@@ -88,11 +85,10 @@ function VerifiedBankAccountFlowEntryPoint({
     toggleValidateCodeActionModal,
     setNonUSDBankAccountStep,
     setUSDBankAccountStep,
-    setShouldShowContinueSetupButton,
 }: VerifiedBankAccountFlowEntryPointProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
@@ -311,7 +307,6 @@ function VerifiedBankAccountFlowEntryPoint({
                     isNonUSDWorkspace={isNonUSDWorkspace}
                     setUSDBankAccountStep={setUSDBankAccountStep}
                     setNonUSDBankAccountStep={setNonUSDBankAccountStep}
-                    setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
                 />
             )}
 
@@ -323,7 +318,7 @@ function VerifiedBankAccountFlowEntryPoint({
                 validateCodeActionErrorField="validateLogin"
                 validatePendingAction={loginData?.pendingFields?.validateCodeSent}
                 sendValidateCode={() => requestValidateCodeAction()}
-                handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode, formatPhoneNumber)}
+                handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode)}
                 validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
                 clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
                 onClose={() => toggleValidateCodeActionModal?.(false)}

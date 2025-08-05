@@ -304,7 +304,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         [reportTransactions, isOffline],
     );
     const reportTransactionIDs = useMemo(() => visibleTransactions?.map((transaction) => transaction.transactionID), [visibleTransactions]);
-
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const [transactionThreadReportActions = getEmptyObject<OnyxTypes.ReportActions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {
         canBeMissing: true,
@@ -496,15 +495,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         reportIDFromRoute,
         reportActionIDFromRoute,
     ]);
-
-    const prevTransactionThreadReportID = usePrevious(transactionThreadReportID);
-    useEffect(() => {
-        if (!!prevTransactionThreadReportID || !transactionThreadReportID) {
-            return;
-        }
-
-        fetchReport();
-    }, [fetchReport, prevTransactionThreadReportID, transactionThreadReportID]);
 
     useEffect(() => {
         if (!reportID || !isFocused) {

@@ -4,7 +4,6 @@ import {context} from '@actions/github';
 import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, IssueCommentEvent} from '@octokit/webhooks-types';
 import {format} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
-import type {TupleToUnion} from 'type-fest';
 import {convertToNumber} from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
@@ -92,7 +91,6 @@ async function run() {
         core.endGroup();
 
         let didFindDuplicate = false;
-        let originalProposal: TupleToUnion<typeof commentsResponse> | undefined;
         for (const previousProposal of commentsResponse) {
             const isProposal = !!previousProposal.body?.includes(CONST.PROPOSAL_KEYWORD);
             const previousProposalCreatedAt = new Date(previousProposal.created_at).getTime();
@@ -119,7 +117,6 @@ async function run() {
                 if (similarityPercentage >= 90) {
                     console.log(`Found duplicate with ${similarityPercentage}% similarity.`);
                     didFindDuplicate = true;
-                    originalProposal = previousProposal;
                     break;
                 }
             }
@@ -127,7 +124,7 @@ async function run() {
 
         if (didFindDuplicate) {
             const duplicateCheckWithdrawMessage = PROPOSAL_POLICE_TEMPLATES.getDuplicateCheckWithdrawMessage();
-            const duplicateCheckNoticeMessage = PROPOSAL_POLICE_TEMPLATES.getDuplicateCheckNoticeMessage(newProposalAuthor, originalProposal?.html_url);
+            const duplicateCheckNoticeMessage = PROPOSAL_POLICE_TEMPLATES.getDuplicateCheckNoticeMessage(newProposalAuthor);
             // If a duplicate proposal is detected, update the comment to withdraw it
             console.log('ProposalPolice™ withdrawing duplicated proposal...');
             await GithubUtils.octokit.issues.updateComment({

@@ -1,8 +1,8 @@
 import React from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
+import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,8 +11,12 @@ import Timing from '@libs/actions/Timing';
 import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 type ReportActionItemThreadProps = {
+    /** List of participant icons for the thread */
+    icons: Icon[];
+
     /** Number of comments under the thread */
     numberOfReplies: number;
 
@@ -31,14 +35,11 @@ type ReportActionItemThreadProps = {
     /** Whether the thread item / message is active */
     isActive?: boolean;
 
-    /** Account IDs used for avatars */
-    accountIDs: number[];
-
     /** The function that should be called when the thread is LongPressed or right-clicked */
     onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) => void;
 };
 
-function ReportActionItemThread({numberOfReplies, accountIDs, mostRecentReply, reportID, reportAction, isHovered, onSecondaryInteraction, isActive}: ReportActionItemThreadProps) {
+function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, reportID, reportAction, isHovered, onSecondaryInteraction, isActive}: ReportActionItemThreadProps) {
     const styles = useThemeStyles();
 
     const {translate, datetimeToCalendarTime} = useLocalize();
@@ -61,14 +62,12 @@ function ReportActionItemThread({numberOfReplies, accountIDs, mostRecentReply, r
                 onSecondaryInteraction={onSecondaryInteraction}
             >
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
-                    <ReportActionAvatars
+                    <MultipleAvatars
                         size={CONST.AVATAR_SIZE.SMALL}
-                        accountIDs={accountIDs}
-                        horizontalStacking={{
-                            isHovered,
-                            isActive,
-                            sort: CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME,
-                        }}
+                        icons={icons}
+                        shouldStackHorizontally
+                        isHovered={isHovered}
+                        isActive={isActive}
                         isInReportAction
                     />
                     <View style={[styles.flex1, styles.flexRow, styles.lh140Percent, styles.alignItemsEnd]}>

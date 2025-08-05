@@ -280,7 +280,6 @@ function MoneyRequestAmountForm(
                     moneyRequestAmountInputRef={moneyRequestAmountInput}
                     inputStyle={[styles.iouAmountTextInput]}
                     containerStyle={[styles.iouAmountTextInputContainer]}
-                    touchableInputWrapperStyle={[styles.heightUndefined]}
                     testID="moneyRequestAmountInput"
                 />
                 {!!formError && (

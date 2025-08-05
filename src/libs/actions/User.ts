@@ -4,7 +4,6 @@ import debounce from 'lodash/debounce';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import type {
@@ -479,13 +478,7 @@ function requestValidateCodeAction() {
 /**
  * Validates a secondary login / contact method
  */
-function validateSecondaryLogin(
-    loginList: OnyxEntry<LoginList>,
-    contactMethod: string,
-    validateCode: string,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    shouldResetActionCode?: boolean,
-) {
+function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: string, validateCode: string, shouldResetActionCode?: boolean) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -560,7 +553,7 @@ function validateSecondaryLogin(
                     value: {
                         [currentUserAccountID]: {
                             login: contactMethod,
-                            displayName: PersonalDetailsUtils.createDisplayName(contactMethod, myPersonalDetails, formatPhoneNumber),
+                            displayName: PersonalDetailsUtils.createDisplayName(contactMethod, myPersonalDetails),
                         },
                     },
                 },
@@ -1114,7 +1107,7 @@ function generateStatementPDF(period: string) {
 /**
  * Sets a contact method / secondary login as the user's "Default" contact method.
  */
-function setContactMethodAsDefault(newDefaultContactMethod: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], backTo?: string) {
+function setContactMethodAsDefault(newDefaultContactMethod: string, backTo?: string) {
     const oldDefaultContactMethod = currentEmail;
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1151,7 +1144,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, formatPhoneN
             value: {
                 [currentUserAccountID]: {
                     login: newDefaultContactMethod,
-                    displayName: PersonalDetailsUtils.createDisplayName(newDefaultContactMethod, myPersonalDetails, formatPhoneNumber),
+                    displayName: PersonalDetailsUtils.createDisplayName(newDefaultContactMethod, myPersonalDetails),
                 },
             },
         },

@@ -15,4 +15,4 @@ Per diem makes it easy to cover travel or recurring allowances with fixed daily 
 
 ---
 
-Learn more about setting up per diem rates here ➡️ [Per Diem Settings](https://help.expensify.com/articles/new-expensify/workspaces/Configure-Per-Diem-in-a-workspace).
+Learn more about setting up per diem rates here ➡️ **[Per Diem Settings](https://help.expensify.com/articles/new-expensify/workspaces/Configure-Per-Diem-in-a-workspace)**.

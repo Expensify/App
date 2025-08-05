@@ -1,7 +1,7 @@
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 
-const usersIDs = [15593135, 51760358, 26502375] as const;
+const usersIDs = [15593135, 51760358, 26502375];
 const amount = 10402;
 const currency = CONST.CURRENCY.USD;
 
@@ -20,7 +20,7 @@ const participants = usersIDs.reduce((prev, userID) => {
     };
 }, {});
 
-const iouReportR14932 = {
+const iouReportR14932: Report = {
     currency,
     participants,
     total: amount,
@@ -31,9 +31,9 @@ const iouReportR14932 = {
     parentReportActionID: PARENT_REPORT_ACTION_ID_R14932,
     parentReportID: PARENT_REPORT_ID_R14932,
     reportID: REPORT_ID_R14932,
-    lastActorAccountID: usersIDs[0],
-    ownerAccountID: usersIDs[0],
-    managerID: usersIDs[1],
+    lastActorAccountID: usersIDs.at(0),
+    ownerAccountID: usersIDs.at(0),
+    managerID: usersIDs.at(1),
     permissions: [CONST.REPORT.PERMISSIONS.READ, CONST.REPORT.PERMISSIONS.WRITE],
     policyID: CONST.POLICY.ID_FAKE,
     reportName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -60,7 +60,7 @@ const iouReportR14932 = {
     welcomeMessage: '',
     description: '',
     oldPolicyName: '',
-} satisfies Report;
+};
 
 const chatReportR14932: Report = {
     currency,

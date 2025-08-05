@@ -1513,8 +1513,8 @@ const translations = {
             clearCacheAndRestart: 'Limpar cache e reiniciar',
             viewConsole: 'Ver console de depuração',
             debugConsole: 'Console de depuração',
-            description:
-                '<muted-text>Use as ferramentas abaixo para ajudar a solucionar problemas na experiência da Expensify. Se você encontrar algum problema, <concierge-link>envie um bug</concierge-link>.</muted-text>',
+            description: 'Use as ferramentas abaixo para ajudar a solucionar problemas na experiência do Expensify. Se você encontrar algum problema, por favor',
+            submitBug: 'enviar um bug',
             confirmResetDescription: 'Todas as mensagens de rascunho não enviadas serão perdidas, mas o restante dos seus dados está seguro.',
             resetAndRefresh: 'Redefinir e atualizar',
             clientSideLogging: 'Registro no lado do cliente',
@@ -1774,7 +1774,9 @@ const translations = {
         changePaymentCurrency: 'Alterar moeda de pagamento',
         paymentCurrency: 'Moeda de pagamento',
         paymentCurrencyDescription: 'Selecione uma moeda padronizada para a qual todas as despesas pessoais devem ser convertidas.',
-        note: `Observação: a alteração da moeda de pagamento pode afetar o valor que você pagará pela Expensify. Consulte nossa <a href="${CONST.PRICING}">página de preços</a> para obter detalhes completos.`,
+        note: 'Nota: Alterar sua moeda de pagamento pode impactar quanto você pagará pelo Expensify. Consulte nosso',
+        noteLink: 'página de preços',
+        noteDetails: 'para detalhes completos.',
     },
     addDebitCardPage: {
         addADebitCard: 'Adicionar um cartão de débito',
@@ -3528,7 +3530,6 @@ const translations = {
             defaultCategory: 'Categoria padrão',
             viewTransactions: 'Ver transações',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Despesas de ${displayName}`,
-            deepDiveExpensifyCard: `<muted-text-label>As transações do cartão Expensify serão exportadas automaticamente para uma “Conta de responsabilidade do cartão Expensify” criada com <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nossa integração</a>.</muted-text-label>`,
         },
         perDiem: {
             subtitle: 'Defina taxas de diárias para controlar os gastos diários dos funcionários.',
@@ -3593,6 +3594,8 @@ const translations = {
             exportJournalEntryDescription: 'Criaremos uma entrada de diário detalhada para cada relatório do Expensify e a postaremos na conta abaixo.',
             exportVendorBillDescription:
                 'Criaremos uma fatura de fornecedor detalhada para cada relatório do Expensify e a adicionaremos à conta abaixo. Se este período estiver fechado, publicaremos no primeiro dia do próximo período aberto.',
+            deepDiveExpensifyCard: 'As transações do Cartão Expensify serão exportadas automaticamente para uma "Conta de Responsabilidade do Cartão Expensify" criada com',
+            deepDiveExpensifyCardIntegration: 'nossa integração.',
             outOfPocketTaxEnabledDescription:
                 'O QuickBooks Desktop não suporta impostos em exportações de lançamentos contábeis. Como você tem impostos habilitados no seu espaço de trabalho, essa opção de exportação não está disponível.',
             outOfPocketTaxEnabledError: 'As entradas de diário não estão disponíveis quando os impostos estão ativados. Por favor, escolha uma opção de exportação diferente.',
@@ -3673,6 +3676,8 @@ const translations = {
             date: 'Data de exportação',
             exportInvoices: 'Exportar faturas para',
             exportExpensifyCard: 'Exportar transações do Cartão Expensify como',
+            deepDiveExpensifyCard: 'As transações do Cartão Expensify serão exportadas automaticamente para uma "Conta de Responsabilidade do Cartão Expensify" criada com',
+            deepDiveExpensifyCardIntegration: 'nossa integração.',
             exportDate: {
                 label: 'Data de exportação',
                 description: 'Use esta data ao exportar relatórios para o QuickBooks Online.',
@@ -6468,7 +6473,6 @@ const translations = {
         overAutoApprovalLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Despesa excede o limite de aprovação automática de ${formattedLimit}`,
         overCategoryLimit: ({formattedLimit}: ViolationsOverCategoryLimitParams) => `Quantia acima do limite de ${formattedLimit}/pessoa da categoria`,
         overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Quantia acima do limite de ${formattedLimit}/pessoa`,
-        overTripLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Valor acima do limite de ${formattedLimit}/viagem`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Quantia acima do limite de ${formattedLimit}/pessoa`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Quantia acima do limite diário de ${formattedLimit}/pessoa para a categoria`,
         receiptNotSmartScanned:
@@ -6901,8 +6905,9 @@ const translations = {
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `Por favor, insira o código mágico enviado para ${contactMethod} para atualizar seu copiloto.`,
         notAllowed: 'Não tão rápido...',
         noAccessMessage: 'Como copiloto, você não tem acesso a esta página. Desculpe!',
-        notAllowedMessage: ({accountOwnerEmail}: AccountOwnerParams) =>
-            `Como <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">copiloto</a> do ${accountOwnerEmail}, você não tem permissão para realizar essa ação. Desculpe-me!`,
+        notAllowedMessageStart: `Como um(a)`,
+        notAllowedMessageHyperLinked: 'copilot',
+        notAllowedMessageEnd: ({accountOwnerEmail}: AccountOwnerParams) => `para ${accountOwnerEmail}, você não tem permissão para realizar esta ação. Desculpe!`,
         copilotAccess: 'Acesso ao Copilot',
     },
     debug: {

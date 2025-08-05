@@ -72,7 +72,7 @@ const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchor = n
                             policies={{}}
                             policyID={mockChatReport.policyID}
                             action={mockAction}
-                            iouReportID={mockIOUReport.reportID}
+                            iouReportID={mockIOUReport.iouReportID}
                             chatReportID={mockChatReport.chatReportID}
                             contextMenuAnchor={contextMenuAnchor}
                             checkIfContextMenuActive={() => {}}

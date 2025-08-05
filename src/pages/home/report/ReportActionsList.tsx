@@ -181,7 +181,6 @@ function ReportActionsList({
     const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}`, {canBeMissing: true});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
-    const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(false);
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
 
     useEffect(() => {
@@ -397,19 +396,9 @@ function ReportActionsList({
         if (linkedReportActionID) {
             return;
         }
-
-        const shouldScrollToEnd = (isExpenseReport(report) || isTransactionThread(parentReportAction)) && isSearchTopmostFullScreenRoute();
-
-        if (shouldScrollToEnd) {
-            setShouldScrollToEndAfterLayout(true);
-        }
-
         InteractionManager.runAfterInteractions(() => {
             setIsFloatingMessageCounterVisible(false);
-
-            if (!shouldScrollToEnd) {
-                reportScrollManager.scrollToBottom();
-            }
+            reportScrollManager.scrollToBottom();
         });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
@@ -720,12 +709,8 @@ function ReportActionsList({
                 reportScrollManager.scrollToBottom();
                 setIsScrollToBottomEnabled(false);
             }
-            if (shouldScrollToEndAfterLayout) {
-                reportScrollManager.scrollToEnd();
-                setShouldScrollToEndAfterLayout(false);
-            }
         },
-        [isScrollToBottomEnabled, onLayout, reportScrollManager, shouldScrollToEndAfterLayout],
+        [isScrollToBottomEnabled, onLayout, reportScrollManager],
     );
 
     const retryLoadNewerChatsError = useCallback(() => {

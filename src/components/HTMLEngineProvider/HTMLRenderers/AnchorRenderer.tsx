@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
-import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
+import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import AnchorForAttachmentsOnly from '@components/AnchorForAttachmentsOnly';
 import AnchorForCommentsOnly from '@components/AnchorForCommentsOnly';
@@ -16,7 +16,7 @@ import {getInternalExpensifyPath, getInternalNewExpensifyPath, openLink} from '@
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 
-type AnchorRendererProps = CustomRendererProps<TText | TPhrasing> & {
+type AnchorRendererProps = CustomRendererProps<TBlock> & {
     /** Key of the element */
     key?: string;
 };
@@ -69,11 +69,6 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
                     textDecorationLine: 'underline',
                 },
             ];
-        }
-
-        // Special handling for links in RBR to maintain consistent font size
-        if (HTMLEngineUtils.isChildOfMutedTextLabel(tnode)) {
-            linkStyle = [styles.mutedNormalTextLabel, styles.link];
         }
 
         if (tnode.classes.includes('no-style-link')) {

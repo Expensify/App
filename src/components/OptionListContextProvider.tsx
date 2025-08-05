@@ -1,5 +1,5 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import {createOptionFromReport, createOptionList, processReport, shallowOptionsListCompare} from '@libs/OptionsListUtils';
@@ -87,11 +87,13 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     }, [prevReportAttributesLocale, loadOptions, reportAttributes?.locale]);
 
     const changedReportsEntries = useMemo(() => {
-        const result: OnyxCollection<OnyxEntry<Report>> = {};
+        const result: OnyxCollection<Report> = {};
 
         Object.keys(changedReports ?? {}).forEach((key) => {
             const report = reports?.[key];
-            result[key] = report;
+            if (report) {
+                result[key] = report;
+            }
         });
         return result;
     }, [changedReports, reports]);

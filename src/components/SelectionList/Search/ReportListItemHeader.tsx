@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ColorValue} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -15,6 +16,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {handleActionButtonPress} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
 import ActionCell from './ActionCell';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
@@ -22,6 +24,9 @@ import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 type ReportListItemHeaderProps<TItem extends ListItem> = {
     /** The report currently being looked at */
     report: TransactionReportGroupListItemType;
+
+    /** The policy tied to the expense report */
+    policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Callback to fire when the item is pressed */
     onSelectRow: (item: TItem) => void;
@@ -42,6 +47,9 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
 type FirstRowReportHeaderProps<TItem extends ListItem> = {
     /** The report currently being looked at */
     report: TransactionReportGroupListItemType;
+
+    /** The policy tied to the expense report */
+    policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
@@ -91,6 +99,7 @@ function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProp
 }
 
 function HeaderFirstRow<TItem extends ListItem>({
+    policy,
     report: reportItem,
     onCheckboxPress,
     isDisabled,
@@ -119,6 +128,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                 <View style={[{flexShrink: 1, flexGrow: 1, minWidth: 0}, styles.mr2]}>
                     <ReportSearchHeader
                         report={reportItem}
+                        policy={policy}
                         style={[{maxWidth: 700}]}
                         transactions={reportItem.transactions}
                         avatarBorderColor={avatarBorderColor}
@@ -146,7 +156,15 @@ function HeaderFirstRow<TItem extends ListItem>({
     );
 }
 
-function ReportListItemHeader<TItem extends ListItem>({report: reportItem, onSelectRow, onCheckboxPress, isDisabled, isFocused, canSelectMultiple}: ReportListItemHeaderProps<TItem>) {
+function ReportListItemHeader<TItem extends ListItem>({
+    policy,
+    report: reportItem,
+    onSelectRow,
+    onCheckboxPress,
+    isDisabled,
+    isFocused,
+    canSelectMultiple,
+}: ReportListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -181,6 +199,7 @@ function ReportListItemHeader<TItem extends ListItem>({report: reportItem, onSel
         <View>
             <HeaderFirstRow
                 report={reportItem}
+                policy={policy}
                 onCheckboxPress={onCheckboxPress}
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}
@@ -196,6 +215,7 @@ function ReportListItemHeader<TItem extends ListItem>({report: reportItem, onSel
         <View>
             <HeaderFirstRow
                 report={reportItem}
+                policy={policy}
                 onCheckboxPress={onCheckboxPress}
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}

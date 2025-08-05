@@ -1,11 +1,12 @@
+import lodashSortBy from 'lodash/sortBy';
 import truncate from 'lodash/truncate';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {DotIndicator, Folder, Tag} from '@components/Icon/Expensicons';
+import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
 import UserInfoCellsWithArrow from '@components/SelectionList/Search/UserInfoCellsWithArrow';
 import Text from '@components/Text';
@@ -17,12 +18,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount} from '@libs/IOUUtils';
+import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {canEditMoneyRequest, getTransactionDetails, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
+import {canEditMoneyRequest, getTransactionDetails, getWorkspaceIcon, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
@@ -132,7 +134,12 @@ function TransactionPreviewContent({
     const receiptImages = [{...getThumbnailAndImageURIs(transaction), transaction}];
     const merchantOrDescription = shouldShowMerchant ? requestMerchant : description || '';
     const participantAccountIDs = isMoneyRequestAction(action) && isBillSplit ? (getOriginalMessage(action)?.participantAccountIDs ?? []) : [managerID, ownerAccountID];
+    const participantAvatars = getAvatarsForAccountIDs(participantAccountIDs, personalDetails ?? {});
+    const sortedParticipantAvatars = lodashSortBy(participantAvatars, (avatar) => avatar.id);
     const isCardTransaction = isCardTransactionUtils(transaction);
+    if (isReportAPolicyExpenseChat && isBillSplit) {
+        sortedParticipantAvatars.push(getWorkspaceIcon(chatReport));
+    }
 
     // Compute the from/to data only for IOU reports
     const {from, to} = useMemo(() => {
@@ -241,13 +248,11 @@ function TransactionPreviewContent({
                                         <Text style={[isDeleted && styles.lineThrough, styles.textLabelSupporting, styles.flex1, styles.lh16, previewTextMargin]}>{previewHeaderText}</Text>
                                         {isBillSplit && (
                                             <View style={styles.moneyRequestPreviewBoxAvatar}>
-                                                <ReportActionAvatars
-                                                    accountIDs={participantAccountIDs}
-                                                    horizontalStacking={{
-                                                        sort: CONST.REPORT_ACTION_AVATARS.SORT_BY.ID,
-                                                        useCardBG: true,
-                                                    }}
-                                                    size={CONST.AVATAR_SIZE.SUBSCRIPT}
+                                                <MultipleAvatars
+                                                    icons={sortedParticipantAvatars}
+                                                    shouldStackHorizontally
+                                                    size="subscript"
+                                                    shouldUseCardBackground
                                                 />
                                             </View>
                                         )}

@@ -1,15 +1,21 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {ListItem, TransactionCardGroupListItemType} from '@components/SelectionList/types';
+import SubscriptAvatar from '@components/SubscriptAvatar';
+import type {SubIcon} from '@components/SubscriptAvatar';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCardFeedIcon} from '@libs/CardUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 type CardListItemHeaderProps<TItem extends ListItem> = {
     /** The card currently being looked at */
@@ -33,8 +39,26 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxP
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
+    const illustrations = useThemeIllustrations();
 
     const formattedDisplayName = useMemo(() => formatPhoneNumber(getDisplayNameOrDefault(cardItem)), [cardItem, formatPhoneNumber]);
+
+    const [memberAvatar, cardIcon] = useMemo(() => {
+        const avatar: Icon = {
+            source: cardItem.avatar,
+            type: CONST.ICON_TYPE_AVATAR,
+            name: formattedDisplayName,
+            id: cardItem.accountID,
+        };
+
+        const icon: SubIcon = {
+            source: getCardFeedIcon(cardItem.bank as CompanyCardFeed, illustrations),
+            width: variables.cardAvatarWidth,
+            height: variables.cardAvatarHeight,
+        };
+
+        return [avatar, icon];
+    }, [formattedDisplayName, illustrations, cardItem]);
 
     const backgroundColor =
         StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
@@ -54,11 +78,11 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxP
                         />
                     )}
                     <View style={[styles.flexRow, styles.gap3]}>
-                        <ReportActionAvatars
-                            subscriptCardFeed={cardItem.bank as CompanyCardFeed}
-                            subscriptAvatarBorderColor={backgroundColor}
-                            noRightMarginOnSubscriptContainer
-                            reportID={cardItem.reportID}
+                        <SubscriptAvatar
+                            mainAvatar={memberAvatar}
+                            subscriptIcon={cardIcon}
+                            backgroundColor={backgroundColor}
+                            noMargin
                         />
                         <View style={[styles.gapHalf]}>
                             <TextWithTooltip

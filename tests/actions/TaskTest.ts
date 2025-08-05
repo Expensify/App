@@ -112,15 +112,6 @@ describe('actions/Task', () => {
                 expect(canActionTask(taskReportCancelled)).toBe(false);
             });
 
-            it('returns false if parentReport is undefined and taskReport has no parentReportID', () => {
-                const task = {
-                    ...taskReport,
-                    parentReportID: undefined,
-                };
-
-                expect(canActionTask(task, taskAssigneeAccountID, undefined, false)).toBe(false);
-            });
-
             it('returns false if the report is a cancelled task report', () => {
                 // The accountID doesn't matter here because the code will do an early return for the cancelled report
                 expect(canActionTask(taskReportCancelled, 0)).toBe(false);

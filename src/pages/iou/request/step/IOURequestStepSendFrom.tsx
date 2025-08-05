@@ -26,7 +26,7 @@ type IOURequestStepSendFromProps = WithWritableReportOrNotFoundProps<typeof SCRE
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM>;
 
 function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate} = useLocalize();
     const {transactionID, backTo} = route.params;
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -42,7 +42,6 @@ function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProp
                     {policyID: policy1.id, name: policy1.name},
                     {policyID: policy2.id, name: policy2.name},
                     selectedWorkspace?.policyID ? [selectedWorkspace?.policyID] : [],
-                    localeCompare,
                 ),
             )
             .map((policy) => ({
@@ -60,7 +59,7 @@ function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProp
                 ],
                 isSelected: selectedWorkspace?.policyID === policy.id,
             }));
-    }, [allPolicies, currentUserLogin, selectedWorkspace, localeCompare]);
+    }, [allPolicies, currentUserLogin, selectedWorkspace]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);

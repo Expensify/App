@@ -1,7 +1,6 @@
 import type {CustomTagRendererRecord} from 'react-native-render-html';
 import AnchorRenderer from './AnchorRenderer';
 import CodeRenderer from './CodeRenderer';
-import ConciergeLinkRenderer from './ConciergeLinkRenderer';
 import DeletedActionRenderer from './DeletedActionRenderer';
 import EditedRenderer from './EditedRenderer';
 import EmojiRenderer from './EmojiRenderer';
@@ -39,7 +38,6 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     emoji: EmojiRenderer,
     'next-step-email': NextStepEmailRenderer,
     'deleted-action': DeletedActionRenderer,
-    'concierge-link': ConciergeLinkRenderer,
     /* eslint-enable @typescript-eslint/naming-convention */
 };
 

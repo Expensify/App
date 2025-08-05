@@ -4,6 +4,7 @@ import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
+import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -23,6 +24,7 @@ import type {ReservationData} from '@libs/TripReservationUtils';
 import {getReservationsFromTripReport, getTripReservationIcon, getTripTotal} from '@libs/TripReservationUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
+import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
@@ -71,7 +73,7 @@ function ReservationView({reservation, onPress}: ReservationViewProps) {
     let titleComponent = (
         <Text
             numberOfLines={1}
-            ellipsizeMode="tail"
+            style={styles.labelStrong}
         >
             {title}
         </Text>
@@ -82,19 +84,43 @@ function ReservationView({reservation, onPress}: ReservationViewProps) {
         const endName = reservation.type === CONST.RESERVATION_TYPE.FLIGHT ? reservation.end.shortName : reservation.end.longName;
 
         titleComponent = (
-            <Text
-                numberOfLines={2}
-                ellipsizeMode="tail"
-            >
-                {startName} {translate('common.to').toLowerCase()} {endName}
-            </Text>
+            <View style={[styles.flexRow, styles.alignItemsStart]}>
+                <View style={styles.tripReservationRow}>
+                    <View style={styles.flexShrink1}>
+                        <Text
+                            numberOfLines={2}
+                            style={[styles.labelStrong, styles.mr2]}
+                            ellipsizeMode="tail"
+                        >
+                            {startName}
+                        </Text>
+                    </View>
+                    <View style={styles.iconWrapper}>
+                        <Icon
+                            src={Expensicons.ArrowRightLong}
+                            width={variables.iconSizeSmall}
+                            height={variables.iconSizeSmall}
+                            fill={theme.icon}
+                        />
+                    </View>
+                </View>
+                <View style={[styles.flex1, styles.ml2]}>
+                    <Text
+                        numberOfLines={2}
+                        style={[styles.labelStrong]}
+                        ellipsizeMode="tail"
+                    >
+                        {endName}
+                    </Text>
+                </View>
+            </View>
         );
     }
 
     return (
         <MenuItemWithTopDescription
             description={translate(`travel.${reservation.type}`)}
-            descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
+            descriptionTextStyle={styles.textMicro}
             titleComponent={titleComponent}
             titleContainerStyle={styles.gap1}
             secondaryIcon={reservationIcon}
@@ -104,9 +130,9 @@ function ReservationView({reservation, onPress}: ReservationViewProps) {
             numberOfLinesTitle={0}
             shouldRemoveBackground
             onPress={onPress}
-            iconHeight={variables.iconSizeNormal}
-            iconWidth={variables.iconSizeNormal}
-            iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3, styles.alignSelfCenter]}
+            iconHeight={variables.iconSizeSmall}
+            iconWidth={variables.iconSizeSmall}
+            iconStyles={[StyleUtils.getTripReservationIconContainer(true), styles.mr3]}
             isSmallAvatarSubscriptMenu
         />
     );
@@ -177,27 +203,37 @@ function TripRoomPreview({
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('iou.viewDetails')}
                 >
-                    <View style={[styles.moneyRequestPreviewBox, styles.p4, styles.gap4, isHovered ? styles.reportPreviewBoxHoverBorder : undefined]}>
-                        <View>
-                            <Text style={[styles.headerText, styles.mb1]}>{chatReport?.reportName}</Text>
-                            <Text style={[styles.textLabelSupporting, styles.lh16]}>
-                                {dateInfo} • {reservationsData.length} {(reservationsData.length < 2 ? translate('travel.trip') : translate('travel.trips')).toLowerCase()}
-                            </Text>
+                    <View style={[styles.moneyRequestPreviewBox, styles.p4, styles.gap5, isHovered ? styles.reportPreviewBoxHoverBorder : undefined]}>
+                        <View style={styles.expenseAndReportPreviewTextContainer}>
+                            <View style={styles.reportPreviewAmountSubtitleContainer}>
+                                <View style={styles.flexRow}>
+                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                        <Text style={[styles.textLabelSupporting, styles.lh16]}>
+                                            {translate('travel.trip')} • {dateInfo}
+                                        </Text>
+                                    </View>
+                                </View>
+                            </View>
+                            <View style={styles.reportPreviewAmountSubtitleContainer}>
+                                <View style={styles.flexRow}>
+                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                        <Text style={styles.textHeadlineH2}>{displayAmount}</Text>
+                                    </View>
+                                </View>
+                                <View style={styles.flexRow}>
+                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                        <Text style={[styles.textLabelSupporting, styles.textNormal, styles.lh20]}>{chatReport?.reportName}</Text>
+                                    </View>
+                                </View>
+                            </View>
                         </View>
-                        {reservationsData.length > 0 && (
-                            <FlatList
-                                data={reservationsData}
-                                style={[styles.gap4, styles.border, styles.borderRadiusComponentLarge, styles.p4]}
-                                renderItem={renderItem}
-                            />
-                        )}
-                        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{translate('common.total')}</Text>
-                            <Text style={[styles.headerText, styles.lineHeightXLarge]}>{displayAmount}</Text>
-                        </View>
-
+                        <FlatList
+                            data={reservationsData}
+                            style={styles.gap3}
+                            renderItem={renderItem}
+                        />
                         <Button
-                            text={translate('common.view')}
+                            text={translate('travel.viewTrip')}
                             onPress={navigateToTrip}
                         />
                     </View>

@@ -1,14 +1,15 @@
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import useHasTeam2025Pricing from './useHasTeam2025Pricing';
+import useOnyx from './useOnyx';
 import usePreferredCurrency from './usePreferredCurrency';
-import usePrivateSubscription from './usePrivateSubscription';
 import useSubscriptionPlan from './useSubscriptionPlan';
 
 function useSubscriptionPrice(): number {
     const preferredCurrency = usePreferredCurrency();
     const subscriptionPlan = useSubscriptionPlan();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
-    const privateSubscription = usePrivateSubscription();
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const subscriptionType = privateSubscription?.type;
 
     if (!subscriptionPlan || !subscriptionType) {

@@ -7,7 +7,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import usePrivateSubscription from '@hooks/usePrivateSubscription';
+import useOnyx from '@hooks/useOnyx';
 import useStepFormSubmit from '@hooks/useStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,7 +21,7 @@ type SizeProps = SubStepProps;
 function Size({onNext}: SizeProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const privateSubscription = usePrivateSubscription();
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const {inputCallbackRef} = useAutoFocusInput();
 
     const updateValuesAndNavigateToNextStep = useStepFormSubmit<typeof ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM>({

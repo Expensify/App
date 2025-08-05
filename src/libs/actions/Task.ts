@@ -1266,7 +1266,7 @@ function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
     }
 
     // When there is no parent report, exit early (this can also happen due to onyx key initialization)
-    if (!parentReport && !taskReport?.parentReportID) {
+    if (!parentReport) {
         return false;
     }
 

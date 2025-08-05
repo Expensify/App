@@ -52,8 +52,4 @@ However, if you encounter an error during this process, you can close the pop-up
 
 Some banks, such as Chase, may display masked or tokenized account numbers when connected via Plaid. This is a security feature implemented by the bank and does not indicate any setup error. As long as the connection was successful and you see your account listed in your **Wallet**, reimbursements should process correctly.
 
-## Why can't I add my HSBC bank account details in Singapore?
-
-You can. HSBC typically includes the **branch code** which is the final three digits of the Swift Code (HSBCSGS2XXX) in their "Account Number". If you see figures like "146172002492", please drop first 3 digit (146) which is the Branch Code.
-
 </div>

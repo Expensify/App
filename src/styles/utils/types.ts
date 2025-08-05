@@ -22,7 +22,6 @@ type AvatarSizeValue = ValueOf<
         | 'avatarSizeXLarge'
         | 'avatarSizeLarge'
         | 'avatarSizeMedium'
-        | 'avatarSizeMediumLarge'
         | 'avatarSizeLargeBordered'
         | 'avatarSizeHeader'
         | 'avatarSizeMentionIcon'
