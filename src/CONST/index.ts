@@ -6475,6 +6475,7 @@ const CONST = {
             STATEMENTS: 'statements',
             UNAPPROVED_CASH: 'unapprovedCash',
             UNAPPROVED_CARD: 'unapprovedCard',
+            RECONCILIATION: 'reconciliation',
         },
         ANIMATION: {
             FADE_DURATION: 200,

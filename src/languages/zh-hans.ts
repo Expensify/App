@@ -5832,6 +5832,7 @@ const translations = {
         statements: '发言',
         unapprovedCash: '未经批准的现金',
         unapprovedCard: '未批准的卡',
+        reconciliation: '对账',
         saveSearch: '保存搜索',
         deleteSavedSearch: '删除已保存的搜索',
         deleteSavedSearchConfirm: '您确定要删除此搜索吗？',

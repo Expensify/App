@@ -234,7 +234,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         });
 
         /**
-         * The total should be calculated for all accounting queries (statements, unapprovedCash and unapprovedCard)
+         * The total should be calculated for all accounting queries (statements, unapprovedCash, unapprovedCard and reconciliation)
          * We can't use `searchKey` directly because we want to also match similar queries e.g. the statements suggested search query with a custom feed should be matched too.
          */
         const isStatementsLikeQuery = queryJSON.flatFilters.length === 2 && hasFeedFilter && hasPostedFilter;
@@ -248,9 +248,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             hasFeedFilter &&
             queryJSON.status[0] === CONST.SEARCH.STATUS.EXPENSE.DRAFTS &&
             queryJSON.status[1] === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
+        const isReconciliationLikeQuery = queryJSON.groupBy === CONST.SEARCH.GROUP_BY.BANK_WITHDRAWAL;
 
-        return isStatementsLikeQuery || isUnapprovedCashLikeQuery || isUnapprovedCardLikeQuery;
-    }, [offset, queryJSON.flatFilters, queryJSON.type, queryJSON.status]);
+        return isStatementsLikeQuery || isUnapprovedCashLikeQuery || isUnapprovedCardLikeQuery || isReconciliationLikeQuery;
+    }, [offset, queryJSON.flatFilters, queryJSON.type, queryJSON.status, queryJSON.groupBy]);
 
     const previousReportActions = usePrevious(reportActions);
     const reportActionsArray = useMemo(
