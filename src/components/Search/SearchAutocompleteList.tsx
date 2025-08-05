@@ -31,7 +31,7 @@ import {
     getQueryWithoutAutocompletedPart,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, getUserFriendlyKey, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
 import {getDatePresets} from '@libs/SearchUIUtils';
 import StringUtils from '@libs/StringUtils';
 import Timing from '@userActions/Timing';
@@ -292,7 +292,8 @@ function SearchAutocompleteList(
                     text: categoryName,
                 }));
             }
-            case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY: {
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY: {
                 const autocompleteList = autocompleteValue ? currencyAutocompleteList : (recentCurrencyAutocompleteList ?? []);
                 const filteredCurrencies = autocompleteList
                     .filter((currency) => currency.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(currency.toLowerCase()))
@@ -300,7 +301,7 @@ function SearchAutocompleteList(
                     .slice(0, 10);
 
                 return filteredCurrencies.map((currencyName) => ({
-                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CURRENCY,
+                    filterKey: getUserFriendlyKey(autocompleteKey),
                     text: currencyName,
                 }));
             }

@@ -36,6 +36,7 @@ const FILTER_KEYS = {
     POSTED_AFTER: 'postedAfter',
     POSTED_BEFORE: 'postedBefore',
     CURRENCY: 'currency',
+    GROUP_CURRENCY: 'groupCurrency',
     CATEGORY: 'category',
     POLICY_ID: 'policyID',
     CARD_ID: 'cardID',
@@ -242,6 +243,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.POSTED_AFTER]: string;
         [FILTER_KEYS.POSTED_BEFORE]: string;
         [FILTER_KEYS.CURRENCY]: string[];
+        [FILTER_KEYS.GROUP_CURRENCY]: string;
         [FILTER_KEYS.CATEGORY]: string[];
         [FILTER_KEYS.POLICY_ID]: string[];
         [FILTER_KEYS.CARD_ID]: string[];
