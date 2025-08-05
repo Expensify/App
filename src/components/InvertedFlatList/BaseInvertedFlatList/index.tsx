@@ -34,7 +34,7 @@ const AUTOSCROLL_TO_TOP_THRESHOLD = 250;
 
 function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: ForwardedRef<RNFlatList>) {
     const {
-        shouldEnableAutoScrollToTopThreshold,
+        shouldEnableAutoScrollToTopThreshold = false,
         initialScrollKey,
         data,
         onStartReached,
