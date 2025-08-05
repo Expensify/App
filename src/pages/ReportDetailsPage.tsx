@@ -589,7 +589,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         size={CONST.AVATAR_SIZE.X_LARGE}
                         reportID={report?.reportID ?? moneyRequestReport?.reportID}
                     />
-                </View>   
+                </View>
             );
         }
         return (
