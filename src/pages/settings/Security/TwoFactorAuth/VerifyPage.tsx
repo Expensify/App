@@ -98,7 +98,7 @@ function VerifyPage({route}: VerifyPageProps) {
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={styles.flexGrow1}
             >
-                <View style={[styles.ph5, styles.mt3, styles.flexGrow1]}>
+                <View style={[styles.ph5, styles.mt3]}>
                     <Text>
                         {translate('twoFactorAuth.scanCode')}
                         <TextLink href={TROUBLESHOOTING_LINK}> {translate('twoFactorAuth.authenticatorApp')}</TextLink>.
