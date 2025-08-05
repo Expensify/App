@@ -837,11 +837,6 @@ function BaseSelectionList<TItem extends ListItem>(
             }
         }
 
-        // Reset the current page to 1 when the user types something
-        if (prevTextInputValue !== textInputValue) {
-            setCurrentPage(1);
-        }
-
         // Remove the focus if the search input is empty and prev search input not empty or selected options length is changed (and allOptions length remains the same)
         // else focus on the first non disabled item
         const newSelectedIndex =
