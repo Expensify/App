@@ -47,6 +47,8 @@ type DropdownOption<TValueType> = {
     backButtonText?: string;
     avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
     shouldShow?: boolean;
+    /** Whether to show a loading spinner for this option */
+    shouldShowLoadingSpinnerIcon?: boolean;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = {

@@ -1,3 +1,4 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {OnfidoDataWithApplicantID} from '@components/Onfido/types';
@@ -17,7 +18,6 @@ import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/Save
 import type SaveCorpayOnboardingDirectorInformationParams from '@libs/API/parameters/SaveCorpayOnboardingDirectorInformationParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {getLastUsedPaymentMethod} from '@libs/IOUUtils';
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalPolicy} from '@libs/PolicyUtils';
@@ -28,7 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {InternationalBankAccountForm, PersonalBankAccountForm} from '@src/types/form';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountForm, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
-import type {LastPaymentMethod, LastPaymentMethodType} from '@src/types/onyx';
+import type {LastPaymentMethod, LastPaymentMethodType, PersonalBankAccount} from '@src/types/onyx';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -204,7 +204,7 @@ function addBusinessWebsiteForDraft(websiteUrl: string) {
 /**
  * Submit Bank Account step with Plaid data so php can perform some checks.
  */
-function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount, policyID: string) {
+function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount, policyID: string, lastPaymentMethod?: LastPaymentMethodType | string) {
     const parameters: ConnectBankAccountParams = {
         bankAccountID,
         routingNumber: selectedPlaidBankAccount.routingNumber,
@@ -218,9 +218,9 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
     };
 
     const onyxData = getVBBADataForOnyx();
-    const lastUsedPaymentMethod = getLastUsedPaymentMethod(policyID);
+    const lastUsedPaymentMethod = typeof lastPaymentMethod === 'string' ? lastPaymentMethod : lastPaymentMethod?.expense?.name;
 
-    if (!lastUsedPaymentMethod?.expense?.name) {
+    if (!lastUsedPaymentMethod) {
         onyxData.successData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
@@ -230,7 +230,7 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
                         name: CONST.IOU.PAYMENT_TYPE.VBBA,
                     },
                     lastUsed: {
-                        name: lastUsedPaymentMethod?.lastUsed?.name ?? CONST.IOU.PAYMENT_TYPE.VBBA,
+                        name: lastUsedPaymentMethod ?? CONST.IOU.PAYMENT_TYPE.VBBA,
                     },
                 },
             },
@@ -245,7 +245,7 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
  *
  * TODO: offline pattern for this command will have to be added later once the pattern B design doc is complete
  */
-function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, source?: string) {
+function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, source?: string, lastPaymentMethod?: LastPaymentMethodType | string | undefined) {
     const parameters: AddPersonalBankAccountParams = {
         addressName: account.addressName ?? '',
         routingNumber: account.routingNumber,
@@ -264,7 +264,6 @@ function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, so
     }
 
     const personalPolicy = getPersonalPolicy();
-    const lastUsedPaymentMethod = getLastUsedPaymentMethod(personalPolicy?.id);
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -308,7 +307,7 @@ function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, so
         ],
     };
 
-    if (personalPolicy?.id && !lastUsedPaymentMethod) {
+    if (personalPolicy?.id && !lastPaymentMethod) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
@@ -349,8 +348,14 @@ function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, so
     API.write(WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT, parameters, onyxData);
 }
 
-function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?: LastPaymentMethod) {
+function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?: LastPaymentMethod, bankAccount?: OnyxEntry<PersonalBankAccount>) {
     const parameters: DeletePaymentBankAccountParams = {bankAccountID};
+
+    const bankAccountFailureData = {
+        ...bankAccount,
+        errors: getMicroSecondOnyxErrorWithTranslationKey('bankAccount.error.deletePaymentBankAccount'),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    };
 
     const personalPolicy = getPersonalPolicy();
 
@@ -372,19 +377,39 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
                 value: {[bankAccountID]: null},
             },
         ],
+
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
+                value: {
+                    [bankAccountID]: bankAccountFailureData,
+                },
+            },
+        ],
     };
 
     Object.keys(lastUsedPaymentMethods ?? {}).forEach((paymentMethodID) => {
         const lastUsedPaymentMethod = lastUsedPaymentMethods?.[paymentMethodID] as LastPaymentMethodType;
 
-        if (personalPolicy?.id === paymentMethodID && lastUsedPaymentMethod.iou.name === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-            const revertedLastUsedPaymentMethod = lastUsedPaymentMethod.lastUsed.name !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? lastUsedPaymentMethod.lastUsed.name : null;
+        if (typeof lastUsedPaymentMethod === 'string' || !lastUsedPaymentMethod) {
+            return;
+        }
+
+        if (personalPolicy?.id === paymentMethodID && lastUsedPaymentMethod.iou?.name === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+            const revertedLastUsedPaymentMethod = lastUsedPaymentMethod.lastUsed?.name !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? lastUsedPaymentMethod.lastUsed?.name : null;
 
             onyxData.successData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
                 value: {
-                    [personalPolicy?.id]: revertedLastUsedPaymentMethod,
+                    [personalPolicy?.id]: {
+                        iou: {
+                            name: revertedLastUsedPaymentMethod,
+                            bankAccountID: null,
+                        },
+                        ...(!revertedLastUsedPaymentMethod ? {lastUsed: {name: null, bankAccountID: null}} : {}),
+                    },
                 },
             });
 
@@ -392,7 +417,16 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
                 value: {
-                    [personalPolicy?.id]: lastUsedPaymentMethod.iou.name,
+                    [personalPolicy?.id]: {
+                        expense: {
+                            name: lastUsedPaymentMethod.iou?.name,
+                            bankAccountID: lastUsedPaymentMethod.iou?.bankAccountID,
+                        },
+                        lastUsed: {
+                            name: lastUsedPaymentMethod.lastUsed?.name,
+                            bankAccountID: lastUsedPaymentMethod.lastUsed?.bankAccountID,
+                        },
+                    },
                 },
             });
         }
@@ -404,7 +438,13 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
                 value: {
-                    [paymentMethodID]: revertedLastUsedPaymentMethod,
+                    [paymentMethodID]: {
+                        expense: {
+                            name: revertedLastUsedPaymentMethod,
+                            bankAccountID: null,
+                        },
+                        ...(!revertedLastUsedPaymentMethod ? {lastUsed: {name: null, bankAccountID: null}} : {}),
+                    },
                 },
             });
 
@@ -412,7 +452,16 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
                 value: {
-                    [paymentMethodID]: lastUsedPaymentMethod.expense.name,
+                    [paymentMethodID]: {
+                        expense: {
+                            name: lastUsedPaymentMethod.expense?.name,
+                            bankAccountID: lastUsedPaymentMethod.expense?.bankAccountID,
+                        },
+                        lastUsed: {
+                            name: lastUsedPaymentMethod.lastUsed?.name,
+                            bankAccountID: lastUsedPaymentMethod.lastUsed?.bankAccountID,
+                        },
+                    },
                 },
             });
         }
@@ -852,7 +901,7 @@ function updateBeneficialOwnersForBankAccount(bankAccountID: number, params: Par
  * Accept the ACH terms and conditions and verify the accuracy of the information provided
  * @param params - Verification step form params
  */
-function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContractStepProps, policyID: string) {
+function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContractStepProps, policyID: string | undefined) {
     API.write(
         WRITE_COMMANDS.ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT,
         {

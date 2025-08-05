@@ -295,11 +295,19 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         const bankAccountID = paymentMethod.selectedPaymentMethod.bankAccountID;
         const fundID = paymentMethod.selectedPaymentMethod.fundID;
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && bankAccountID) {
-            deletePaymentBankAccount(bankAccountID, lastUsedPaymentMethods);
+            const bankAccount = bankAccountList?.[paymentMethod.methodID] ?? {};
+            deletePaymentBankAccount(bankAccountID, lastUsedPaymentMethods, bankAccount);
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && fundID) {
             deletePaymentCard(fundID);
         }
-    }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethod.fundID, paymentMethod.selectedPaymentMethodType, lastUsedPaymentMethods]);
+    }, [
+        paymentMethod.selectedPaymentMethod.bankAccountID,
+        paymentMethod.selectedPaymentMethod.fundID,
+        paymentMethod.selectedPaymentMethodType,
+        lastUsedPaymentMethods,
+        paymentMethod.methodID,
+        bankAccountList,
+    ]);
 
     /**
      * Navigate to the appropriate page after completing the KYC flow, depending on what initiated it
@@ -441,9 +449,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                     activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
                                     buttonRef={addPaymentMethodAnchorRef}
                                     onListContentSizeChange={shouldShowAddPaymentMenu || shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
-                                    shouldEnableScroll={false}
                                     style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                                    shouldShowBankAccountSections
                                 />
                             </Section>
 
@@ -460,7 +468,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                         shouldShowAddPaymentMethodButton={false}
                                         shouldShowAssignedCards
                                         shouldShowEmptyListMessage={false}
-                                        shouldEnableScroll={false}
                                         onPress={assignedCardPressed}
                                         style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                         listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
@@ -518,7 +525,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                 setPersonalBankAccountContinueKYCOnSuccess(ROUTES.SETTINGS_WALLET);
                                             }}
                                             enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
-                                            addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route}
                                             addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                                             source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
                                             shouldIncludeDebitCard={hasActivatedWallet}

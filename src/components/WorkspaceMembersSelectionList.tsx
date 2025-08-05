@@ -12,7 +12,7 @@ import MemberRightIcon from '@pages/workspace/MemberRightIcon';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {FallbackAvatar} from './Icon/Expensicons';
-import {usePersonalDetails} from './OnyxProvider';
+import {usePersonalDetails} from './OnyxListItemProvider';
 import SelectionList from './SelectionList';
 import InviteMemberListItem from './SelectionList/InviteMemberListItem';
 import type {Section} from './SelectionList/types';
@@ -35,7 +35,7 @@ type WorkspaceMembersSelectionListProps = {
 };
 
 function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}: WorkspaceMembersSelectionListProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const personalDetails = usePersonalDetails();
@@ -83,11 +83,11 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
         return [
             {
                 title: undefined,
-                data: sortAlphabetically(filteredApprovers, 'text'),
+                data: sortAlphabetically(filteredApprovers, 'text', localeCompare),
                 shouldShow: true,
             },
         ];
-    }, [debouncedSearchTerm, personalDetails, policy?.employeeList, policy?.owner, selectedApprover]);
+    }, [debouncedSearchTerm, personalDetails, policy?.employeeList, policy?.owner, selectedApprover, localeCompare]);
 
     const handleOnSelectRow = (approver: SelectionListApprover) => {
         setApprover(approver.login);

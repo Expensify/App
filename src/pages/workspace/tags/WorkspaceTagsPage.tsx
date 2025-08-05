@@ -10,6 +10,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
@@ -47,7 +48,6 @@ import {
     setWorkspaceTagRequired,
 } from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -84,7 +84,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
@@ -255,7 +255,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             // For other cases, sort alphabetically by name
             return tags.sort((a, b) => localeCompare(a.value, b.value));
         },
-        [hasDependentTags, isMultiLevelTags],
+        [hasDependentTags, isMultiLevelTags, localeCompare],
     );
     const [inputValue, setInputValue, filteredTagList] = useSearchResults(tagList, filterTag, sortTags);
 
@@ -613,31 +613,18 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         </>
     );
 
-    const emptyTagsCopy = hasAccountingConnections ? 'emptyTagsWithAccounting' : 'emptyTags';
-    const subtitleText = useMemo(
-        () => (
-            <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>
-                {translate(`workspace.tags.${emptyTagsCopy}.subtitle1`)}
-                {hasAccountingConnections ? (
-                    <TextLink
-                        style={[styles.textAlignCenter]}
-                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
-                    >
-                        {translate(`workspace.tags.${emptyTagsCopy}.subtitle2`)}
-                    </TextLink>
-                ) : (
-                    <TextLink
-                        style={[styles.textAlignCenter]}
-                        href={CONST.IMPORT_TAGS_EXPENSIFY_URL}
-                    >
-                        {translate(`workspace.tags.${emptyTagsCopy}.subtitle2`)}
-                    </TextLink>
-                )}
-                {translate(`workspace.tags.${emptyTagsCopy}.subtitle3`)}
-            </Text>
-        ),
-        [styles.textAlignCenter, styles.textNormal, styles.textSupporting, translate, emptyTagsCopy, hasAccountingConnections, policyID],
-    );
+    const subtitleText = useMemo(() => {
+        const emptyTagsSubtitle = hasAccountingConnections
+            ? translate('workspace.tags.emptyTags.subtitleWithAccounting', {
+                  accountingPageURL: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`,
+              })
+            : translate('workspace.tags.emptyTags.subtitleHTML');
+        return (
+            <View style={[styles.renderHTML]}>
+                <RenderHTML html={emptyTagsSubtitle} />
+            </View>
+        );
+    }, [hasAccountingConnections, translate, environmentURL, policyID, styles.renderHTML]);
 
     return (
         <>

@@ -40,7 +40,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
-import {getAllSortedTransactions, getCategory, getTag} from './TransactionUtils';
+import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {isPublicDomain} from './ValidationUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
@@ -256,9 +256,7 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentU
         return;
     }
 
-    const employeeRole = policy?.employeeList?.[currentUserLogin];
-
-    return typeof employeeRole === 'string' ? employeeRole : employeeRole?.role;
+    return policy?.employeeList?.[currentUserLogin]?.role;
 }
 
 function getPolicyNameByID(policyID: string): string {
@@ -284,6 +282,25 @@ function shouldShowPolicy(policy: OnyxEntry<Policy>, shouldShowPendingDeletePoli
 
 function isPolicyMember(currentUserLogin: string | undefined, policyID: string | undefined): boolean {
     return !!currentUserLogin && !!policyID && !!allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList?.[currentUserLogin];
+}
+
+function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean {
+    if (!policy) {
+        return false;
+    }
+
+    const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
+    const isReimburser = policy.reimburser === currentUserLogin;
+
+    if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+        return policy.reimburser ? isReimburser : isAdmin;
+    }
+
+    if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
+        return isAdmin;
+    }
+
+    return false;
 }
 
 function isExpensifyTeam(email: string | undefined): boolean {
@@ -447,6 +464,23 @@ function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
  */
 function getCleanedTagName(tag: string) {
     return tag?.replace(/\\:/g, CONST.COLON);
+}
+
+/**
+ * Converts a colon-delimited tag string into a comma-separated string, filtering out empty tags.
+ */
+function getCommaSeparatedTagNameWithSanitizedColons(tag: string): string {
+    return getTagArrayFromName(tag)
+        .filter((tagItem) => tagItem !== '')
+        .map(getCleanedTagName)
+        .join(', ');
+}
+
+function getLengthOfTag(tag: string): number {
+    if (!tag) {
+        return 0;
+    }
+    return getTagArrayFromName(tag).length;
 }
 
 /**
@@ -1056,6 +1090,7 @@ function getNetSuiteImportCustomFieldLabel(
     policy: Policy | undefined,
     importField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>,
     translate: LocaleContextProps['translate'],
+    localeCompare: LocaleContextProps['localeCompare'],
 ): string | undefined {
     const fieldData = policy?.connections?.netsuite?.options?.config.syncOptions?.[importField] ?? [];
     if (fieldData.length === 0) {
@@ -1064,7 +1099,7 @@ function getNetSuiteImportCustomFieldLabel(
 
     const mappingSet = new Set(fieldData.map((item) => item.mapping));
     const importedTypes = Array.from(mappingSet)
-        .sort((a, b) => b.localeCompare(a))
+        .sort((a, b) => localeCompare(b, a))
         .map((mapping) => translate(`workspace.netsuite.import.importTypes.${mapping !== '' ? mapping : 'TAG'}.label`).toLowerCase());
     return translate(`workspace.netsuite.import.importCustomFields.label`, {importedTypes});
 }
@@ -1166,14 +1201,22 @@ function getSageIntacctCreditCards(policy?: Policy, selectedAccount?: string): S
  * @param workspace2 Details of the second workspace to be compared.
  * @param selectedWorkspaceID ID of the selected workspace which needs to be at the beginning.
  */
-const sortWorkspacesBySelected = (workspace1: WorkspaceDetails, workspace2: WorkspaceDetails, selectedWorkspaceIDs: string[] | undefined): number => {
+const sortWorkspacesBySelected = (
+    workspace1: WorkspaceDetails,
+    workspace2: WorkspaceDetails,
+    selectedWorkspaceIDs: string[] | undefined,
+    localeCompare: LocaleContextProps['localeCompare'],
+): number => {
+    if (workspace1.policyID && selectedWorkspaceIDs?.includes(workspace1?.policyID) && workspace2.policyID && selectedWorkspaceIDs?.includes(workspace2.policyID)) {
+        return localeCompare(workspace1.name?.toLowerCase() ?? '', workspace2.name?.toLowerCase() ?? '');
+    }
     if (workspace1.policyID && selectedWorkspaceIDs?.includes(workspace1?.policyID)) {
         return -1;
     }
     if (workspace2.policyID && selectedWorkspaceIDs?.includes(workspace2.policyID)) {
         return 1;
     }
-    return workspace1.name?.toLowerCase().localeCompare(workspace2.name?.toLowerCase() ?? '') ?? 0;
+    return localeCompare(workspace1.name?.toLowerCase() ?? '', workspace2.name?.toLowerCase() ?? '');
 };
 
 /**
@@ -1470,6 +1513,7 @@ export {
     getPerDiemCustomUnits,
     getAdminEmployees,
     getCleanedTagName,
+    getCommaSeparatedTagNameWithSanitizedColons,
     getConnectedIntegration,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
@@ -1516,6 +1560,7 @@ export {
     isPolicyFeatureEnabled,
     isPolicyOwner,
     isPolicyMember,
+    isPolicyPayer,
     arePaymentsEnabled,
     isSubmitAndClose,
     isTaxTrackingEnabled,
@@ -1611,6 +1656,7 @@ export {
     isUserInvitedToWorkspace,
     getPolicyRole,
     hasIndependentTags,
+    getLengthOfTag,
 };
 
 export type {MemberEmailsToAccountIDs};
