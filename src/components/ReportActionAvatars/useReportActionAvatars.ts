@@ -194,22 +194,28 @@ function useReportActionAvatars({
         fallbackIcon,
     };
 
-    const avatarsForAccountIDs: IconType[] = accountIDs.map((id) => ({
+    const shouldUseActorAccountID = isAInvoiceReport && !isAReportPreviewAction;
+    const accountIDsToMap = shouldUseActorAccountID && actorAccountID ? [actorAccountID] : accountIDs;
+
+    const avatarsForAccountIDs: IconType[] = accountIDsToMap.map((id) => ({
         id,
         type: CONST.ICON_TYPE_AVATAR,
         source: personalDetails?.[id]?.avatar ?? FallbackAvatar,
-        name: personalDetails?.[id]?.login ?? '',
+        name: personalDetails?.[id]?.[shouldUseActorAccountID ? 'displayName' : 'login'] ?? '',
     }));
 
+    const shouldUseMappedAccountIDs = avatarsForAccountIDs.length > 0 && (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE || shouldUseActorAccountID);
+    const shouldUsePrimaryAvatarID = isWorkspaceActor && !!primaryAvatar.id;
+
     return {
-        avatars: avatarsForAccountIDs.length > 0 && avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE ? avatarsForAccountIDs : [primaryAvatar, secondaryAvatar],
+        avatars: shouldUseMappedAccountIDs ? avatarsForAccountIDs : [primaryAvatar, secondaryAvatar],
         avatarType,
         details: {
             ...(personalDetails?.[accountID] ?? {}),
             shouldDisplayAllActors: displayAllActors,
             isWorkspaceActor,
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            actorHint: String(isWorkspaceActor ? primaryAvatar.id : login || (defaultDisplayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
+            actorHint: String(shouldUsePrimaryAvatarID ? primaryAvatar.id : login || defaultDisplayName || 'Unknown user').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
             accountID,
             delegateAccountID: !isWorkspaceActor && delegatePersonalDetails ? actorAccountID : undefined,
         },
