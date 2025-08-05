@@ -47,7 +47,6 @@ function BusinessTypeSelectorModal({isVisible, currentBusinessType, onBusinessTy
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
             onClose={onClose}
-            onModalHide={onClose}
             onBackdropPress={() => {
                 onClose();
                 Navigation.dismissModal();
