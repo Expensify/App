@@ -77,6 +77,7 @@ import Accounting from '@assets/images/simple-illustrations/simple-illustration_
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
 import BankArrow from '@assets/images/simple-illustrations/simple-illustration__bank-arrow.svg';
+import BankCoin from '@assets/images/simple-illustrations/simple-illustration__bankcoin.svg';
 import BigRocket from '@assets/images/simple-illustrations/simple-illustration__bigrocket.svg';
 import PinkBill from '@assets/images/simple-illustrations/simple-illustration__bill.svg';
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
@@ -155,13 +156,12 @@ import TrashCan from '@assets/images/simple-illustrations/simple-illustration__t
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
 import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__twocards-horizontal.svg';
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
+import WalletAlt2 from '@assets/images/simple-illustrations/simple-illustration__wallet-alt2.svg';
 import WalletAlt from '@assets/images/simple-illustrations/simple-illustration__wallet-alt.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 import ExpensifyApprovedLogoLight from '@assets/images/subscription-details__approvedlogo--light.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
-import BankCoin from '@assets/images/simple-illustrations/simple-illustration__bankcoin.svg';
-import WalletAlt2 from '@assets/images/simple-illustrations/simple-illustration__wallet-alt2.svg';
 
 export {
     Abracadabra,
