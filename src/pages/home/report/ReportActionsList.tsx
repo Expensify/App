@@ -9,7 +9,7 @@ import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
 import {useKeyboardDismissableFlatListContext} from '@components/KeyboardDismissableFlatList/KeyboardDismissableFlatListContext';
-import {PersonalDetailsContext} from '@components/OnyxListItemProvider';
+import {PersonalDetailsContext, usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
@@ -156,6 +156,7 @@ function ReportActionsList({
     parentReportActionForTransactionThread,
     composerHeight,
 }: ReportActionsListProps) {
+    const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
