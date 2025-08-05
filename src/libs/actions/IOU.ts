@@ -11853,8 +11853,8 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
             value: [
                 ...currentTransactionViolations,
                 {
-                    name: CONST.VIOLATIONS.REJECTED_EXPENSE,
-                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
                     data: {
                         rejectReason: comment ?? '',
                     },
@@ -11923,12 +11923,10 @@ function markDeclineViolationAsResolved(transactionID: string, reportID?: string
 
     const markedAsResolvedReportActionID = NumberUtils.rand64();
     const currentViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-    const updatedViolations = currentViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.REJECTED_EXPENSE);
+    const updatedViolations = currentViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
     const optimisticMarkedAsResolvedReportAction = buildOptimisticMarkedAsResolvedReportAction();
     const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-
-    const updatedComment = {...currentTransaction?.comment};
-    delete updatedComment[CONST.VIOLATIONS.REJECTED_EXPENSE];
+    
     // Build optimistic data
     const optimisticData: OnyxUpdate[] = [
         {
@@ -11941,13 +11939,6 @@ function markDeclineViolationAsResolved(transactionID: string, reportID?: string
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [optimisticMarkedAsResolvedReportAction.reportActionID]: optimisticMarkedAsResolvedReportAction,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                comment: updatedComment,
             },
         },
     ];
