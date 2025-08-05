@@ -43,11 +43,13 @@ Invite teammates to your workspace and assign roles to control their access and 
 ## Managing Members
 
 **Change Role:**
+
 1. Click the member's name
 2. Click **Role** and select new role
 3. Confirm changes
 
 **Remove Member:**
+
 1. Click the member's name  
 2. Click **Remove from Workspace**
 3. Confirm removal
