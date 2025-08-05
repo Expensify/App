@@ -11309,10 +11309,6 @@ function getReportStatusTranslation(stateNum?: number, statusNum?: number): stri
     return '';
 }
 
-function reportAttributesSelector(reportAttributes: OnyxEntry<ReportAttributesDerivedValue>) {
-    return reportAttributes?.reports;
-}
-
 export {
     areAllRequestsBeingSmartScanned,
     buildOptimisticAddCommentReportAction,
@@ -11694,7 +11690,6 @@ export {
     isWorkspaceThread,
     isMoneyRequestReportEligibleForMerge,
     getReportStatusTranslation,
-    reportAttributesSelector,
 };
 
 export type {
