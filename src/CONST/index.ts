@@ -326,7 +326,8 @@ const CONST = {
     OLD_DEFAULT_AVATAR_COUNT: 8,
 
     DISPLAY_NAME: {
-        MAX_LENGTH: 50,
+        // This value is consistent with the BE display name max length limit.
+        MAX_LENGTH: 100,
         RESERVED_NAMES: ['Expensify', 'Concierge'],
         EXPENSIFY_CONCIERGE: 'Expensify Concierge',
     },
@@ -341,6 +342,10 @@ const CONST = {
 
     LEGAL_NAME: {
         MAX_LENGTH: 40,
+    },
+
+    NAME: {
+        MAX_LENGTH: 50,
     },
 
     REPORT_DESCRIPTION: {
@@ -986,7 +991,7 @@ const CONST = {
     STORYLANE: {
         ADMIN_TOUR: 'https://app.storylane.io/demo/bbcreg8vccag?embed=inline',
         ADMIN_TOUR_MOBILE: 'https://app.storylane.io/demo/b6faqcdsxgww?embed=inline',
-        TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/agmsfwgasaed?embed=inline',
+        TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/mqzy3huvtrhx?embed=inline',
         TRACK_WORKSPACE_TOUR_MOBILE: 'https://app.storylane.io/share/wq4hiwsqvoho?embed=inline',
 
         // At the moment we are using Navattic links, but it will be changed to Storylane in the future.
@@ -5248,7 +5253,7 @@ const CONST = {
      * The maximum count of items per page for SelectionList.
      * When paginate, it multiplies by page number.
      */
-    MAX_SELECTION_LIST_PAGE_LENGTH: 500,
+    MAX_SELECTION_LIST_PAGE_LENGTH: 50,
 
     /**
      * Bank account names
@@ -5501,6 +5506,8 @@ const CONST = {
             },
         },
     },
+
+    /* If we update these values, let's ensure this logic is consistent with the logic in the backend (Auth), since we're using the same method to calculate the rate value in distance requests created via Concierge. */
     CURRENCY_TO_DEFAULT_MILEAGE_RATE: JSON.parse(`{
         "AED": {
             "rate": 414,
