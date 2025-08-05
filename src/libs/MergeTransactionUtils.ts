@@ -73,18 +73,38 @@ function fillMissingReceiptSource(transaction: Transaction) {
     };
 }
 
+const getTransactionFromMergeTransaction = (mergeTransaction: OnyxEntry<MergeTransaction>, transactionID: string) => {
+    if (!mergeTransaction?.eligibleTransactions) {
+        return undefined;
+    }
+    const transaction = mergeTransaction.eligibleTransactions.find((eligibleTransaction) => eligibleTransaction.transactionID === transactionID);
+    return transaction ? fillMissingReceiptSource(transaction) : transaction;
+};
+
 /**
  * Get the source transaction from a merge transaction
  * @param mergeTransaction - The merge transaction to get the source transaction from
  * @returns The source transaction or null if it doesn't exist
  */
-const getSourceTransaction = (mergeTransaction: OnyxEntry<MergeTransaction>) => {
+const getSourceTransactionFromMergeTransaction = (mergeTransaction: OnyxEntry<MergeTransaction>) => {
     if (!mergeTransaction?.sourceTransactionID) {
         return undefined;
     }
 
-    const sourceTransaction = mergeTransaction.eligibleTransactions?.find((transaction) => transaction.transactionID === mergeTransaction.sourceTransactionID);
-    return sourceTransaction ? fillMissingReceiptSource(sourceTransaction) : sourceTransaction;
+    return getTransactionFromMergeTransaction(mergeTransaction, mergeTransaction.sourceTransactionID);
+};
+
+/**
+ * Get the target transaction from a merge transaction
+ * @param mergeTransaction - The merge transaction to get the target transaction from
+ * @returns The target transaction or null if it doesn't exist
+ */
+const getTargetTransactionFromMergeTransaction = (mergeTransaction: OnyxEntry<MergeTransaction>) => {
+    if (!mergeTransaction?.targetTransactionID) {
+        return undefined;
+    }
+
+    return getTransactionFromMergeTransaction(mergeTransaction, mergeTransaction.targetTransactionID);
 };
 
 /**
@@ -247,7 +267,8 @@ function selectTargetAndSourceTransactionIDsForMerge(originalTargetTransaction: 
 }
 
 export {
-    getSourceTransaction,
+    getSourceTransactionFromMergeTransaction,
+    getTargetTransactionFromMergeTransaction,
     shouldNavigateToReceiptReview,
     getMergeableDataAndConflictFields,
     getMergeFieldValue,

@@ -16,7 +16,7 @@ import {getTransactionsForMerging, getTransactionsForMergingLocally, setMergeTra
 import {
     fillMissingReceiptSource,
     getMergeableDataAndConflictFields,
-    getSourceTransaction,
+    getSourceTransactionFromMergeTransaction,
     getTransactionThreadReportID,
     selectTargetAndSourceTransactionIDsForMerge,
     shouldNavigateToReceiptReview,
@@ -110,7 +110,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     }, [translate, styles.textAlignCenter, styles.textSupporting, styles.textNormal]);
 
     const handleConfirm = useCallback(() => {
-        const sourceTransaction = getSourceTransaction(mergeTransaction);
+        const sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction);
 
         if (!sourceTransaction || !targetTransaction) {
             return;

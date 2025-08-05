@@ -3,7 +3,7 @@ import {
     getMergeableDataAndConflictFields,
     getMergeFieldTranslationKey,
     getMergeFieldValue,
-    getSourceTransaction,
+    getSourceTransactionFromMergeTransaction,
     isEmptyMergeValue,
     selectTargetAndSourceTransactionIDsForMerge,
     shouldNavigateToReceiptReview,
@@ -13,13 +13,13 @@ import createRandomMergeTransaction from '../utils/collections/mergeTransaction'
 import createRandomTransaction from '../utils/collections/transaction';
 
 describe('MergeTransactionUtils', () => {
-    describe('getSourceTransaction', () => {
+    describe('getSourceTransactionFromMergeTransaction', () => {
         it('should return undefined when mergeTransaction is undefined', () => {
             // Given a null merge transaction
             const mergeTransaction = undefined;
 
             // When we try to get the source transaction
-            const result = getSourceTransaction(mergeTransaction);
+            const result = getSourceTransactionFromMergeTransaction(mergeTransaction);
 
             // Then it should return undefined because the merge transaction is undefined
             expect(result).toBeUndefined();
@@ -36,7 +36,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we try to get the source transaction
-            const result = getSourceTransaction(mergeTransaction);
+            const result = getSourceTransactionFromMergeTransaction(mergeTransaction);
 
             // Then it should return undefined because the source transaction ID doesn't match any eligible transaction
             expect(result).toBeUndefined();
@@ -55,7 +55,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we try to get the source transaction
-            const result = getSourceTransaction(mergeTransaction);
+            const result = getSourceTransactionFromMergeTransaction(mergeTransaction);
 
             // Then it should return the matching transaction from the eligible transactions
             expect(result).toBe(sourceTransaction);

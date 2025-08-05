@@ -14,7 +14,14 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMergeTransactionKey} from '@libs/actions/MergeTransaction';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {getMergeableDataAndConflictFields, getMergeFieldTranslationKey, getMergeFieldValue, getSourceTransaction, isEmptyMergeValue} from '@libs/MergeTransactionUtils';
+import {
+    getMergeableDataAndConflictFields,
+    getMergeFieldTranslationKey,
+    getMergeFieldValue,
+    getSourceTransactionFromMergeTransaction,
+    getTargetTransactionFromMergeTransaction,
+    isEmptyMergeValue,
+} from '@libs/MergeTransactionUtils';
 import type {MergeFieldKey, MergeValue} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -36,8 +43,12 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const {transactionID, backTo} = route.params;
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
-    const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`, {canBeMissing: true});
-    const [sourceTransaction = getSourceTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`, {canBeMissing: true});
+    const [targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`, {
+        canBeMissing: true,
+    });
+    const [sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`, {
+        canBeMissing: true,
+    });
 
     // State for selected values and error
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
