@@ -1757,9 +1757,7 @@ const translations = {
         changePaymentCurrency: '更改支付货币',
         paymentCurrency: '付款货币',
         paymentCurrencyDescription: '选择一个标准化货币，将所有个人费用转换为该货币。',
-        note: '注意：更改您的支付货币可能会影响您为Expensify支付的金额。请参阅我们的',
-        noteLink: '定价页面',
-        noteDetails: '查看完整详情。',
+        note: `注意：更改支付货币会影响您为 Expensify 支付的费用。请参阅我们的<a href="${CONST.PRICING}">定价页面</a>了解详情。`,
     },
     addDebitCardPage: {
         addADebitCard: '添加借记卡',
