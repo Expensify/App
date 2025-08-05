@@ -609,9 +609,6 @@ function AdvancedSearchFilters() {
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length !== 0);
 
-    // s77rt remove DEV lock
-    const shouldDisplayGroupByFilter = isDevelopment;
-
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
     if (!Object.keys(typeFiltersKeys).includes(currentType)) {
         currentType = CONST.SEARCH.DATA_TYPES.EXPENSE;
@@ -709,9 +706,6 @@ function AdvancedSearchFilters() {
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, currentType, groupBy, translate);
                     } else if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
-                        if (!shouldDisplayGroupByFilter) {
-                            return;
-                        }
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
                     }
                     return {
