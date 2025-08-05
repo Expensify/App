@@ -279,7 +279,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                           }
                         : undefined
                 }
-                policy={policy}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter={!isReportInRHP}
                 shouldDisplayHelpButton={!isReportInRHP}
@@ -302,12 +301,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         )}
                     </View>
                 )}
-                {shouldDisplayTransactionNavigation && !!transaction && (
-                    <MoneyRequestReportTransactionsNavigation
-                        currentTransactionID={transaction.transactionID}
-                        parentReport={parentReport}
-                    />
-                )}
+                {shouldDisplayTransactionNavigation && <MoneyRequestReportTransactionsNavigation currentReportID={reportID} />}
             </HeaderWithBackButton>
             {shouldUseNarrowLayout && (
                 <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>

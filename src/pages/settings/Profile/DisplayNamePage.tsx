@@ -5,6 +5,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -13,10 +14,10 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateDisplayName as updateDisplayNameUtil} from '@libs/actions/PersonalDetails';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
+import {updateDisplayName as updateDisplayNamePersonalDetails} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
@@ -26,14 +27,14 @@ type DisplayNamePageProps = WithCurrentUserPersonalDetailsProps;
 /**
  * Submit form to update user's first and last name (and display name)
  */
-const updateDisplayName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>) => {
-    updateDisplayNameUtil(values.firstName.trim(), values.lastName.trim());
+const updateDisplayName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) => {
+    updateDisplayNamePersonalDetails(values.firstName.trim(), values.lastName.trim(), formatPhoneNumber);
     Navigation.goBack();
 };
 
 function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
 
     const currentUserDetails = currentUserPersonalDetails ?? {};
@@ -81,7 +82,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.DISPLAY_NAME_FORM}
                     validate={validate}
-                    onSubmit={updateDisplayName}
+                    onSubmit={(values) => updateDisplayName(values, formatPhoneNumber)}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                     shouldValidateOnBlur

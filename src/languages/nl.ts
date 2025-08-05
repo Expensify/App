@@ -35,6 +35,7 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
+    BankAccountLastFourParams,
     BeginningOfArchivedRoomParams,
     BeginningOfChatHistoryAdminRoomParams,
     BeginningOfChatHistoryAnnounceRoomParams,
@@ -49,6 +50,7 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessBankAccountParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -1139,10 +1141,21 @@ const translations = {
         individual: 'Individuueel',
         business: 'Business',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Betaal ${formattedAmount} met Expensify` : `Betaal met Expensify`),
-        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Betaal ${formattedAmount} als individu` : `Betaal als individu`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Betaal ${formattedAmount} als individu` : `Betalen met persoonlijke rekening`),
+        settleWallet: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Betaal ${formattedAmount} met wallet` : `Betalen met wallet`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Betaal ${formattedAmount}`,
-        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Betaal ${formattedAmount} als een bedrijf` : `Betalen als een bedrijf`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Betaal ${formattedAmount} ergens anders` : `Elders betalen`),
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Betaal ${formattedAmount} als bedrijf` : `Betalen met zakelijke rekening`),
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `${formattedAmount} als betaald markeren` : `Markeren als betaald`),
+        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) =>
+            amount ? `${amount} betaald met persoonlijke rekening ${last4Digits}` : `Betaald met persoonlijke rekening`,
+        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount} betaald met zakelijke rekening ${last4Digits}` : `Betaald met zakelijke rekening`),
+        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
+            formattedAmount ? `Betaal ${formattedAmount} via ${policyName}` : `Betalen via ${policyName}`,
+        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount} betaald via bankrekening ${last4Digits}` : `betaald via bankrekening ${last4Digits}`),
+        automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
+            `${amount} betaald met bankrekening eindigend op ${last4Digits} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimte regels</a>`,
+        invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Persoonlijke rekening • ${lastFour}`,
+        invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Zakelijke rekening • ${lastFour}`,
         nextStep: 'Volgende stappen',
         finished: 'Voltooid',
         sendInvoice: ({amount}: RequestAmountParams) => `Verstuur ${amount} factuur`,
@@ -1177,8 +1190,8 @@ const translations = {
             `heeft de betaling van ${amount} geannuleerd, omdat ${submitterDisplayName} hun Expensify Wallet niet binnen 30 dagen heeft geactiveerd.`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} heeft een bankrekening toegevoegd. De betaling van ${amount} is gedaan.`,
-        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''} elders betaald`,
-        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}betaald met Expensify`,
+        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}gemarkeerd als betaald`,
+        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}betaald met wallet`,
         automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) =>
             `${payer ? `${payer} ` : ''}betaald met Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimte regels</a>`,
         noReimbursableExpenses: 'Dit rapport heeft een ongeldig bedrag.',
@@ -1504,8 +1517,8 @@ const translations = {
             clearCacheAndRestart: 'Cache wissen en opnieuw starten',
             viewConsole: 'Bekijk debugconsole',
             debugConsole: 'Debugconsole',
-            description: 'Gebruik de onderstaande tools om de Expensify-ervaring te helpen oplossen. Als u problemen ondervindt, neem dan alstublieft',
-            submitBug: 'een bug indienen',
+            description:
+                '<muted-text>Gebruik de onderstaande hulpmiddelen om problemen met Expensify op te lossen. Als je problemen tegenkomt, <concierge-link>dien dan een bug in</concierge-link>.</muted-text>',
             confirmResetDescription: 'Alle niet-verzonden conceptberichten gaan verloren, maar de rest van uw gegevens is veilig.',
             resetAndRefresh: 'Reset en vernieuwen',
             clientSideLogging: 'Client-side logging',
@@ -1763,9 +1776,7 @@ const translations = {
         changePaymentCurrency: 'Betaalvaluta wijzigen',
         paymentCurrency: 'Betaalvaluta',
         paymentCurrencyDescription: 'Selecteer een gestandaardiseerde valuta waarnaar alle persoonlijke uitgaven moeten worden omgerekend',
-        note: 'Opmerking: Het wijzigen van uw betalingsvaluta kan van invloed zijn op hoeveel u zult betalen voor Expensify. Raadpleeg onze',
-        noteLink: 'prijs pagina',
-        noteDetails: 'voor volledige details.',
+        note: `Let op: Het wijzigen van je betalingsvaluta kan invloed hebben op hoeveel je betaalt voor Expensify. Raadpleeg onze <a href="${CONST.PRICING}">prijspagina</a> voor meer informatie.`,
     },
     addDebitCardPage: {
         addADebitCard: 'Voeg een debetkaart toe',
@@ -1836,6 +1847,7 @@ const translations = {
         sendAndReceiveMoney: 'Stuur en ontvang geld met vrienden. Alleen Amerikaanse bankrekeningen.',
         enableWallet: 'Portemonnee inschakelen',
         addBankAccountToSendAndReceive: 'Voeg een bankrekening toe om betalingen te doen of te ontvangen.',
+        addDebitOrCreditCard: 'Debet- of creditcard toevoegen',
         assignedCards: 'Toegewezen kaarten',
         assignedCardsDescription: 'Dit zijn kaarten die door een werkruimtebeheerder zijn toegewezen om de uitgaven van het bedrijf te beheren.',
         expensifyCard: 'Expensify Card',
@@ -2049,6 +2061,7 @@ const translations = {
         cardLastFour: 'Kaart eindigend op',
         addFirstPaymentMethod: 'Voeg een betaalmethode toe om betalingen direct in de app te verzenden en ontvangen.',
         defaultPaymentMethod: 'Standaard',
+        bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `Bankrekening • ${lastFour}`,
     },
     preferencesPage: {
         appSection: {
@@ -3519,6 +3532,7 @@ const translations = {
             defaultCategory: 'Standaardcategorie',
             viewTransactions: 'Transacties bekijken',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Uitgaven van ${displayName}`,
+            deepDiveExpensifyCard: `<muted-text-label>Expensify Card transacties worden automatisch geëxporteerd naar een “Expensify Card Liability Account” die is aangemaakt met <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">onze integratie</a>.</muted-text-label>`,
         },
         perDiem: {
             subtitle: 'Stel dagvergoedingen in om de dagelijkse uitgaven van werknemers te beheersen.',
@@ -3584,8 +3598,6 @@ const translations = {
             exportJournalEntryDescription: 'We zullen een gespecificeerde journaalpost maken voor elk Expensify-rapport en deze naar de onderstaande rekening boeken.',
             exportVendorBillDescription:
                 'We maken een gespecificeerde leveranciersfactuur voor elk Expensify-rapport en voegen deze toe aan de onderstaande rekening. Als deze periode is gesloten, boeken we naar de 1e van de volgende open periode.',
-            deepDiveExpensifyCard: 'Expensify Card-transacties worden automatisch geëxporteerd naar een "Expensify Card Liability Account" die is aangemaakt met',
-            deepDiveExpensifyCardIntegration: 'onze integratie.',
             outOfPocketTaxEnabledDescription:
                 'QuickBooks Desktop ondersteunt geen belastingen bij het exporteren van journaalposten. Aangezien u belastingen heeft ingeschakeld in uw werkruimte, is deze exportoptie niet beschikbaar.',
             outOfPocketTaxEnabledError: 'Journaalposten zijn niet beschikbaar wanneer belastingen zijn ingeschakeld. Kies een andere exportoptie.',
@@ -3665,8 +3677,6 @@ const translations = {
             date: 'Exportdatum',
             exportInvoices: 'Facturen exporteren naar',
             exportExpensifyCard: 'Exporteer Expensify Card-transacties als',
-            deepDiveExpensifyCard: 'Expensify Card-transacties worden automatisch geëxporteerd naar een "Expensify Card Liability Account" die is aangemaakt met',
-            deepDiveExpensifyCardIntegration: 'onze integratie.',
             exportDate: {
                 label: 'Exportdatum',
                 description: 'Gebruik deze datum bij het exporteren van rapporten naar QuickBooks Online.',
@@ -6462,6 +6472,7 @@ const translations = {
         overAutoApprovalLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Uitgave overschrijdt de automatische goedkeuringslimiet van ${formattedLimit}`,
         overCategoryLimit: ({formattedLimit}: ViolationsOverCategoryLimitParams) => `Bedrag boven ${formattedLimit}/persoon categorielimiet`,
         overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Bedrag boven ${formattedLimit}/persoon limiet`,
+        overTripLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Bedrag boven ${formattedLimit}/ritlimiet`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Bedrag boven ${formattedLimit}/persoon limiet`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Bedrag boven de dagelijkse ${formattedLimit}/persoon categoriegrens`,
         receiptNotSmartScanned:
@@ -6894,9 +6905,8 @@ const translations = {
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `Voer de magische code in die naar ${contactMethod} is verzonden om uw copilot bij te werken.`,
         notAllowed: 'Niet zo snel...',
         noAccessMessage: 'Als copiloot heb je geen toegang tot deze pagina. Sorry!',
-        notAllowedMessageStart: `Als een`,
-        notAllowedMessageHyperLinked: 'copilot',
-        notAllowedMessageEnd: ({accountOwnerEmail}: AccountOwnerParams) => `voor ${accountOwnerEmail}, je hebt geen toestemming om deze actie uit te voeren. Sorry!`,
+        notAllowedMessage: ({accountOwnerEmail}: AccountOwnerParams) =>
+            `Als <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">copiloot</a> voor ${accountOwnerEmail} heb je geen toestemming om deze actie uit te voeren. Sorry!`,
         copilotAccess: 'Copilot-toegang',
     },
     debug: {
