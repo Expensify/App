@@ -121,6 +121,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             return;
         }
 
+        // On large screens, we want to reopen the last report available in the navigation stack
         const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
         const lastReportNavigator = rootState.routes.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
         const lastReportNavigatorState = lastReportNavigator && lastReportNavigator.key ? getPreservedNavigatorState(lastReportNavigator?.key) : undefined;
