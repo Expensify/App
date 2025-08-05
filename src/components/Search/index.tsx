@@ -332,7 +332,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (groupBy && (isChat || isTask)) {
             return [];
         }
-    
+
         return getSections(type, searchResults.data, searchResults.search, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet);
     }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber]);
 

@@ -53,7 +53,6 @@ import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {isDevelopment} from './Environment/Environment';
 import interceptAnonymousUser from './interceptAnonymousUser';
-import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
@@ -1031,7 +1030,11 @@ function getAction(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getTaskSections(data: OnyxTypes.SearchResults['data'], formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], archivedReportsIDList?: ArchivedReportsIDSet): TaskListItemType[] {
+function getTaskSections(
+    data: OnyxTypes.SearchResults['data'],
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    archivedReportsIDList?: ArchivedReportsIDSet,
+): TaskListItemType[] {
     return (
         Object.keys(data)
             .filter(isReportEntry)
