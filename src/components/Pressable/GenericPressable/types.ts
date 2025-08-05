@@ -157,7 +157,7 @@ type PressableProps = RNPressableProps &
         /**
          * Reference to the outer element.
          */
-        ref?: PressableRef
+        ref?: PressableRef;
     };
 
 type PressableRef = ForwardedRef<HTMLDivElement | View | RNText | undefined>;

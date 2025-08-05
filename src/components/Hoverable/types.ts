@@ -23,7 +23,7 @@ type HoverableProps = {
     shouldFreezeCapture?: boolean;
 
     /** Reference to the outer element */
-    ref?: Ref<HTMLElement>
+    ref?: Ref<HTMLElement>;
 };
 
 export default HoverableProps;

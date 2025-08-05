@@ -90,7 +90,7 @@ type TooltipProps = ChildrenProps &
         isFocused?: boolean;
 
         /** Reference to the outer element */
-        ref?: ForwardedRef<BoundsObserver>
+        ref?: ForwardedRef<BoundsObserver>;
     };
 
 type EducationalTooltipProps = ChildrenProps &
