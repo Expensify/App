@@ -26,7 +26,7 @@ import type {LastPaymentMethod, LastPaymentMethodType, Policy} from '@src/types/
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
-import {saveLastSearchParams, setActiveReportsIDs} from './ReportNavigation';
+import saveLastSearchParams from './ReportNavigation';
 
 type OnyxSearchResponse = {
     data: [];
@@ -309,7 +309,6 @@ function search({
             .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
         if (response?.search?.offset) {
             if (prevReports) {
-                setActiveReportsIDs(reports, true);
                 saveLastSearchParams({
                     queryJSON,
                     offset,
@@ -318,7 +317,6 @@ function search({
                 });
             }
         } else {
-            setActiveReportsIDs(reports);
             saveLastSearchParams({
                 queryJSON,
                 offset,

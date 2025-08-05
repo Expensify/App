@@ -1,4 +1,5 @@
 import type {SearchQueryJSON} from '@components/Search/types';
+import type {SearchKey} from '@libs/SearchUIUtils';
 
 /**
  * Represents the parameters from the previous search invocation.
@@ -23,6 +24,11 @@ type LastSearchParams = {
      * The current offset used in pagination for fetching the previous set of results.
      */
     offset?: number;
+
+    /**
+     *Optional witch field contain search key for last search performed
+     */
+    searchKey?: SearchKey;
 };
 
 export default LastSearchParams;

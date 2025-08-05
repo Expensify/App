@@ -5,7 +5,7 @@ import Text from '@components/Text';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
-import {saveLastSearchParams} from '@userActions/ReportNavigation';
+import saveLastSearchParams from '@userActions/ReportNavigation';
 import {search} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,17 +19,19 @@ type MoneyRequestReportNavigationProps = {
 
 function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion, backTo}: MoneyRequestReportNavigationProps) {
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
-    const [reportsObj] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_REPORT_IDS, {canBeMissing: true});
-    const rawReports = Object.keys(reportsObj ?? {});
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
 
-    const allReports = rawReports ?? [];
+    const allReports = Object.keys(currentSearchResults?.data ?? {})
+        .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
+        .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
+
     const currentIndex = allReports.indexOf(reportID ?? CONST.REPORT.DEFAULT_REPORT_ID);
     const allReportsCount = lastSearchQuery?.previousLengthOfResults ?? 0;
 
     const hideNextButton = !lastSearchQuery?.hasMoreResults && currentIndex === allReports.length - 1;
     const hidePrevButton = currentIndex === 0;
     const styles = useThemeStyles();
-    const shouldDisplayNavigationArrows = rawReports && rawReports.length > 0;
+    const shouldDisplayNavigationArrows = allReports && allReports.length > 0;
 
     useEffect(() => {
         if (currentIndex < allReportsCount - 1 || !lastSearchQuery?.queryJSON) {
