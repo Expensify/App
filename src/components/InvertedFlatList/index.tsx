@@ -1,4 +1,4 @@
-import type {FC, ForwardedRef} from 'react';
+import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useRef} from 'react';
 import type {FlatList} from 'react-native';
 import {DeviceEventEmitter} from 'react-native';
@@ -97,7 +97,7 @@ function InvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwarded
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
-            CellRendererComponent={CellRendererComponent as FC}
+            CellRendererComponent={CellRendererComponent}
         />
     );
 }
