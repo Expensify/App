@@ -1,6 +1,5 @@
 import {BoundsObserver} from '@react-ng/bounds-observer';
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, memo, useCallback, useRef} from 'react';
+import React, {memo, useCallback, useRef} from 'react';
 import type {LayoutRectangle} from 'react-native';
 import Hoverable from '@components/Hoverable';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
@@ -50,7 +49,7 @@ function chooseBoundingBox(target: HTMLElement, clientX: number, clientY: number
     return target.getBoundingClientRect();
 }
 
-function Tooltip({children, shouldHandleScroll = false, isFocused = true, ...props}: TooltipProps, ref: ForwardedRef<BoundsObserver>) {
+function Tooltip({children, shouldHandleScroll = false, isFocused = true, ref, ...props}: TooltipProps) {
     const target = useRef<HTMLElement | null>(null);
     const initialMousePosition = useRef({x: 0, y: 0});
 
@@ -131,4 +130,4 @@ function Tooltip({children, shouldHandleScroll = false, isFocused = true, ...pro
 
 Tooltip.displayName = 'Tooltip';
 
-export default memo(forwardRef(Tooltip));
+export default memo(Tooltip);
