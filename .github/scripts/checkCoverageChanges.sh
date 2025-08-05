@@ -6,7 +6,7 @@ set -euo pipefail
 # -----------------------------
 # The PR branch comes from either the base repo or a fork.
 # We need the base repository's main branch for comparison.
-git remote add upstream "https://github.com/${GITHUB_REPOSITORY}.git" 2>/dev/null || true
+git remote add upstream "https://github.com/Expensify/App.git" 2>/dev/null || true
 
 # -----------------------------
 # 2. Attempt shallow fetch first
@@ -24,9 +24,11 @@ git fetch upstream main --depth=$DEPTH
 if ! git merge-base upstream/main HEAD >/dev/null 2>&1; then
   echo "No merge base found with depth=$DEPTH, fetching full history..."
   
-  # Try unshallowing the entire repo (pulls full commit history).
-  # If already full, this will be a no-op.
-  git fetch --unshallow upstream || git fetch upstream main
+  if git rev-parse --is-shallow-repository > /dev/null 2>&1 && [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+      echo "Repository is shallow, unshallowing..."
+      git fetch --unshallow upstream || git fetch --unshallow || true
+  fi
+  git fetch upstream main --depth=1000 || git fetch upstream main || true
 fi
 
 # -----------------------------
@@ -34,7 +36,17 @@ fi
 # -----------------------------
 # Using three-dot notation (A...B) shows only the commits in HEAD
 # that aren't in upstream/main (i.e. just the PR changes).
-DIFF_RANGE="upstream/main...HEAD"
+if git rev-parse upstream/main > /dev/null 2>&1; then
+    DIFF_RANGE="upstream/main...HEAD"
+    echo "Using upstream/main as base for comparison"
+elif git rev-parse origin/main > /dev/null 2>&1; then
+    DIFF_RANGE="origin/main...HEAD"
+    echo "Fallback: Using origin/main as base for comparison"
+else
+    DIFF_RANGE="HEAD~10...HEAD"
+    echo "Fallback: Using HEAD~10 as base for comparison"
+fi
+echo "Diff range: $DIFF_RANGE"
 
 # -----------------------------
 # 5. Collect changed src/ files
