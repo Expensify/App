@@ -116,7 +116,7 @@ function shouldNavigateToReceiptReview(transactions: Array<OnyxEntry<Transaction
     return transactions.every((transaction) => transaction?.receipt?.receiptID);
 }
 
-// Check if either value is truly "empty" (null, undefined, or empty string)
+// Check if whether merge value is truly "empty" (null, undefined, or empty string)
 // For boolean fields, false is a valid value, not an empty value
 function isEmptyMergeValue(value: unknown) {
     return value === null || value === undefined || value === '';
