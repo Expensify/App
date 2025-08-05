@@ -39,7 +39,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getUserFriendlyWorkspaceType, goBackFromInvalidPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyOwner} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
-import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
 import {shouldCalculateBillNewDot} from '@libs/SubscriptionUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
@@ -138,6 +137,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const imageStyle: StyleProp<ImageStyle> = shouldUseNarrowLayout ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
     const shouldShowAddress = !readOnly || !!formattedAddress;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
 
     const fetchPolicyData = useCallback(() => {
         if (policyDraft?.id) {
@@ -184,10 +184,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
 
-        deleteWorkspace(policy.id, policyName);
+        deleteWorkspace(policy.id, policyName, lastPaymentMethod);
         setIsDeleteModalOpen(false);
         goBackFromInvalidPolicy();
-    }, [policy?.id, policyName]);
+    }, [policy?.id, policyName, lastPaymentMethod]);
 
     useEffect(() => {
         if (isLoadingBill) {
