@@ -17,4 +17,4 @@ Track VAT, GST, or any other regional taxes right in Expensify. Perfect for stay
 
 ---
 
-Learn more about workspace tax settings here ➡️ **[Track Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-Taxes)**. 
+Learn more about workspace tax settings here ➡️ [Track Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-Taxes). 

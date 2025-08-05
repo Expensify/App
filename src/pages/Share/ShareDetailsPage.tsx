@@ -12,6 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,6 +25,7 @@ import {getReportDisplayOption} from '@libs/OptionsListUtils';
 import {getReportOrDraftReport, isDraftReport} from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import variables from '@styles/variables';
 import UserListItem from '@src/components/SelectionList/UserListItem';
 import CONST from '@src/CONST';
@@ -53,6 +55,9 @@ function ShareDetailsPage({
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
+    const [validFilesToUpload, setValidFilesToUpload] = useState<FileObject[]>([]);
+    const {validateFiles} = useFilesValidation(setValidFilesToUpload);
+
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
     const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails, reportAttributesDerived), [report, unknownUserDetails, reportAttributesDerived]);
 
@@ -63,10 +68,18 @@ function ShareDetailsPage({
         reportAttachmentsContext.setCurrentAttachment({headerTitle: fileName, originalFileName: fileName, fallbackSource: FallbackAvatar});
         Navigation.navigate(
             ROUTES.ATTACHMENTS.getRoute({
-                source: currentAttachment?.content,
+                source: validFilesToUpload.at(0)?.uri,
             }),
         );
-    }, [reportAttachmentsContext, fileName, currentAttachment?.content]);
+    }, [reportAttachmentsContext, fileName, validFilesToUpload]);
+
+    useEffect(() => {
+        if (!currentAttachment || isTextShared || validFilesToUpload.length !== 0) {
+            return;
+        }
+
+        validateFiles([{name: currentAttachment.id, uri: currentAttachment.content, type: currentAttachment.mimeType}]);
+    }, [currentAttachment, isTextShared, validFilesToUpload.length, validateFiles]);
 
     useEffect(() => {
         if (!currentAttachment?.content || errorTitle) {
@@ -102,7 +115,7 @@ function ShareDetailsPage({
     const shouldShowAttachment = !isTextShared;
 
     const handleShare = () => {
-        if (!currentAttachment) {
+        if (!currentAttachment || validFilesToUpload.length === 0) {
             return;
         }
 
@@ -113,9 +126,10 @@ function ShareDetailsPage({
             return;
         }
 
+        const validatedFile = validFilesToUpload.at(0);
         readFileAsync(
-            currentAttachment.content,
-            getFileName(currentAttachment.content),
+            validatedFile?.uri ?? '',
+            getFileName(validatedFile?.uri ?? 'shared_image.png'),
             (file) => {
                 if (isDraft) {
                     openReport(
@@ -136,7 +150,7 @@ function ShareDetailsPage({
                 Navigation.navigate(routeToNavigate, {forceReplace: true});
             },
             () => {},
-            currentAttachment.mimeType,
+            validatedFile?.type ?? 'image/jpeg',
         );
     };
 
@@ -206,7 +220,7 @@ function ShareDetailsPage({
                                 </View>
                                 <SafeAreaView>
                                     <AttachmentPreview
-                                        source={currentAttachment?.content ?? ''}
+                                        source={validFilesToUpload.at(0)?.uri ?? ''}
                                         aspectRatio={currentAttachment?.aspectRatio}
                                         onPress={showAttachmentModalScreen}
                                         onLoadError={() => {
