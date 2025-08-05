@@ -219,6 +219,9 @@ type ListItem<K extends string | number = string> = {
 
 type TransactionListItemType = ListItem &
     SearchTransaction & {
+        /** Report to which the transaction belongs */
+        report: Report;
+
         /** The personal details of the user requesting money */
         from: SearchPersonalDetails;
 
@@ -482,7 +485,6 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     groupBy?: SearchGroupBy;
-    policies?: OnyxCollection<Policy>;
     columns?: SortableColumnName[];
 };
 
