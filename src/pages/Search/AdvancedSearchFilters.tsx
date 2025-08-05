@@ -104,6 +104,11 @@ const baseFilterConfig = {
         description: 'search.filters.posted' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_POSTED,
     },
+    withdrawn: {
+        getTitle: getFilterDisplayTitle,
+        description: 'search.filters.withdrawn' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_WITHDRAWN,
+    },
     currency: {
         getTitle: getFilterDisplayTitle,
         description: 'common.currency' as const,
