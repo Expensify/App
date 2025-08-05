@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 import {Platform, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
@@ -241,7 +242,9 @@ function ReportFooter({
     });
 
     const onLayoutInternal = useCallback(
-        (height: number) => {
+        (event: LayoutChangeEvent) => {
+            const {height} = event.nativeEvent.layout;
+
             setComposerHeight(height);
             onLayout(height);
         },

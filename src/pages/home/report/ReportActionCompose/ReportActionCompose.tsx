@@ -112,7 +112,7 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
     nativeID?: string;
 
     /** Callback when layout of composer changes */
-    onLayout: (height: number) => void;
+    onLayout: (event: LayoutChangeEvent) => void;
 };
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
@@ -558,16 +558,9 @@ function ReportActionCompose({
         validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };
 
-    const onLayoutInternal = useCallback(
-        (event: LayoutChangeEvent) => {
-            return onLayout(event.nativeEvent.layout.height);
-        },
-        [onLayout],
-    );
-
     return (
         <View
-            onLayout={onLayoutInternal}
+            onLayout={onLayout}
             style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}
         >
             <OfflineWithFeedback pendingAction={pendingAction}>
