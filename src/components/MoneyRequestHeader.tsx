@@ -87,6 +87,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isDeclineEducationalModalVisible, setIsDeclineEducationalModalVisible] = useState(false);
+    const [dismissedDeclineUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_DECLINE_USE_EXPLANATION, {canBeMissing: true});
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
     const shouldShowLoadingBar = useLoadingBarVisibility();
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
@@ -126,8 +127,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (isOnHold) {
             return {icon: getStatusIcon(Expensicons.Stopwatch), description: translate('iou.expenseOnHold')};
         }
-
-        if (isMarkAsResolvedAction(parentReport, transaction)) {
+        if (isMarkAsResolvedAction(parentReport, transactionViolations)) {
             return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.decline.declinedStatus')};
         }
 
@@ -232,7 +232,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (!hasUseDeclineDismissedRef.current) {
             dismissDeclineUseExplanation();
             hasUseDeclineDismissedRef.current = true;
-            console.log('dismissModalAndUpdateUseDecline', parentReportAction);
             if (parentReportAction) {
                 declineMoneyRequestReason(parentReportAction);
             }
@@ -298,7 +297,13 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             icon: Expensicons.ThumbsDown,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DECLINE,
             onSelected: () => {
-                setIsDeclineEducationalModalVisible(true);
+                if (dismissedDeclineUseExplanation) {
+                    if (parentReportAction) {
+                        declineMoneyRequestReason(parentReportAction);
+                    }
+                } else {
+                    setIsDeclineEducationalModalVisible(true);
+                }
             },
         },
     };
