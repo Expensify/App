@@ -167,15 +167,20 @@ function useReportActionAvatars({
         fallbackIcon,
     };
 
-    const avatarsForAccountIDs: IconType[] = accountIDs.map((id) => ({
+    const shouldUseActorAccountID = isAInvoiceReport && !isAReportPreviewAction;
+    const accountIDsToMap = shouldUseActorAccountID && actorAccountID ? [actorAccountID] : accountIDs;
+
+    const avatarsForAccountIDs: IconType[] = accountIDsToMap.map((id) => ({
         id,
         type: CONST.ICON_TYPE_AVATAR,
         source: personalDetails?.[id]?.avatar ?? FallbackAvatar,
-        name: personalDetails?.[id]?.login ?? '',
+        name: personalDetails?.[id]?.[shouldUseActorAccountID ? 'displayName' : 'login'] ?? '',
     }));
 
+    const shouldUseMappedAccountIDs = avatarsForAccountIDs.length > 0 && (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE || shouldUseActorAccountID);
+
     return {
-        avatars: avatarsForAccountIDs.length > 0 && avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE ? avatarsForAccountIDs : [primaryAvatar, secondaryAvatar],
+        avatars: shouldUseMappedAccountIDs ? avatarsForAccountIDs : [primaryAvatar, secondaryAvatar],
         avatarType,
         details: {
             ...(personalDetails?.[accountID] ?? {}),
