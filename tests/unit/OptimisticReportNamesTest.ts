@@ -96,7 +96,7 @@ describe('OptimisticReportNames', () => {
             };
 
             const result = computeNameForNewReport(update, mockContext);
-            expect(result).toEqual({reportName: 'Expense Report - USD 100.00'});
+            expect(result).toEqual('Expense Report - USD 100.00');
         });
 
         test('should return null for report without policy', () => {
@@ -149,7 +149,7 @@ describe('OptimisticReportNames', () => {
             };
 
             const result = computeReportNameIfNeeded(mockReport as any, update, mockContext);
-            expect(result).toEqual({reportName: 'Expense Report - USD 200.00'});
+            expect(result).toEqual('Expense Report - USD 200.00');
         });
 
         test('should return null when name would not change', () => {

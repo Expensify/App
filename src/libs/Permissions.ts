@@ -9,7 +9,7 @@ function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
 
 // eslint-disable-next-line rulesdir/no-beta-handler
 function canUseCustomReportNames(betas: OnyxEntry<Beta[]>): boolean {
-    return isBetaEnabled(CONST.BETAS.USE_CUSTOM_REPORT_NAMES, betas);
+    return isBetaEnabled(CONST.BETAS.AUTH_AUTO_REPORT_TITLE, betas);
 }
 
 // eslint-disable-next-line rulesdir/no-beta-handler

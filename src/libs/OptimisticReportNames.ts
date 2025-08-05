@@ -111,7 +111,7 @@ function shouldComputeReportName(report: Report, policy: Policy | undefined): bo
     // Check if the formula contains formula parts
     return Formula.isFormula(titleField.defaultValue);
 }
- 
+
 function isValidReportType(reportType?: string): boolean {
     if (!reportType) {
         return false;
@@ -129,7 +129,7 @@ function isValidReportType(reportType?: string): boolean {
  * Compute a report name for a new report being created
  * This handles the case where the report doesn't exist in context yet
  */
-function computeNameForNewReport(update: OnyxUpdate, context: UpdateContext): {reportName: string} | null {
+function computeNameForNewReport(update: OnyxUpdate, context: UpdateContext): string | null {
     Performance.markStart(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
     Timing.start(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
 
@@ -180,7 +180,7 @@ function computeNameForNewReport(update: OnyxUpdate, context: UpdateContext): {r
 
         Performance.markEnd(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
         Timing.end(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
-        return {reportName: newName};
+        return newName;
     }
 
     Performance.markEnd(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
@@ -191,13 +191,7 @@ function computeNameForNewReport(update: OnyxUpdate, context: UpdateContext): {r
 /**
  * Compute a new report name if needed based on an optimistic update
  */
-function computeReportNameIfNeeded(
-    report: Report,
-    incomingUpdate: OnyxUpdate,
-    context: UpdateContext,
-): {
-    reportName: string;
-} | null {
+function computeReportNameIfNeeded(report: Report, incomingUpdate: OnyxUpdate, context: UpdateContext): string | null {
     Performance.markStart(CONST.TIMING.COMPUTE_REPORT_NAME);
     Timing.start(CONST.TIMING.COMPUTE_REPORT_NAME);
 
@@ -225,7 +219,7 @@ function computeReportNameIfNeeded(
     // Check if any formula part might be affected by this update
     const isAffected = formulaParts.some((part) => {
         if (part.type === Formula.FORMULA_PART_TYPES.REPORT) {
-            return updateType === 'report' || updateType === 'transaction';
+            return updateType === 'report' || updateType === 'transaction' || updateType === 'policy';
         }
         if (part.type === Formula.FORMULA_PART_TYPES.FIELD) {
             return updateType === 'report';
@@ -264,7 +258,7 @@ function computeReportNameIfNeeded(
 
         Performance.markEnd(CONST.TIMING.COMPUTE_REPORT_NAME);
         Timing.end(CONST.TIMING.COMPUTE_REPORT_NAME);
-        return {reportName: newName};
+        return newName;
     }
 
     Performance.markEnd(CONST.TIMING.COMPUTE_REPORT_NAME);
@@ -319,7 +313,9 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                         additionalUpdates.push({
                             key: getReportKey(reportID),
                             onyxMethod: Onyx.METHOD.MERGE,
-                            value: reportNameUpdate,
+                            value: {
+                                reportName: reportNameUpdate,
+                            },
                         });
                     }
                     continue; // Skip the normal processing for this update
@@ -357,7 +353,9 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                 additionalUpdates.push({
                     key: getReportKey(report.reportID),
                     onyxMethod: Onyx.METHOD.MERGE,
-                    value: reportNameUpdate,
+                    value: {
+                        reportName: reportNameUpdate,
+                    },
                 });
             }
         }
