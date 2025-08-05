@@ -1809,7 +1809,6 @@ type ReportsSplitNavigatorParamList = {
         moneyRequestReportActionID?: string;
         transactionID?: string;
     };
-    [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
 };
 
 type SettingsSplitNavigatorParamList = {
@@ -2058,21 +2057,14 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.CONCIERGE]: undefined;
     [SCREENS.TRACK_EXPENSE]: undefined;
     [SCREENS.SUBMIT_EXPENSE]: undefined;
-    [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
-    [SCREENS.PROFILE_AVATAR]: {
-        accountID: string;
-        backTo?: Routes;
-    };
-    [SCREENS.WORKSPACE_AVATAR]: {
-        policyID: string;
-    };
+    [SCREENS.REPORT_ATTACHMENTS]: AttachmentModalScreenParams;
+    [SCREENS.REPORT_ADD_ATTACHMENT]: AttachmentModalScreenParams;
+    [SCREENS.PROFILE_AVATAR]: AttachmentModalScreenParams;
+    [SCREENS.WORKSPACE_AVATAR]: AttachmentModalScreenParams;
+    [SCREENS.REPORT_AVATAR]: AttachmentModalScreenParams;
     [SCREENS.WORKSPACE_JOIN_USER]: {
         policyID: string;
         email: string;
-    };
-    [SCREENS.REPORT_AVATAR]: {
-        reportID: string;
-        policyID?: string;
     };
     [SCREENS.WORKSPACES_LIST]: {
         backTo?: Routes;
