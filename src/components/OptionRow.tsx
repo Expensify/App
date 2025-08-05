@@ -16,11 +16,10 @@ import Hoverable from './Hoverable';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestAmountInput from './MoneyRequestAmountInput';
-import MultipleAvatars from './MultipleAvatars';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import ReportActionAvatars from './ReportActionAvatars';
 import SelectCircle from './SelectCircle';
-import SubscriptAvatar from './SubscriptAvatar';
 import Text from './Text';
 
 type OptionRowProps = {
@@ -207,23 +206,15 @@ function OptionRow({
                     >
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                {!!option.icons?.length &&
-                                    firstIcon &&
-                                    (option.shouldShowSubscript ? (
-                                        <SubscriptAvatar
-                                            mainAvatar={firstIcon}
-                                            secondaryAvatar={option.icons.at(1)}
-                                            backgroundColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
-                                            size={CONST.AVATAR_SIZE.DEFAULT}
-                                        />
-                                    ) : (
-                                        <MultipleAvatars
-                                            icons={option.icons}
-                                            size={CONST.AVATAR_SIZE.DEFAULT}
-                                            secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor)]}
-                                            shouldShowTooltip={showTitleTooltip && shouldOptionShowTooltip(option)}
-                                        />
-                                    ))}
+                                {!!option.icons?.length && !!firstIcon && (
+                                    <ReportActionAvatars
+                                        subscriptAvatarBorderColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
+                                        reportID={option.iouReportID ?? option.reportID}
+                                        size={CONST.AVATAR_SIZE.DEFAULT}
+                                        secondaryAvatarContainerStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor)]}
+                                        shouldShowTooltip={showTitleTooltip && shouldOptionShowTooltip(option)}
+                                    />
+                                )}
                                 <View style={contentContainerStyles}>
                                     <DisplayNames
                                         accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}

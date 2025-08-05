@@ -303,6 +303,7 @@ function AmountForm(
                     isCurrencyPressable={isCurrencyPressable}
                     style={[styles.iouAmountTextInput]}
                     containerStyle={[styles.iouAmountTextInputContainer]}
+                    touchableInputWrapperStyle={[styles.heightUndefined]}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...rest}
                 />

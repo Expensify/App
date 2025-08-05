@@ -6,6 +6,7 @@ import MagicCodeInput from '@components/MagicCodeInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {isMobileSafari} from '@libs/Browser';
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isValidTwoFactorCode} from '@libs/ValidationUtils';
 import {clearAccountMessages, toggleTwoFactorAuth, validateTwoFactorAuth} from '@userActions/Session';
@@ -19,9 +20,13 @@ type BaseTwoFactorAuthFormProps = {
     // Set this to true in order to call the validateTwoFactorAuth action which is used when setting up 2FA for the first time.
     // Set this to false in order to disable 2FA when a valid code is entered.
     validateInsteadOfDisable?: boolean;
+
+    shouldAutoFocusOnMobile?: boolean;
 };
 
-function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwoFactorAuthFormProps, ref: ForwardedRef<BaseTwoFactorAuthFormRef>) {
+const isMobile = !canFocusInputOnScreenFocus();
+
+function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, shouldAutoFocusOnMobile = true}: BaseTwoFactorAuthFormProps, ref: ForwardedRef<BaseTwoFactorAuthFormRef>) {
     const {translate} = useLocalize();
     const [formError, setFormError] = useState<{twoFactorAuthCode?: string}>({});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
@@ -92,7 +97,7 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwo
 
     useFocusEffect(
         useCallback(() => {
-            if (!inputRef.current) {
+            if (!inputRef.current || (isMobile && !shouldAutoFocusOnMobile)) {
                 return;
             }
             // Keyboard won't show if we focus the input with a delay, so we need to focus immediately.
@@ -103,7 +108,7 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwo
             } else {
                 inputRef.current?.focusLastSelected();
             }
-        }, []),
+        }, [shouldAutoFocusOnMobile]),
     );
 
     return (

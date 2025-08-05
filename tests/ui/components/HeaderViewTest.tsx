@@ -1,6 +1,7 @@
 import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type Navigation from '@libs/Navigation/Navigation';
 import HeaderView from '@pages/home/HeaderView';
 import CONST from '@src/CONST';
@@ -47,12 +48,14 @@ describe('HeaderView', () => {
         });
 
         render(
-            <HeaderView
-                report={report}
-                onNavigationMenuButtonClicked={() => {}}
-                parentReportAction={null}
-                reportID={report.reportID}
-            />,
+            <OnyxListItemProvider>
+                <HeaderView
+                    report={report}
+                    onNavigationMenuButtonClicked={() => {}}
+                    parentReportAction={null}
+                    reportID={report.reportID}
+                />
+            </OnyxListItemProvider>,
         );
 
         await waitForBatchedUpdates();

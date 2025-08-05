@@ -752,16 +752,15 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
         const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const shouldShowBlankTo = !report || isOpenExpenseReport(report);
-
         const transactionViolations = getTransactionViolations(allViolations, transactionItem);
         // Use Map.get() for faster lookups with default values
         const from = personalDetailsMap.get(transactionItem.accountID.toString()) ?? emptyPersonalDetails;
         const to = transactionItem.managerID && !shouldShowBlankTo ? (personalDetailsMap.get(transactionItem.managerID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
-
         const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 
         const transactionSection: TransactionListItemType = {
             action: getAction(data, allViolations, key, currentSearch),
+            report,
             from,
             to,
             formattedFrom,
@@ -781,7 +780,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             isAmountColumnWide: shouldShowAmountInWideColumn,
             isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
             violations: transactionViolations,
-
+            filename: transactionItem.filename,
             // Manually copying all the properties from transactionItem
             transactionID: transactionItem.transactionID,
             created: transactionItem.created,
@@ -819,6 +818,8 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             errors: transactionItem.errors,
             isActionLoading: transactionItem.isActionLoading,
             hasViolation: transactionItem.hasViolation,
+            cardID: transactionItem.cardID,
+            cardName: transactionItem.cardName,
         };
 
         transactionsSections.push(transactionSection);
@@ -1175,7 +1176,7 @@ function getReportSections(
                 action: getAction(data, allViolations, key, currentSearch, actions),
                 groupedBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 keyForList: reportItem.reportID,
-                from: data.personalDetailsList?.[reportItem.accountID ?? CONST.DEFAULT_NUMBER_ID],
+                from: transactions.length > 0 ? data.personalDetailsList[data?.[reportKey as ReportKey]?.accountID ?? CONST.DEFAULT_NUMBER_ID] : emptyPersonalDetails,
                 to: !shouldShowBlankTo && reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
                 transactions,
                 ...(reportPendingAction ? {pendingAction: reportPendingAction} : {}),
@@ -1201,6 +1202,7 @@ function getReportSections(
             const transaction = {
                 ...transactionItem,
                 action: getAction(data, allViolations, key, currentSearch, actions),
+                report,
                 from,
                 to,
                 formattedFrom,
@@ -1223,8 +1225,10 @@ function getReportSections(
             };
             if (reportIDToTransactions[reportKey]?.transactions) {
                 reportIDToTransactions[reportKey].transactions.push(transaction);
+                reportIDToTransactions[reportKey].from = data.personalDetailsList[data?.[reportKey as ReportKey]?.accountID ?? CONST.DEFAULT_NUMBER_ID];
             } else if (reportIDToTransactions[reportKey]) {
                 reportIDToTransactions[reportKey].transactions = [transaction];
+                reportIDToTransactions[reportKey].from = data.personalDetailsList[data?.[reportKey as ReportKey]?.accountID ?? CONST.DEFAULT_NUMBER_ID];
             }
         }
     }

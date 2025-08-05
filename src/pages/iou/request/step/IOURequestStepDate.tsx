@@ -81,6 +81,8 @@ function IOURequestStepDate({
             shouldShowNotFound = !canEditMoneyRequest && !canEditingSplitBill;
         } else if (isSplitExpense) {
             shouldShowNotFound = !canEditSplitExpense;
+        } else {
+            shouldShowNotFound = !canEditMoneyRequest;
         }
     }
 
