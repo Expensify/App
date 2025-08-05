@@ -24,7 +24,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
-import {isPolicyMember} from '@libs/PolicyUtils';
+import {isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import WorkspaceMemberDetailsRoleSelectionModal from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
 import type {ListItemType} from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
@@ -52,7 +52,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
 
     const [importedSpreadsheetMemberData] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA, {canBeMissing: true});
     const newMembers = useMemo(() => {
-        return importedSpreadsheetMemberData?.filter((member) => !isPolicyMember(member.email, policyID) && !member.role) ?? [];
+        return importedSpreadsheetMemberData?.filter((member) => !isPolicyMemberWithoutPendingDelete(member.email, policyID) && !member.role) ?? [];
     }, [importedSpreadsheetMemberData, policyID]);
     const invitedEmailsToAccountIDsDraft = useMemo(() => {
         const memberEmails = newMembers.map((member) => member.email);

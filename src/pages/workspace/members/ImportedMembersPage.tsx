@@ -13,7 +13,7 @@ import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isPolicyMember} from '@libs/PolicyUtils';
+import {isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -86,7 +86,8 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const membersSubmitsTo = membersSubmitsToColumn !== -1 ? spreadsheet?.data[membersSubmitsToColumn].map((submitsTo) => submitsTo) : [];
         const membersForwardsTo = membersForwardsToColumn !== -1 ? spreadsheet?.data[membersForwardsToColumn].map((forwardsTo) => forwardsTo) : [];
         const members = membersEmails?.slice(containsHeader ? 1 : 0).map((email, index) => {
-            let role = policy?.employeeList?.[email]?.role ?? '';
+            const isPolicyMember = isPolicyMemberWithoutPendingDelete(email, policyID);
+            let role = isPolicyMember ? policy?.employeeList?.[email]?.role ?? '' : '';
             if (membersRolesColumn !== -1 && membersRoles?.[containsHeader ? index + 1 : index]) {
                 role = membersRoles?.[containsHeader ? index + 1 : index];
             }
@@ -114,7 +115,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
         // add submitsTo and forwardsTo members if they are not in the workspace
         members?.forEach((member) => {
-            if (member.submitsTo && !allMembers.some((m) => m.email === member.submitsTo) && !isPolicyMember(member.submitsTo, policyID)) {
+            if (member.submitsTo && !allMembers.some((m) => m.email === member.submitsTo) && !isPolicyMemberWithoutPendingDelete(member.submitsTo, policyID)) {
                 isRoleMissing = true;
                 allMembers.push({
                     email: member.submitsTo,
@@ -124,7 +125,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 });
             }
 
-            if (member.forwardsTo && !allMembers.some((m) => m.email === member.forwardsTo) && !isPolicyMember(member.forwardsTo, policyID)) {
+            if (member.forwardsTo && !allMembers.some((m) => m.email === member.forwardsTo) && !isPolicyMemberWithoutPendingDelete(member.forwardsTo, policyID)) {
                 isRoleMissing = true;
                 allMembers.push({
                     email: member.forwardsTo,
