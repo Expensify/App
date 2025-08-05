@@ -454,6 +454,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         groupBy,
         displayDate,
         displayPosted,
+        displayWithdrawn,
         filterFormValues.from,
         filterFormValues.feed,
         filterFormValues.postedOn,
