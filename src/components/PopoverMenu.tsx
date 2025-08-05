@@ -29,7 +29,6 @@ import MenuItem from './MenuItem';
 import type ReanimatedModalProps from './Modal/ReanimatedModal/types';
 import type BaseModalProps from './Modal/types';
 import OfflineWithFeedback from './OfflineWithFeedback';
-import {PopoverContext} from './PopoverProvider';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
 import ScrollView from './ScrollView';
 import Text from './Text';
