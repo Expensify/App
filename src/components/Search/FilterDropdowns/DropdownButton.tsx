@@ -103,9 +103,6 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
     }, [isSmallScreenWidth, styles]);
 
     const popoverContent = useMemo(() => {
-        if (!isOverlayVisible) {
-            return null;
-        }
         return PopoverComponent({closeOverlay: toggleOverlay});
         // PopoverComponent is stable so we don't need it here as a dep.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
