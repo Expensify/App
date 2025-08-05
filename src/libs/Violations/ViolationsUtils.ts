@@ -284,6 +284,8 @@ const ViolationsUtils = {
         const hasReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED && violation.data);
         const hasCategoryReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED && !violation.data);
         const hasOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_LIMIT);
+        // TODO: Uncomment when the OVER_TRIP_LIMIT violation is implemented
+        // const hasOverTripLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_TRIP_LIMIT);
         const hasCategoryOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
         const hasMissingCommentViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_COMMENT);
         const hasTaxOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY);
@@ -382,6 +384,22 @@ const ViolationsUtils = {
                 showInReview: true,
             });
         }
+
+        // TODO: Uncomment when the OVER_TRIP_LIMIT violation is implemented
+        // if (canCalculateAmountViolations && !hasOverTripLimitViolation && Math.abs(updatedTransaction.amount) < Math.abs(amount) && TransactionUtils.hasReservationList(updatedTransaction)) {
+        //     newTransactionViolations.push({
+        //         name: CONST.VIOLATIONS.OVER_TRIP_LIMIT,
+        //         data: {
+        //             formattedLimit: CurrencyUtils.convertAmountToDisplayString(updatedTransaction.amount, updatedTransaction.currency),
+        //         },
+        //         type: CONST.VIOLATION_TYPES.VIOLATION,
+        //         showInReview: true,
+        //     });
+        // }
+
+        // if (canCalculateAmountViolations && hasOverTripLimitViolation && Math.abs(updatedTransaction.amount) >= Math.abs(amount) && TransactionUtils.hasReservationList(updatedTransaction)) {
+        //     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_TRIP_LIMIT});
+        // }
 
         if (!hasMissingCommentViolation && shouldShowMissingComment) {
             newTransactionViolations.push({
@@ -484,6 +502,8 @@ const ViolationsUtils = {
                 return translate('violations.overCategoryLimit', {formattedLimit});
             case 'overLimit':
                 return translate('violations.overLimit', {formattedLimit});
+            case 'overTripLimit':
+                return translate('violations.overTripLimit', {formattedLimit});
             case 'overLimitAttendee':
                 return translate('violations.overLimitAttendee', {formattedLimit});
             case 'perDayLimit':
