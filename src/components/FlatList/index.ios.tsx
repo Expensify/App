@@ -27,7 +27,6 @@ function CustomFlatList<T>(props: FlatListProps<T> & AdditionalFlatListProps, re
             <KeyboardDismissableFlatList
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
-                CellRendererComponent={null}
                 onScroll={onScroll}
                 ref={ref}
                 maintainVisibleContentPosition={maintainVisibleContentPosition}

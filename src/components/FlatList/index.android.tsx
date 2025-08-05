@@ -3,11 +3,15 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useRef} from 'react';
 import type {FlatListProps, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {FlatList} from 'react-native';
+import KeyboardDismissableFlatList from '@components/KeyboardDismissableFlatList';
+import {useKeyboardDismissableFlatListContext} from '@components/KeyboardDismissableFlatList/KeyboardDismissableFlatListContext';
+import type {AdditionalFlatListProps} from '.';
 
 // FlatList wrapped with the freeze component will lose its scroll state when frozen (only for Android).
 // CustomFlatList saves the offset and use it for scrollToOffset() when unfrozen.
-function CustomFlatList<T>(props: FlatListProps<T>, ref: ForwardedRef<FlatList>) {
+function CustomFlatList<T>(props: FlatListProps<T> & AdditionalFlatListProps, ref: ForwardedRef<FlatList>) {
     const lastScrollOffsetRef = useRef(0);
+    const {onScroll} = useKeyboardDismissableFlatListContext();
 
     const onScreenFocus = useCallback(() => {
         if (typeof ref === 'function') {
@@ -31,6 +35,18 @@ function CustomFlatList<T>(props: FlatListProps<T>, ref: ForwardedRef<FlatList>)
             onScreenFocus();
         }, [onScreenFocus]),
     );
+
+    if (props.withAnimatedKeyboardHandler) {
+        return (
+            <KeyboardDismissableFlatList
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                onScroll={onScroll}
+                ref={ref}
+                onMomentumScrollEnd={onMomentumScrollEnd}
+            />
+        );
+    }
 
     return (
         <FlatList<T>
