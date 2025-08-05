@@ -1,22 +1,17 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type Beta from '@src/types/onyx/Beta';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import Timing from './actions/Timing';
 import * as Formula from './Formula';
 import Log from './Log';
+import {getUpdateContextAsync} from './OptimisticReportNamesConnectionManager';
+import type {UpdateContext} from './OptimisticReportNamesConnectionManager';
 import Performance from './Performance';
 import Permissions from './Permissions';
 import * as ReportUtils from './ReportUtils';
-
-type UpdateContext = {
-    betas: OnyxEntry<Beta[]>;
-    allReports: Record<string, Report>;
-    allPolicies: Record<string, Policy>;
-};
 
 /**
  * Get the object type from an Onyx key
@@ -367,44 +362,11 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
 }
 
 /**
- * Initialize the context needed for report name computation
+ * Creates update context for optimistic report name processing.
  * This should be called before processing optimistic updates
  */
 function createUpdateContext(): Promise<UpdateContext> {
-    return new Promise((resolve) => {
-        // Get all the data we need from Onyx
-        const connectionID = Onyx.connect({
-            key: ONYXKEYS.BETAS,
-            callback: (betas) => {
-                Onyx.disconnect(connectionID);
-
-                // Also get reports and policies
-                const reportsConnectionID = Onyx.connect({
-                    key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
-                    callback: (allReports) => {
-                        Onyx.disconnect(reportsConnectionID);
-
-                        const policiesConnectionID = Onyx.connect({
-                            key: ONYXKEYS.COLLECTION.POLICY,
-                            waitForCollectionCallback: true,
-                            callback: (allPolicies) => {
-                                Onyx.disconnect(policiesConnectionID);
-
-                                resolve({
-                                    betas,
-                                    allReports: allReports ?? {},
-                                    allPolicies: allPolicies ?? {},
-                                });
-                            },
-                        });
-                    },
-                });
-            },
-        });
-    });
+    return getUpdateContextAsync();
 }
 
 export {updateOptimisticReportNamesFromUpdates, computeReportNameIfNeeded, computeNameForNewReport, createUpdateContext, shouldComputeReportName};
-
-export type {UpdateContext};
