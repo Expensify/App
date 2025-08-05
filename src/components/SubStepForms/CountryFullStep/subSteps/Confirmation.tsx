@@ -106,18 +106,20 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
                     .
                 </Text>
             </View>
-            <InputWrapper
-                InputComponent={PushRowWithModal}
-                optionsList={getAvailableEuCountries(shouldAllowChange, isUkEuCurrencySupported)}
-                onValueChange={(value) => setSelectedCountry(value as string)}
-                description={translate('common.country')}
-                modalHeaderTitle={translate('countryStep.selectCountry')}
-                searchInputTitle={translate('countryStep.findCountry')}
-                shouldAllowChange={shouldAllowChange}
-                value={selectedCountry}
-                inputID={COUNTRY}
-                shouldSaveDraft={false}
-            />
+            {(!isUkEuCurrencySupported || (isUkEuCurrencySupported && currency !== CONST.CURRENCY.GBP)) && (
+                <InputWrapper
+                    InputComponent={PushRowWithModal}
+                    optionsList={getAvailableEuCountries(shouldAllowChange, isUkEuCurrencySupported)}
+                    onValueChange={(value) => setSelectedCountry(value as string)}
+                    description={translate('common.country')}
+                    modalHeaderTitle={translate('countryStep.selectCountry')}
+                    searchInputTitle={translate('countryStep.findCountry')}
+                    shouldAllowChange={shouldAllowChange}
+                    value={selectedCountry}
+                    inputID={COUNTRY}
+                    shouldSaveDraft={false}
+                />
+            )}
         </FormProvider>
     );
 }

@@ -281,7 +281,7 @@ function getEligibleBankAccountsForEuUkCard(bankAccountsList: OnyxEntry<BankAcco
         (bankAccount) =>
             bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
             bankAccount?.accountData?.allowDebit &&
-            [CONST.EXPENSIFY_EU_UK_SUPPORT_COUNTRIES as unknown as string].includes(bankAccount?.bankCountry),
+            (CONST.EXPENSIFY_EU_UK_SUPPORT_COUNTRIES as unknown as string).includes(bankAccount?.bankCountry),
     );
 }
 
