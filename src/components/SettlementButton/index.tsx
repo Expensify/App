@@ -535,11 +535,11 @@ function SettlementButton({
                     pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}
                     onOptionSelected={(option) => {
-                        if(paymentButtonOptions.length === 1) {
+                        if (paymentButtonOptions.length === 1) {
                             return;
                         }
 
-                        handlePaymentSelection(undefined, option.value, triggerKYCFlow)
+                        handlePaymentSelection(undefined, option.value, triggerKYCFlow);
                     }}
                     style={style}
                     shouldUseShortForm={shouldUseShortForm}
