@@ -44,7 +44,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import type {ArchivedReportsIDSet, SearchKey} from '@libs/SearchUIUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -215,12 +215,42 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (offset !== 0) {
             return false;
         }
-        if (!searchKey) {
+        if (queryJSON.type !== CONST.SEARCH.DATA_TYPES.EXPENSE) {
             return false;
         }
-        const eligibleSearchKeys: Partial<SearchKey[]> = [CONST.SEARCH.SEARCH_KEYS.STATEMENTS, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD];
-        return eligibleSearchKeys.includes(searchKey);
-    }, [offset, searchKey]);
+
+        let hasFeedFilter = false;
+        let hasPostedFilter = false;
+        let isReimbursable = false;
+
+        queryJSON.flatFilters.forEach((filter) => {
+            if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
+                hasFeedFilter = true;
+            } else if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED) {
+                hasPostedFilter = true;
+            } else if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE && filter.filters.at(0)?.value === CONST.SEARCH.BOOLEAN.YES) {
+                isReimbursable = true;
+            }
+        });
+
+        /**
+         * The total should be calculated for all accounting queries (statements, unapprovedCash and unapprovedCard)
+         * We can't use `searchKey` directly because we want to also match similar queries e.g. the statements suggested search query with a custom feed should be matched too.
+         */
+        const isStatementsLikeQuery = queryJSON.flatFilters.length === 2 && hasFeedFilter && hasPostedFilter;
+        const isUnapprovedCashLikeQuery =
+            queryJSON.flatFilters.length === 1 &&
+            isReimbursable &&
+            queryJSON.status[0] === CONST.SEARCH.STATUS.EXPENSE.DRAFTS &&
+            queryJSON.status[1] === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
+        const isUnapprovedCardLikeQuery =
+            queryJSON.flatFilters.length === 1 &&
+            hasFeedFilter &&
+            queryJSON.status[0] === CONST.SEARCH.STATUS.EXPENSE.DRAFTS &&
+            queryJSON.status[1] === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
+
+        return isStatementsLikeQuery || isUnapprovedCashLikeQuery || isUnapprovedCardLikeQuery;
+    }, [offset, queryJSON.flatFilters, queryJSON.type, queryJSON.status]);
 
     const previousReportActions = usePrevious(reportActions);
     const reportActionsArray = useMemo(
