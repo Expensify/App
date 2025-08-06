@@ -98,4 +98,17 @@ function getFontSizeOfRBRChild(tnode: TNode): number {
     return 0;
 }
 
-export {computeEmbeddedMaxWidth, isChildOfComment, isChildOfH1, isDeletedNode, isChildOfTaskTitle, isChildOfRBR, isCommentTag, getFontSizeOfRBRChild};
+/**
+ * @returns Whether the node is a child of muted-text-label
+ */
+function isChildOfMutedTextLabel(tnode: TNode): boolean {
+    if (!tnode.parent) {
+        return false;
+    }
+    if (tnode.parent.tagName === 'muted-text-label') {
+        return true;
+    }
+    return isChildOfMutedTextLabel(tnode.parent);
+}
+
+export {computeEmbeddedMaxWidth, isChildOfComment, isChildOfH1, isDeletedNode, isChildOfTaskTitle, isChildOfRBR, isCommentTag, getFontSizeOfRBRChild, isChildOfMutedTextLabel};

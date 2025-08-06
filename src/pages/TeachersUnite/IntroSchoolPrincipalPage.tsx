@@ -26,7 +26,7 @@ function IntroSchoolPrincipalPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const {localCurrencyCode, login, accountID} = useCurrentUserPersonalDetails();
 
     /**
@@ -46,25 +46,25 @@ function IntroSchoolPrincipalPage() {
 
             if (!values.firstName || !isValidPersonName(values.firstName)) {
                 addErrorMessage(errors, 'firstName', translate('bankAccount.error.firstName'));
-            } else if (values.firstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+            } else if (values.firstName.length > CONST.NAME.MAX_LENGTH) {
                 addErrorMessage(
                     errors,
                     'firstName',
                     translate('common.error.characterLimitExceedCounter', {
                         length: values.firstName.length,
-                        limit: CONST.DISPLAY_NAME.MAX_LENGTH,
+                        limit: CONST.NAME.MAX_LENGTH,
                     }),
                 );
             }
             if (!values.lastName || !isValidPersonName(values.lastName)) {
                 addErrorMessage(errors, 'lastName', translate('bankAccount.error.lastName'));
-            } else if (values.lastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+            } else if (values.lastName.length > CONST.NAME.MAX_LENGTH) {
                 addErrorMessage(
                     errors,
                     'lastName',
                     translate('common.error.characterLimitExceedCounter', {
                         length: values.lastName.length,
-                        limit: CONST.DISPLAY_NAME.MAX_LENGTH,
+                        limit: CONST.NAME.MAX_LENGTH,
                     }),
                 );
             }
