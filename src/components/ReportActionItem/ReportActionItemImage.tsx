@@ -70,7 +70,7 @@ type ReportActionItemImageProps = {
     /** Whether the receipt empty state should extend to the full height of the container. */
     shouldUseFullHeight?: boolean;
 
-    /** The report associated with this image, if any. Used for additional context or logic. */
+    /** The report associated with this image, if any. Used to pass report directly instead of relaying on context. */
     report?: OnyxEntry<Report>;
 };
 
@@ -135,7 +135,9 @@ function ReportActionItemImage({
             fallbackIcon: Expensicons.Receipt,
             fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
             isAuthTokenRequired: true,
-            shouldUseInitialObjectPosition: isMapDistanceRequest,
+
+            // If the image is full height, use initial position to make sure it will grow properly to fill the container
+            shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
         };
     } else if (isLocalFile && filename && Str.isPDF(filename) && typeof attachmentModalSource === 'string') {
         propsObj = {isPDFThumbnail: true, source: attachmentModalSource};
@@ -146,7 +148,9 @@ function ReportActionItemImage({
             shouldUseThumbnailImage: true,
             isAuthTokenRequired: false,
             source: thumbnail ?? image ?? '',
-            shouldUseInitialObjectPosition: isMapDistanceRequest,
+
+            // If the image is full height, use initial position to make sure it will grow properly to fill the container
+            shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
             isEmptyReceipt,
             onPress,
         };
