@@ -825,6 +825,8 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                             ...CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION,
                         },
                         deleted: 'string',
+                        bankAccountID: 'string',
+                        payAsBusiness: 'string',
                     }),
                 () =>
                     validateObject<ObjectElement<ReportAction, 'message'>>(value, {
@@ -908,6 +910,8 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                         expenseReportID: 'string',
                         resolution: 'string',
                         deleted: 'string',
+                        bankAccountID: 'string',
+                        payAsBusiness: 'string',
                     }),
             );
     }

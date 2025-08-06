@@ -1,5 +1,6 @@
+import {Str} from 'expensify-common';
 import mapValues from 'lodash/mapValues';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -17,6 +18,7 @@ import useActiveRoute from '@hooks/useActiveRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,7 +32,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getLengthOfTag, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction, isPayAction} from '@libs/ReportActionsUtils';
 import {
@@ -56,6 +58,7 @@ import {
     getDescription,
     getDistanceInMeters,
     getOriginalTransactionWithSplitInfo,
+    getReimbursable,
     getTagForDisplay,
     getTaxName,
     hasMissingSmartscanFields,
@@ -71,7 +74,7 @@ import {
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
-import {cleanUpMoneyRequest, updateMoneyRequestBillable} from '@userActions/IOU';
+import {cleanUpMoneyRequest, updateMoneyRequestBillable, updateMoneyRequestReimbursable} from '@userActions/IOU';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {clearError, getLastModifiedExpense, revert} from '@userActions/Transaction';
@@ -163,6 +166,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
         currency: transactionCurrency,
         comment: transactionDescription,
         merchant: transactionMerchant,
+        reimbursable: transactionReimbursable,
         billable: transactionBillable,
         category: transactionCategory,
         tag: transactionTag,
@@ -198,6 +202,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
     const isSettled = isSettledReportUtils(moneyRequestReport?.reportID);
     const isCancelled = moneyRequestReport && moneyRequestReport?.isCancelledIOU;
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
+    const shouldShowPaid = isSettled && transactionReimbursable;
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
@@ -241,6 +246,8 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowTag = isPolicyExpenseChat && (transactionTag || hasEnabledTags(policyTagLists));
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true) || !!updatedTransaction?.billable);
+    const shouldShowReimbursable = isPolicyExpenseChat && !isCardTransaction && !isInvoice;
+    const canEditReimbursable = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE);
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
@@ -290,6 +297,17 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
         [transaction, report, policy, policyTagList, policyCategories],
     );
 
+    const saveReimbursable = useCallback(
+        (newReimbursable: boolean) => {
+            // If the value hasn't changed, don't request to save changes on the server and just close the modal
+            if (newReimbursable === getReimbursable(transaction) || !transaction?.transactionID || !report?.reportID) {
+                return;
+            }
+            updateMoneyRequestReimbursable(transaction.transactionID, report?.reportID, newReimbursable, policy, policyTagList, policyCategories);
+        },
+        [transaction, report, policy, policyTagList, policyCategories],
+    );
+
     if (isCardTransaction) {
         if (transactionPostedDate) {
             dateDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.posted')} ${transactionPostedDate}`;
@@ -311,7 +329,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         } else if (isApproved) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
-        } else if (isSettled) {
+        } else if (shouldShowPaid) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.settledExpensify')}`;
         }
     }
@@ -469,6 +487,22 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
     };
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTagList);
 
+    const previousTransactionTag = usePrevious(transactionTag);
+
+    const [previousTag, setPreviousTag] = useState<string | undefined>(undefined);
+    const [currentTransactionTag, setCurrentTransactionTag] = useState<string | undefined>(undefined);
+
+    useEffect(() => {
+        if (transactionTag === previousTransactionTag) {
+            return;
+        }
+        setPreviousTag(previousTransactionTag);
+        setCurrentTransactionTag(transactionTag);
+    }, [transactionTag, previousTransactionTag]);
+
+    const previousTagLength = getLengthOfTag(previousTag ?? '');
+    const currentTagLength = getLengthOfTag(currentTransactionTag ?? '');
+
     const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
         const tagForDisplay = getTagForDisplay(updatedTransaction ?? transaction, index);
         let shouldShow = false;
@@ -503,7 +537,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                 pendingAction={getPendingFieldAction('tag')}
             >
                 <MenuItemWithTopDescription
-                    highlighted={hasDependentTags && shouldShow && !getTagForDisplay(transaction, index)}
+                    highlighted={hasDependentTags && shouldShow && !getTagForDisplay(transaction, index) && currentTagLength > previousTagLength}
                     description={name ?? translate('common.tag')}
                     title={tagForDisplay}
                     numberOfLinesTitle={2}
@@ -637,7 +671,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount') ?? (amountTitle ? getPendingFieldAction('customUnitRateID') : undefined)}>
                     <MenuItemWithTopDescription
                         title={amountTitle}
-                        shouldShowTitleIcon={isSettled}
+                        shouldShowTitleIcon={shouldShowPaid}
                         titleIcon={Expensicons.Checkmark}
                         description={amountDescription}
                         titleStyle={styles.textHeadlineH2}
@@ -820,8 +854,27 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                         />
                     </OfflineWithFeedback>
                 )}
+                {shouldShowReimbursable && (
+                    <OfflineWithFeedback
+                        pendingAction={getPendingFieldAction('reimbursable')}
+                        contentContainerStyle={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}
+                    >
+                        <View>
+                            <Text>{Str.UCFirst(translate('iou.reimbursable'))}</Text>
+                        </View>
+                        <Switch
+                            accessibilityLabel={Str.UCFirst(translate('iou.reimbursable'))}
+                            isOn={updatedTransaction?.reimbursable ?? !!transactionReimbursable}
+                            onToggle={saveReimbursable}
+                            disabled={!canEditReimbursable}
+                        />
+                    </OfflineWithFeedback>
+                )}
                 {shouldShowBillable && (
-                    <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                    <OfflineWithFeedback
+                        pendingAction={getPendingFieldAction('billable')}
+                        contentContainerStyle={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}
+                    >
                         <View>
                             <Text>{translate('common.billable')}</Text>
                             {!!getErrorForField('billable') && (
@@ -840,7 +893,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                             onToggle={saveBillable}
                             disabled={!canEdit}
                         />
-                    </View>
+                    </OfflineWithFeedback>
                 )}
                 {!!parentReportID && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
