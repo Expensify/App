@@ -12103,7 +12103,7 @@ class GithubUtils {
     /**
      * Generate the issue body and assignees for a StagingDeployCash.
      */
-    static generateStagingDeployCashBodyAndAssignees(tag, PRList, PRListMobileExpensify, verifiedPRList = [], verifiedPRListMobileExpensify = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isFirebaseChecked = false, isGHStatusChecked = false) {
+    static generateStagingDeployCashBodyAndAssignees(tag, PRList, PRListMobileExpensify, verifiedPRList = [], verifiedPRListMobileExpensify = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isFirebaseChecked = false, isGHStatusChecked = false, previousTag) {
         return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
             .then((data) => {
             const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !(0, isEmptyObject_1.isEmptyObject)(pr.labels.find((item) => item.name === CONST_1.default.LABELS.INTERNAL_QA))) : [];
@@ -12126,7 +12126,12 @@ class GithubUtils {
                 const sortedDeployBlockers = [...new Set(deployBlockers)].sort((a, b) => GithubUtils.getIssueOrPullRequestNumberFromURL(a) - GithubUtils.getIssueOrPullRequestNumberFromURL(b));
                 // Tag version and comparison URL
                 // eslint-disable-next-line max-len
-                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n`;
+                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n`;
+                // Add Mobile-Expensify compare link if there are Mobile-Expensify PRs and we have a previous tag
+                if (sortedPRListMobileExpensify.length > 0 && previousTag) {
+                    issueBody += `**Mobile-Expensify Compare Changes:** https://github.com/${CONST_1.default.GITHUB_OWNER}/${CONST_1.default.MOBILE_EXPENSIFY_REPO}/compare/${previousTag}...${tag}\r\n`;
+                }
+                issueBody += '\r\n';
                 // Warn deployers about potential bugs with the new process
                 issueBody +=
                     '> 💡 **Deployer FYI:** This checklist was generated using a new process. PR list from original method and detail logging can be found in the most recent [deploy workflow](https://github.com/Expensify/App/actions/workflows/deploy.yml) labeled `staging`, in the `createChecklist` action. Please tag @Julesssss with any issues.\r\n\r\n';
@@ -12205,7 +12210,7 @@ class GithubUtils {
             }
             return data;
         })
-            .then((prList) => prList.filter((pr) => pullRequestNumbers.includes(pr.number)))
+            .then((prList) => prList?.filter((pr) => pullRequestNumbers.includes(pr.number)) ?? [])
             .catch((err) => console.error('Failed to get PR list', err));
     }
     static getPullRequestMergerLogin(pullRequestNumber) {
