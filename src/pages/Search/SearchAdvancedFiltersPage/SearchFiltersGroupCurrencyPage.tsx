@@ -19,10 +19,10 @@ function SearchFiltersGroupCurrencyPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
     const {selectedCurrencyItem, currencyItems} = useMemo(() => {
-        let selectedCurrency: SearchSingleSelectionPickerItem | undefined = undefined;
+        let selectedCurrency: SearchSingleSelectionPickerItem | undefined;
         const currencies: SearchSingleSelectionPickerItem[] = [];
 
         Object.keys(currencyList ?? {}).forEach((currencyCode) => {

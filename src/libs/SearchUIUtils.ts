@@ -1785,13 +1785,16 @@ function getGroupByOptions() {
 }
 
 function getGroupCurrencyOptions(currencyList: OnyxTypes.CurrencyList) {
-    return Object.keys(currencyList).reduce((options, currencyCode) => {
-        if (!currencyList?.[currencyCode]?.retired) {
-            options.push({text: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode});
-        }
+    return Object.keys(currencyList).reduce(
+        (options, currencyCode) => {
+            if (!currencyList?.[currencyCode]?.retired) {
+                options.push({text: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode});
+            }
 
-        return options;
-    }, [] as SingleSelectItem<string>[]);
+            return options;
+        },
+        [] as Array<SingleSelectItem<string>>,
+    );
 }
 
 function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCards: OnyxTypes.CardList) {

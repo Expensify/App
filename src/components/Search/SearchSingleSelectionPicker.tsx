@@ -6,7 +6,6 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
-import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 import ROUTES from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
@@ -24,7 +23,7 @@ type SearchSingleSelectionPickerProps = {
 };
 
 function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle, onSaveSelection, shouldShowTextInput = true}: SearchSingleSelectionPickerProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate} = useLocalize();
 
     const selectionListRef = useRef<SelectionListHandle>(null);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -68,18 +67,15 @@ function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle,
         };
     }, [selectedItem, items, pickerTitle, debouncedSearchTerm]);
 
-    const onSelectItem = useCallback(
-        (item: Partial<OptionData & SearchSingleSelectionPickerItem>) => {
-            if (!item.text || !item.keyForList || !item.value) {
-                return;
-            }
-            if (!item.isSelected) {
-                setSelectedItem({name: item.text, value: item.value});
-                selectionListRef?.current?.updateAndScrollToFocusedIndex(0);
-            }
-        },
-        [selectedItem],
-    );
+    const onSelectItem = useCallback((item: Partial<OptionData & SearchSingleSelectionPickerItem>) => {
+        if (!item.text || !item.keyForList || !item.value) {
+            return;
+        }
+        if (!item.isSelected) {
+            setSelectedItem({name: item.text, value: item.value});
+            selectionListRef?.current?.updateAndScrollToFocusedIndex(0);
+        }
+    }, []);
 
     const resetChanges = useCallback(() => {
         setSelectedItem(undefined);
