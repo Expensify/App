@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 let encryptedAuthToken = '';
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (session) => (encryptedAuthToken = session?.encryptedAuthToken ?? ''),
 });
