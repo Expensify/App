@@ -266,7 +266,7 @@ function SearchAutocompleteList(
                 CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
                 CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
                 CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
-            ]  as SearchFilterKey[];;
+            ] as SearchFilterKey[];
 
             if (lastRange && nameFields.includes(lastRange.key)) {
                 const afterLastRange = autocompleteQueryValue.substring(lastRange.start + lastRange.length);

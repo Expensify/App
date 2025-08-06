@@ -275,7 +275,7 @@ const nameFieldContinuationTests = [
         description: 'Assignee field partial name - parser should return null autocomplete for continuation text',
     },
     {
-        query: 'payer:Alice Wond',
+        query: 'payer:Alice Wind',
         expected: {
             autocomplete: null,
             ranges: [{key: 'payer', value: 'Alice', start: 6, length: 5}],
