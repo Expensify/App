@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import {forwardRef} from 'react';
+import {forwardRef, useEffect} from 'react';
 import type {FlatList} from 'react-native';
 import {useAnimatedProps} from 'react-native-reanimated';
 import type {CustomAnimatedFlatListProps} from '@components/CustomAnimatedFlatList';
@@ -7,7 +7,7 @@ import CustomAnimatedFlatList from '@components/CustomAnimatedFlatList';
 import {useKeyboardDismissibleFlatListContext} from './KeyboardDismissibleFlatListContext';
 
 function KeyboardDismissibleFlatList<T>(props: CustomAnimatedFlatListProps<T>, ref: ForwardedRef<FlatList>) {
-    const {keyboardHeight, keyboardOffset, onScroll} = useKeyboardDismissibleFlatListContext();
+    const {keyboardHeight, keyboardOffset, onScroll, setListBehavior} = useKeyboardDismissibleFlatListContext();
 
     const invertedListAnimatedProps = useAnimatedProps(() => {
         return {
@@ -26,8 +26,16 @@ function KeyboardDismissibleFlatList<T>(props: CustomAnimatedFlatListProps<T>, r
             contentInset: {
                 bottom: keyboardHeight.get(),
             },
+            contentOffset: {
+                x: 0,
+                y: keyboardHeight.get() + keyboardOffset.get(),
+            },
         };
     });
+
+    useEffect(() => {
+        setListBehavior(props.inverted ? 'inverted' : 'regular');
+    }, [props.inverted, setListBehavior]);
 
     return (
         <CustomAnimatedFlatList
