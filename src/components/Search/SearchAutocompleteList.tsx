@@ -266,9 +266,9 @@ function SearchAutocompleteList(
                 CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
                 CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
                 CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
-            ] as const;
+            ]  as SearchFilterKey[];;
 
-            if (lastRange && nameFields.includes(lastRange.key as TupleToUnion<typeof nameFields>)) {
+            if (lastRange && nameFields.includes(lastRange.key)) {
                 const afterLastRange = autocompleteQueryValue.substring(lastRange.start + lastRange.length);
                 const continuationMatch = afterLastRange.match(/^\s+(\w+)/);
 
