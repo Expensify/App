@@ -26,9 +26,9 @@ function updateAddress(values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS
 function PersonalAddressPage() {
     const {translate} = useLocalize();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [defaultCountry] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: true});
     const address = useMemo(() => getCurrentAddress(privatePersonalDetails), [privatePersonalDetails]);
-    const defaultCountry = getDefaultCountry();
 
     return (
         <AddressPage
