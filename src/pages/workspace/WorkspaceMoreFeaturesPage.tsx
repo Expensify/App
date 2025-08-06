@@ -11,6 +11,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -76,6 +77,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const hasAccountingConnection = !isEmptyObject(policy?.connections);
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled =
@@ -316,7 +318,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 clearPolicyErrorField(policyID, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
             },
         },
-        {
+    ];
+
+    if (isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS)) {
+        integrateItems.push({
             icon: Illustrations.ReceiptPartners,
             titleTranslationKey: 'workspace.moreFeatures.receiptPartners.title',
             subtitleTranslationKey: 'workspace.moreFeatures.receiptPartners.subtitle',
@@ -341,8 +346,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 }
                 clearPolicyErrorField(policyID, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED);
             },
-        },
-    ];
+        });
+    }
 
     const sections: SectionObject[] = [
         {
@@ -510,21 +515,23 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     confirmText={translate('workspace.moreFeatures.connectionsWarningModal.manageSettings')}
                     cancelText={translate('common.cancel')}
                 />
-                <ConfirmModal
-                    title={translate('workspace.moreFeatures.receiptPartnersWarningModal.featureEnabledTitle')}
-                    onConfirm={() => {
-                        if (!policyID) {
-                            return;
-                        }
-                        setIsReceiptPartnersWarningModalOpen(false);
-                        // TODO: Navigate to Receipt Partners settings page when it exists
-                        // Navigation.navigate(ROUTES.POLICY_RECEIPT_PARTNERS.getRoute(policyID));
-                    }}
-                    isVisible={isReceiptPartnersWarningModalOpen}
-                    prompt={translate('workspace.moreFeatures.receiptPartnersWarningModal.disconnectText')}
-                    confirmText={translate('workspace.moreFeatures.receiptPartnersWarningModal.confirmText')}
-                    shouldShowCancelButton={false}
-                />
+                {isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS) && (
+                    <ConfirmModal
+                        title={translate('workspace.moreFeatures.receiptPartnersWarningModal.featureEnabledTitle')}
+                        onConfirm={() => {
+                            if (!policyID) {
+                                return;
+                            }
+                            setIsReceiptPartnersWarningModalOpen(false);
+                            // TODO: Navigate to Receipt Partners settings page when it exists
+                            // Navigation.navigate(ROUTES.POLICY_RECEIPT_PARTNERS.getRoute(policyID));
+                        }}
+                        isVisible={isReceiptPartnersWarningModalOpen}
+                        prompt={translate('workspace.moreFeatures.receiptPartnersWarningModal.disconnectText')}
+                        confirmText={translate('workspace.moreFeatures.receiptPartnersWarningModal.confirmText')}
+                        shouldShowCancelButton={false}
+                    />
+                )}
                 <ConfirmModal
                     title={translate('workspace.moreFeatures.expensifyCard.disableCardTitle')}
                     isVisible={isDisableExpensifyCardWarningModalOpen}
