@@ -531,6 +531,7 @@ const translations = {
         pm: 'PM',
         tbd: 'TBD',
         selectCurrency: 'Sélectionnez une devise',
+        selectSymbolOrCurrency: 'Sélectionnez un symbole ou une devise',
         card: 'Carte',
         whyDoWeAskForThis: 'Pourquoi demandons-nous cela ?',
         required: 'Requis',
