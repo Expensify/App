@@ -1,5 +1,5 @@
 import {useMemo} from 'react';
-import {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditMoneyRequest} from '@libs/ReportUtils';
 import {areRequiredFieldsEmpty} from '@libs/TransactionUtils';
@@ -32,6 +32,7 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
         canBeMissing: true,
     });
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
     let shouldShowNotFoundPage = false;
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
     const canEditSplitExpense = isSplitExpense && !!transaction;

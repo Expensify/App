@@ -128,7 +128,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     };
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportOrDraftReport, CONST.EDIT_REQUEST_FIELD.REPORT);
+    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, undefined, reportOrDraftReport, transaction);
 
     return (
         <IOURequestEditReportCommon

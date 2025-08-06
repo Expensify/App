@@ -76,7 +76,7 @@ function IOURequestStepDistanceRate({
         };
     });
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, report, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE);
+    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, undefined, report, transaction);
 
     const initiallyFocusedOption = sections.find((item) => item.isSelected)?.keyForList;
 

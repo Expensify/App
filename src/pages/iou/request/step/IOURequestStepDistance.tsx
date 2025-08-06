@@ -141,7 +141,7 @@ function IOURequestStepDistance({
     const iouRequestType = getRequestType(transaction);
     const customUnitRateID = getRateID(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, report, CONST.EDIT_REQUEST_FIELD.DISTANCE);
+    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, undefined, report, transaction);
 
     // Sets `amount` and `split` share data before moving to the next step to avoid briefly showing `0.00` as the split share for participants
     const setDistanceRequestData = useCallback(
