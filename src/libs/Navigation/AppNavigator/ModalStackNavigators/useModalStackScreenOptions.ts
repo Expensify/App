@@ -27,7 +27,7 @@ function useModalStackScreenOptions() {
                 width = '100%';
             } else if (wideRHPRouteKeys.includes(route.key)) {
                 // For the wide rhp screen
-                width = variables.sideBarWidth * 2;
+                width = variables.sideBarWidth + variables.receiptPanelRHPWidth;
             } else {
                 width = variables.sideBarWidth;
             }
