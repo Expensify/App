@@ -40,7 +40,6 @@ function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle,
             : [];
         const remainingItemsSection = items
             .filter((item) => item?.value !== selectedItem?.value && item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-            .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare))
             .map((item) => ({
                 text: item.name,
                 keyForList: item.value,
@@ -67,7 +66,7 @@ function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle,
                   ],
             noResultsFound: isEmpty,
         };
-    }, [selectedItem, items, pickerTitle, debouncedSearchTerm, localeCompare]);
+    }, [selectedItem, items, pickerTitle, debouncedSearchTerm]);
 
     const onSelectItem = useCallback(
         (item: Partial<OptionData & SearchSingleSelectionPickerItem>) => {
