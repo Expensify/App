@@ -4,7 +4,7 @@ import {sub as dateSubtract} from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
-import {SearchFilterKey} from '@components/Search/types';
+import type {SearchFilterKey} from '@components/Search/types';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import BankAccount from '@libs/models/BankAccount';
@@ -6255,7 +6255,6 @@ const CONST = {
             TRIP: 'trip',
             CHAT: 'chat',
         },
-        CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: 'continuationDetectionSearchFilterKeys',
         ACTION_FILTERS: {
             APPROVE: 'approve',
             PAY: 'pay',
