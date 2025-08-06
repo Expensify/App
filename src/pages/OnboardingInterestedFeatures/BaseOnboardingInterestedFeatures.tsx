@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
@@ -31,7 +31,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
 import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import closeReactNativeApp from '@userActions/HybridApp';
+import {closeReactNativeApp} from '@userActions/HybridApp';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -64,6 +64,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const {isOffline} = useNetwork();
     const isLoading = onboarding?.isLoading;
     const prevIsLoading = usePrevious(isLoading);
+    const didOpenOldDotLink = useRef(false);
 
     const features: Feature[] = useMemo(() => {
         return [
@@ -148,7 +149,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     }, [paidGroupPolicy, onboardingPolicyID]);
 
     useEffect(() => {
-        if (!!isLoading || !prevIsLoading) {
+        if (!!isLoading || !prevIsLoading || didOpenOldDotLink.current) {
             return;
         }
 
@@ -158,6 +159,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             return;
         }
         waitForIdle().then(() => {
+            didOpenOldDotLink.current = true;
             openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
         });
     }, [isLoading, prevIsLoading, setRootStatusBarEnabled]);
@@ -168,23 +170,32 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         }
 
         const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
-
         const newUserReportedIntegration = selectedFeatures.some((feature) => feature === 'accounting') ? userReportedIntegration : undefined;
+        const featuresMap = features.map((feature) => ({
+            ...feature,
+            enabled: selectedFeatures.includes(feature.id),
+        }));
 
         // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
         // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
-        const {adminsChatReportID, policyID} = shouldCreateWorkspace
-            ? createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM, '', undefined, false, onboardingCompanySize, newUserReportedIntegration)
-            : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
+        const {adminsChatReportID, policyID, type} = shouldCreateWorkspace
+            ? createWorkspace({
+                  policyOwnerEmail: undefined,
+                  makeMeAdmin: true,
+                  policyName: '',
+                  policyID: generatePolicyID(),
+                  engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                  currency: '',
+                  file: undefined,
+                  shouldAddOnboardingTasks: false,
+                  companySize: onboardingCompanySize,
+                  userReportedIntegration: newUserReportedIntegration,
+                  featuresMap,
+              })
+            : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID, type: undefined};
 
         if (policyID) {
-            updateInterestedFeatures(
-                features.map((feature) => ({
-                    ...feature,
-                    programmaticallyEnabled: selectedFeatures.includes(feature.id),
-                })),
-                policyID,
-            );
+            updateInterestedFeatures(featuresMap, policyID, type);
         }
 
         if (shouldCreateWorkspace) {
@@ -204,10 +215,12 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         });
 
         if (shouldOnboardingRedirectToOldDot(onboardingCompanySize, newUserReportedIntegration)) {
-            if (CONFIG.IS_HYBRID_APP) {
+            if (CONFIG.IS_HYBRID_APP || didOpenOldDotLink.current) {
                 return;
             }
+            didOpenOldDotLink.current = true;
             openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+            return;
         }
 
         // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
