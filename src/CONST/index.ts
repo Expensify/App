@@ -677,6 +677,7 @@ const CONST = {
         EUR_BILLING: 'eurBilling',
         MANUAL_DISTANCE: 'manualDistance',
         VACATION_DELEGATE: 'vacationDelegate',
+        UBER_FOR_BUSINESS: 'uberForBusiness',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
