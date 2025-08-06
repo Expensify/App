@@ -379,7 +379,7 @@ function MoneyRequestConfirmationListFooter({
                         }
 
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(action, iouType, transactionID, reportID, CONST.IOU.PAGE_INDEX.CONFIRM, Navigation.getActiveRoute(), reportActionID),
+                            ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(action, iouType, transactionID, reportID, reportActionID, CONST.IOU.PAGE_INDEX.CONFIRM, Navigation.getActiveRoute()),
                         );
                     }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
