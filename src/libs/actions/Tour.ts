@@ -5,11 +5,7 @@ import ROUTES from '@src/ROUTES';
 import type {IntroSelected} from './Report';
 import {completeTestDriveTask} from './Task';
 
-function startTestDrive(
-    introSelected: IntroSelected | undefined,
-    shouldUpdateSelfTourViewedOnlyLocally = false,
-    hasUserBeenAddedToNudgeMigration = false,
-) {
+function startTestDrive(introSelected: IntroSelected | undefined, shouldUpdateSelfTourViewedOnlyLocally = false, hasUserBeenAddedToNudgeMigration = false) {
     InteractionManager.runAfterInteractions(() => {
         if (
             hasUserBeenAddedToNudgeMigration ||

@@ -526,8 +526,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                       iconStyles: styles.popoverIconCircle,
                       iconFill: theme.icon,
                       text: translate('testDrive.quickAction.takeATwoMinuteTestDrive'),
-                      onSelected: () =>
-                          interceptAnonymousUser(() => startTestDrive(introSelected, isAnonymousUser(), tryNewDot?.hasBeenAddedToNudgeMigration)),
+                      onSelected: () => interceptAnonymousUser(() => startTestDrive(introSelected, isAnonymousUser(), tryNewDot?.hasBeenAddedToNudgeMigration)),
                   },
               ]
             : []),
