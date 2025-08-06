@@ -4,7 +4,6 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import useCurrentReportID, {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import Navigation from '@libs/Navigation/Navigation';
-
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -91,7 +90,7 @@ describe('useCurrentReportID', () => {
             ],
         } as NavigationState;
 
-        (mockGetTopmostReportId).mockReturnValue(undefined);
+        mockGetTopmostReportId.mockReturnValue(undefined);
 
         // First update should work
         act(() => {
@@ -137,7 +136,7 @@ describe('useCurrentReportID', () => {
             ],
         } as NavigationState;
 
-        (mockGetTopmostReportId).mockReturnValueOnce('123').mockReturnValueOnce('456');
+        mockGetTopmostReportId.mockReturnValueOnce('123').mockReturnValueOnce('456');
 
         // First update
         act(() => {
@@ -172,7 +171,7 @@ describe('useCurrentReportID', () => {
             ],
         } as NavigationState;
 
-        (mockGetTopmostReportId).mockReturnValue('123');
+        mockGetTopmostReportId.mockReturnValue('123');
 
         // Update should be prevented for Settings screen
         act(() => {
@@ -199,7 +198,7 @@ describe('useCurrentReportID', () => {
             ],
         } as NavigationState;
 
-        (mockGetTopmostReportId).mockReturnValue('123');
+        mockGetTopmostReportId.mockReturnValue('123');
 
         const initialContextValue = result.current;
 

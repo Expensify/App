@@ -20,7 +20,7 @@ const CurrentReportIDContext = createContext<CurrentReportIDContextValue | null>
 
 function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderProps) {
     const [currentReportID, setCurrentReportID] = useState<string | undefined>('');
-    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
+    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
     const lastAccessReportFromPath = getReportIDFromLink(lastVisitedPath ?? null);
 
     /**
