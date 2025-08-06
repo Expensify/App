@@ -18,6 +18,7 @@ import {
     Folder,
     Gear,
     InvoiceGeneric,
+    Receipt,
     Sync,
     Tag,
     Users,
@@ -197,6 +198,21 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 brickRoadIndicator: hasSyncError || shouldShowQBOReimbursableExportDestinationAccountError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
+            });
+        }
+
+        if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]) {
+            protectedMenuItems.push({
+                translationKey: 'workspace.common.receiptPartners',
+                icon: Receipt,
+                action: singleExecution(
+                    waitForNavigate(() => {
+                        // TODO: Navigate to Receipt Partners page when it's created
+                        // Navigation.navigate(ROUTES.POLICY_RECEIPT_PARTNERS.getRoute(policyID))
+                    }),
+                ),
+                screenName: SCREENS.WORKSPACE.CATEGORIES, // Update to SCREENS.WORKSPACE.RECEIPT_PARTNERS when created
+                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
             });
         }
 

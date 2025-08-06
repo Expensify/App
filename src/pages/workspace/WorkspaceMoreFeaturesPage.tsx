@@ -29,6 +29,7 @@ import {
     enableExpensifyCard,
     enablePolicyConnections,
     enablePolicyInvoicing,
+    enablePolicyReceiptPartners,
     enablePolicyRules,
     enablePolicyTaxes,
     enablePolicyWorkflows,
@@ -90,6 +91,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const [cardFeeds] = useCardFeeds(policyID);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
     const [isIntegrateWarningModalOpen, setIsIntegrateWarningModalOpen] = useState(false);
+    const [isReceiptPartnersWarningModalOpen, setIsReceiptPartnersWarningModalOpen] = useState(false);
     const [isDisableExpensifyCardWarningModalOpen, setIsDisableExpensifyCardWarningModalOpen] = useState(false);
     const [isDisableCompanyCardsWarningModalOpen, setIsDisableCompanyCardsWarningModalOpen] = useState(false);
     const [isDisableWorkflowWarningModalOpen, setIsDisableWorkflowWarningModalOpen] = useState(false);
@@ -314,6 +316,32 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 clearPolicyErrorField(policyID, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
             },
         },
+        {
+            icon: Illustrations.ReceiptPartners,
+            titleTranslationKey: 'workspace.moreFeatures.receiptPartners.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.receiptPartners.subtitle',
+            isActive: policy?.areReceiptPartnersEnabled ?? false,
+            pendingAction: policy?.pendingFields?.areReceiptPartnersEnabled,
+            disabledAction: () => {
+                // TODO: When Uber integration is added, check if any integration exists
+                // and show the warning modal to disconnect integration first
+                setIsReceiptPartnersWarningModalOpen(true);
+            },
+            action: (isEnabled: boolean) => {
+                if (!policyID) {
+                    return;
+                }
+                enablePolicyReceiptPartners(policyID, isEnabled);
+            },
+            disabled: false, // TODO: When Uber integration is added, set to hasReceiptPartnersIntegration
+            errors: getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED),
+            onCloseError: () => {
+                if (!policyID) {
+                    return;
+                }
+                clearPolicyErrorField(policyID, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED);
+            },
+        },
     ];
 
     const sections: SectionObject[] = [
@@ -481,6 +509,21 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     prompt={translate('workspace.moreFeatures.connectionsWarningModal.disconnectText')}
                     confirmText={translate('workspace.moreFeatures.connectionsWarningModal.manageSettings')}
                     cancelText={translate('common.cancel')}
+                />
+                <ConfirmModal
+                    title={translate('workspace.moreFeatures.receiptPartnersWarningModal.featureEnabledTitle')}
+                    onConfirm={() => {
+                        if (!policyID) {
+                            return;
+                        }
+                        setIsReceiptPartnersWarningModalOpen(false);
+                        // TODO: Navigate to Receipt Partners settings page when it exists
+                        // Navigation.navigate(ROUTES.POLICY_RECEIPT_PARTNERS.getRoute(policyID));
+                    }}
+                    isVisible={isReceiptPartnersWarningModalOpen}
+                    prompt={translate('workspace.moreFeatures.receiptPartnersWarningModal.disconnectText')}
+                    confirmText={translate('workspace.moreFeatures.receiptPartnersWarningModal.confirmText')}
+                    shouldShowCancelButton={false}
                 />
                 <ConfirmModal
                     title={translate('workspace.moreFeatures.expensifyCard.disableCardTitle')}
