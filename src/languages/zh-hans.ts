@@ -5395,6 +5395,16 @@ const translations = {
                     one: '1天',
                     other: (count: number) => `${count}天`,
                 }),
+                cashExpenseDefault: '现金支出默认值',
+                cashExpenseDefaultDescription: '选择如何创建现金支出。如果不是导入的公司卡交易，则视为现金支出。这包括手动创建的支出、收据、津贴、里程和工时支出。',
+                reimbursableDefault: '可报销',
+                reimbursableDefaultDescription: '支出通常会报销给员工',
+                nonReimbursableDefault: '不可报销',
+                nonReimbursableDefaultDescription: '支出偶尔会报销给员工',
+                alwaysReimbursable: '始终可报销',
+                alwaysReimbursableDescription: '支出始终会报销给员工',
+                alwaysNonReimbursable: '始终不可报销',
+                alwaysNonReimbursableDescription: '支出永远不会报销给员工',
                 billableDefault: '默认计费',
                 billableDefaultDescription: '选择现金和信用卡费用是否应默认可计费。可计费用在中启用或禁用。',
                 billable: '可计费的',
@@ -5684,6 +5694,7 @@ const translations = {
             return `将月度报告提交日期更新为“${newValue}”（之前为“${oldValue}”）`;
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `已将“重新向客户计费费用”更新为“${newValue}”（之前为“${oldValue}”）`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `已将“现金支出默认值”更新为“${newValue}”（之前为“${oldValue}”）`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `"强制执行默认报告标题" ${value ? 'on' : '关'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `已将此工作区的名称更新为“${newName}”（之前为“${oldName}”）`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -6173,8 +6184,9 @@ const translations = {
         levelThreeResult: '消息已从频道中移除，并收到匿名警告，消息已提交审核。',
     },
     actionableMentionWhisperOptions: {
-        invite: '邀请他们',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: '邀请提交费用',
+        inviteToChat: '仅邀请聊天',
+        nothing: '什么都不做',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: '接受',
