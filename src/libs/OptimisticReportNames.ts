@@ -214,14 +214,23 @@ function computeNameForNewReport(update: OnyxUpdate, context: UpdateContext): st
 /**
  * Compute a new report name if needed based on an optimistic update
  */
-function computeReportNameIfNeeded(report: Report, incomingUpdate: OnyxUpdate, context: UpdateContext): string | null {
+function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: OnyxUpdate, context: UpdateContext): string | null {
     Performance.markStart(CONST.TIMING.COMPUTE_REPORT_NAME);
     Timing.start(CONST.TIMING.COMPUTE_REPORT_NAME);
 
     const {allPolicies} = context;
 
-    const policy = getPolicyByID(report.policyID ?? '', allPolicies);
-    if (!shouldComputeReportName(report, policy)) {
+    // If no report is provided, extract it from the update (for new reports)
+    const targetReport = report ?? (incomingUpdate.value as Report);
+
+    if (!targetReport) {
+        Performance.markEnd(CONST.TIMING.COMPUTE_REPORT_NAME);
+        Timing.end(CONST.TIMING.COMPUTE_REPORT_NAME);
+        return null;
+    }
+
+    const policy = getPolicyByID(targetReport.policyID ?? '', allPolicies);
+    if (!shouldComputeReportName(targetReport, policy)) {
         Performance.markEnd(CONST.TIMING.COMPUTE_REPORT_NAME);
         Timing.end(CONST.TIMING.COMPUTE_REPORT_NAME);
         return null;
@@ -257,9 +266,9 @@ function computeReportNameIfNeeded(report: Report, incomingUpdate: OnyxUpdate, c
     }
 
     // Build context with the updated data
-    const updatedReport = updateType === 'report' && report.reportID === getReportIDFromKey(incomingUpdate.key) ? {...report, ...incomingUpdate.value} : report;
+    const updatedReport = updateType === 'report' && targetReport.reportID === getReportIDFromKey(incomingUpdate.key) ? {...targetReport, ...incomingUpdate.value} : targetReport;
 
-    const updatedPolicy = updateType === 'policy' && report.policyID === getPolicyIDFromKey(incomingUpdate.key) ? {...policy, ...incomingUpdate.value} : policy;
+    const updatedPolicy = updateType === 'policy' && targetReport.policyID === getPolicyIDFromKey(incomingUpdate.key) ? {...policy, ...incomingUpdate.value} : policy;
 
     // Compute the new name
     const formulaContext: Formula.FormulaContext = {
@@ -270,13 +279,14 @@ function computeReportNameIfNeeded(report: Report, incomingUpdate: OnyxUpdate, c
     const newName = Formula.compute(formula, formulaContext);
 
     // Only return an update if the name actually changed
-    if (newName && newName !== report.reportName) {
-        Log.info('[OptimisticReportNames] Report name computed for existing report', false, {
-            reportID: report.reportID,
-            oldName: report.reportName,
+    if (newName && newName !== targetReport.reportName) {
+        Log.info('[OptimisticReportNames] Report name computed', false, {
+            reportID: targetReport.reportID,
+            oldName: targetReport.reportName,
             newName,
             formula,
             updateType,
+            isNewReport: !report,
         });
 
         Performance.markEnd(CONST.TIMING.COMPUTE_REPORT_NAME);
@@ -304,9 +314,8 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
     });
 
     const {betas, allReports} = context;
-    console.log('morwa Permissions.canUseCustomReportNames(betas)', Permissions.canUseCustomReportNames(betas));
+
     // Check if the feature is enabled
-    // TODO: change this condition later (implemented only for testing purposes)
     if (!Permissions.canUseCustomReportNames(betas)) {
         Performance.markEnd(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
         Timing.end(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
@@ -324,28 +333,17 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                 const reportID = getReportIDFromKey(update.key);
                 const report = getReportByID(reportID, allReports);
 
-                // Special handling for new reports (SET method means new report creation)
-                if (!report && update.onyxMethod === Onyx.METHOD.SET) {
-                    Log.info('[OptimisticReportNames] Detected new report creation', false, {
-                        reportID,
-                        updateKey: update.key,
+                // Handle both existing and new reports with the same function
+                const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
+
+                if (reportNameUpdate) {
+                    additionalUpdates.push({
+                        key: getReportKey(reportID),
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        value: {
+                            reportName: reportNameUpdate,
+                        },
                     });
-                    const reportNameUpdate = computeNameForNewReport(update, context);
-
-                    if (reportNameUpdate) {
-                        additionalUpdates.push({
-                            key: getReportKey(reportID),
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            value: {
-                                reportName: reportNameUpdate,
-                            },
-                        });
-                    }
-                    continue; // Skip the normal processing for this update
-                }
-
-                if (report) {
-                    affectedReports = [report];
                 }
                 break;
             }

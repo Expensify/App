@@ -262,7 +262,7 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
 /**
  * Compute the value of a field formula part
  */
-function computeFieldPart(part: FormulaPart, context: FormulaContext): string {
+function computeFieldPart(part: FormulaPart): string {
     // Field computation will be implemented later
     return part.definition;
 }
@@ -270,7 +270,7 @@ function computeFieldPart(part: FormulaPart, context: FormulaContext): string {
 /**
  * Compute the value of a user formula part
  */
-function computeUserPart(part: FormulaPart, context: FormulaContext): string {
+function computeUserPart(part: FormulaPart): string {
     // User computation will be implemented later
     return part.definition;
 }
@@ -311,11 +311,11 @@ function getFrontPart(value: string): string {
 
     // If it's an email, return the part before @
     if (trimmed.includes('@')) {
-        return trimmed.split('@')[0];
+        return trimmed.split('@').at(0) ?? '';
     }
 
     // Otherwise, return the first word
-    return trimmed.split(' ')[0];
+    return trimmed.split(' ').at(0) ?? '';
 }
 
 /**
@@ -326,7 +326,7 @@ function getDomainName(value: string): string {
 
     // If it's an email, return the part after @
     if (trimmed.includes('@')) {
-        return trimmed.split('@')[1];
+        return trimmed.split('@').at(1) ?? '';
     }
 
     return '';
