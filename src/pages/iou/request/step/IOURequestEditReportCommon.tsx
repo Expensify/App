@@ -48,10 +48,20 @@ type Props = {
     removeFromReport?: () => void;
     isEditing?: boolean;
     isUnreported?: boolean;
+    shouldShowNotFoundPage?: boolean;
 };
 
-function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, policyID: policyIDFromProps, removeFromReport, isEditing = false, isUnreported}: Props) {
-    const {translate} = useLocalize();
+function IOURequestEditReportCommon({
+    backTo,
+    transactionsReports,
+    selectReport,
+    policyID: policyIDFromProps,
+    removeFromReport,
+    isEditing = false,
+    isUnreported,
+    shouldShowNotFoundPage = false,
+}: Props) {
+    const {translate, localeCompare} = useLocalize();
     const {options} = useOptionsList();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => mapOnyxCollectionItems(reports, reportSelector), canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
@@ -89,7 +99,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
         }
 
         return expenseReports
-            .sort((report1, report2) => sortOutstandingReportsBySelected(report1, report2, onlyReport?.reportID))
+            .sort((report1, report2) => sortOutstandingReportsBySelected(report1, report2, onlyReport?.reportID, localeCompare))
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
             .filter((report): report is NonNullable<typeof report> => report !== undefined)
             .map((report) => {
@@ -104,7 +114,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
                     isSelected: onlyReport && report.reportID === onlyReport?.reportID,
                 };
             });
-    }, [allReports, debouncedSearchValue, expenseReports, onlyReport, options.reports]);
+    }, [allReports, debouncedSearchValue, expenseReports, onlyReport, options.reports, localeCompare]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -119,7 +129,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
             shouldShowWrapper
             testID="IOURequestEditReportCommon"
             includeSafeAreaPaddingBottom
-            shouldShowNotFoundPage={expenseReports.length === 0}
+            shouldShowNotFoundPage={expenseReports.length === 0 || shouldShowNotFoundPage}
         >
             <SelectionList
                 sections={[{data: reportOptions}]}
