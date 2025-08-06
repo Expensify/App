@@ -211,7 +211,7 @@ function IOURequestStepParticipants({
                 // If not moving the transaction from track expense, select the default rate automatically.
                 // Otherwise, keep the original p2p rate and let the user manually change it to the one they want from the workspace.
                 const isPolicyExpenseChat = !!firstParticipant?.isPolicyExpenseChat;
-                const policy = isPolicyExpenseChat ? allPolicies?.[firstParticipant?.policyID ?? ''] : undefined;
+                const policy = isPolicyExpenseChat && firstParticipant?.policyID ? allPolicies?.[firstParticipant.policyID] : undefined;
                 const rateID = DistanceRequestUtils.getCustomUnitRateID({reportID: firstParticipantReportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
                 transactions.forEach((transaction) => {
                     setCustomUnitRateID(transaction.transactionID, rateID);
