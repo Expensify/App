@@ -44,6 +44,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
+    columns,
     groupBy,
     shouldAnimateInHighlight,
 }: TransactionGroupListItemProps<TItem>) {
@@ -87,23 +88,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         });
     };
-
-    const sampleTransaction = groupItem.transactions.at(0);
-    const {COLUMNS} = CONST.REPORT.TRANSACTION_LIST;
-
-    const columns = [
-        COLUMNS.RECEIPT,
-        COLUMNS.TYPE,
-        COLUMNS.DATE,
-        COLUMNS.MERCHANT,
-        COLUMNS.FROM,
-        COLUMNS.TO,
-        ...(sampleTransaction?.shouldShowCategory ? [COLUMNS.CATEGORY] : []),
-        ...(sampleTransaction?.shouldShowTag ? [COLUMNS.TAG] : []),
-        ...(sampleTransaction?.shouldShowTax ? [COLUMNS.TAX] : []),
-        COLUMNS.TOTAL_AMOUNT,
-        COLUMNS.ACTION,
-    ] satisfies Array<ValueOf<typeof COLUMNS>>;
 
     const getHeader = useMemo(() => {
         const headers: Record<SearchGroupBy, React.JSX.Element> = {
@@ -202,7 +186,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 shouldUseNarrowLayout={!isLargeScreenWidth}
                                 shouldShowCheckbox={!!canSelectMultiple}
                                 onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                columns={columns}
+                                columns={columns as Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>}
                                 onButtonPress={() => {
                                     openReportInRHP(transaction);
                                 }}
