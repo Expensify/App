@@ -1,6 +1,6 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
-import {FlatList, View} from 'react-native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {FlatList, InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -35,7 +35,16 @@ import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
-import {calculateBillNewDot, clearDeleteWorkspaceError, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace, updateDefaultPolicy} from '@libs/actions/Policy/Policy';
+import {
+    calculateBillNewDot,
+    clearDeleteWorkspaceError,
+    clearDuplicateWorkspace,
+    clearErrors,
+    deleteWorkspace,
+    leaveWorkspace,
+    removeWorkspace,
+    updateDefaultPolicy,
+} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -104,11 +113,14 @@ function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.Pendi
     clearErrors(policyID);
 }
 
+const onScrollToIndexFailed = () => {};
+
 function WorkspacesListPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
+    const isFocused = useIsFocused();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -119,6 +131,7 @@ function WorkspacesListPage() {
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.WORKSPACES_LIST>>();
+    const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: false});
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
@@ -138,6 +151,7 @@ function WorkspacesListPage() {
         selector: filterInactiveCards,
         canBeMissing: true,
     });
+    const flatlistRef = useRef<FlatList | null>(null);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policyToDelete = getPolicy(policyIDToDelete);
@@ -176,6 +190,8 @@ function WorkspacesListPage() {
             const isAdmin = isPolicyAdmin(item as unknown as PolicyType, session?.email);
             const isOwner = item.ownerAccountID === session?.accountID;
             const isDefault = activePolicyID === item.policyID;
+            const shouldAnimateInHighlight = duplicateWorkspace?.policyID === item.policyID;
+
             const threeDotsMenuItems: PopoverMenuItem[] = [
                 {
                     icon: Expensicons.Building,
@@ -264,7 +280,7 @@ function WorkspacesListPage() {
                                 workspaceIcon={item.icon}
                                 ownerAccountID={item.ownerAccountID}
                                 workspaceType={item.type}
-                                shouldAnimateInHighlight={item.shouldAnimateInHighlight}
+                                shouldAnimateInHighlight={shouldAnimateInHighlight}
                                 isJoinRequestPending={item?.isJoinRequestPending}
                                 rowStyles={hovered && styles.hoveredComponentBG}
                                 layoutWidth={isLessThanMediumScreen ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
@@ -285,6 +301,7 @@ function WorkspacesListPage() {
             styles.mb2,
             styles.mh5,
             styles.ph5,
+            duplicateWorkspace?.policyID,
             styles.hoveredComponentBG,
             translate,
             styles.offlineFeedback.deleted,
@@ -374,6 +391,19 @@ function WorkspacesListPage() {
     const filterWorkspace = useCallback((workspace: WorkspaceItem, inputValue: string) => workspace.title.toLowerCase().includes(inputValue), []);
     const sortWorkspace = useCallback((workspaceItems: WorkspaceItem[]) => workspaceItems.sort((a, b) => localeCompare(a.title, b.title)), [localeCompare]);
     const [inputValue, setInputValue, filteredWorkspaces] = useSearchResults(workspaces, filterWorkspace, sortWorkspace);
+
+    useEffect(() => {
+        if (isEmptyObject(duplicateWorkspace) || !filteredWorkspaces.length || !isFocused) {
+            return;
+        }
+        const duplicateWorkspaceIndex = filteredWorkspaces.findIndex((workspace) => workspace.policyID === duplicateWorkspace.policyID);
+        if (duplicateWorkspaceIndex > 0) {
+            flatlistRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false});
+            InteractionManager.runAfterInteractions(() => {
+                clearDuplicateWorkspace();
+            });
+        }
+    }, [duplicateWorkspace, isFocused, filteredWorkspaces]);
 
     const listHeaderComponent = (
         <>
@@ -490,7 +520,9 @@ function WorkspacesListPage() {
                 <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
                 {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{getHeaderButton()}</View>}
                 <FlatList
+                    ref={flatlistRef}
                     data={filteredWorkspaces}
+                    onScrollToIndexFailed={onScrollToIndexFailed}
                     renderItem={getMenuItem}
                     ListHeaderComponent={listHeaderComponent}
                     keyboardShouldPersistTaps="handled"

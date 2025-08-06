@@ -11,11 +11,7 @@ function WorkspaceDuplicatePage() {
     const route = useRoute<PlatformStackRouteProp<WorkspaceDuplicateNavigatorParamList, typeof SCREENS.WORKSPACE_DUPLICATE.ROOT>>();
     const policyID = route?.params?.policyID;
 
-    useEffect(() => {
-        return () => {
-            clearDuplicateWorkspace();
-        };
-    }, []);
+    useEffect(clearDuplicateWorkspace, []);
 
     return (
         <ScreenWrapper

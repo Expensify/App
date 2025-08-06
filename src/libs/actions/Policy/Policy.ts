@@ -2704,7 +2704,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
     const clonedFile = file ? createFile(file as File) : undefined;
 
     const params: DuplicateWorkspaceParams = {
-        policyID: policy.id,
+        policyID,
         adminsChatReportID,
         expenseChatReportID,
         policyName,
