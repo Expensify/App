@@ -51,6 +51,7 @@ import * as Device from '@userActions/Device';
 import * as HybridAppActions from '@userActions/HybridApp';
 import type HybridAppSettings from '@userActions/HybridApp/types';
 import redirectToSignIn from '@userActions/SignInRedirect';
+import type Network from '@src/types/onyx/Network';
 import Timing from '@userActions/Timing';
 import * as Welcome from '@userActions/Welcome';
 import CONFIG from '@src/CONFIG';
@@ -121,6 +122,7 @@ Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => (preferredLocale = val ?? null),
 });
+
 
 let activePolicyID: OnyxEntry<string>;
 Onyx.connect({
@@ -248,7 +250,7 @@ function isExpiredSession(sessionCreationDate: number): boolean {
     return new Date().getTime() - sessionCreationDate >= CONST.SESSION_EXPIRATION_TIME_MS;
 }
 
-function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, shouldSignOutFromOldDot = true, shouldForceUseStashedSession?: boolean) {
+function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, shouldSignOutFromOldDot = true, shouldForceUseStashedSession?: boolean, isOffline?: boolean, shouldForceOffline?: boolean) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
 
@@ -334,7 +336,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
             if (response?.hasOldDotAuthCookies) {
                 Log.info('Redirecting to OldDot sign out');
                 asyncOpenURL(
-                    redirectToSignIn().then(() => {
+                    redirectToSignIn(undefined, isOffline, shouldForceOffline).then(() => {
                         Onyx.multiSet(onyxSetParams);
                     }),
                     `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`,
@@ -342,7 +344,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                     true,
                 );
             } else {
-                redirectToSignIn().then(() => {
+                redirectToSignIn(undefined, isOffline, shouldForceOffline).then(() => {
                     Onyx.multiSet(onyxSetParams);
 
                     if (hasSwitchedAccountInHybridMode) {
@@ -521,7 +523,7 @@ function signUpUser() {
     API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});
 }
 
-function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettings, tryNewDot?: TryNewDot) {
+function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettings, tryNewDot?: TryNewDot, isOffline?: boolean, shouldForceOffline?: boolean) {
     const {hybridApp, ...newDotOnyxValues} = hybridAppSettings;
 
     const clearOnyxBeforeSignIn = () => {
@@ -529,7 +531,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
             return Promise.resolve();
         }
 
-        return redirectToSignIn();
+        return redirectToSignIn(undefined, isOffline, shouldForceOffline);
     };
 
     const resetDidUserLoginDuringSessionIfNeeded = () => {

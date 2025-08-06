@@ -141,6 +141,7 @@ function BaseReportActionContextMenu({
     const {isProduction} = useEnvironment();
     const threeDotRef = useRef<View>(null);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
         canBeMissing: true,
         canEvict: false,
@@ -264,7 +265,7 @@ function BaseReportActionContextMenu({
             hideContextMenu(false);
 
             InteractionManager.runAfterInteractions(() => {
-                signOutAndRedirectToSignIn();
+                signOutAndRedirectToSignIn(undefined, undefined, true, undefined, network?.isOffline, network?.shouldForceOffline);
             });
         } else {
             callback();

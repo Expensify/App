@@ -13,6 +13,7 @@ import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 function HybridAppHandler() {
     const {splashScreenState, setSplashScreenState} = useContext(SplashScreenStateContext);
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
+    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
 
     const isLoading = isLoadingOnyxValue(tryNewDotMetadata);
 
@@ -28,7 +29,7 @@ function HybridAppHandler() {
                 return;
             }
 
-            setupNewDotAfterTransitionFromOldDot(parseHybridAppSettings(hybridAppSettings), tryNewDot).then(() => {
+            setupNewDotAfterTransitionFromOldDot(parseHybridAppSettings(hybridAppSettings), tryNewDot, network?.isOffline, network?.shouldForceOffline).then(() => {
                 if (splashScreenState !== CONST.BOOT_SPLASH_STATE.VISIBLE) {
                     return;
                 }

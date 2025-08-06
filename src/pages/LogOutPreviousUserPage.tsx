@@ -24,6 +24,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
     const {initialURL} = useContext(InitialURLContext);
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
     const isAccountLoading = account?.isLoading;
     const {authTokenType, shortLivedAuthToken = '', exitTo} = route?.params ?? {};
 
@@ -35,7 +36,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
 
         if (isLoggingInAsNewUser) {
             // We don't want to close react-native app in this particular case.
-            signOutAndRedirectToSignIn(false, isSupportalLogin, false);
+            signOutAndRedirectToSignIn(false, isSupportalLogin, false, undefined, network?.isOffline, network?.shouldForceOffline);
             return;
         }
 
