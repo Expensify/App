@@ -88,15 +88,13 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     }, [prevReportAttributesLocale, loadOptions, reportAttributes?.locale]);
 
     const changedReportsEntries = useMemo(() => {
-        const result: OnyxCollection<Report | null> = {};
+        const result: OnyxCollection<OnyxEntry<Report> | null> = {};
 
         Object.keys(changedReports ?? {}).forEach((key) => {
             let report: Report | null = reports?.[key] ?? null;
+            result[key] = report;
             if (reports?.[key] === undefined && prevReports?.[key]) {
                 report = null;
-            }
-            if (report !== undefined) {
-                result[key] = report;
             }
         });
         return result;
