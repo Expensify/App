@@ -3,23 +3,21 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import {EmptyStateExpenses} from '@components/Icon/Illustrations';
-import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import TagPicker from '@components/TagPicker';
 import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftSplitTransaction, setMoneyRequestTag, updateMoneyRequestTag} from '@libs/actions/IOU';
 import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTagList, getTagListName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isPolicyAdmin} from '@libs/PolicyUtils';
-import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {canEditMoneyRequest, isReportInGroupPolicy} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {areRequiredFieldsEmpty, getTag} from '@libs/TransactionUtils';
+import {getTag} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -44,12 +42,7 @@ function IOURequestStepTag({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: false});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: false});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: false});
-    let reportID: string | undefined;
-    if (action === CONST.IOU.ACTION.EDIT) {
-        reportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID : report?.parentReportID;
-    }
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canEvict: false, canBeMissing: true});
-    const session = useSession();
+
     const styles = useThemeStyles();
     const {currentSearchHash} = useSearchContext();
     const {translate} = useLocalize();
@@ -64,28 +57,14 @@ function IOURequestStepTag({
     const currentTransaction = isEditingSplit && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const transactionTag = getTag(currentTransaction);
     const tag = getTag(currentTransaction, tagListIndex);
-    const reportAction = reportActions?.[report?.parentReportActionID ?? reportActionID] ?? null;
-    const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
-    const canEditSplitExpense = isSplitExpense && !!transaction;
+
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
     const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
     const shouldShowTag = transactionTag || hasEnabledTags(policyTagLists);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    let shouldShowNotFoundPage = false;
-
-    if (!isReportInGroupPolicy(report)) {
-        shouldShowNotFoundPage = true;
-    } else if (isEditing) {
-        if (isSplitBill) {
-            shouldShowNotFoundPage = !canEditSplitBill;
-        } else if (isSplitExpense) {
-            shouldShowNotFoundPage = !canEditSplitExpense;
-        } else {
-            shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction);
-        }
-    }
+    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
