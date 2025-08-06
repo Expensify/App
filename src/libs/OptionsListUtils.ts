@@ -1634,7 +1634,7 @@ function getUserToInviteContactOption({
     return userToInvite;
 }
 
-function isValidReport(reportOption: SearchOption<Report>, config: GetValidReportsConfig): boolean {
+function isValidReport(option: SearchOption<Report>, config: GetValidReportsConfig): boolean {
     const {
         betas = [],
         includeMultipleParticipantReports = false,
@@ -1654,14 +1654,11 @@ function isValidReport(reportOption: SearchOption<Report>, config: GetValidRepor
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
 
-    // eslint-disable-next-line rulesdir/prefer-at
-    const option = reportOption;
-    const report = reportOption.item;
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${option.item.chatReportID}`];
-    const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
+    const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(option.item, transactionViolations);
 
     const shouldBeInOptionList = shouldReportBeInOptionList({
-        report,
+        report: option.item,
         chatReport,
         currentReportId: topmostReportId,
         betas,
@@ -1684,13 +1681,13 @@ function isValidReport(reportOption: SearchOption<Report>, config: GetValidRepor
     const isMoneyRequestReport = option.isMoneyRequestReport;
     const isSelfDM = option.isSelfDM;
     const isChatRoom = option.isChatRoom;
-    const accountIDs = getParticipantsAccountIDsForDisplay(report);
+    const accountIDs = getParticipantsAccountIDsForDisplay(option.item);
 
     if (excludeNonAdminWorkspaces && !isPolicyAdmin(option.policyID, policies)) {
         return false;
     }
 
-    if (isPolicyExpenseChat && report?.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
+    if (isPolicyExpenseChat && option.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
         return false;
     }
     // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to expense chats only.
@@ -1714,12 +1711,12 @@ function isValidReport(reportOption: SearchOption<Report>, config: GetValidRepor
         return false;
     }
 
-    if (!canUserPerformWriteAction(report) && !includeReadOnly) {
+    if (!canUserPerformWriteAction(option.item) && !includeReadOnly) {
         return false;
     }
 
     // In case user needs to add credit bank account, don't allow them to submit an expense from the workspace.
-    if (includeOwnedWorkspaceChats && hasIOUWaitingOnCurrentUserBankAccount(report)) {
+    if (includeOwnedWorkspaceChats && hasIOUWaitingOnCurrentUserBankAccount(option.item)) {
         return false;
     }
 
@@ -1734,7 +1731,7 @@ function isValidReport(reportOption: SearchOption<Report>, config: GetValidRepor
         option.isPolicyExpenseChat && option.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !option.private_isArchived;
 
     const shouldShowInvoiceRoom =
-        includeInvoiceRooms && isInvoiceRoom(report) && isPolicyAdmin(option.policyID, policies) && !option.private_isArchived && canSendInvoiceFromWorkspace(report.policyID);
+        includeInvoiceRooms && isInvoiceRoom(option.item) && isPolicyAdmin(option.policyID, policies) && !option.private_isArchived && canSendInvoiceFromWorkspace(option.policyID);
 
     /*
     Exclude the report option if it doesn't meet any of the following conditions:
@@ -1939,7 +1936,7 @@ function getValidOptions(
             } else if (report.isChatRoom) {
                 searchText += report.subtitle ?? '';
             } else if (report.isPolicyExpenseChat) {
-                searchText += `${report.subtitle ?? ''}${report.item.policyName ?? ''}`;
+                searchText += `${report.subtitle ?? ''}${report.policyName ?? ''}`;
             }
             searchText = deburr(searchText.toLocaleLowerCase());
             const searchTermsFound = doSearchTermsMatch(searchTerms, searchText);
