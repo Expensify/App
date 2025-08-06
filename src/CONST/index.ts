@@ -4,6 +4,7 @@ import {sub as dateSubtract} from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
+import {SearchFilterKey} from '@components/Search/types';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import BankAccount from '@libs/models/BankAccount';
@@ -6254,6 +6255,7 @@ const CONST = {
             TRIP: 'trip',
             CHAT: 'chat',
         },
+        CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: 'continuationDetectionSearchFilterKeys',
         ACTION_FILTERS: {
             APPROVE: 'approve',
             PAY: 'pay',
@@ -6974,6 +6976,14 @@ const CONST = {
     },
 } as const;
 
+const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
+] as SearchFilterKey[];
+
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
@@ -6986,5 +6996,7 @@ type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
 type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
 export type {Country, IOUAction, IOUType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInvite, OnboardingAccounting, IOUActionParams};
+
+export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS};
 
 export default CONST;

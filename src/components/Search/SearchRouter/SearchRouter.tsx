@@ -34,7 +34,7 @@ import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import {navigateToAndOpenReport, searchInServer} from '@userActions/Report';
-import CONST from '@src/CONST';
+import CONST, { CONTINUATION_DETECTION_SEARCH_FILTER_KEYS } from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -350,14 +350,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         });
                     } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
                         const fieldKey = item.mapKey?.includes(':') ? item.mapKey.split(':').at(0) : item.mapKey;
-                        const nameFields = [
-                            CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
-                            CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                            CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
-                            CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
-                            CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
-                        ] as SearchFilterKey[];
-                        const isNameField = fieldKey && nameFields.includes(fieldKey as SearchFilterKey);
+                        const isNameField = fieldKey && CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.includes(fieldKey as SearchFilterKey);
 
                         let trimmedUserSearchQuery;
                         if (isNameField && fieldKey) {
