@@ -103,11 +103,9 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     }, [unsafeGroupBy]);
 
     const [feedOptions, feed] = useMemo(() => {
-        const feedFilterValue = flatFilters
-            .find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)
-            ?.filters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO)?.value;
+        const feedFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)?.filters?.map((filter) => filter.value);
         const options = getFeedOptions(allFeeds, allCards);
-        const value = options.find((option) => option.value === feedFilterValue) ?? null;
+        const value = feedFilterValues ? options.filter((option) => feedFilterValues.includes(option.value)) : [];
         return [options, value];
     }, [flatFilters, allFeeds, allCards]);
 
@@ -247,12 +245,12 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     const feedComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
             return (
-                <SingleSelectPopup
+                <MultiSelectPopup
                     label={translate('search.filters.feed')}
                     items={feedOptions}
                     value={feed}
                     closeOverlay={closeOverlay}
-                    onChange={(item) => updateFilterForm({feed: item ? [item.value] : undefined})}
+                    onChange={(items) => updateFilterForm({feed: items.map((item) => item.value)})}
                 />
             );
         },
@@ -403,7 +401,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                       {
                           label: translate('search.filters.feed'),
                           PopoverComponent: feedComponent,
-                          value: feed?.text ?? null,
+                          value: feed.map((option) => option.text),
                           filterKey: FILTER_KEYS.FEED,
                       },
                   ]
@@ -431,7 +429,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
             {
                 label: translate('common.status'),
                 PopoverComponent: statusComponent,
-                value: status.map((option) => translate(option.translation)),
+                value: status.map((option) => option.text),
                 filterKey: FILTER_KEYS.STATUS,
             },
             {

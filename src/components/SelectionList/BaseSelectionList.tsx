@@ -810,6 +810,14 @@ function BaseSelectionList<TItem extends ListItem>(
     const prevAllOptionsLength = usePrevious(flattenedSections.allOptions.length);
 
     useEffect(() => {
+        if (prevTextInputValue === textInputValue) {
+            return;
+        }
+        // Reset the current page to 1 when the user types something
+        setCurrentPage(1);
+    }, [textInputValue, prevTextInputValue]);
+
+    useEffect(() => {
         // Avoid changing focus if the textInputValue remains unchanged.
         if (
             (prevTextInputValue === textInputValue && flattenedSections.selectedOptions.length === prevSelectedOptionsLength) ||
@@ -829,11 +837,6 @@ function BaseSelectionList<TItem extends ListItem>(
                 updateAndScrollToFocusedIndex(foundSelectedItemIndex);
                 return;
             }
-        }
-
-        // Reset the current page to 1 when the user types something
-        if (prevTextInputValue !== textInputValue) {
-            setCurrentPage(1);
         }
 
         // Remove the focus if the search input is empty and prev search input not empty or selected options length is changed (and allOptions length remains the same)

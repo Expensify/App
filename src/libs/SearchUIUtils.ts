@@ -17,7 +17,6 @@ import type {
     ListItem,
     ReportActionListItemType,
     SearchListItem,
-    SortableColumnName,
     TaskListItemType,
     TransactionCardGroupListItemType,
     TransactionGroupListItemType,
@@ -76,22 +75,17 @@ import {
     isInvoiceReport,
     isMoneyRequestReport,
     isOpenExpenseReport,
-    isOpenReport,
     isSettled,
 } from './ReportUtils';
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getTodoSearchQuery} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
-    getCategory,
-    getDescription,
-    getTag,
     getTaxAmount,
     getAmount as getTransactionAmount,
     getCreated as getTransactionCreatedDate,
     getMerchant as getTransactionMerchant,
     isPendingCardOrScanningTransaction,
-    isScanning,
     isUnreportedAndHasInvalidDistanceRateTransaction,
     isViolationDismissed,
 } from './TransactionUtils';
@@ -122,45 +116,57 @@ const taskColumnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.IN]: 'parentReportID' as const,
 };
 
-const expenseStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
-    {translation: 'common.unreported', value: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED},
-    {translation: 'common.drafts', value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
-    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
-    {translation: 'iou.approved', value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
-    {translation: 'iou.settledExpensify', value: CONST.SEARCH.STATUS.EXPENSE.PAID},
-    {translation: 'iou.done', value: CONST.SEARCH.STATUS.EXPENSE.DONE},
-];
+function getExpenseStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>> {
+    return [
+        {text: translateLocal('common.unreported'), value: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED},
+        {text: translateLocal('common.drafts'), value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
+        {text: translateLocal('common.outstanding'), value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
+        {text: translateLocal('iou.approved'), value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
+        {text: translateLocal('iou.settledExpensify'), value: CONST.SEARCH.STATUS.EXPENSE.PAID},
+        {text: translateLocal('iou.done'), value: CONST.SEARCH.STATUS.EXPENSE.DONE},
+    ];
+}
 
-const expenseReportedStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
-    {translation: 'common.drafts', value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
-    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
-    {translation: 'iou.approved', value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
-    {translation: 'iou.settledExpensify', value: CONST.SEARCH.STATUS.EXPENSE.PAID},
-    {translation: 'iou.done', value: CONST.SEARCH.STATUS.EXPENSE.DONE},
-];
+function getExpenseReportedStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>> {
+    return [
+        {text: translateLocal('common.drafts'), value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
+        {text: translateLocal('common.outstanding'), value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
+        {text: translateLocal('iou.approved'), value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
+        {text: translateLocal('iou.settledExpensify'), value: CONST.SEARCH.STATUS.EXPENSE.PAID},
+        {text: translateLocal('iou.done'), value: CONST.SEARCH.STATUS.EXPENSE.DONE},
+    ];
+}
 
-const chatStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
-    {translation: 'common.unread', value: CONST.SEARCH.STATUS.CHAT.UNREAD},
-    {translation: 'common.sent', value: CONST.SEARCH.STATUS.CHAT.SENT},
-    {translation: 'common.attachments', value: CONST.SEARCH.STATUS.CHAT.ATTACHMENTS},
-    {translation: 'common.links', value: CONST.SEARCH.STATUS.CHAT.LINKS},
-    {translation: 'search.filters.pinned', value: CONST.SEARCH.STATUS.CHAT.PINNED},
-];
+function getChatStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>> {
+    return [
+        {text: translateLocal('common.unread'), value: CONST.SEARCH.STATUS.CHAT.UNREAD},
+        {text: translateLocal('common.sent'), value: CONST.SEARCH.STATUS.CHAT.SENT},
+        {text: translateLocal('common.attachments'), value: CONST.SEARCH.STATUS.CHAT.ATTACHMENTS},
+        {text: translateLocal('common.links'), value: CONST.SEARCH.STATUS.CHAT.LINKS},
+        {text: translateLocal('search.filters.pinned'), value: CONST.SEARCH.STATUS.CHAT.PINNED},
+    ];
+}
 
-const invoiceStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
-    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.INVOICE.OUTSTANDING},
-    {translation: 'iou.settledExpensify', value: CONST.SEARCH.STATUS.INVOICE.PAID},
-];
+function getInvoiceStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>> {
+    return [
+        {text: translateLocal('common.outstanding'), value: CONST.SEARCH.STATUS.INVOICE.OUTSTANDING},
+        {text: translateLocal('iou.settledExpensify'), value: CONST.SEARCH.STATUS.INVOICE.PAID},
+    ];
+}
 
-const tripStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
-    {translation: 'search.filters.current', value: CONST.SEARCH.STATUS.TRIP.CURRENT},
-    {translation: 'search.filters.past', value: CONST.SEARCH.STATUS.TRIP.PAST},
-];
+function getTripStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>> {
+    return [
+        {text: translateLocal('search.filters.current'), value: CONST.SEARCH.STATUS.TRIP.CURRENT},
+        {text: translateLocal('search.filters.past'), value: CONST.SEARCH.STATUS.TRIP.PAST},
+    ];
+}
 
-const taskStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
-    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.TASK.OUTSTANDING},
-    {translation: 'search.filters.completed', value: CONST.SEARCH.STATUS.TASK.COMPLETED},
-];
+function getTaskStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>> {
+    return [
+        {text: translateLocal('common.outstanding'), value: CONST.SEARCH.STATUS.TASK.OUTSTANDING},
+        {text: translateLocal('search.filters.completed'), value: CONST.SEARCH.STATUS.TASK.COMPLETED},
+    ];
+}
 
 let currentAccountID: number | undefined;
 Onyx.connect({
@@ -731,9 +737,6 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
     const shouldShowCategory = metadata?.columnsToShow?.shouldShowCategoryColumn;
     const shouldShowTag = metadata?.columnsToShow?.shouldShowTagColumn;
     const shouldShowTax = metadata?.columnsToShow?.shouldShowTaxColumn;
-    const shouldShowTo = metadata?.columnsToShow?.shouldShowToColumn;
-    const shouldShowFrom = metadata?.columnsToShow?.shouldShowFromColumn;
-    const shouldShowDescription = metadata?.columnsToShow?.shouldShowDescriptionColumn;
 
     // Pre-filter transaction keys to avoid repeated checks
     const transactionKeys = Object.keys(data).filter(isTransactionEntry);
@@ -772,9 +775,6 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             shouldShowCategory,
             shouldShowTag,
             shouldShowTax,
-            shouldShowTo,
-            shouldShowFrom,
-            shouldShowDescription,
             keyForList: transactionItem.transactionID,
             shouldShowYear: doesDataContainAPastYearTransaction,
             isAmountColumnWide: shouldShowAmountInWideColumn,
@@ -1209,9 +1209,6 @@ function getReportSections(
                 formattedMerchant,
                 date,
                 shouldShowMerchant,
-                shouldShowDescription: metadata?.columnsToShow.shouldShowDescriptionColumn,
-                shouldShowFrom: metadata?.columnsToShow.shouldShowFromColumn,
-                shouldShowTo: metadata?.columnsToShow.shouldShowToColumn,
                 shouldShowCategory: metadata?.columnsToShow?.shouldShowCategoryColumn,
                 shouldShowTag: metadata?.columnsToShow?.shouldShowTagColumn,
                 shouldShowTax: metadata?.columnsToShow?.shouldShowTaxColumn,
@@ -1339,94 +1336,6 @@ function getSortedSections(
     }
 
     return getSortedTransactionData(data as TransactionListItemType[], localeCompare, sortBy, sortOrder);
-}
-
-/**
- * Determines what columns to show based on available data
- * @param isExpenseReportView: true when we are inside an expense report view, false if we're in the Reports page.
- */
-function getColumnsToShow(data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[], isExpenseReportView = false): Record<SortableColumnName, boolean> {
-    const columns: Record<string, boolean> = isExpenseReportView
-        ? {
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT]: true,
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE]: true,
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE]: true,
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]: false,
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION]: false,
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY]: false,
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG]: false,
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: true,
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT]: true,
-          }
-        : {
-              [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: true,
-              [CONST.SEARCH.TABLE_COLUMNS.TYPE]: true,
-              [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
-              [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.TO]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
-              [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
-              [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
-              [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: true,
-              [CONST.SEARCH.TABLE_COLUMNS.IN]: true,
-          };
-
-    const updateColumns = (transaction: OnyxTypes.Transaction | SearchTransaction) => {
-        const merchant = transaction.modifiedMerchant ? transaction.modifiedMerchant : (transaction.merchant ?? '');
-        if ((merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) || isScanning(transaction)) {
-            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT] = true;
-        }
-
-        if (getDescription(transaction) !== '') {
-            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION] = true;
-        }
-
-        const category = getCategory(transaction);
-        const categoryEmptyValues = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
-        if (category !== '' && !categoryEmptyValues.includes(category)) {
-            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] = true;
-        }
-
-        const tag = getTag(transaction);
-        if (tag !== '' && tag !== CONST.SEARCH.TAG_EMPTY_VALUE) {
-            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG] = true;
-        }
-
-        if (isExpenseReportView) {
-            return;
-        }
-
-        // Handle From&To columns that are only shown in the Reports page
-        // if From or To differ from current user in any transaction, show the columns
-        const accountID = (transaction as SearchTransaction).accountID;
-        if (accountID !== currentAccountID) {
-            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM] = true;
-        }
-
-        const managerID = (transaction as SearchTransaction).managerID;
-        if (managerID && managerID !== currentAccountID && !columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO]) {
-            const report = (data as OnyxTypes.SearchResults['data'])[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
-            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO] = !!report && !isOpenReport(report);
-        }
-    };
-
-    if (Array.isArray(data)) {
-        data.forEach(updateColumns);
-    } else {
-        Object.keys(data).forEach((key) => {
-            if (!isTransactionEntry(key)) {
-                return;
-            }
-            updateColumns(data[key]);
-        });
-    }
-
-    return columns;
 }
 
 /**
@@ -1818,16 +1727,16 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
 function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefined) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.CHAT:
-            return chatStatusOptions;
+            return getChatStatusOptions();
         case CONST.SEARCH.DATA_TYPES.INVOICE:
-            return invoiceStatusOptions;
+            return getInvoiceStatusOptions();
         case CONST.SEARCH.DATA_TYPES.TRIP:
-            return tripStatusOptions;
+            return getTripStatusOptions();
         case CONST.SEARCH.DATA_TYPES.TASK:
-            return taskStatusOptions;
+            return getTaskStatusOptions();
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         default:
-            return groupBy === CONST.SEARCH.GROUP_BY.REPORTS || groupBy === CONST.SEARCH.GROUP_BY.MEMBERS ? expenseReportedStatusOptions : expenseStatusOptions;
+            return groupBy === CONST.SEARCH.GROUP_BY.REPORTS || groupBy === CONST.SEARCH.GROUP_BY.MEMBERS ? getExpenseReportedStatusOptions() : getExpenseStatusOptions();
     }
 }
 
@@ -1889,7 +1798,6 @@ export {
     isReportActionEntry,
     isTaskListItemType,
     getAction,
-    getColumnsToShow,
     createTypeMenuSections,
     createBaseSavedSearchMenuItem,
     shouldShowEmptyState,

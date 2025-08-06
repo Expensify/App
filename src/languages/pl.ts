@@ -5478,6 +5478,17 @@ const translations = {
                     one: '1 dzień',
                     other: (count: number) => `${count} dni`,
                 }),
+                cashExpenseDefault: 'Domyślny wydatek gotówkowy',
+                cashExpenseDefaultDescription:
+                    'Wybierz, jak powinny być tworzone wydatki gotówkowe. Wydatek jest uznawany za gotówkowy, jeśli nie jest importowaną transakcją kartą firmową. Obejmuje to ręcznie tworzone wydatki, paragony, diety, odległości i czas pracy.',
+                reimbursableDefault: 'Zwracany',
+                reimbursableDefaultDescription: 'Wydatki są zazwyczaj zwracane pracownikom',
+                nonReimbursableDefault: 'Niezwracany',
+                nonReimbursableDefaultDescription: 'Wydatki są czasami zwracane pracownikom',
+                alwaysReimbursable: 'Zawsze zwracany',
+                alwaysReimbursableDescription: 'Wydatki są zawsze zwracane pracownikom',
+                alwaysNonReimbursable: 'Nigdy nie zwracany',
+                alwaysNonReimbursableDescription: 'Wydatki nigdy nie są zwracane pracownikom',
                 billableDefault: 'Domyślne do rozliczenia',
                 billableDefaultDescription: 'Wybierz, czy wydatki gotówkowe i na kartę kredytową powinny być domyślnie fakturowalne. Wydatki fakturowalne są włączane lub wyłączane w',
                 billable: 'Podlegające fakturowaniu',
@@ -5776,6 +5787,8 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `zaktualizowano "Ponowne obciążenie klientów kosztami" na "${newValue}" (wcześniej "${oldValue}")`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `zaktualizowano "Domyślny wydatek gotówkowy" na "${newValue}" (wcześniej "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `zmieniono "Wymuś domyślne tytuły raportów" ${value ? 'na' : 'wyłączony'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `zaktualizował nazwę tego miejsca pracy na "${newName}" (wcześniej "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -6275,8 +6288,9 @@ const translations = {
         levelThreeResult: 'Wiadomość usunięta z kanału, dodano anonimowe ostrzeżenie, a wiadomość została zgłoszona do przeglądu.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Zaproś ich',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: 'Zaproś do przesyłania wydatków',
+        inviteToChat: 'Zaproś tylko do czatu',
+        nothing: 'Nie rób nic',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Akceptuj',
