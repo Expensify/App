@@ -130,13 +130,13 @@ function Expensify() {
 
     // This effect is closing OldDot sign out modal based on splash screen state
     useEffect(() => {
-        if (!isSplashReadyToBeHidden || !shouldInit || !hybridApp?.loggedOutFromOldDot) {
+        if (!isSplashReadyToBeHidden || !isNavigationReady || !hasAttemptedToOpenPublicRoom || !hybridApp?.loggedOutFromOldDot) {
             return;
         }
 
         setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
         HybridAppModule.clearOldDotAfterSignOut();
-    }, [hybridApp?.loggedOutFromOldDot, isSplashReadyToBeHidden, setSplashScreenState, shouldInit, splashScreenState]);
+    }, [hasAttemptedToOpenPublicRoom, hybridApp?.loggedOutFromOldDot, isNavigationReady, isSplashReadyToBeHidden, setSplashScreenState]);
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
