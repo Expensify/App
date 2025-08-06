@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
@@ -65,6 +65,9 @@ type KYCWallProps = {
 
     /** Children to build the KYC */
     children: (continueAction: ContinueAction, anchorRef: RefObject<View | null>) => void;
+
+    /** The policy used for payment */
+    policy?: Policy;
 };
 
 type KYCWallRef = {

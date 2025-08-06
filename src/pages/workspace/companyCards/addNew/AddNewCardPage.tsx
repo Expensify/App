@@ -79,7 +79,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         case CONST.COMPANY_CARDS.STEP.CARD_NAME:
             return <CardNameStep />;
         case CONST.COMPANY_CARDS.STEP.CARD_DETAILS:
-            return <DetailsStep policyID={policyID} />;
+            return <DetailsStep />;
         case CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED:
             return <AmexCustomFeed />;
         case CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION:
