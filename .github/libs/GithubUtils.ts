@@ -57,7 +57,6 @@ type CreateCommentResponse = RestEndpointMethodTypes['issues']['createComment'][
 type ListCommentsResponse = RestEndpointMethodTypes['issues']['listComments']['response'];
 
 type StagingDeployCashData = {
-    // TODO: when is this used?
     title: string;
     url: string;
     number: number;

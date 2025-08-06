@@ -26,15 +26,12 @@ function getDeployTableMessage(platformResult: PlatformResult): string {
     }
 }
 
-/**
- * Comment Single PR
- */
-async function commentPR(PR: number, message: string) {
+async function commentPR(PR: number, message: string, repo: string = context.repo.repo) {
     try {
-        await GithubUtils.createComment(context.repo.repo, PR, message);
-        console.log(`Comment created on #${PR} successfully 🎉`);
+        await GithubUtils.createComment(repo, PR, message);
+        console.log(`Comment created on ${repo}#${PR} successfully 🎉`);
     } catch (err) {
-        console.log(`Unable to write comment on #${PR} 😞`);
+        console.log(`Unable to write comment on ${repo}#${PR} 😞`);
         if (err instanceof Error) {
             core.setFailed(err.message);
         }
@@ -47,6 +44,7 @@ const getCommit = memoize(GithubUtils.octokit.git.getCommit);
 
 async function run() {
     const prList = (ActionUtils.getJSONInput('PR_LIST', {required: true}) as string[]).map((num) => Number.parseInt(num, 10));
+    const mobileExpensifyPRList = (ActionUtils.getJSONInput('MOBILE_EXPENSIFY_PR_LIST', {required: false}) as string[] | undefined)?.map((num) => Number.parseInt(num, 10)) ?? [];
     const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true}) as boolean;
     const version = core.getInput('DEPLOY_VERSION', {required: true});
 
@@ -103,6 +101,11 @@ async function run() {
         for (const pr of prList) {
             await commentPR(pr, deployMessage);
         }
+
+        // Comment on Mobile-Expensify PRs as well
+        for (const pr of mobileExpensifyPRList) {
+            await commentPR(pr, deployMessage, CONST.MOBILE_EXPENSIFY_REPO);
+        }
         return;
     }
 
@@ -155,6 +158,70 @@ async function run() {
         } catch (error) {
             if ((error as RequestError).status === 404) {
                 console.log(`Unable to comment on PR #${prNumber}. GitHub responded with 404.`);
+            } else {
+                throw error;
+            }
+        }
+    }
+
+    // Handle Mobile-Expensify PRs for staging deploys
+    // Note: We'll need to fetch tags from Mobile-Expensify repo for cherry-pick detection
+    let mobileExpensifyRecentTags: typeof recentTags = [];
+    try {
+        const response = await GithubUtils.octokit.repos.listTags({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.MOBILE_EXPENSIFY_REPO,
+            per_page: 100,
+        });
+        mobileExpensifyRecentTags = response.data;
+    } catch (error) {
+        if (process.env.GITHUB_REPOSITORY !== 'Expensify/App') {
+            console.warn('Unable to fetch Mobile-Expensify tags from forked repository. This is expected.');
+        } else {
+            console.error('Failed to fetch Mobile-Expensify tags:', error);
+        }
+    }
+
+    for (const prNumber of mobileExpensifyPRList) {
+        try {
+            const {data: pr} = await GithubUtils.octokit.pulls.get({
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.MOBILE_EXPENSIFY_REPO,
+                pull_number: prNumber,
+            });
+
+            // Check for the CP Staging label on the issue to see if it was cherry-picked
+            const isCP = pr.labels.some(({name: labelName}) => labelName === CONST.LABELS.CP_STAGING);
+
+            // Determine the deployer. For most PRs it will be whoever merged the PR.
+            // For CPs it will be whoever created the tag for the PR (i.e: whoever triggered the CP)
+            let deployer = pr.merged_by?.login;
+            if (isCP) {
+                for (const tag of mobileExpensifyRecentTags) {
+                    const {data: commit} = await getCommit({
+                        owner: CONST.GITHUB_OWNER,
+                        repo: CONST.MOBILE_EXPENSIFY_REPO,
+                        commit_sha: tag.commit.sha,
+                    });
+                    const prNumForCPMergeCommit = commit.message.match(/Merge pull request #(\d+)[\S\s]*\(cherry picked from commit .*\)/);
+                    if (prNumForCPMergeCommit?.at(1) === String(prNumber)) {
+                        const cpActor = commit.message.match(/.*\(cherry-picked to .* by (.*)\)/)?.at(1);
+                        if (cpActor) {
+                            deployer = cpActor;
+                        }
+                        break;
+                    }
+                }
+            }
+
+            const title = pr.title;
+            const deployMessage = deployer ? getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', title) : '';
+            await commentPR(prNumber, deployMessage, CONST.MOBILE_EXPENSIFY_REPO);
+        } catch (error) {
+            if ((error as RequestError).status === 404) {
+                console.log(`Unable to comment on Mobile-Expensify PR #${prNumber}. GitHub responded with 404.`);
+            } else if (process.env.GITHUB_REPOSITORY !== 'Expensify/App') {
+                console.warn(`Unable to comment on Mobile-Expensify PR #${prNumber} from forked repository. This is expected.`);
             } else {
                 throw error;
             }
