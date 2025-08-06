@@ -136,6 +136,9 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeFailureDescriptionGenericParams,
+    MergeFailureUncreatedAccountDescriptionParams,
+    MergeSuccessDescriptionParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
@@ -163,6 +166,7 @@ import type {
     PolicyDisabledReportFieldAllOptionsParams,
     PolicyDisabledReportFieldOptionParams,
     PolicyExpenseChatNameParams,
+    QBDSetupErrorBodyParams,
     RailTicketParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
@@ -1601,67 +1605,33 @@ const translations = {
         },
         mergeSuccess: {
             accountsMerged: 'Contas mescladas!',
-            successfullyMergedAllData: {
-                beforeFirstEmail: `Você mesclou com sucesso todos os dados de`,
-                beforeSecondEmail: `em`,
-                afterSecondEmail: `. A partir de agora, você pode usar qualquer login para esta conta.`,
-            },
+            description: ({from, to}: MergeSuccessDescriptionParams) =>
+                `<muted-text><centered-text>Você mesclou com êxito todos os dados de <strong>${from}</strong> em <strong>${to}</strong>. A partir de agora, você pode usar qualquer login para essa conta.</centered-text></muted-text>`,
         },
         mergePendingSAML: {
             weAreWorkingOnIt: 'Estamos trabalhando nisso',
             limitedSupport: 'Ainda não oferecemos suporte para a fusão de contas no New Expensify. Por favor, realize essa ação no Expensify Classic.',
-            reachOutForHelp: {
-                beforeLink: 'Sinta-se à vontade para',
-                linkText: 'entre em contato com o Concierge',
-                afterLink: 'se você tiver alguma dúvida!',
-            },
+            reachOutForHelp:
+                '<muted-text><centered-text>Sinta-se à vontade para entrar em <concierge-link>contato com o Concierge</concierge-link> se tiver alguma dúvida!</centered-text></muted-text>',
             goToExpensifyClassic: 'Ir para Expensify Classic',
         },
-        mergeFailureSAMLDomainControl: {
-            beforeFirstEmail: 'Você não pode mesclar',
-            beforeDomain: 'porque é controlado por',
-            afterDomain: '. Por favor',
-            linkText: 'entre em contato com o Concierge',
-            afterLink: 'para assistência.',
-        },
-        mergeFailureSAMLAccount: {
-            beforeEmail: 'Você não pode mesclar',
-            afterEmail: 'em outras contas porque o administrador do seu domínio definiu como seu login principal. Por favor, mescle outras contas nele.',
-        },
+        mergeFailureSAMLDomainControlDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>Não é possível mesclar o <strong>${email}</strong> porque ele é controlado pelo <strong>${email.split('@').at(1) ?? ''}</strong>. Entre em <concierge-link>contato com o Concierge</concierge-link> para obter ajuda.</centered-text></muted-text>`,
+        mergeFailureSAMLAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>Não é possível mesclar <strong>${email}</strong> com outras contas porque o administrador do domínio o definiu como seu login principal. Em vez disso, mescle outras contas a ele.</centered-text></muted-text>`,
         mergeFailure2FA: {
-            oldAccount2FAEnabled: {
-                beforeFirstEmail: 'Você não pode mesclar contas porque',
-                beforeSecondEmail: 'tem a autenticação de dois fatores (2FA) ativada. Por favor, desative a 2FA para',
-                afterSecondEmail: 'e tente novamente.',
-            },
+            description: ({email}: MergeFailureDescriptionGenericParams) =>
+                `<muted-text><centered-text>Não é possível mesclar contas porque o site <strong>${email}</strong> tem a autenticação de dois fatores (2FA) ativada. Desative a 2FA para <strong>${email}</strong> e tente novamente.</centered-text></muted-text>`,
             learnMore: 'Saiba mais sobre como mesclar contas.',
         },
-        mergeFailureAccountLocked: {
-            beforeEmail: 'Você não pode mesclar',
-            afterEmail: 'porque está bloqueado. Por favor,',
-            linkText: 'entre em contato com o Concierge',
-            afterLink: `para assistência.`,
-        },
-        mergeFailureUncreatedAccount: {
-            noExpensifyAccount: {
-                beforeEmail: 'Você não pode mesclar contas porque',
-                afterEmail: 'não tem uma conta Expensify.',
-            },
-            addContactMethod: {
-                beforeLink: 'Por favor',
-                linkText: 'adicione como um método de contato',
-                afterLink: 'em vez disso.',
-            },
-        },
-        mergeFailureSmartScannerAccount: {
-            beforeEmail: 'Você não pode mesclar',
-            afterEmail: 'em outras contas. Por favor, mescle outras contas nela em vez disso.',
-        },
-        mergeFailureInvoicedAccount: {
-            beforeEmail: 'Você não pode mesclar contas com ',
-            afterEmail: ' porque esta conta possui uma relação de faturamento com nota fiscal emitida.',
-        },
-
+        mergeFailureAccountLockedDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>Não é possível mesclar o site <strong>${email}</strong> porque ele está bloqueado. Entre em <concierge-link>contato com o Concierge</concierge-link> para obter ajuda.</centered-text></muted-text>`,
+        mergeFailureUncreatedAccountDescription: ({email, contactMethodLink}: MergeFailureUncreatedAccountDescriptionParams) =>
+            `<muted-text><centered-text>Não é possível mesclar contas porque <strong>${email}</strong> não tem uma conta Expensify. Em vez disso, <a href="${contactMethodLink}">adicione-o como um método de contato</a>.</centered-text></muted-text>`,
+        mergeFailureSmartScannerAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>Não é possível mesclar <strong>${email}</strong> em outras contas. Em vez disso, mescle outras contas a ela.</centered-text></muted-text>`,
+        mergeFailureInvoicedAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>Não é possível mesclar contas em <strong>${email}</strong> porque essa conta possui uma relação de faturamento.</centered-text></muted-text>`,
         mergeFailureTooManyAttempts: {
             heading: 'Tente novamente mais tarde',
             description: 'Houve muitas tentativas de mesclar contas. Por favor, tente novamente mais tarde.',
@@ -3629,9 +3599,8 @@ const translations = {
                 title: 'Abra este link para conectar',
                 body: 'Para concluir a configuração, abra o seguinte link no computador onde o QuickBooks Desktop está sendo executado.',
                 setupErrorTitle: 'Algo deu errado',
-                setupErrorBody1: 'A conexão do QuickBooks Desktop não está funcionando no momento. Por favor, tente novamente mais tarde ou',
-                setupErrorBody2: 'se o problema persistir.',
-                setupErrorBodyContactConcierge: 'entre em contato com o Concierge',
+                setupErrorBody: ({conciergeLink}: QBDSetupErrorBodyParams) =>
+                    `<muted-text><centered-text>A conexão com o QuickBooks Desktop não está funcionando no momento. Tente novamente mais tarde ou <a href="${conciergeLink}">entre em contato com o Concierge</a> se o problema persistir.</centered-text></muted-text>`,
             },
             importDescription: 'Escolha quais configurações de codificação importar do QuickBooks Desktop para o Expensify.',
             classes: 'Classes',
@@ -5520,6 +5489,17 @@ const translations = {
                     one: '1 dia',
                     other: (count: number) => `${count} dias`,
                 }),
+                cashExpenseDefault: 'Despesa em dinheiro padrão',
+                cashExpenseDefaultDescription:
+                    'Escolha como as despesas em dinheiro devem ser criadas. Uma despesa é considerada em dinheiro se não for uma transação de cartão corporativo importada. Isso inclui despesas criadas manualmente, recibos, diárias, distância e despesas de tempo.',
+                reimbursableDefault: 'Reembolsável',
+                reimbursableDefaultDescription: 'Despesas geralmente são reembolsadas aos funcionários',
+                nonReimbursableDefault: 'Não reembolsável',
+                nonReimbursableDefaultDescription: 'Despesas às vezes são reembolsadas aos funcionários',
+                alwaysReimbursable: 'Sempre reembolsável',
+                alwaysReimbursableDescription: 'Despesas são sempre reembolsadas aos funcionários',
+                alwaysNonReimbursable: 'Nunca reembolsável',
+                alwaysNonReimbursableDescription: 'Despesas nunca são reembolsadas aos funcionários',
                 billableDefault: 'Padrão faturável',
                 billableDefaultDescription: 'Escolha se as despesas em dinheiro e cartão de crédito devem ser faturáveis por padrão. Despesas faturáveis são ativadas ou desativadas em',
                 billable: 'Faturável',
@@ -5819,6 +5799,8 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `atualizou "Refaturar despesas para clientes" para "${newValue}" (anteriormente "${oldValue}")`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `atualizou "Despesa em dinheiro padrão" para "${newValue}" (anteriormente "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `transformado "Aplicar títulos padrão de relatórios" ${value ? 'em' : 'desligado'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `atualizou o nome deste espaço de trabalho para "${newName}" (anteriormente "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -6319,7 +6301,8 @@ const translations = {
         levelThreeResult: 'Mensagem removida do canal, além de um aviso anônimo, e a mensagem foi relatada para revisão.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Convide-os',
+        inviteToSubmitExpense: 'Convidar para enviar despesas',
+        inviteToChat: 'Convidar apenas para conversar',
         nothing: 'Não faça nada',
     },
     actionableMentionJoinWorkspaceOptions: {
@@ -7069,6 +7052,13 @@ const translations = {
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} convidou você para experimentar o Expensify\nEi! Acabei de conseguir *3 meses grátis* para testarmos o Expensify, a maneira mais rápida de lidar com despesas.\n\nAqui está um *recibo de teste* para mostrar como funciona:`,
+    },
+    export: {
+        basicExport: 'Exportação básica',
+        reportLevelExport: 'Todos os dados - nível de relatório',
+        expenseLevelExport: 'Todos os dados - nível de despesa',
+        exportInProgress: 'Exportação em andamento',
+        conciergeWillSend: 'Concierge enviará o arquivo em breve.',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

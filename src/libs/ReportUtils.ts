@@ -155,6 +155,7 @@ import {
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getPolicyChangeLogDefaultBillableMessage,
+    getPolicyChangeLogDefaultReimbursableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getRenamedAction,
@@ -688,6 +689,7 @@ type TransactionDetails = {
     customUnitRateID?: string;
     comment: string;
     category: string;
+    reimbursable: boolean;
     billable: boolean;
     tag: string;
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
@@ -3322,6 +3324,7 @@ function getIcons(
 function getDisplayNamesWithTooltips(
     personalDetailsList: PersonalDetails[] | PersonalDetailsList | OptionData[],
     shouldUseShortForm: boolean,
+    localeCompare: LocaleContextProps['localeCompare'],
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
 ): DisplayNameWithTooltips {
@@ -3350,7 +3353,7 @@ function getDisplayNamesWithTooltips(
         })
         .sort((first, second) => {
             // First sort by displayName/login
-            const displayNameLoginOrder = localeCompareLibs(first.displayName, second.displayName);
+            const displayNameLoginOrder = localeCompare(first.displayName, second.displayName);
             if (displayNameLoginOrder !== 0) {
                 return displayNameLoginOrder;
             }
@@ -3985,6 +3988,7 @@ function getTransactionDetails(
         waypoints: getWaypoints(transaction),
         customUnitRateID: getRateID(transaction),
         category: getCategory(transaction),
+        reimbursable: getReimbursable(transaction),
         billable: getBillable(transaction),
         tag: getTag(transaction),
         mccGroup: getMCCGroup(transaction),
@@ -4181,6 +4185,7 @@ function canEditFieldOfMoneyRequest(
         CONST.EDIT_REQUEST_FIELD.RECEIPT,
         CONST.EDIT_REQUEST_FIELD.DISTANCE,
         CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE,
+        CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
         CONST.EDIT_REQUEST_FIELD.REPORT,
     ];
 
@@ -4213,6 +4218,11 @@ function canEditFieldOfMoneyRequest(
     const policy = getPolicy(moneyRequestReport?.policyID);
     const isAdmin = isExpenseReport(moneyRequestReport) && policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = isExpenseReport(moneyRequestReport) && currentUserAccountID === moneyRequestReport?.managerID;
+    const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
+
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REIMBURSABLE) {
+        return (isAdmin || isManager || isRequestor) && !policy?.disabledFields?.reimbursable;
+    }
 
     if ((fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) && isDistanceRequest(transaction)) {
         return isAdmin || isManager;
@@ -4226,7 +4236,6 @@ function canEditFieldOfMoneyRequest(
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
-        const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
         return (
             !isInvoiceReport(moneyRequestReport) &&
             !isReceiptBeingScanned(transaction) &&
@@ -4772,6 +4781,12 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.currency = getCurrency(oldTransaction);
     }
 
+    if ('reimbursable' in transactionChanges) {
+        const oldReimbursable = getReimbursable(oldTransaction);
+        originalMessage.oldReimbursable = oldReimbursable ? translateLocal('common.reimbursable').toLowerCase() : translateLocal('iou.nonReimbursable').toLowerCase();
+        originalMessage.reimbursable = transactionChanges?.reimbursable ? translateLocal('common.reimbursable').toLowerCase() : translateLocal('iou.nonReimbursable').toLowerCase();
+    }
+
     if ('billable' in transactionChanges) {
         const oldBillable = getBillable(oldTransaction);
         originalMessage.oldBillable = oldBillable ? translateLocal('common.billable').toLowerCase() : translateLocal('common.nonBillable').toLowerCase();
@@ -5162,6 +5177,9 @@ function getReportNameInternal({
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE)) {
         return getPolicyChangeLogDefaultBillableMessage(parentReportAction);
     }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_REIMBURSABLE)) {
+        return getPolicyChangeLogDefaultReimbursableMessage(parentReportAction);
+    }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED)) {
         return getPolicyChangeLogDefaultTitleEnforcedMessage(parentReportAction);
     }
@@ -5173,7 +5191,7 @@ function getReportNameInternal({
     if (isMoneyRequestAction(parentReportAction)) {
         const originalMessage = getOriginalMessage(parentReportAction);
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        const last4Digits = reportPolicy?.achAccount?.accountNumber.slice(-4) ?? '';
+        const last4Digits = reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
 
         if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
@@ -6710,6 +6728,7 @@ function buildOptimisticReportPreview(
         actorAccountID: hasReceipt ? currentUserAccountID : reportActorAccountID,
         childReportID: childReportID ?? iouReport?.reportID,
         childMoneyRequestCount: 1,
+        isOptimisticAction: true,
         childLastActorAccountID: currentUserAccountID,
         childLastMoneyRequestComment: comment,
         childRecentReceiptTransactionIDs: hasReceipt && !isEmptyObject(transaction) && transaction?.transactionID ? {[transaction.transactionID]: created} : undefined,
@@ -9237,7 +9256,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
     let translationKey: TranslationPaths;
     if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        const last4Digits = reportPolicy?.achAccount?.accountNumber.slice(-4) ?? '';
+        const last4Digits = reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
 
         switch (originalMessage.paymentType) {
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
@@ -9816,10 +9835,6 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isRe
     }
 
     if (isPolicyExpenseChat(report) && !report?.isOwnPolicyExpenseChat && !isPolicyAdminPolicyUtils(policy)) {
-        return true;
-    }
-
-    if (isMoneyRequestReport(report) && currentUserAccountID !== report?.managerID && currentUserAccountID !== report?.ownerAccountID && !isPolicyAdminPolicyUtils(policy)) {
         return true;
     }
 
@@ -11310,10 +11325,6 @@ function getReportStatusTranslation(stateNum?: number, statusNum?: number): stri
     return '';
 }
 
-function reportAttributesSelector(reportAttributes: OnyxEntry<ReportAttributesDerivedValue>) {
-    return reportAttributes?.reports;
-}
-
 export {
     areAllRequestsBeingSmartScanned,
     buildOptimisticAddCommentReportAction,
@@ -11695,7 +11706,6 @@ export {
     isWorkspaceTaskReport,
     isWorkspaceThread,
     getReportStatusTranslation,
-    reportAttributesSelector,
 };
 
 export type {
