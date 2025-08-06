@@ -47,6 +47,12 @@ describe('ValidationUtils', () => {
             const isValid = isValidDate(futureDate);
             expect(isValid).toBe(false);
         });
+
+        test('Should return false for a invalid date format', () => {
+            const validDate = '2025-07';
+            const isValid = isValidDate(validDate, true);
+            expect(isValid).toBe(false);
+        });
     });
 
     describe('isValidPastDate', () => {

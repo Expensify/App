@@ -60,13 +60,22 @@ function isValidAddress(value: FormValue): boolean {
 /**
  * Validate date fields
  */
-function isValidDate(date: string | Date): boolean {
+function isValidDate(date: string | Date, isStrict = false): boolean {
     if (!date) {
         return false;
     }
 
     const pastDate = subYears(new Date(), 1000);
     const futureDate = addYears(new Date(), 1000);
+
+    if (isStrict && typeof date === 'string') {
+        const parsedDate = parse(date, 'yyyy-MM-dd', new Date());
+        if (!isValid(parsedDate)) {
+            return false;
+        }
+        return isAfter(parsedDate, pastDate) && isBefore(parsedDate, futureDate);
+    }
+
     const testDate = new Date(date);
     return isValid(testDate) && isAfter(testDate, pastDate) && isBefore(testDate, futureDate);
 }
