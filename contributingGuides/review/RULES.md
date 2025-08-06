@@ -102,36 +102,7 @@ return <ReportActionItem report={report} />
 
 ---
 
-### [PERF-5] Avoid inline object/array/function creation in JSX
-- **Condition**: Objects, arrays, and functions should not be created inline in JSX. Use `useMemo` or `useCallback` to memoize them when there's actual performance benefit.
-- **Reasoning**: Inline creation generates new instances on every render, breaking React's reconciliation optimizations and forcing child component re-renders. Memoization moves the creation cost outside the render cycle and enables proper optimization.
-
-Good:
-```tsx
-const reportActionItemStyle = useMemo(() => [styles.container, styles.flex], []);
-const handleSelect = useCallback(() => {
-    onSelectRow(item);
-}, [onSelectRow, item]);
-
-<ReportActionItem
-    style={reportActionItemStyle}
-    onSelect={handleSelect}
-    reportID={report.reportID}
-/>
-```
-
-Bad:
-```tsx
-<ReportActionItem
-    style={[styles.container, styles.flex]}
-    onSelect={() => onSelectRow(item)}
-    reportID={report.reportID}
-/>
-```
-
----
-
-### [PERF-6] Use shallow comparisons instead of deep comparisons
+### [PERF-5] Use shallow comparisons instead of deep comparisons
 - **Condition**: In `React.memo` and similar optimization functions, compare only specific relevant properties instead of using deep equality checks.
 - **Reasoning**: Deep equality checks recursively compare all nested properties, creating performance overhead that often exceeds the re-render cost they aim to prevent. Shallow comparisons of specific relevant properties provide the same optimization benefits with minimal computational cost.
 
@@ -154,7 +125,7 @@ memo(ReportActionItem, (prevProps, nextProps) =>
 
 ---
 
-### [PERF-7] Use specific properties as hook dependencies
+### [PERF-6] Use specific properties as hook dependencies
 - **Condition**: In `useEffect`, `useMemo`, and `useCallback`, specify individual object properties as dependencies instead of passing entire objects.
 - **Reasoning**: Passing entire objects as dependencies causes hooks to re-execute whenever any property changes, even unrelated ones. Specifying individual properties creates more granular dependency tracking, reducing unnecessary hook executions and improving performance predictability.
 
