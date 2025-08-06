@@ -1,5 +1,6 @@
 import {useIsFocused} from '@react-navigation/core';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -33,14 +34,28 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type Transaction from '@src/types/onyx/Transaction';
 import KeyboardUtils from '@src/utils/keyboard';
+import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+
+const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
+    policy && {
+        id: policy.id,
+        name: policy.name,
+        type: policy.type,
+        role: policy.role,
+        owner: policy.owner,
+        outputCurrency: policy.outputCurrency,
+        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
+        customUnits: policy.customUnits,
+    };
 
 type IOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS>;
@@ -60,6 +75,8 @@ function IOURequestStepParticipants({
         selector: (items) => Object.values(items ?? {}),
         canBeMissing: true,
     });
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, policySelector), canBeMissing: true});
+    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const transactions = useMemo(() => {
         const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? (optimisticTransactions ?? []) : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
@@ -154,7 +171,7 @@ function IOURequestStepParticipants({
             return;
         }
 
-        const rateID = DistanceRequestUtils.getCustomUnitRateID(selfDMReportID);
+        const rateID = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
         transactions.forEach((transaction) => {
             setCustomUnitRateID(transaction.transactionID, rateID);
             const shouldSetParticipantAutoAssignment = iouType === CONST.IOU.TYPE.CREATE;
@@ -193,7 +210,9 @@ function IOURequestStepParticipants({
             if (!isMovingTransactionFromTrackExpense) {
                 // If not moving the transaction from track expense, select the default rate automatically.
                 // Otherwise, keep the original p2p rate and let the user manually change it to the one they want from the workspace.
-                const rateID = DistanceRequestUtils.getCustomUnitRateID(firstParticipantReportID);
+                const isPolicyExpenseChat = !!firstParticipant?.isPolicyExpenseChat;
+                const policy = isPolicyExpenseChat ? allPolicies?.[firstParticipant?.policyID ?? ''] : undefined;
+                const rateID = DistanceRequestUtils.getCustomUnitRateID({reportID: firstParticipantReportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
                 transactions.forEach((transaction) => {
                     setCustomUnitRateID(transaction.transactionID, rateID);
                 });
@@ -211,7 +230,7 @@ function IOURequestStepParticipants({
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             selectedReportID.current = firstParticipantReportID || generateReportID();
         },
-        [iouType, transactions, isMovingTransactionFromTrackExpense, reportID, trackExpense],
+        [iouType, transactions, isMovingTransactionFromTrackExpense, reportID, trackExpense, allPolicies, lastSelectedDistanceRates],
     );
 
     const goToNextStep = useCallback(() => {

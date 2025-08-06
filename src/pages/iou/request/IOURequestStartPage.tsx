@@ -64,6 +64,7 @@ function IOURequestStartPage({
     const isLoadingSelectedTab = shouldUseTab ? isLoadingOnyxValue(selectedTabResult) : false;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) => Object.values(items ?? {}),
         canBeMissing: true,
@@ -129,6 +130,7 @@ function IOURequestStartPage({
             newIouRequestType: transaction?.iouRequestType,
             report,
             parentReport,
+            lastSelectedDistanceRates,
         });
         // eslint-disable-next-line
     }, []);
@@ -148,9 +150,10 @@ function IOURequestStartPage({
                 newIouRequestType: newIOUType,
                 report,
                 parentReport,
+                lastSelectedDistanceRates,
             });
         },
-        [policy, reportID, isFromGlobalCreate, transaction, report, parentReport],
+        [transaction?.iouRequestType, reportID, policy, isFromGlobalCreate, report, parentReport, lastSelectedDistanceRates],
     );
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.

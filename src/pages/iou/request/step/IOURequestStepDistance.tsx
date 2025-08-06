@@ -87,6 +87,7 @@ function IOURequestStepDistance({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: false});
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: false});
+    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
     const waypoints = useMemo(
         () =>
@@ -342,6 +343,8 @@ function IOURequestStepDistance({
                     return;
                 }
 
+                const isPolicyExpenseChat = !!participant?.isPolicyExpenseChat;
+
                 createDistanceRequest({
                     report,
                     participants,
@@ -357,7 +360,7 @@ function IOURequestStepDistance({
                         merchant: translate('iou.fieldPending'),
                         billable: !!policy?.defaultBillable,
                         validWaypoints: getValidWaypoints(waypoints, true),
-                        customUnitRateID: DistanceRequestUtils.getCustomUnitRateID(report.reportID),
+                        customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({reportID: report.reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates}),
                         splitShares: transaction?.splitShares,
                         attendees: transaction?.comment?.attendees,
                     },
@@ -375,7 +378,12 @@ function IOURequestStepDistance({
         // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
         if (iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
-            const rateID = DistanceRequestUtils.getCustomUnitRateID(activePolicyExpenseChat?.reportID);
+            const rateID = DistanceRequestUtils.getCustomUnitRateID({
+                reportID: activePolicyExpenseChat?.reportID,
+                isPolicyExpenseChat: true,
+                policy: activePolicy,
+                lastSelectedDistanceRates,
+            });
             setCustomUnitRateID(transactionID, rateID);
             setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
                 Navigation.navigate(
@@ -411,6 +419,7 @@ function IOURequestStepDistance({
         customUnitRateID,
         navigateToConfirmationPage,
         reportID,
+        lastSelectedDistanceRates,
     ]);
 
     const getError = () => {
