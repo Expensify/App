@@ -6310,7 +6310,7 @@ const CONST = {
         },
         WITHDRAWAL_TYPE: {
             REIMBURSEMENT: 'reimbursement',
-            EXPENSIFY_CARD: 'expensifyCard',
+            EXPENSIFY_CARD: 'expensify-card',
         },
         TABLE_COLUMN_SIZES: {
             NORMAL: 'normal',
