@@ -3409,6 +3409,7 @@ const translations = {
             travel: 'Viagem',
             members: 'Membros',
             accounting: 'Contabilidade',
+            receiptPartners: 'Parceiros de recibos',
             rules: 'Regras',
             displayedAs: 'Exibido como',
             plan: 'Plano',
@@ -4615,11 +4616,20 @@ const translations = {
                 title: 'Contabilidade',
                 subtitle: 'Sincronize seu plano de contas e mais.',
             },
+            receiptPartners: {
+                title: 'Parceiros de recibos',
+                subtitle: 'Importar recibos automaticamente.',
+            },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Não tão rápido...',
                 featureEnabledText: 'Para ativar ou desativar este recurso, você precisará alterar suas configurações de importação de contabilidade.',
                 disconnectText: 'Para desativar a contabilidade, você precisará desconectar sua conexão contábil do seu espaço de trabalho.',
                 manageSettings: 'Gerenciar configurações',
+            },
+            receiptPartnersWarningModal: {
+                featureEnabledTitle: 'Desconectar Uber',
+                disconnectText: 'Para desativar este recurso, desconecte primeiro a integração do Uber for Business.',
+                confirmText: 'Entendi',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Não tão rápido...',

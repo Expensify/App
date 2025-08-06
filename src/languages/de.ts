@@ -3391,6 +3391,7 @@ const translations = {
             travel: 'Reisen',
             members: 'Mitglieder',
             accounting: 'Buchhaltung',
+            receiptPartners: 'Beleg-Partner',
             rules: 'Regeln',
             displayedAs: 'Angezeigt als',
             plan: 'Plan',
@@ -4603,11 +4604,20 @@ const translations = {
                 title: 'Buchhaltung',
                 subtitle: 'Synchronisieren Sie Ihren Kontenplan und mehr.',
             },
+            receiptPartners: {
+                title: 'Beleg-Partner',
+                subtitle: 'Automatischer Import von Belegen.',
+            },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Nicht so schnell...',
                 featureEnabledText: 'Um diese Funktion zu aktivieren oder zu deaktivieren, müssen Sie Ihre Buchhaltungsimporteinstellungen ändern.',
                 disconnectText: 'Um die Buchhaltung zu deaktivieren, müssen Sie Ihre Buchhaltungsverbindung von Ihrem Arbeitsbereich trennen.',
                 manageSettings: 'Einstellungen verwalten',
+            },
+            receiptPartnersWarningModal: {
+                featureEnabledTitle: 'Uber trennen',
+                disconnectText: 'Um diese Funktion zu deaktivieren, trennen Sie bitte zuerst die Uber for Business Integration.',
+                confirmText: 'Verstanden',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Nicht so schnell...',
