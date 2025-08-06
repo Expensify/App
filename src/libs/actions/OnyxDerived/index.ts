@@ -17,7 +17,7 @@ import {setDerivedValue} from './utils';
 
 /**
  * Initialize all Onyx derived values, store them in Onyx, and setup listeners to update them when dependencies change.
- * Using connectWithoutView in this function since this is only runned once while initializing the App.
+ * Using connectWithoutView in this function since this is only executed once while initializing the App.
  */
 function init() {
     for (const [key, {compute, dependencies}] of ObjectUtils.typedEntries(ONYX_DERIVED_VALUES)) {

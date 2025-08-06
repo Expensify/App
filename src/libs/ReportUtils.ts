@@ -4517,7 +4517,7 @@ function getTransactionReportName({
     const formattedAmount = convertToDisplayString(amount, getCurrency(transaction)) ?? '';
     const comment = getMerchantOrDescription(transaction);
 
-    return translateLocal('iou.threadExpenseReportName', {formattedAmount, comment});
+    return translateLocal('iou.threadExpenseReportName', {formattedAmount, comment: Parser.htmlToText(comment)});
 }
 
 /**
@@ -5172,7 +5172,7 @@ function getReportNameInternal({
     if (isMoneyRequestAction(parentReportAction)) {
         const originalMessage = getOriginalMessage(parentReportAction);
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        const last4Digits = reportPolicy?.achAccount?.accountNumber.slice(-4) ?? '';
+        const last4Digits = reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
 
         if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
@@ -5430,7 +5430,7 @@ function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers:
 /**
  * Gets the parent navigation subtitle for the report
  */
-function getParentNavigationSubtitle(report: OnyxEntry<Report>, policy?: Policy): ParentNavigationSummaryParams {
+function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
     if (isEmptyObject(parentReport)) {
         const ownerAccountID = report?.ownerAccountID;
@@ -5442,7 +5442,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, policy?: Policy)
         if (isExpenseReport(report)) {
             return {
                 reportName: translateLocal('workspace.common.policyExpenseChatName', {displayName: reportOwnerDisplayName ?? ''}),
-                workspaceName: policy?.name,
+                workspaceName: getPolicyName({report}),
             };
         }
         if (isIOUReport(report)) {
@@ -6709,6 +6709,7 @@ function buildOptimisticReportPreview(
         actorAccountID: hasReceipt ? currentUserAccountID : reportActorAccountID,
         childReportID: childReportID ?? iouReport?.reportID,
         childMoneyRequestCount: 1,
+        isOptimisticAction: true,
         childLastActorAccountID: currentUserAccountID,
         childLastMoneyRequestComment: comment,
         childRecentReceiptTransactionIDs: hasReceipt && !isEmptyObject(transaction) && transaction?.transactionID ? {[transaction.transactionID]: created} : undefined,
@@ -9236,7 +9237,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
     let translationKey: TranslationPaths;
     if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        const last4Digits = reportPolicy?.achAccount?.accountNumber.slice(-4) ?? '';
+        const last4Digits = reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
 
         switch (originalMessage.paymentType) {
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
