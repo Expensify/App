@@ -72,7 +72,11 @@ function GenericErrorPage({error}: {error?: Error}) {
                                         <Button
                                             text={translate('initialSettingsPage.signOut')}
                                             onPress={() => {
-                                                signOutAndRedirectToSignIn(undefined, undefined, true, undefined, network?.isOffline, network?.shouldForceOffline);
+                                                signOutAndRedirectToSignIn({
+                                                    shouldSignOutFromOldDot: true,
+                                                    isOffline: network?.isOffline,
+                                                    shouldForceOffline: network?.shouldForceOffline,
+                                                });
                                                 refreshPage();
                                             }}
                                         />

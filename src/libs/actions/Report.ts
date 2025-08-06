@@ -3421,7 +3421,7 @@ function openReportFromDeepLink(
 
                     Navigation.waitForProtectedRoutes().then(() => {
                         if (route && isAnonymousUser() && !canAnonymousUserAccessRoute(route)) {
-                            signOutAndRedirectToSignIn(true);
+                            signOutAndRedirectToSignIn({shouldResetToHome: true});
                             return;
                         }
 

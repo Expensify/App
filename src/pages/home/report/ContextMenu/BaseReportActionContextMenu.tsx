@@ -265,7 +265,11 @@ function BaseReportActionContextMenu({
             hideContextMenu(false);
 
             InteractionManager.runAfterInteractions(() => {
-                signOutAndRedirectToSignIn(undefined, undefined, true, undefined, network?.isOffline, network?.shouldForceOffline);
+                signOutAndRedirectToSignIn({
+                    shouldSignOutFromOldDot: true,
+                    isOffline: network?.isOffline,
+                    shouldForceOffline: network?.shouldForceOffline,
+                });
             });
         } else {
             callback();

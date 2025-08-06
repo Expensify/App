@@ -137,14 +137,17 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const signOut = useCallback(
         (shouldForceSignout = false) => {
             if (!network.isOffline || shouldForceSignout) {
-                signOutAndRedirectToSignIn(undefined, undefined, undefined, undefined, networkOnyx?.isOffline, networkOnyx?.shouldForceOffline);
+                signOutAndRedirectToSignIn({
+                    isOffline: networkOnyx?.isOffline,
+                    shouldForceOffline: networkOnyx?.shouldForceOffline,
+                });
                 return;
             }
 
             // When offline, warn the user that any actions they took while offline will be lost if they sign out
             toggleSignoutConfirmModal(true);
         },
-        [network.isOffline],
+        [network.isOffline, networkOnyx?.isOffline, networkOnyx?.shouldForceOffline],
     );
 
     /**

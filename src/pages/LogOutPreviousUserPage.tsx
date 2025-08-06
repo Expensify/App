@@ -36,7 +36,13 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
 
         if (isLoggingInAsNewUser) {
             // We don't want to close react-native app in this particular case.
-            signOutAndRedirectToSignIn(false, isSupportalLogin, false, undefined, network?.isOffline, network?.shouldForceOffline);
+            signOutAndRedirectToSignIn({
+                shouldResetToHome: false,
+                shouldStashSession: isSupportalLogin,
+                shouldSignOutFromOldDot: false,
+                isOffline: network?.isOffline,
+                shouldForceOffline: network?.shouldForceOffline,
+            });
             return;
         }
 

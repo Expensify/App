@@ -250,7 +250,23 @@ function isExpiredSession(sessionCreationDate: number): boolean {
     return new Date().getTime() - sessionCreationDate >= CONST.SESSION_EXPIRATION_TIME_MS;
 }
 
-function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, shouldSignOutFromOldDot = true, shouldForceUseStashedSession?: boolean, isOffline?: boolean, shouldForceOffline?: boolean) {
+type SignOutAndRedirectToSignInParams = {
+    shouldResetToHome?: boolean;
+    shouldStashSession?: boolean;
+    shouldSignOutFromOldDot?: boolean;
+    shouldForceUseStashedSession?: boolean;
+    isOffline?: boolean;
+    shouldForceOffline?: boolean;
+};
+
+function signOutAndRedirectToSignIn({
+    shouldResetToHome,
+    shouldStashSession,
+    shouldSignOutFromOldDot = true,
+    shouldForceUseStashedSession,
+    isOffline,
+    shouldForceOffline,
+}: SignOutAndRedirectToSignInParams = {}) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
 
@@ -1447,3 +1463,5 @@ export {
     resetSMSDeliveryFailureStatus,
     clearDisableTwoFactorAuthErrors,
 };
+
+export type {SignOutAndRedirectToSignInParams};
