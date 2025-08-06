@@ -34,7 +34,7 @@ describe('[CustomFormula] Performance Tests', () => {
         });
 
         test('[CustomFormula] extract() with nested braces', async () => {
-            const formula = '{report:created:yyyy-MM-dd} - {field:custom_field|substr:0:10} - {user:email|frontPart}';
+            const formula = '{report:{report:submit:from:firstName|substr:2}}';
             await measureFunction(() => extract(formula));
         });
 

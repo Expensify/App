@@ -208,10 +208,10 @@ function compute(formula: string, context: FormulaContext): string {
                 value = computeReportPart(part, context);
                 break;
             case FORMULA_PART_TYPES.FIELD:
-                value = computeFieldPart(part, context);
+                value = computeFieldPart(part);
                 break;
             case FORMULA_PART_TYPES.USER:
-                value = computeUserPart(part, context);
+                value = computeUserPart(part);
                 break;
             case FORMULA_PART_TYPES.FREETEXT:
                 value = part.definition;

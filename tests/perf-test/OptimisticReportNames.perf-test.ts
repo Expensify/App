@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
-import {computeNameForNewReport, computeReportNameIfNeeded, updateOptimisticReportNamesFromUpdates} from '@libs/OptimisticReportNames';
+import {computeReportNameIfNeeded, updateOptimisticReportNamesFromUpdates} from '@libs/OptimisticReportNames';
 import type {UpdateContext} from '@libs/OptimisticReportNames';
 import * as ReportUtils from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -80,22 +80,6 @@ describe('[OptimisticReportNames] Performance Tests', () => {
     });
 
     describe('Single Report Name Computation', () => {
-        test('[OptimisticReportNames] computeNameForNewReport() single report', async () => {
-            const update = {
-                key: 'report_123',
-                onyxMethod: Onyx.METHOD.SET,
-                value: {
-                    reportID: '123',
-                    policyID: 'policy1',
-                    total: -10000,
-                    currency: 'USD',
-                    lastVisibleActionCreated: new Date().toISOString(),
-                },
-            };
-
-            await measureFunction(() => computeNameForNewReport(update, mockContext));
-        });
-
         test('[OptimisticReportNames] computeReportNameIfNeeded() single report', async () => {
             const report = Object.values(mockReports)[0];
             const update = {
@@ -188,7 +172,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
 
     describe('Large Dataset Performance', () => {
         test('[OptimisticReportNames] processing with large context (1000 reports)', async () => {
-            const updates = Array.from({length: 20}, (_, i) => ({
+            const updates = Array.from({length: 1000}, (_, i) => ({
                 key: `report_large${i}`,
                 onyxMethod: Onyx.METHOD.SET,
                 value: {

@@ -132,9 +132,7 @@ function shouldComputeReportName(report: Report, policy: Policy | undefined): bo
     if (!titleField?.defaultValue) {
         return false;
     }
-
-    // Check if the formula contains formula parts
-    return Formula.isFormula(titleField.defaultValue);
+    return true;
 }
 
 function isValidReportType(reportType?: string): boolean {
@@ -148,69 +146,6 @@ function isValidReportType(reportType?: string): boolean {
         reportType === CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK ||
         reportType === 'trip'
     );
-}
-
-/**
- * Compute a report name for a new report being created
- * This handles the case where the report doesn't exist in context yet
- */
-function computeNameForNewReport(update: OnyxUpdate, context: UpdateContext): string | null {
-    Performance.markStart(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
-    Timing.start(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
-
-    Log.info('[OptimisticReportNames] Computing name for new report', false, {
-        updateKey: update.key,
-        reportID: (update.value as Report)?.reportID,
-    });
-
-    const {allPolicies} = context;
-
-    // Extract the new report data from the update
-    const newReport = update.value as Report;
-    if (!newReport?.policyID) {
-        Performance.markEnd(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
-        Timing.end(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
-        return null;
-    }
-
-    const policy = getPolicyByID(newReport.policyID, allPolicies);
-    if (!shouldComputeReportName(newReport, policy)) {
-        Performance.markEnd(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
-        Timing.end(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
-        return null;
-    }
-
-    const titleField = ReportUtils.getTitleReportField(policy?.fieldList ?? {});
-    if (!titleField?.defaultValue) {
-        Performance.markEnd(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
-        Timing.end(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
-        return null;
-    }
-
-    // Build context for formula computation
-    const formulaContext: Formula.FormulaContext = {
-        report: newReport,
-        policy,
-    };
-
-    const newName = Formula.compute(titleField.defaultValue, formulaContext);
-
-    if (newName && newName !== newReport.reportName) {
-        Log.info('[OptimisticReportNames] New report name computed successfully', false, {
-            reportID: newReport.reportID,
-            oldName: newReport.reportName,
-            newName,
-            formula: titleField.defaultValue,
-        });
-
-        Performance.markEnd(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
-        Timing.end(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
-        return newName;
-    }
-
-    Performance.markEnd(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
-    Timing.end(CONST.TIMING.COMPUTE_REPORT_NAME_FOR_NEW_REPORT);
-    return null;
 }
 
 /**
@@ -233,10 +168,12 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
 
     const policy = getPolicyByID(targetReport.policyID ?? '', allPolicies);
     if (!shouldComputeReportName(targetReport, policy)) {
+        console.log('morwa cancel');
         Performance.markEnd(CONST.TIMING.COMPUTE_REPORT_NAME);
         Timing.end(CONST.TIMING.COMPUTE_REPORT_NAME);
         return null;
     }
+    console.log('morwa continue');
 
     const titleField = ReportUtils.getTitleReportField(policy?.fieldList ?? {});
     if (!titleField?.defaultValue) {
@@ -403,4 +340,4 @@ function createUpdateContext(): Promise<UpdateContext> {
     return getUpdateContextAsync();
 }
 
-export {updateOptimisticReportNamesFromUpdates, computeReportNameIfNeeded, computeNameForNewReport, createUpdateContext, shouldComputeReportName};
+export {updateOptimisticReportNamesFromUpdates, computeReportNameIfNeeded, createUpdateContext, shouldComputeReportName};

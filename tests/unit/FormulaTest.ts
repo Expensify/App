@@ -22,7 +22,7 @@ describe('CustomFormula', () => {
         });
 
         test('should handle nested braces', () => {
-            expect(extract('{report:created:yyyy-MM-dd}')).toEqual(['{report:created:yyyy-MM-dd}']);
+            expect(extract('{report:{report:submit:from:firstName|substr:2}}')).toEqual(['{report:{report:submit:from:firstName|substr:2}}']);
         });
 
         test('should handle escaped braces', () => {
