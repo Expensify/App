@@ -454,6 +454,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.BILLABLE ||
                     filterKey === FILTER_KEYS.TITLE ||
                     filterKey === FILTER_KEYS.PAYER ||
+                    filterKey === FILTER_KEYS.GROUP_CURRENCY ||
                     filterKey === FILTER_KEYS.ACTION) &&
                 filterValue
             ) {
