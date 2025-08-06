@@ -12,7 +12,7 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {CustomStylesForChildrenContext} from './CustomStylesForChildrenProvider';
 
 type TextProps = RNTextProps &
-    Omit<ChildrenProps, 'ref'> & {
+    ChildrenProps & {
         /** The color of the text */
         color?: string;
 
