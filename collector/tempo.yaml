@@ -35,7 +35,7 @@ metrics_generator:
   storage:
     path: /var/tempo/generator/wal
     remote_write:
-      - url: http://prometheus:9090/api/v1/write
+      - url: http://victoriametrics:8428/api/v1/write
         send_exemplars: true
   traces_storage:
     path: /var/tempo/generator/traces

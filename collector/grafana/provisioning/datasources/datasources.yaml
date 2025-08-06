@@ -1,14 +1,14 @@
 apiVersion: 1
 
 datasources:
-- name: Prometheus
+- name: VictoriaMetrics
   type: prometheus
-  uid: prometheus
+  uid: victoriametrics
   access: proxy
   orgId: 1
-  url: http://prometheus:9090
+  url: http://victoriametrics:8428
   basicAuth: false
-  isDefault: false
+  isDefault: true
   version: 1
   editable: false
   jsonData:
@@ -19,7 +19,7 @@ datasources:
   orgId: 1
   url: http://tempo:3200
   basicAuth: false
-  isDefault: true
+  isDefault: false
   version: 1
   editable: false
   apiVersion: 1
@@ -27,6 +27,6 @@ datasources:
   jsonData:
     httpMethod: GET
     serviceMap:
-      datasourceUid: prometheus
+      datasourceUid: victoriametrics
     streamingEnabled:
       search: true
