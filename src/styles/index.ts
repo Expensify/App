@@ -5768,8 +5768,9 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
         },
 
-        heightAuto: {
+        flexibleHeight: {
             height: 'auto',
+            minHeight: 200,
         },
 
         wideRHPMoneyRequestReceiptViewContainer: {
