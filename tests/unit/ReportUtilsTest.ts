@@ -547,7 +547,7 @@ describe('ReportUtils', () => {
 
     describe('getDisplayNamesWithTooltips', () => {
         test('withSingleParticipantReport', () => {
-            const participants = getDisplayNamesWithTooltips(participantsPersonalDetails, false);
+            const participants = getDisplayNamesWithTooltips(participantsPersonalDetails, false, localeCompare);
             expect(participants).toHaveLength(5);
 
             expect(participants.at(0)?.displayName).toBe('(833) 240-3627');
@@ -4549,80 +4549,6 @@ describe('ReportUtils', () => {
             };
 
             expect(canLeaveChat(report, reportPolicy)).toBe(true);
-        });
-
-        describe('when the report is a money report', () => {
-            it('should return false for the owner of the report', async () => {
-                const report: Report = {
-                    ...createRandomReport(1),
-                    chatType: undefined,
-                    type: CONST.REPORT.TYPE.IOU,
-                    ownerAccountID: currentUserAccountID,
-                };
-
-                await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
-
-                const reportPolicy: Policy = {
-                    ...createRandomPolicy(1),
-                    role: CONST.POLICY.ROLE.USER,
-                };
-
-                expect(canLeaveChat(report, reportPolicy)).toBe(false);
-            });
-
-            it('should return false for the manager of the report', async () => {
-                const report: Report = {
-                    ...createRandomReport(1),
-                    chatType: undefined,
-                    type: CONST.REPORT.TYPE.IOU,
-                    managerID: currentUserAccountID,
-                };
-
-                await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
-
-                const reportPolicy: Policy = {
-                    ...createRandomPolicy(1),
-                    role: CONST.POLICY.ROLE.USER,
-                };
-
-                expect(canLeaveChat(report, reportPolicy)).toBe(false);
-            });
-
-            it('should return false for the admin of the policy', async () => {
-                const report: Report = {
-                    ...createRandomReport(1),
-                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                };
-
-                await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
-
-                const reportPolicy: Policy = {
-                    ...createRandomPolicy(1),
-                    role: CONST.POLICY.ROLE.ADMIN,
-                };
-
-                expect(canLeaveChat(report, reportPolicy)).toBe(false);
-            });
-
-            it('should return true for the invited user', async () => {
-                const report: Report = {
-                    ...createRandomReport(1),
-                    chatType: undefined,
-                    type: CONST.REPORT.TYPE.IOU,
-                    ownerAccountID: 1,
-                    managerID: 2,
-                };
-
-                await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
-
-                const reportPolicy: Policy = {
-                    ...createRandomPolicy(1),
-                    role: CONST.POLICY.ROLE.USER,
-                };
-
-                expect(canLeaveChat(report, reportPolicy)).toBe(true);
-            });
         });
     });
 
