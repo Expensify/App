@@ -65,6 +65,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const [walletTerms = getEmptyObject<OnyxTypes.WalletTerms>()] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const isUserValidated = userAccount?.validated ?? false;
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
@@ -295,11 +296,18 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         const fundID = paymentMethod.selectedPaymentMethod.fundID;
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && bankAccountID) {
             const bankAccount = bankAccountList?.[paymentMethod.methodID] ?? {};
-            deletePaymentBankAccount(bankAccountID, undefined, bankAccount);
+            deletePaymentBankAccount(bankAccountID, lastUsedPaymentMethods, bankAccount);
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && fundID) {
             deletePaymentCard(fundID);
         }
-    }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethod.fundID, paymentMethod.selectedPaymentMethodType, paymentMethod.methodID, bankAccountList]);
+    }, [
+        paymentMethod.selectedPaymentMethod.bankAccountID,
+        paymentMethod.selectedPaymentMethod.fundID,
+        paymentMethod.selectedPaymentMethodType,
+        lastUsedPaymentMethods,
+        paymentMethod.methodID,
+        bankAccountList,
+    ]);
 
     /**
      * Navigate to the appropriate page after completing the KYC flow, depending on what initiated it
@@ -443,6 +451,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                     onListContentSizeChange={shouldShowAddPaymentMenu || shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
                                     style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                                    shouldShowBankAccountSections
                                 />
                             </Section>
 
@@ -723,6 +732,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                             icon={Expensicons.MoneySearch}
                             title={translate('workspace.common.viewTransactions')}
                             onPress={() => {
+                                hideCardMenu();
                                 Navigation.navigate(
                                     ROUTES.SEARCH_ROOT.getRoute({
                                         query: buildCannedSearchQuery({
