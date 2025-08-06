@@ -1,41 +1,32 @@
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
-import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import Checkbox from '@components/Checkbox';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {TableColumnSize} from '@components/Search/types';
 import ActionCell from '@components/SelectionList/Search/ActionCell';
 import DateCell from '@components/SelectionList/Search/DateCell';
 import UserInfoCell from '@components/SelectionList/Search/UserInfoCell';
 import Text from '@components/Text';
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
-import Parser from '@libs/Parser';
 import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
     getMerchant,
     getCreated as getTransactionCreated,
-    getTransactionPendingAction,
     hasMissingSmartscanFields,
     isAmountMissing,
     isMerchantMissing,
     isScanning,
-    isTransactionPendingDelete,
     isUnreportedAndHasInvalidDistanceRateTransaction,
 } from '@libs/TransactionUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {TransactionViolation} from '@src/types/onyx';
+import type {Report, TransactionViolation} from '@src/types/onyx';
 import type {SearchPersonalDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
 import ChatBubbleCell from './DataCells/ChatBubbleCell';
@@ -76,6 +67,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     /** information about whether to show merchant, that is provided on Reports page */
     shouldShowMerchant?: boolean;
 
+    /** information about whether to show the description, that is provided on Reports page */
+    shouldShowDescription?: boolean;
+
     /** Type of transaction */
     transactionType?: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
@@ -85,6 +79,7 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
 type TransactionItemRowProps = {
     transactionItem: TransactionWithOptionalSearchFields;
+    report?: Report;
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
@@ -95,37 +90,29 @@ type TransactionItemRowProps = {
     shouldShowCheckbox: boolean;
     columns?: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>;
     onButtonPress?: () => void;
-    isParentHovered?: boolean;
     columnWrapperStyles?: ViewStyle[];
-    scrollToNewTransaction?: ((offset: number) => void) | undefined;
     isReportItemChild?: boolean;
     isActionLoading?: boolean;
-    isInReportTableView?: boolean;
     isInSingleTransactionReport?: boolean;
+    isDisabled?: boolean;
 };
 
-/** If merchant name is empty or (none), then it falls back to description if screen is narrow */
-function getMerchantNameWithFallback(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string, shouldUseNarrowLayout?: boolean | undefined) {
+function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string) {
     const shouldShowMerchant = transactionItem.shouldShowMerchant ?? true;
-    const description = getDescription(transactionItem);
-    let merchantOrDescriptionToDisplay = transactionItem?.formattedMerchant ?? getMerchant(transactionItem);
-    const merchantNameEmpty = !merchantOrDescriptionToDisplay || merchantOrDescriptionToDisplay === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-    if (merchantNameEmpty && shouldUseNarrowLayout) {
-        merchantOrDescriptionToDisplay = Parser.htmlToText(description);
-    }
 
-    let merchant = shouldShowMerchant ? merchantOrDescriptionToDisplay : Parser.htmlToText(description);
+    let merchant = transactionItem?.formattedMerchant ?? getMerchant(transactionItem);
 
     if (isScanning(transactionItem) && shouldShowMerchant) {
         merchant = translate('iou.receiptStatusTitle');
     }
 
     const merchantName = StringUtils.getFirstLine(merchant);
-    return merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? merchantName : '';
+    return merchantName !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? merchantName : '';
 }
 
 function TransactionItemRow({
     transactionItem,
+    report,
     shouldUseNarrowLayout,
     isSelected,
     shouldShowTooltip,
@@ -136,21 +123,15 @@ function TransactionItemRow({
     shouldShowCheckbox = false,
     columns,
     onButtonPress = () => {},
-    isParentHovered,
     columnWrapperStyles,
-    scrollToNewTransaction,
     isReportItemChild = false,
     isActionLoading,
-    isInReportTableView = false,
     isInSingleTransactionReport = false,
+    isDisabled = false,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
-    const theme = useTheme();
-    const pendingAction = getTransactionPendingAction(transactionItem);
-    const isPendingDelete = isTransactionPendingDelete(transactionItem);
-    const viewRef = useRef<View>(null);
 
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
@@ -159,25 +140,19 @@ function TransactionItemRow({
     const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isTaxAmountColumnWide = taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
 
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        shouldHighlight: transactionItem.shouldBeHighlighted ?? false,
-        borderRadius: variables.componentBorderRadius,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
-    });
-
-    const {hovered, bind: bindHover} = useHover();
     const bgActiveStyles = useMemo(() => {
-        if (isSelected) {
-            return styles.activeComponentBG;
+        if (!isSelected) {
+            return [];
         }
+        return styles.activeComponentBG;
+    }, [isSelected, styles.activeComponentBG]);
 
-        if (hovered || isParentHovered) {
-            return styles.hoveredComponentBG;
-        }
-    }, [hovered, isParentHovered, isSelected, styles.activeComponentBG, styles.hoveredComponentBG]);
+    const merchant = useMemo(() => getMerchantName(transactionItem, translate), [transactionItem, translate]);
+    const description = getDescription(transactionItem);
 
-    const merchantOrDescriptionName = useMemo(() => getMerchantNameWithFallback(transactionItem, translate, shouldUseNarrowLayout), [shouldUseNarrowLayout, transactionItem, translate]);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const merchantOrDescription = merchant || description;
+
     const missingFieldError = useMemo(() => {
         const isCustomUnitOutOfPolicy = isUnreportedAndHasInvalidDistanceRateTransaction(transactionItem);
         const hasFieldErrors = hasMissingSmartscanFields(transactionItem) || isCustomUnitOutOfPolicy;
@@ -198,15 +173,6 @@ function TransactionItemRow({
             return error;
         }
     }, [transactionItem, translate]);
-
-    useEffect(() => {
-        if (!transactionItem.shouldBeHighlighted || !scrollToNewTransaction) {
-            return;
-        }
-        viewRef?.current?.measure((x, y, width, height, pageX, pageY) => {
-            scrollToNewTransaction?.(pageY);
-        });
-    }, [scrollToNewTransaction, transactionItem.shouldBeHighlighted]);
 
     const columnComponent: ColumnComponents = useMemo(
         () => ({
@@ -292,9 +258,23 @@ function TransactionItemRow({
                     key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT}
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}
                 >
-                    {!!merchantOrDescriptionName && (
+                    {!!merchant && (
                         <MerchantOrDescriptionCell
-                            merchantOrDescription={merchantOrDescriptionName}
+                            merchantOrDescription={merchant}
+                            shouldShowTooltip={shouldShowTooltip}
+                            shouldUseNarrowLayout={false}
+                        />
+                    )}
+                </View>
+            ),
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION]: (
+                <View
+                    key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION)]}
+                >
+                    {!!description && (
+                        <MerchantOrDescriptionCell
+                            merchantOrDescription={description}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={false}
                         />
@@ -374,7 +354,8 @@ function TransactionItemRow({
             isTaxAmountColumnWide,
             isInSingleTransactionReport,
             isSelected,
-            merchantOrDescriptionName,
+            merchant,
+            description,
             onButtonPress,
             shouldShowTooltip,
             shouldUseNarrowLayout,
@@ -386,133 +367,123 @@ function TransactionItemRow({
         return columns?.includes(CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS) ?? false;
     }, [columns]);
 
-    return (
-        <View
-            style={[styles.flex1]}
-            onMouseLeave={bindHover.onMouseLeave}
-            onMouseEnter={bindHover.onMouseEnter}
-            ref={viewRef}
-        >
-            <OfflineWithFeedback pendingAction={pendingAction}>
-                {shouldUseNarrowLayout ? (
-                    <Animated.View style={[isInReportTableView ? animatedHighlightStyle : {}]}>
-                        <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.p3, styles.pt2, bgActiveStyles]}>
-                            <View style={[styles.flexRow]}>
-                                {shouldShowCheckbox && (
-                                    <View style={[styles.mr3, styles.justifyContentCenter]}>
-                                        <Checkbox
-                                            disabled={isPendingDelete}
-                                            onPress={() => {
-                                                onCheckboxPress(transactionItem.transactionID);
-                                            }}
-                                            accessibilityLabel={CONST.ROLE.CHECKBOX}
-                                            isChecked={isSelected}
-                                        />
-                                    </View>
-                                )}
-                                <View style={[styles.mr3]}>
-                                    <ReceiptCell
-                                        transactionItem={transactionItem}
-                                        isSelected={isSelected}
-                                    />
-                                </View>
-                                <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
-                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
-                                        <DateCell
-                                            created={createdAt}
-                                            showTooltip={shouldShowTooltip}
-                                            isLargeScreenWidth={!shouldUseNarrowLayout}
-                                        />
-                                        <Text style={[styles.textMicroSupporting]}> • </Text>
-                                        <TypeCell
-                                            transactionItem={transactionItem}
-                                            shouldShowTooltip={shouldShowTooltip}
-                                            shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                        />
-                                        {!merchantOrDescriptionName && (
-                                            <View style={[styles.mlAuto]}>
-                                                <TotalCell
-                                                    transactionItem={transactionItem}
-                                                    shouldShowTooltip={shouldShowTooltip}
-                                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                                />
-                                            </View>
-                                        )}
-                                    </View>
-                                    {!!merchantOrDescriptionName && (
-                                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
-                                            <MerchantOrDescriptionCell
-                                                merchantOrDescription={merchantOrDescriptionName}
-                                                shouldShowTooltip={shouldShowTooltip}
-                                                shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                            />
-                                            <TotalCell
-                                                transactionItem={transactionItem}
-                                                shouldShowTooltip={shouldShowTooltip}
-                                                shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                            />
-                                        </View>
-                                    )}
-                                </View>
-                            </View>
-                            <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart]}>
-                                <View style={[styles.flexColumn, styles.flex1]}>
-                                    {hasCategoryOrTag && (
-                                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt2, styles.minHeight4]}>
-                                            <CategoryCell
-                                                transactionItem={transactionItem}
-                                                shouldShowTooltip={shouldShowTooltip}
-                                                shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                            />
-                                            <TagCell
-                                                transactionItem={transactionItem}
-                                                shouldShowTooltip={shouldShowTooltip}
-                                                shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                            />
-                                        </View>
-                                    )}
-                                    <TransactionItemRowRBRWithOnyx
-                                        transaction={transactionItem}
-                                        containerStyles={[styles.mt2, styles.minHeight4]}
-                                        missingFieldError={missingFieldError}
-                                        violations={transactionItem.violations}
-                                    />
-                                </View>
-                                {shouldRenderChatBubbleCell && (
-                                    <ChatBubbleCell
-                                        transaction={transactionItem}
-                                        containerStyles={[styles.mt2]}
-                                        isInSingleTransactionReport={isInSingleTransactionReport}
-                                    />
-                                )}
-                            </View>
-                        </View>
-                    </Animated.View>
-                ) : (
-                    <Animated.View style={[isInReportTableView ? animatedHighlightStyle : {}]}>
-                        <View style={[...safeColumnWrapperStyle, styles.gap2, bgActiveStyles, styles.mw100]}>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                                <View style={[styles.mr1]}>
-                                    <Checkbox
-                                        disabled={isPendingDelete}
-                                        onPress={() => {
-                                            onCheckboxPress(transactionItem.transactionID);
-                                        }}
-                                        accessibilityLabel={CONST.ROLE.CHECKBOX}
-                                        isChecked={isSelected}
-                                    />
-                                </View>
-                                {columns?.map((column) => columnComponent[column])}
-                            </View>
-                            <TransactionItemRowRBRWithOnyx
-                                transaction={transactionItem}
-                                missingFieldError={missingFieldError}
-                                violations={transactionItem.violations}
+    if (shouldUseNarrowLayout) {
+        return (
+            <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.p3, styles.pt2, bgActiveStyles]}>
+                <View style={[styles.flexRow]}>
+                    {shouldShowCheckbox && (
+                        <Checkbox
+                            disabled={isDisabled}
+                            onPress={() => {
+                                onCheckboxPress(transactionItem.transactionID);
+                            }}
+                            accessibilityLabel={CONST.ROLE.CHECKBOX}
+                            isChecked={isSelected}
+                            style={styles.mr3}
+                            wrapperStyle={styles.justifyContentCenter}
+                        />
+                    )}
+                    <ReceiptCell
+                        transactionItem={transactionItem}
+                        isSelected={isSelected}
+                        style={styles.mr3}
+                    />
+                    <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
+                            <DateCell
+                                created={createdAt}
+                                showTooltip={shouldShowTooltip}
+                                isLargeScreenWidth={!shouldUseNarrowLayout}
                             />
+                            <Text style={[styles.textMicroSupporting]}> • </Text>
+                            <TypeCell
+                                transactionItem={transactionItem}
+                                shouldShowTooltip={shouldShowTooltip}
+                                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                            />
+                            {!merchantOrDescription && (
+                                <View style={[styles.mlAuto]}>
+                                    <TotalCell
+                                        transactionItem={transactionItem}
+                                        shouldShowTooltip={shouldShowTooltip}
+                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                    />
+                                </View>
+                            )}
                         </View>
-                    </Animated.View>
-                )}
-            </OfflineWithFeedback>
+                        {!!merchantOrDescription && (
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                                <MerchantOrDescriptionCell
+                                    merchantOrDescription={merchantOrDescription}
+                                    shouldShowTooltip={shouldShowTooltip}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                />
+                                <TotalCell
+                                    transactionItem={transactionItem}
+                                    shouldShowTooltip={shouldShowTooltip}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                />
+                            </View>
+                        )}
+                    </View>
+                </View>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart]}>
+                    <View style={[styles.flexColumn, styles.flex1]}>
+                        {hasCategoryOrTag && (
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt2, styles.minHeight4]}>
+                                <CategoryCell
+                                    transactionItem={transactionItem}
+                                    shouldShowTooltip={shouldShowTooltip}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                />
+                                <TagCell
+                                    transactionItem={transactionItem}
+                                    shouldShowTooltip={shouldShowTooltip}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                />
+                            </View>
+                        )}
+                        <TransactionItemRowRBRWithOnyx
+                            transaction={transactionItem}
+                            report={report}
+                            containerStyles={[styles.mt2, styles.minHeight4]}
+                            missingFieldError={missingFieldError}
+                            violations={transactionItem.violations}
+                        />
+                    </View>
+                    {shouldRenderChatBubbleCell && (
+                        <ChatBubbleCell
+                            transaction={transactionItem}
+                            containerStyles={[styles.mt2]}
+                            isInSingleTransactionReport={isInSingleTransactionReport}
+                        />
+                    )}
+                </View>
+            </View>
+        );
+    }
+
+    return (
+        <View style={[...safeColumnWrapperStyle, styles.flex1, styles.gap2, bgActiveStyles, styles.mw100]}>
+            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                <Checkbox
+                    disabled={isDisabled}
+                    onPress={() => {
+                        onCheckboxPress(transactionItem.transactionID);
+                    }}
+                    accessibilityLabel={CONST.ROLE.CHECKBOX}
+                    isChecked={isSelected}
+                    style={styles.mr1}
+                    wrapperStyle={styles.justifyContentCenter}
+                />
+                {columns?.map((column) => columnComponent[column])}
+            </View>
+            <TransactionItemRowRBRWithOnyx
+                transaction={transactionItem}
+                report={report}
+                missingFieldError={missingFieldError}
+                violations={transactionItem.violations}
+            />
         </View>
     );
 }

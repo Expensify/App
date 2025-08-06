@@ -6,19 +6,22 @@ import {DotIndicator} from '@components/Icon/Expensicons';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
 import type {TransactionViolation} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 
 type TransactionItemRowRBRProps = {
     /** Transaction item */
     transaction: Transaction;
+
+    /** Report item */
+    report?: Report;
 
     /** Styles for the RBR messages container */
     containerStyles?: ViewStyle[];
@@ -30,16 +33,20 @@ type TransactionItemRowRBRProps = {
     violations?: TransactionViolation[];
 };
 
-function TransactionItemRowRBRWithOnyx({transaction, containerStyles, missingFieldError, violations = []}: TransactionItemRowRBRProps) {
+function TransactionItemRowRBRWithOnyx({transaction, report, containerStyles, missingFieldError, violations = []}: TransactionItemRowRBRProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const {sortedAllReportActions: transactionActions, report} = usePaginatedReportActions(transaction.reportID);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`, {
+        canBeMissing: true,
+    });
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
-    const transactionThreadId = transactionActions ? getIOUActionForTransactionID(transactionActions, transaction.transactionID)?.childReportID : undefined;
-    const {sortedAllReportActions: transactionThreadActions} = usePaginatedReportActions(transactionThreadId);
+    const transactionThreadId = reportActions ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transaction.transactionID)?.childReportID : undefined;
+    const [transactionThreadActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadId}`, {
+        canBeMissing: true,
+    });
 
-    const RBRMessages = ViolationsUtils.getRBRMessages(transaction, violations, translate, missingFieldError, transactionThreadActions, policyTags);
+    const RBRMessages = ViolationsUtils.getRBRMessages(transaction, violations, translate, missingFieldError, Object.values(transactionThreadActions ?? {}), policyTags);
 
     return (
         RBRMessages.length > 0 && (
