@@ -4270,19 +4270,19 @@ function completeOnboarding({
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
-            value: {isLoading: true},
+            value: {isLoading: true, hasCompletedGuidedSetupFlow: false},
         });
 
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
-            value: {isLoading: false},
+            value: {isLoading: false, hasCompletedGuidedSetupFlow: true},
         });
 
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
-            value: {isLoading: false},
+            value: {isLoading: false, hasCompletedGuidedSetupFlow: false},
         });
     }
 
