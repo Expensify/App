@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import type {PropsWithChildren} from 'react';
-import React, {useContext, useMemo} from 'react';
+import React, {useContext, useMemo, useState} from 'react';
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
 import {useAnimatedScrollHandler, useSharedValue} from 'react-native-reanimated';
 import type {ScrollHandlerProcessed, SharedValue} from 'react-native-reanimated';
@@ -14,6 +14,7 @@ type KeyboardDismissibleFlatListContextValues = {
     layoutMeasurementHeight: SharedValue<number>;
     onScroll: ScrollHandlerProcessed<Record<string, unknown>>;
     scrollY: SharedValue<number>;
+    setListBehavior: React.Dispatch<React.SetStateAction<'regular' | 'inverted'>>;
 };
 
 const createDummySharedValue = (): SharedValue<number> =>
@@ -31,11 +32,14 @@ const KeyboardDismissibleFlatListContext = React.createContext<KeyboardDismissib
     onScroll: () => {},
     contentSizeHeight: createDummySharedValue(),
     layoutMeasurementHeight: createDummySharedValue(),
+    setListBehavior: () => {},
 });
 
 function KeyboardDismissibleFlatListContextProvider(props: PropsWithChildren) {
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: false});
     const isModalVisible = useMemo(() => modal?.isPopover, [modal?.isPopover]);
+
+    const [listBehavior, setListBehavior] = useState<'regular' | 'inverted'>('inverted');
 
     const height = useSharedValue(0);
     const offset = useSharedValue(0);
@@ -72,6 +76,24 @@ function KeyboardDismissibleFlatListContextProvider(props: PropsWithChildren) {
                 return;
             }
 
+            if (listBehavior === 'regular') {
+                const isAtTop = scrollY.get() <= 0;
+
+                if (!willKeyboardOpen && isAtTop) {
+                    return offset.set(0);
+                }
+
+                return offset.set(scrollYValueAtStart - prevHeight);
+            }
+
+            const invertedListVisualTop = contentSizeHeight.get() - layoutMeasurementHeight.get();
+
+            const isAtTop = scrollY.get() >= invertedListVisualTop;
+
+            if (!willKeyboardOpen && isAtTop) {
+                return offset.set(invertedListVisualTop);
+            }
+
             // Preserve the current scroll position the the keyboard starts its movement
             offset.set(scrollYValueAtStart + prevHeight);
         },
@@ -79,6 +101,11 @@ function KeyboardDismissibleFlatListContextProvider(props: PropsWithChildren) {
             'worklet';
 
             height.set(e.height);
+
+            if (listBehavior === 'regular') {
+                return offset.set(scrollY.get() - e.height);
+            }
+
             offset.set(scrollY.get() + e.height);
         },
         onMove: (e) => {
@@ -109,6 +136,7 @@ function KeyboardDismissibleFlatListContextProvider(props: PropsWithChildren) {
             scrollY,
             contentSizeHeight,
             layoutMeasurementHeight,
+            setListBehavior,
         }),
         [height, offset, onScroll, scrollY, contentSizeHeight, layoutMeasurementHeight],
     );
