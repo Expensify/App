@@ -11,7 +11,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {GetAdditionalSectionsCallback} from '@components/Search/SearchAutocompleteList';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
 import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
-import type {SearchQueryString} from '@components/Search/types';
+import type {SearchFilterKey, SearchQueryString} from '@components/Search/types';
 import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
@@ -350,10 +350,30 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         });
                     } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
                         const fieldKey = item.mapKey?.includes(':') ? item.mapKey.split(':').at(0) : item.mapKey;
-                        const keyIndex = fieldKey ? textInputValue.toLowerCase().lastIndexOf(`${fieldKey}:`) : -1;
+                        const nameFields = [
+                            CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+                            CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                            CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
+                            CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
+                            CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
+                        ] as SearchFilterKey[];
+                        const isNameField = fieldKey && nameFields.includes(fieldKey as SearchFilterKey);
 
-                        const trimmedUserSearchQuery =
-                            keyIndex !== -1 && fieldKey ? textInputValue.substring(0, keyIndex + fieldKey.length + 1) : getQueryWithoutAutocompletedPart(textInputValue);
+                        let trimmedUserSearchQuery;
+                        if (isNameField && fieldKey) {
+                            const fieldPattern = `${fieldKey}:`;
+                            const keyIndex = textInputValue.toLowerCase().lastIndexOf(fieldPattern.toLowerCase());
+
+                            if (keyIndex !== -1) {
+                                trimmedUserSearchQuery = textInputValue.substring(0, keyIndex + fieldPattern.length);
+                            } else {
+                                trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(textInputValue);
+                            }
+                        } else {
+                            const keyIndex = fieldKey ? textInputValue.toLowerCase().lastIndexOf(`${fieldKey}:`) : -1;
+                            trimmedUserSearchQuery =
+                                keyIndex !== -1 && fieldKey ? textInputValue.substring(0, keyIndex + fieldKey.length + 1) : getQueryWithoutAutocompletedPart(textInputValue);
+                        }
 
                         const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)}\u00A0`;
                         onSearchQueryChange(newSearchQuery, true);

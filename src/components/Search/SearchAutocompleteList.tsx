@@ -143,6 +143,14 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
     );
 }
 
+const ContinuationDetectionSearchFilterKey = [
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
+] as SearchFilterKey[];
+
 function SearchAutocompleteList(
     {
         autocompleteQueryValue,
@@ -260,15 +268,8 @@ function SearchAutocompleteList(
 
         if (!autocomplete && ranges.length > 0) {
             const lastRange = ranges.at(ranges.length - 1);
-            const nameFields = [
-                CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
-                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
-                CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
-                CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
-            ] as SearchFilterKey[];
 
-            if (lastRange && nameFields.includes(lastRange.key)) {
+            if (lastRange && ContinuationDetectionSearchFilterKey.includes(lastRange.key)) {
                 const afterLastRange = autocompleteQueryValue.substring(lastRange.start + lastRange.length);
                 const continuationMatch = afterLastRange.match(/^\s+(\w+)/);
 
@@ -675,7 +676,23 @@ function SearchAutocompleteList(
                 return;
             }
 
-            const trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(autocompleteQueryValue);
+            const fieldKey = focusedItem.mapKey?.includes(':') ? focusedItem.mapKey.split(':').at(0) : focusedItem.mapKey;
+            const isNameField = fieldKey && ContinuationDetectionSearchFilterKey.includes(fieldKey as SearchFilterKey);
+
+            let trimmedUserSearchQuery;
+            if (isNameField && fieldKey) {
+                const fieldPattern = `${fieldKey}:`;
+                const keyIndex = autocompleteQueryValue.toLowerCase().lastIndexOf(fieldPattern.toLowerCase());
+
+                if (keyIndex !== -1) {
+                    trimmedUserSearchQuery = autocompleteQueryValue.substring(0, keyIndex + fieldPattern.length);
+                } else {
+                    trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(autocompleteQueryValue);
+                }
+            } else {
+                trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(autocompleteQueryValue);
+            }
+
             setTextQuery(`${trimmedUserSearchQuery}${sanitizeSearchValue(focusedItem.searchQuery)}\u00A0`);
             updateAutocompleteSubstitutions(focusedItem);
         },
