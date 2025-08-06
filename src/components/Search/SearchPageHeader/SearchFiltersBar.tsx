@@ -40,7 +40,7 @@ import {
     isFilterSupported,
     isSearchDatePreset,
 } from '@libs/SearchQueryUtils';
-import {getFeedOptions, getGroupByOptions, getStatusOptions, getTypeOptions} from '@libs/SearchUIUtils';
+import {getDatePresets, getFeedOptions, getGroupByOptions, getStatusOptions, getTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -70,7 +70,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {selectedTransactions, setExportMode, isExportMode, shouldShowExportModeOption, shouldShowFiltersBarLoading} = useSearchContext();
+    const {selectedTransactions, selectAllMatchingItems, areAllMatchingItemsSelected, showSelectAllMatchingItems, shouldShowFiltersBarLoading} = useSearchContext();
 
     const [email] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (onyxSession) => onyxSession?.email});
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
@@ -103,11 +103,9 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     }, [unsafeGroupBy]);
 
     const [feedOptions, feed] = useMemo(() => {
-        const feedFilterValue = flatFilters
-            .find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)
-            ?.filters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO)?.value;
+        const feedFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)?.filters?.map((filter) => filter.value);
         const options = getFeedOptions(allFeeds, allCards);
-        const value = options.find((option) => option.value === feedFilterValue) ?? null;
+        const value = feedFilterValues ? options.filter((option) => feedFilterValues.includes(option.value)) : [];
         return [options, value];
     }, [flatFilters, allFeeds, allCards]);
 
@@ -226,12 +224,12 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     const feedComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
             return (
-                <SingleSelectPopup
+                <MultiSelectPopup
                     label={translate('search.filters.feed')}
                     items={feedOptions}
                     value={feed}
                     closeOverlay={closeOverlay}
-                    onChange={(item) => updateFilterForm({feed: item ? [item.value] : undefined})}
+                    onChange={(items) => updateFilterForm({feed: items.map((item) => item.value)})}
                 />
             );
         },
@@ -256,7 +254,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                     value={posted}
                     onChange={onChange}
                     closeOverlay={closeOverlay}
-                    presets={CONST.SEARCH.FILTER_DATE_PRESETS[CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED]}
+                    presets={getDatePresets(CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED, true)}
                 />
             );
         },
@@ -331,8 +329,8 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
 
         // s77rt remove DEV lock
         const shouldDisplayGroupByFilter = isDevelopment;
-        const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues?.feed;
-        const shouldDisplayPostedFilter = groupBy?.value === CONST.SEARCH.GROUP_BY.CARDS;
+        const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues.feed;
+        const shouldDisplayPostedFilter = !!filterFormValues.feed && (!!filterFormValues.postedOn || !!filterFormValues.postedAfter || !!filterFormValues.postedBefore);
 
         const filterList = [
             {
@@ -356,7 +354,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                       {
                           label: translate('search.filters.feed'),
                           PopoverComponent: feedComponent,
-                          value: feed?.text ?? null,
+                          value: feed.map((option) => option.text),
                           filterKey: FILTER_KEYS.FEED,
                       },
                   ]
@@ -374,7 +372,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
             {
                 label: translate('common.status'),
                 PopoverComponent: statusComponent,
-                value: status.map((option) => translate(option.translation)),
+                value: status.map((option) => option.text),
                 filterKey: FILTER_KEYS.STATUS,
             },
             {
@@ -399,6 +397,9 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         displayPosted,
         filterFormValues.from,
         filterFormValues.feed,
+        filterFormValues.postedOn,
+        filterFormValues.postedAfter,
+        filterFormValues.postedBefore,
         translate,
         typeComponent,
         groupByComponent,
@@ -422,7 +423,9 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         return <SearchFiltersSkeleton shouldAnimate />;
     }
 
-    const selectionButtonText = isExportMode ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: selectedTransactionsKeys.length});
+    const selectionButtonText = areAllMatchingItemsSelected
+        ? translate('search.exportAll.allMatchingItemsSelected')
+        : translate('workspace.common.selected', {count: selectedTransactionsKeys.length});
 
     return (
         <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchFiltersBarContainer]}>
@@ -441,13 +444,13 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                         }}
                         popoverHorizontalOffsetType={CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT}
                     />
-                    {!isExportMode && shouldShowExportModeOption && (
+                    {!areAllMatchingItemsSelected && showSelectAllMatchingItems && (
                         <Button
                             link
                             small
                             shouldUseDefaultHover={false}
                             innerStyles={styles.p0}
-                            onPress={() => setExportMode(true)}
+                            onPress={() => selectAllMatchingItems(true)}
                             text={translate('search.exportAll.selectAllMatchingItems')}
                         />
                     )}

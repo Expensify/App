@@ -41,7 +41,7 @@ type ReportWelcomeTextProps = {
 };
 
 function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
@@ -56,7 +56,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isSystemChat);
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true, reportMetadata);
     const isMultipleParticipant = participantAccountIDs.length > 1;
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant, localeCompare);
     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, isReportArchived);
     const policyName = getPolicyName({report});
 
@@ -115,7 +115,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         return translate('reportActionsView.sayHello');
     }, [isChatRoom, isInvoiceRoom, isPolicyExpenseChat, isSelfDM, isSystemChat, translate, policyName, reportName]);
 
-    const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy, isReportArchived, reportDetailsLink);
+    const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy, localeCompare, isReportArchived, reportDetailsLink);
 
     return (
         <>

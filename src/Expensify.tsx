@@ -106,7 +106,6 @@ function Expensify() {
     const [currentOnboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
-    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {canBeMissing: true});
 
     useDebugShortcut();
     usePriorityMode();
@@ -123,22 +122,10 @@ function Expensify() {
     const isAuthenticated = useIsAuthenticated();
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
-    const isSplashReadyToBeHidden = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN;
-    const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
-
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale;
-    const shouldHideSplash = (isSplashReadyToBeHidden || isSplashVisible) && shouldInit && !hybridApp?.loggedOutFromOldDot;
-
-    // This effect is closing OldDot sign out modal based on splash screen state
-    useEffect(() => {
-        if (!isSplashReadyToBeHidden || !shouldInit || !hybridApp?.loggedOutFromOldDot) {
-            return;
-        }
-
-        setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
-        HybridAppModule.clearOldDotAfterSignOut();
-    }, [hybridApp?.loggedOutFromOldDot, isSplashReadyToBeHidden, setSplashScreenState, shouldInit, splashScreenState]);
-
+    const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
+    const isHybridAppReady = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && isAuthenticated;
+    const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isHybridAppReady : isSplashVisible);
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
             return;
