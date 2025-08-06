@@ -329,7 +329,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     }
 
     // Wait for signOut (if called), then redirect and update Onyx.
-    signOutPromise
+    return signOutPromise
         .then((response) => {
             if (response?.hasOldDotAuthCookies) {
                 Log.info('Redirecting to OldDot sign out');
@@ -362,7 +362,9 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function callFunctionIfActionIsAllowed<TCallback extends ((...args: any[]) => any) | void>(callback: TCallback, isAnonymousAction = false): TCallback | (() => void) {
     if (isAnonymousUser() && !isAnonymousAction) {
-        return () => signOutAndRedirectToSignIn();
+        return () => {
+            signOutAndRedirectToSignIn();
+        };
     }
     return callback;
 }
