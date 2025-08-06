@@ -4631,7 +4631,7 @@ const translations = {
             },
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Disconnetti Uber',
-                disconnectText: 'Per disabilitare questa funzionalità, disconnetti prima l\'integrazione Uber for Business.',
+                disconnectText: "Per disabilitare questa funzionalità, disconnetti prima l'integrazione Uber for Business.",
                 confirmText: 'Capito',
             },
             workflowWarningModal: {
