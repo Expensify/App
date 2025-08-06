@@ -1,12 +1,13 @@
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
+import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isValidMoneyRequestType, shouldUseTransactionDraft} from '@libs/IOUUtils';
@@ -42,6 +43,7 @@ function IOURequestStepDate({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(report?.policyID);
+    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: false});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: false});
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
@@ -107,7 +109,7 @@ function IOURequestStepDate({
         setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft);
 
         if (isEditing) {
-            updateMoneyRequestDate(transactionID, reportID, newCreated, policy, policyTags, policyCategories);
+            updateMoneyRequestDate(transactionID, reportID, duplicateTransactions, duplicateTransactionViolations, newCreated, policy, policyTags, policyCategories);
         }
 
         navigateBack();

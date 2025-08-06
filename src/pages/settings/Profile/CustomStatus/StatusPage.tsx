@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import FormProvider from '@components/Form/FormProvider';
@@ -11,19 +10,25 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import focusAfterModalClose from '@libs/focusAfterModalClose';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {clearCustomStatus, clearDraftCustomStatus, updateCustomStatus, updateDraftCustomStatus} from '@userActions/User';
+import {clearVacationDelegateError} from '@userActions/VacationDelegate';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,6 +46,15 @@ function StatusPage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const formRef = useRef<FormRef>(null);
     const [brickRoadIndicator, setBrickRoadIndicator] = useState<ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>>();
+
+    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
+    const hasVacationDelegate = !!vacationDelegate?.delegate;
+    const vacationDelegatePersonalDetails = getPersonalDetailByEmail(vacationDelegate?.delegate ?? '');
+    const formattedDelegateLogin = formatPhoneNumber(vacationDelegatePersonalDetails?.login ?? '');
+
+    const {isBetaEnabled} = usePermissions();
+    const isVacationDelegateEnabled = isBetaEnabled(CONST.BETAS.VACATION_DELEGATE);
+
     const currentUserEmojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const currentUserStatusText = currentUserPersonalDetails?.status?.text ?? '';
     const currentUserClearAfter = currentUserPersonalDetails?.status?.clearAfter ?? '';
@@ -106,8 +120,8 @@ function StatusPage() {
                 emojiCode: !emojiCode && statusText ? initialEmoji : emojiCode,
                 clearAfter: clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER ? clearAfterTime : '',
             });
-            clearDraftCustomStatus();
             navigateBackToPreviousScreenTask.current = InteractionManager.runAfterInteractions(() => {
+                clearDraftCustomStatus();
                 navigateBackToPreviousScreen();
             });
         },
@@ -162,6 +176,7 @@ function StatusPage() {
     );
 
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
+    const fallbackVacationDelegateLogin = formattedDelegateLogin === '' ? vacationDelegate?.delegate : formattedDelegateLogin;
 
     return (
         <ScreenWrapper
@@ -231,6 +246,41 @@ function StatusPage() {
                         />
                     )}
                 </View>
+                {isVacationDelegateEnabled && (
+                    <View style={[styles.mb2, styles.mt6]}>
+                        <Text style={[styles.mh5]}>{translate('statusPage.setVacationDelegate')}</Text>
+                        {hasVacationDelegate && <Text style={[styles.mh5, styles.mt6, styles.mutedTextLabel]}>{translate('statusPage.vacationDelegate')}</Text>}
+                        {hasVacationDelegate ? (
+                            <OfflineWithFeedback
+                                pendingAction={vacationDelegate?.pendingAction}
+                                errors={vacationDelegate?.errors}
+                                errorRowStyles={styles.mh5}
+                                onClose={() => clearVacationDelegateError(vacationDelegate?.previousDelegate)}
+                            >
+                                <MenuItem
+                                    title={vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin}
+                                    description={fallbackVacationDelegateLogin}
+                                    avatarID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                                    icon={vacationDelegatePersonalDetails?.avatar ?? Expensicons.FallbackAvatar}
+                                    iconType={CONST.ICON_TYPE_AVATAR}
+                                    numberOfLinesDescription={1}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}
+                                    containerStyle={styles.pr2}
+                                />
+                            </OfflineWithFeedback>
+                        ) : (
+                            <View style={[styles.mt1]}>
+                                <MenuItem
+                                    description={translate('statusPage.vacationDelegate')}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}
+                                    containerStyle={styles.pr2}
+                                />
+                            </View>
+                        )}
+                    </View>
+                )}
             </FormProvider>
         </ScreenWrapper>
     );

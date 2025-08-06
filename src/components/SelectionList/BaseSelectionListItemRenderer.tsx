@@ -1,13 +1,15 @@
 import React from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import type useSingleExecution from '@hooks/useSingleExecution';
 import {isMobileChrome} from '@libs/Browser';
-import {isReportListItemType} from '@libs/SearchUIUtils';
+import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
+import type {PersonalDetailsList} from '@src/types/onyx';
 import type {BaseListItemProps, ExtendedTargetedEvent, ListItem, SelectionListProps} from './types';
 
 type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'onSelectRow'> &
-    Pick<SelectionListProps<TItem>, 'ListItem' | 'shouldIgnoreFocus' | 'shouldSingleExecuteRowSelect'> & {
+    Pick<SelectionListProps<TItem>, 'ListItem' | 'shouldIgnoreFocus' | 'shouldSingleExecuteRowSelect' | 'canShowProductTrainingTooltip'> & {
         index: number;
         selectRow: (item: TItem, indexToFocus?: number) => void;
         setFocusedIndex: ReturnType<typeof useArrowKeyFocusManager>[1];
@@ -15,6 +17,10 @@ type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListI
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
         titleStyles?: StyleProp<TextStyle>;
         titleContainerStyles?: StyleProp<ViewStyle>;
+        userWalletTierName?: string | undefined;
+        isUserValidated?: boolean | undefined;
+        personalDetails?: OnyxEntry<PersonalDetailsList>;
+        userBillingFundID?: number | undefined;
     };
 
 function BaseSelectionListItemRenderer<TItem extends ListItem>({
@@ -44,9 +50,15 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     singleExecution,
     titleContainerStyles,
     shouldUseDefaultRightHandSideCheckmark,
+    shouldAnimateInHighlight,
+    canShowProductTrainingTooltip = true,
+    userWalletTierName,
+    isUserValidated,
+    personalDetails,
+    userBillingFundID,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
-        if (isReportListItemType(item)) {
+        if (isTransactionGroupListItemType(item)) {
             return onCheckboxPress;
         }
         return onCheckboxPress ? () => onCheckboxPress(item) : undefined;
@@ -94,6 +106,12 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 titleStyles={titleStyles}
                 titleContainerStyles={titleContainerStyles}
                 shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
+                canShowProductTrainingTooltip={canShowProductTrainingTooltip}
+                shouldAnimateInHighlight={shouldAnimateInHighlight}
+                userWalletTierName={userWalletTierName}
+                isUserValidated={isUserValidated}
+                personalDetails={personalDetails}
+                userBillingFundID={userBillingFundID}
             />
             {item.footerContent && item.footerContent}
         </>

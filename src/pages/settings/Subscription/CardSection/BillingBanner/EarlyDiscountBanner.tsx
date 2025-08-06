@@ -1,14 +1,14 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import {PressableWithFeedback} from '@components/Pressable';
-import Text from '@components/Text';
+import RenderHTML from '@components/RenderHTML';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -24,17 +24,17 @@ type EarlyDiscountBannerProps = {
     /** Whether the banner is being displayed on the subscription page. */
     isSubscriptionPage: boolean;
 
-    /** The guide booking button to display */
-    GuideBookingButton?: React.JSX.Element;
-
-    /** The talk to sales button to display */
-    TalkToSalesButton?: React.JSX.Element;
+    /** The Onboarding help dropdown button to display */
+    onboardingHelpDropdownButton?: React.JSX.Element;
 
     /** Function to trigger when the discount banner is dismissed */
     onDismissedDiscountBanner?: () => void;
+
+    /** Has user active Schedule call with guide */
+    hasActiveScheduledCall?: boolean;
 };
 
-function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, TalkToSalesButton, onDismissedDiscountBanner}: EarlyDiscountBannerProps) {
+function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, onDismissedDiscountBanner, hasActiveScheduledCall}: EarlyDiscountBannerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -82,11 +82,10 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, TalkToSale
         const smallScreenStyle = shouldUseNarrowLayout ? [styles.flex0, styles.flexBasis100, styles.justifyContentCenter] : [];
         return (
             <View style={[styles.flexRow, styles.gap2, smallScreenStyle, styles.alignItemsCenter]}>
-                {TalkToSalesButton}
-                {GuideBookingButton}
+                {onboardingHelpDropdownButton}
                 <Button
-                    success
-                    style={shouldUseNarrowLayout ? styles.earlyDiscountButton : styles.mr2}
+                    success={!hasActiveScheduledCall}
+                    style={shouldUseNarrowLayout ? [styles.earlyDiscountButton, styles.flexGrow2] : styles.mr2}
                     text={translate('subscription.billingBanner.earlyDiscount.claimOffer')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}
                 />
@@ -95,6 +94,7 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, TalkToSale
         );
     }, [
         shouldUseNarrowLayout,
+        hasActiveScheduledCall,
         styles.flex0,
         styles.flexBasis100,
         styles.justifyContentCenter,
@@ -102,9 +102,9 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, TalkToSale
         styles.gap2,
         styles.alignItemsCenter,
         styles.earlyDiscountButton,
+        styles.flexGrow2,
         styles.mr2,
-        TalkToSalesButton,
-        GuideBookingButton,
+        onboardingHelpDropdownButton,
         translate,
         dismissButton,
     ]);
@@ -118,16 +118,18 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, TalkToSale
     }
 
     const title = isSubscriptionPage ? (
-        <Text style={styles.textStrong}>
-            {translate('subscription.billingBanner.earlyDiscount.subscriptionPageTitle.phrase1', {discountType: discountInfo?.discountType})}&nbsp;
-            <Text>{translate('subscription.billingBanner.earlyDiscount.subscriptionPageTitle.phrase2')}</Text>
-        </Text>
+        <RenderHTML
+            html={translate('subscription.billingBanner.earlyDiscount.subscriptionPageTitle', {
+                discountType: discountInfo?.discountType,
+            })}
+        />
     ) : (
         <View style={[styles.justifyContentBetween, styles.flexRow]}>
-            <Text style={(styles.textStrong, styles.flexShrink1)}>
-                {translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle.phrase1')}&nbsp;
-                <Text>{translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle.phrase2', {discountType: discountInfo?.discountType})}</Text>
-            </Text>
+            <RenderHTML
+                html={translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle', {
+                    discountType: discountInfo?.discountType,
+                })}
+            />
             {shouldUseNarrowLayout && dismissButton}
         </View>
     );

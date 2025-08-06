@@ -1,6 +1,12 @@
 #!/bin/bash
 set -e
 
+if [ -f .env ]; then
+    set -a
+    source .env
+    set +a
+fi
+
 IOS_MODE="DebugDevelopment"
 ANDROID_MODE="developmentDebug"
 SCHEME="New Expensify Dev"

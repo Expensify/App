@@ -2,17 +2,18 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
-import Timing from '@libs/actions/Timing';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
+import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {generateNewRandomInt, rand64} from '@libs/NumberUtils';
@@ -25,10 +26,12 @@ import {
     getSortedReportActionsForDisplay,
     isCreatedAction,
     isDeletedParentAction,
+    isIOUActionMatchingTransactionList,
     isMoneyRequestAction,
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isMoneyRequestReport} from '@libs/ReportUtils';
+import markOpenReportEnd from '@libs/Telemetry/markOpenReportEnd';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -93,6 +96,11 @@ function ReportActionsView({
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
+    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportID);
+    const reportTransactionIDs = useMemo(
+        () => getAllNonDeletedTransactions(reportTransactions, allReportActions ?? []).map((transaction) => transaction.transactionID),
+        [reportTransactions, allReportActions],
+    );
 
     useEffect(() => {
         // When we linked to message - we do not need to wait for initial actions - they already exists
@@ -192,9 +200,10 @@ function ReportActionsView({
             reportActions.filter(
                 (reportAction) =>
                     (isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
-                    shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction),
+                    shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction) &&
+                    isIOUActionMatchingTransactionList(reportAction, reportTransactionIDs),
             ),
-        [reportActions, isOffline, canPerformWriteAction],
+        [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs],
     );
 
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
@@ -239,14 +248,7 @@ function ReportActionsView({
 
         didLayout.current = true;
 
-        Performance.markEnd(CONST.TIMING.OPEN_REPORT);
-        Timing.end(CONST.TIMING.OPEN_REPORT);
-
-        Performance.markEnd(CONST.TIMING.OPEN_REPORT_THREAD);
-        Timing.end(CONST.TIMING.OPEN_REPORT_THREAD);
-
-        Performance.markEnd(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-        Timing.end(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
+        markOpenReportEnd();
     }, []);
 
     // Check if the first report action in the list is the one we're currently linked to
@@ -274,7 +276,13 @@ function ReportActionsView({
         };
     }, [isTheFirstReportActionIsLinked]);
 
-    if ((isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline) ?? isLoadingApp) {
+    // Show skeleton while loading initial report actions when data is incomplete/missing and online
+    const shouldShowSkeletonForInitialLoad = isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline;
+
+    // Show skeleton while the app is loading and we're online
+    const shouldShowSkeletonForAppLoad = isLoadingApp && !isOffline;
+
+    if (shouldShowSkeletonForInitialLoad ?? shouldShowSkeletonForAppLoad) {
         return <ReportActionsSkeletonView />;
     }
 

@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+import React, {forwardRef, useState} from 'react';
+import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
@@ -23,7 +24,7 @@ type TimeModalPickerProps = {
     label: string;
 };
 
-function TimeModalPicker({value, errorText, label, onInputChange = () => {}}: TimeModalPickerProps) {
+function TimeModalPicker({value, errorText, label, onInputChange = () => {}}: TimeModalPickerProps, ref: ForwardedRef<View>) {
     const styles = useThemeStyles();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const currentTime = value ? DateUtils.extractTime12Hour(value) : undefined;
@@ -47,15 +48,15 @@ function TimeModalPicker({value, errorText, label, onInputChange = () => {}}: Ti
                 onPress={() => setIsPickerVisible(true)}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={errorText}
+                ref={ref}
             />
             <Modal
                 type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
                 isVisible={isPickerVisible}
                 onClose={hidePickerModal}
                 onModalHide={hidePickerModal}
-                hideModalContentWhileAnimating
-                useNativeDriver
                 enableEdgeToEdgeBottomSafeAreaPadding
+                shouldUseReanimatedModal
             >
                 <ScreenWrapper
                     style={styles.pb0}
@@ -81,4 +82,4 @@ function TimeModalPicker({value, errorText, label, onInputChange = () => {}}: Ti
 }
 
 TimeModalPicker.displayName = 'TimeModalPicker';
-export default TimeModalPicker;
+export default forwardRef(TimeModalPicker);

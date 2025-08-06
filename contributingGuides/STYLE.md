@@ -535,13 +535,13 @@ We need to change the `getRoute()` `policyID` argument type to allow `undefined`
 
 ```diff
 WORKSPACE_PROFILE_ADDRESS: {
-    route: 'settings/workspaces/:policyID/profile/address',
--   getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/address` as const, backTo),
+    route: 'workspaces/:policyID/profile/address',
+-   getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/profile/address` as const, backTo),
 +   getRoute: (policyID: string | undefined, backTo?: string) => {
 +       if (!policyID) {
 +           Log.warn("Invalid policyID is used to build the WORKSPACE_PROFILE_ADDRESS route")
 +       }
-+       return getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/address` as const, backTo);
++       return getUrlWithBackToParam(`workspaces/${policyID}/profile/address` as const, backTo);
 +   },
 },
 ```
@@ -1269,8 +1269,10 @@ The correct approach is avoid using `ScrollView`. You can add props like `listHe
 </ScrollView>
 ```
 
-### Correct Approach (Using `SelectionList`)
+### Correct Approach 
+The correct approach is to use the list component's built-in header and footer props instead of wrapping in a `ScrollView`:
 
+- Using `SelectionList`
 ```jsx
 <SelectionList
     sections={[{item}]}
@@ -1279,6 +1281,20 @@ The correct approach is avoid using `ScrollView`. You can add props like `listHe
     listHeaderComponent={<Text>Header Content</Text>}
     listFooterComponent={<Button title="Submit" onPress={handleSubmit} />}
 />
+```
+
+- If you can't switch to `SelectionList` or `FlatList`, you can use `FlashList` as an alternative approach:
+```jsx
+<ScrollView>
+    <Text>Header Content</Text>
+    <FlashList
+        data={data}
+        renderItem={RadioListItem}
+        estimatedItemSize={variables.optionRowHeight}
+        keyExtractor={keyExtractor}
+    />
+    <Button title="Submit" onPress={handleSubmit} />
+</ScrollView>
 ```
 
 This ensures optimal performance and avoids layout issues.

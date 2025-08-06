@@ -1,7 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,8 +9,10 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getPlaidCountry, isPlaidSupportedCountry} from '@libs/CardUtils';
 import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
@@ -23,6 +24,8 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {CurrencyList} from '@src/types/onyx';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 type CountryStepProps = {
     policyID?: string;
@@ -33,13 +36,23 @@ function SelectCountryStep({policyID}: CountryStepProps) {
     const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW>>();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
+    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const [currentCountry, setCurrentCountry] = useState<string | undefined>('');
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
+
+    const getCountry = useCallback(() => {
+        if (addNewCard?.data?.selectedCountry) {
+            return addNewCard.data.selectedCountry;
+        }
+
+        return getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
+    }, [addNewCard?.data.selectedCountry, countryByIp, currencyList, policy?.outputCurrency]);
+
+    const [currentCountry, setCurrentCountry] = useState<string | undefined>(getCountry);
     const [hasError, setHasError] = useState(false);
+    const doesCountrySupportPlaid = isPlaidSupportedCountry(currentCountry);
 
     const submit = () => {
         if (!currentCountry) {
@@ -49,9 +62,10 @@ function SelectCountryStep({policyID}: CountryStepProps) {
                 clearAddNewCardFlow();
             }
             setAddNewCompanyCardStepAndData({
-                step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE,
+                step: doesCountrySupportPlaid ? CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE : CONST.COMPANY_CARDS.STEP.CARD_TYPE,
                 data: {
                     selectedCountry: currentCountry,
+                    selectedFeedType: doesCountrySupportPlaid ? CONST.COMPANY_CARDS.FEED_TYPE.DIRECT : CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
                 },
                 isEditing: false,
             });
@@ -59,23 +73,8 @@ function SelectCountryStep({policyID}: CountryStepProps) {
     };
 
     useEffect(() => {
-        if (addNewCard?.data?.selectedCountry) {
-            setCurrentCountry(addNewCard.data.selectedCountry);
-            return;
-        }
-        const selectedCurrency = policy?.outputCurrency ? currencyList?.[policy.outputCurrency] : null;
-        const countries = selectedCurrency?.countries;
-
-        if (policy?.outputCurrency === CONST.CURRENCY.EUR && countryByIp && countries?.includes(countryByIp)) {
-            setCurrentCountry(countryByIp);
-            return;
-        }
-        const country = countries?.[0];
-
-        if (country) {
-            setCurrentCountry(country);
-        }
-    }, [addNewCard?.data.selectedCountry, countryByIp, currencyList, policy?.outputCurrency]);
+        setCurrentCountry(getCountry());
+    }, [getCountry]);
 
     const handleBackButtonPress = () => {
         if (route?.params?.backTo) {

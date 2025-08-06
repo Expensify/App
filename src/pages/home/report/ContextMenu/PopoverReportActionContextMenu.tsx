@@ -4,11 +4,12 @@ import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHand
 
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
-import {DeviceEventEmitter, Dimensions} from 'react-native';
+import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
 import {deleteMoneyRequest, deleteTrackExpense} from '@libs/actions/IOU';
 import {deleteReportComment} from '@libs/actions/Report';
@@ -54,7 +55,6 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         vertical: 0,
     });
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollViewContext);
-
     const instanceIDRef = useRef('');
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
@@ -68,6 +68,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const [isThreadReportParentAction, setIsThreadReportParentAction] = useState(false);
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
     const [shouldSwitchPositionIfOverflow, setShouldSwitchPositionIfOverflow] = useState(false);
+    const [isWithoutOverlay, setIsWithoutOverlay] = useState<boolean>(true);
 
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement | null>(null);
@@ -82,7 +83,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const onPopoverShow = useRef(() => {});
     const [isContextMenuOpening, setIsContextMenuOpening] = useState(false);
     const onPopoverHide = useRef(() => {});
-    const onEmojiPickerToggle = useRef<undefined | ((state: boolean) => void)>();
+    const onEmojiPickerToggle = useRef<undefined | ((state: boolean) => void)>(undefined);
     const onCancelDeleteModal = useRef(() => {});
     const onConfirmDeleteModal = useRef(() => {});
 
@@ -170,11 +171,13 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             disabledOptions = [],
             shouldCloseOnTarget = false,
             isOverflowMenu = false,
+            withoutOverlay = true,
         } = showContextMenuParams;
         const {reportID, originalReportID, isArchivedRoom = false, isChronos = false, isPinnedChat = false, isUnreadChat = false} = report;
         const {reportActionID, draftMessage, isThreadReportParentAction: isThreadReportParentActionParam = false} = reportAction;
         const {onShow = () => {}, onHide = () => {}, setIsEmojiPickerActive = () => {}} = callbacks;
         setIsContextMenuOpening(true);
+        setIsWithoutOverlay(withoutOverlay);
         const {pageX = 0, pageY = 0} = extractPointerEvent(event);
         contextMenuAnchorRef.current = contextMenuAnchor;
         contextMenuTargetNode.current = event.target as HTMLDivElement;
@@ -276,23 +279,35 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         setIsPopoverVisible(false);
     };
 
+    const transactionIDs: string[] = [];
+    if (isMoneyRequestAction(reportActionRef.current)) {
+        const originalMessage = getOriginalMessage(reportActionRef.current);
+        if (originalMessage && 'IOUTransactionID' in originalMessage && !!originalMessage.IOUTransactionID) {
+            transactionIDs.push(originalMessage.IOUTransactionID);
+        }
+    }
+
+    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionIDs);
+
     const confirmDeleteAndHideModal = useCallback(() => {
         callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);
         const reportAction = reportActionRef.current;
         if (isMoneyRequestAction(reportAction)) {
             const originalMessage = getOriginalMessage(reportAction);
             if (isTrackExpenseAction(reportAction)) {
-                deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID, reportAction);
+                deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations);
             } else {
-                deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction);
+                deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations);
             }
         } else if (reportAction) {
-            deleteReportComment(reportIDRef.current, reportAction);
+            InteractionManager.runAfterInteractions(() => {
+                deleteReportComment(reportIDRef.current, reportAction);
+            });
         }
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
         setIsDeleteCommentConfirmModalVisible(false);
-    }, []);
+    }, [duplicateTransactions, duplicateTransactionViolations]);
 
     const hideDeleteModal = () => {
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));
@@ -343,7 +358,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
                 disableAnimation={false}
                 shouldSetModalVisibility={false}
                 fullscreen
-                withoutOverlay
+                withoutOverlay={isWithoutOverlay}
                 anchorDimensions={contextMenuDimensions.current}
                 anchorRef={anchorRef}
                 shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}

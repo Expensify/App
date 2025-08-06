@@ -17,7 +17,7 @@ function getMessageSkeletonWidth(index: number) {
     }
 }
 
-function getExpenseAmmountSkeletonWidth(index: number) {
+function getExpenseAmountSkeletonWidth(index: number) {
     switch (index % 3) {
         case 0:
             return 45;
@@ -36,7 +36,7 @@ function UnreportedExpensesSkeleton({fixedNumberOfItems}: {fixedNumberOfItems?: 
     const [pageWidth, setPageWidth] = React.useState(0);
     useLayoutEffect(() => {
         containerRef.current?.measure((x, y, width) => {
-            setPageWidth(width - 24);
+            setPageWidth(width - 40);
         });
     }, []);
 
@@ -67,9 +67,9 @@ function UnreportedExpensesSkeleton({fixedNumberOfItems}: {fixedNumberOfItems?: 
                         height={12}
                     />
                     <Rect
-                        x={pageWidth - 12 - getExpenseAmmountSkeletonWidth(args.itemIndex)}
+                        x={pageWidth - 12 - getExpenseAmountSkeletonWidth(args.itemIndex)}
                         y={26}
-                        width={getExpenseAmmountSkeletonWidth(args.itemIndex)}
+                        width={getExpenseAmountSkeletonWidth(args.itemIndex)}
                         height={12}
                     />
                 </>
@@ -85,7 +85,7 @@ function UnreportedExpensesSkeleton({fixedNumberOfItems}: {fixedNumberOfItems?: 
         >
             <ItemListSkeletonView
                 itemViewHeight={64}
-                itemViewStyle={[styles.highlightBG, styles.mb2, styles.br2, styles.ml3, styles.mr3]}
+                itemViewStyle={[styles.highlightBG, styles.mb2, styles.br2, styles.ml5, styles.mr5]}
                 shouldAnimate
                 fixedNumItems={fixedNumberOfItems}
                 renderSkeletonItem={skeletonItem}

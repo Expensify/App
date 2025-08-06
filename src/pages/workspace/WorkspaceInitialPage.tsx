@@ -1,7 +1,6 @@
 import {findFocusedRoute, useFocusEffect, useNavigationState} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -35,6 +34,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -60,7 +60,7 @@ import {
     shouldShowSyncError,
     shouldShowTaxRateError,
 } from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar, getIcons, getPolicyExpenseChat, getReportName, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar, getPolicyExpenseChat, getReportName, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import type WORKSPACE_TO_RHP from '@navigation/linkingConfig/RELATIONS/WORKSPACE_TO_RHP';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -112,7 +112,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID}`, {canBeMissing: true});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const cardsDomainIDs = Object.values(getCompanyFeeds(cardFeeds))
         .map((data) => data.domainID)
         .filter((domainID): domainID is number => !!domainID);
@@ -125,7 +124,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const wasRendered = useRef(false);
-    const currentUserPolicyExpenseChatReportID = getPolicyExpenseChat(accountID, policy?.id)?.reportID;
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const currentUserPolicyExpenseChatReportID = getPolicyExpenseChat(accountID, policy?.id, allReports)?.reportID;
     const [currentUserPolicyExpenseChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentUserPolicyExpenseChatReportID}`, {canBeMissing: true});
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(currentUserPolicyExpenseChat);
     const isPolicyExpenseChatEnabled = !!policy?.isPolicyExpenseChatEnabled;
@@ -487,18 +487,17 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                             ))}
                         </View>
                     </OfflineWithFeedback>
-                    {isPolicyExpenseChatEnabled && (
+                    {isPolicyExpenseChatEnabled && !!currentUserPolicyExpenseChatReportID && (
                         <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                             <Text style={[styles.textSupporting, styles.fontSizeLabel, styles.ph2]}>{translate('workspace.common.submitExpense')}</Text>
                             <OfflineWithFeedback pendingAction={reportPendingAction}>
                                 <MenuItem
                                     title={getReportName(currentUserPolicyExpenseChat)}
                                     description={translate('workspace.common.workspace')}
-                                    icon={getIcons(currentUserPolicyExpenseChat, personalDetails)}
                                     onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID))}
                                     shouldShowRightIcon
                                     wrapperStyle={[styles.br2, styles.pl2, styles.pr0, styles.pv3, styles.mt1, styles.alignItemsCenter]}
-                                    shouldShowSubscriptAvatar
+                                    iconReportID={currentUserPolicyExpenseChatReportID}
                                 />
                             </OfflineWithFeedback>
                         </View>

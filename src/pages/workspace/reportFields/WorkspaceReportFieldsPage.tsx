@@ -1,10 +1,9 @@
+import {FlashList} from '@shopify/flash-list';
+import type {ListRenderItemInfo} from '@shopify/flash-list';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {ListRenderItemInfo} from 'react-native';
-import {ActivityIndicator} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {ActivityIndicator, View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
-import FlatList from '@components/FlatList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Plus} from '@components/Icon/Expensicons';
 import {ReportReceipt} from '@components/Icon/Illustrations';
@@ -20,13 +19,14 @@ import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
-import {enablePolicyReportFields, setPolicyPreventMemberCreatedTitle} from '@libs/actions/Policy/Policy';
-import localeCompare from '@libs/LocaleCompare';
+import {clearPolicyTitleFieldError, enablePolicyReportFields, setPolicyPreventMemberCreatedTitle} from '@libs/actions/Policy/Policy';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -34,6 +34,7 @@ import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnecti
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import variables from '@styles/variables';
 import {openPolicyReportFieldsPage} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,6 +50,10 @@ type ReportFieldForList = ListItem & {
 
 type WorkspaceReportFieldsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS>;
 
+function keyExtractor(item: ReportFieldForList) {
+    return item.keyForList ?? '';
+}
+
 function WorkspaceReportFieldsPage({
     route: {
         params: {policyID},
@@ -59,10 +64,10 @@ function WorkspaceReportFieldsPage({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
     const policy = usePolicy(policyID);
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`, {canBeMissing: true});
     const {environmentURL} = useEnvironment();
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
@@ -111,7 +116,7 @@ function WorkspaceReportFieldsPage({
                 isDisabled: reportField.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 rightLabel: Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportField.type))),
             }));
-    }, [filteredPolicyFieldList, policy, translate]);
+    }, [filteredPolicyFieldList, policy, translate, localeCompare]);
 
     const navigateToReportFieldsSettings = useCallback(
         (reportField: ReportFieldForList) => {
@@ -157,7 +162,14 @@ function WorkspaceReportFieldsPage({
         [shouldUseNarrowLayout, styles.ph5, styles.ph8, styles.popoverMenuText, styles.textStrong, navigateToReportFieldsSettings],
     );
 
+    const titleFieldError = policy?.errorFields?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
+    const reportTitleErrors = getLatestErrorField({errorFields: titleFieldError ?? {}}, 'defaultValue');
+
     const reportTitlePendingFields = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields ?? {};
+
+    const clearTitleFieldError = () => {
+        clearPolicyTitleFieldError(policyID);
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -205,7 +217,13 @@ function WorkspaceReportFieldsPage({
                             containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
                             titleStyles={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
                         >
-                            <OfflineWithFeedback pendingAction={reportTitlePendingFields.defaultValue}>
+                            <OfflineWithFeedback
+                                pendingAction={reportTitlePendingFields.defaultValue}
+                                shouldForceOpacity={!!reportTitlePendingFields.defaultValue}
+                                errors={reportTitleErrors}
+                                errorRowStyles={styles.mh0}
+                                onClose={clearTitleFieldError}
+                            >
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.rules.expenseReportRules.customNameTitle')}
                                     title={Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue ?? '')}
@@ -270,12 +288,14 @@ function WorkspaceReportFieldsPage({
                                 subMenuItems={
                                     !!policy?.areReportFieldsEnabled && (
                                         <>
-                                            <FlatList
-                                                data={reportFieldsSections}
-                                                renderItem={renderItem}
-                                                style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8, styles.mt6]}
-                                                scrollEnabled={false}
-                                            />
+                                            <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8, styles.mt6]}>
+                                                <FlashList
+                                                    data={reportFieldsSections}
+                                                    renderItem={renderItem}
+                                                    estimatedItemSize={variables.optionRowHeight}
+                                                    keyExtractor={keyExtractor}
+                                                />
+                                            </View>
                                             {!hasReportAccountingConnections && (
                                                 <MenuItem
                                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}

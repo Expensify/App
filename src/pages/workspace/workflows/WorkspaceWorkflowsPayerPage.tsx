@@ -11,18 +11,18 @@ import type {ListItem, Section} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isExpensifyTeam, isPendingDeletePolicy} from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import * as Policy from '@userActions/Policy/Policy';
+import {setWorkspacePayer} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, PolicyEmployee} from '@src/types/onyx';
@@ -40,7 +40,7 @@ type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 type MembersSection = SectionListData<MemberOption, Section<MemberOption>>;
 
 function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingReportData = true}: WorkspaceWorkflowsPayerPageProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const policyName = policy?.name ?? '';
     const {isOffline} = useNetwork();
 
@@ -55,7 +55,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         const policyAdminDetails: MemberOption[] = [];
         const authorizedPayerDetails: MemberOption[] = [];
 
-        const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
 
         Object.entries(policy?.employeeList ?? {}).forEach(([email, policyEmployee]) => {
             const accountID = policyMemberEmailsToAccountIDs?.[email] ?? '';
@@ -67,7 +67,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
 
             const isOwner = policy?.owner === details?.login;
             const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
-            const shouldSkipMember = isDeletedPolicyEmployee(policyEmployee) || PolicyUtils.isExpensifyTeam(details?.login) || (!isOwner && !isAdmin);
+            const shouldSkipMember = isDeletedPolicyEmployee(policyEmployee) || isExpensifyTeam(details?.login) || (!isOwner && !isAdmin);
 
             if (shouldSkipMember) {
                 return;
@@ -82,7 +82,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 accountID,
                 isSelected: isAuthorizedPayer,
                 isDisabled: policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors),
-                text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
+                text: formatPhoneNumber(getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
                 icons: [
@@ -104,16 +104,15 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             }
         });
         return [policyAdminDetails, authorizedPayerDetails];
-    }, [personalDetails, policy?.employeeList, translate, policy?.achAccount?.reimburser, isDeletedPolicyEmployee, policy?.owner, policy?.pendingFields?.reimburser]);
+    }, [personalDetails, policy?.employeeList, translate, policy?.achAccount?.reimburser, isDeletedPolicyEmployee, policy?.owner, policy?.pendingFields?.reimburser, formatPhoneNumber]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArray: MembersSection[] = [];
 
         if (searchTerm !== '') {
-            const filteredOptions = [...formattedPolicyAdmins, ...formattedAuthorizedPayer].filter((option) => {
-                const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm);
-                return !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
-            });
+            const searchValue = getSearchValueForPhoneOrEmail(searchTerm);
+            const filteredOptions = tokenizedSearch([...formattedPolicyAdmins, ...formattedAuthorizedPayer], searchValue, (option) => [option.text ?? '', option.login ?? '']);
+
             return [
                 {
                     title: undefined,
@@ -151,16 +150,13 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             return;
         }
 
-        Policy.setWorkspacePayer(policy?.id ?? '-1', authorizedPayerEmail);
+        setWorkspacePayer(policy?.id, authorizedPayerEmail);
         Navigation.goBack();
     };
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
-        () =>
-            (isEmptyObject(policy) && !isLoadingReportData) ||
-            PolicyUtils.isPendingDeletePolicy(policy) ||
-            policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+        () => (isEmptyObject(policy) && !isLoadingReportData) || isPendingDeletePolicy(policy) || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
         [policy, isLoadingReportData],
     );
 
@@ -172,8 +168,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             <FullPageNotFoundView
                 shouldShow={shouldShowNotFoundPage}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
-                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+                onBackButtonPress={goBackFromInvalidPolicy}
+                onLinkPress={goBackFromInvalidPolicy}
             >
                 <ScreenWrapper
                     enableEdgeToEdgeBottomSafeAreaPadding

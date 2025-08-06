@@ -2,16 +2,19 @@
 import type {Ref} from 'react';
 import {cloneElement, forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
+import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import mergeRefs from '@libs/mergeRefs';
 import {getReturnValue} from '@libs/ValueUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type HoverableProps from './types';
 
 type ActiveHoverableProps = Omit<HoverableProps, 'disabled'>;
 
 type MouseEvents = 'onMouseEnter' | 'onMouseLeave' | 'onMouseMove';
 
-type OnMouseEvents = Record<MouseEvents, (e: MouseEvent) => void>;
+type OnMouseEvents = Record<MouseEvents, (e: React.MouseEvent) => void>;
 
 function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreezeCapture, children}: ActiveHoverableProps, outerRef: Ref<HTMLElement>) {
     const [isHovered, setIsHovered] = useState(false);
@@ -77,6 +80,17 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
         return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
     }, []);
 
+    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
+    const isModalVisible = modal?.isVisible;
+    const prevIsModalVisible = usePrevious(isModalVisible);
+
+    useEffect(() => {
+        if (!isModalVisible || prevIsModalVisible) {
+            return;
+        }
+        setIsHovered(false);
+    }, [isModalVisible, prevIsModalVisible]);
+
     const handleMouseEvents = useCallback(
         (type: 'enter' | 'leave') => () => {
             if (shouldFreezeCapture) {
@@ -98,15 +112,15 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
 
     return cloneElement(child, {
         ref: mergeRefs(elementRef, outerRef, child.ref),
-        onMouseEnter: (e: MouseEvent) => {
+        onMouseEnter: (e: React.MouseEvent) => {
             handleMouseEvents('enter')();
             onMouseEnter?.(e);
         },
-        onMouseLeave: (e: MouseEvent) => {
+        onMouseLeave: (e: React.MouseEvent) => {
             handleMouseEvents('leave')();
             onMouseLeave?.(e);
         },
-    });
+    } as React.HTMLAttributes<HTMLElement>);
 }
 
 export default forwardRef(ActiveHoverable);

@@ -35,7 +35,6 @@ function HeaderWithBackButton({
     onDownloadButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
     report,
-    policy,
     policyAvatar,
     shouldShowReportAvatarWithDisplay = false,
     shouldShowBackButton = true,
@@ -102,7 +101,6 @@ function HeaderWithBackButton({
             return (
                 <AvatarWithDisplayName
                     report={report}
-                    policy={policy}
                     shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
                     openParentReportInCurrentTab={openParentReportInCurrentTab}
                 />
@@ -122,7 +120,6 @@ function HeaderWithBackButton({
         StyleUtils,
         subTitleLink,
         shouldUseHeadlineHeader,
-        policy,
         progressBarPercentage,
         report,
         shouldEnableDetailPageNavigation,

@@ -1,15 +1,18 @@
-import React, {useMemo, useRef, useState} from 'react';
+import type {ReactNode} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import Text from '@components/Text';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 type PopoverComponentProps = {
     closeOverlay: () => void;
@@ -26,7 +29,7 @@ type DropdownButtonProps = {
     viewportOffsetTop: number;
 
     /** The component to render in the popover */
-    PopoverComponent: React.FC<PopoverComponentProps>;
+    PopoverComponent: (props: PopoverComponentProps) => ReactNode;
 };
 
 const PADDING_MODAL = 8;
@@ -51,22 +54,33 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
         vertical: 0,
     });
 
+    const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: (modal) => modal?.willAlertModalBecomeVisible, canBeMissing: true});
+
     /**
-     * Toggle the overlay between open & closed, and re-calculate the
-     * position of the trigger
+     * Toggle the overlay between open & closed
      */
-    const toggleOverlay = () => {
+    const toggleOverlay = useCallback(() => {
         setIsOverlayVisible((previousValue) => {
-            triggerRef.current?.measureInWindow((x, y, _, height) => {
-                setPopoverTriggerPosition({
-                    horizontal: x,
-                    vertical: y + height + PADDING_MODAL,
-                });
-            });
+            if (!previousValue && willAlertModalBecomeVisible) {
+                return false;
+            }
 
             return !previousValue;
         });
-    };
+    }, [willAlertModalBecomeVisible]);
+
+    /**
+     * Calculate popover position and toggle overlay
+     */
+    const calculatePopoverPositionAndToggleOverlay = useCallback(() => {
+        triggerRef.current?.measureInWindow((x, y, _, height) => {
+            setPopoverTriggerPosition({
+                horizontal: x,
+                vertical: y + height + PADDING_MODAL,
+            });
+            toggleOverlay();
+        });
+    }, [toggleOverlay]);
 
     /**
      * When no items are selected, render the label, otherwise, render the
@@ -88,6 +102,12 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
         return {width: CONST.POPOVER_DROPDOWN_WIDTH};
     }, [isSmallScreenWidth, styles]);
 
+    const popoverContent = useMemo(() => {
+        return PopoverComponent({closeOverlay: toggleOverlay});
+        // PopoverComponent is stable so we don't need it here as a dep.
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isOverlayVisible, toggleOverlay]);
+
     return (
         <>
             {/* Dropdown Trigger */}
@@ -95,7 +115,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
                 small
                 ref={triggerRef}
                 innerStyles={[isOverlayVisible && styles.buttonHoveredBG, {maxWidth: 256}]}
-                onPress={toggleOverlay}
+                onPress={calculatePopoverPositionAndToggleOverlay}
             >
                 <CaretWrapper style={[styles.flex1, styles.mw100]}>
                     <Text
@@ -127,8 +147,9 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
                     width: CONST.POPOVER_DROPDOWN_WIDTH,
                     height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
                 }}
+                shouldSkipRemeasurement
             >
-                <PopoverComponent closeOverlay={toggleOverlay} />
+                {popoverContent}
             </PopoverWithMeasuredContent>
         </>
     );

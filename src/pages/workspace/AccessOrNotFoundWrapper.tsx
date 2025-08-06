@@ -1,11 +1,13 @@
 /* eslint-disable rulesdir/no-negated-variables */
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {openWorkspace} from '@libs/actions/Policy/Policy';
 import {isValidMoneyRequestType} from '@libs/IOUUtils';
@@ -30,13 +32,24 @@ const ACCESS_VARIANTS = {
     [CONST.POLICY.ACCESS_VARIANTS.PAID]: (policy: OnyxEntry<Policy>) => isPaidGroupPolicy(policy),
     [CONST.POLICY.ACCESS_VARIANTS.CONTROL]: (policy: OnyxEntry<Policy>) => isControlPolicy(policy),
     [CONST.POLICY.ACCESS_VARIANTS.ADMIN]: (policy: OnyxEntry<Policy>, login: string) => isPolicyAdmin(policy, login),
-    [CONST.IOU.ACCESS_VARIANTS.CREATE]: (policy: OnyxEntry<Policy>, login: string, report: OnyxEntry<Report>, allPolicies: NonNullable<OnyxCollection<Policy>> | null, iouType?: IOUType) =>
+    [CONST.IOU.ACCESS_VARIANTS.CREATE]: (
+        policy: OnyxEntry<Policy>,
+        login: string,
+        report: OnyxEntry<Report>,
+        allPolicies: NonNullable<OnyxCollection<Policy>> | null,
+        iouType?: IOUType,
+        isReportArchived?: boolean,
+    ) =>
         !!iouType &&
         isValidMoneyRequestType(iouType) &&
         // Allow the user to submit the expense if we are submitting the expense in global menu or the report can create the expense
-        (isEmptyObject(report?.reportID) || canCreateRequest(report, policy, iouType)) &&
+
+        (isEmptyObject(report?.reportID) || canCreateRequest(report, policy, iouType, isReportArchived)) &&
         (iouType !== CONST.IOU.TYPE.INVOICE || canSendInvoice(allPolicies, login)),
-} as const satisfies Record<string, (policy: Policy, login: string, report: Report, allPolicies: NonNullable<OnyxCollection<Policy>> | null, iouType?: IOUType) => boolean>;
+} as const satisfies Record<
+    string,
+    (policy: Policy, login: string, report: Report, allPolicies: NonNullable<OnyxCollection<Policy>> | null, iouType?: IOUType, isArchivedReport?: boolean) => boolean
+>;
 
 type AccessVariant = keyof typeof ACCESS_VARIANTS;
 type AccessOrNotFoundWrapperChildrenProps = {
@@ -130,12 +143,13 @@ function AccessOrNotFoundWrapper({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         canBeMissing: true,
     });
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true, canBeMissing: true});
+    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
     const {login = ''} = useCurrentUserPersonalDetails();
     const isPolicyIDInRoute = !!policyID?.length;
     const isMoneyRequest = !!iouType && isValidMoneyRequestType(iouType);
     const isFromGlobalCreate = !!reportID && isEmptyObject(report?.reportID);
     const pendingField = featureName ? policy?.pendingFields?.[featureName] : undefined;
+    const isFocused = useIsFocused();
 
     useEffect(() => {
         if (!isPolicyIDInRoute || !isEmptyObject(policy)) {
@@ -153,9 +167,10 @@ function AccessOrNotFoundWrapper({
 
     const {isOffline} = useNetwork();
 
+    const isReportArchived = useReportIsArchived(report?.reportID);
     const isPageAccessible = accessVariants.reduce((acc, variant) => {
         const accessFunction = ACCESS_VARIANTS[variant];
-        return acc && accessFunction(policy, login, report, allPolicies ?? null, iouType);
+        return acc && accessFunction(policy, login, report, allPolicies ?? null, iouType, isReportArchived);
     }, true);
 
     const isPolicyNotAccessible = !isPolicyAccessible(policy);
@@ -164,7 +179,7 @@ function AccessOrNotFoundWrapper({
     // This is because the feature state changes several times during the creation of a workspace, while we are waiting for a response from the backend.
     // Without this, we can be unexpectedly navigated to the More Features page.
     useEffect(() => {
-        if (isFeatureEnabled || (pendingField && !isOffline && !isFeatureEnabled)) {
+        if (!isFocused || isFeatureEnabled || (pendingField && !isOffline && !isFeatureEnabled)) {
             return;
         }
 

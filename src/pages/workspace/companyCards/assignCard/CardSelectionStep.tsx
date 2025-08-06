@@ -1,11 +1,11 @@
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Icon from '@components/Icon';
 import {BrokenMagnifyingGlass} from '@components/Icon/Illustrations';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
@@ -15,11 +15,14 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
-import {getBankName, getCardFeedIcon, getFilteredCardList, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getBankName, getCardFeedIcon, getCustomOrFormattedFeedName, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,6 +47,8 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const [list] = useCardsList(policyID, feed);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
+    const plaidUrl = getPlaidInstitutionIconUrl(feed);
+    const formattedFeedName = getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames);
 
     const isEditing = assignCard?.isEditing;
     const assigneeDisplayName = getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '';
@@ -52,12 +57,37 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const [cardSelected, setCardSelected] = useState(assignCard?.data?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
 
+    const cardListOptions = Object.entries(filteredCardList).map(([cardNumber, encryptedCardNumber]) => ({
+        keyForList: encryptedCardNumber,
+        value: encryptedCardNumber,
+        text: maskCardNumber(cardNumber, feed),
+        alternateText: lastFourNumbersFromCardName(cardNumber),
+        isSelected: cardSelected === encryptedCardNumber,
+        leftElement: plaidUrl ? (
+            <PlaidCardFeedIcon
+                plaidUrl={plaidUrl}
+                style={styles.mr3}
+            />
+        ) : (
+            <Icon
+                src={getCardFeedIcon(feed, illustrations)}
+                height={variables.cardIconHeight}
+                width={variables.iconSizeExtraLarge}
+                additionalStyles={[styles.mr3, styles.cardIcon]}
+            />
+        ),
+    }));
+
     const handleBackButtonPress = () => {
         if (isEditing) {
             setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
                 isEditing: false,
             });
+            return;
+        }
+        if (!cardListOptions.length) {
+            Navigation.goBack();
             return;
         }
         setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE});
@@ -86,24 +116,8 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         });
     };
 
-    const cardListOptions = Object.entries(filteredCardList).map(([cardNumber, encryptedCardNumber]) => ({
-        keyForList: encryptedCardNumber,
-        value: encryptedCardNumber,
-        text: maskCardNumber(cardNumber, feed),
-        alternateText: lastFourNumbersFromCardName(cardNumber),
-        isSelected: cardSelected === encryptedCardNumber,
-        leftElement: (
-            <Icon
-                src={getCardFeedIcon(feed, illustrations)}
-                height={variables.cardIconHeight}
-                width={variables.iconSizeExtraLarge}
-                additionalStyles={[styles.mr3, styles.cardIcon]}
-            />
-        ),
-    }));
-
     const searchedListOptions = useMemo(() => {
-        return cardListOptions.filter((option) => option.text.toLowerCase().includes(searchText));
+        return tokenizedSearch(cardListOptions, searchText, (option) => [option.text]);
     }, [searchText, cardListOptions]);
 
     const safeAreaPaddingBottomStyle = useBottomSafeSafeAreaPaddingStyle();
@@ -158,7 +172,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                             <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
                                 {translate('workspace.companyCards.chooseCardFor', {
                                     assignee: assigneeDisplayName,
-                                    feed: getBankName(feed),
+                                    feed: plaidUrl && formattedFeedName ? formattedFeedName : getBankName(feed),
                                 })}
                             </Text>
                         </View>

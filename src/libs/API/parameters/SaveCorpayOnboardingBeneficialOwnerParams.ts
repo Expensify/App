@@ -1,4 +1,4 @@
-import type {FileObject} from '@components/AttachmentModal';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {BeneficialOwnerDataKey} from '@src/types/form/ReimbursementAccountForm';
 
 type SaveCorpayOnboardingBeneficialOwnerParams = {

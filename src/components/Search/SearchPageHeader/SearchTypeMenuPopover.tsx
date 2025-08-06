@@ -24,7 +24,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
         <>
             <Button
                 innerStyles={[{backgroundColor: theme.sidebarHover}]}
-                icon={Expensicons.Bookmark}
+                icon={Expensicons.Menu}
                 onPress={openMenu}
             />
             {!delayPopoverMenuFirstRender && (
@@ -39,6 +39,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
                     shouldUseModalPaddingStyle={false}
                     innerContainerStyle={{paddingBottom: unmodifiedPaddings.bottom}}
                     shouldAvoidSafariException
+                    scrollContainerStyle={styles.pv0}
                 />
             )}
             <DeleteConfirmModal />

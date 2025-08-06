@@ -25,7 +25,8 @@ const e2eUserCredentials = {
 export default function (): Promise<boolean> {
     const waitForBeginSignInToFinish = (): Promise<void> =>
         new Promise((resolve) => {
-            const id = Onyx.connect({
+            // We opted for `connectWithoutView` here as this is being used for mocking data for E2E flow.
+            const id = Onyx.connectWithoutView({
                 key: ONYXKEYS.CREDENTIALS,
                 callback: (credentials) => {
                     // beginSignUp writes to credentials.login once the API call is complete
@@ -43,7 +44,8 @@ export default function (): Promise<boolean> {
 
     // Subscribe to auth token, to check if we are authenticated
     return new Promise((resolve, reject) => {
-        const connection = Onyx.connect({
+        // We opted for `connectWithoutView` here as this is being used for mocking data for E2E flow.
+        const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.SESSION,
             callback: (session) => {
                 if (session?.authToken == null || session.authToken.length === 0) {
@@ -52,7 +54,10 @@ export default function (): Promise<boolean> {
                     // authenticate with a predefined user
                     console.debug('[E2E] Signing in…');
                     Authenticate(e2eUserCredentials)
-                        ?.then((response) => {
+                        .then((response) => {
+                            if (!response) {
+                                return;
+                            }
                             Onyx.merge(ONYXKEYS.SESSION, {
                                 authToken: response.authToken,
                                 creationDate: new Date().getTime(),

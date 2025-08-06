@@ -22,13 +22,13 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
 
     const hideModal = () => {
         onModalHide();
-        if ((window.history.state as WindowState)?.shouldGoBack) {
+        if ((window.history.state as WindowState)?.shouldGoBack && shouldHandleNavigationBack) {
             window.history.back();
         }
     };
 
     const handlePopStateRef = useRef(() => {
-        rest.onClose();
+        rest.onClose?.();
     });
 
     const showModal = () => {

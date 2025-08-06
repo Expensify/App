@@ -15,6 +15,8 @@ type CreateWorkspaceParams = {
     currency: string;
     file?: File;
     companySize?: string;
+    userReportedIntegration?: string;
+    isAnnualSubscription?: boolean;
 };
 
 export default CreateWorkspaceParams;

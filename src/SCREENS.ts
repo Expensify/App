@@ -35,6 +35,7 @@ const SCREENS = {
         DOMAIN_PERMISSION_INFO: 'Travel_DomainPermissionInfo',
         PUBLIC_DOMAIN_ERROR: 'Travel_PublicDomainError',
         WORKSPACE_ADDRESS: 'Travel_WorkspaceAddress',
+        TRAVEL_DOT_LINK_WEB_VIEW: 'Travel_DotLinkWebView',
     },
     SEARCH: {
         ROOT: 'Search_Root',
@@ -42,6 +43,9 @@ const SCREENS = {
         MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: 'Search_Money_Request_Report_Hold_Transactions',
         REPORT_RHP: 'Search_Report_RHP',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
+        ADVANCED_FILTERS_TYPE_RHP: 'Search_Advanced_Filters_Type_RHP',
+        ADVANCED_FILTERS_GROUP_BY_RHP: 'Search_Advanced_Filters_GroupBy_RHP',
+        ADVANCED_FILTERS_STATUS_RHP: 'Search_Advanced_Filters_Status_RHP',
         ADVANCED_FILTERS_DATE_RHP: 'Search_Advanced_Filters_Date_RHP',
         ADVANCED_FILTERS_SUBMITTED_RHP: 'Search_Advanced_Filters_Submitted_RHP',
         ADVANCED_FILTERS_APPROVED_RHP: 'Search_Advanced_Filters_Approved_RHP',
@@ -98,6 +102,7 @@ const SCREENS = {
             STATUS_CLEAR_AFTER: 'Settings_Status_Clear_After',
             STATUS_CLEAR_AFTER_DATE: 'Settings_Status_Clear_After_Date',
             STATUS_CLEAR_AFTER_TIME: 'Settings_Status_Clear_After_Time',
+            VACATION_DELEGATE: 'Settings_Status_Vacation_Delegate',
             STATUS: 'Settings_Status',
             PRONOUNS: 'Settings_Pronouns',
             TIMEZONE: 'Settings_Timezone',
@@ -146,6 +151,11 @@ const SCREENS = {
             ACCOUNT_DETAILS: 'Settings_MergeAccounts_AccountDetails',
             ACCOUNT_VALIDATE: 'Settings_MergeAccounts_AccountValidate',
             MERGE_RESULT: 'Settings_MergeAccounts_MergeResult',
+        },
+        LOCK: {
+            LOCK_ACCOUNT: 'Settings_Lock_LockAccount',
+            UNLOCK_ACCOUNT: 'Settings_Lock_UnlockAccount',
+            FAILED_TO_LOCK_ACCOUNT: 'Settings_Lock_FailedToLockAccount',
         },
         SUBSCRIPTION: {
             ROOT: 'Settings_Subscription',
@@ -245,6 +255,7 @@ const SCREENS = {
         STEP_WAYPOINT: 'Money_Request_Step_Waypoint',
         STEP_TAX_AMOUNT: 'Money_Request_Step_Tax_Amount',
         STEP_TAX_RATE: 'Money_Request_Step_Tax_Rate',
+        RECEIPT_VIEW_MODAL: 'Money_Request_Receipt_View_Modal',
         STEP_SPLIT_PAYER: 'Money_Request_Step_Split_Payer',
         STEP_SEND_FROM: 'Money_Request_Step_Send_From',
         STEP_COMPANY_INFO: 'Money_Request_Step_Company_Info',
@@ -265,6 +276,9 @@ const SCREENS = {
         EDIT_REPORT: 'Money_Request_Edit_Report',
         SPLIT_EXPENSE: 'Money_Request_Split_Expense',
         SPLIT_EXPENSE_EDIT: 'Money_Request_Split_Expense_Edit',
+        DISTANCE_CREATE: 'Money_Request_Distance_Create',
+        STEP_DISTANCE_MAP: 'Money_Request_Step_Distance_Map',
+        STEP_DISTANCE_MANUAL: 'Money_Request_Step_Distance_Manual',
     },
 
     TRANSACTION_DUPLICATE: {
@@ -425,6 +439,8 @@ const SCREENS = {
             XERO_EXPORT: 'Policy_Accounting_Xero_Export',
             XERO_EXPORT_PURCHASE_BILL_DATE_SELECT: 'Policy_Accounting_Xero_Export_Purchase_Bill_Date_Select',
             XERO_ADVANCED: 'Policy_Accounting_Xero_Advanced',
+            XERO_AUTO_SYNC: 'Policy_Accounting_Xero_Auto_Sync',
+            XERO_ACCOUNTING_METHOD: 'Policy_Accounting_Xero_Accounting_Method',
             XERO_BILL_STATUS_SELECTOR: 'Policy_Accounting_Xero_Export_Bill_Status_Selector',
             XERO_INVOICE_ACCOUNT_SELECTOR: 'Policy_Accounting_Xero_Invoice_Account_Selector',
             XERO_EXPORT_PREFERRED_EXPORTER_SELECT: 'Workspace_Accounting_Xero_Export_Preferred_Exporter_Select',
@@ -505,6 +521,7 @@ const SCREENS = {
         COMPANY_CARDS_DETAILS: 'Workspace_CompanyCards_Details',
         COMPANY_CARDS_SETTINGS: 'Workspace_CompanyCards_Settings',
         COMPANY_CARDS_SETTINGS_FEED_NAME: 'Workspace_CompanyCards_Settings_Feed_Name',
+        COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE: 'Workspace_CompanyCards_Settings_Statement_Close_Date',
         COMPANY_CARD_DETAILS: 'Workspace_CompanyCard_Details',
         COMPANY_CARD_NAME: 'Workspace_CompanyCard_Name',
         COMPANY_CARD_EXPORT: 'Workspace_CompanyCard_Export',
@@ -533,7 +550,10 @@ const SCREENS = {
         TAGS_SETTINGS: 'Tags_Settings',
         TAGS_EDIT: 'Tags_Edit',
         TAGS_IMPORT: 'Tags_Import',
+        TAGS_IMPORT_MULTI_LEVEL_SETTINGS: 'Tags_Import_Multi_Level_Settings',
+        TAGS_IMPORT_OPTIONS: 'Tags_Import_Options',
         TAGS_IMPORTED: 'Tags_Imported',
+        TAGS_IMPORTED_MULTI_LEVEL: 'Tags_Imported_Multi_Level',
         TAG_EDIT: 'Tag_Edit',
         TAXES: 'Workspace_Taxes',
         REPORT_FIELDS: 'Workspace_ReportFields',
@@ -597,6 +617,7 @@ const SCREENS = {
         DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',
         DISTANCE_RATE_DETAILS: 'Distance_Rate_Details',
         DISTANCE_RATE_EDIT: 'Distance_Rate_Edit',
+        DISTANCE_RATE_NAME_EDIT: 'Distance_Rate_Name_Edit',
         DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT: 'Distance_Rate_Tax_Reclaimable_On_Edit',
         DISTANCE_RATE_TAX_RATE_EDIT: 'Distance_Rate_Tax_Rate_Edit',
         UPGRADE: 'Workspace_Upgrade',
@@ -649,9 +670,14 @@ const SCREENS = {
         PRIVATE_DOMAIN: 'Onboarding_Private_Domain',
         EMPLOYEES: 'Onboarding_Employees',
         ACCOUNTING: 'Onboarding_Accounting',
+        INTERESTED_FEATURES: 'Onboarding_Interested_Features',
         WORKSPACES: 'Onboarding_Workspaces',
         WORK_EMAIL: 'Onboarding_Work_Email',
         WORK_EMAIL_VALIDATION: 'Onboarding_Work_Email_Validation',
+        WORKSPACE_OPTIONAL: 'Onboarding_Workspace_Optional',
+        WORKSPACE_CONFIRMATION: 'Onboarding_Workspace_Confirmation',
+        WORKSPACE_CURRENCY: 'Onboarding_Workspace_Currency',
+        WORKSPACE_INVITE: 'Onboarding_Workspace_Invite',
     },
 
     WELCOME_VIDEO: {
@@ -669,7 +695,6 @@ const SCREENS = {
     TEST_DRIVE_MODAL: {
         ROOT: 'TestDrive_Modal_Root',
     },
-
     TEST_DRIVE_DEMO: {
         ROOT: 'TestDrive_Demo_Root',
     },
@@ -685,6 +710,7 @@ const SCREENS = {
     DETAILS_ROOT: 'Details_Root',
     PROFILE_ROOT: 'Profile_Root',
     PROCESS_MONEY_REQUEST_HOLD_ROOT: 'ProcessMoneyRequestHold_Root',
+    AUTO_SUBMIT_ROOT: 'AutoSubmit_Modal_Root',
     CHANGE_POLICY_EDUCATIONAL_ROOT: 'ChangePolicyEducational_Root',
     REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
     REPORT_PARTICIPANTS: {
@@ -725,6 +751,10 @@ const SCREENS = {
     SCHEDULE_CALL: {
         BOOK: 'ScheduleCall_Book',
         CONFIRMATION: 'ScheduleCall_Confirmation',
+    },
+
+    TEST_TOOLS_MODAL: {
+        ROOT: 'TestToolsModal_Root',
     },
 } as const;
 

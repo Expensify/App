@@ -1,5 +1,4 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -9,6 +8,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -21,7 +21,7 @@ function CardNameStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM> => {
         const errors = getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE]);
@@ -67,6 +67,7 @@ function CardNameStep() {
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
                 addBottomSafeAreaPadding
+                shouldPreventDefaultFocusOnPressSubmit
             >
                 <InputWrapper
                     InputComponent={TextInput}

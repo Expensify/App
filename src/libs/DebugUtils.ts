@@ -8,7 +8,7 @@ import type {TupleToUnion} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Beta, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Comment} from '@src/types/onyx/Transaction';
 import {getLinkedTransactionID} from './ReportActionsUtils';
@@ -92,15 +92,6 @@ Onyx.connect({
     key: ONYXKEYS.NVP_PRIORITY_MODE,
     callback: (priorityMode) => {
         isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
-    },
-});
-
-let policies: OnyxCollection<Policy>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        policies = value;
     },
 });
 
@@ -481,6 +472,9 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'isDeletedParentAction':
         case 'isWaitingOnBankAccount':
         case 'isCancelledIOU':
+        case 'hasReportBeenReopened':
+        case 'isExportedToIntegration':
+        case 'hasExportError':
             return validateBoolean(value);
         case 'exportFailedTime':
         case 'lastReadSequenceNumber':
@@ -567,6 +561,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 startDate: 'string',
                 endDate: 'string',
                 tripID: 'string',
+                payload: 'object',
             });
         case 'calendlySchedule':
             return validateObject<ObjectElement<ReportNameValuePairs, 'calendlySchedule'>>(value, {
@@ -582,6 +577,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 eventURI: 'string',
                 inserted: 'string',
             });
+        case 'agentZeroProcessingRequestIndicator':
+            return validateString(value);
         case 'pendingAction':
             return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
         case 'pendingFields':
@@ -629,6 +626,9 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 unheldNonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isWaitingOnBankAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isCancelledIOU: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                hasReportBeenReopened: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isExportedToIntegration: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                hasExportError: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 iouReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 preexistingReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 nonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -648,6 +648,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 exportFailedTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 calendlySchedule: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 calendlyCalls: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                agentZeroProcessingRequestIndicator: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
     }
 }
@@ -822,6 +823,8 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                             ...CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION,
                         },
                         deleted: 'string',
+                        bankAccountID: 'string',
+                        payAsBusiness: 'string',
                     }),
                 () =>
                     validateObject<ObjectElement<ReportAction, 'message'>>(value, {
@@ -905,6 +908,8 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                         expenseReportID: 'string',
                         resolution: 'string',
                         deleted: 'string',
+                        bankAccountID: 'string',
+                        payAsBusiness: 'string',
                     }),
             );
     }
@@ -986,6 +991,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 iouType: CONST.IOU.TYPE,
                 ownerAccountID: 'number',
                 icons: 'array',
+                avatar: 'string',
                 item: 'string',
             });
         case 'errors':
@@ -1073,6 +1079,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     inserted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     accountant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitExpenses: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isDemoTransaction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1111,6 +1118,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 splits: 'array',
                 dismissedViolations: 'object',
                 splitExpenses: 'array',
+                isDemoTransaction: 'boolean',
             });
         case 'accountant':
             return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {
@@ -1321,7 +1329,7 @@ function validateTransactionViolationJSON(json: string) {
 /**
  * Gets the reason for showing LHN row
  */
-function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, hasRBR = false): TranslationPaths | null {
+function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, chatReport: OnyxEntry<Report>, hasRBR = false, isReportArchived = false): TranslationPaths | null {
     if (!report) {
         return null;
     }
@@ -1330,14 +1338,15 @@ function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, hasRBR = false):
 
     const reason = reasonForReportToBeInOptionList({
         report,
+        chatReport,
         // We can't pass report.reportID because it will cause reason to always be isFocused
         currentReportId: '-1',
         isInFocusMode: !!isInFocusMode,
         betas,
-        policies,
         excludeEmptyChats: true,
         doesReportHaveViolations,
         includeSelfDM: true,
+        isReportArchived,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {
@@ -1361,12 +1370,12 @@ type GBRReasonAndReportAction = {
 /**
  * Gets the reason and report action that is causing the GBR to show up in LHN row
  */
-function getReasonAndReportActionForGBRInLHNRow(report: OnyxEntry<Report>): GBRReasonAndReportAction | null {
+function getReasonAndReportActionForGBRInLHNRow(report: OnyxEntry<Report>, isReportArchived = false): GBRReasonAndReportAction | null {
     if (!report) {
         return null;
     }
 
-    const {reason, reportAction} = getReasonAndReportActionThatRequiresAttention(report) ?? {};
+    const {reason, reportAction} = getReasonAndReportActionThatRequiresAttention(report, undefined, isReportArchived) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonGBR.${reason}`, reportAction};
@@ -1385,6 +1394,7 @@ type RBRReasonAndReportAction = {
  */
 function getReasonAndReportActionForRBRInLHNRow(
     report: Report,
+    chatReport: OnyxEntry<Report>,
     reportActions: OnyxEntry<ReportActions>,
     transactions: OnyxCollection<Transaction>,
     hasViolations: boolean,
@@ -1392,7 +1402,7 @@ function getReasonAndReportActionForRBRInLHNRow(
     isArchivedReport = false,
 ): RBRReasonAndReportAction | null {
     const {reason, reportAction} =
-        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, reportErrors, transactions, transactionViolations, isArchivedReport) ?? {};
+        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, chatReport, reportActions, hasViolations, reportErrors, transactions, transactionViolations, isArchivedReport) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonRBR.${reason}`, reportAction};

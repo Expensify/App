@@ -17,6 +17,7 @@ import {setCompanyCardExportAccount} from '@libs/actions/CompanyCards';
 import {getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getConnectedIntegration, getCurrentConnectionName} from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
@@ -31,7 +32,7 @@ type WorkspaceCompanyCardAccountSelectCardProps = PlatformStackScreenProps<Setti
 function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCardAccountSelectCardProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {policyID, cardID} = route.params;
+    const {policyID, cardID, backTo} = route.params;
     const bank = decodeURIComponent(route.params.bank);
     const policy = usePolicy(policyID);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
@@ -51,7 +52,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[bank as CompanyCardFeed]);
 
     const searchedListOptions = useMemo(() => {
-        return exportMenuItem?.data.filter((option) => option.value.toLowerCase().includes(searchText));
+        return tokenizedSearch(exportMenuItem?.data ?? [], searchText, (option) => [option.value]);
     }, [exportMenuItem?.data, searchText]);
 
     const listEmptyContent = useMemo(
@@ -115,7 +116,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
             onChangeText={setSearchText}
             onSelectRow={updateExportAccount}
             initiallyFocusedOptionKey={exportMenuItem?.data?.find((mode) => mode.isSelected)?.keyForList}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, bank))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, bank, backTo), {compareParams: false})}
             headerTitleAlreadyTranslated={exportMenuItem?.description}
             listEmptyContent={listEmptyContent}
             connectionName={connectedIntegration}

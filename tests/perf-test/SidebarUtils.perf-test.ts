@@ -12,7 +12,8 @@ import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction, {getRandomDate} from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
+import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 15000;
@@ -58,6 +59,7 @@ describe('SidebarUtils', () => {
 
         Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
+            [ONYXKEYS.NVP_PREFERRED_LOCALE]: 'en',
         });
     });
 
@@ -67,7 +69,6 @@ describe('SidebarUtils', () => {
 
     test('[SidebarUtils] getOptionData', async () => {
         const report = createRandomReport(1);
-        const preferredLocale = 'en';
         const policy = createRandomPolicy(1);
         const parentReportAction = createRandomReportAction(1);
         const reportNameValuePairs = {};
@@ -80,21 +81,21 @@ describe('SidebarUtils', () => {
                 reportAttributes: undefined,
                 reportNameValuePairs,
                 personalDetails,
-                preferredLocale,
                 policy,
                 parentReportAction,
                 oneTransactionThreadReport: undefined,
+                localeCompare,
             }),
         );
     });
 
-    test('[SidebarUtils] getOrderedReportIDs on 15k reports for default priorityMode', async () => {
+    test('[SidebarUtils] getReportsToDisplayInLHN on 15k reports for default priorityMode', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.DEFAULT, transactionViolations));
+        await measureFunction(() => SidebarUtils.getReportsToDisplayInLHN(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.DEFAULT, transactionViolations));
     });
 
-    test('[SidebarUtils] getOrderedReportIDs on 15k reports for GSD priorityMode', async () => {
+    test('[SidebarUtils] getReportsToDisplayInLHN on 15k reports for GSD priorityMode', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.GSD, transactionViolations));
+        await measureFunction(() => SidebarUtils.getReportsToDisplayInLHN(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.GSD, transactionViolations));
     });
 });

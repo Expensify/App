@@ -1,7 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo, useState} from 'react';
 import {FlatList, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -21,14 +20,18 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SearchBar from '@components/SearchBar';
+import type {ListItem} from '@components/SelectionList/types';
 import SupportalActionRestrictedModal from '@components/SupportalActionRestrictedModal';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
@@ -36,7 +39,6 @@ import {calculateBillNewDot, clearDeleteWorkspaceError, clearErrors, deleteWorks
 import {callFunctionIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -54,7 +56,8 @@ import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspacesListRow from './WorkspacesListRow';
 
-type WorkspaceItem = Required<Pick<MenuItemProps, 'title' | 'disabled'>> &
+type WorkspaceItem = ListItem &
+    Required<Pick<MenuItemProps, 'title' | 'disabled'>> &
     Pick<MenuItemProps, 'brickRoadIndicator' | 'iconFill' | 'fallbackIcon'> &
     Pick<OfflineWithFeedbackProps, 'errors' | 'pendingAction'> &
     Pick<PolicyType, 'role' | 'type' | 'ownerAccountID' | 'employeeList'> & {
@@ -63,20 +66,11 @@ type WorkspaceItem = Required<Pick<MenuItemProps, 'title' | 'disabled'>> &
         dismissError: () => void;
         iconType?: ValueOf<typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_ICON>;
         policyID?: string;
-        adminRoom?: string | null;
-        announceRoom?: string | null;
         isJoinRequestPending?: boolean;
     };
 
 // eslint-disable-next-line react/no-unused-prop-types
 type GetMenuItem = {item: WorkspaceItem; index: number};
-
-type ChatType = {
-    adminRoom?: string | null;
-    announceRoom?: string | null;
-};
-
-type ChatPolicyType = Record<string, ChatType>;
 
 const workspaceFeatures: FeatureListItem[] = [
     {
@@ -110,21 +104,19 @@ function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.Pendi
     clearErrors(policyID);
 }
 
-const stickyHeaderIndices = [0];
-
 function WorkspacesListPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.WORKSPACES_LIST>>();
 
@@ -146,6 +138,8 @@ function WorkspacesListPage() {
         selector: filterInactiveCards,
         canBeMissing: true,
     });
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policyToDelete = getPolicy(policyIDToDelete);
     const hasCardFeedOrExpensifyCard =
         !isEmptyObject(cardFeeds) ||
@@ -164,7 +158,7 @@ function WorkspacesListPage() {
             return;
         }
 
-        deleteWorkspace(policyIDToDelete, policyNameToDelete);
+        deleteWorkspace(policyIDToDelete, policyNameToDelete, lastPaymentMethod);
         setIsDeleteModalOpen(false);
     };
 
@@ -182,9 +176,6 @@ function WorkspacesListPage() {
             const isAdmin = isPolicyAdmin(item as unknown as PolicyType, session?.email);
             const isOwner = item.ownerAccountID === session?.accountID;
             const isDefault = activePolicyID === item.policyID;
-            // Menu options to navigate to the chat report of #admins and #announce room.
-            // For navigation, the chat report ids may be unavailable due to the missing chat reports in Onyx.
-            // In such cases, let us use the available chat report ids from the policy.
             const threeDotsMenuItems: PopoverMenuItem[] = [
                 {
                     icon: Expensicons.Building,
@@ -230,22 +221,6 @@ function WorkspacesListPage() {
                     icon: Expensicons.Exit,
                     text: translate('common.leave'),
                     onSelected: callFunctionIfActionIsAllowed(() => leaveWorkspace(item.policyID)),
-                });
-            }
-
-            if (isAdmin && item.adminRoom) {
-                threeDotsMenuItems.push({
-                    icon: Expensicons.Hashtag,
-                    text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}),
-                    onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.adminRoom ?? '')),
-                });
-            }
-
-            if (item.announceRoom) {
-                threeDotsMenuItems.push({
-                    icon: Expensicons.Hashtag,
-                    text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE}),
-                    onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.announceRoom ?? '')),
                 });
             }
 
@@ -316,74 +291,6 @@ function WorkspacesListPage() {
         ],
     );
 
-    const listHeaderComponent = useCallback(() => {
-        if (isLessThanMediumScreen) {
-            return <View style={styles.mt3} />;
-        }
-
-        return (
-            <View style={[styles.flexRow, styles.gap5, styles.pt2, styles.pb3, styles.pr5, styles.pl10, styles.appBG]}>
-                <View style={[styles.flexRow, styles.flex2]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.flexGrow1, styles.textLabelSupporting]}
-                    >
-                        {translate('workspace.common.workspaceName')}
-                    </Text>
-                </View>
-                <View style={[styles.flexRow, styles.flex1, styles.workspaceOwnerSectionTitle, styles.workspaceOwnerSectionMinWidth]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.flexGrow1, styles.textLabelSupporting]}
-                    >
-                        {translate('workspace.common.workspaceOwner')}
-                    </Text>
-                </View>
-                <View style={[styles.flexRow, styles.flex1, styles.workspaceTypeSectionTitle]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.flexGrow1, styles.textLabelSupporting]}
-                    >
-                        {translate('workspace.common.workspaceType')}
-                    </Text>
-                </View>
-                <View style={[styles.workspaceRightColumn, styles.mr2]} />
-            </View>
-        );
-    }, [isLessThanMediumScreen, styles, translate]);
-
-    const policyRooms = useMemo(() => {
-        if (!reports || isEmptyObject(reports)) {
-            return;
-        }
-
-        return Object.values(reports).reduce<ChatPolicyType>((result, report) => {
-            if (!report?.reportID || !report.policyID || report.parentReportID) {
-                return result;
-            }
-
-            if (!result[report.policyID]) {
-                // eslint-disable-next-line no-param-reassign
-                result[report.policyID] = {};
-            }
-
-            switch (report.chatType) {
-                case CONST.REPORT.CHAT_TYPE.POLICY_ADMINS:
-                    // eslint-disable-next-line no-param-reassign
-                    result[report.policyID].adminRoom = report.reportID;
-                    break;
-                case CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE:
-                    // eslint-disable-next-line no-param-reassign
-                    result[report.policyID].announceRoom = report.reportID;
-                    break;
-                default:
-                    break;
-            }
-
-            return result;
-        }, {});
-    }, [reports]);
-
     const navigateToWorkspace = useCallback(
         (policyID: string) => {
             // On the wide layout, we always want to open the Profile page when opening workspace settings from the list
@@ -422,7 +329,7 @@ function WorkspacesListPage() {
                         fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                         policyID: id,
                         role: CONST.POLICY.ROLE.USER,
-                        errors: null,
+                        errors: undefined,
                         action: () => null,
                         dismissError: () => null,
                         isJoinRequestPending: true,
@@ -447,16 +354,60 @@ function WorkspacesListPage() {
                     iconFill: theme.textLight,
                     fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                     policyID: policy.id,
-                    adminRoom: policyRooms?.[policy.id]?.adminRoom ?? policy.chatReportIDAdmins?.toString(),
-                    announceRoom: policyRooms?.[policy.id]?.announceRoom ?? (policy.chatReportIDAnnounce ? policy.chatReportIDAnnounce?.toString() : ''),
                     ownerAccountID: policy.ownerAccountID,
                     role: policy.role,
                     type: policy.type,
                     employeeList: policy.employeeList,
                 };
-            })
-            .sort((a, b) => localeCompare(a.title, b.title));
-    }, [reimbursementAccount?.errors, policies, isOffline, session?.email, allConnectionSyncProgresses, theme.textLight, policyRooms, navigateToWorkspace]);
+            });
+    }, [reimbursementAccount?.errors, policies, isOffline, session?.email, allConnectionSyncProgresses, theme.textLight, navigateToWorkspace]);
+
+    const filterWorkspace = useCallback((workspace: WorkspaceItem, inputValue: string) => workspace.title.toLowerCase().includes(inputValue), []);
+    const sortWorkspace = useCallback((workspaceItems: WorkspaceItem[]) => workspaceItems.sort((a, b) => localeCompare(a.title, b.title)), [localeCompare]);
+    const [inputValue, setInputValue, filteredWorkspaces] = useSearchResults(workspaces, filterWorkspace, sortWorkspace);
+
+    const listHeaderComponent = (
+        <>
+            {isLessThanMediumScreen && <View style={styles.mt3} />}
+            {workspaces.length > CONST.SEARCH_ITEM_LIMIT && (
+                <SearchBar
+                    label={translate('workspace.common.findWorkspace')}
+                    inputValue={inputValue}
+                    onChangeText={setInputValue}
+                    shouldShowEmptyState={filteredWorkspaces.length === 0 && inputValue.length > 0}
+                />
+            )}
+            {!isLessThanMediumScreen && filteredWorkspaces.length > 0 && (
+                <View style={[styles.flexRow, styles.gap5, styles.pt2, styles.pb3, styles.pr5, styles.pl10, styles.appBG]}>
+                    <View style={[styles.flexRow, styles.flex2]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.flexGrow1, styles.textLabelSupporting]}
+                        >
+                            {translate('workspace.common.workspaceName')}
+                        </Text>
+                    </View>
+                    <View style={[styles.flexRow, styles.flex1, styles.workspaceOwnerSectionTitle, styles.workspaceOwnerSectionMinWidth]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.flexGrow1, styles.textLabelSupporting]}
+                        >
+                            {translate('workspace.common.workspaceOwner')}
+                        </Text>
+                    </View>
+                    <View style={[styles.flexRow, styles.flex1, styles.workspaceTypeSectionTitle]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.flexGrow1, styles.textLabelSupporting]}
+                        >
+                            {translate('workspace.common.workspaceType')}
+                        </Text>
+                    </View>
+                    <View style={[styles.workspaceRightColumn, styles.mr2]} />
+                </View>
+            )}
+        </>
+    );
 
     const getHeaderButton = () => (
         <Button
@@ -485,12 +436,16 @@ function WorkspacesListPage() {
                 bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
                 enableEdgeToEdgeBottomSafeAreaPadding={false}
             >
-                <TopBar breadcrumbLabel={translate('common.workspaces')} />
+                <View style={styles.topBarWrapper}>
+                    <TopBar breadcrumbLabel={translate('common.workspaces')} />
+                </View>
                 {shouldShowLoadingIndicator ? (
-                    <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                    <View style={[styles.flex1]}>
+                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                    </View>
                 ) : (
                     <ScrollView
-                        contentContainerStyle={styles.pt3}
+                        contentContainerStyle={styles.pt2}
                         addBottomSafeAreaPadding
                     >
                         <View style={[styles.flex1, isLessThanMediumScreen ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -524,12 +479,12 @@ function WorkspacesListPage() {
         >
             <View style={styles.flex1}>
                 <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
-                {shouldUseNarrowLayout && <View style={[styles.ph5]}>{getHeaderButton()}</View>}
+                {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{getHeaderButton()}</View>}
                 <FlatList
-                    data={workspaces}
+                    data={filteredWorkspaces}
                     renderItem={getMenuItem}
                     ListHeaderComponent={listHeaderComponent}
-                    stickyHeaderIndices={stickyHeaderIndices}
+                    keyboardShouldPersistTaps="handled"
                 />
             </View>
             <ConfirmModal

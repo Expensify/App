@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
-import type {ReportActionListItemType, ReportListItemType, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {SearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
@@ -65,24 +66,39 @@ type SingularSearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSear
 type SearchStatus = SingularSearchStatus | SingularSearchStatus[];
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
+type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 
-type SearchContext = {
+type SearchContextData = {
     currentSearchHash: number;
+    currentSearchKey: SearchKey | undefined;
     selectedTransactions: SelectedTransactions;
+    selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
-    setCurrentSearchHash: (hash: number) => void;
-    setSelectedTransactions: (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[] | TaskListItemType[]) => void;
-    clearSelectedTransactions: (hash?: number, shouldTurnOffSelectionMode?: boolean) => void;
+    isOnSearch: boolean;
     shouldTurnOffSelectionMode: boolean;
+};
+
+type SearchContext = SearchContextData & {
+    setCurrentSearchHashAndKey: (hash: number, key: SearchKey | undefined) => void;
+    /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
+    setSelectedTransactions: {
+        (selectedTransactionIDs: string[], unused?: undefined): void;
+        (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]): void;
+    };
+    /** If you want to clear `selectedTransactionIDs`, pass `true` as the first argument */
+    clearSelectedTransactions: {
+        (hash?: number, shouldTurnOffSelectionMode?: boolean): void;
+        (clearIDs: true, unused?: undefined): void;
+    };
+    removeTransaction: (transactionID: string | undefined) => void;
     shouldShowFiltersBarLoading: boolean;
     setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
     lastSearchType: string | undefined;
-    shouldShowExportModeOption: boolean;
-    setShouldShowExportModeOption: (shouldShow: boolean) => void;
-    isExportMode: boolean;
-    setExportMode: (on: boolean) => void;
-    isOnSearch: boolean;
+    showSelectAllMatchingItems: boolean;
+    shouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
+    areAllMatchingItemsSelected: boolean;
+    selectAllMatchingItems: (on: boolean) => void;
 };
 
 type ASTNode = {
@@ -110,7 +126,6 @@ type SearchFilterKey =
     | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY;
 
 type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
@@ -129,7 +144,7 @@ type SearchQueryAST = {
     sortOrder: SortOrder;
     groupBy?: SearchGroupBy;
     filters: ASTNode;
-    policyID?: string;
+    policyID?: string[];
 };
 
 type SearchQueryJSON = {
@@ -154,7 +169,9 @@ type SearchAutocompleteQueryRange = {
 
 type SearchParams = {
     queryJSON: SearchQueryJSON;
+    searchKey: SearchKey | undefined;
     offset: number;
+    shouldCalculateTotals: boolean;
 };
 
 export type {
@@ -168,6 +185,7 @@ export type {
     SearchQueryString,
     SortOrder,
     SearchContext,
+    SearchContextData,
     ASTNode,
     QueryFilter,
     QueryFilters,
@@ -185,4 +203,5 @@ export type {
     TableColumnSize,
     SearchGroupBy,
     SingularSearchStatus,
+    SearchDatePreset,
 };

@@ -77,6 +77,8 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
 
 /**
  * Retrieves the default mileage rate based on a given policy.
+ * Default rate is the first created rate when you create the policy.
+ * It's NOT always the rate whose name is "Default rate" because rate name is now changeable.
  *
  * @param policy - The policy from which to extract the default mileage rate.
  *
@@ -96,7 +98,7 @@ function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy>): MileageRate | 
     }
     const mileageRates = Object.values(getMileageRates(policy));
 
-    const distanceRate = mileageRates.find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE) ?? mileageRates.at(0) ?? ({} as MileageRate);
+    const distanceRate = mileageRates.at(0) ?? ({} as MileageRate);
 
     return {
         customUnitRateID: distanceRate.customUnitRateID,
@@ -186,7 +188,7 @@ function getDistanceForDisplay(
     translate: LocaleContextProps['translate'],
     useShortFormUnit?: boolean,
 ): string {
-    if (!hasRoute || !rate || !unit || !distanceInMeters) {
+    if (!hasRoute || !unit || !distanceInMeters) {
         return translate('iou.fieldPending');
     }
 
@@ -246,6 +248,8 @@ function ensureRateDefined(rate: number | undefined): asserts rate is number {
 /**
  * Retrieves the rate and unit for a P2P distance expense for a given currency.
  *
+ * Let's ensure this logic is consistent with the logic in the backend (Auth), since we're using the same method to calculate the rate value in distance requests created via Concierge.
+ *
  * @param currency
  * @returns The rate and unit in MileageRate object.
  */
@@ -302,6 +306,8 @@ function getCustomUnitRateID(reportID?: string) {
     }
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(report?.policyID ?? parentReport?.policyID);
 
     if (isEmptyObject(policy)) {
@@ -349,6 +355,8 @@ function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxE
 /**
  * Get the selected rate for a transaction, from the policy or P2P default rate.
  * Use the distanceUnit stored on the transaction by default to prevent policy changes modifying existing transactions. Otherwise, get the unit from the rate.
+ *
+ * Let's ensure this logic is consistent with the logic in the backend (Auth), since we're using the same method to calculate the rate value in distance requests created via Concierge.
  */
 function getRate({
     transaction,

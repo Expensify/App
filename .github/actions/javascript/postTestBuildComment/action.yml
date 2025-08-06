@@ -4,9 +4,12 @@ inputs:
     REPO:
         description: "Repository to place a comment. Can be App or Mobile-Expensify"
         default: App
-    PR_NUMBER:
-        description: "Pull request number"
-        required: true
+    APP_PR_NUMBER:
+        description: "Pull request number for Expensify/App repository"
+        required: false
+    MOBILE_EXPENSIFY_PR_NUMBER:
+        description: "Pull request number for Expensify/Mobile-Expensify repository"
+        required: false
     GITHUB_TOKEN:
         description: "Github token for authentication"
         default: "${{ github.token }}"

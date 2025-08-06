@@ -1,7 +1,6 @@
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,7 +8,10 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeActionForm from '@components/ValidateCodeActionForm';
 import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -83,6 +85,9 @@ function AccountValidatePage() {
         canBeMissing: true,
     });
 
+    const privateSubscription = usePrivateSubscription();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_VALIDATE>>();
 
     const email = params.login ?? '';
@@ -114,6 +119,22 @@ function AccountValidatePage() {
             }
             return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, errorPage), {forceReplace: true});
         }, [errorPage, email]),
+    );
+
+    useFocusEffect(
+        useCallback(() => {
+            const task = InteractionManager.runAfterInteractions(() => {
+                if (privateSubscription?.type !== CONST.SUBSCRIPTION.TYPE.INVOICING) {
+                    return;
+                }
+
+                Navigation.navigate(
+                    ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserPersonalDetails.login ?? '', CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING, ROUTES.SETTINGS_SECURITY),
+                );
+            });
+
+            return () => task.cancel();
+        }, [privateSubscription?.type, currentUserPersonalDetails.login]),
     );
 
     useEffect(() => {

@@ -4,6 +4,7 @@ import {toZonedTime, format as tzFormat} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -34,6 +35,11 @@ describe('DateUtils', () => {
         return waitForBatchedUpdates();
     });
 
+    beforeEach(() => {
+        IntlStore.load(LOCALE);
+        return waitForBatchedUpdates();
+    });
+
     afterEach(() => {
         jest.restoreAllMocks();
         jest.useRealTimers();
@@ -45,7 +51,7 @@ describe('DateUtils', () => {
 
     it('getZoneAbbreviation should show zone abbreviation from the datetime', () => {
         const zoneAbbreviation = DateUtils.getZoneAbbreviation(datetime, timezone);
-        expect(zoneAbbreviation).toBe('PST');
+        expect(zoneAbbreviation).toBe('GMT-8');
     });
 
     it('formatToLongDateWithWeekday should return a long date with a weekday', () => {
@@ -89,35 +95,35 @@ describe('DateUtils', () => {
         expect(DateUtils.datetimeToCalendarTime(LOCALE, todayLowercaseDate, false, undefined, true)).toBe('today at 2:32 PM');
     });
 
-    it('should update timezone if automatic and selected timezone do not match', () => {
+    it('should update timezone if automatic and selected timezone do not match', async () => {
         jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(
             () =>
                 ({
                     resolvedOptions: () => ({timeZone: 'America/Chicago'}),
                 }) as Intl.DateTimeFormat,
         );
-        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {'999': {accountID: 999, timezone: {selected: 'Europe/London', automatic: true}}}).then(() => {
-            const result = DateUtils.getCurrentTimezone();
-            expect(result).toEqual({
-                selected: 'America/Chicago',
-                automatic: true,
-            });
+        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {'999': {accountID: 999, timezone: {selected: 'Europe/London', automatic: true}}});
+        await waitForBatchedUpdates();
+        const result = DateUtils.getCurrentTimezone();
+        expect(result).toEqual({
+            selected: 'America/Chicago',
+            automatic: true,
         });
     });
 
-    it('should not update timezone if automatic and selected timezone match', () => {
+    it('should not update timezone if automatic and selected timezone match', async () => {
         jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(
             () =>
                 ({
                     resolvedOptions: () => ({timeZone: UTC}),
                 }) as Intl.DateTimeFormat,
         );
-        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {'999': {accountID: 999, timezone: {selected: 'Europe/London', automatic: true}}}).then(() => {
-            const result = DateUtils.getCurrentTimezone();
-            expect(result).toEqual({
-                selected: UTC,
-                automatic: true,
-            });
+        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {'999': {accountID: 999, timezone: {selected: 'Europe/London', automatic: true}}});
+        await waitForBatchedUpdates();
+        const result = DateUtils.getCurrentTimezone();
+        expect(result).toEqual({
+            selected: UTC,
+            automatic: true,
         });
     });
 

@@ -4,7 +4,6 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeSyntheticEvent, TextInput, TextInputChangeEventData, TextInputPasteEventData} from 'react-native';
 import {StyleSheet} from 'react-native';
-import type {FileObject} from '@components/AttachmentModal';
 import type {ComposerProps} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
@@ -14,6 +13,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+import Parser from '@libs/Parser';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import getFileSize from '@pages/Share/getFileSize';
 import CONST from '@src/CONST';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
@@ -38,9 +40,9 @@ function Composer(
     ref: ForwardedRef<TextInput>,
 ) {
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
-    const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(value ?? ''), [value]);
+    const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? ''))), [value]);
     const theme = useTheme();
-    const markdownStyle = useMarkdownStyle(value, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
+    const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -101,8 +103,10 @@ function Composer(
             const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
             const fileExtension = originalFileExtension || (mimeDb[mimeType].extensions?.[0] ?? 'bin');
             const fileName = `${stem}.${fileExtension}`;
-            const file: FileObject = {uri: fileURI, name: fileName, type: mimeType};
-            onPasteFile(file);
+            let file: FileObject = {uri: fileURI, name: fileName, type: mimeType, size: 0};
+            getFileSize(file.uri ?? '')
+                .then((size) => (file = {...file, size}))
+                .finally(() => onPasteFile(file));
         },
         [onPasteFile],
     );

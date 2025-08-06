@@ -1,10 +1,10 @@
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {hasPaymentMethodError} from '@libs/actions/PaymentMethods';
 import {checkIfFeedConnectionIsBroken} from '@libs/CardUtils';
 import {hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useOnyx from './useOnyx';
 import useTheme from './useTheme';
 
 type AccountTabIndicatorStatus = ValueOf<typeof CONST.INDICATOR_STATUS>;

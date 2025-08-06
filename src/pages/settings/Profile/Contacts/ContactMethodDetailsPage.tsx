@@ -1,14 +1,14 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Star, Trashcan} from '@components/Icon/Expensicons';
+import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -17,6 +17,7 @@ import Text from '@components/Text';
 import ValidateCodeActionForm from '@components/ValidateCodeActionForm';
 import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -55,11 +56,11 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [myDomainSecurityGroups, myDomainSecurityGroupsResult] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {canBeMissing: true});
     const [securityGroups, securityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP, {canBeMissing: true});
-    const [isLoadingReportData, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true, canBeMissing: true});
+    const [isLoadingReportData = true, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
     const [isValidateCodeFormVisible, setIsValidateCodeFormVisible] = useState(true);
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: true});
-    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
+    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);
+    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const {formatPhoneNumber, translate} = useLocalize();
     const theme = useTheme();
@@ -100,8 +101,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
      * Attempt to set this contact method as user's "Default contact method"
      */
     const setAsDefault = useCallback(() => {
-        setContactMethodAsDefault(contactMethod, backTo);
-    }, [contactMethod, backTo]);
+        setContactMethodAsDefault(contactMethod, formatPhoneNumber, backTo);
+    }, [contactMethod, backTo, formatPhoneNumber]);
 
     /**
      * Checks if the user is allowed to change their default contact method. This should only be allowed if:
@@ -243,7 +244,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     <MenuItem
                         title={translate('contacts.setAsDefault')}
                         icon={Star}
-                        onPress={setAsDefault}
+                        onPress={isAccountLocked ? showLockedAccountModal : setAsDefault}
                     />
                 </OfflineWithFeedback>
             ) : null}
@@ -269,7 +270,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         iconFill={theme.danger}
                         onPress={() => {
                             if (isActingAsDelegate) {
-                                setIsNoDelegateAccessMenuVisible(true);
+                                showDelegateNoAccessModal();
                                 return;
                             }
                             toggleDeleteModal(true);
@@ -342,7 +343,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 {isValidateCodeFormVisible && !!loginData && !loginData.validatedDate && (
                     <ValidateCodeActionForm
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                        handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode)}
+                        handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode, formatPhoneNumber)}
                         validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
                         clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
                         sendValidateCode={() => requestContactMethodValidateCode(contactMethod)}
@@ -355,10 +356,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 {!isValidateCodeFormVisible && !!loginData.validatedDate && getMenuItems()}
                 {getDeleteConfirmationModal()}
             </ScrollView>
-            <DelegateNoAccessModal
-                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-            />
         </ScreenWrapper>
     );
 }

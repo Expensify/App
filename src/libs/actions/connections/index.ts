@@ -14,7 +14,10 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
 
-function removePolicyConnection(policyID: string, connectionName: PolicyConnectionName) {
+function removePolicyConnection(policy: Policy, connectionName: PolicyConnectionName) {
+    const policyID = policy.id;
+    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -30,11 +33,20 @@ function removePolicyConnection(policyID: string, connectionName: PolicyConnecti
             key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
             value: null,
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
+            value: null,
+        },
     ];
 
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
-    const policy = PolicyUtils.getPolicy(policyID);
     const supportedConnections: PolicyConnectionName[] = [CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.POLICY.CONNECTIONS.NAME.XERO];
 
     if (PolicyUtils.isCollectPolicy(policy) && supportedConnections.includes(connectionName)) {

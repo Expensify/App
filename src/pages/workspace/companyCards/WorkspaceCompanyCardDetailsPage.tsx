@@ -1,7 +1,6 @@
 import {format, parseISO} from 'date-fns';
 import React, {useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
@@ -10,18 +9,19 @@ import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedIcon, getCompanyFeeds, getDefaultCardName, getDomainOrWorkspaceAccountID, maskCardNumber} from '@libs/CardUtils';
-import DateUtils from '@libs/DateUtils';
+import {getCardFeedIcon, getCompanyFeeds, getDefaultCardName, getDomainOrWorkspaceAccountID, getPlaidInstitutionIconUrl, maskCardNumber} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -51,7 +51,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [isUnassignModalVisible, setIsUnassignModalVisible] = useState(false);
-    const {translate} = useLocalize();
+    const {translate, getLocalDateFromDatetime} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const illustrations = useThemeIllustrations();
@@ -59,7 +59,6 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
 
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [allBankCards, allBankCardsMetadata] = useCardsList(policyID, bank as CompanyCardFeed);
     const card = allBankCards?.[cardID];
@@ -72,6 +71,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[bank as CompanyCardFeed]);
+    const plaidUrl = getPlaidInstitutionIconUrl(bank);
 
     const unassignCard = () => {
         setIsUnassignModalVisible(false);
@@ -89,11 +89,8 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         if (!card?.lastScrape) {
             return '';
         }
-        if (!preferredLocale) {
-            return card.lastScrape ?? '';
-        }
-        return format(DateUtils.getLocalDateFromDatetime(preferredLocale, card?.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
-    }, [preferredLocale, card?.lastScrape]);
+        return format(getLocalDateFromDatetime(card?.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+    }, [getLocalDateFromDatetime, card?.lastScrape]);
 
     if (!card && !isLoadingOnyxValue(allBankCardsMetadata)) {
         return <NotFoundPage />;
@@ -114,13 +111,20 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                 />
                 <ScrollView addBottomSafeAreaPadding>
                     <View style={[styles.walletCard, styles.mb3]}>
-                        <ImageSVG
-                            contentFit="contain"
-                            src={getCardFeedIcon(cardBank as CompanyCardFeed, illustrations)}
-                            pointerEvents="none"
-                            height={variables.cardPreviewHeight}
-                            width={variables.cardPreviewWidth}
-                        />
+                        {plaidUrl ? (
+                            <PlaidCardFeedIcon
+                                plaidUrl={plaidUrl}
+                                isLarge
+                            />
+                        ) : (
+                            <ImageSVG
+                                contentFit="contain"
+                                src={getCardFeedIcon(cardBank as CompanyCardFeed, illustrations)}
+                                pointerEvents="none"
+                                height={variables.cardPreviewHeight}
+                                width={variables.cardPreviewWidth}
+                            />
+                        )}
                     </View>
 
                     <MenuItem
@@ -168,7 +172,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 description={exportMenuItem.description}
                                 title={exportMenuItem.title}
                                 shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, bank, Navigation.getActiveRoute()))}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, bank, backTo))}
                             />
                         </OfflineWithFeedback>
                     ) : null}

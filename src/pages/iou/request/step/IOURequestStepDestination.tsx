@@ -1,21 +1,24 @@
 import React from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import DestinationPicker from '@components/DestinationPicker';
 import FixedFooter from '@components/FixedFooter';
 import * as Illustrations from '@components/Icon/Illustrations';
+import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem} from '@components/SelectionList/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
+import variables from '@styles/variables';
 import {
     clearSubrates,
     getIOURequestPolicyID,
@@ -55,7 +58,7 @@ function IOURequestStepDestination({
     const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
     const {accountID} = useCurrentUserPersonalDetails();
     const policyExpenseReport = policy?.id ? getPolicyExpenseChat(accountID, policy.id) : undefined;
-
+    const {top} = useSafeAreaInsets();
     const customUnit = getPerDiemCustomUnit(policy);
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
 
@@ -92,7 +95,7 @@ function IOURequestStepDestination({
 
         if (backTo) {
             navigateBack();
-        } else if (explicitPolicyID) {
+        } else if (explicitPolicyID && transaction?.isFromGlobalCreate) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, policyExpenseReport?.reportID ?? reportID));
         } else {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, reportID));
@@ -112,56 +115,62 @@ function IOURequestStepDestination({
     };
 
     return (
-        <StepScreenWrapper
-            headerTitle={backTo ? translate('common.destination') : tabTitles[iouType]}
-            onBackButtonPress={navigateBack}
-            shouldShowWrapper={!openedFromStartPage}
-            shouldShowNotFoundPage={shouldShowNotFoundPage}
-            testID={IOURequestStepDestination.displayName}
+        <ScreenWrapper
+            includePaddingTop={false}
+            keyboardVerticalOffset={variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
+            testID={`${IOURequestStepDestination.displayName}-container`}
         >
-            {isLoading && (
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    style={[styles.flex1]}
-                    color={theme.spinner}
-                />
-            )}
-            {shouldShowOfflineView && <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>}
-            {shouldShowEmptyState && (
-                <View style={[styles.flex1]}>
-                    <WorkspaceEmptyStateSection
-                        shouldStyleAsCard={false}
-                        icon={Illustrations.EmptyStateExpenses}
-                        title={translate('workspace.perDiem.emptyList.title')}
-                        subtitle={translate('workspace.perDiem.emptyList.subtitle')}
-                        containerStyle={[styles.flex1, styles.justifyContentCenter]}
+            <StepScreenWrapper
+                headerTitle={backTo ? translate('common.destination') : tabTitles[iouType]}
+                onBackButtonPress={navigateBack}
+                shouldShowWrapper={!openedFromStartPage}
+                shouldShowNotFoundPage={shouldShowNotFoundPage}
+                testID={IOURequestStepDestination.displayName}
+            >
+                {isLoading && (
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        style={[styles.flex1]}
+                        color={theme.spinner}
                     />
-                    {isPolicyAdmin(policy) && !!policy?.areCategoriesEnabled && (
-                        <FixedFooter style={[styles.mtAuto, styles.pt5]}>
-                            <Button
-                                large
-                                success
-                                style={[styles.w100]}
-                                onPress={() => {
-                                    InteractionManager.runAfterInteractions(() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id));
-                                    });
-                                }}
-                                text={translate('workspace.perDiem.editPerDiemRates')}
-                                pressOnEnter
-                            />
-                        </FixedFooter>
-                    )}
-                </View>
-            )}
-            {!shouldShowEmptyState && !isLoading && !shouldShowOfflineView && !!policy?.id && (
-                <DestinationPicker
-                    selectedDestination={selectedDestination}
-                    policyID={policy.id}
-                    onSubmit={updateDestination}
-                />
-            )}
-        </StepScreenWrapper>
+                )}
+                {shouldShowOfflineView && <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>}
+                {shouldShowEmptyState && (
+                    <View style={[styles.flex1]}>
+                        <WorkspaceEmptyStateSection
+                            shouldStyleAsCard={false}
+                            icon={Illustrations.EmptyStateExpenses}
+                            title={translate('workspace.perDiem.emptyList.title')}
+                            subtitle={translate('workspace.perDiem.emptyList.subtitle')}
+                            containerStyle={[styles.flex1, styles.justifyContentCenter]}
+                        />
+                        {isPolicyAdmin(policy) && !!policy?.areCategoriesEnabled && (
+                            <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                                <Button
+                                    large
+                                    success
+                                    style={[styles.w100]}
+                                    onPress={() => {
+                                        InteractionManager.runAfterInteractions(() => {
+                                            Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id, Navigation.getActiveRoute()));
+                                        });
+                                    }}
+                                    text={translate('workspace.perDiem.editPerDiemRates')}
+                                    pressOnEnter
+                                />
+                            </FixedFooter>
+                        )}
+                    </View>
+                )}
+                {!shouldShowEmptyState && !isLoading && !shouldShowOfflineView && !!policy?.id && (
+                    <DestinationPicker
+                        selectedDestination={selectedDestination}
+                        policyID={policy.id}
+                        onSubmit={updateDestination}
+                    />
+                )}
+            </StepScreenWrapper>
+        </ScreenWrapper>
     );
 }
 

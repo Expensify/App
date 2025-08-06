@@ -78,9 +78,11 @@ type ThemeColors = {
     dropWrapperBG: Color;
     fileDropUIBG: Color;
     attachmentDropUIBG: Color;
-    attachmentDropBorderColor: Color;
+    attachmentDropUIBGActive: Color;
+    attachmentDropBorderColorActive: Color;
     receiptDropUIBG: Color;
-    receiptDropBorderColor: Color;
+    receiptDropUIBGActive: Color;
+    receiptDropBorderColorActive: Color;
     checkBox: Color;
     imageCropBackgroundColor: Color;
     fallbackIconColor: Color;

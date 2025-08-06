@@ -31,6 +31,7 @@ function OptionRowLHNData({
     lastReportActionTransaction,
     transactionViolations,
     lastMessageTextFromReport,
+    localeCompare,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
@@ -46,11 +47,11 @@ function OptionRowLHNData({
             oneTransactionThreadReport,
             reportNameValuePairs,
             personalDetails,
-            preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
             policy,
             parentReportAction,
             lastMessageTextFromReport,
             invoiceReceiverPolicy,
+            localeCompare,
         });
         // eslint-disable-next-line react-compiler/react-compiler
         if (deepEqual(item, optionItemRef.current)) {
@@ -83,6 +84,7 @@ function OptionRowLHNData({
         invoiceReceiverPolicy,
         lastMessageTextFromReport,
         reportAttributes,
+        localeCompare,
     ]);
 
     return (
@@ -91,6 +93,7 @@ function OptionRowLHNData({
             {...propsToForward}
             isOptionFocused={isReportFocused}
             optionItem={optionItem}
+            report={fullReport}
         />
     );
 }

@@ -48,7 +48,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const backTo = route?.params?.backTo;
     const policyID = policy?.id;
     const policyOwner = policy?.owner ?? '';
-    const {canUseNetSuiteUSATax} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     const config = policy?.connections?.netsuite?.options.config;
     const shouldGoBackToSpecificRoute =
@@ -180,7 +180,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             description: translate('workspace.netsuite.journalEntriesTaxPostingAccount'),
             onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TAX_POSTING_ACCOUNT_SELECT.getRoute(policyID)),
             subscribedSettings: [CONST.NETSUITE_CONFIG.TAX_POSTING_ACCOUNT],
-            shouldHide: shouldHideTaxPostingAccountSelect(canUseNetSuiteUSATax, selectedSubsidiary, config),
+            shouldHide: shouldHideTaxPostingAccountSelect(isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX), selectedSubsidiary, config),
         },
         {
             type: 'toggle',

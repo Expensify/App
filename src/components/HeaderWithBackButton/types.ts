@@ -6,7 +6,7 @@ import type {Action} from '@hooks/useSingleExecution';
 import type {StepCounterParams} from '@src/languages/params';
 import type {TranslationPaths} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -114,9 +114,6 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Report, if we're showing the details for one and using AvatarWithDisplay */
     report?: OnyxEntry<Report>;
-
-    /** The report's policy, if we're showing the details for a report and need info about it for AvatarWithDisplay */
-    policy?: OnyxEntry<Policy>;
 
     /** Single execution function to prevent concurrent navigation actions */
     singleExecution?: <T extends unknown[]>(action: Action<T>) => Action<T>;

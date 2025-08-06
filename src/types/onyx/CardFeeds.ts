@@ -1,3 +1,5 @@
+import type {LinkAccount} from 'react-native-plaid-link-sdk';
+import type {PlaidAccount} from 'react-plaid-link';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
@@ -8,12 +10,39 @@ type CompanyCardFeed = ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
 /** Custom card feed with a number */
 type CompanyCardFeedWithNumber = CompanyCardFeed | `${CompanyCardFeed}${number}`;
 
+/** Statement period end */
+type StatementPeriodEnd = Exclude<ValueOf<typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE>, typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH>;
+
+/** Statement period end day */
+type StatementPeriodEndDay = number;
+
 /** Card feed provider */
 type CardFeedProvider =
     | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD
     | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.VISA
     | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX
     | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
+
+/** Card feed details */
+type CardFeedDetails = {
+    /** Processor ID */
+    processorID?: string;
+
+    /** Financial institution (bank) ID */
+    bankID?: string;
+
+    /** Financial institution (bank) name */
+    bankName?: string;
+
+    /** Company ID */
+    companyID?: string;
+
+    /** Distribution ID */
+    distributionID?: string;
+
+    /** Delivery file name */
+    deliveryFileName?: string;
+};
 
 /** Custom card feed data */
 type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -38,8 +67,16 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Specifies the format for the report title related to this card */
     reportTitleFormat?: string;
 
-    /** Indicates the day when the statement period for this card ends */
-    statementPeriodEndDay?: string;
+    /** Indicates the day when the statement period for this card ends.
+     * The BE returns a unified key which may hold either a preset value (string) or a custom day (integer)
+     */
+    statementPeriodEndDay?: StatementPeriodEnd | StatementPeriodEndDay;
+
+    /** Plaid access token */
+    plaidAccessToken?: string;
+
+    /** Field-specific error messages */
+    errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay'>;
 }>;
 
 /** Direct card feed data */
@@ -61,6 +98,17 @@ type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether any actions are pending */
     pending?: boolean;
+
+    /** Indicates the day when the statement period for this card ends.
+     * The BE returns a unified key which may hold either a preset value (string) or a custom day (integer)
+     */
+    statementPeriodEndDay?: StatementPeriodEnd | StatementPeriodEndDay;
+
+    /** Plaid access token */
+    plaidAccessToken?: string;
+
+    /** Field-specific error messages */
+    errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay'>;
 }>;
 
 /** Card feed data */
@@ -95,11 +143,20 @@ type AddNewCardFeedData = {
     /** Card feed provider */
     feedType: CardFeedProvider;
 
+    /** Card feed details */
+    feedDetails?: CardFeedDetails;
+
     /** Name of the card */
     cardTitle: string;
 
+    /** Indicates the day (preset value) when the statement period for this card ends */
+    statementPeriodEnd?: StatementPeriodEnd;
+
+    /** Indicates the day (custom day) when the statement period for this card ends */
+    statementPeriodEndDay?: StatementPeriodEndDay;
+
     /** Selected bank */
-    selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>;
+    selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null;
 
     /** Selected feed type */
     selectedFeedType: ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>;
@@ -112,6 +169,18 @@ type AddNewCardFeedData = {
 
     /** Selected country */
     selectedCountry?: string;
+
+    /** Public token from Plaid connection */
+    publicToken?: string;
+
+    /** Feed from Plaid connection */
+    plaidConnectedFeed?: string;
+
+    /** Feed name from Plaid connection */
+    plaidConnectedFeedName?: string;
+
+    /** Plaid accounts */
+    plaidAccounts?: LinkAccount[] | PlaidAccount[];
 };
 
 /** Issue new card flow steps */
@@ -138,6 +207,7 @@ export type {
     AddNewCompanyCardFeed,
     AddNewCardFeedData,
     CompanyCardFeed,
+    CardFeedDetails,
     DirectCardFeedData,
     CardFeedProvider,
     CardFeedData,
@@ -145,4 +215,6 @@ export type {
     CompanyCardNicknames,
     CompanyCardFeedWithNumber,
     FundID,
+    StatementPeriodEnd,
+    StatementPeriodEndDay,
 };

@@ -1,6 +1,6 @@
 import React from 'react';
-import type {TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import isIllustrationLottieAnimation from '@libs/isIllustrationLottieAnimation';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -20,10 +20,16 @@ type ConfirmationPageProps = {
     heading: string;
 
     /** Description of the confirmation page */
-    description: React.ReactNode;
+    description?: React.ReactNode;
+
+    /** Description component of the confirmation page */
+    descriptionComponent?: React.ReactNode;
 
     /** The text for the call to action */
     cta?: React.ReactNode;
+
+    /** Call to action component of the confirmation page */
+    ctaComponent?: React.ReactNode;
 
     /** The text for the primary button label */
     buttonText?: string;
@@ -47,10 +53,10 @@ type ConfirmationPageProps = {
     headingStyle?: TextStyle;
 
     /** Additional style for the animation */
-    illustrationStyle?: ViewStyle;
+    illustrationStyle?: StyleProp<ViewStyle>;
 
     /** Additional style for the description */
-    descriptionStyle?: TextStyle;
+    descriptionStyle?: StyleProp<TextStyle>;
 
     /** Additional style for the cta */
     ctaStyle?: TextStyle;
@@ -60,13 +66,18 @@ type ConfirmationPageProps = {
 
     /** Additional style for the container */
     containerStyle?: ViewStyle;
+
+    /** Additional style for the inner container */
+    innerContainerStyle?: ViewStyle;
 };
 
 function ConfirmationPage({
     illustration = LottieAnimations.Fireworks,
     heading,
     description,
+    descriptionComponent,
     cta,
+    ctaComponent,
     buttonText = '',
     onButtonPress = () => {},
     shouldShowButton = false,
@@ -79,13 +90,14 @@ function ConfirmationPage({
     ctaStyle,
     footerStyle,
     containerStyle,
+    innerContainerStyle,
 }: ConfirmationPageProps) {
     const styles = useThemeStyles();
     const isLottie = isIllustrationLottieAnimation(illustration);
 
     return (
         <View style={[styles.flex1, containerStyle]}>
-            <View style={[styles.screenCenteredContainer, styles.alignItemsCenter]}>
+            <View style={[styles.screenCenteredContainer, styles.alignItemsCenter, innerContainerStyle]}>
                 {isLottie ? (
                     <Lottie
                         source={illustration}
@@ -93,8 +105,8 @@ function ConfirmationPage({
                         loop
                         style={[styles.confirmationAnimation, illustrationStyle]}
                         webStyle={{
-                            width: (illustrationStyle?.width as number) ?? styles.confirmationAnimation.width,
-                            height: (illustrationStyle?.height as number) ?? styles.confirmationAnimation.height,
+                            width: (StyleSheet.flatten(illustrationStyle)?.width as number) ?? styles.confirmationAnimation.width,
+                            height: (StyleSheet.flatten(illustrationStyle)?.height as number) ?? styles.confirmationAnimation.height,
                         }}
                     />
                 ) : (
@@ -106,8 +118,10 @@ function ConfirmationPage({
                     </View>
                 )}
                 <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2, headingStyle]}>{heading}</Text>
-                <Text style={[styles.textAlignCenter, descriptionStyle, styles.w100]}>{description}</Text>
+                {!!descriptionComponent && descriptionComponent}
+                {!!description && <Text style={[styles.textAlignCenter, descriptionStyle, styles.w100]}>{description}</Text>}
                 {cta ? <Text style={[styles.textAlignCenter, ctaStyle]}>{cta}</Text> : null}
+                {!!ctaComponent && ctaComponent}
             </View>
             {(shouldShowSecondaryButton || shouldShowButton) && (
                 <FixedFooter style={footerStyle}>

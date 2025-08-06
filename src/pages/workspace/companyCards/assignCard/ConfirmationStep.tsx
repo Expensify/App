@@ -1,6 +1,5 @@
 import React, {useEffect} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -10,17 +9,22 @@ import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isSelectedFeedExpired, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
-import {assignWorkspaceCompanyCard, clearAssignCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {assignWorkspaceCompanyCard, clearAssignCardStepAndData, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {CompanyCardFeed} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import type {CompanyCardFeed, CurrencyList} from '@src/types/onyx';
 import type {AssignCardStep} from '@src/types/onyx/AssignCard';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ConfirmationStepProps = {
     /** Current policy id */
@@ -28,45 +32,63 @@ type ConfirmationStepProps = {
 
     /** Route to go back to */
     backTo?: Route;
+
+    /** Selected feed */
+    feed: CompanyCardFeed;
 };
 
-function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
+function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
-    const feed = assignCard?.data?.bankName as CompanyCardFeed | undefined;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
+    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
+    const bankName = (assignCard?.data?.bankName as CompanyCardFeed | undefined) ?? feed;
     const [cardFeeds] = useCardFeeds(policyID);
 
     const data = assignCard?.data;
     const cardholderName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
+
+    const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
 
     useEffect(() => {
         if (!assignCard?.isAssigned) {
             return;
         }
 
-        if (backTo) {
+        const lastRoute = currentFullScreenRoute?.state?.routes.at(-1);
+        if (backTo ?? lastRoute?.name === SCREENS.WORKSPACE.COMPANY_CARDS) {
             Navigation.goBack(backTo);
         } else {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
         }
         InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
-    }, [assignCard, backTo, policyID]);
+    }, [assignCard, backTo, policyID, currentFullScreenRoute?.state?.routes]);
 
     const submit = () => {
         if (!policyID) {
             return;
         }
 
-        const isFeedExpired = isSelectedFeedExpired(feed ? cardFeeds?.settings?.oAuthAccountDetails?.[feed] : undefined);
+        const isFeedExpired = isSelectedFeedExpired(bankName ? cardFeeds?.settings?.oAuthAccountDetails?.[bankName] : undefined);
+        const institutionId = !!getPlaidInstitutionId(bankName);
 
         if (isFeedExpired) {
-            setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
+            if (institutionId) {
+                const country = getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
+                setAddNewCompanyCardStepAndData({
+                    data: {
+                        selectedCountry: country,
+                    },
+                });
+            }
+            setAssignCardStepAndData({currentStep: institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
             return;
         }
-        assignWorkspaceCompanyCard(policyID, data);
+        assignWorkspaceCompanyCard(policyID, {...data, bankName});
     };
 
     const editStep = (step: AssignCardStep) => {

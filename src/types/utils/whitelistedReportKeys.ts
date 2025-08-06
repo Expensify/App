@@ -50,6 +50,9 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         errors: unknown;
         isWaitingOnBankAccount: unknown;
         isCancelledIOU: unknown;
+        hasReportBeenReopened: unknown;
+        isExportedToIntegration: unknown;
+        hasExportError: unknown;
         iouReportID: unknown;
         preexistingReportID: unknown;
         nonReimbursableTotal: unknown;
@@ -63,6 +66,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         };
         private_isArchived: unknown;
         welcomeMessage: unknown;
+        agentZeroProcessingRequestIndicator: unknown;
     },
     PolicyReportField['fieldID']
 >;

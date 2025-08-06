@@ -5,7 +5,7 @@ import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 
-type LastVisitedTabPathKey = ValueOf<typeof CONST.SESSION_STORAGE_KEYS.LAST_VISITED_TAB_PATH>;
+type LastVisitedTabPathKey = ValueOf<typeof CONST.SESSION_STORAGE_KEYS.LAST_VISITED_PATH>;
 
 /**
  * Clears all session storage data.
@@ -44,19 +44,19 @@ function getLastVisitedTabPath(state: NavigationState | PartialState<NavigationS
 }
 
 function saveWorkspacesTabPathToSessionStorage(url: string) {
-    saveTabPathToSessionStorage(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_TAB_PATH.WORKSPACES, url);
+    saveTabPathToSessionStorage(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_PATH.WORKSPACES_TAB, url);
 }
 
 function getWorkspacesTabStateFromSessionStorage() {
-    return getTabStateFromSessionStorage(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_TAB_PATH.WORKSPACES);
+    return getTabStateFromSessionStorage(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_PATH.WORKSPACES_TAB);
 }
 
 function saveSettingsTabPathToSessionStorage(url: string) {
-    saveTabPathToSessionStorage(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_TAB_PATH.SETTINGS, url);
+    saveTabPathToSessionStorage(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_PATH.SETTINGS_TAB, url);
 }
 
 function getSettingsTabStateFromSessionStorage() {
-    return getTabStateFromSessionStorage(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_TAB_PATH.SETTINGS);
+    return getTabStateFromSessionStorage(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_PATH.SETTINGS_TAB);
 }
 
 function getLastVisitedWorkspaceTabScreen() {

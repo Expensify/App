@@ -7,10 +7,10 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isReceiptError} from '@libs/ErrorUtils';
+import {isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
-import {translateLocal} from '@libs/Localize';
 import handleRetryPress from '@libs/ReceiptUploadRetryHandler';
+import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import ConfirmModal from './ConfirmModal';
 import Icon from './Icon';
@@ -26,7 +26,7 @@ type DotIndicatorMessageProps = {
      *      timestamp: 'message',
      *  }
      */
-    messages: Record<string, string | ReceiptError | ReactElement | null>;
+    messages: Record<string, string | ReceiptError | TranslationKeyError | ReactElement | null>;
 
     /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
     type: 'error' | 'success';
@@ -71,24 +71,24 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                         key={index}
                         style={styles.offlineFeedback.text}
                     >
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translateLocal('iou.error.receiptFailureMessage')}</Text>
+                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translate('iou.error.receiptFailureMessage')}</Text>
                         <TextLink
                             style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
                             onPress={() => handleRetryPress(message, dismissError, setShouldShowErrorModal)}
                         >
-                            {translateLocal('iou.error.tryAgainMessage')}
+                            {translate('iou.error.tryAgainMessage')}
                         </TextLink>
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translateLocal('common.or')}</Text>
+                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translate('common.or')}</Text>
                         <TextLink
                             style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
                             onPress={() => {
                                 fileDownload(message.source, message.filename).finally(() => dismissError());
                             }}
                         >
-                            {translateLocal('iou.error.saveFileMessage')}
+                            {translate('iou.error.saveFileMessage')}
                         </TextLink>
 
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translateLocal('iou.error.uploadLaterMessage')}</Text>
+                        <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translate('iou.error.uploadLaterMessage')}</Text>
                     </Text>
 
                     <ConfirmModal
@@ -110,7 +110,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                 key={index}
                 style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles]}
             >
-                {message}
+                {isTranslationKeyError(message) ? translate(message.translationKey) : message}
             </Text>
         );
     };

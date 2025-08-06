@@ -1,15 +1,25 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import * as CategoryOptionsListUtils from '@libs/CategoryOptionListUtils';
+import {getCategoryListSections, getCategoryOptionTree, sortCategories} from '@libs/CategoryOptionListUtils';
+import type {Category, CategoryTreeSection} from '@libs/CategoryOptionListUtils';
+import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {PolicyCategories} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import {localeCompare} from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('CategoryOptionListUtils', () => {
+    beforeAll(() => {
+        IntlStore.load(CONST.LOCALES.DEFAULT);
+        return waitForBatchedUpdates();
+    });
     it('getCategoryListSections()', () => {
         const search = 'Food';
         const emptySearch = '';
         const wrongSearch = 'bla bla';
+        const employeeSearch = 'Employee Office';
         const recentlyUsedCategories = ['Taxi', 'Restaurant'];
-        const selectedOptions: CategoryOptionsListUtils.Category[] = [
+        const selectedOptions: Category[] = [
             {
                 name: 'Medical',
                 enabled: true,
@@ -56,12 +66,31 @@ describe('CategoryOptionListUtils', () => {
                 origin: '',
                 pendingAction: undefined,
             },
+            'Employee Meals Office': {
+                enabled: true,
+                name: 'Employee Meals Office',
+                unencodedName: 'Employee Meals Office',
+                areCommentsRequired: false,
+                'GL Code': '',
+                externalID: '',
+                origin: '',
+                pendingAction: undefined,
+            },
         };
-        const smallResultList: CategoryOptionsListUtils.CategoryTreeSection[] = [
+        const smallResultList: CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: false,
                 data: [
+                    {
+                        text: 'Employee Meals Office',
+                        keyForList: 'Employee Meals Office',
+                        searchText: 'Employee Meals Office',
+                        tooltipText: 'Employee Meals Office',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
                     {
                         text: 'Food',
                         keyForList: 'Food',
@@ -90,10 +119,10 @@ describe('CategoryOptionListUtils', () => {
                         pendingAction: 'delete',
                     },
                 ],
-                indexOffset: 3,
+                indexOffset: 4,
             },
         ];
-        const smallSearchResultList: CategoryOptionsListUtils.CategoryTreeSection[] = [
+        const smallSearchResultList: CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -120,7 +149,7 @@ describe('CategoryOptionListUtils', () => {
                 ],
             },
         ];
-        const smallWrongSearchResultList: CategoryOptionsListUtils.CategoryTreeSection[] = [
+        const smallWrongSearchResultList: CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -256,7 +285,7 @@ describe('CategoryOptionListUtils', () => {
                 origin: '',
             },
         };
-        const largeResultList: CategoryOptionsListUtils.CategoryTreeSection[] = [
+        const largeResultList: CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: false,
@@ -396,7 +425,7 @@ describe('CategoryOptionListUtils', () => {
                 ],
             },
         ];
-        const largeSearchResultList: CategoryOptionsListUtils.CategoryTreeSection[] = [
+        const largeSearchResultList: CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -432,7 +461,7 @@ describe('CategoryOptionListUtils', () => {
                 ],
             },
         ];
-        const largeWrongSearchResultList: CategoryOptionsListUtils.CategoryTreeSection[] = [
+        const largeWrongSearchResultList: CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -441,7 +470,7 @@ describe('CategoryOptionListUtils', () => {
             },
         ];
         const emptyCategoriesList = {};
-        const emptySelectedResultList: CategoryOptionsListUtils.CategoryTreeSection[] = [
+        const emptySelectedResultList: CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: false,
@@ -460,43 +489,69 @@ describe('CategoryOptionListUtils', () => {
             },
         ];
 
-        const smallResult = CategoryOptionsListUtils.getCategoryListSections({
+        const employeeSearchResultList: CategoryTreeSection[] = [
+            {
+                title: '',
+                shouldShow: true,
+                indexOffset: 1,
+                data: [
+                    {
+                        text: 'Employee Meals Office',
+                        keyForList: 'Employee Meals Office',
+                        searchText: 'Employee Meals Office',
+                        tooltipText: 'Employee Meals Office',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                ],
+            },
+        ];
+
+        const smallResult = getCategoryListSections({
             searchValue: emptySearch,
+            localeCompare,
             categories: smallCategoriesList,
         });
         expect(smallResult).toStrictEqual(smallResultList);
 
-        const smallSearchResult = CategoryOptionsListUtils.getCategoryListSections({searchValue: search, categories: smallCategoriesList});
+        const smallSearchResult = getCategoryListSections({searchValue: search, categories: smallCategoriesList, localeCompare});
         expect(smallSearchResult).toStrictEqual(smallSearchResultList);
 
-        const smallWrongSearchResult = CategoryOptionsListUtils.getCategoryListSections({searchValue: wrongSearch, categories: smallCategoriesList});
+        const smallWrongSearchResult = getCategoryListSections({searchValue: wrongSearch, categories: smallCategoriesList, localeCompare});
         expect(smallWrongSearchResult).toStrictEqual(smallWrongSearchResultList);
 
-        const largeResult = CategoryOptionsListUtils.getCategoryListSections({
+        const employeeSearchResult = getCategoryListSections({searchValue: employeeSearch, categories: smallCategoriesList, localeCompare});
+        expect(employeeSearchResult).toStrictEqual(employeeSearchResultList);
+
+        const largeResult = getCategoryListSections({
             searchValue: emptySearch,
             selectedOptions,
             categories: largeCategoriesList,
             recentlyUsedCategories,
+            localeCompare,
         });
         expect(largeResult).toStrictEqual(largeResultList);
 
-        const largeSearchResult = CategoryOptionsListUtils.getCategoryListSections({
+        const largeSearchResult = getCategoryListSections({
             searchValue: search,
             selectedOptions,
             categories: largeCategoriesList,
             recentlyUsedCategories,
+            localeCompare,
         });
         expect(largeSearchResult).toStrictEqual(largeSearchResultList);
 
-        const largeWrongSearchResult = CategoryOptionsListUtils.getCategoryListSections({
+        const largeWrongSearchResult = getCategoryListSections({
             searchValue: wrongSearch,
             selectedOptions,
             categories: largeCategoriesList,
             recentlyUsedCategories,
+            localeCompare,
         });
         expect(largeWrongSearchResult).toStrictEqual(largeWrongSearchResultList);
 
-        const emptyResult = CategoryOptionsListUtils.getCategoryListSections({searchValue: search, selectedOptions, categories: emptyCategoriesList});
+        const emptyResult = getCategoryListSections({searchValue: search, selectedOptions, categories: emptyCategoriesList, localeCompare});
         expect(emptyResult).toStrictEqual(emptySelectedResultList);
     });
 
@@ -883,8 +938,8 @@ describe('CategoryOptionListUtils', () => {
             },
         ];
 
-        expect(CategoryOptionsListUtils.getCategoryOptionTree(categories)).toStrictEqual(result);
-        expect(CategoryOptionsListUtils.getCategoryOptionTree(categories, true)).toStrictEqual(resultOneLine);
+        expect(getCategoryOptionTree(categories)).toStrictEqual(result);
+        expect(getCategoryOptionTree(categories, true)).toStrictEqual(resultOneLine);
     });
 
     it('sortCategories', () => {
@@ -1235,8 +1290,8 @@ describe('CategoryOptionListUtils', () => {
             },
         ];
 
-        expect(CategoryOptionsListUtils.sortCategories(categoriesIncorrectOrdering)).toStrictEqual(result);
-        expect(CategoryOptionsListUtils.sortCategories(categoriesIncorrectOrdering2)).toStrictEqual(result2);
-        expect(CategoryOptionsListUtils.sortCategories(categoriesIncorrectOrdering3)).toStrictEqual(result3);
+        expect(sortCategories(categoriesIncorrectOrdering, localeCompare)).toStrictEqual(result);
+        expect(sortCategories(categoriesIncorrectOrdering2, localeCompare)).toStrictEqual(result2);
+        expect(sortCategories(categoriesIncorrectOrdering3, localeCompare)).toStrictEqual(result3);
     });
 });

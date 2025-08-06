@@ -1,6 +1,7 @@
 import {beforeEach} from '@jest/globals';
 import Onyx from 'react-native-onyx';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+import {translateLocal} from '@libs/Localize';
 import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
@@ -281,8 +282,14 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
         });
 
-        it('should not add a category violation when the transaction is partial', () => {
-            const partialTransaction = {...transaction, amount: 0, merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, category: undefined};
+        it('should not add a category violation when the transaction is scanning', () => {
+            const partialTransaction = {
+                ...transaction,
+                amount: 0,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                category: undefined,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
+            };
             const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).not.toContainEqual(missingCategoryViolation);
         });
@@ -305,6 +312,19 @@ describe('getViolationsOnyxData', () => {
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
             expect(result.value).toEqual(expect.arrayContaining([missingCategoryViolation, ...transactionViolations]));
+        });
+
+        it('should only return smartscanFailed violation for smart scan failed transactions', () => {
+            const partialTransaction = {
+                ...transaction,
+                amount: 0,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                category: undefined,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual([{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}]);
         });
     });
 
@@ -360,8 +380,14 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toEqual([]);
         });
 
-        it('should not add a tag violation when the transaction is partial', () => {
-            const partialTransaction = {...transaction, amount: 0, merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, tag: undefined};
+        it('should not add a tag violation when the transaction is scanning', () => {
+            const partialTransaction = {
+                ...transaction,
+                amount: 0,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                tag: undefined,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
+            };
             const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).not.toContainEqual(missingTagViolation);
         });
@@ -548,7 +574,7 @@ describe('getViolations', () => {
         await Onyx.multiSet({...transactionCollectionDataSet});
 
         // Should filter out the smartScanFailedViolation
-        const filteredViolations = getTransactionViolations(transaction.transactionID, transactionViolationsCollection);
+        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection);
         expect(filteredViolations).toEqual([duplicatedTransactionViolation, tagOutOfPolicyViolation]);
     });
 
@@ -566,7 +592,104 @@ describe('getViolations', () => {
         };
 
         await Onyx.multiSet({...transactionCollectionDataSet});
-        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction.transactionID, transactionViolationsCollection);
+        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction, transactionViolationsCollection);
         expect(hasWarningTypeViolationRes).toBeTruthy();
+    });
+});
+
+const brokenCardConnectionViolation: TransactionViolation = {
+    name: CONST.VIOLATIONS.RTER,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    data: {
+        brokenBankConnection: true,
+        isAdmin: true,
+        rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION,
+    },
+};
+
+const brokenCardConnection530Violation: TransactionViolation = {
+    name: CONST.VIOLATIONS.RTER,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    data: {
+        brokenBankConnection: true,
+        isAdmin: false,
+        rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530,
+    },
+};
+
+describe('getViolationTranslation', () => {
+    it('should return the correct message for broken card connection violation', () => {
+        const brokenCardConnectionViolationExpected = translateLocal('violations.rter', {
+            brokenBankConnection: true,
+            isAdmin: true,
+            rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION,
+            isTransactionOlderThan7Days: false,
+        });
+
+        expect(ViolationsUtils.getViolationTranslation(brokenCardConnectionViolation, translateLocal)).toBe(brokenCardConnectionViolationExpected);
+
+        const brokenCardConnection530ViolationExpected = translateLocal('violations.rter', {
+            brokenBankConnection: true,
+            isAdmin: false,
+            rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530,
+            isTransactionOlderThan7Days: false,
+        });
+
+        expect(ViolationsUtils.getViolationTranslation(brokenCardConnection530Violation, translateLocal)).toBe(brokenCardConnection530ViolationExpected);
+    });
+});
+
+describe('getRBRMessages', () => {
+    const mockTransaction: Transaction = {
+        transactionID: 'test-transaction-id',
+        reportID: 'test-report-id',
+        amount: 100,
+        currency: CONST.CURRENCY.USD,
+        created: '2023-07-24 13:46:20',
+        merchant: 'Test Merchant',
+    };
+
+    it('should return all violations and missing field error', () => {
+        const violations: TransactionViolation[] = [
+            {
+                name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+            },
+            {
+                name: CONST.VIOLATIONS.MISSING_TAG,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+            },
+        ];
+
+        const missingFieldError = 'Missing required field';
+
+        const result = ViolationsUtils.getRBRMessages(mockTransaction, violations, translateLocal, missingFieldError, []);
+
+        const expectedResult = `Missing required field. ${translateLocal('violations.missingCategory')}. ${translateLocal('violations.missingTag')}.`;
+
+        expect(result).toBe(expectedResult);
+    });
+
+    it('should filter out empty strings', () => {
+        const violations = [
+            {
+                name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+            },
+            {
+                name: '',
+                type: '',
+            },
+            {
+                name: CONST.VIOLATIONS.MISSING_TAG,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+            },
+        ] as TransactionViolation[];
+
+        const result = ViolationsUtils.getRBRMessages(mockTransaction, violations, translateLocal, undefined, []);
+
+        const expectedResult = `${translateLocal('violations.missingCategory')}. ${translateLocal('violations.missingTag')}.`;
+
+        expect(result).toBe(expectedResult);
     });
 });

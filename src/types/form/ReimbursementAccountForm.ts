@@ -1,4 +1,4 @@
-import type {FileObject} from '@components/AttachmentModal';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {Country} from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type Form from './Form';
@@ -148,6 +148,7 @@ const INPUT_IDS = {
             SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: 'signerCompleteResidentialAddress',
             SECOND_SIGNER_EMAIL: 'secondSignerEmail',
             DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
+            ACH_AUTHORIZATION_FORM: 'achAuthorizationForm',
         },
     },
 } as const;
@@ -411,6 +412,9 @@ type NonUSDReimbursementAccountAdditionalProps = {
 
     /** Authorized to bind client to agreement */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT]: boolean;
+
+    /** Powerform required for US and CA workspaces */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACH_AUTHORIZATION_FORM]: FileObject[];
 };
 
 type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &

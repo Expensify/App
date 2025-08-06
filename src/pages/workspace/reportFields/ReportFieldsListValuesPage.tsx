@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -21,6 +20,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
@@ -33,7 +33,6 @@ import {
     updateReportFieldListValueEnabled as updateReportFieldListValueEnabledReportField,
 } from '@libs/actions/Policy/ReportField';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasAccountingConnections as hasAccountingConnectionsPolicyUtils} from '@libs/PolicyUtils';
@@ -69,19 +68,19 @@ function ReportFieldsListValuesPage({
     },
 }: ReportFieldsListValuesPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here to use the mobile selection mode on small screens only
     // See https://github.com/Expensify/App/issues/48724 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
-    const {selectionMode} = useMobileSelectionMode();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
     const [selectedValues, setSelectedValues] = useState<Record<string, boolean>>({});
     const [deleteValuesConfirmModalVisible, setDeleteValuesConfirmModalVisible] = useState(false);
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
 
-    const canSelectMultiple = !hasAccountingConnections && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
+    const canSelectMultiple = !hasAccountingConnections && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
 
     const [listValues, disabledListValues] = useMemo(() => {
         let reportFieldValues: string[];
@@ -144,7 +143,7 @@ function ReportFieldsListValuesPage({
         const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase());
         return itemText.includes(normalizedSearchInput);
     }, []);
-    const sortListValues = useCallback((values: ValueListItem[]) => values.sort((a, b) => localeCompare(a.value, b.value)), []);
+    const sortListValues = useCallback((values: ValueListItem[]) => values.sort((a, b) => localeCompare(a.value, b.value)), [localeCompare]);
     const [inputValue, setInputValue, filteredListValues] = useSearchResults(data, filterListValue, sortListValues);
     const sections = useMemo(() => [{data: filteredListValues, isDisabled: false}], [filteredListValues]);
 
@@ -211,7 +210,7 @@ function ReportFieldsListValuesPage({
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
-        if (isSmallScreenWidth ? selectionMode?.isEnabled : selectedValuesArray.length > 0) {
+        if (isSmallScreenWidth ? isMobileSelectionModeEnabled : selectedValuesArray.length > 0) {
             if (selectedValuesArray.length > 0) {
                 options.push({
                     icon: Expensicons.Trashcan,
@@ -309,7 +308,7 @@ function ReportFieldsListValuesPage({
         );
     };
 
-    const selectionModeHeader = selectionMode?.isEnabled && isSmallScreenWidth;
+    const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
 
     const headerContent = (
         <>
@@ -342,7 +341,7 @@ function ReportFieldsListValuesPage({
                 <HeaderWithBackButton
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.reportFields.listValues')}
                     onBackButtonPress={() => {
-                        if (selectionMode?.isEnabled) {
+                        if (isMobileSelectionModeEnabled) {
                             setSelectedValues({});
                             turnOffMobileSelectionMode();
                             return;
@@ -355,6 +354,7 @@ function ReportFieldsListValuesPage({
                 {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{!hasAccountingConnections && getHeaderButtons()}</View>}
                 {shouldShowEmptyState && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+                        {headerContent}
                         <EmptyStateComponent
                             title={translate('workspace.reportFields.emptyReportFieldsValues.title')}
                             subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}

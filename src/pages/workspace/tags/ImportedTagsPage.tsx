@@ -1,5 +1,4 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
@@ -7,6 +6,7 @@ import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import {importPolicyTags} from '@libs/actions/Policy/Tag';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
@@ -18,11 +18,13 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type ImportedTagsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_IMPORTED>;
+type ImportedTagsPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_IMPORTED>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_IMPORTED>;
 
 function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const {translate} = useLocalize();
@@ -36,7 +38,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
-    const isQuickSettingsFlow = !!backTo;
+    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_IMPORTED;
 
     const {setIsClosing} = useCloseImportPage();
 
@@ -45,7 +47,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
         roles.push(
             {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
             {text: translate('common.name'), value: CONST.CSV_IMPORT_COLUMNS.NAME, isRequired: true},
-            {text: translate('common.enabled'), value: CONST.CSV_IMPORT_COLUMNS.ENABLED, isRequired: true},
+            {text: translate('common.enabled'), value: CONST.CSV_IMPORT_COLUMNS.ENABLED},
         );
 
         if (isControlPolicy(policy)) {

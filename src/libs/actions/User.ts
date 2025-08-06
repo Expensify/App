@@ -4,6 +4,7 @@ import debounce from 'lodash/debounce';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import type {
@@ -23,7 +24,8 @@ import type {
     UpdateThemeParams,
     ValidateSecondaryLoginParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import type LockAccountParams from '@libs/API/parameters/LockAccountParams';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type Platform from '@libs/getPlatform/types';
@@ -472,7 +474,13 @@ function requestValidateCodeAction() {
 /**
  * Validates a secondary login / contact method
  */
-function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: string, validateCode: string, shouldResetActionCode?: boolean) {
+function validateSecondaryLogin(
+    loginList: OnyxEntry<LoginList>,
+    contactMethod: string,
+    validateCode: string,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    shouldResetActionCode?: boolean,
+) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -547,7 +555,7 @@ function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: 
                     value: {
                         [currentUserAccountID]: {
                             login: contactMethod,
-                            displayName: PersonalDetailsUtils.createDisplayName(contactMethod, myPersonalDetails),
+                            displayName: PersonalDetailsUtils.createDisplayName(contactMethod, myPersonalDetails, formatPhoneNumber),
                         },
                     },
                 },
@@ -812,7 +820,7 @@ function pingPusher() {
     lastPingSentTimestamp = pingTimestamp;
 
     const parameters: PusherPingParams = {pingID, pingTimestamp};
-    API.write(WRITE_COMMANDS.PUSHER_PING, parameters);
+    API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.PUSHER_PING, parameters);
     Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${pingTimestamp}`);
     Timing.start(CONST.TIMING.PUSHER_PING_PONG);
 }
@@ -905,6 +913,7 @@ function subscribeToUserEvents() {
             updates: pushEventData.updates ?? [],
             previousUpdateID: Number(pushJSON.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID),
         };
+        Log.info('[subscribeToUserEvents] Applying Onyx updates');
         applyOnyxUpdatesReliably(updates);
     });
 
@@ -1001,10 +1010,6 @@ function updateChatPriorityMode(mode: ValueOf<typeof CONST.PRIORITY_MODE>, autom
     if (!autoSwitchedToFocusMode) {
         Navigation.goBack();
     }
-}
-
-function clearFocusModeNotification() {
-    Onyx.set(ONYXKEYS.FOCUS_MODE_NOTIFICATION, false);
 }
 
 function setShouldUseStagingServer(shouldUseStagingServer: boolean) {
@@ -1104,7 +1109,7 @@ function generateStatementPDF(period: string) {
 /**
  * Sets a contact method / secondary login as the user's "Default" contact method.
  */
-function setContactMethodAsDefault(newDefaultContactMethod: string, backTo?: string) {
+function setContactMethodAsDefault(newDefaultContactMethod: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], backTo?: string) {
     const oldDefaultContactMethod = currentEmail;
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1141,7 +1146,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, backTo?: str
             value: {
                 [currentUserAccountID]: {
                     login: newDefaultContactMethod,
-                    displayName: PersonalDetailsUtils.createDisplayName(newDefaultContactMethod, myPersonalDetails),
+                    displayName: PersonalDetailsUtils.createDisplayName(newDefaultContactMethod, myPersonalDetails, formatPhoneNumber),
                 },
             },
         },
@@ -1372,6 +1377,14 @@ function dismissTrackTrainingModal() {
     });
 }
 
+/**
+ * Dismiss the Auto-Submit explanation modal
+ * @param shouldDismiss Whether the user selected "Don't show again"
+ */
+function dismissASAPSubmitExplanation(shouldDismiss: boolean) {
+    Onyx.merge(ONYXKEYS.NVP_DISMISSED_ASAP_SUBMIT_EXPLANATION, shouldDismiss);
+}
+
 function requestRefund() {
     API.write(WRITE_COMMANDS.REQUEST_REFUND, null);
 }
@@ -1380,11 +1393,58 @@ function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {isDebugModeEnabled});
 }
 
+function lockAccount() {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: true,
+                lockAccount: {
+                    errors: null,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                lockAccount: {
+                    errors: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('failedToLockAccountPage.failedToLockAccountDescription'),
+            },
+        },
+    ];
+
+    const params: LockAccountParams = {
+        accountID: currentUserAccountID,
+    };
+
+    // We need to know if this command fails so that we can navigate the user to a failure page.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT, params, {optimisticData, successData, failureData});
+}
+
 export {
-    clearFocusModeNotification,
     closeAccount,
     dismissReferralBanner,
     dismissTrackTrainingModal,
+    dismissASAPSubmitExplanation,
     resendValidateCode,
     requestContactMethodValidateCode,
     updateNewsletterSubscription,
@@ -1417,4 +1477,5 @@ export {
     clearValidateCodeActionError,
     setIsDebugModeEnabled,
     resetValidateActionCodeSent,
+    lockAccount,
 };

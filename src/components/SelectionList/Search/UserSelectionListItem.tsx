@@ -13,6 +13,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
+import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 
 function UserSelectionListItem<TItem extends ListItem>({
@@ -56,6 +57,13 @@ function UserSelectionListItem<TItem extends ListItem>({
         return login.split('@').at(0);
     }, [currentUserPersonalDetails.login, item.login]);
 
+    const userDisplayName = useMemo(() => {
+        return getDisplayNameForParticipant({
+            accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            shouldAddCurrentUserPostfix: true,
+        });
+    }, [item.accountID]);
+
     return (
         <BaseListItem
             item={item}
@@ -92,7 +100,7 @@ function UserSelectionListItem<TItem extends ListItem>({
                 <View style={[styles.flex1, styles.flexRow, styles.gap2, styles.flexShrink1, styles.alignItemsCenter]}>
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip}
-                        text={Str.removeSMSDomain(item.text ?? '')}
+                        text={userDisplayName}
                         style={[styles.flexShrink0, styles.optionDisplayName, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.sidebarLinkTextBold, styles.pre]}
                     />
                     {!!userHandle && (

@@ -1,12 +1,13 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import ROUTES from '@src/ROUTES';
+import type {Report} from '@src/types/onyx';
 import {setDisableDismissOnEscape} from './actions/Modal';
-import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
-import {findLastAccessedReport, isConciergeChatReport} from './ReportUtils';
+import {isConciergeChatReport} from './ReportUtils';
 
 const navigateAfterOnboarding = (
     isSmallScreenWidth: boolean,
-    canUseDefaultRooms: boolean | undefined,
+    lastAccessedReport: OnyxEntry<Report>,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
@@ -24,7 +25,6 @@ const navigateAfterOnboarding = (
             reportID = onboardingAdminsChatReportID;
         }
     } else {
-        const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom);
         const lastAccessedReportID = lastAccessedReport?.reportID;
         // we don't want to navigate to newly created workspaces after onboarding is completed.
         if (lastAccessedReportID && lastAccessedReport.policyID !== onboardingPolicyID && !isConciergeChatReport(lastAccessedReport)) {
@@ -36,6 +36,12 @@ const navigateAfterOnboarding = (
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }
 
+    // In this case, we have joined an accessible policy. We would have an onboarding policy, but not an admins chat report.
+    // We should skip the Test Drive modal in this case since we already have a policy to join.
+    if (onboardingPolicyID && !onboardingAdminsChatReportID) {
+        return;
+    }
+
     // We're using Navigation.isNavigationReady here because without it, on iOS,
     // Navigation.dismissModal runs after Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route)
     // And dismisses the modal before it even shows
@@ -44,4 +50,16 @@ const navigateAfterOnboarding = (
     });
 };
 
-export default navigateAfterOnboarding;
+const navigateAfterOnboardingWithMicrotaskQueue = (
+    isSmallScreenWidth: boolean,
+    lastAccessedReport: OnyxEntry<Report>,
+    onboardingPolicyID?: string,
+    onboardingAdminsChatReportID?: string,
+    shouldPreventOpenAdminRoom = false,
+) => {
+    Navigation.setNavigationActionToMicrotaskQueue(() => {
+        navigateAfterOnboarding(isSmallScreenWidth, lastAccessedReport, onboardingPolicyID, onboardingAdminsChatReportID, shouldPreventOpenAdminRoom);
+    });
+};
+
+export {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue};

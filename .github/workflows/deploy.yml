@@ -85,6 +85,8 @@ jobs:
     name: Build and deploy Android HybridApp
     needs: prep
     runs-on: ubuntu-latest-xl
+    env:
+      SHOULD_BUILD_APP: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     steps:
       - name: Checkout App and Mobile-Expensify repo
         # v4
@@ -149,13 +151,14 @@ jobs:
           ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_PASSWORD
           ANDROID_UPLOAD_KEYSTORE_ALIAS: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
           ANDROID_UPLOAD_KEY_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
+          APPLAUSE_API_KEY: op://${{ vars.OP_VAULT }}/Applause-API-Key/password
 
       - name: Get Android native version
         id: getAndroidVersion
         run: echo "VERSION_CODE=$(grep -oP 'android:versionCode="\K[0-9]+' Mobile-Expensify/Android/AndroidManifest.xml)" >> "$GITHUB_OUTPUT"
 
       - name: Build Android app
-        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
         run: bundle exec fastlane android build_hybrid
         env:
           ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
@@ -164,7 +167,7 @@ jobs:
           ANDROID_BUILD_TYPE: ${{ vars.ANDROID_BUILD_TYPE }}
 
       - name: Upload Android app to Google Play
-        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
         run: bundle exec fastlane android ${{ vars.ANDROID_UPLOAD_COMMAND }}
         env:
           VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
@@ -178,20 +181,15 @@ jobs:
           GOOGLE_KEY_FILE: ./android-fastlane-json-key.json
           PACKAGE_NAME: org.me.mobiexpensifyg
 
+      # Complete the previous version rollout if the current rollout percentage is not -1 (no rollout in progress) or 1 (fully rolled out)
+      - name: Submit previous production build to 100%
+        if: ${{ github.ref == 'refs/heads/production' && !contains(fromJSON('["1", "-1"]'), steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE) }}
+        run: bundle exec fastlane android complete_hybrid_rollout
+        continue-on-error: true
+
       - name: Submit production build for Google Play review and a slow rollout
         if: ${{ github.ref == 'refs/heads/production' }}
-        run: |
-          # Complete the previous version rollout if the current rollout percentage is not -1 (no rollout in progress) or 1 (fully rolled out)
-          echo "Current rollout percentage: ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }}"
-          if [[ ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '-1' && ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '1' ]]; then
-            echo "Completing the previous version rollout"
-              bundle exec fastlane android complete_hybrid_rollout
-          else
-              echo "Skipping the completion of the previous version rollout"
-          fi
-
-          # Submit the new version for review and slow rollout when it's approved
-          bundle exec fastlane android upload_google_play_production_hybrid_rollout
+        run: bundle exec fastlane android upload_google_play_production_hybrid_rollout
         env:
           VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
 
@@ -202,6 +200,7 @@ jobs:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
       - name: Install bundletool
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
         run: |
           readonly BUNDLETOOL_VERSION="1.18.1"
           readonly BUNDLETOOL_URL="https://github.com/google/bundletool/releases/download/${BUNDLETOOL_VERSION}/bundletool-all-${BUNDLETOOL_VERSION}.jar"
@@ -218,6 +217,7 @@ jobs:
           fi
 
       - name: Generate APK from AAB
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
         run: |
           # Generate apks using bundletool
           java -jar bundletool.jar build-apks --bundle=${{ env.aabPath }} --output=Expensify.apks \
@@ -230,8 +230,16 @@ jobs:
           # Unzip just the universal apk
           unzip -p Expensify.apks universal.apk > Expensify.apk
 
+      - name: Upload Android build to Applause
+        if: ${{ fromJSON(env.IS_APP_REPO) && (github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK)) }}
+        run: |
+          APPLAUSE_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')
+          curl -F "file=@Expensify.apk" \
+            "https://api.applause.com/v2/builds?name=Expensify_$APPLAUSE_VERSION&productId=36008" \
+            -H "X-Api-Key: ${{ steps.load-credentials.outputs.APPLAUSE_API_KEY }}"
+
       - name: Upload Android APK build artifact
-        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
         # v4
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -239,7 +247,7 @@ jobs:
           path: Expensify.apk
 
       - name: Upload Android build artifact
-        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
         # v4
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -247,7 +255,7 @@ jobs:
           path: ${{ env.aabPath }}
 
       - name: Upload Android sourcemap artifact
-        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
         # v4
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -269,7 +277,7 @@ jobs:
               attachments: [{
                 color: "#DB4545",
                 pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 Android HybridApp production <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|deploy run> failed. Please <https://stackoverflowteams.com/c/expensify/questions/5738|manually submit> ${{ needs.prep.outputs.APP_VERSION }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4974129597497161901/releases/overview|Google Play Store>. 💥 But first check the workflow, it's likely that the release was successful and <https://github.com/Expensify/Expensify/issues/488492|this error> is occuring)`,
+                text: `💥 Android HybridApp production <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|deploy run> failed. Please <https://stackoverflowteams.com/c/expensify/questions/5738|manually submit> ${{ needs.prep.outputs.APP_VERSION }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4974129597497161901/releases/overview|Google Play Store> 💥`,
               }]
             }
         env:
@@ -334,6 +342,7 @@ jobs:
     runs-on: macos-15-xlarge
     env:
       DEVELOPER_DIR: /Applications/Xcode_16.2.0.app/Contents/Developer
+      SHOULD_BUILD_APP: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     steps:
       - name: Checkout
         # v4
@@ -395,6 +404,16 @@ jobs:
           op read "op://${{ vars.OP_VAULT }}/ios-fastlane-json-key.json/ios-fastlane-json-key.json" --force --out-file ./ios-fastlane-json-key.json
           op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
 
+      - name: Load iOS credentials from 1Password
+        id: load-credentials
+        # v2
+        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          APPLAUSE_API_KEY: op://${{ vars.OP_VAULT }}/Applause-API-Key/password
+
       - name: Set current App version in Env
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
@@ -403,7 +422,7 @@ jobs:
         run: echo "IOS_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')" >> "$GITHUB_OUTPUT"
 
       - name: Build iOS HybridApp
-        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
         run: bundle exec fastlane ios build_hybrid
         env:
           APPLE_ID: ${{ vars.APPLE_ID }}
@@ -415,7 +434,7 @@ jobs:
           APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME: ${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME }}
 
       - name: Upload release build to TestFlight
-        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
         run: bundle exec fastlane ios upload_testflight_hybrid
         env:
           APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
@@ -425,29 +444,37 @@ jobs:
           APPLE_ID: ${{ vars.APPLE_ID }}
 
       - name: Upload DSYMs to Firebase for HybridApp
-        if: ${{ fromJSON(env.IS_APP_REPO) && (github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK)) }}
+        if: ${{ fromJSON(env.IS_APP_REPO) && fromJSON(env.SHOULD_BUILD_APP) }}
         run: bundle exec fastlane ios upload_dsyms_hybrid
+
+      - name: Submit previous production build to 100%
+        if: ${{ github.ref == 'refs/heads/production' }}
+        run: bundle exec fastlane ios complete_hybrid_rollout
+        continue-on-error: true
 
       - name: Submit production build for App Store review and a slow rollout
         if: ${{ github.ref == 'refs/heads/production' }}
-        run: |
-          # Complete the previous version rollout
-          bundle exec fastlane ios complete_hybrid_rollout
-
-          # Submit the new version for review and phased rollout when it's approved
-          bundle exec fastlane ios submit_hybrid_for_rollout
+        run: bundle exec fastlane ios submit_hybrid_for_rollout
         env:
           VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
           APPLE_ID: ${{ vars.APPLE_ID }}
 
       - name: Upload iOS build to Browser Stack
-        if: ${{ fromJSON(env.IS_APP_REPO) && (github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK)) }}
+        if: ${{ fromJSON(env.IS_APP_REPO) && fromJSON(env.SHOULD_BUILD_APP) }}
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.ipaPath }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
+      - name: Upload iOS build to Applause
+        if: ${{ fromJSON(env.IS_APP_REPO) && fromJSON(env.SHOULD_BUILD_APP) }}
+        run: |
+          APPLAUSE_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')
+          curl -F "file=@${{ env.ipaPath }}" \
+            "https://api.applause.com/v2/builds?name=Expensify_$APPLAUSE_VERSION&productId=36005" \
+            -H "X-Api-Key: ${{ steps.load-credentials.outputs.APPLAUSE_API_KEY }}"
+
       - name: Upload iOS build artifact
-        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
         # v4
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -455,7 +482,7 @@ jobs:
           path: ${{ env.ipaPath }}
 
       - name: Upload iOS sourcemap artifact
-        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
         # v4
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -728,13 +755,6 @@ jobs:
     with:
       # Note: by omitting PULL_REQUEST_URL, we are just doing a version bump and CP'ing it to staging
       TARGET: staging
-
-  updateChecklistWithVersionBump:
-    name: Update deploy checklist with the new version bump
-    needs: [prep, checkDeploymentSuccess, cherryPickExtraVersionBump]
-    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) && github.ref == 'refs/heads/production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
-    uses: ./.github/workflows/createDeployChecklist.yml
-    secrets: inherit
 
   postSlackMessageOnSuccess:
     name: Post a Slack message when all platforms deploy successfully

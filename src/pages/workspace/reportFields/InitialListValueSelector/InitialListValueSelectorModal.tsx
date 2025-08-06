@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,7 +33,7 @@ type InitialListValueSelectorModalProps = {
 function InitialListValueSelectorModal({isVisible, currentValue, label, subtitle, onValueSelected, onClose}: InitialListValueSelectorModalProps) {
     const styles = useThemeStyles();
 
-    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
+    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
 
     return (
         <Modal
@@ -41,8 +41,8 @@ function InitialListValueSelectorModal({isVisible, currentValue, label, subtitle
             isVisible={isVisible}
             onClose={onClose}
             onModalHide={onClose}
-            hideModalContentWhileAnimating
-            useNativeDriver
+            enableEdgeToEdgeBottomSafeAreaPadding
+            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={styles.pb0}

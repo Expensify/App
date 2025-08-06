@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormProvider from '@components/Form/FormProvider';
@@ -15,6 +14,7 @@ import TextInput from '@components/TextInput';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage, getLatestErrorField} from '@libs/ErrorUtils';
@@ -53,7 +53,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     const loginData = loginList?.[pendingContactAction?.contactMethod ?? contactMethod];
     const validateLoginError = getLatestErrorField(loginData, 'addedLogin');
 
-    const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_PROFILE.getRoute();
+    const navigateBackTo = route?.params?.backTo;
 
     const hasFailedToSendVerificationCode = !!pendingContactAction?.errorFields?.actionVerified;
 
@@ -76,7 +76,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
     useEffect(() => {
-        if (!pendingContactAction?.actionVerified) {
+        if (!pendingContactAction?.actionVerified || !prevPendingContactAction?.contactMethod) {
             return;
         }
 
@@ -122,10 +122,6 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     );
 
     const onBackButtonPress = useCallback(() => {
-        if (navigateBackTo === ROUTES.SETTINGS_PROFILE.getRoute()) {
-            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
-            return;
-        }
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(navigateBackTo));
     }, [navigateBackTo]);
 

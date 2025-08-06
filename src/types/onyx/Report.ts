@@ -4,6 +4,7 @@ import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type * as OnyxCommon from './OnyxCommon';
 import type {PolicyReportField} from './Policy';
+import type {TripData} from './TripData';
 
 /** Preference that defines how regular the chat notifications are sent to the user */
 type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
@@ -193,6 +194,15 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report is cancelled */
         isCancelledIOU?: boolean;
 
+        /** Whether the report has been reopened */
+        hasReportBeenReopened?: boolean;
+
+        /** Whether the report has been exported to integration */
+        isExportedToIntegration?: boolean;
+
+        /** Whether the report has any export errors */
+        hasExportError?: boolean;
+
         /** The ID of the IOU report */
         iouReportID?: string;
 
@@ -221,6 +231,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
             /** The trip ID in spotnana */
             tripID: string;
+
+            /** The trip data */
+            payload?: TripData;
         };
 
         /** The report's welcome message */

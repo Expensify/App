@@ -1,18 +1,19 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {isCurrentUserValidated} from '@libs/UserUtils';
 import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {resendValidateCode} from '@userActions/User';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BaseOnboardingPrivateDomainProps} from './types';
@@ -35,6 +36,10 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const domain = email.split('@').at(1) ?? '';
 
     const isValidated = isCurrentUserValidated(loginList);
+
+    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
+    const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
+    const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
 
     const sendValidateCode = useCallback(() => {
         if (!email) {
@@ -70,10 +75,14 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                 progressBarPercentage={40}
                 onBackButtonPress={Navigation.goBack}
             />
-            <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, styles.justifyContentBetween]}>
-                <View style={[styles.flexGrow1, styles.mb5]}>
+            <ScrollView
+                style={[styles.w100, styles.h100, styles.flex1]}
+                contentContainerStyle={styles.flexGrow1}
+                keyboardShouldPersistTaps="handled"
+            >
+                <View style={[styles.mb5, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, styles.flex1]}>
                     <Text style={styles.textHeadlineH1}>{translate('onboarding.peopleYouMayKnow')}</Text>
-                    <Text style={[styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workspaceYouMayJoin', {domain, email})}</Text>
+                    <Text style={[styles.textAlignLeft, styles.mv5]}>{translate('onboarding.workspaceYouMayJoin', {domain, email})}</Text>
                     <ValidateCodeForm
                         validateCodeActionErrorField="getAccessiblePolicies"
                         handleSubmitForm={(code) => {
@@ -85,22 +94,26 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                             setHasMagicCodeBeenSent(true);
                         }}
                         clearError={() => clearGetAccessiblePoliciesErrors()}
-                        hideSubmitButton
                         validateError={getAccessiblePoliciesAction?.errors}
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                        allowResubmit
-                    />
-                </View>
-                <View style={[styles.mb5]}>
-                    <Button
-                        success={false}
-                        large
-                        text={translate('common.skip')}
+                        shouldShowSkipButton
+                        handleSkipButtonPress={() => {
+                            if (isVsb) {
+                                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
+                                return;
+                            }
+
+                            if (isSmb) {
+                                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
+                                return;
+                            }
+                            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
+                        }}
+                        buttonStyles={[styles.flex2, styles.justifyContentEnd]}
                         isLoading={getAccessiblePoliciesAction?.loading}
-                        onPress={() => Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo))}
                     />
                 </View>
-            </View>
+            </ScrollView>
         </ScreenWrapper>
     );
 }

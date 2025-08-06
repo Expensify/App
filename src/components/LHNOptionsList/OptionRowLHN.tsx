@@ -1,29 +1,27 @@
 import React, {useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useSession} from '@components/OnyxProvider';
+import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import type {ProductTrainingTooltipName} from '@components/ProductTrainingContext/TOOLTIPS';
-import SubscriptAvatar from '@components/SubscriptAvatar';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useRootNavigationState from '@hooks/useRootNavigationState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
+import {containsCustomEmoji as containsCustomEmojiUtils, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import {shouldOptionShowTooltip, shouldUseBoldText} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
@@ -38,27 +36,31 @@ import {
     isSystemChat,
     isThread,
 } from '@libs/ReportUtils';
+import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OptionRowLHNProps} from './types';
 
 function OptionRowLHN({
     reportID,
+    report,
     isOptionFocused = false,
     onSelectRow = () => {},
     optionItem,
     viewMode = 'default',
+    activePolicyID,
+    onboardingPurpose,
+    isFullscreenVisible,
+    isReportsSplitNavigatorLast,
     style,
     onLayout = () => {},
     hasDraftComment,
     shouldShowRBRorGBRTooltip,
-    isScreenFocused,
+    isScreenFocused = false,
 }: OptionRowLHNProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -66,17 +68,11 @@ function OptionRowLHN({
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID}`, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY, {canBeMissing: true});
     const session = useSession();
     const shouldShowWorkspaceChatTooltip = isPolicyExpenseChat(report) && !isThread(report) && activePolicyID === report?.policyID && session?.accountID === report?.ownerAccountID;
-    const isOnboardingGuideAssigned = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
-    const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, introSelected?.choice);
+    const isOnboardingGuideAssigned = onboardingPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
+    const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurpose);
     const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? isAdminRoom(report) && isChatUsedForOnboarding : isConciergeChatReport(report);
-
-    const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
 
     const {tooltipToRender, shouldShowTooltip, shouldTooltipBeLeftAligned} = useMemo(() => {
         let tooltip: ProductTrainingTooltipName;
@@ -111,6 +107,11 @@ function OptionRowLHN({
             : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
     );
 
+    const alternateTextContainsCustomEmojiWithText = useMemo(
+        () => containsCustomEmojiUtils(optionItem?.alternateText) && !containsOnlyCustomEmoji(optionItem?.alternateText),
+        [optionItem?.alternateText],
+    );
+
     if (!optionItem && !isOptionFocused) {
         // rendering null as a render item causes the FlashList to render all
         // its children and consume significant memory on the first render. We can avoid this by
@@ -132,7 +133,7 @@ function OptionRowLHN({
     const brickRoadIndicator = optionItem.brickRoadIndicator;
     const textStyle = isOptionFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = shouldUseBoldText(optionItem) ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
-    const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, style];
+    const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, styles.flexShrink0, style];
     const alternateTextStyle = isInFocusMode
         ? [textStyle, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2, style]
         : [textStyle, styles.optionAlternateText, styles.textLabelSupporting, style];
@@ -168,6 +169,7 @@ function OptionRowLHN({
             callbacks: {
                 onHide: () => setIsContextMenuActive(false),
             },
+            withoutOverlay: false,
         });
     };
 
@@ -191,7 +193,6 @@ function OptionRowLHN({
         hideProductTrainingTooltip();
         onSelectRow(optionItem, popoverAnchor);
     };
-
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
@@ -258,28 +259,21 @@ function OptionRowLHN({
                             >
                                 <View style={sidebarInnerRowStyle}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                        {!!optionItem.icons?.length &&
-                                            firstIcon &&
-                                            (optionItem.shouldShowSubscript ? (
-                                                <SubscriptAvatar
-                                                    backgroundColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                                    mainAvatar={firstIcon}
-                                                    secondaryAvatar={optionItem.icons.at(1)}
-                                                    size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
-                                                />
-                                            ) : (
-                                                <MultipleAvatars
-                                                    icons={optionItem.icons}
-                                                    isFocusMode={isInFocusMode}
-                                                    size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
-                                                    secondAvatarStyle={[
-                                                        StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                                        isOptionFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                                        hovered && !isOptionFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                                                    ]}
-                                                    shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
-                                                />
-                                            ))}
+                                        {!!optionItem.icons?.length && !!firstIcon && (
+                                            <ReportActionAvatars
+                                                subscriptAvatarBorderColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                                                useMidSubscriptSizeForMultipleAvatars={isInFocusMode}
+                                                size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                                secondaryAvatarContainerStyle={[
+                                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                                    isOptionFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                                    hovered && !isOptionFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                                                ]}
+                                                singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
+                                                shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
+                                                reportID={optionItem?.reportID}
+                                            />
+                                        )}
                                         <View style={contentContainerStyles}>
                                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                                 <DisplayNames
@@ -296,11 +290,12 @@ function OptionRowLHN({
                                                         !!optionItem.isThread ||
                                                         !!optionItem.isMoneyRequestReport ||
                                                         !!optionItem.isInvoiceReport ||
+                                                        !!optionItem.private_isArchived ||
                                                         isGroupChat(report) ||
                                                         isSystemChat(report)
                                                     }
                                                 />
-                                                {isChatUsedForOnboarding && <FreeTrial badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1]} />}
+                                                {isChatUsedForOnboarding && <FreeTrial badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1, styles.flexShrink1]} />}
                                                 {isStatusVisible && (
                                                     <Tooltip
                                                         text={statusContent}
@@ -310,15 +305,23 @@ function OptionRowLHN({
                                                     </Tooltip>
                                                 )}
                                             </View>
-                                            {optionItem.alternateText ? (
+                                            {!!optionItem.alternateText && (
                                                 <Text
                                                     style={alternateTextStyle}
                                                     numberOfLines={1}
                                                     accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
                                                 >
-                                                    {Parser.htmlToText(optionItem.alternateText)}
+                                                    {alternateTextContainsCustomEmojiWithText ? (
+                                                        <TextWithEmojiFragment
+                                                            message={Parser.htmlToText(optionItem.alternateText)}
+                                                            style={[alternateTextStyle, styles.mh0]}
+                                                            alignCustomEmoji
+                                                        />
+                                                    ) : (
+                                                        Parser.htmlToText(optionItem.alternateText)
+                                                    )}
                                                 </Text>
-                                            ) : null}
+                                            )}
                                         </View>
                                         {optionItem?.descriptiveText ? (
                                             <View style={[styles.flexWrap]}>

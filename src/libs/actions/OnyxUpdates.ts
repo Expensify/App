@@ -1,7 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import Performance from '@libs/Performance';
 import PusherUtils from '@libs/PusherUtils';
@@ -26,9 +26,9 @@ let pusherEventsPromise = Promise.resolve();
 
 let airshipEventsPromise = Promise.resolve();
 
-function applyHTTPSOnyxUpdates(request: Request, response: Response) {
+function applyHTTPSOnyxUpdates(request: Request, response: Response, lastUpdateID: number) {
     Performance.markStart(CONST.TIMING.APPLY_HTTPS_UPDATES);
-    console.debug('[OnyxUpdateManager] Applying https update');
+    Log.info('[OnyxUpdateManager] Applying https update', false, {lastUpdateID});
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
     const updateHandler: (updates: OnyxUpdate[]) => Promise<unknown> = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? queueOnyxUpdates : Onyx.update;
@@ -64,40 +64,40 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
         })
         .then(() => {
             Performance.markEnd(CONST.TIMING.APPLY_HTTPS_UPDATES);
-            console.debug('[OnyxUpdateManager] Done applying HTTPS update');
+            Log.info('[OnyxUpdateManager] Done applying HTTPS update', false, {lastUpdateID});
             return Promise.resolve(response);
         });
 }
 
-function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
+function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[], lastUpdateID: number) {
     Performance.markStart(CONST.TIMING.APPLY_PUSHER_UPDATES);
 
     pusherEventsPromise = pusherEventsPromise.then(() => {
-        console.debug('[OnyxUpdateManager] Applying pusher update');
+        Log.info('[OnyxUpdateManager] Applying pusher update', false, {lastUpdateID});
     });
 
     pusherEventsPromise = updates
         .reduce((promise, update) => promise.then(() => PusherUtils.triggerMultiEventHandler(update.eventType, update.data)), pusherEventsPromise)
         .then(() => {
             Performance.markEnd(CONST.TIMING.APPLY_PUSHER_UPDATES);
-            console.debug('[OnyxUpdateManager] Done applying Pusher update');
+            Log.info('[OnyxUpdateManager] Done applying Pusher update', false, {lastUpdateID});
         });
 
     return pusherEventsPromise;
 }
 
-function applyAirshipOnyxUpdates(updates: OnyxUpdateEvent[]) {
+function applyAirshipOnyxUpdates(updates: OnyxUpdateEvent[], lastUpdateID: number) {
     Performance.markStart(CONST.TIMING.APPLY_AIRSHIP_UPDATES);
 
     airshipEventsPromise = airshipEventsPromise.then(() => {
-        console.debug('[OnyxUpdateManager] Applying Airship updates');
+        Log.info('[OnyxUpdateManager] Applying Airship updates', false, {lastUpdateID});
     });
 
     airshipEventsPromise = updates
         .reduce((promise, update) => promise.then(() => Onyx.update(update.data)), airshipEventsPromise)
         .then(() => {
             Performance.markEnd(CONST.TIMING.APPLY_AIRSHIP_UPDATES);
-            console.debug('[OnyxUpdateManager] Done applying Airship updates');
+            Log.info('[OnyxUpdateManager] Done applying Airship updates', false, {lastUpdateID});
         });
 
     return airshipEventsPromise;
@@ -114,7 +114,11 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
 function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer): Promise<void | Response> | undefined {
     Log.info(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, false, {command: request?.command});
 
-    if (lastUpdateID && lastUpdateIDAppliedToClient && Number(lastUpdateID) <= lastUpdateIDAppliedToClient && request?.command !== WRITE_COMMANDS.OPEN_APP) {
+    const isUpdateOld = lastUpdateID && lastUpdateIDAppliedToClient && Number(lastUpdateID) <= lastUpdateIDAppliedToClient;
+    const isOpenAppRequest = request?.command === WRITE_COMMANDS.OPEN_APP;
+    const isFullReconnectRequest = request?.command === SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP && !request?.data?.updateIDFrom;
+
+    if (isUpdateOld && !isOpenAppRequest && !isFullReconnectRequest) {
         Log.info('[OnyxUpdateManager] Update received was older than or the same as current state, returning without applying the updates other than successData and failureData', false, {
             lastUpdateID,
             lastUpdateIDAppliedToClient,
@@ -132,7 +136,7 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
 
             // We use a spread here instead of delete because we don't want to change the response for other middlewares
             const {onyxData, ...responseWithoutOnyxData} = response;
-            return applyHTTPSOnyxUpdates(request, responseWithoutOnyxData);
+            return applyHTTPSOnyxUpdates(request, responseWithoutOnyxData, Number(lastUpdateID));
         }
 
         return Promise.resolve();
@@ -141,13 +145,13 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
         Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response) {
-        return applyHTTPSOnyxUpdates(request, response);
+        return applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.PUSHER && updates) {
-        return applyPusherOnyxUpdates(updates);
+        return applyPusherOnyxUpdates(updates, Number(lastUpdateID));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.AIRSHIP && updates) {
-        return applyAirshipOnyxUpdates(updates);
+        return applyAirshipOnyxUpdates(updates, Number(lastUpdateID));
     }
 }
 

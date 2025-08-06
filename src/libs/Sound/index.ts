@@ -97,17 +97,5 @@ function clearSoundAssetsCache() {
 // Cache sound assets on load
 cacheSoundAssets();
 
-const playStreamSound = (stream: MediaStream) => {
-    if (getIsMuted()) {
-        return;
-    }
-
-    const audio = new Audio();
-    audio.srcObject = stream;
-    audio.play().catch((error) => {
-        Log.alert('[sound] Play error:', {message: (error as Error).message});
-    });
-};
-
-export {SOUNDS, clearSoundAssetsCache, playStreamSound};
+export {SOUNDS, clearSoundAssetsCache};
 export default withMinimalExecutionTime(playSound, 300);

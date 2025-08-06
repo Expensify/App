@@ -6,274 +6,226 @@ import {search} from '@libs/actions/Search';
 import CONST from '@src/CONST';
 
 jest.mock('@libs/actions/Search');
-jest.mock('@src/components/ConfirmedRoute.tsx');
+jest.mock('@react-navigation/native', () => ({
+    useIsFocused: jest.fn(() => true),
+    createNavigationContainerRef: () => ({}),
+}));
+jest.mock('@rnmapbox/maps', () => ({
+    __esModule: true,
+    default: {},
+    MarkerView: {},
+    setAccessToken: jest.fn(),
+}));
+jest.mock('@react-native-community/geolocation', () => ({
+    setRNConfiguration: jest.fn(),
+    getCurrentPosition: jest.fn(),
+    watchPosition: jest.fn(),
+    clearWatch: jest.fn(),
+}));
+
+const mockUseIsFocused = jest.fn().mockReturnValue(true);
 
 afterEach(() => {
     jest.clearAllMocks();
 });
 
 describe('useSearchHighlightAndScroll', () => {
-    it('should trigger Search when transactionIDs list change', () => {
-        const initialProps: UseSearchHighlightAndScroll = {
-            searchResults: {
-                data: {personalDetailsList: {}},
-                search: {
-                    columnsToShow: {
-                        shouldShowCategoryColumn: true,
-                        shouldShowTagColumn: true,
-                        shouldShowTaxColumn: true,
-                    },
-                    hasMoreResults: false,
-                    hasResults: true,
-                    offset: 0,
-                    status: 'all',
-                    type: 'expense',
-                    isLoading: false,
-                },
+    const baseProps: UseSearchHighlightAndScroll = {
+        searchResults: {
+            data: {
+                personalDetailsList: {},
             },
-            transactions: {
-                transactions_1: {
-                    amount: -100,
-                    bank: '',
-                    billable: false,
-                    cardID: 0,
-                    cardName: 'Cash Expense',
-                    cardNumber: '',
-                    category: '',
-                    comment: {
-                        comment: '',
-                    },
-                    created: '2025-01-08',
-                    currency: 'ETB',
-                    filename: 'w_c989c343d834d48a4e004c38d03c90bff9434768.png',
-                    inserted: '2025-01-08 15:35:32',
-                    managedCard: false,
-                    merchant: 'g',
-                    modifiedAmount: 0,
-                    modifiedCreated: '',
-                    modifiedCurrency: '',
-                    modifiedMerchant: '',
-                    originalAmount: 0,
-                    originalCurrency: '',
-                    parentTransactionID: '',
-                    posted: '',
-                    receipt: {
-                        receiptID: 7409094723954473,
-                        state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
-                        source: 'https://www.expensify.com/receipts/w_c989c343d834d48a4e004c38d03c90bff9434768.png',
-                    },
-                    reimbursable: true,
-                    reportID: '2309609540437471',
-                    status: 'Posted',
-                    tag: '',
-                    transactionID: '1',
-                    hasEReceipt: false,
-                },
-            },
-            previousTransactions: {
-                transactions_1: {
-                    amount: -100,
-                    bank: '',
-                    billable: false,
-                    cardID: 0,
-                    cardName: 'Cash Expense',
-                    cardNumber: '',
-                    category: '',
-                    comment: {
-                        comment: '',
-                    },
-                    created: '2025-01-08',
-                    currency: 'ETB',
-                    filename: 'w_c989c343d834d48a4e004c38d03c90bff9434768.png',
-                    inserted: '2025-01-08 15:35:32',
-                    managedCard: false,
-                    merchant: 'g',
-                    modifiedAmount: 0,
-                    modifiedCreated: '',
-                    modifiedCurrency: '',
-                    modifiedMerchant: '',
-                    originalAmount: 0,
-                    originalCurrency: '',
-                    parentTransactionID: '',
-                    posted: '',
-                    receipt: {
-                        receiptID: 7409094723954473,
-                        state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
-                        source: 'https://www.expensify.com/receipts/w_c989c343d834d48a4e004c38d03c90bff9434768.png',
-                    },
-                    reimbursable: true,
-                    reportID: '2309609540437471',
-                    status: 'Posted',
-                    tag: '',
-                    transactionID: '1',
-                    hasEReceipt: false,
-                },
-            },
-            reportActions: {
-                reportActions_209647397999267: {
-                    1: {
-                        actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE,
-                        reportActionID: '1',
-                        created: '',
-                    },
-                },
-            },
-            previousReportActions: {
-                reportActions_209647397999267: {
-                    1: {
-                        actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE,
-                        reportActionID: '1',
-                        created: '',
-                    },
-                },
-            },
-            queryJSON: {
+            search: {
+                columnsToShow: {shouldShowCategoryColumn: true, shouldShowTagColumn: true, shouldShowTaxColumn: true},
+                hasMoreResults: false,
+                hasResults: true,
+                offset: 0,
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 type: 'expense',
-                status: 'all',
-                sortBy: 'date',
-                sortOrder: 'desc',
-                filters: {operator: 'and', left: 'tag', right: ''},
-                inputQuery: 'type:expense status:all sortBy:date sortOrder:desc',
-                flatFilters: [],
-                hash: 243428839,
-                recentSearchHash: 422547233,
+                isLoading: false,
             },
-            offset: 0,
-        };
-        const changedProp: UseSearchHighlightAndScroll = {
-            ...initialProps,
-            transactions: {
-                transactions_2: {
-                    amount: -100,
-                    bank: '',
-                    billable: false,
-                    cardID: 0,
-                    cardName: 'Cash Expense',
-                    cardNumber: '',
-                    category: '',
-                    comment: {
-                        comment: '',
-                    },
-                    created: '2025-01-08',
-                    currency: 'ETB',
-                    filename: 'w_c989c343d834d48a4e004c38d03c90bff9434768.png',
-                    inserted: '2025-01-08 15:35:32',
-                    managedCard: false,
-                    merchant: 'g',
-                    modifiedAmount: 0,
-                    modifiedCreated: '',
-                    modifiedCurrency: '',
-                    modifiedMerchant: '',
-                    originalAmount: 0,
-                    originalCurrency: '',
-                    parentTransactionID: '',
-                    posted: '',
-                    receipt: {
-                        receiptID: 7409094723954473,
-                        state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
-                        source: 'https://www.expensify.com/receipts/w_c989c343d834d48a4e004c38d03c90bff9434768.png',
-                    },
-                    reimbursable: true,
-                    reportID: '2309609540437471',
-                    status: 'Posted',
-                    tag: '',
-                    transactionID: '2',
-                    hasEReceipt: false,
-                },
-            },
-        };
+        },
+        transactions: {},
+        previousTransactions: {},
+        reportActions: {},
+        previousReportActions: {},
+        queryJSON: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: {operator: 'and', left: 'tag', right: ''},
+            inputQuery: 'type:expense',
+            flatFilters: [],
+            hash: 123,
+            recentSearchHash: 456,
+        },
+        searchKey: undefined,
+        shouldCalculateTotals: false,
+        offset: 0,
+    };
 
-        const {rerender} = renderHook((prop: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(prop), {
-            initialProps,
-        });
+    it('should not trigger search when collections are empty', () => {
+        renderHook(() => useSearchHighlightAndScroll(baseProps));
         expect(search).not.toHaveBeenCalled();
-
-        // When the transaction ids list change though it has the same length as previous value
-        rerender(changedProp);
-
-        // Then Search will be triggered.
-        expect(search).toHaveBeenCalled();
     });
 
-    it('should trigger Search when report actions change', () => {
-        const initialProps: UseSearchHighlightAndScroll = {
-            searchResults: {
-                data: {personalDetailsList: {}},
-                search: {
-                    columnsToShow: {
-                        shouldShowCategoryColumn: true,
-                        shouldShowTagColumn: true,
-                        shouldShowTaxColumn: true,
-                    },
-                    hasMoreResults: false,
-                    hasResults: true,
-                    offset: 0,
-                    status: 'all',
-                    type: 'expense',
-                    isLoading: false,
-                },
+    it('should trigger search when new transaction added and focused', () => {
+        const initialProps = {
+            ...baseProps,
+            transactions: {'1': {transactionID: '1'}},
+            previousTransactions: {'1': {transactionID: '1'}},
+        };
+
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            initialProps,
+        });
+
+        const updatedProps = {
+            ...baseProps,
+            transactions: {
+                '1': {transactionID: '1'},
+                '2': {transactionID: '2'},
             },
-            transactions: {},
-            previousTransactions: {},
+            previousTransactions: {'1': {transactionID: '1'}},
+        };
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender(updatedProps);
+        expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false});
+    });
+
+    it('should not trigger search when not focused', () => {
+        mockUseIsFocused.mockReturnValue(false);
+
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            initialProps: baseProps,
+        });
+
+        const updatedProps = {
+            ...baseProps,
+            transactions: {'1': {transactionID: '1'}},
+        };
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender(updatedProps);
+        expect(search).not.toHaveBeenCalled();
+    });
+
+    it('should trigger search for chat when report actions added and focused', () => {
+        mockUseIsFocused.mockReturnValue(true);
+
+        const chatProps = {
+            ...baseProps,
+            queryJSON: {...baseProps.queryJSON, type: 'chat' as const},
             reportActions: {
-                reportActions_209647397999267: {
-                    1: {
-                        actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE,
-                        reportActionID: '1',
-                        created: '',
-                    },
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
                 },
             },
             previousReportActions: {
-                reportActions_209647397999267: {
-                    1: {
-                        actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE,
-                        reportActionID: '1',
-                        created: '',
-                    },
-                },
-            },
-            queryJSON: {
-                type: 'expense',
-                status: 'all',
-                sortBy: 'date',
-                sortOrder: 'desc',
-                filters: {operator: 'and', left: 'tag', right: ''},
-                inputQuery: 'type:expense status:all sortBy:date sortOrder:desc',
-                flatFilters: [],
-                hash: 243428839,
-                recentSearchHash: 422547233,
-            },
-            offset: 0,
-        };
-
-        const changedProps: UseSearchHighlightAndScroll = {
-            ...initialProps,
-            reportActions: {
-                reportActions_209647397999268: {
-                    1: {
-                        actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE,
-                        reportActionID: '1',
-                        created: '',
-                    },
-                    2: {
-                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                        reportActionID: '2',
-                        created: '',
-                    },
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
                 },
             },
         };
 
         const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            initialProps: chatProps,
+        });
+
+        const updatedProps = {
+            ...chatProps,
+            reportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                    '2': {actionName: 'ADDCOMMENT', reportActionID: '2'},
+                },
+            },
+        };
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender(updatedProps);
+        expect(search).toHaveBeenCalledWith({queryJSON: chatProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false});
+    });
+
+    it('should not trigger search when new transaction removed and focused', () => {
+        const initialProps = {
+            ...baseProps,
+            transactions: {
+                '1': {transactionID: '1'},
+                '2': {transactionID: '2'},
+            },
+            previousTransactions: {
+                '1': {transactionID: '1'},
+                '2': {transactionID: '2'},
+            },
+        };
+
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
             initialProps,
         });
+
+        const updatedProps = {
+            ...baseProps,
+            transactions: {
+                '1': {transactionID: '1'},
+            },
+        };
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender(updatedProps);
         expect(search).not.toHaveBeenCalled();
+    });
 
-        // When report actions change
-        rerender(changedProps);
+    it('should not trigger search for chat when report actions removed and focused', () => {
+        mockUseIsFocused.mockReturnValue(true);
 
-        // Then Search will be triggered
-        expect(search).toHaveBeenCalled();
+        const chatProps = {
+            ...baseProps,
+            queryJSON: {...baseProps.queryJSON, type: 'chat' as const},
+            reportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                    '2': {actionName: 'ADDCOMMENT', reportActionID: '2'},
+                },
+            },
+            previousReportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                    '2': {actionName: 'ADDCOMMENT', reportActionID: '2'},
+                },
+            },
+        };
+
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            initialProps: chatProps,
+        });
+
+        const updatedProps = {
+            ...chatProps,
+            reportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                },
+            },
+        };
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender(updatedProps);
+        expect(search).not.toHaveBeenCalled();
     });
 });

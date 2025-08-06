@@ -5,7 +5,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
@@ -42,6 +42,12 @@ jest.mock('@react-native-community/geolocation', () => ({
     setRNConfiguration: jest.fn(),
 }));
 
+jest.mock('react-native-plaid-link-sdk', () => ({
+    dismissLink: jest.fn(),
+    openLink: jest.fn(),
+    usePlaidEmitter: jest.fn(),
+}));
+
 jest.mock('@components/FormAlertWrapper', () => 'FormAlertWrapper');
 jest.mock('@components/FormAlertWithSubmitButton', () => 'FormAlertWithSubmitButton');
 
@@ -51,7 +57,7 @@ const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 // Renders the AssignCardFeedPage inside a navigation container with necessary providers.
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD, initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]) => {
     return render(
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
@@ -112,6 +118,7 @@ describe('AssignCardFeedPage', () => {
                     email: 'testaccount+1@gmail.com',
                     cardName: "Test 1's card",
                     cardNumber: '490901XXXXXX1234',
+                    // cspell:disable-next-line
                     encryptedCardNumber: 'v12:74E3CA3C4C0FA02FDCF754FDSFDSF',
                     dateOption: 'fromBeginning',
                     startDate: '2024-12-27',
@@ -178,6 +185,7 @@ describe('AssignCardFeedPage', () => {
                     email: 'testaccount+1@gmail.com',
                     cardName: "Test 1's card",
                     cardNumber: '490901XXXXXX1234',
+                    // cspell:disable-next-line
                     encryptedCardNumber: 'v12:74E3CA3C4C0FA02FDCF754FDSFDSF',
                     dateOption: 'fromBeginning',
                     startDate: '2024-12-27',
@@ -225,7 +233,7 @@ describe('AssignCardFeedPage', () => {
 
         // Verify that we navigate to the company cards page as the card assignee has changed
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy.id));
+            expect(navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy.id), {forceReplace: true});
         });
         // Unmount the component after assertions to clean up.
         unmount();

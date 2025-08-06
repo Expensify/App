@@ -310,7 +310,19 @@ function Button(
         const textComponent = secondLineText ? (
             <View style={[styles.alignItemsCenter, styles.flexColumn, styles.flexShrink1]}>
                 {primaryText}
-                <Text style={[isLoading && styles.opacity0, styles.pointerEventsNone, styles.fontWeightNormal, styles.textDoubleDecker]}>{secondLineText}</Text>
+                <Text
+                    style={[
+                        isLoading && styles.opacity0,
+                        styles.pointerEventsNone,
+                        styles.fontWeightNormal,
+                        styles.textDoubleDecker,
+                        !!secondLineText && styles.textExtraSmallSupporting,
+                        styles.textWhite,
+                        styles.textBold,
+                    ]}
+                >
+                    {secondLineText}
+                </Text>
             </View>
         ) : (
             primaryText
@@ -321,7 +333,7 @@ function Button(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (icon || shouldShowRightIcon) {
             return (
-                <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow, iconWrapperStyles]}>
+                <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow, iconWrapperStyles, styles.mw100]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         {!!icon && (
                             <View style={[styles.mr2, !text && styles.mr0, iconStyles]}>

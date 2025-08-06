@@ -1,8 +1,7 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import {compareAsc, format, parse} from 'date-fns';
+import {compareAsc, parse} from 'date-fns';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
@@ -15,6 +14,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getGuideCallAvailabilitySchedule, saveBookingDraft} from '@libs/actions/ScheduleCall';
 import DateUtils from '@libs/DateUtils';
@@ -91,7 +91,7 @@ function ScheduleCallPage() {
             return allSlots;
         }, [] as TimeSlot[]);
 
-        // Group timeslots by date to render per day slots on calendar
+        // Group time slots by date to render per day slots on calendar
         const timeSlotMap: Record<string, TimeSlot[]> = {};
         allTimeSlots.forEach((timeSlot) => {
             const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING);
@@ -187,7 +187,9 @@ function ScheduleCallPage() {
                             <View style={[styles.ph5, styles.mb5]}>
                                 <Text style={[styles.mb5, styles.colorMuted]}>
                                     {translate('scheduledCall.book.slots')}
-                                    <Text style={[styles.textStrong, styles.colorMuted]}>{format(scheduleCallDraft.date, CONST.DATE.MONTH_DAY_YEAR_FORMAT)}</Text>
+                                    <Text style={[styles.textStrong, styles.colorMuted]}>
+                                        {DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT)}
+                                    </Text>
                                 </Text>
                                 <View style={[styles.flexRow, styles.flexWrap, styles.justifyContentStart, styles.gap2]}>
                                     {timeSlotsForSelectedData.map((timeSlot: TimeSlot) => (

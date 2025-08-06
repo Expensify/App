@@ -1,9 +1,9 @@
 import {DarkTheme, DefaultTheme, findFocusedRoute, getPathFromState, NavigationContainer} from '@react-navigation/native';
 import type {NavigationState} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useCurrentReportID from '@hooks/useCurrentReportID';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -104,6 +104,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         canBeMissing: true,
     });
     const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.HAS_NON_PERSONAL_POLICY, {canBeMissing: true});
+    const [currentOnboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
+    const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
+    const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
 
     const previousAuthenticated = usePrevious(authenticated);
 
@@ -111,7 +114,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
         if (path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL.route) && shouldOpenLastVisitedPath(lastVisitedPath) && isOnboardingCompleted && authenticated) {
             Navigation.isNavigationReady().then(() => {
-                Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute(true));
+                Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute());
             });
 
             return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
@@ -135,6 +138,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
                 getOnboardingInitialPath({
                     isUserFromPublicDomain: !!account.isFromPublicDomain,
                     hasAccessiblePolicies: !!account.hasAccessibleDomainPolicies,
+                    currentOnboardingPurposeSelected,
+                    currentOnboardingCompanySize,
+                    onboardingInitialPath,
                 }),
                 linkingConfig.config,
             );

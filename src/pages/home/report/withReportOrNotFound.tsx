@@ -2,9 +2,10 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {useEffect} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import {openReport} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -31,8 +32,8 @@ type WithReportOrNotFoundOnyxProps = {
     /** Metadata of the report currently being looked at */
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
 
-    /** The policies which the user has access to */
-    policies: OnyxCollection<OnyxTypes.Policy>;
+    /** The policy linked to the report */
+    policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Beta features list */
     betas: OnyxEntry<OnyxTypes.Beta[]>;
@@ -63,16 +64,16 @@ export default function (
 ): <TProps extends WithReportOrNotFoundProps, TRef>(WrappedComponent: React.ComponentType<TProps & React.RefAttributes<TRef>>) => React.ComponentType<TProps & React.RefAttributes<TRef>> {
     return function <TProps extends WithReportOrNotFoundProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
         function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
-            const [betas] = useOnyx(ONYXKEYS.BETAS);
-            const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-            const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${props.route.params.reportID}`);
-            const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-            const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`);
+            const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
+            const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`, {canBeMissing: true});
+            const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+            const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${props.route.params.reportID}`, {canBeMissing: true});
+            const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
             const isFocused = useIsFocused();
             const contentShown = React.useRef(false);
             const isReportIdInRoute = !!props.route.params.reportID?.length;
             const isReportLoaded = !isEmptyObject(report) && !!report?.reportID;
-
+            const isReportArchived = useReportIsArchived(report?.reportID);
             // The `isLoadingInitialReportActions` value will become `false` only after the first OpenReport API call is finished (either succeeded or failed)
             const shouldFetchReport = isReportIdInRoute && reportMetadata?.isLoadingInitialReportActions !== false;
 
@@ -90,7 +91,7 @@ export default function (
 
             if (shouldRequireReportID || isReportIdInRoute) {
                 const shouldShowFullScreenLoadingIndicator = !isReportLoaded && (isLoadingReportData !== false || shouldFetchReport);
-                const shouldShowNotFoundPage = !isReportLoaded || !canAccessReport(report, policies, betas);
+                const shouldShowNotFoundPage = !isReportLoaded || !canAccessReport(report, betas, isReportArchived);
 
                 // If the content was shown, but it's not anymore, that means the report was deleted, and we are probably navigating out of this screen.
                 // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.
@@ -120,7 +121,7 @@ export default function (
                     {...props}
                     report={report}
                     betas={betas}
-                    policies={policies}
+                    policy={policy}
                     reportMetadata={reportMetadata}
                     isLoadingReportData={isLoadingReportData}
                     ref={ref}

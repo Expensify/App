@@ -1,16 +1,16 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Linking, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {buildTravelDotURL} from '@libs/actions/Link';
@@ -29,10 +29,10 @@ type TravelTermsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SC
 function TravelTerms({route}: TravelTermsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {canUseSpotnanaTravel, isBlockedFromSpotnanaTravel} = usePermissions();
+    const {isBlockedFromSpotnanaTravel} = usePermissions();
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
-    const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING);
+    const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING, {canBeMissing: true});
     const isLoading = travelProvisioning?.isLoading;
     const domain = route.params.domain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : route.params.domain;
 
@@ -65,23 +65,13 @@ function TravelTerms({route}: TravelTermsPageProps) {
         setErrorMessage('');
     }, [hasAcceptedTravelTerms]);
 
-    const AgreeToTheLabel = useCallback(
-        () => (
-            <Text>
-                {`${translate('travel.termsAndConditions.agree')}`}
-                <TextLink href={CONST.TRAVEL_TERMS_URL}>{`${translate('travel.termsAndConditions.travelTermsAndConditions')}`}</TextLink>
-            </Text>
-        ),
-        [translate],
-    );
-
     // Add beta support for FullPageNotFound that is universal across travel pages
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
             testID={TravelTerms.displayName}
         >
-            <FullPageNotFoundView shouldShow={!CONFIG.IS_HYBRID_APP && (!canUseSpotnanaTravel || isBlockedFromSpotnanaTravel)}>
+            <FullPageNotFoundView shouldShow={!CONFIG.IS_HYBRID_APP && isBlockedFromSpotnanaTravel}>
                 <HeaderWithBackButton
                     title={translate('travel.termsAndConditions.header')}
                     onBackButtonPress={() => Navigation.goBack()}
@@ -89,15 +79,14 @@ function TravelTerms({route}: TravelTermsPageProps) {
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}>
                     <View style={styles.flex1}>
                         <Text style={styles.headerAnonymousFooter}>{`${translate('travel.termsAndConditions.title')}`}</Text>
-                        <Text style={styles.mt4}>
-                            {`${translate('travel.termsAndConditions.subtitle')}`}
-                            <TextLink href={CONST.TRAVEL_TERMS_URL}>{`${translate('travel.termsAndConditions.termsAndConditions')}.`}</TextLink>
-                        </Text>
+                        <View style={[styles.renderHTML, styles.mt4]}>
+                            <RenderHTML html={translate('travel.termsAndConditions.subtitle')} />
+                        </View>
                         <CheckboxWithLabel
                             style={styles.mt6}
-                            accessibilityLabel={translate('travel.termsAndConditions.travelTermsAndConditions')}
+                            accessibilityLabel={translate('travel.termsAndConditions.label')}
                             onInputChange={toggleTravelTerms}
-                            LabelComponent={AgreeToTheLabel}
+                            label={translate('travel.termsAndConditions.label')}
                         />
                     </View>
 
