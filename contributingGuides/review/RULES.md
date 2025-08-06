@@ -1,7 +1,9 @@
 # ✅ AI Code Review Rules
 
-These rules are used to conduct structured code reviews on pull request diffs. Each rule includes:
+These rules are used to conduct structured code reviews on pull request diffs.
+Very important: in your review, make sure you include a separate comment for every rule violation.
 
+Each rule includes:
 - A unique **Rule ID**
 - **Pass/Fail condition**
 - **Reasoning**: Technical explanation of why the rule is important
