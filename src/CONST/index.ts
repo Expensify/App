@@ -1128,6 +1128,7 @@ const CONST = {
                 ACTIONABLE_ADD_PAYMENT_CARD: 'ACTIONABLEADDPAYMENTCARD',
                 ACTIONABLE_JOIN_REQUEST: 'ACTIONABLEJOINREQUEST',
                 ACTIONABLE_MENTION_WHISPER: 'ACTIONABLEMENTIONWHISPER',
+                ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER: 'ACTIONABLEMENTIONINVITETOSUBMITEXPENSECONFIRMWHISPER',
                 ACTIONABLE_REPORT_MENTION_WHISPER: 'ACTIONABLEREPORTMENTIONWHISPER',
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
                 POLICY_EXPENSE_CHAT_WELCOME_WHISPER: 'POLICYEXPENSECHATWELCOMEWHISPER',
@@ -1312,7 +1313,11 @@ const CONST = {
         },
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
+            INVITE_TO_SUBMIT_EXPENSE: 'inviteToSubmitExpense',
             NOTHING: 'nothing',
+        },
+        ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER: {
+            DONE: 'done',
         },
         ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION: {
             NOTHING: 'nothing',
@@ -2874,6 +2879,12 @@ const CONST = {
             REIMBURSEMENT_NO: 'reimburseNo', // None
             REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
         },
+        CASH_EXPENSE_REIMBURSEMENT_CHOICES: {
+            REIMBURSABLE_DEFAULT: 'reimbursableDefault', // Reimbursable by default
+            NON_REIMBURSABLE_DEFAULT: 'nonReimbursableDefault', // Non-reimbursable by default
+            ALWAYS_REIMBURSABLE: 'alwaysReimbursable', // Always Reimbursable
+            ALWAYS_NON_REIMBURSABLE: 'alwaysNonReimbursable', // Always Non Reimbursable
+        },
         ID_FAKE: '_FAKE_',
         EMPTY: 'EMPTY',
         SECONDARY_ACTIONS: {
@@ -3733,6 +3744,7 @@ const CONST = {
         TAG: 'tag',
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
+        REIMBURSABLE: 'reimbursable',
         REPORT: 'report',
     },
     FOOTER: {

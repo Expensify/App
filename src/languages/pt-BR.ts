@@ -5489,6 +5489,17 @@ const translations = {
                     one: '1 dia',
                     other: (count: number) => `${count} dias`,
                 }),
+                cashExpenseDefault: 'Despesa em dinheiro padrão',
+                cashExpenseDefaultDescription:
+                    'Escolha como as despesas em dinheiro devem ser criadas. Uma despesa é considerada em dinheiro se não for uma transação de cartão corporativo importada. Isso inclui despesas criadas manualmente, recibos, diárias, distância e despesas de tempo.',
+                reimbursableDefault: 'Reembolsável',
+                reimbursableDefaultDescription: 'Despesas geralmente são reembolsadas aos funcionários',
+                nonReimbursableDefault: 'Não reembolsável',
+                nonReimbursableDefaultDescription: 'Despesas às vezes são reembolsadas aos funcionários',
+                alwaysReimbursable: 'Sempre reembolsável',
+                alwaysReimbursableDescription: 'Despesas são sempre reembolsadas aos funcionários',
+                alwaysNonReimbursable: 'Nunca reembolsável',
+                alwaysNonReimbursableDescription: 'Despesas nunca são reembolsadas aos funcionários',
                 billableDefault: 'Padrão faturável',
                 billableDefaultDescription: 'Escolha se as despesas em dinheiro e cartão de crédito devem ser faturáveis por padrão. Despesas faturáveis são ativadas ou desativadas em',
                 billable: 'Faturável',
@@ -5788,6 +5799,8 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `atualizou "Refaturar despesas para clientes" para "${newValue}" (anteriormente "${oldValue}")`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `atualizou "Despesa em dinheiro padrão" para "${newValue}" (anteriormente "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `transformado "Aplicar títulos padrão de relatórios" ${value ? 'em' : 'desligado'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `atualizou o nome deste espaço de trabalho para "${newName}" (anteriormente "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -6288,7 +6301,8 @@ const translations = {
         levelThreeResult: 'Mensagem removida do canal, além de um aviso anônimo, e a mensagem foi relatada para revisão.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Convide-os',
+        inviteToSubmitExpense: 'Convidar para enviar despesas',
+        inviteToChat: 'Convidar apenas para conversar',
         nothing: 'Não faça nada',
     },
     actionableMentionJoinWorkspaceOptions: {
