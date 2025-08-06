@@ -84,6 +84,10 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         if (targetTransactionThreadReportID && !targetTransactionThreadReport) {
             return openReport(targetTransactionThreadReportID);
         }
+        // We need to wait for report to be loaded completely, avoid still optimistic loading
+        if (!targetTransactionThreadReport?.reportID) {
+            return;
+        }
 
         Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
         setIsCheckingDataBeforeGoNext(false);
