@@ -13,12 +13,7 @@ type ModalProps = {
 type PromiseResolvePayload<A extends string = string> = {action: A; [key: string]: unknown};
 
 type ModalContextType = {
-    showModal<P extends ModalProps>(options: {
-        component: React.FunctionComponent<P>;
-        props?: Omit<P, 'closeModal'>;
-        id?: string;
-        closeable?: boolean;
-    }): Promise<NonNullable<Parameters<P['closeModal']>[0]> | PromiseResolvePayload<'CLOSE'>>;
+    showModal<P extends ModalProps>(options: {component: React.FunctionComponent<P>; props?: Omit<P, 'closeModal'>; id?: string; closeable?: boolean}): Promise<PromiseResolvePayload>;
     closeModal(data?: PromiseResolvePayload): void;
 };
 
@@ -45,17 +40,17 @@ function PromiseModalProvider({children}: {children: React.ReactNode}) {
 
     const showModal = useCallback<ModalContextType['showModal']>(
         ({component, props, id, closeable = true}) => {
-            const existingModal = id && stateRef.current ? stateRef.current.modals.find((modal: ModalInfo) => modal.id === id) : undefined;
+            const existingModal = id ? stateRef.modals.find((modal: ModalInfo) => modal.id === id) : undefined;
 
             if (existingModal) {
                 return existingModal.deferred.promise;
             }
 
-            const deferred = pDefer<PromiseResolvePayload<'CLOSE'>>();
+            const deferred = pDefer<PromiseResolvePayload>();
 
             setState((prevState) =>
                 produce(prevState, (draft) => {
-                    draft.modals.push({component, props, deferred, closeable, id: id ?? String(modalId++)});
+                    draft.modals.push({component: component as React.FunctionComponent<ModalProps>, props, deferred, closeable, id: id ?? String(modalId++)});
                     return draft;
                 }),
             );
