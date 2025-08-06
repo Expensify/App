@@ -232,6 +232,7 @@ function MoneyRequestAmountForm(
                 shouldKeepUserInput={shouldKeepUserInput}
                 inputStyle={styles.iouAmountTextInput}
                 containerStyle={styles.iouAmountTextInputContainer}
+                touchableInputWrapperStyle={styles.heightUndefined}
                 testID="moneyRequestAmountInput"
                 errorText={formError}
                 footer={footer}

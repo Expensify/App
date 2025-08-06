@@ -93,6 +93,7 @@ function AmountForm(
             errorText={errorText}
             style={displayAsTextInput ? undefined : styles.iouAmountTextInput}
             containerStyle={displayAsTextInput ? undefined : styles.iouAmountTextInputContainer}
+            touchableInputWrapperStyle={displayAsTextInput ? undefined : styles.heightUndefined}
             autoFocus={autoFocus}
             autoGrowExtraSpace={autoGrowExtraSpace}
             autoGrowMarginSide={autoGrowMarginSide}
