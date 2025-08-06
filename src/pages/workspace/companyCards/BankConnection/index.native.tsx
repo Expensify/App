@@ -121,7 +121,15 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
             if (newFeed) {
                 updateSelectedFeed(newFeed, policyID);
             }
-            Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+
+            // Direct feeds (except those added via Plaid) are created with default statement period end date.
+            // Redirect the user to set a custom date.
+            if (policyID && !isPlaid) {
+                Navigation.closeRHPFlow();
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE.getRoute(policyID));
+            } else {
+                Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+            }
         }
         if (isPlaid) {
             onImportPlaidAccounts();
