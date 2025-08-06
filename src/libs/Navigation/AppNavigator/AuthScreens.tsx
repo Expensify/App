@@ -185,8 +185,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             return -1;
         }
         return session.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    }, [session])
-
+    }, [session]);
 
     const timezone = useMemo(() => {
         if (!personalDetailsList || !isEmptyObject(timezone)) {
@@ -194,10 +193,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         }
 
         return personalDetailsList?.[currentAccountID]?.timezone ?? {};
-        
-    }, [currentAccountID, personalDetailsList])
-
-    
+    }, [currentAccountID, personalDetailsList]);
 
     useEffect(() => {
         if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
@@ -215,7 +211,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 selected: currentTimezone,
             });
         }
-
     }, [session, personalDetailsList, timezone?.automatic, timezone?.selected]);
 
     const modal = useRef<OnyxTypes.Modal>({});
