@@ -334,6 +334,11 @@ function search({
     };
     const jsonQuery = JSON.stringify(query);
 
+    saveLastSearchParams({
+        queryJSON,
+        offset,
+    });
+
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData}).then((result) => {
         const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
