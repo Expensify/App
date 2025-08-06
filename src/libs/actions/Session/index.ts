@@ -51,7 +51,6 @@ import * as Device from '@userActions/Device';
 import * as HybridAppActions from '@userActions/HybridApp';
 import type HybridAppSettings from '@userActions/HybridApp/types';
 import redirectToSignIn from '@userActions/SignInRedirect';
-import type Network from '@src/types/onyx/Network';
 import Timing from '@userActions/Timing';
 import * as Welcome from '@userActions/Welcome';
 import CONFIG from '@src/CONFIG';
@@ -63,6 +62,7 @@ import SCREENS from '@src/SCREENS';
 import type {TryNewDot} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Locale from '@src/types/onyx/Locale';
+import type Network from '@src/types/onyx/Network';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
@@ -122,7 +122,6 @@ Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => (preferredLocale = val ?? null),
 });
-
 
 let activePolicyID: OnyxEntry<string>;
 Onyx.connect({

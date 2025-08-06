@@ -7,7 +7,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {resetSignInFlow} from './HybridApp';
 import {clearAllPolicies} from './Policy/Policy';
 
-
 function clearStorageAndRedirect(errorMessage?: string, isOffline?: boolean, shouldForceOffline?: boolean): Promise<void> {
     // Under certain conditions, there are key-values we'd like to keep in storage even when a user is logged out.
     // We pass these into the clear() method in order to avoid having to reset them on a delayed tick and getting

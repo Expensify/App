@@ -17,21 +17,25 @@ function SignInButton() {
         <PressableWithoutFeedback
             accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
             role={CONST.ROLE.BUTTON}
-            onPress={() => signOutAndRedirectToSignIn({
-                shouldSignOutFromOldDot: true,
-                isOffline,
-                shouldForceOffline,
-            })}
+            onPress={() =>
+                signOutAndRedirectToSignIn({
+                    shouldSignOutFromOldDot: true,
+                    isOffline,
+                    shouldForceOffline,
+                })
+            }
         >
             <View style={(styles.signInButtonAvatar, styles.ph2)}>
                 <Button
                     success
                     text={translate('common.signIn')}
-                    onPress={() => signOutAndRedirectToSignIn({
-                shouldSignOutFromOldDot: true,
-                isOffline,
-                shouldForceOffline,
-            })}
+                    onPress={() =>
+                        signOutAndRedirectToSignIn({
+                            shouldSignOutFromOldDot: true,
+                            isOffline,
+                            shouldForceOffline,
+                        })
+                    }
                 />
             </View>
         </PressableWithoutFeedback>
