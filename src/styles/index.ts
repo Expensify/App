@@ -1794,7 +1794,9 @@ const styles = (theme: ThemeColors) =>
 
         animatedRHPNavigatorContainer: (shouldUseNarrowLayout: boolean, expandedRHPProgress: Animated.Value) => ({
             height: '100%',
-            width: shouldUseNarrowLayout ? '100%' : expandedRHPProgress.interpolate({inputRange: [0, 1], outputRange: [variables.sideBarWidth, 2 * variables.sideBarWidth]}),
+            width: shouldUseNarrowLayout
+                ? '100%'
+                : expandedRHPProgress.interpolate({inputRange: [0, 1], outputRange: [variables.sideBarWidth, variables.sideBarWidth + variables.receiptPanelRHPWidth]}),
             right: 0,
             position: 'absolute',
             overflow: 'hidden',
@@ -2043,7 +2045,7 @@ const styles = (theme: ThemeColors) =>
             ({
                 ...positioning.pFixed,
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
-                left: marginLeft ? variables.sideBarWidth : -2 * variables.sideBarWidth,
+                left: marginLeft ? variables.receiptPanelRHPWidth : -2 * variables.sideBarWidth,
                 top: 0,
                 bottom: 0,
                 right: marginRight ? variables.sideBarWidth : 0,
@@ -5730,18 +5732,24 @@ const styles = (theme: ThemeColors) =>
             aspectRatio: 1.7,
         },
 
-        receiptPreview: {
-            position: 'absolute',
-            left: 60,
-            top: 60,
-            width: 380,
-            maxHeight: 'calc(100vh - 120px)',
-            borderRadius: variables.componentBorderRadiusLarge,
-            borderWidth: 1,
-            borderColor: theme.border,
-            overflow: 'hidden',
-            boxShadow: theme.shadow,
+        topBarWrapper: {
+            zIndex: 15,
+        },
+
+        fullHeight: {
+            height: '100%',
+        },
+
+        heightAuto: {
+            height: 'auto',
+        },
+
+        wideRHPMoneyRequestReceiptViewContainer: {
             backgroundColor: theme.appBG,
+            width: variables.receiptPanelRHPWidth,
+            height: '100%',
+            borderRightWidth: 1,
+            borderColor: theme.border,
         },
 
         receiptPreviewEReceiptsContainer: {
@@ -5750,8 +5758,8 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: colors.green800,
         },
 
-        topBarWrapper: {
-            zIndex: 15,
+        smallMoreButton: {
+            marginRight: 12,
         },
 
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
