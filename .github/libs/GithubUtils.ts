@@ -306,6 +306,7 @@ class GithubUtils {
     /**
      * Generate the issue body and assignees for a StagingDeployCash.
      */
+    // eslint-disable-next-line @typescript-eslint/max-params
     static generateStagingDeployCashBodyAndAssignees(
         tag: string,
         PRList: string[],
