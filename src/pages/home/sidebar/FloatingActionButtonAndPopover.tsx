@@ -46,7 +46,7 @@ import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@li
 import {generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import variables from '@styles/variables';
-import {closeReactNativeApp} from '@userActions/HybridApp';
+import closeReactNativeApp from '@userActions/HybridApp';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -135,8 +135,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         selector: hasSeenTourSelector,
         canBeMissing: true,
     });
-    const viewTourReportID = introSelected?.viewTour;
-    const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
 
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
@@ -317,8 +315,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
             label: translate('quickAction.header'),
             labelStyle: [styles.pt3, styles.pb2],
             isLabelHoverable: false,
-            floatRightAvatars: quickActionAvatars,
-            floatRightAvatarSize: CONST.AVATAR_SIZE.SMALL,
             numberOfLinesDescription: 1,
             tooltipAnchorAlignment: {
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -345,10 +341,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                     ...baseQuickAction,
                     icon: getQuickActionIcon(quickAction?.action),
                     text: quickActionTitle,
+                    rightIconAccountID: quickActionAvatars.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID,
                     description: quickActionSubtitle,
                     onSelected,
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
-                    shouldShowSubscriptRightAvatar: isPolicyExpenseChat(quickActionReport),
+                    rightIconReportID: quickActionReport?.reportID,
                 },
             ];
         }
@@ -373,7 +370,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                     description: getReportName(policyChatForActivePolicy),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected,
-                    shouldShowSubscriptRightAvatar: true,
+                    rightIconReportID: policyChatForActivePolicy?.reportID,
                 },
             ];
         }
@@ -537,7 +534,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                       introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ||
                                       (introSelected?.choice === CONST.ONBOARDING_CHOICES.SUBMIT && introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.WORKSPACE)
                                   ) {
-                                      completeTestDriveTask(viewTourReport, viewTourReportID, isAnonymousUser());
+                                      completeTestDriveTask(isAnonymousUser());
                                       Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
                                   } else {
                                       Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
