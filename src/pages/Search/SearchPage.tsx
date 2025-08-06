@@ -116,13 +116,20 @@ function SearchPage({route}: SearchPageProps) {
                 queueExportSearchWithTemplate({templateName, templateType, jsonQuery: JSON.stringify(queryJSON), reportIDList: [], transactionIDList: [], policyID});
             } else {
                 // Otherwise, we will use the selected transactionIDs and reportIDs directly
-                const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
-                queueExportSearchWithTemplate({templateName, templateType, jsonQuery: '{}', reportIDList, transactionIDList: selectedTransactionsKeys, policyID});
+                const selectedTransactionReportIDs = [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.reportID))];
+                queueExportSearchWithTemplate({
+                    templateName,
+                    templateType,
+                    jsonQuery: '{}',
+                    reportIDList: selectedTransactionReportIDs,
+                    transactionIDList: selectedTransactionsKeys,
+                    policyID,
+                });
             }
 
             setIsExportWithTemplateModalVisible(true);
         },
-        [queryJSON, selectedReports, selectedTransactionsKeys, areAllMatchingItemsSelected],
+        [queryJSON, selectedTransactions, selectedTransactionsKeys, areAllMatchingItemsSelected],
     );
 
     const headerButtonsOptions = useMemo(() => {
