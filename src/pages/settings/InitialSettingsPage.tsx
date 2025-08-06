@@ -94,7 +94,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const [allCards] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [networkOnyx] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const network = useNetwork();
@@ -138,8 +137,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         (shouldForceSignout = false) => {
             if (!network.isOffline || shouldForceSignout) {
                 signOutAndRedirectToSignIn({
-                    isOffline: networkOnyx?.isOffline,
-                    shouldForceOffline: networkOnyx?.shouldForceOffline,
+                    isOffline: network?.isOffline,
+                    shouldForceOffline: network?.shouldForceOffline,
                 });
                 return;
             }
@@ -147,7 +146,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             // When offline, warn the user that any actions they took while offline will be lost if they sign out
             toggleSignoutConfirmModal(true);
         },
-        [network.isOffline, networkOnyx?.isOffline, networkOnyx?.shouldForceOffline],
+        [network.isOffline, network.shouldForceOffline],
     );
 
     /**
