@@ -100,7 +100,7 @@ export default {
         let body;
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
 
-        const isChatRoom = ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isGroupChat(report);
+        const isRoomOrGroupChat = ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isGroupChat(report);
 
         const {person, message} = reportAction;
         const plainTextPerson = person?.map((f) => Str.removeSMSDomain(f.text ?? '')).join() ?? '';
