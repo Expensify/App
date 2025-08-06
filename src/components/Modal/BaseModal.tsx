@@ -41,9 +41,22 @@ type ModalComponentProps = (ReactNativeModalProps | ReanimatedModalProps) & {
     shouldPreventScrollOnFocus?: boolean;
     initialFocus?: FocusTrapOptions['initialFocus'];
     isVisible: boolean;
+    isKeyboardActive: boolean;
+    saveFocusState: () => void;
 };
 
-function ModalComponent({type, shouldUseReanimatedModal, isVisible, shouldPreventScrollOnFocus, initialFocus, children, ...props}: ModalComponentProps) {
+function ModalComponent({
+    type,
+    shouldUseReanimatedModal,
+    isVisible,
+    shouldPreventScrollOnFocus,
+    initialFocus,
+    children,
+    saveFocusState,
+    onDismiss = () => {},
+    isKeyboardActive,
+    ...props
+}: ModalComponentProps) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if ((type && REANIMATED_MODAL_TYPES.includes(type)) || shouldUseReanimatedModal) {
         return (
@@ -54,8 +67,15 @@ function ModalComponent({type, shouldUseReanimatedModal, isVisible, shouldPreven
                 isVisible={isVisible}
                 shouldPreventScrollOnFocus={shouldPreventScrollOnFocus}
                 initialFocus={initialFocus}
+                onDismiss={onDismiss}
             >
-                {children}
+                <ModalContent
+                    onModalWillShow={saveFocusState}
+                    onDismiss={onDismiss}
+                >
+                    {children}
+                </ModalContent>
+                {!isKeyboardActive && <NavigationBar />}
             </ReanimatedModal>
         );
     }
@@ -65,14 +85,21 @@ function ModalComponent({type, shouldUseReanimatedModal, isVisible, shouldPreven
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...(props as ReactNativeModalProps)}
             isVisible={isVisible}
+            onDismiss={onDismiss}
         >
-            <FocusTrapForModal
-                active={isVisible}
-                initialFocus={initialFocus}
-                shouldPreventScroll={shouldPreventScrollOnFocus}
+            <ModalContent
+                onModalWillShow={saveFocusState}
+                onDismiss={onDismiss}
             >
-                {children}
-            </FocusTrapForModal>
+                <FocusTrapForModal
+                    active={isVisible}
+                    initialFocus={initialFocus}
+                    shouldPreventScroll={shouldPreventScrollOnFocus}
+                >
+                    {children}
+                </FocusTrapForModal>
+            </ModalContent>
+            {!isKeyboardActive && <NavigationBar />}
         </ReactNativeModal>
     );
 }
@@ -427,20 +454,16 @@ function BaseModal(
                         customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                         type={type}
                         shouldUseReanimatedModal={shouldUseReanimatedModal}
+                        isKeyboardActive={keyboardStateContextValue?.isKeyboardActive}
+                        saveFocusState={saveFocusState}
                     >
-                        <ModalContent
-                            onModalWillShow={saveFocusState}
-                            onDismiss={handleDismissModal}
+                        <Animated.View
+                            onLayout={onViewLayout}
+                            style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone, sidePanelReanimatedStyle]}
+                            ref={ref}
                         >
-                            <Animated.View
-                                onLayout={onViewLayout}
-                                style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone, sidePanelReanimatedStyle]}
-                                ref={ref}
-                            >
-                                <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
-                            </Animated.View>
-                        </ModalContent>
-                        {!keyboardStateContextValue?.isKeyboardActive && <NavigationBar />}
+                            <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
+                        </Animated.View>
                     </ModalComponent>
                 </View>
             </ScreenWrapperOfflineIndicatorContext.Provider>
