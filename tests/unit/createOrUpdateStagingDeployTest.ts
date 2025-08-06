@@ -129,6 +129,12 @@ const basePRList = [
     `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/10`,
 ];
 
+const baseMobileExpensifyPRList = [
+    `https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/6`,
+    `https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/7`,
+    `https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/8`,
+];
+
 const baseIssueList = [`https://github.com/${process.env.GITHUB_REPOSITORY}/issues/11`, `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/12`];
 // eslint-disable-next-line max-len
 const baseExpectedOutput = (version = '1.0.2-1') =>
@@ -182,7 +188,10 @@ describe('createOrUpdateStagingDeployCash', () => {
         // cspell:disable-next-line
         mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef, repositoryName) => {
             if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
-                return [...baseNewPullRequests];
+                if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
+                    return [6, 7, 8]; // Mobile-Expensify PRs
+                }
+                return [...baseNewPullRequests]; // App PRs
             }
             return [];
         });
@@ -208,6 +217,10 @@ describe('createOrUpdateStagingDeployCash', () => {
                 `${openCheckbox}${basePRList.at(5)}` +
                 `${lineBreak}${openCheckbox}${basePRList.at(6)}` +
                 `${lineBreak}${openCheckbox}${basePRList.at(7)}${lineBreak}` +
+                `${lineBreakDouble}**Mobile-Expensify PRs:**` +
+                `${lineBreak}${openCheckbox}${baseMobileExpensifyPRList.at(0)}` +
+                `${lineBreak}${openCheckbox}${baseMobileExpensifyPRList.at(1)}` +
+                `${lineBreak}${openCheckbox}${baseMobileExpensifyPRList.at(2)}${lineBreak}` +
                 `${lineBreakDouble}${deployerVerificationsHeader}` +
                 `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
                 `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
@@ -272,6 +285,9 @@ describe('createOrUpdateStagingDeployCash', () => {
             // cspell:disable-next-line
             mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef, repositoryName) => {
                 if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-2-staging') {
+                    if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
+                        return [6, 7, 8, 9, 10]; // Mobile-Expensify PRs
+                    }
                     return [...baseNewPullRequests, ...newPullRequests];
                 }
                 return [];
@@ -320,6 +336,12 @@ describe('createOrUpdateStagingDeployCash', () => {
                     `${lineBreak}${openCheckbox}${basePRList.at(7)}` +
                     `${lineBreak}${openCheckbox}${basePRList.at(8)}` +
                     `${lineBreak}${openCheckbox}${basePRList.at(9)}${lineBreak}` +
+                    `${lineBreakDouble}**Mobile-Expensify PRs:**` +
+                    `${lineBreak}${openCheckbox}${baseMobileExpensifyPRList.at(0)}` +
+                    `${lineBreak}${openCheckbox}${baseMobileExpensifyPRList.at(1)}` +
+                    `${lineBreak}${openCheckbox}${baseMobileExpensifyPRList.at(2)}` +
+                    `${lineBreak}${openCheckbox}https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/9` +
+                    `${lineBreak}${openCheckbox}https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/10${lineBreak}` +
                     `${lineBreakDouble}${deployBlockerHeader}` +
                     `${lineBreak}${openCheckbox}${basePRList.at(5)}` +
                     `${lineBreak}${openCheckbox}${basePRList.at(8)}` +
@@ -343,6 +365,9 @@ describe('createOrUpdateStagingDeployCash', () => {
             // cspell:disable-next-line
             mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef, repositoryName) => {
                 if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
+                    if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
+                        return [6, 7, 8]; // Mobile-Expensify PRs
+                    }
                     return [...baseNewPullRequests];
                 }
                 return [];
@@ -389,6 +414,10 @@ describe('createOrUpdateStagingDeployCash', () => {
                     `${openCheckbox}${basePRList.at(5)}` +
                     `${lineBreak}${closedCheckbox}${basePRList.at(6)}` +
                     `${lineBreak}${openCheckbox}${basePRList.at(7)}${lineBreak}` +
+                    `${lineBreakDouble}**Mobile-Expensify PRs:**` +
+                    `${lineBreak}${openCheckbox}${baseMobileExpensifyPRList.at(0)}` +
+                    `${lineBreak}${openCheckbox}${baseMobileExpensifyPRList.at(1)}` +
+                    `${lineBreak}${openCheckbox}${baseMobileExpensifyPRList.at(2)}${lineBreak}` +
                     `${lineBreakDouble}${deployBlockerHeader}` +
                     `${lineBreak}${closedCheckbox}${basePRList.at(5)}` +
                     `${lineBreak}${openCheckbox}${basePRList.at(8)}` +
@@ -415,7 +444,10 @@ describe('createOrUpdateStagingDeployCash', () => {
             // cspell:disable-next-line
             mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef, repositoryName) => {
                 if (fromRef === '1.0.2-1-staging' && toRef === '1.0.3-0-staging') {
-                    return [6, 8, 10, 11];
+                    if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
+                        return [6, 8, 10, 11]; // Mobile-Expensify PRs
+                    }
+                    return [6, 8, 10, 11]; // App PRs
                 }
                 return [];
             });
@@ -431,7 +463,10 @@ describe('createOrUpdateStagingDeployCash', () => {
                     {url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6`, number: 6, isVerified: true},
                     {url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/8`, number: 8, isVerified: true},
                 ],
-                PRListMobileExpensify: [],
+                PRListMobileExpensify: [
+                    {url: `https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/6`, number: 6, isVerified: true},
+                    {url: `https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/8`, number: 8, isVerified: true},
+                ],
                 deployBlockers: [],
                 internalQAPRList: [],
                 isTimingDashboardChecked: true,
