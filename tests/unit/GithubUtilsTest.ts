@@ -458,6 +458,10 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${basePRList.at(1)}` +
                         `${lineBreak}${closedCheckbox}${basePRList.at(4)}` +
                         `${lineBreak}${closedCheckbox}${basePRList.at(5)}` +
+                        `${lineBreak}${lineBreakDouble}**Mobile-Expensify PRs:**` +
+                        `${lineBreak}${openCheckbox}${PRListMobileExpensify.at(0)}` +
+                        `${lineBreak}${openCheckbox}${PRListMobileExpensify.at(1)}` +
+                        `${lineBreak}${openCheckbox}${PRListMobileExpensify.at(2)}` +
                         `${lineBreakDouble}${deployerVerificationsHeader}` +
                         `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
                         `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
@@ -465,6 +469,29 @@ describe('GithubUtils', () => {
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
                 expect(issue.issueAssignees).toEqual([]);
+            });
+        });
+
+        test('Test Mobile-Expensify compare link with previousTag', () => {
+            const previousTag = '1.0.0-0-staging';
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, PRListMobileExpensify, [], [], [], [], [], false, false, previousTag).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
+                // Should include Mobile-Expensify compare link since we have both Mobile-Expensify PRs and previousTag
+                expect(issue.issueBody).toContain(`**Mobile-Expensify Compare Changes:** https://github.com/Expensify/Mobile-Expensify/compare/${previousTag}...${tag}`);
+                expect(issue.issueBody).toContain('**Mobile-Expensify PRs:**');
+            });
+        });
+
+        test('Test no Mobile-Expensify compare link without previousTag', () => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, PRListMobileExpensify).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
+                // Should not include Mobile-Expensify compare link since we don't have previousTag
+                expect(issue.issueBody).not.toContain('**Mobile-Expensify Compare Changes:**');
+                expect(issue.issueBody).toContain('**Mobile-Expensify PRs:**'); // But should still have PRs section
             });
         });
 

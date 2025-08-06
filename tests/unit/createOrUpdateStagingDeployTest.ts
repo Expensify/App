@@ -137,9 +137,9 @@ const baseMobileExpensifyPRList = [
 
 const baseIssueList = [`https://github.com/${process.env.GITHUB_REPOSITORY}/issues/11`, `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/12`];
 // eslint-disable-next-line max-len
-const baseExpectedOutput = (version = '1.0.2-1') =>
+const baseExpectedOutput = (version = '1.0.2-1', includeMobileExpensifyCompare = true) =>
     // cspell:disable
-    `**Release Version:** \`${version}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n> 💡 **Deployer FYI:** This checklist was generated using a new process. PR list from original method and detail logging can be found in the most recent [deploy workflow](https://github.com/Expensify/App/actions/workflows/deploy.yml) labeled \`staging\`, in the \`createChecklist\` action. Please tag @Julesssss with any issues.\r\n\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
+    `**Release Version:** \`${version}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n${includeMobileExpensifyCompare ? `**Mobile-Expensify Compare Changes:** https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/compare/1.0.1-0-staging...${version}\r\n` : ''}\r\n> 💡 **Deployer FYI:** This checklist was generated using a new process. PR list from original method and detail logging can be found in the most recent [deploy workflow](https://github.com/Expensify/App/actions/workflows/deploy.yml) labeled \`staging\`, in the \`createChecklist\` action. Please tag @Julesssss with any issues.\r\n\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
 // cspell:enable
 const openCheckbox = '- [ ] ';
 const closedCheckbox = '- [x] ';
@@ -263,7 +263,7 @@ describe('createOrUpdateStagingDeployCash', () => {
             html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
             assignees: [CONST.APPLAUSE_BOT],
             body:
-                `${baseExpectedOutput()}` +
+                `${baseExpectedOutput('1.0.2-1', false)}` +
                 `${openCheckbox}${basePRList.at(5)}` +
                 `${lineBreak}${openCheckbox}${basePRList.at(6)}` +
                 `${lineBreak}${openCheckbox}${basePRList.at(7)}${lineBreak}` +
@@ -516,7 +516,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                 html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openStagingDeployCashBefore.number}`,
                 // eslint-disable-next-line max-len
                 body:
-                    `${baseExpectedOutput('1.0.2-1')}` +
+                    `${baseExpectedOutput('1.0.2-1', false)}` +
                     `${openCheckbox}${basePRList.at(5)}` +
                     `${lineBreak}${closedCheckbox}${basePRList.at(6)}` +
                     `${lineBreak}${openCheckbox}${basePRList.at(7)}${lineBreak}` +
@@ -665,7 +665,7 @@ describe('createOrUpdateStagingDeployCash', () => {
             expect(result?.body).toContain('https://github.com/Expensify/App/pull/11');
             expect(result?.body).not.toContain('https://github.com/Expensify/App/pull/6');
             expect(result?.body).not.toContain('https://github.com/Expensify/App/pull/8');
-            
+
             // Verify no Mobile-Expensify PRs section exists
             expect(result?.body).not.toContain('**Mobile-Expensify PRs:**');
             expect(result?.body).not.toContain('Mobile-Expensify/pull/');

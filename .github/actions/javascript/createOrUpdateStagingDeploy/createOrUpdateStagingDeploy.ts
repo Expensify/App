@@ -110,6 +110,14 @@ async function run(): Promise<IssuesCreateResponse | void> {
                 newVersion,
                 newPRNumbers.map((value) => GithubUtils.getPullRequestURLFromNumber(value, CONST.APP_REPO_URL)),
                 mergedMobileExpensifyPRs.map((value) => GithubUtils.getPullRequestURLFromNumber(value, CONST.MOBILE_EXPENSIFY_URL)),
+                [], // verifiedPRList
+                [], // verifiedPRListMobileExpensify
+                [], // deployBlockers
+                [], // resolvedDeployBlockers
+                [], // resolvedInternalQAPRs
+                false, // isFirebaseChecked
+                false, // isGHStatusChecked
+                previousChecklistData.tag, // previousTag
             );
             if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
@@ -186,6 +194,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
                 currentChecklistData?.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url),
                 didVersionChange ? false : currentChecklistData.isFirebaseChecked,
                 didVersionChange ? false : currentChecklistData.isGHStatusChecked,
+                previousChecklistData.tag, // previousTag
             );
             if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
