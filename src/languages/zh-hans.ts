@@ -531,6 +531,7 @@ const translations = {
         pm: 'PM',
         tbd: 'TBD',
         selectCurrency: '选择货币',
+        selectSymbolOrCurrency: '选择一个符号或货币',
         card: '卡片',
         whyDoWeAskForThis: '我们为什么要求这个？',
         required: '必填',
