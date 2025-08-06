@@ -216,7 +216,7 @@ function MoneyRequestReceiptView({
     if (fillSpace && shouldShowReceiptEmptyState) {
         receiptStyle = styles.fullHeight;
     } else if (fillSpace) {
-        receiptStyle = styles.heightAuto;
+        receiptStyle = styles.flexibleHeight;
     } else {
         receiptStyle = shouldUseNarrowLayout ? styles.expenseViewImageSmall : styles.expenseViewImage;
     }
