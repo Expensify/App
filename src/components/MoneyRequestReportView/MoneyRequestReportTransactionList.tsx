@@ -283,11 +283,7 @@ function MoneyRequestReportTransactionList({
                         <MoneyRequestReportTransactionItem
                             key={transaction.transactionID}
                             transaction={transaction}
-<<<<<<< HEAD
-                            columns={columnsToShow}
                             report={report}
-=======
->>>>>>> parent of 7ba0f03e8c2 (Merge pull request #63501 from Expensify/youssef_auto_show_hide_columns)
                             isSelectionModeEnabled={isMobileSelectionModeEnabled}
                             toggleTransaction={toggleTransaction}
                             isSelected={isTransactionSelected(transaction.transactionID)}
