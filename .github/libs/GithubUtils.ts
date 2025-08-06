@@ -306,7 +306,6 @@ class GithubUtils {
     /**
      * Generate the issue body and assignees for a StagingDeployCash.
      */
-    // eslint-disable-next-line @typescript-eslint/max-params
     static generateStagingDeployCashBodyAndAssignees(
         tag: string,
         PRList: string[],
@@ -318,7 +317,6 @@ class GithubUtils {
         resolvedInternalQAPRs: string[] = [],
         isFirebaseChecked = false,
         isGHStatusChecked = false,
-        previousTag?: string,
     ): Promise<void | StagingDeployCashBody> {
         return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
             .then((data) => {
@@ -353,9 +351,9 @@ class GithubUtils {
                     // eslint-disable-next-line max-len
                     let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n`;
 
-                    // Add Mobile-Expensify compare link if there are Mobile-Expensify PRs and we have a previous tag
-                    if (sortedPRListMobileExpensify.length > 0 && previousTag) {
-                        issueBody += `**Mobile-Expensify Compare Changes:** https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/compare/${previousTag}...${tag}\r\n`;
+                    // Add Mobile-Expensify compare link if there are Mobile-Expensify PRs
+                    if (sortedPRListMobileExpensify.length > 0) {
+                        issueBody += `**Mobile-Expensify Changes:** https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/compare/production...staging\r\n`;
                     }
 
                     issueBody += '\r\n';

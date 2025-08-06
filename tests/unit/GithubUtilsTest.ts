@@ -472,26 +472,25 @@ describe('GithubUtils', () => {
             });
         });
 
-        test('Test Mobile-Expensify compare link with previousTag', () => {
-            const previousTag = '1.0.0-0-staging';
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, PRListMobileExpensify, [], [], [], [], [], false, false, previousTag).then((issue) => {
-                if (typeof issue !== 'object') {
-                    return;
-                }
-                // Should include Mobile-Expensify compare link since we have both Mobile-Expensify PRs and previousTag
-                expect(issue.issueBody).toContain(`**Mobile-Expensify Compare Changes:** https://github.com/Expensify/Mobile-Expensify/compare/${previousTag}...${tag}`);
-                expect(issue.issueBody).toContain('**Mobile-Expensify PRs:**');
-            });
-        });
-
-        test('Test no Mobile-Expensify compare link without previousTag', () => {
+        test('Test Mobile-Expensify compare link with Mobile-Expensify PRs', () => {
             githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, PRListMobileExpensify).then((issue) => {
                 if (typeof issue !== 'object') {
                     return;
                 }
-                // Should not include Mobile-Expensify compare link since we don't have previousTag
-                expect(issue.issueBody).not.toContain('**Mobile-Expensify Compare Changes:**');
-                expect(issue.issueBody).toContain('**Mobile-Expensify PRs:**'); // But should still have PRs section
+                // Should include Mobile-Expensify compare link since we have Mobile-Expensify PRs
+                expect(issue.issueBody).toContain('**Mobile-Expensify Changes:** https://github.com/Expensify/Mobile-Expensify/compare/production...staging');
+                expect(issue.issueBody).toContain('**Mobile-Expensify PRs:**');
+            });
+        });
+
+        test('Test no Mobile-Expensify compare link without Mobile-Expensify PRs', () => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, []).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
+                // Should NOT include Mobile-Expensify compare link since we don't have Mobile-Expensify PRs
+                expect(issue.issueBody).not.toContain('**Mobile-Expensify Changes:**');
+                expect(issue.issueBody).not.toContain('**Mobile-Expensify PRs:**'); // And should not have PRs section either
             });
         });
 

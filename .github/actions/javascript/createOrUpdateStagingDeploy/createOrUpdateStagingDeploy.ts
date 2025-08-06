@@ -117,7 +117,6 @@ async function run(): Promise<IssuesCreateResponse | void> {
                 [], // resolvedInternalQAPRs
                 false, // isFirebaseChecked
                 false, // isGHStatusChecked
-                previousChecklistData.tag, // previousTag
             );
             if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
@@ -194,7 +193,6 @@ async function run(): Promise<IssuesCreateResponse | void> {
                 currentChecklistData?.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url),
                 didVersionChange ? false : currentChecklistData.isFirebaseChecked,
                 didVersionChange ? false : currentChecklistData.isGHStatusChecked,
-                previousChecklistData.tag, // previousTag
             );
             if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
