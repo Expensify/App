@@ -43,7 +43,7 @@ const FAKE_POLICY: Policy = {
                 },
                 B593F3FBBB0BD: {
                     currency: 'USD',
-                    name: 'New Rateb',
+                    name: 'New Rate',
                     rate: 900,
                     customUnitRateID: 'B593F3FBBB0BD',
                     enabled: true,
