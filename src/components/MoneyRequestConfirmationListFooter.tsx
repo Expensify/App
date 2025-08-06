@@ -27,7 +27,6 @@ import {
 } from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
-    getRequestType,
     getTagForDisplay,
     getTaxAmount,
     getTaxName,
