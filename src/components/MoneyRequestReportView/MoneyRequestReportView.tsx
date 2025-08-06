@@ -28,7 +28,6 @@ import ReportFooter from '@pages/home/report/ReportFooter';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {ThemeStyles} from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -46,9 +45,6 @@ type MoneyRequestReportViewProps = {
 
     /** Whether Report footer (that includes Composer) should be displayed */
     shouldDisplayReportFooter: boolean;
-
-    /** The `backTo` route that should be used when clicking back button */
-    backToRoute: Route | undefined;
 };
 
 function goBackFromSearchMoneyRequest() {
@@ -60,12 +56,14 @@ function goBackFromSearchMoneyRequest() {
         return;
     }
 
-    if (rootState.routes.length > 1) {
+    const hasPreviousRoute = rootState.routes.length > 1 || (lastRoute?.state && lastRoute.state.routes.length > 1);
+
+    if (hasPreviousRoute) {
         Navigation.goBack();
         return;
     }
 
-    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({groupBy: 'reports'})}));
 }
 
 function InitialLoadingSkeleton({styles}: {styles: ThemeStyles}) {
@@ -86,7 +84,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
@@ -140,13 +138,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     report={report}
                     policy={policy}
                     parentReportAction={parentReportAction}
-                    onBackButtonPress={() => {
-                        if (!backToRoute) {
-                            goBackFromSearchMoneyRequest();
-                            return;
-                        }
-                        Navigation.goBack(backToRoute);
-                    }}
+                    onBackButtonPress={goBackFromSearchMoneyRequest}
                 />
             ) : (
                 <MoneyReportHeader
@@ -156,16 +148,10 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     transactionThreadReportID={transactionThreadReportID}
                     isLoadingInitialReportActions={isLoadingInitialReportActions}
                     shouldDisplayBackButton
-                    onBackButtonPress={() => {
-                        if (!backToRoute) {
-                            goBackFromSearchMoneyRequest();
-                            return;
-                        }
-                        Navigation.goBack(backToRoute);
-                    }}
+                    onBackButtonPress={goBackFromSearchMoneyRequest}
                 />
             ),
-        [backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
+        [isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
     );
 
     if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions) {
