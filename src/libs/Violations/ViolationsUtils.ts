@@ -226,7 +226,10 @@ const ViolationsUtils = {
         hasDependentTags: boolean,
         isInvoiceTransaction: boolean,
     ): OnyxUpdate {
-        if (TransactionUtils.isPartial(updatedTransaction)) {
+        const isScanning = TransactionUtils.isScanning(updatedTransaction);
+        const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
+        const isPartialTransaction = TransactionUtils.isPartial(updatedTransaction);
+        if (isPartialTransaction && isScanning) {
             return {
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
@@ -235,6 +238,19 @@ const ViolationsUtils = {
         }
 
         let newTransactionViolations = [...transactionViolations];
+
+        const shouldShowSmartScanFailedError = isScanRequest && updatedTransaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED;
+        const hasSmartScanFailedError = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
+        if (shouldShowSmartScanFailedError && !hasSmartScanFailedError) {
+            return {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
+                value: [{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}],
+            };
+        }
+        if (!shouldShowSmartScanFailedError && hasSmartScanFailedError) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.SMARTSCAN_FAILED});
+        }
 
         // Calculate client-side category violations
         const policyRequiresCategories = !!policy.requiresCategory;
@@ -284,6 +300,8 @@ const ViolationsUtils = {
         const hasReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED && violation.data);
         const hasCategoryReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED && !violation.data);
         const hasOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_LIMIT);
+        // TODO: Uncomment when the OVER_TRIP_LIMIT violation is implemented
+        // const hasOverTripLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_TRIP_LIMIT);
         const hasCategoryOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
         const hasMissingCommentViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_COMMENT);
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -379,6 +397,22 @@ const ViolationsUtils = {
             });
         }
 
+        // TODO: Uncomment when the OVER_TRIP_LIMIT violation is implemented
+        // if (canCalculateAmountViolations && !hasOverTripLimitViolation && Math.abs(updatedTransaction.amount) < Math.abs(amount) && TransactionUtils.hasReservationList(updatedTransaction)) {
+        //     newTransactionViolations.push({
+        //         name: CONST.VIOLATIONS.OVER_TRIP_LIMIT,
+        //         data: {
+        //             formattedLimit: CurrencyUtils.convertAmountToDisplayString(updatedTransaction.amount, updatedTransaction.currency),
+        //         },
+        //         type: CONST.VIOLATION_TYPES.VIOLATION,
+        //         showInReview: true,
+        //     });
+        // }
+
+        // if (canCalculateAmountViolations && hasOverTripLimitViolation && Math.abs(updatedTransaction.amount) >= Math.abs(amount) && TransactionUtils.hasReservationList(updatedTransaction)) {
+        //     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_TRIP_LIMIT});
+        // }
+
         if (!hasMissingCommentViolation && shouldShowMissingComment) {
             newTransactionViolations.push({
                 name: CONST.VIOLATIONS.MISSING_COMMENT,
@@ -473,6 +507,8 @@ const ViolationsUtils = {
                 return translate('violations.overCategoryLimit', {formattedLimit});
             case 'overLimit':
                 return translate('violations.overLimit', {formattedLimit});
+            case 'overTripLimit':
+                return translate('violations.overTripLimit', {formattedLimit});
             case 'overLimitAttendee':
                 return translate('violations.overLimitAttendee', {formattedLimit});
             case 'perDayLimit':
