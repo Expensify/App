@@ -120,6 +120,53 @@ type CompanyAddress = {
     country: Country | '';
 };
 
+/**
+ * Uber Receipt Partner
+ */
+type UberReceiptPartner = {
+    /**
+     * form data for uber partner
+     */
+    connectFormData: {
+        /**
+         * fname for uber partner
+         */
+        fname: string;
+        /**
+         * hash for uber partner
+         */
+        hash: string;
+        /**
+         * id for uber partner
+         */
+        id: string;
+        /**
+         * lname for uber partner
+         */
+        lname: string;
+        /**
+         * name for uber partner
+         */
+        name: string;
+        /**
+         * query for uber partner
+         */
+        query: string;
+        /**
+         * requestID for uber partner
+         */
+        requestID: string;
+    };
+};
+
+/** Policy Receipt partners */
+type ReceiptPartners = {
+    /**
+     * uber partner
+     */
+    [CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER]: UberReceiptPartner;
+};
+
 /** Policy disabled fields */
 type DisabledFields = {
     /** Whether the default billable field is disabled */
@@ -1764,6 +1811,11 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether new transactions need to be categorized */
         requiresCategory?: boolean;
 
+        /**
+         * Policy Receipt Partners
+         */
+        receiptPartners?: ReceiptPartners;
+
         /** Whether the workspace has multiple levels of tags enabled */
         hasMultipleTagLists?: boolean;
 
@@ -1953,6 +2005,7 @@ export type {
     Connections,
     SageIntacctOfflineStateKeys,
     ConnectionName,
+    UberReceiptPartner,
     AllConnectionName,
     Tenant,
     Account,

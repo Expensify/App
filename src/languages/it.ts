@@ -3495,6 +3495,11 @@ const translations = {
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Spese di ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Le transazioni della carta Expensify verranno esportate automaticamente in un “Conto di responsabilità della carta Expensify” creato con la <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nostra integrazione</a>.</muted-text-label>`,
         },
+        receiptPartners: {
+            uber: {
+                subtitle: 'Automate travel and meal delivery expenses across your organization.',
+            },
+        },
         perDiem: {
             subtitle: 'Imposta le tariffe di diaria per controllare la spesa giornaliera dei dipendenti.',
             amount: 'Importo',

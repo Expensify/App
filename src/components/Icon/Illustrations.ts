@@ -99,6 +99,7 @@ import EmailAddress from '@assets/images/simple-illustrations/simple-illustratio
 import EmptyState from '@assets/images/simple-illustrations/simple-illustration__empty-state.svg';
 import Encryption from '@assets/images/simple-illustrations/simple-illustration__encryption.svg';
 import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
+import ReceiptPartners from '@assets/images/simple-illustrations/simple-illustration__receipt.svg';
 import Filters from '@assets/images/simple-illustrations/simple-illustration__filters.svg';
 import Flash from '@assets/images/simple-illustrations/simple-illustration__flash.svg';
 import FolderOpen from '@assets/images/simple-illustrations/simple-illustration__folder-open.svg';
@@ -313,6 +314,7 @@ export {
     ChaseCompanyCardDetailLarge,
     CitibankCompanyCardDetailLarge,
     MasterCardCompanyCardDetailLarge,
+    ReceiptPartners,
     StripeCompanyCardDetailLarge,
     VisaCompanyCardDetailLarge,
     WellsFargoCompanyCardDetailLarge,

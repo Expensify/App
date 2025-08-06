@@ -1061,6 +1061,7 @@ const READ_COMMANDS = {
     OPEN_WORKSPACE_INVITE_PAGE: 'OpenWorkspaceInvitePage',
     OPEN_DRAFT_WORKSPACE_REQUEST: 'OpenDraftWorkspaceRequest',
     OPEN_POLICY_WORKFLOWS_PAGE: 'OpenPolicyWorkflowsPage',
+    OPEN_POLICY_RECEIPT_PARTNERS_PAGE: 'OpenPolicyReceiptPartnersPage',
     OPEN_POLICY_DISTANCE_RATES_PAGE: 'OpenPolicyDistanceRatesPage',
     OPEN_POLICY_PER_DIEM_RATES_PAGE: 'OpenPolicyPerDiemRatesPage',
     OPEN_POLICY_MORE_FEATURES_PAGE: 'OpenPolicyMoreFeaturesPage',

@@ -31,6 +31,7 @@ import type {
     OpenPolicyInitialPageParams,
     OpenPolicyMoreFeaturesPageParams,
     OpenPolicyProfilePageParams,
+    OpenPolicyReceiptPartnersPageParams,
     OpenPolicyTaxesPageParams,
     OpenPolicyWorkflowsPageParams,
     OpenWorkspaceInvitePageParams,
@@ -2495,6 +2496,47 @@ function openPolicyWorkflowsPage(policyID: string) {
     const params: OpenPolicyWorkflowsPageParams = {policyID};
 
     API.read(READ_COMMANDS.OPEN_POLICY_WORKFLOWS_PAGE, params, onyxData);
+}
+
+function openPolicyReceiptPartnersPage(policyID?: string) {
+    if (!policyID) {
+        Log.warn('openPolicyReceiptPartnersPage invalid params', {policyID});
+        return;
+    }
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isLoading: true,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+    };
+
+    const params: OpenPolicyReceiptPartnersPageParams = {policyID};
+
+    API.read(READ_COMMANDS.OPEN_POLICY_RECEIPT_PARTNERS_PAGE, params, onyxData);
 }
 
 /**
@@ -5686,6 +5728,7 @@ export {
     clearBillingReceiptDetailsErrors,
     clearQuickbooksOnlineAutoSyncErrorField,
     setIsForcedToChangeCurrency,
+    openPolicyReceiptPartnersPage,
     setIsComingFromGlobalReimbursementsFlow,
     setPolicyAttendeeTrackingEnabled,
     updateInterestedFeatures,

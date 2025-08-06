@@ -63,7 +63,7 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
         // so to avoid sending cookies with the request we set it to 'omit' explicitly
         // this avoids us sending specially the expensifyWeb cookie, which makes a CSRF token required
         // more on that here: https://stackoverflowteams.com/c/expensify/questions/93
-        credentials: 'omit',
+        // credentials: 'omit',
     })
         .then((response) => {
             // We are calculating the skew to minimize the delay when posting the messages
@@ -180,4 +180,5 @@ function cancelPendingRequests(command: AbortCommand = ABORT_COMMANDS.All) {
 export default {
     xhr,
     cancelPendingRequests,
+    processHTTPRequest,
 };

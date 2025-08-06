@@ -29,6 +29,7 @@ const ACTIVE_EXPENSIFY_URL = addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const EXPENSIFY_MOBILE_URL = 'https://expensify.com/mobile';
 const EXPENSIFY_URL = 'https://www.expensify.com';
+const UBER_CONNECT_URL = 'https://business-integrations.uber.com/connect';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'org.me.mobiexpensifyg';
@@ -416,6 +417,7 @@ const CONST = {
     },
 
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
+    UBER_CONNECT_URL,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-travel-expense/id471713959',
@@ -2906,6 +2908,7 @@ const CONST = {
             ARE_TAXES_ENABLED: 'tax',
             ARE_RULES_ENABLED: 'areRulesEnabled',
             ARE_PER_DIEM_RATES_ENABLED: 'arePerDiemRatesEnabled',
+            ARE_RECEIPT_PARTNERS_ENABLED: 'areReceiptPartnersEnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
@@ -2957,6 +2960,12 @@ const CONST = {
             GAMBLING: 'gambling',
             TOBACCO: 'tobacco',
             ADULT_ENTERTAINMENT: 'adultEntertainment',
+        },
+        RECEIPT_PARTNERS: {
+            NAME: {UBER: 'uber'},
+            NAME_USER_FRIENDLY: {
+                uber: 'Uber for Business',
+            },
         },
         CONNECTIONS: {
             NAME: {

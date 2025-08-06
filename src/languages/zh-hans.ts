@@ -3454,6 +3454,11 @@ const translations = {
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}的费用`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify 卡交易将自动导出到与<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">我们集成</a>创建的 “Expensify 卡责任账户”。</muted-text-label>`,
         },
+        receiptPartners: {
+            uber: {
+                subtitle: 'Automate travel and meal delivery expenses across your organization.',
+            },
+        },
         perDiem: {
             subtitle: '设置每日津贴标准以控制员工的日常支出。',
             amount: '金额',
