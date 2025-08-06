@@ -163,8 +163,6 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         selector: hasSeenTourSelector,
         canBeMissing: true,
     });
-    const viewTourReportID = introSelected?.viewTour;
-    const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
 
     // Default 'Folder' lottie animation, along with its background styles
     const defaultViewItemHeader = useMemo(
@@ -204,7 +202,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                     introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ||
                     (introSelected?.choice === CONST.ONBOARDING_CHOICES.SUBMIT && introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.WORKSPACE)
                 ) {
-                    completeTestDriveTask(viewTourReport, viewTourReportID);
+                    completeTestDriveTask();
                     Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
                 } else {
                     Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
@@ -382,8 +380,6 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         currentUserPersonalDetails,
         tripViewChildren,
         shouldRedirectToExpensifyClassic,
-        viewTourReport,
-        viewTourReportID,
         transactions,
     ]);
 
