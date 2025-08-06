@@ -250,7 +250,6 @@ type BaseTransactionParams = {
     taxCode?: string;
     taxAmount?: number;
     billable?: boolean;
-    reimbursable?: boolean;
     customUnitRateID?: string;
 };
 
@@ -278,7 +277,6 @@ type MoneyRequestInformation = {
     createdReportActionIDForThread: string | undefined;
     onyxData: OnyxData;
     billable?: boolean;
-    reimbursable?: boolean;
 };
 
 type TrackExpenseInformation = {
@@ -435,6 +433,7 @@ type RequestMoneyInformation = {
     policyParams?: BasePolicyParams;
     gpsPoints?: GPSPoint;
     action?: IOUAction;
+    reimbursible?: boolean;
     transactionParams: RequestMoneyTransactionParams;
     isRetry?: boolean;
     shouldPlaySound?: boolean;
@@ -545,7 +544,6 @@ type TrackExpenseTransactionParams = {
     taxCode?: string;
     taxAmount?: number;
     billable?: boolean;
-    reimbursable?: boolean;
     validWaypoints?: WaypointCollection;
     gpsPoints?: GPSPoint;
     actionableWhisperReportActionID?: string;
@@ -649,7 +647,6 @@ type StartSplitBilActionParams = {
     receipt: Receipt;
     existingSplitChatReportID?: string;
     billable?: boolean;
-    reimbursable?: boolean;
     category: string | undefined;
     tag: string | undefined;
     currency: string;
@@ -1095,10 +1092,6 @@ function setMoneyRequestTag(transactionID: string, tag: string) {
 
 function setMoneyRequestBillable(transactionID: string, billable: boolean) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {billable});
-}
-
-function setMoneyRequestReimbursable(transactionID: string, reimbursable: boolean) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {reimbursable});
 }
 
 function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = [], isTestTransaction = false) {
@@ -3198,7 +3191,6 @@ function getSendInvoiceInformation(
             taxCode,
             taxAmount,
             billable,
-            reimbursable: true,
             filename,
         },
     });
@@ -3574,7 +3566,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     const {parentChatReport, transactionParams, participantParams, policyParams = {}, moneyRequestReportID = ''} = perDiemExpenseInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
-    const {comment = '', currency, created, category, tag, customUnit, billable, attendees, reimbursable} = transactionParams;
+    const {comment = '', currency, created, category, tag, customUnit, billable, attendees} = transactionParams;
 
     const amount = computePerDiemExpenseAmount(customUnit);
     const merchant = computePerDiemExpenseMerchant(customUnit, policy);
@@ -3652,7 +3644,6 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             tag,
             customUnit,
             billable,
-            reimbursable,
             pendingFields: {subRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
             attendees,
         },
@@ -3770,7 +3761,6 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             failureData,
         },
         billable,
-        reimbursable,
     };
 }
 
@@ -4162,18 +4152,12 @@ function getUpdateMoneyRequestParams(
         if (!transaction?.reimbursable && typeof updatedMoneyRequestReport.nonReimbursableTotal === 'number') {
             updatedMoneyRequestReport.nonReimbursableTotal -= diff;
         }
-        if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.nonReimbursableTotal === 'number') {
-            updatedMoneyRequestReport.nonReimbursableTotal += updatedTransaction.reimbursable ? -updatedTransaction.amount : updatedTransaction.amount;
-        }
         if (!isTransactionOnHold) {
             if (typeof updatedMoneyRequestReport.unheldTotal === 'number') {
                 updatedMoneyRequestReport.unheldTotal -= diff;
             }
             if (!transaction?.reimbursable && typeof updatedMoneyRequestReport.unheldNonReimbursableTotal === 'number') {
                 updatedMoneyRequestReport.unheldNonReimbursableTotal -= diff;
-            }
-            if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.unheldNonReimbursableTotal === 'number') {
-                updatedMoneyRequestReport.unheldNonReimbursableTotal += updatedTransaction.reimbursable ? -updatedTransaction.amount : updatedTransaction.amount;
             }
         }
     } else {
@@ -4354,7 +4338,6 @@ function getUpdateMoneyRequestParams(
 
     const hasModifiedCurrency = 'currency' in transactionChanges;
     const hasModifiedComment = 'comment' in transactionChanges;
-    const hasModifiedReimbursable = 'reimbursable' in transactionChanges;
     const hasModifiedDate = 'date' in transactionChanges;
 
     const isInvoice = isInvoiceReportReportUtils(iouReport);
@@ -4363,15 +4346,7 @@ function getUpdateMoneyRequestParams(
         isPaidGroupPolicy(policy) &&
         !isInvoice &&
         updatedTransaction &&
-        (hasModifiedTag ||
-            hasModifiedCategory ||
-            hasModifiedComment ||
-            hasModifiedDistanceRate ||
-            hasModifiedDate ||
-            hasModifiedCurrency ||
-            hasModifiedAmount ||
-            hasModifiedCreated ||
-            hasModifiedReimbursable)
+        (hasModifiedTag || hasModifiedCategory || hasModifiedComment || hasModifiedDistanceRate || hasModifiedDate || hasModifiedCurrency || hasModifiedAmount || hasModifiedCreated)
     ) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         // If the amount, currency or date have been modified, we remove the duplicate violations since they would be out of date as the transaction has changed
@@ -4414,17 +4389,13 @@ function getUpdateMoneyRequestParams(
                 },
             });
         }
-        if (
-            violationsOnyxData &&
-            ((iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN) === CONST.REPORT.STATUS_NUM.OPEN ||
-                (hasModifiedReimbursable && iouReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED))
-        ) {
+        if (violationsOnyxData && (iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN) === CONST.REPORT.STATUS_NUM.OPEN) {
             const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`] ?? {};
             const shouldFixViolations = Array.isArray(violationsOnyxData.value) && violationsOnyxData.value.length > 0;
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`,
-                value: buildNextStep(updatedMoneyRequestReport ?? iouReport ?? undefined, iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN, shouldFixViolations),
+                value: buildNextStep(iouReport ?? undefined, iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN, shouldFixViolations),
             });
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -4664,24 +4635,6 @@ function updateMoneyRequestBillable(
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE, params, onyxData);
-}
-
-function updateMoneyRequestReimbursable(
-    transactionID: string | undefined,
-    transactionThreadReportID: string | undefined,
-    value: boolean,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-) {
-    if (!transactionID || !transactionThreadReportID) {
-        return;
-    }
-    const transactionChanges: TransactionChanges = {
-        reimbursable: value,
-    };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories);
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_REIMBURSABLE, params, onyxData);
 }
 
 /** Updates the merchant field of an expense */
@@ -5010,7 +4963,6 @@ type ConvertTrackedWorkspaceParams = {
     waypoints?: string;
     customUnitID?: string;
     customUnitRateID?: string;
-    reimbursable?: boolean;
 };
 
 type AddTrackedExpenseToPolicyParam = {
@@ -5462,6 +5414,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         transactionParams,
         gpsPoints,
         action,
+        reimbursible,
         shouldHandleNavigation = true,
         backToReport,
         shouldPlaySound = true,
@@ -5484,7 +5437,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         taxCode = '',
         taxAmount = 0,
         billable,
-        reimbursable,
         created,
         attendees,
         actionableWhisperReportActionID,
@@ -5577,7 +5529,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                           waypoints: sanitizedWaypoints,
                           customUnitID: getDistanceRateCustomUnit(policyParams?.policy)?.customUnitID,
                           customUnitRateID,
-                          reimbursable,
                       }
                     : undefined;
             convertTrackedExpenseToRequest({
@@ -5649,7 +5600,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 receiptGpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
                 transactionThreadReportID,
                 createdReportActionIDForThread,
-                reimbursable,
+                reimbursible,
                 description: parsedComment,
                 attendees: attendees ? JSON.stringify(attendees) : undefined,
                 isTestDrive,
@@ -5718,7 +5669,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         createdReportActionIDForThread,
         onyxData,
         billable,
-        reimbursable,
     } = getPerDiemExpenseInformation({
         parentChatReport: currentChatReport,
         participantParams,
@@ -5758,7 +5708,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         transactionThreadReportID,
         createdReportActionIDForThread,
         billable,
-        reimbursable,
         attendees: attendees ? JSON.stringify(attendees) : undefined,
     };
 
@@ -5872,7 +5821,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         taxCode = '',
         taxAmount = 0,
         billable,
-        reimbursable,
         gpsPoints,
         validWaypoints,
         actionableWhisperReportActionID,
@@ -6000,7 +5948,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 category,
                 tag,
                 billable,
-                reimbursable,
                 receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
@@ -6048,7 +5995,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 category,
                 tag,
                 billable,
-                reimbursable,
                 receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
@@ -6645,7 +6591,6 @@ type SplitBillActionsParams = {
     category?: string;
     tag?: string;
     billable?: boolean;
-    reimbursable?: boolean;
     iouRequestType?: IOURequestType;
     existingSplitChatReportID?: string;
     splitShares?: SplitShares;
@@ -6671,7 +6616,6 @@ function splitBill({
     category = '',
     tag = '',
     billable = false,
-    reimbursable = false,
     iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
     existingSplitChatReportID,
     splitShares = {},
@@ -6695,7 +6639,6 @@ function splitBill({
             tag,
             splitShares,
             billable,
-            reimbursable,
             iouRequestType,
             taxCode,
             taxAmount,
@@ -6713,7 +6656,6 @@ function splitBill({
         created,
         tag,
         billable,
-        reimbursable,
         transactionID: splitData.transactionID,
         reportActionID: splitData.reportActionID,
         createdReportActionID: splitData.createdReportActionID,
@@ -6749,7 +6691,6 @@ function splitBillAndOpenReport({
     category = '',
     tag = '',
     billable = false,
-    reimbursable = false,
     iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
     splitShares = {},
     splitPayerAccountIDs = [],
@@ -6773,7 +6714,6 @@ function splitBillAndOpenReport({
             tag,
             splitShares,
             billable,
-            reimbursable,
             iouRequestType,
             taxCode,
             taxAmount,
@@ -6791,7 +6731,6 @@ function splitBillAndOpenReport({
         category,
         tag,
         billable,
-        reimbursable,
         transactionID: splitData.transactionID,
         reportActionID: splitData.reportActionID,
         createdReportActionID: splitData.createdReportActionID,
@@ -6824,7 +6763,6 @@ function startSplitBill({
     receipt,
     existingSplitChatReportID,
     billable = false,
-    reimbursable = false,
     category = '',
     tag = '',
     currency,
@@ -6855,7 +6793,6 @@ function startSplitBill({
             taxCode,
             taxAmount,
             billable,
-            reimbursable,
             filename,
         },
     });
@@ -6991,7 +6928,6 @@ function startSplitBill({
         receipt: receiptObject,
         existingSplitChatReportID,
         billable,
-        reimbursable,
         category,
         tag,
         currency,
@@ -7141,7 +7077,6 @@ function startSplitBill({
         currency,
         isFromGroupDM: !existingSplitChatReport,
         billable,
-        reimbursable,
         ...(existingSplitChatReport ? {} : {createdReportActionID: splitChatCreatedReportAction.reportActionID}),
         chatType: splitChatReport?.chatType,
         taxCode,
@@ -7467,23 +7402,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     const {policy, policyCategories, policyTagList} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
     transactionParams.comment = parsedComment;
-    const {
-        amount,
-        comment,
-        currency,
-        created,
-        category,
-        tag,
-        taxAmount,
-        taxCode,
-        merchant,
-        billable,
-        reimbursable,
-        validWaypoints,
-        customUnitRateID = '',
-        splitShares = {},
-        attendees,
-    } = transactionParams;
+    const {amount, comment, currency, created, category, tag, taxAmount, taxCode, merchant, billable, validWaypoints, customUnitRateID = '', splitShares = {}, attendees} = transactionParams;
 
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
@@ -7542,7 +7461,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             taxCode,
             taxAmount,
             billable,
-            reimbursable,
             splits: JSON.stringify(splits),
             chatType: splitData.chatType,
             description: parsedComment,
@@ -7588,7 +7506,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 taxCode,
                 taxAmount,
                 billable,
-                reimbursable,
                 attendees,
             },
         });
@@ -7611,7 +7528,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             taxCode,
             taxAmount,
             billable,
-            reimbursable,
             transactionThreadReportID,
             createdReportActionIDForThread,
             payerEmail,
@@ -12269,7 +12185,6 @@ export {
     unholdRequest,
     updateMoneyRequestAttendees,
     updateMoneyRequestAmountAndCurrency,
-    updateMoneyRequestReimbursable,
     updateMoneyRequestBillable,
     updateMoneyRequestCategory,
     updateMoneyRequestDate,
@@ -12289,7 +12204,6 @@ export {
     canSubmitReport,
     submitPerDiemExpense,
     calculateDiffAmount,
-    setMoneyRequestReimbursable,
     computePerDiemExpenseAmount,
     initSplitExpense,
     addSplitExpenseField,
