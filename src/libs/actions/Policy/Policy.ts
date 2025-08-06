@@ -19,6 +19,7 @@ import type {
     EnablePolicyAutoReimbursementLimitParams,
     EnablePolicyCompanyCardsParams,
     EnablePolicyConnectionsParams,
+    ToggleReceiptPartnersParams,
     EnablePolicyExpensifyCardsParams,
     EnablePolicyInvoicingParams,
     EnablePolicyReportFieldsParams,
@@ -3216,6 +3217,54 @@ function enablePolicyConnections(policyID: string, enabled: boolean) {
     }
 }
 
+function enablePolicyReceiptPartners(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areReceiptPartnersEnabled: enabled,
+                    pendingFields: {
+                        areReceiptPartnersEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        areReceiptPartnersEnabled: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areReceiptPartnersEnabled: !enabled,
+                    pendingFields: {
+                        areReceiptPartnersEnabled: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: ToggleReceiptPartnersParams = {policyID, enabled};
+
+    API.write(WRITE_COMMANDS.TOGGLE_RECEIPT_PARTNERS, parameters, onyxData);
+
+    if (enabled && getIsNarrowLayout()) {
+        goBackWhenEnableFeature(policyID);
+    }
+}
+
 /** Save the preferred export method for a policy */
 function savePreferredExportMethod(policyID: string, exportMethod: ReportExportType) {
     Onyx.merge(`${ONYXKEYS.LAST_EXPORT_METHOD}`, {[policyID]: exportMethod});
@@ -5716,6 +5765,7 @@ export {
     openPolicyWorkflowsPage,
     enableCompanyCards,
     enablePolicyConnections,
+    enablePolicyReceiptPartners,
     enablePolicyReportFields,
     enablePolicyTaxes,
     enablePolicyWorkflows,
