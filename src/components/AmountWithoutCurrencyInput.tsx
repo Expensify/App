@@ -1,8 +1,8 @@
 import React, {useCallback, useMemo} from 'react';
 import type {ForwardedRef} from 'react';
 import useLocalize from '@hooks/useLocalize';
+import getAmountInputKeyboard from '@libs/getAmountInputKeyboard';
 import {replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount} from '@libs/MoneyRequestUtils';
-import CONST from '@src/CONST';
 import TextInput from './TextInput';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
@@ -57,6 +57,8 @@ function AmountWithoutCurrencyInput(
         },
     ];
 
+    const {keyboardType, inputMode} = getAmountInputKeyboard(shouldAllowNegative);
+
     return (
         <TextInput
             inputID={inputID}
@@ -67,10 +69,10 @@ function AmountWithoutCurrencyInput(
             accessibilityLabel={accessibilityLabel}
             role={role}
             ref={ref}
-            keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+            keyboardType={keyboardType}
+            inputMode={inputMode}
             type="mask"
             mask={shouldAllowNegative ? `[~][99999999]${separator}[09]` : `[09999999]${separator}[09]`}
-            inputMode={CONST.INPUT_MODE.DECIMAL}
             customNotations={customMask}
             allowedKeys="0123456789.,-"
             validationRegex={'^-?(?!.*[.,].*[.,])\\d{0,8}(?:[.,]\\d{0,2})?$'}
