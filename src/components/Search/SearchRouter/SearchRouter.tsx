@@ -349,7 +349,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                             timestamp: endTime,
                         });
                     } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
-                        const fieldKey = item.mapKey?.includes(':') ? item.mapKey.split(':').at(0) : null;
+                        const fieldKey = item.mapKey?.includes(':') ? item.mapKey.split(':').at(0) : item.mapKey;
                         const keyIndex = fieldKey ? textInputValue.toLowerCase().lastIndexOf(`${fieldKey}:`) : -1;
 
                         const trimmedUserSearchQuery =
