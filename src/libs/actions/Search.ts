@@ -337,6 +337,7 @@ function search({
     saveLastSearchParams({
         queryJSON,
         offset,
+        allowPostSearchRecount: false,
     });
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
