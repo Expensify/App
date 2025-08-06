@@ -5688,6 +5688,26 @@ const styles = (theme: ThemeColors) =>
             zIndex: 15,
         },
 
+        fullHeight: {
+            height: '100%',
+        },
+
+        heightAuto: {
+            height: 'auto',
+        },
+
+        wideRHPMoneyRequestReceiptViewContainer: {
+            backgroundColor: theme.appBG,
+            width: variables.sideBarWidth,
+            height: '100%',
+            borderRightWidth: 1,
+            borderColor: theme.border,
+        },
+        wideRHPMoneyRequestReceiptViewScrollView: {
+            paddingTop: 12,
+            minHeight: '100%',
+        },
+
         smallMoreButton: {
             marginRight: 12,
         },
