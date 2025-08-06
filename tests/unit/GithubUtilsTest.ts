@@ -496,7 +496,7 @@ describe('GithubUtils', () => {
         });
 
         test('Test some verified PRs', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, [basePRList.at(0) ?? '']).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, [], [basePRList.at(0) ?? '']).then((issue) => {
                 if (typeof issue !== 'object') {
                     return;
                 }
@@ -519,7 +519,7 @@ describe('GithubUtils', () => {
         });
 
         test('Test all verified PRs', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, basePRList).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, [], basePRList).then((issue) => {
                 if (typeof issue !== 'object') {
                     return;
                 }
@@ -537,7 +537,7 @@ describe('GithubUtils', () => {
         });
 
         test('Test no resolved deploy blockers', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, basePRList, baseDeployBlockerList).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, [], basePRList, [], baseDeployBlockerList).then((issue) => {
                 if (typeof issue !== 'object') {
                     return;
                 }
@@ -558,7 +558,7 @@ describe('GithubUtils', () => {
         });
 
         test('Test some resolved deploy blockers', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, basePRList, baseDeployBlockerList, [baseDeployBlockerList.at(0) ?? '']).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, [], basePRList, [], baseDeployBlockerList, [baseDeployBlockerList.at(0) ?? '']).then((issue) => {
                 if (typeof issue !== 'object') {
                     return;
                 }
@@ -579,7 +579,7 @@ describe('GithubUtils', () => {
         });
 
         test('Test all resolved deploy blockers', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, basePRList, baseDeployBlockerList, baseDeployBlockerList).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, [], basePRList, [], baseDeployBlockerList, baseDeployBlockerList).then((issue) => {
                 if (typeof issue !== 'object') {
                     return;
                 }
@@ -616,6 +616,10 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${basePRList.at(1)}` +
                         `${lineBreak}${closedCheckbox}${basePRList.at(4)}` +
                         `${lineBreak}${closedCheckbox}${basePRList.at(5)}` +
+                        `${lineBreak}${lineBreakDouble}**Mobile-Expensify PRs:**` +
+                        `${lineBreak}${openCheckbox}${PRListMobileExpensify.at(0)}` +
+                        `${lineBreak}${openCheckbox}${PRListMobileExpensify.at(1)}` +
+                        `${lineBreak}${openCheckbox}${PRListMobileExpensify.at(2)}` +
                         `${lineBreak}${internalQAHeader}` +
                         `${lineBreak}${openCheckbox}${internalQAPRList.at(0)}${assignOctocat}` +
                         `${lineBreak}${openCheckbox}${internalQAPRList.at(1)}${assignOctocat}` +
@@ -630,7 +634,7 @@ describe('GithubUtils', () => {
         });
 
         test('Test some verified internalQA PRs', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, [...basePRList, ...internalQAPRList], [], [], [], [internalQAPRList.at(0) ?? '']).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, [...basePRList, ...internalQAPRList], [], [], [], [], [], [internalQAPRList.at(0) ?? '']).then((issue) => {
                 if (typeof issue !== 'object') {
                     return;
                 }
