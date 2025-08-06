@@ -80,6 +80,8 @@ function NumberWithSymbolForm(
     {
         value: number,
         symbol = '',
+        symbolPosition = CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX,
+        hideSymbol = false,
         decimals = 0,
         maxLength,
         errorText,
@@ -94,6 +96,12 @@ function NumberWithSymbolForm(
         style,
         containerStyle,
         symbolTextStyle,
+        autoGrow = true,
+        disableKeyboard = true,
+        prefixCharacter = '',
+        hideFocusedState = true,
+        shouldApplyPaddingToContainer = false,
+        shouldUseDefaultLineHeightForPrefix = true,
         ...props
     }: NumberWithSymbolFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -350,6 +358,8 @@ function NumberWithSymbolForm(
                         textInput.current = ref;
                     }}
                     symbol={symbol}
+                    hideSymbol={hideSymbol}
+                    symbolPosition={symbolPosition}
                     selection={selection}
                     onSelectionChange={(selectionStart, selectionEnd) => {
                         if (shouldIgnoreSelectionWhenUpdatedManually && willSelectionBeUpdatedManually.current) {
@@ -373,20 +383,20 @@ function NumberWithSymbolForm(
                     containerStyle={containerStyle}
                     onMouseDown={handleMouseDown}
                     onMouseUp={handleMouseUp}
-                    shouldUseDefaultLineHeightForPrefix={props.shouldUseDefaultLineHeightForPrefix}
                     autoFocus={props.autoFocus}
-                    autoGrow={props.autoGrow}
+                    autoGrow={autoGrow}
+                    disableKeyboard={disableKeyboard}
+                    prefixCharacter={prefixCharacter}
+                    hideFocusedState={hideFocusedState}
+                    shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
+                    shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
                     autoGrowExtraSpace={props.autoGrowExtraSpace}
                     autoGrowMarginSide={props.autoGrowMarginSide}
                     contentWidth={props.contentWidth}
                     onPress={props.onPress}
                     onBlur={props.onBlur}
                     submitBehavior={props.submitBehavior}
-                    disableKeyboard={props.disableKeyboard}
-                    hideFocusedState={props.hideFocusedState}
-                    shouldApplyPaddingToContainer={props.shouldApplyPaddingToContainer}
                     testID={props.testID}
-                    prefixCharacter={props.prefixCharacter}
                     prefixStyle={props.prefixStyle}
                     prefixContainerStyle={props.prefixContainerStyle}
                     touchableInputWrapperStyle={props.touchableInputWrapperStyle}

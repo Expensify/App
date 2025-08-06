@@ -219,6 +219,7 @@ function MoneyRequestAmountForm(
                     }
                     setFormError('');
                 }}
+                shouldShowBigNumberPad={canUseTouchScreen}
                 ref={(ref) => {
                     if (typeof forwardedRef === 'function') {
                         forwardedRef(ref);

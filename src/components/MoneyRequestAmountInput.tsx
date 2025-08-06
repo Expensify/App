@@ -123,6 +123,11 @@ function MoneyRequestAmountInput(
         moneyRequestAmountInputRef,
         shouldShowBigNumberPad = false,
         inputStyle,
+        autoGrow = true,
+        disableKeyboard = true,
+        prefixCharacter = '',
+        hideFocusedState = true,
+        shouldApplyPaddingToContainer = false,
         shouldUseDefaultLineHeightForPrefix = true,
         ...props
     }: MoneyRequestAmountInputProps,
@@ -190,17 +195,17 @@ function MoneyRequestAmountInput(
             isSymbolPressable={isCurrencyPressable}
             shouldShowBigNumberPad={shouldShowBigNumberPad}
             style={inputStyle}
+            autoGrow={autoGrow}
+            disableKeyboard={disableKeyboard}
+            prefixCharacter={prefixCharacter}
+            hideFocusedState={hideFocusedState}
+            shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
             shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
             containerStyle={props.containerStyle}
-            prefixCharacter={props.prefixCharacter}
-            disableKeyboard={props.disableKeyboard}
             prefixStyle={props.prefixStyle}
             prefixContainerStyle={props.prefixContainerStyle}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
-            hideFocusedState={props.hideFocusedState}
-            autoGrow={props.autoGrow}
             contentWidth={props.contentWidth}
-            shouldApplyPaddingToContainer={props.shouldApplyPaddingToContainer}
             testID={props.testID}
             errorText={props.errorText}
             footer={props.footer}
