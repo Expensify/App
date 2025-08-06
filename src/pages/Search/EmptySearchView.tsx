@@ -370,9 +370,9 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         currentUserPersonalDetails,
         tripViewChildren,
         shouldRedirectToExpensifyClassic,
+        transactions,
         viewTourReport,
         viewTourReportID,
-        transactions,
         tryNewDot?.hasBeenAddedToNudgeMigration,
     ]);
 
