@@ -3,16 +3,15 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {signOutAndRedirectToSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 function SignInButton() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
+    const {isOffline, shouldForceOffline} = useNetwork();
 
     return (
         <PressableWithoutFeedback
@@ -20,8 +19,8 @@ function SignInButton() {
             role={CONST.ROLE.BUTTON}
             onPress={() => signOutAndRedirectToSignIn({
                 shouldSignOutFromOldDot: true,
-                isOffline: network?.isOffline,
-                shouldForceOffline: network?.shouldForceOffline,
+                isOffline,
+                shouldForceOffline,
             })}
         >
             <View style={(styles.signInButtonAvatar, styles.ph2)}>
@@ -30,8 +29,8 @@ function SignInButton() {
                     text={translate('common.signIn')}
                     onPress={() => signOutAndRedirectToSignIn({
                 shouldSignOutFromOldDot: true,
-                isOffline: network?.isOffline,
-                shouldForceOffline: network?.shouldForceOffline,
+                isOffline,
+                shouldForceOffline,
             })}
                 />
             </View>

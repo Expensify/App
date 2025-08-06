@@ -137,11 +137,10 @@ function BaseReportActionContextMenu({
     const menuItemRefs = useRef<MenuItemRefs>({});
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, shouldUseNarrowLayout);
-    const {isOffline} = useNetwork();
+    const {isOffline, shouldForceOffline} = useNetwork();
     const {isProduction} = useEnvironment();
     const threeDotRef = useRef<View>(null);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
         canBeMissing: true,
         canEvict: false,
@@ -267,8 +266,8 @@ function BaseReportActionContextMenu({
             InteractionManager.runAfterInteractions(() => {
                 signOutAndRedirectToSignIn({
                     shouldSignOutFromOldDot: true,
-                    isOffline: network?.isOffline,
-                    shouldForceOffline: network?.shouldForceOffline,
+                    isOffline,
+                    shouldForceOffline,
                 });
             });
         } else {

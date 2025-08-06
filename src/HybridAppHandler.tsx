@@ -2,7 +2,7 @@ import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {useContext, useEffect} from 'react';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
-import useOnyx from './hooks/useOnyx';
+import useNetwork from './hooks/useNetwork';
 import {parseHybridAppSettings} from './libs/actions/HybridApp';
 import {setupNewDotAfterTransitionFromOldDot} from './libs/actions/Session';
 import Log from './libs/Log';
@@ -13,7 +13,7 @@ import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 function HybridAppHandler() {
     const {splashScreenState, setSplashScreenState} = useContext(SplashScreenStateContext);
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
-    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
+    const network = useNetwork();
 
     const isLoading = isLoadingOnyxValue(tryNewDotMetadata);
 
@@ -29,14 +29,14 @@ function HybridAppHandler() {
                 return;
             }
 
-            setupNewDotAfterTransitionFromOldDot(parseHybridAppSettings(hybridAppSettings), tryNewDot, network?.isOffline, network?.shouldForceOffline).then(() => {
+            setupNewDotAfterTransitionFromOldDot(parseHybridAppSettings(hybridAppSettings), tryNewDot, network.isOffline, network.shouldForceOffline).then(() => {
                 if (splashScreenState !== CONST.BOOT_SPLASH_STATE.VISIBLE) {
                     return;
                 }
                 setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
             });
         });
-    }, [isLoading, setSplashScreenState, splashScreenState, tryNewDot]);
+    }, [isLoading, network.isOffline, network.shouldForceOffline, setSplashScreenState, splashScreenState, tryNewDot]);
 
     return null;
 }

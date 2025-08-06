@@ -10,7 +10,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import useNetwork from '@hooks/useNetwork';
 import usePageRefresh from '@hooks/usePageRefresh';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -18,7 +18,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import {signOutAndRedirectToSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ErrorBodyText from './ErrorBodyText';
 
 function GenericErrorPage({error}: {error?: Error}) {
@@ -29,7 +28,7 @@ function GenericErrorPage({error}: {error?: Error}) {
     const {translate} = useLocalize();
     const isChunkLoadError = error?.name === CONST.CHUNK_LOAD_ERROR || /Loading chunk [\d]+ failed/.test(error?.message ?? '');
     const refreshPage = usePageRefresh();
-    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
+    const network = useNetwork();
 
     return (
         <SafeAreaConsumer>
@@ -74,8 +73,8 @@ function GenericErrorPage({error}: {error?: Error}) {
                                             onPress={() => {
                                                 signOutAndRedirectToSignIn({
                                                     shouldSignOutFromOldDot: true,
-                                                    isOffline: network?.isOffline,
-                                                    shouldForceOffline: network?.shouldForceOffline,
+                                                    isOffline: network.isOffline,
+                                                    shouldForceOffline: network.shouldForceOffline,
                                                 });
                                                 refreshPage();
                                             }}

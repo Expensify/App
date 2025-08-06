@@ -11,6 +11,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useNetwork from '@hooks/useNetwork';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -24,7 +25,8 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
     const {initialURL} = useContext(InitialURLContext);
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
+
+    const {isOffline, shouldForceOffline} = useNetwork();
     const isAccountLoading = account?.isLoading;
     const {authTokenType, shortLivedAuthToken = '', exitTo} = route?.params ?? {};
 
@@ -40,8 +42,8 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                 shouldResetToHome: false,
                 shouldStashSession: isSupportalLogin,
                 shouldSignOutFromOldDot: false,
-                isOffline: network?.isOffline,
-                shouldForceOffline: network?.shouldForceOffline,
+                isOffline,
+                shouldForceOffline,
             });
             return;
         }

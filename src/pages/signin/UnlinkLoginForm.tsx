@@ -7,7 +7,6 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getErrorsWithTranslationData} from '@libs/ErrorUtils';
 import {requestUnlinkValidationLink} from '@userActions/Session';
@@ -19,8 +18,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 function UnlinkLoginForm() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
-    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
+    const {isOffline, shouldForceOffline} = useNetwork();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
 
@@ -66,7 +64,7 @@ function UnlinkLoginForm() {
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <PressableWithFeedback
                     accessibilityLabel={translate('common.back')}
-                    onPress={() => redirectToSignIn(undefined, network?.isOffline, network?.shouldForceOffline)}
+                    onPress={() => redirectToSignIn(undefined, isOffline, shouldForceOffline)}
                 >
                     <Text style={[styles.link]}>{translate('common.back')}</Text>
                 </PressableWithFeedback>

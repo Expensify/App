@@ -137,8 +137,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         (shouldForceSignout = false) => {
             if (!network.isOffline || shouldForceSignout) {
                 signOutAndRedirectToSignIn({
-                    isOffline: network?.isOffline,
-                    shouldForceOffline: network?.shouldForceOffline,
+                    isOffline: network.isOffline,
+                    shouldForceOffline: network.shouldForceOffline,
                 });
                 return;
             }
