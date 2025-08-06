@@ -225,7 +225,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     };
 
     const startChangeOwnershipFlow = useCallback(() => {
-        const policyID = policy?.id ?? '';
+        const policyID = policy?.id;
         clearWorkspaceOwnerChangeFlow(policyID);
         requestWorkspaceOwnerChange(policyID);
         Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, currentUserAccountID, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));

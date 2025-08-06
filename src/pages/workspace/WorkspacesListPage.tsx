@@ -171,10 +171,16 @@ function WorkspacesListPage() {
     }, []);
 
     const startChangeOwnershipFlow = useCallback(
-        (policyID: string) => {
+        (policyID: string | undefined) => {
+            if (!policyID) {
+                return;
+            }
+
             clearWorkspaceOwnerChangeFlow(policyID);
             requestWorkspaceOwnerChange(policyID);
-            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, session?.accountID ?? 0, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
+            Navigation.navigate(
+                ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>),
+            );
         },
         [session?.accountID],
     );
@@ -247,7 +253,7 @@ function WorkspacesListPage() {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Transfer,
                     text: translate('workspace.people.transferOwner'),
-                    onSelected: () => startChangeOwnershipFlow(item.policyID ?? ''),
+                    onSelected: () => startChangeOwnershipFlow(item.policyID),
                 });
             }
 

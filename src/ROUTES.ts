@@ -1607,8 +1607,12 @@ const ROUTES = {
     },
     WORKSPACE_OWNER_CHANGE_CHECK: {
         route: 'workspaces/:policyID/change-owner/:accountID/:error',
-        getRoute: (policyID: string, accountID: number, error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>) =>
-            `workspaces/${policyID}/change-owner/${accountID}/${error as string}` as const,
+        getRoute: (policyID: string | undefined, accountID: number, error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_OWNER_CHANGE_CHECK route');
+            }
+            return `workspaces/${policyID}/change-owner/${accountID}/${error as string}` as const;
+        },
     },
     WORKSPACE_TAX_CREATE: {
         route: 'workspaces/:policyID/taxes/new',
