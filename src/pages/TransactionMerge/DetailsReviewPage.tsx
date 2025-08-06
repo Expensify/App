@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
@@ -20,6 +20,7 @@ import {
     getMergeFieldValue,
     getSourceTransactionFromMergeTransaction,
     getTargetTransactionFromMergeTransaction,
+    getTransactionThreadReportID,
     isEmptyMergeValue,
 } from '@libs/MergeTransactionUtils';
 import type {MergeFieldKey, MergeValue} from '@libs/MergeTransactionUtils';
@@ -27,6 +28,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {getCurrency} from '@libs/TransactionUtils';
+import {openReport} from '@userActions/Report';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -42,6 +44,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const styles = useThemeStyles();
     const {transactionID, backTo} = route.params;
 
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
     const [targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`, {
         canBeMissing: true,
@@ -49,14 +52,14 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const [sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`, {
         canBeMissing: true,
     });
+    const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
+    const targetTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`];
 
-    // State for selected values and error
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [hasErrors, setHasErrors] = React.useState<Partial<Record<MergeFieldKey, boolean>>>({});
+    const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
+    const [diffFields, setDiffFields] = useState<MergeFieldKey[]>([]);
+    const [isCheckingDataBeforeGoNext, setIsCheckingDataBeforeGoNext] = useState<boolean>(false);
 
-    const [diffFields, setDiffFields] = React.useState<MergeFieldKey[]>([]);
-
-    React.useEffect(() => {
+    useEffect(() => {
         if (!transactionID || !targetTransaction || !sourceTransaction) {
             return;
         }
@@ -66,6 +69,25 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         setMergeTransactionKey(transactionID, mergeableData);
         setDiffFields(conflictFields as MergeFieldKey[]);
     }, [targetTransaction, sourceTransaction, transactionID]);
+
+    useEffect(() => {
+        if (!isCheckingDataBeforeGoNext) {
+            return;
+        }
+
+        // When user selects a card transaction to merge, that card transaction becomes the target transaction.
+        // The App may not have the transaction thread report loaded for card transactions, so we need to trigger
+        // OpenReport to ensure the transaction thread report is available for confirmation page
+        if (!targetTransactionThreadReportID && targetTransaction?.reportID) {
+            return openReport(targetTransaction.reportID);
+        }
+        if (targetTransactionThreadReportID && !targetTransactionThreadReport) {
+            return openReport(targetTransactionThreadReportID);
+        }
+
+        Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
+        setIsCheckingDataBeforeGoNext(false);
+    }, [isCheckingDataBeforeGoNext, targetTransactionThreadReportID, targetTransaction?.reportID, targetTransactionThreadReport, transactionID]);
 
     // Handle selection
     const handleSelect = (field: MergeFieldKey, value: MergeValue) => {
@@ -98,7 +120,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         setHasErrors(newHasErrors);
 
         if (isEmptyObject(newHasErrors)) {
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
+            setIsCheckingDataBeforeGoNext(true);
         }
     };
 
@@ -191,6 +213,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                         text={translate('common.continue')}
                         onPress={handleContinue}
                         isDisabled={!isEmptyObject(hasErrors)}
+                        isLoading={isCheckingDataBeforeGoNext}
                         pressOnEnter
                     />
                 </FixedFooter>

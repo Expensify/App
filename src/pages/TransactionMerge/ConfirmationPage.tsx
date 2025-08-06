@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -19,7 +19,6 @@ import {buildMergedTransactionData, getSourceTransactionFromMergeTransaction, ge
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
-import {openReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
@@ -46,20 +45,6 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
     const targetTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`];
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${targetTransactionThreadReport?.policyID}`, {canBeMissing: true});
-
-    // When user selects a card transaction to merge, that card transaction becomes the target transaction.
-    // The App may not have the transaction thread report loaded for card transactions, so we need to trigger
-    // OpenReport to ensure the transaction thread report is available.
-    useEffect(() => {
-        if (!targetTransactionThreadReportID && targetTransaction?.reportID) {
-            openReport(targetTransaction.reportID);
-            return;
-        }
-
-        if (targetTransactionThreadReportID && !targetTransactionThreadReport) {
-            openReport(targetTransactionThreadReportID);
-        }
-    }, [targetTransactionThreadReportID, targetTransaction, targetTransactionThreadReport]);
 
     // Build the merged transaction data for display
     const mergedTransactionData = useMemo(() => buildMergedTransactionData(targetTransaction, mergeTransaction), [targetTransaction, mergeTransaction]);
