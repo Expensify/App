@@ -788,7 +788,7 @@ describe('GithubUtils', () => {
         });
 
         test('should handle 404 RequestError with specific error message', async () => {
-            const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+            const coreErrorSpy = jest.spyOn(core, 'error').mockImplementation();
             const requestError = new RequestError('Not Found', 404, {
                 request: {
                     method: 'GET',
@@ -800,7 +800,7 @@ describe('GithubUtils', () => {
             mockCompareCommits.mockRejectedValue(requestError);
 
             await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO)).rejects.toThrow(requestError);
-            expect(consoleErrorSpy).toHaveBeenCalledWith(
+            expect(coreErrorSpy).toHaveBeenCalledWith(
                 expect.stringContaining(
                     "❓❓ Failed to get commits with the GitHub API. The base tag ('1.0.0') or head tag ('1.0.1') likely doesn't exist on the remote repository. If this is the case, create or push them.",
                 ),

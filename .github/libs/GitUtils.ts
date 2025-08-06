@@ -1,9 +1,8 @@
 import * as core from '@actions/core';
-import {execSync, spawn} from 'child_process';
+import {execSync} from 'child_process';
 import CONST from './CONST';
 import GithubUtils from './GithubUtils';
-import sanitizeStringForJSONParse from './sanitizeStringForJSONParse';
-import {getPreviousVersion, SEMANTIC_VERSION_LEVELS} from './versionUpdater';
+import {getPreviousVersion} from './versionUpdater';
 import type {SemverLevel} from './versionUpdater';
 
 type CommitType = {
@@ -73,46 +72,6 @@ function getPreviousExistingTag(tag: string, level: SemverLevel) {
         previousVersion = getPreviousVersion(previousVersion, level);
     }
     return previousVersion;
-}
-
-/**
- * @param [shallowExcludeTag] When fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
- */
-function fetchTag(tag: string, shallowExcludeTag = '') {
-    let shouldRetry = true;
-    let needsRepack = false;
-    while (shouldRetry) {
-        try {
-            let command = '';
-            if (needsRepack) {
-                // We have seen some scenarios where this fixes the git fetch.
-                // Why? Who knows... https://github.com/Expensify/App/pull/31459
-                command = 'git repack -d';
-                console.log(`Running command: ${command}`);
-                execSync(command);
-            }
-
-            command = `git fetch origin tag ${tag} --no-tags`;
-
-            // Note that this condition is only ever NOT true in the 1.0.0-0 edge case
-            if (shallowExcludeTag && shallowExcludeTag !== tag) {
-                command += ` --shallow-exclude=${shallowExcludeTag}`;
-            }
-
-            console.log(`Running command: ${command}`);
-            execSync(command);
-            shouldRetry = false;
-        } catch (e) {
-            console.error(e);
-            if (!needsRepack) {
-                console.log('Attempting to repack and retry...');
-                needsRepack = true;
-            } else {
-                console.error("Repack didn't help, giving up...");
-                shouldRetry = false;
-            }
-        }
-    }
 }
 
 /**
