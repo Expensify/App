@@ -42,7 +42,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
                     scrollContainerStyle={styles.pv0}
                 />
             )}
-            <DeleteConfirmModal />
+            {DeleteConfirmModal}
         </>
     );
 }
