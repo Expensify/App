@@ -122,18 +122,22 @@ function MoneyRequestAmountInput(
         isCurrencyPressable = true,
         onCurrencyButtonPress,
         onAmountChange,
+        prefixCharacter = '',
         hideCurrencySymbol = false,
+        moneyRequestAmountInputRef,
+        disableKeyboard = true,
         onFormatAmount = defaultOnFormatAmount,
         formatAmountOnBlur,
-        shouldKeepUserInput = false,
         maxLength,
-        moneyRequestAmountInputRef,
+        hideFocusedState = true,
+        shouldKeepUserInput = false,
         shouldShowBigNumberPad = false,
         inputStyle,
         autoGrow = true,
-        disableKeyboard = true,
-        prefixCharacter = '',
-        hideFocusedState = true,
+        autoGrowExtraSpace,
+        contentWidth,
+        testID,
+        submitBehavior,
         shouldApplyPaddingToContainer = false,
         shouldUseDefaultLineHeightForPrefix = true,
         shouldWrapInputInContainer = true,
@@ -214,12 +218,12 @@ function MoneyRequestAmountInput(
             prefixStyle={props.prefixStyle}
             prefixContainerStyle={props.prefixContainerStyle}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
-            contentWidth={props.contentWidth}
-            testID={props.testID}
+            contentWidth={contentWidth}
+            testID={testID}
             errorText={props.errorText}
             footer={props.footer}
-            autoGrowExtraSpace={props.autoGrowExtraSpace}
-            submitBehavior={props.submitBehavior}
+            autoGrowExtraSpace={autoGrowExtraSpace}
+            submitBehavior={submitBehavior}
         />
     );
 }
