@@ -27,7 +27,7 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import Performance from '@libs/Performance';
 import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, generateReportID, isArchivedReport} from '@libs/ReportUtils';
-import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     getColumnsToShow,
     getListItem,
@@ -44,7 +44,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import type {ArchivedReportsIDSet, SearchKey} from '@libs/SearchUIUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -162,9 +162,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         shouldTurnOffSelectionMode,
         setShouldShowFiltersBarLoading,
         lastSearchType,
-        setShouldShowExportModeOption,
-        isExportMode,
-        setExportMode,
+        shouldShowSelectAllMatchingItems,
+        areAllMatchingItemsSelected,
+        selectAllMatchingItems,
     } = useSearchContext();
     const [offset, setOffset] = useState(0);
 
@@ -215,12 +215,42 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (offset !== 0) {
             return false;
         }
-        if (!searchKey) {
+        if (queryJSON.type !== CONST.SEARCH.DATA_TYPES.EXPENSE) {
             return false;
         }
-        const eligibleSearchKeys: Partial<SearchKey[]> = [CONST.SEARCH.SEARCH_KEYS.STATEMENTS, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD];
-        return eligibleSearchKeys.includes(searchKey);
-    }, [offset, searchKey]);
+
+        let hasFeedFilter = false;
+        let hasPostedFilter = false;
+        let isReimbursable = false;
+
+        queryJSON.flatFilters.forEach((filter) => {
+            if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
+                hasFeedFilter = true;
+            } else if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED) {
+                hasPostedFilter = true;
+            } else if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE && filter.filters.at(0)?.value === CONST.SEARCH.BOOLEAN.YES) {
+                isReimbursable = true;
+            }
+        });
+
+        /**
+         * The total should be calculated for all accounting queries (statements, unapprovedCash and unapprovedCard)
+         * We can't use `searchKey` directly because we want to also match similar queries e.g. the statements suggested search query with a custom feed should be matched too.
+         */
+        const isStatementsLikeQuery = queryJSON.flatFilters.length === 2 && hasFeedFilter && hasPostedFilter;
+        const isUnapprovedCashLikeQuery =
+            queryJSON.flatFilters.length === 1 &&
+            isReimbursable &&
+            queryJSON.status[0] === CONST.SEARCH.STATUS.EXPENSE.DRAFTS &&
+            queryJSON.status[1] === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
+        const isUnapprovedCardLikeQuery =
+            queryJSON.flatFilters.length === 1 &&
+            hasFeedFilter &&
+            queryJSON.status[0] === CONST.SEARCH.STATUS.EXPENSE.DRAFTS &&
+            queryJSON.status[1] === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
+
+        return isStatementsLikeQuery || isUnapprovedCashLikeQuery || isUnapprovedCardLikeQuery;
+    }, [offset, queryJSON.flatFilters, queryJSON.type, queryJSON.status]);
 
     const previousReportActions = usePrevious(reportActions);
     const reportActionsArray = useMemo(
@@ -358,7 +388,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     return;
                 }
                 transactionGroup.transactions.forEach((transaction) => {
-                    if (!Object.keys(selectedTransactions).includes(transaction.transactionID) && !isExportMode) {
+                    if (!Object.keys(selectedTransactions).includes(transaction.transactionID) && !areAllMatchingItemsSelected) {
                         return;
                     }
                     newTransactionList[transaction.transactionID] = {
@@ -368,7 +398,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         canUnhold: transaction.canUnhold,
                         canChangeReport: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActionsArray, transaction.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        isSelected: isExportMode || selectedTransactions[transaction.transactionID].isSelected,
+                        isSelected: areAllMatchingItemsSelected || selectedTransactions[transaction.transactionID].isSelected,
                         canDelete: transaction.canDelete,
                         reportID: transaction.reportID,
                         policyID: transaction.policyID,
@@ -381,7 +411,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 if (!Object.hasOwn(transaction, 'transactionID') || !('transactionID' in transaction)) {
                     return;
                 }
-                if (!Object.keys(selectedTransactions).includes(transaction.transactionID) && !isExportMode) {
+                if (!Object.keys(selectedTransactions).includes(transaction.transactionID) && !areAllMatchingItemsSelected) {
                     return;
                 }
                 newTransactionList[transaction.transactionID] = {
@@ -391,7 +421,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     canUnhold: transaction.canUnhold,
                     canChangeReport: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActionsArray, transaction.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    isSelected: isExportMode || selectedTransactions[transaction.transactionID].isSelected,
+                    isSelected: areAllMatchingItemsSelected || selectedTransactions[transaction.transactionID].isSelected,
                     canDelete: transaction.canDelete,
                     reportID: transaction.reportID,
                     policyID: transaction.policyID,
@@ -407,7 +437,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
         isRefreshingSelection.current = true;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [data, setSelectedTransactions, isExportMode, isFocused]);
+    }, [data, setSelectedTransactions, areAllMatchingItemsSelected, isFocused]);
 
     useEffect(() => {
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
@@ -442,13 +472,15 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         }
         const areItemsGrouped = !!groupBy;
         const flattenedItems = areItemsGrouped ? (data as TransactionGroupListItemType[]).flatMap((item) => item.transactions) : data;
-        const isAllSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
+        const areAllItemsSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
 
-        setShouldShowExportModeOption(!!(isAllSelected && searchResults?.search?.hasMoreResults));
-        if (!isAllSelected) {
-            setExportMode(false);
+        // If the user has selected all the expenses in their view but there are more expenses matched by the search
+        // give them the option to select all matching expenses
+        shouldShowSelectAllMatchingItems(!!(areAllItemsSelected && searchResults?.search?.hasMoreResults));
+        if (!areAllItemsSelected) {
+            selectAllMatchingItems(false);
         }
-    }, [isFocused, data, searchResults?.search?.hasMoreResults, selectedTransactions, setExportMode, setShouldShowExportModeOption, groupBy]);
+    }, [isFocused, data, searchResults?.search?.hasMoreResults, selectedTransactions, selectAllMatchingItems, shouldShowSelectAllMatchingItems, groupBy]);
 
     const toggleTransaction = useCallback(
         (item: SearchListItem) => {
@@ -613,17 +645,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     );
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
-
-    useEffect(() => {
-        const currentRoute = Navigation.getActiveRouteWithoutParams();
-
-        if ((hasErrors || !searchResults) && currentRoute === '/') {
-            // Use requestAnimationFrame to safely update navigation params without overriding the current route
-            requestAnimationFrame(() => {
-                Navigation.setParams({q: buildCannedSearchQuery()});
-            });
-        }
-    }, [hasErrors, queryJSON, searchResults]);
 
     const fetchMoreResults = useCallback(() => {
         if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {

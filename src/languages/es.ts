@@ -123,6 +123,9 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeFailureDescriptionGenericParams,
+    MergeFailureUncreatedAccountDescriptionParams,
+    MergeSuccessDescriptionParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
@@ -150,6 +153,7 @@ import type {
     PolicyDisabledReportFieldAllOptionsParams,
     PolicyDisabledReportFieldOptionParams,
     PolicyExpenseChatNameParams,
+    QBDSetupErrorBodyParams,
     RailTicketParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
@@ -546,7 +550,6 @@ const translations = {
         userID: 'Usuario ID',
         disable: 'Deshabilitar',
         export: 'Exportar',
-        basicExport: 'Exportar básico',
         initialValue: 'Valor inicial',
         currentDate: 'Fecha actual',
         value: 'Valor',
@@ -1612,66 +1615,32 @@ const translations = {
         },
         mergeSuccess: {
             accountsMerged: '¡Cuentas fusionadas!',
-            successfullyMergedAllData: {
-                beforeFirstEmail: 'Has fusionado exitosamente todos los datos de ',
-                beforeSecondEmail: ' en ',
-                afterSecondEmail: '. De ahora en adelante, puedes usar cualquiera de los inicios de sesión para esta cuenta.',
-            },
+            description: ({from, to}: MergeSuccessDescriptionParams) =>
+                `<muted-text><centered-text>Has fusionado exitosamente todos los datos de <strong>${from}</strong> en <strong>${to}</strong>. De ahora en adelante, puedes usar cualquiera de los inicios de sesión para esta cuenta.</centered-text></muted-text>`,
         },
         mergePendingSAML: {
             weAreWorkingOnIt: 'Estamos trabajando en ello',
             limitedSupport: 'Todavía no es posible fusionar cuentas en New Expensify. Por favor, realiza esta acción en Expensify Classic en su lugar',
-            reachOutForHelp: {
-                beforeLink: '¡No dudes en ',
-                linkText: 'comunicarte con Concierge',
-                afterLink: ' si tienes alguna pregunta!',
-            },
+            reachOutForHelp: '<muted-text><centered-text>¡No dudes en <concierge-link>comunicarte con Concierge</concierge-link> si tienes alguna pregunta!</centered-text></muted-text>',
             goToExpensifyClassic: 'Dirígete a Expensify Classic',
         },
-        mergeFailureSAMLDomainControl: {
-            beforeFirstEmail: 'No puedes fusionar ',
-            beforeDomain: ' porque está controlado por ',
-            afterDomain: '. Póngase ',
-            linkText: 'en contacto con Concierge',
-            afterLink: ' si necesita ayuda.',
-        },
-        mergeFailureSAMLAccount: {
-            beforeEmail: 'No puedes fusionar ',
-            afterEmail: ' en otras cuentas porque tu administrador de dominio la ha establecido como tu inicio de sesión principal. Por favor, fusiona otras cuentas en esta en su lugar.',
-        },
+        mergeFailureSAMLDomainControlDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>No puedes fusionar <strong>${email}</strong> porque está controlado por <strong>${email.split('@').at(1) ?? ''}</strong>. Póngase <concierge-link>en contacto con Concierge</concierge-link> si necesita ayuda.</centered-text></muted-text>`,
+        mergeFailureSAMLAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>No puedes fusionar <strong>${email}</strong> en otras cuentas porque tu administrador de dominio la ha establecido como tu inicio de sesión principal. Por favor, fusiona otras cuentas en esta en su lugar.</centered-text></muted-text>`,
         mergeFailure2FA: {
-            oldAccount2FAEnabled: {
-                beforeFirstEmail: 'No puedes fusionar cuentas porque ',
-                beforeSecondEmail: ' tiene habilitada la autenticación de dos factores (2FA). Por favor, deshabilita 2FA para ',
-                afterSecondEmail: ' e inténtalo nuevamente.',
-            },
+            description: ({email}: MergeFailureDescriptionGenericParams) =>
+                `<muted-text><centered-text>'No puedes fusionar cuentas porque <strong>${email}</strong> tiene habilitada la autenticación de dos factores (2FA). Por favor, deshabilita 2FA para <strong>${email}</strong> e inténtalo nuevamente.</centered-text></muted-text>`,
             learnMore: 'Aprende más sobre cómo fusionar cuentas.',
         },
-        mergeFailureAccountLocked: {
-            beforeEmail: 'No puedes fusionar ',
-            afterEmail: ' porque está bloqueado. Póngase ',
-            linkText: 'en contacto con Concierge',
-            afterLink: ` si necesita ayuda.`,
-        },
-        mergeFailureUncreatedAccount: {
-            noExpensifyAccount: {
-                beforeEmail: 'No puedes fusionar cuentas porque ',
-                afterEmail: ' no tiene una cuenta de Expensify.',
-            },
-            addContactMethod: {
-                beforeLink: 'Por favor, ',
-                linkText: 'añádela como método de contacto',
-                afterLink: ' en su lugar.',
-            },
-        },
-        mergeFailureSmartScannerAccount: {
-            beforeEmail: 'No puedes fusionar ',
-            afterEmail: ' en otras cuentas. Por favor, fusiona otras cuentas en esta en su lugar.',
-        },
-        mergeFailureInvoicedAccount: {
-            beforeEmail: 'No puedes fusionar cuentas en ',
-            afterEmail: ' porque esta cuenta tiene una relación de facturación con factura emitida.',
-        },
+        mergeFailureAccountLockedDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>No puedes fusionar <strong>${email}</strong> porque está bloqueado. Póngase <concierge-link>en contacto con Concierge</concierge-link> si necesita ayuda.</centered-text></muted-text>`,
+        mergeFailureUncreatedAccountDescription: ({email, contactMethodLink}: MergeFailureUncreatedAccountDescriptionParams) =>
+            `<muted-text><centered-text>No puedes fusionar cuentas porque <strong>${email}</strong> no tiene una cuenta de Expensify. Por favor, <a href="${contactMethodLink}">añádela como método de contacto</a> en su lugar.</centered-text></muted-text>`,
+        mergeFailureSmartScannerAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>No puedes fusionar <strong>${email}</strong> en otras cuentas. Por favor, fusiona otras cuentas en esta en su lugar.</centered-text></muted-text>`,
+        mergeFailureInvoicedAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>No puedes fusionar cuentas en <strong>${email}</strong> porque esta cuenta tiene una relación de facturación con factura emitida.</centered-text></muted-text>`,
         mergeFailureTooManyAttempts: {
             heading: 'Inténtalo de nuevo más tarde',
             description: 'Hubo demasiados intentos de fusionar cuentas. Por favor, inténtalo de nuevo más tarde.',
@@ -3627,9 +3596,8 @@ const translations = {
                 title: 'Abre este enlace para conectar',
                 body: 'Para completar la configuración, abre el siguiente enlace en la computadora donde se está ejecutando QuickBooks Desktop.',
                 setupErrorTitle: '¡Ups! Ha ocurrido un error',
-                setupErrorBody1: 'La conexión con QuickBooks Desktop no está funcionando en este momento. Por favor, inténtalo de nuevo más tarde o',
-                setupErrorBody2: 'si el problema persiste.',
-                setupErrorBodyContactConcierge: 'contacta con Concierge',
+                setupErrorBody: ({conciergeLink}: QBDSetupErrorBodyParams) =>
+                    `<muted-text><centered-text>La conexión con QuickBooks Desktop no está funcionando en este momento. Por favor, inténtalo de nuevo más tarde o <a href="${conciergeLink}">contacta con Concierge</a> si el problema persiste.</centered-text></muted-text>`,
             },
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Desktop a Expensify.',
             classes: 'Clases',
@@ -7549,6 +7517,13 @@ const translations = {
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} te invitó a probar Expensify\n\n¡Hola! Acabo de conseguirnos *3 meses gratis* para probar Expensify, la forma más rápida de gestionar gastos.\n\nAquí tienes un *recibo de prueba* para mostrarte cómo funciona:`,
+    },
+    export: {
+        basicExport: 'Exportar básico',
+        reportLevelExport: 'Todos los datos - a nivel de informe',
+        expenseLevelExport: 'Todos los datos - a nivel de gasto',
+        exportInProgress: 'Exportación en curso',
+        conciergeWillSend: 'Concierge te enviará el archivo en breve.',
     },
 };
 

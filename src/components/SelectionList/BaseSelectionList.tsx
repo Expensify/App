@@ -638,15 +638,16 @@ function BaseSelectionList<TItem extends ListItem>(
         const isItemFocused = (!isDisabled || selected) && focusedIndex === normalizedIndex;
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
 
+        const newItem = item;
+        if (!item.isSelected) {
+            newItem.isSelected = selected;
+        }
+
         return (
             <View onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}>
                 <BaseSelectionListItemRenderer
                     ListItem={ListItem}
-                    item={{
-                        shouldAnimateInHighlight: isItemHighlighted,
-                        isSelected: selected,
-                        ...item,
-                    }}
+                    item={newItem}
                     shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                     index={index}
                     isFocused={isItemFocused}
@@ -672,6 +673,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     singleExecution={singleExecution}
                     titleContainerStyles={listItemTitleContainerStyles}
                     canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
+                    shouldAnimateInHighlight={isItemHighlighted}
                 />
             </View>
         );
@@ -809,6 +811,14 @@ function BaseSelectionList<TItem extends ListItem>(
     const prevAllOptionsLength = usePrevious(flattenedSections.allOptions.length);
 
     useEffect(() => {
+        if (prevTextInputValue === textInputValue) {
+            return;
+        }
+        // Reset the current page to 1 when the user types something
+        setCurrentPage(1);
+    }, [textInputValue, prevTextInputValue]);
+
+    useEffect(() => {
         // Avoid changing focus if the textInputValue remains unchanged.
         if (
             (prevTextInputValue === textInputValue && flattenedSections.selectedOptions.length === prevSelectedOptionsLength) ||
@@ -828,11 +838,6 @@ function BaseSelectionList<TItem extends ListItem>(
                 updateAndScrollToFocusedIndex(foundSelectedItemIndex);
                 return;
             }
-        }
-
-        // Reset the current page to 1 when the user types something
-        if (prevTextInputValue !== textInputValue) {
-            setCurrentPage(1);
         }
 
         // Remove the focus if the search input is empty and prev search input not empty or selected options length is changed (and allOptions length remains the same)

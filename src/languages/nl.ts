@@ -136,6 +136,9 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeFailureDescriptionGenericParams,
+    MergeFailureUncreatedAccountDescriptionParams,
+    MergeSuccessDescriptionParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
@@ -163,6 +166,7 @@ import type {
     PolicyDisabledReportFieldAllOptionsParams,
     PolicyDisabledReportFieldOptionParams,
     PolicyExpenseChatNameParams,
+    QBDSetupErrorBodyParams,
     RailTicketParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
@@ -562,7 +566,6 @@ const translations = {
         userID: 'Gebruikers-ID',
         disable: 'Uitschakelen',
         export: 'Exporteren',
-        basicExport: 'Basis export',
         initialValue: 'Initiële waarde',
         currentDate: "I'm unable to provide real-time information, including the current date. Please check your device or calendar for the current date.",
         value: 'Waarde',
@@ -1631,67 +1634,32 @@ const translations = {
         },
         mergeSuccess: {
             accountsMerged: 'Accounts samengevoegd!',
-            successfullyMergedAllData: {
-                beforeFirstEmail: `Je hebt alle gegevens succesvol samengevoegd van`,
-                beforeSecondEmail: `into`,
-                afterSecondEmail: `. Voortaan kun je beide logins gebruiken voor dit account.`,
-            },
+            description: ({from, to}: MergeSuccessDescriptionParams) =>
+                `<muted-text><centered-text>Je hebt met succes alle gegevens van <strong>${from}</strong> samengevoegd in <strong>${to}</strong>. Je kunt nu elke login gebruiken voor deze account.</centered-text></muted-text>`,
         },
         mergePendingSAML: {
             weAreWorkingOnIt: 'We zijn ermee bezig',
             limitedSupport: 'We ondersteunen het samenvoegen van accounts nog niet op New Expensify. Voer deze actie in plaats daarvan uit op Expensify Classic.',
-            reachOutForHelp: {
-                beforeLink: 'Voel je vrij om',
-                linkText: 'neem contact op met Concierge',
-                afterLink: 'als je vragen hebt!',
-            },
+            reachOutForHelp: '<muted-text><centered-text>Neem gerust <concierge-link>contact op met Concierge</concierge-link> als je vragen hebt!</centered-text></muted-text>',
             goToExpensifyClassic: 'Ga naar Expensify Classic',
         },
-        mergeFailureSAMLDomainControl: {
-            beforeFirstEmail: 'Je kunt niet samenvoegen',
-            beforeDomain: 'omdat het wordt beheerd door',
-            afterDomain: '. Alstublieft',
-            linkText: 'neem contact op met Concierge',
-            afterLink: 'voor hulp.',
-        },
-        mergeFailureSAMLAccount: {
-            beforeEmail: 'Je kunt niet samenvoegen',
-            afterEmail: 'in andere accounts omdat uw domeinbeheerder het als uw primaire login heeft ingesteld. Voeg in plaats daarvan andere accounts samen in deze.',
-        },
+        mergeFailureSAMLDomainControlDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>Je kunt <strong>${email}</strong> niet samenvoegen omdat het wordt beheerd door <strong>${email.split('@').at(1) ?? ''}</strong>. Neem <concierge-link>contact op met Concierge</concierge-link> voor hulp.</centered-text></muted-text>`,
+        mergeFailureSAMLAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>U kunt <strong>${email}</strong> niet samenvoegen met andere accounts omdat uw domeinbeheerder dit heeft ingesteld als uw primaire login. Voeg in plaats daarvan andere accounts samen.</centered-text></muted-text>`,
         mergeFailure2FA: {
-            oldAccount2FAEnabled: {
-                beforeFirstEmail: 'Je kunt accounts niet samenvoegen omdat',
-                beforeSecondEmail: 'heeft tweefactorauthenticatie (2FA) ingeschakeld. Schakel 2FA uit voor',
-                afterSecondEmail: 'en probeer het opnieuw.',
-            },
+            description: ({email}: MergeFailureDescriptionGenericParams) =>
+                `<muted-text><centered-text>Je kunt accounts niet samenvoegen omdat <strong>${email}</strong> twee-factor authenticatie (2FA) heeft ingeschakeld. Schakel 2FA uit voor <strong>${email}</strong> en probeer het opnieuw.</centered-text></muted-text>`,
             learnMore: 'Meer informatie over het samenvoegen van accounts.',
         },
-        mergeFailureAccountLocked: {
-            beforeEmail: 'Je kunt niet samenvoegen',
-            afterEmail: 'omdat het vergrendeld is. Alsjeblieft',
-            linkText: 'neem contact op met Concierge',
-            afterLink: `voor hulp.`,
-        },
-        mergeFailureUncreatedAccount: {
-            noExpensifyAccount: {
-                beforeEmail: 'Je kunt accounts niet samenvoegen omdat',
-                afterEmail: 'heeft geen Expensify-account.',
-            },
-            addContactMethod: {
-                beforeLink: 'Alstublieft',
-                linkText: 'voeg het toe als een contactmethode',
-                afterLink: 'in plaats daarvan.',
-            },
-        },
-        mergeFailureSmartScannerAccount: {
-            beforeEmail: 'Je kunt niet samenvoegen',
-            afterEmail: 'in andere accounts. Voeg in plaats daarvan andere accounts samen in dit account.',
-        },
-        mergeFailureInvoicedAccount: {
-            beforeEmail: 'Je kunt accounts niet samenvoegen met ',
-            afterEmail: ' omdat dit account een gefactureerde factureringsrelatie heeft.',
-        },
-
+        mergeFailureAccountLockedDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>Je kunt <strong>${email}</strong> niet samenvoegen omdat het vergrendeld is. Neem <concierge-link>contact op met Concierge</concierge-link> voor hulp.</centered-text></muted-text>`,
+        mergeFailureUncreatedAccountDescription: ({email, contactMethodLink}: MergeFailureUncreatedAccountDescriptionParams) =>
+            `<muted-text><centered-text>Je kunt geen accounts samenvoegen omdat <strong>${email}</strong> geen Expensify account heeft. <a href="${contactMethodLink}">Voeg het toe als een contactmethode</a> in plaats daarvan.</centered-text></muted-text>`,
+        mergeFailureSmartScannerAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>Je kunt <strong>${email}</strong> niet samenvoegen met andere accounts. Voeg in plaats daarvan andere accounts samen.</centered-text></muted-text>`,
+        mergeFailureInvoicedAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>Je kunt accounts niet samenvoegen in <strong>${email}</strong> omdat deze account een gefactureerde factureringsrelatie heeft.</centered-text></muted-text>`,
         mergeFailureTooManyAttempts: {
             heading: 'Probeer het later opnieuw',
             description: 'Er waren te veel pogingen om accounts samen te voegen. Probeer het later opnieuw.',
@@ -3659,9 +3627,8 @@ const translations = {
                 title: 'Open deze link om verbinding te maken',
                 body: 'Om de installatie te voltooien, opent u de volgende link op de computer waar QuickBooks Desktop draait.',
                 setupErrorTitle: 'Er is iets misgegaan',
-                setupErrorBody1: 'De QuickBooks Desktop-verbinding werkt momenteel niet. Probeer het later opnieuw of',
-                setupErrorBody2: 'als het probleem aanhoudt.',
-                setupErrorBodyContactConcierge: 'neem contact op met Concierge',
+                setupErrorBody: ({conciergeLink}: QBDSetupErrorBodyParams) =>
+                    `<muted-text><centered-text>De QuickBooks Desktop-verbinding werkt momenteel niet. Probeer het later nog eens of <a href="${conciergeLink}">neem contact op met Concierge</a> als het probleem zich blijft voordoen.</centered-text></muted-text>`,
             },
             importDescription: 'Kies welke codeconfiguraties u wilt importeren van QuickBooks Desktop naar Expensify.',
             classes: 'Klassen',
@@ -7099,6 +7066,13 @@ const translations = {
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} heeft je uitgenodigd om Expensify uit te proberen\nHey! Ik heb ons net *3 maanden gratis* gekregen om Expensify uit te proberen, de snelste manier om onkosten te beheren.\n\nHier is een *testbon* om je te laten zien hoe het werkt:`,
+    },
+    export: {
+        basicExport: 'Basis export',
+        reportLevelExport: 'Alle gegevens - rapportniveau',
+        expenseLevelExport: 'Alle gegevens - uitgavenniveau',
+        exportInProgress: 'Bezig met exporteren',
+        conciergeWillSend: 'Concierge stuurt je het bestand binnenkort.',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

@@ -19,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported, openReport, openUnreportedExpense} from '@libs/actions/Report';
+import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import {getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
@@ -210,6 +211,7 @@ function MoneyReportHeader({
     const [isUnapproveModalVisible, setIsUnapproveModalVisible] = useState(false);
     const [isReopenWarningModalVisible, setIsReopenWarningModalVisible] = useState(false);
     const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
+    const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
 
     const [exportModalStatus, setExportModalStatus] = useState<ExportType | null>(null);
 
@@ -274,6 +276,25 @@ function MoneyReportHeader({
 
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
 
+    const beginExportWithTemplate = useCallback(
+        (templateName: string, templateType: string, transactionIDList: string[]) => {
+            if (!moneyRequestReport) {
+                return;
+            }
+
+            setIsExportWithTemplateModalVisible(true);
+            queueExportSearchWithTemplate({
+                templateName,
+                templateType,
+                jsonQuery: '{}',
+                reportIDList: [moneyRequestReport.reportID],
+                transactionIDList,
+                policyID: policy?.id,
+            });
+        },
+        [moneyRequestReport, policy],
+    );
+
     const {
         options: selectedTransactionsOptions,
         handleDeleteTransactions,
@@ -286,6 +307,7 @@ function MoneyReportHeader({
         session,
         onExportFailed: () => setIsDownloadErrorModalVisible(true),
         policy,
+        beginExportWithTemplate: (templateName, templateType, transactionIDList) => beginExportWithTemplate(templateName, templateType, transactionIDList),
     });
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
@@ -529,10 +551,10 @@ function MoneyReportHeader({
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
 
-    const exportDropdownOptions: Record<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>>> = useMemo(
+    const exportSubMenuOptions: Record<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>>> = useMemo(
         () => ({
             [CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV]: {
-                text: translate('common.basicExport'),
+                text: translate('export.basicExport'),
                 icon: Expensicons.Table,
                 value: CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV,
                 onSelected: () => {
@@ -547,6 +569,18 @@ function MoneyReportHeader({
                         setDownloadErrorModalVisible(true);
                     });
                 },
+            },
+            [CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT]: {
+                text: translate('export.expenseLevelExport'),
+                icon: Expensicons.Table,
+                value: CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT,
+                onSelected: () => beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, transactionIDs),
+            },
+            [CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT]: {
+                text: translate('export.reportLevelExport'),
+                icon: Expensicons.Table,
+                value: CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT,
+                onSelected: () => beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, transactionIDs),
             },
             [CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION]: {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -580,7 +614,7 @@ function MoneyReportHeader({
                 },
             },
         }),
-        [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported],
+        [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported, beginExportWithTemplate],
     );
 
     const primaryActionsImplementation = {
@@ -747,7 +781,7 @@ function MoneyReportHeader({
             text: translate('common.export'),
             backButtonText: translate('common.export'),
             icon: Expensicons.Export,
-            subMenuItems: secondaryExportActions.map((action) => exportDropdownOptions[action]),
+            subMenuItems: secondaryExportActions.map((action) => exportSubMenuOptions[action]),
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF,
@@ -1297,6 +1331,14 @@ function MoneyReportHeader({
                     )}
                 </View>
             </Modal>
+            <ConfirmModal
+                onConfirm={() => setIsExportWithTemplateModalVisible(false)}
+                isVisible={isExportWithTemplateModalVisible}
+                title={translate('export.exportInProgress')}
+                prompt={translate('export.conciergeWillSend')}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
+            />
         </View>
     );
 }
