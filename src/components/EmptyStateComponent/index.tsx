@@ -37,7 +37,7 @@ function EmptyStateComponent({
     const styles = useThemeStyles();
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const isSubtitleContainsCustomEmoji = containsCustomEmoji(subtitle ?? '') && !containsOnlyCustomEmoji(subtitle ?? '');
+    const doesSubtitleContainCustomEmoji = containsCustomEmoji(subtitle ?? '') && !containsOnlyCustomEmoji(subtitle ?? '');
 
     const setAspectRatio = (event: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
         if (!event) {
@@ -104,7 +104,7 @@ function EmptyStateComponent({
                     <View style={[shouldUseNarrowLayout ? styles.p5 : styles.p8, cardContentStyles]}>
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2, titleStyles]}>{title}</Text>
                         {subtitleText ??
-                            (isSubtitleContainsCustomEmoji ? (
+                            (doesSubtitleContainCustomEmoji ? (
                                 <TextWithEmojiFragment
                                     style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}
                                     message={subtitle}
