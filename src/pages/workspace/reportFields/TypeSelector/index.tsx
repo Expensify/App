@@ -5,7 +5,8 @@ import {View} from 'react-native';
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
-import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
+import blurActiveElement from '@libs/Accessibility/blurActiveElement';
+import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import type {ReportFieldItemType} from '@pages/workspace/reportFields/ReportFieldTypePicker';
 import CONST from '@src/CONST';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
@@ -36,6 +37,7 @@ function TypeSelector({value, label = '', rightLabel, subtitle = '', errorText =
 
     const hidePickerModal = () => {
         setIsPickerVisible(false);
+        blurActiveElement();
     };
 
     const updateTypeInput = (reportField: ReportFieldItemType) => {
@@ -49,7 +51,7 @@ function TypeSelector({value, label = '', rightLabel, subtitle = '', errorText =
             <MenuItemWithTopDescription
                 ref={forwardedRef}
                 shouldShowRightIcon
-                title={value ? Str.recapitalize(translate(WorkspaceReportFieldUtils.getReportFieldTypeTranslationKey(value as PolicyReportFieldType))) : ''}
+                title={value ? Str.recapitalize(translate(getReportFieldTypeTranslationKey(value as PolicyReportFieldType))) : ''}
                 description={label}
                 rightLabel={rightLabel}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
