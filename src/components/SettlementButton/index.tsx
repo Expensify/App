@@ -534,7 +534,13 @@ function SettlementButton({
                     secondLineText={secondaryText}
                     pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}
-                    onOptionSelected={(option) => handlePaymentSelection(undefined, option.value, triggerKYCFlow)}
+                    onOptionSelected={(option) => {
+                        if (paymentButtonOptions.length === 1) {
+                            return;
+                        }
+
+                        handlePaymentSelection(undefined, option.value, triggerKYCFlow);
+                    }}
                     style={style}
                     shouldUseShortForm={shouldUseShortForm}
                     shouldPopoverUseScrollView={paymentButtonOptions.length > 5}
