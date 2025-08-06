@@ -35,19 +35,17 @@ module.exports = {
     },
     coverageDirectory: 'coverage',
     coverageReporters: ['lcov'],
-    collectCoverageFrom: [
-        'src/**/*.{ts,tsx,js,jsx}',
-        '!src/**/*.d.ts',
-        '!src/**/*.test.{ts,tsx,js,jsx}',
-        '!src/**/*.spec.{ts,tsx,js,jsx}',
-    ],
+    collectCoverageFrom: ['src/**/*.{ts,tsx,js,jsx}', '!src/**/*.d.ts', '!src/**/*.test.{ts,tsx,js,jsx}', '!src/**/*.spec.{ts,tsx,js,jsx}'],
     reporters: [
         'default',
-        ['jest-junit', {
-            classNameTemplate: '{filepath}',
-            titleTemplate: '{title}',
-            ancestorSeparator: ' › ',
-            usePathForSuiteName: true
-        }]
+        [
+            'jest-junit',
+            {
+                classNameTemplate: '{filepath}',
+                titleTemplate: '{title}',
+                ancestorSeparator: ' › ',
+                usePathForSuiteName: true,
+            },
+        ],
     ],
 };
