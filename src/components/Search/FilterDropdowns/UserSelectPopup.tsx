@@ -86,6 +86,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             },
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+                includeCurrentUser: true,
             },
         );
     }, [options.reports, options.personalDetails]);
@@ -113,8 +114,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                     return 1;
                 }
                 return 0;
-            })
-            .filter((option) => option.accountID !== accountID);
+            });
 
         const recentReportsList = filteredOptions.recentReports.map((report) => {
             const isSelected = selectedOptions.some((selectedOption) => selectedOption.reportID === report.reportID);
@@ -124,15 +124,15 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             };
         });
 
-        const currentUserOption = filteredOptions.currentUserOption;
-        const userOptions = currentUserOption
-            ? [
-                  {
-                      ...currentUserOption,
-                      isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === currentUserOption?.accountID),
-                  },
-              ]
-            : [];
+        const userOptions =
+            filteredOptions.currentUserOption && !filteredOptions.personalDetails.find((personalDetail) => personalDetail.accountID === accountID)
+                ? [
+                      {
+                          ...filteredOptions.currentUserOption,
+                          isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === filteredOptions.currentUserOption?.accountID),
+                      },
+                  ]
+                : [];
 
         return [...userOptions, ...personalDetailList, ...recentReportsList];
     }, [filteredOptions, selectedOptions, accountID, selectedAccountIDs]);

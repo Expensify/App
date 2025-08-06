@@ -63,6 +63,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             },
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+                includeCurrentUser: true,
             },
         );
     }, [areOptionsInitialized, options.personalDetails, options.reports]);

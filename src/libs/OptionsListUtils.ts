@@ -2020,7 +2020,7 @@ function getValidOptions(
             ) {
                 return false;
             }
-            if (personalDetailLoginsToExclude[personalDetail.login] && personalDetail.login !== currentUserLogin) {
+            if (personalDetailLoginsToExclude[personalDetail.login]) {
                 return false;
             }
             const searchText = deburr(`${personalDetail.text ?? ''} ${personalDetail.login ?? ''}`.toLocaleLowerCase());
