@@ -157,6 +157,7 @@ type BuildPolicyDataOptions = {
     shouldAddOnboardingTasks?: boolean;
     companySize?: OnboardingCompanySize;
     userReportedIntegration?: OnboardingAccounting;
+    isAnnualSubscription?: boolean;
     featuresMap?: Feature[];
     lastUsedPaymentMethod?: LastPaymentMethodType;
 };
@@ -1850,8 +1851,9 @@ function buildOptimisticDistanceRateCustomUnits(reportCurrency?: string): Optimi
  * @param [makeMeAdmin] leave the calling account as an admin on the policy
  * @param [currency] Optional, selected currency for the workspace
  * @param [file], avatar file for workspace
+ * @param [isAnnualSubscription] Optional, does user have an annual subscription
  */
-function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', policyID = generatePolicyID(), makeMeAdmin = false, currency = '', file?: File) {
+function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', policyID = generatePolicyID(), makeMeAdmin = false, currency = '', file?: File, isAnnualSubscription = false) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
     const {customUnits, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
     const shouldEnableWorkflowsByDefault =
@@ -1863,7 +1865,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
             key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
             value: {
                 id: policyID,
-                type: CONST.POLICY.TYPE.TEAM,
+                type: isAnnualSubscription ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM,
                 name: workspaceName,
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: sessionEmail,
@@ -1871,7 +1873,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 isPolicyExpenseChatEnabled: true,
                 areCategoriesEnabled: true,
                 approver: sessionEmail,
-                areCompanyCardsEnabled: true,
+                areCompanyCardsEnabled: !isAnnualSubscription,
                 areExpensifyCardsEnabled: false,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -1936,6 +1938,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         shouldAddOnboardingTasks = true,
         companySize,
         userReportedIntegration,
+        isAnnualSubscription = false,
         featuresMap,
         lastUsedPaymentMethod,
     } = options;
@@ -1969,7 +1972,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     // Determine workspace type based on selected features or user reported integration
     const isCorporateFeature = featuresMap?.some((feature) => !feature.enabledByDefault && feature.enabled && feature.requiresUpdate) ?? false;
     const isCorporateIntegration = userReportedIntegration && (CONST.POLICY.CONNECTIONS.CORPORATE as readonly string[]).includes(userReportedIntegration);
-    const workspaceType = isCorporateFeature || isCorporateIntegration ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
+    const workspaceType = isCorporateFeature || !!isCorporateIntegration || isAnnualSubscription ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
     const optimisticData: OnyxUpdate[] = [
@@ -1996,7 +1999,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
                 },
                 customUnits,
                 areCategoriesEnabled: true,
-                areCompanyCardsEnabled: true,
+                areCompanyCardsEnabled: workspaceType === CONST.POLICY.TYPE.TEAM,
                 areTagsEnabled: false,
                 areDistanceRatesEnabled: false,
                 areWorkflowsEnabled: shouldEnableWorkflowsByDefault,
