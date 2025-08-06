@@ -95,8 +95,8 @@ async function navigateToSidebarOption(reportID: string): Promise<void> {
         (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
     });
     // ReportScreen relies on the onLayout event to receive updates from onyx.
-    await waitForBatchedUpdatesWithAct();
     triggerListLayout(reportID);
+    await waitForBatchedUpdatesWithAct();
 }
 
 function buildCreatedAction(reportActionID: string, created: string) {
@@ -323,9 +323,7 @@ describe('Pagination', () => {
 
         // We now have 18 messages. 15 (MIN_INITIAL_REPORT_ACTION_COUNT) from the initial OpenReport and 3 from GetOlderActions.
         // GetOlderActions only returns 3 actions since it reaches id '1', which is the created action.
-        await waitFor(() => {
-            expect(getReportActions()).toHaveLength(18);
-        });
+        expect(getReportActions()).toHaveLength(18);
     });
 
     it('opens a chat and load newer messages', async () => {
@@ -342,7 +340,6 @@ describe('Pagination', () => {
         });
         // Due to https://github.com/facebook/react-native/commit/3485e9ed871886b3e7408f90d623da5c018da493
         // we need to scroll too to trigger `onStartReached` which triggers other updates
-        await waitForBatchedUpdatesWithAct();
         scrollToOffset(0);
         // ReportScreen relies on the onLayout event to receive updates from onyx.
         triggerListLayout();
