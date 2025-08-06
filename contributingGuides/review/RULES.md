@@ -47,16 +47,18 @@ Bad:
 - **Reasoning**: Expensive operations can be any long-running synchronous tasks (like complex calculations) and should be avoided when simple property checks can eliminate items early. This reduces unnecessary computation and improves iteration performance, especially on large datasets.
 
 Good:
-```tsx
+```ts
 const areAllTransactionsValid = transactions.every((transaction) => {
-    if (!transaction.rawData || transaction.amount <= 0) return false;
+    if (!transaction.rawData || transaction.amount <= 0) {
+        return false;
+    }
     const validation = validateTransaction(transaction);
     return validation.isValid;
 });
 ```
 
 Bad:
-```tsx
+```ts
 const areAllTransactionsValid = transactions.every((transaction) => {
     const validation = validateTransaction(transaction);
     return validation.isValid;
