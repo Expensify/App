@@ -6655,6 +6655,105 @@ describe('actions/IOU', () => {
                 const split2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}234`);
                 expect(split2?.comment?.comment).toBe('<strong>hey1</strong> <code>hey</code>');
             });
+
+            it("should not create new expense report if the admin split the employee's expense", async () => {
+                const amount = 10000;
+                let expenseReport: OnyxEntry<Report>;
+                let chatReport: OnyxEntry<Report>;
+                let originalTransactionID;
+
+                const policyID = generatePolicyID();
+                createWorkspace({
+                    policyOwnerEmail: RORY_EMAIL,
+                    makeMeAdmin: true,
+                    policyName: "Rory's Workspace",
+                    policyID,
+                });
+
+                // Change the approval mode for the policy since default is Submit and Close
+                setWorkspaceApprovalMode(policyID, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                await waitForBatchedUpdates();
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (allReports) => {
+                        chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+                    },
+                });
+                requestMoney({
+                    report: chatReport,
+                    participantParams: {
+                        payeeEmail: CARLOS_EMAIL,
+                        payeeAccountID: CARLOS_ACCOUNT_ID,
+                        participant: {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport?.reportID},
+                    },
+                    transactionParams: {
+                        amount,
+                        attendees: [],
+                        currency: CONST.CURRENCY.USD,
+                        created: '',
+                        merchant: 'NASDAQ',
+                        comment: '*hey* `hey`',
+                    },
+                });
+                await waitForBatchedUpdates();
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (allReports) => {
+                        expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
+                    },
+                });
+                await getOnyxData({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+                    waitForCollectionCallback: false,
+                    callback: (allReportsAction) => {
+                        const iouActions = Object.values(allReportsAction ?? {}).filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
+                            isMoneyRequestAction(reportAction),
+                        );
+                        const originalMessage = isMoneyRequestAction(iouActions?.at(0)) ? getOriginalMessage(iouActions?.at(0)) : undefined;
+                        originalTransactionID = originalMessage?.IOUTransactionID;
+                    },
+                });
+
+                const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+                const draftTransaction: Transaction = {
+                    reportID: originalTransaction?.reportID ?? '456',
+                    transactionID: originalTransaction?.transactionID ?? '234',
+                    amount,
+                    created: originalTransaction?.created ?? DateUtils.getDBTime(),
+                    currency: CONST.CURRENCY.USD,
+                    merchant: originalTransaction?.merchant ?? '',
+                    comment: {
+                        originalTransactionID,
+                        comment: originalTransaction?.comment?.comment ?? '',
+                        splitExpenses: [
+                            {
+                                transactionID: '235',
+                                amount: amount / 2,
+                                description: '<strong>hey</strong><br /><code>hey</code>',
+                                created: DateUtils.getDBTime(),
+                            },
+                            {
+                                transactionID: '234',
+                                amount: amount / 2,
+                                description: '*hey1* `hey`',
+                                created: DateUtils.getDBTime(),
+                            },
+                        ],
+                        attendees: [],
+                        type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    },
+                };
+
+                saveSplitTransactions(draftTransaction, -2);
+                await waitForBatchedUpdates();
+
+                const split1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}235`);
+                expect(split1?.reportID).toBe(expenseReport?.reportID);
+                const split2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}234`);
+                expect(split2?.reportID).toBe(expenseReport?.reportID);
+            });
         });
     });
 

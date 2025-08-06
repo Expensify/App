@@ -3355,7 +3355,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     }
 
     const isScanRequest = isScanRequestTransactionUtils({amount, receipt});
-    const shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest);
+    const shouldCreateNewMoneyRequestReport = isSplitExpense ? false : shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest);
 
     if (!iouReport || shouldCreateNewMoneyRequestReport) {
         iouReport = isPolicyExpenseChat
