@@ -8,7 +8,7 @@ type Args = {
     /** The report ID */
     reportID: string;
 
-    /** Whether the FlatList is inverted */
+    /** Whether the FlatList is inverted, we need it to determine if the current unread message is visible. */
     isInverted: boolean;
 
     /** The current offset of scrolling from either top or bottom of chat list */
@@ -96,7 +96,8 @@ export default function useReportUnreadMessageScrollTracking({
             readNewestAction(ref.current.reportID);
         }
 
-        // FlatList requires onViewableItemsChanged callback to be stable so we can't have a dependency.
+        // FlatList requires a stable onViewableItemsChanged callback for optimal performance.
+        // Therefore, we use a ref to store values instead of adding them as dependencies.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
