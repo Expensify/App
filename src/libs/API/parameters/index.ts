@@ -312,6 +312,7 @@ export type {default as SetPolicyExpenseMaxAmount} from './SetPolicyExpenseMaxAm
 export type {default as SetPolicyExpenseMaxAge} from './SetPolicyExpenseMaxAge';
 export type {default as UpdateCustomRules} from './UpdateCustomRules';
 export type {default as SetPolicyBillableModeParams} from './SetPolicyBillableModeParams';
+export type {default as SetPolicyCashExpenseModeParams} from './SetPolicyCashExpenseModeParams';
 export type {default as DisablePolicyBillableModeParams} from './DisablePolicyBillableModeParams';
 export type {default as SetWorkspaceEReceiptsEnabled} from './SetWorkspaceEReceiptsEnabled';
 export type {default as SetPolicyAttendeeTrackingEnabledParams} from './SetPolicyAttendeeTrackingEnabledParams';
