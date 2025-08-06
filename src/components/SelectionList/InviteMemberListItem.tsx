@@ -63,6 +63,11 @@ function InviteMemberListItem<TItem extends ListItem>({
         }
     }, [item, onCheckboxPress, onSelectRow]);
 
+    const firstItemIconID = Number(item?.icons?.at(0)?.id);
+
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const accountID = !item.reportID ? item.accountID || firstItemIconID : undefined;
+
     return (
         <BaseListItem
             item={item}
@@ -101,7 +106,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                     wrapperStyle={styles.productTrainingTooltipWrapper}
                 >
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-                        {!!item.icons && (
+                        {(!!item.reportID || !!accountID) && (
                             <ReportActionAvatars
                                 subscriptAvatarBorderColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                                 shouldShowTooltip={showTooltip}
@@ -112,7 +117,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                                 ]}
                                 singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
                                 reportID={item.reportID}
-                                accountIDs={!item.reportID && item.accountID ? [item.accountID] : undefined}
+                                accountIDs={accountID ? [accountID] : undefined}
                             />
                         )}
                         <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
