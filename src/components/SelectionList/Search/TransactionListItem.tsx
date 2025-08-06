@@ -34,7 +34,6 @@ function TransactionListItem<TItem extends ListItem>({
     shouldSyncFocus,
     isLoading,
     shouldAnimateInHighlight,
-    columns,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
@@ -73,6 +72,24 @@ function TransactionListItem<TItem extends ListItem>({
             dateColumnSize: transactionItem.shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
         };
     }, [transactionItem]);
+
+    const columns = useMemo(
+        () =>
+            [
+                CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT,
+                CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE,
+                CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE,
+                CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT,
+                CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM,
+                CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO,
+                ...(transactionItem?.shouldShowCategory ? [CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] : []),
+                ...(transactionItem?.shouldShowTag ? [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG] : []),
+                ...(transactionItem?.shouldShowTax ? [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAX] : []),
+                CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT,
+                CONST.REPORT.TRANSACTION_LIST.COLUMNS.ACTION,
+            ] satisfies Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>,
+        [transactionItem?.shouldShowCategory, transactionItem?.shouldShowTag, transactionItem?.shouldShowTax],
+    );
 
     const handleActionButtonPress = useCallback(() => {
         handleActionButtonPressUtil(
@@ -139,7 +156,7 @@ function TransactionListItem<TItem extends ListItem>({
                     onButtonPress={handleActionButtonPress}
                     onCheckboxPress={handleCheckboxPress}
                     shouldUseNarrowLayout={!isLargeScreenWidth}
-                    columns={columns as Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>}
+                    columns={columns}
                     isActionLoading={isLoading ?? transactionItem.isActionLoading}
                     isSelected={!!transactionItem.isSelected}
                     dateColumnSize={dateColumnSize}
