@@ -1939,7 +1939,7 @@ function getValidOptions(
                 searchText += `${report.subtitle ?? ''}${report.policyName ?? ''}`;
             }
             searchText = deburr(searchText.toLocaleLowerCase());
-            const searchTermsFound = doSearchTermsMatch(searchTerms, searchText);
+            const searchTermsFound = searchTerms.every((term) => searchText.includes(term));
 
             if (!searchTermsFound) {
                 return false;
@@ -2016,7 +2016,7 @@ function getValidOptions(
             }
             const searchText = deburr(`${personalDetail.text ?? ''} ${personalDetail.login ?? ''}`.toLocaleLowerCase());
 
-            return doSearchTermsMatch(searchTerms, searchText);
+            return searchTerms.every((term) => searchText.includes(term));
         };
 
         personalDetailsOptions = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxElements, filteringFunction, true);
@@ -2713,9 +2713,6 @@ function processSearchString(searchString: string | undefined): string[] {
  * @param searchText - The text to search within
  * @returns True if all search terms are found in the search text
  */
-function doSearchTermsMatch(searchTerms: string[], searchText: string): boolean {
-    return searchTerms.length > 0 ? searchTerms.every((term) => searchText.includes(term)) : true;
-}
 
 export {
     canCreateOptimisticPersonalDetailOption,
