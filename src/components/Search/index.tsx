@@ -547,10 +547,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             Performance.markStart(CONST.TIMING.OPEN_REPORT_SEARCH);
             Timing.start(CONST.TIMING.OPEN_REPORT_SEARCH);
 
-            const backTo = Navigation.getActiveRoute();
-
             if (isTransactionGroupListItemType(item)) {
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
+                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}));
                 return;
             }
 
@@ -561,7 +559,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 Navigation.navigate(
                     ROUTES.SEARCH_REPORT.getRoute({
                         reportID: generatedReportID,
-                        backTo,
                         moneyRequestReportActionID: item.moneyRequestReportActionID,
                         transactionID: item.transactionID,
                     }),
@@ -571,11 +568,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             if (isReportActionListItemType(item)) {
                 const reportActionID = item.reportActionID;
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID}));
                 return;
             }
 
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID}));
         },
         [hash, isMobileSelectionModeEnabled, toggleTransaction],
     );
