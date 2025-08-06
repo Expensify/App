@@ -1481,6 +1481,19 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
 }
 
 /**
+ * Returns the corresponding translation key for withdrawal type
+ */
+function getWithdrawalTypeTranslationKey(withdrawalType: ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (withdrawalType) {
+        case CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT:
+            return 'search.withdrawalType.reimbursement';
+        case CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD:
+            return 'search.withdrawalType.expensifyCard';
+    }
+}
+
+/**
  * Constructs and configures the overflow menu for search items, handling interactions such as renaming or deleting items.
  */
 function getOverflowMenu(itemName: string, hash: number, inputQuery: string, showDeleteModal: (hash: number) => void, isMobileMenu?: boolean, closeMenu?: () => void) {
@@ -1790,6 +1803,7 @@ export {
     isReportActionListItemType,
     shouldShowYear,
     getExpenseTypeTranslationKey,
+    getWithdrawalTypeTranslationKey,
     getOverflowMenu,
     isCorrectSearchUserName,
     isReportActionEntry,

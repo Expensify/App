@@ -13,6 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {getWithdrawalTypeTranslationKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -21,16 +22,7 @@ function SearchFiltersWithdrawalTypePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const getWithdrawalTypeTranslationKey = useCallback((withdrawalType: ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>) => {
-        switch (withdrawalType) {
-            case CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT:
-                return 'search.withdrawalType.reimbursement' as const;
-            case CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD:
-                return 'search.withdrawalType.expensifyCard' as const;
-            default:
-                return 'search.withdrawalType.reimbursement' as const;
-        }
-    }, []);
+
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const [selectedItem, setSelectedItem] = useState(() => {
@@ -46,7 +38,7 @@ function SearchFiltersWithdrawalTypePage() {
             keyForList: withdrawalType,
             isSelected: selectedItem === withdrawalType,
         }));
-    }, [selectedItem, translate, getWithdrawalTypeTranslationKey]);
+    }, [selectedItem, translate]);
 
     const updateSelectedItem = useCallback((item: ListItem<ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>>) => {
         setSelectedItem(item?.keyForList ?? null);

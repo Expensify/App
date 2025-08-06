@@ -36,7 +36,7 @@ import {
     isSearchDatePreset,
     sortOptionsWithEmptyValue,
 } from '@libs/SearchQueryUtils';
-import {getExpenseTypeTranslationKey, getStatusOptions} from '@libs/SearchUIUtils';
+import {getExpenseTypeTranslationKey, getStatusOptions, getWithdrawalTypeTranslationKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -530,18 +530,9 @@ function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
 
 function getFilterWithdrawalTypeDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
     const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE];
-    if (!filterValue || !Object.values(CONST.SEARCH.WITHDRAWAL_TYPE).includes(filterValue as ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>)) {
-        return undefined;
-    }
-    
-    switch (filterValue) {
-        case CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT:
-            return translate('search.withdrawalType.reimbursement');
-        case CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD:
-            return translate('search.withdrawalType.expensifyCard');
-        default:
-            return undefined;
-    }
+    return filterValue && Object.values(CONST.SEARCH.WITHDRAWAL_TYPE).includes(filterValue as ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>)
+        ? translate(getWithdrawalTypeTranslationKey(filterValue as ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>))
+        : undefined;
 }
 
 function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, _: LocaleContextProps['translate'], reports?: OnyxCollection<Report>) {
