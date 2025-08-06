@@ -59,7 +59,7 @@ function IOURequestEditReportCommon({
     removeFromReport,
     isEditing = false,
     isUnreported,
-    shouldShowNotFoundPage = false,
+    shouldShowNotFoundPage,
 }: Props) {
     const {translate, localeCompare} = useLocalize();
     const {options} = useOptionsList();
