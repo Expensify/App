@@ -1,6 +1,7 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,6 +26,7 @@ type SearchSingleSelectionPickerProps = {
 function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle, onSaveSelection, shouldShowTextInput = true}: SearchSingleSelectionPickerProps) {
     const {translate, localeCompare} = useLocalize();
 
+    const selectionListRef = useRef<SelectionListHandle>(null);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedItem, setSelectedItem] = useState<SearchSingleSelectionPickerItem | undefined>(initiallySelectedItem);
 
@@ -54,11 +56,13 @@ function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle,
                           title: undefined,
                           data: selectedItemSection,
                           shouldShow: selectedItemSection.length > 0,
+                          indexOffset: 0,
                       },
                       {
                           title: pickerTitle,
                           data: remainingItemsSection,
                           shouldShow: remainingItemsSection.length > 0,
+                          indexOffset: selectedItemSection.length,
                       },
                   ],
             noResultsFound: isEmpty,
@@ -70,10 +74,9 @@ function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle,
             if (!item.text || !item.keyForList || !item.value) {
                 return;
             }
-            if (item.isSelected) {
-                setSelectedItem(undefined);
-            } else {
+            if (!item.isSelected) {
                 setSelectedItem({name: item.text, value: item.value});
+                selectionListRef?.current?.updateAndScrollToFocusedIndex(0);
             }
         },
         [selectedItem],
@@ -99,7 +102,9 @@ function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle,
     );
     return (
         <SelectionList
+            ref={selectionListRef}
             sections={sections}
+            initiallyFocusedOptionKey={initiallySelectedItem?.value}
             textInputValue={searchTerm}
             onChangeText={setSearchTerm}
             textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
@@ -110,6 +115,8 @@ function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle,
             showLoadingPlaceholder={!noResultsFound}
             shouldShowTooltips
             ListItem={SingleSelectListItem}
+            shouldDebounceScrolling
+            shouldUpdateFocusedIndex
         />
     );
 }
