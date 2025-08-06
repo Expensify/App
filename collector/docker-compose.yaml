@@ -38,14 +38,19 @@ services:
       - "4318:4318"   # otlp receiver (http)
 
 
-  # Prometheus
-  prometheus:
-    container_name: prometheus
-    image: prom/prometheus:latest
+  # VictoriaMetrics
+  victoriametrics:
+    container_name: victoriametrics
+    image: victoriametrics/victoria-metrics:latest
+    command:
+      - "-storageDataPath=/victoria-metrics-data"
+      - "-retentionPeriod=1d"
+      - "-promscrape.config=/etc/victoriametrics/scrape.yaml"
     volumes:
-      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+      - vm-data:/victoria-metrics-data
+      - ./victoriametrics.yaml:/etc/victoriametrics/scrape.yaml
     ports:
-      - "9090:9090"
+      - "8428:8428"
 
   # Grafana
   grafana:
@@ -64,3 +69,4 @@ services:
 volumes:
   grafana-storage:
   tempo-data:
+  vm-data:
