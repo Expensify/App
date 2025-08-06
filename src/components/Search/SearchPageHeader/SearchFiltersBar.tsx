@@ -163,6 +163,27 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         return [value, displayText];
     }, [filterFormValues.postedOn, filterFormValues.postedAfter, filterFormValues.postedBefore, translate]);
 
+    const [withdrawalTypeOptions, withdrawalType] = useMemo(() => {
+        const options = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE).map((value) => {
+            const getTranslationKey = () => {
+                switch (value) {
+                    case CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT:
+                        return 'search.withdrawalType.reimbursement' as const;
+                    case CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD:
+                        return 'search.withdrawalType.expensifyCard' as const;
+                    default:
+                        return 'search.withdrawalType.reimbursement' as const;
+                }
+            };
+            return {
+                value,
+                text: translate(getTranslationKey()),
+            };
+        });
+        const value = options.find((option) => option.value === filterFormValues.withdrawalType) ?? null;
+        return [options, value];
+    }, [filterFormValues.withdrawalType, translate]);
+
     const updateFilterForm = useCallback(
         (values: Partial<SearchAdvancedFiltersForm>) => {
             const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
@@ -219,6 +240,21 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
             );
         },
         [translate, groupByOptions, groupBy, updateFilterForm],
+    );
+
+    const withdrawalTypeComponent = useCallback(
+        ({closeOverlay}: PopoverComponentProps) => {
+            return (
+                <SingleSelectPopup
+                    label={translate('search.withdrawalType.title')}
+                    items={withdrawalTypeOptions}
+                    value={withdrawalType}
+                    closeOverlay={closeOverlay}
+                    onChange={(item) => updateFilterForm({withdrawalType: item?.value ?? ''})}
+                />
+            );
+        },
+        [translate, withdrawalTypeOptions, withdrawalType, updateFilterForm],
     );
 
     const feedComponent = useCallback(
@@ -331,6 +367,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         const shouldDisplayGroupByFilter = isDevelopment;
         const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues.feed;
         const shouldDisplayPostedFilter = !!filterFormValues.feed && (!!filterFormValues.postedOn || !!filterFormValues.postedAfter || !!filterFormValues.postedBefore);
+        const shouldDisplayWithdrawalTypeFilter = !!filterFormValues.withdrawalType;
 
         const filterList = [
             {
@@ -375,6 +412,16 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                 value: status.map((option) => option.text),
                 filterKey: FILTER_KEYS.STATUS,
             },
+            ...(shouldDisplayWithdrawalTypeFilter
+                ? [
+                      {
+                          label: translate('search.withdrawalType.title'),
+                          PopoverComponent: withdrawalTypeComponent,
+                          value: withdrawalType?.text ?? '',
+                          filterKey: FILTER_KEYS.WITHDRAWAL_TYPE,
+                      },
+                  ]
+                : []),
             {
                 label: translate('common.date'),
                 PopoverComponent: datePickerComponent,
@@ -413,6 +460,8 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         feed,
         feedComponent,
         feedOptions.length,
+        withdrawalType,
+        withdrawalTypeComponent,
     ]);
 
     if (hasErrors) {
