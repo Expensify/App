@@ -1,0 +1,13 @@
+coverage:
+  status:
+    project: off
+    patch: off
+
+comment:
+  layout: "newheader, diff, files, newfooter"
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: true
+  hide_comment_details: false
+  after_n_builds: 3

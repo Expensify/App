@@ -9,97 +9,103 @@ on:
         type: number
 
 jobs:
-  coverage:
+  setup:
     if: |
-      github.actor != 'OSBotify' &&
-      github.actor != 'imgbot[bot]' &&
-      github.actor != 'github-actions' &&
-      github.actor != 'melvin-bot' &&
-      github.actor != 'BlameGPT'
+        github.actor != 'OSBotify' &&
+        github.actor != 'imgbot[bot]' &&
+        github.actor != 'github-actions' &&
+        github.actor != 'melvin-bot' &&
+        github.actor != 'BlameGPT'
+    name: Install & Prepare
     runs-on: ubuntu-latest
-    name: Generate Coverage Report
+    outputs:
+      pr_sha: ${{ steps.pr-head.outputs.sha }}
+      cpu_cores: ${{ steps.cpu-cores.outputs.count }}
     steps:
-      - name: Get PR Info
-        id: get_pr
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const PR = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.inputs.pr_number
-            })
-            core.setOutput('repo', PR.data.head.repo.full_name)
-            core.setOutput('isDraft', PR.data.draft)
-            core.setOutput('ref', PR.data.head.ref)
-
-      - name: Skip Coverage Check for Draft PRs
-        if: steps.get_pr.outputs.isDraft == 'true'
-        run: |
-          echo "PR is a draft, skipping coverage check."
-          exit 0
-
-      - name: Checkout PR branch
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          repository: ${{ steps.get_pr.outputs.repo }}
-          ref: ${{ steps.get_pr.outputs.ref }}
+          fetch-depth: 2
+          ref: ${{ github.event.inputs.pr_number && format('refs/pull/{0}/merge', github.event.inputs.pr_number) || github.ref }}
 
-      - name: Setup Git for OSBotify
-        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
-        id: setupGitForOSBotify
+      - name: Set up Node
+        uses: actions/setup-node@v4
         with:
-          OP_VAULT: ${{ vars.OP_VAULT }}
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
-          OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
+          node-version: "18"
+          cache: "npm"
 
-      - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
+      - name: Install Dependencies
+        run: npm install
 
       - name: Get Number of CPU Cores
         id: cpu-cores
         uses: SimenB/github-actions-cpu-cores@31e91de0f8654375a21e8e83078be625380e2b18
 
-      - name: Check Changed Coverage src/ Files
-        id: check-src-changes
-        run: ./.github/scripts/checkCoverageChanges.sh
-
-      - name: Await Jest Unit Tests Completion Before Coverage
-        if: steps.check-src-changes.outputs.run_coverage == 'true'
-        uses: ./.github/actions/javascript/waitforJestTests
-        with:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Run Coverage for Changed Files
-        if: steps.check-src-changes.outputs.run_coverage == 'true'
-        run: ./.github/scripts/runCoverage.sh
+      - name: Get PR Head SHA
+        if: github.event.inputs.pr_number
+        id: pr-head
+        run: |
+          PR_HEAD_SHA="$(gh api repos/${{ github.repository }}/pulls/${{ github.event.inputs.pr_number }} --jq '.head.sha')"
+          echo "sha=$PR_HEAD_SHA" >> "$GITHUB_OUTPUT"
         env:
-          MAX_WORKERS: ${{ steps.cpu-cores.outputs.count }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Generate Baseline Coverage From The Main Branch
-        if: steps.check-src-changes.outputs.run_coverage == 'true'
-        run: ./.github/scripts/generateBaselineCoverage.sh
-        env:
-          MAX_WORKERS: ${{ steps.cpu-cores.outputs.count }}
-
-      - name: Configure AWS Credentials
-        if: steps.check-src-changes.outputs.run_coverage == 'true'
-        uses: aws-actions/configure-aws-credentials@v4
+  test-shards:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Deploy Coverage Static to S3
-        if: steps.check-src-changes.outputs.run_coverage == 'true'
-        run: ./.github/scripts/deployCoverageS3.sh "${{ github.event.inputs.pr_number }}" "${{ github.run_id }}"
-
-      - name: Post Coverage to PR
-        if: steps.check-src-changes.outputs.run_coverage == 'true'
-        uses: ./.github/actions/javascript/postTestCoverageComment
+          fetch-depth: 2
+          ref: ${{ github.event.inputs.pr_number && format('refs/pull/{0}/merge', github.event.inputs.pr_number) || github.ref }}
+      - uses: actions/setup-node@v4
         with:
-          OS_BOTIFY_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
-          PR_NUMBER: ${{ github.event.inputs.pr_number }}
-          COVERAGE_URL: ${{ env.COVERAGE_URL }}
-          BASE_COVERAGE_PATH: ./baseline-coverage
+          node-version: "18"
+          cache: "npm"
+      - run: npm install
+
+      - name: Run Jest Shard ${{ matrix.shard }}
+        run: npm test -- --coverage --silent --passWithNoTests --shard=${{ matrix.shard }}/${{ strategy.job-total }} --max-workers ${{ needs.setup.outputs.cpu_cores }}
+
+      - name: Check If Coverage Is Empty
+        id: check-coverage
+        run: |
+          if [ -s "coverage/lcov.info" ]; then
+            echo "hasCoverage=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "hasCoverage=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload Coverage to Codecov
+        if: success() && steps.check-coverage.outputs.hasCoverage == 'true'
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: shard-${{ matrix.shard }}
+          override_pr: ${{ github.event.inputs.pr_number || '' }}
+          override_commit: ${{ needs.setup.outputs.pr_sha || github.sha }}
+          files: coverage/lcov.info
+          verbose: true
+
+      - name: Check If Test Results Exist
+        id: check-results
+        run: |
+          if grep -q "<testcase" "junit.xml"; then
+            echo "hasResults=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "hasResults=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload Test Results to Codecov
+        if: ${{ steps.check-results.outputs.hasResults == 'true' }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: shard-${{ matrix.shard }}
+          override_pr: ${{ github.event.inputs.pr_number || '' }}
+          override_commit: ${{ needs.setup.outputs.pr_sha || github.sha }}
+          verbose: true
