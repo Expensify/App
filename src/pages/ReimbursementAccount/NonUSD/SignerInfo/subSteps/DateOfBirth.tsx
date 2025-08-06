@@ -5,7 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import WhyLink from '@pages/ReimbursementAccount/NonUSD/WhyLink';
+import WhyLink from '@pages/ReimbursementAccount/WhyLink';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 

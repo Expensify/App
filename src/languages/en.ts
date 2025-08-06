@@ -3186,14 +3186,17 @@ const translations = {
         legalName: 'Legal name',
         proofOf: 'Proof of personal address',
         enterOneEmail: ({companyName}: CompanyNameParams) => `Enter the email of director or senior officer at ${companyName}`,
-        regulationRequiresOneMoreDirector: 'Regulation requires at least more director or senior officer as a signer.',
+        enterOneEmailAuthorizedUser: 'Enter the email of an authorized user for his bank account',
+        regulationRequiresOneMoreDirector: 'Regulation requires at least one more director or senior officer as a signer.',
         hangTight: 'Hang tight...',
         enterTwoEmails: ({companyName}: CompanyNameParams) => `Enter the emails of two directors or senior officers at ${companyName}`,
         sendReminder: 'Send a reminder',
         chooseFile: 'Choose file',
         weAreWaiting: "We're waiting for others to verify their identities as directors or senior officers of the business.",
+        weAreWaitingAuthorizedUser: "We're waiting for others to verify their identities as authorized users for this bank account",
         id: 'Copy of ID',
         proofOfDirectors: 'Proof of director(s)',
+        proofOfAuthorizedUser: 'Proof of authorized user',
         proofOfDirectorsDescription: 'Examples: Oncorp Corporate Profile or Business Registration.',
         codiceFiscale: 'Codice Fiscale',
         codiceFiscaleDescription: 'Codice Fiscale for Signatories, Authorized Users and Beneficial Owners.',
@@ -3201,10 +3204,13 @@ const translations = {
         PDSandFSGDescription:
             "Our partnership with Corpay utilizes an API connection to take advantage of their vast network of international banking partners to power Global Reimbursements in Expensify. As per Australian regulation we are providing you with Corpay's Financial Services Guide (FSG) and Product Disclosure Statement (PDS).\n\nPlease read the FSG and PDS documents carefully as they contain full details and important information on the products and services Corpay offers. Retain these documents for future reference.",
         pleaseUpload: 'Please upload additional documentation below to help us verify your identity as a director or senior officer of the business entity.',
+        pleaseUploadAuthorizedUser: 'Please upload additional documentation below to help us verify your identity as an authorized user for this bank account.',
         enterSignerInfo: 'Enter signer info',
         thisStep: 'This step has been completed',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `is connecting a ${currency} business bank account ending in ${bankAccountLastFour} to Expensify to pay employees in ${currency}. The next step requires signer info from a director or senior officer.`,
+        isConnectingAuthorizedUser: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
+            `is connecting a ${currency} business bank account ending in ${bankAccountLastFour} to Expensify to pay employees in ${currency}. The next step requires signer info from an authorized user for this bank account.`,
     },
     agreementsStep: {
         agreements: 'Agreements',

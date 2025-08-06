@@ -50,6 +50,7 @@ function Name({onNext, onMove, isEditing}: SubStepProps) {
             inputMode={CONST.INPUT_MODE.TEXT}
             defaultValue={defaultValue}
             shouldShowHelpLinks={false}
+            shouldDelayAutoFocus
         />
     );
 }

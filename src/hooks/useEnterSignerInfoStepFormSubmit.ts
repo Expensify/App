@@ -18,7 +18,6 @@ type UseEnterSignerInfoStepFormSubmit = Pick<SubStepProps, 'onNext'> & {
  * @param shouldSaveDraft - if we should save draft values
  */
 export default function useEnterSignerInfoStepFormSubmit({onNext, fieldIds, shouldSaveDraft}: UseEnterSignerInfoStepFormSubmit) {
-    console.log('ee');
     return useStepFormSubmit<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>({
         formId: ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM,
         onNext,

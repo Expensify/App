@@ -91,6 +91,8 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_JOB_TITLE]: string;
     /** Signer email address */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_EMAIL]: string;
+    /** Second signer email address */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_EMAIL]: string;
     /** Signer full address */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
     /** Checkbox - provided truthful information */
@@ -232,6 +234,9 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether we are saving agreements accepted by user via the API (non USD flow Step 6) */
     isFinishingCorpayBankAccountOnboarding?: boolean;
+
+    /** Whether we are sending a reminder about filling signer information via the API */
+    isSendingReminderForCorpaySignerInformation?: boolean;
 
     /** Where the request is successful */
     isSuccess?: boolean;

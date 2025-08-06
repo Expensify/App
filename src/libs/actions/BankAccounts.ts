@@ -11,6 +11,7 @@ import type {
     FinishCorpayBankAccountOnboardingParams,
     OpenReimbursementAccountPageParams,
     SaveCorpayOnboardingBeneficialOwnerParams,
+    SendReminderForCorpaySignerInformationParams,
     ValidateBankAccountWithTransactionsParams,
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
@@ -726,6 +727,14 @@ function saveCorpayOnboardingDirectorInformation(parameters: SaveCorpayOnboardin
                     errors: null,
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM,
+                value: {
+                    isSavingSignerInformation: true,
+                    errors: null,
+                },
+            },
         ],
         successData: [
             {
@@ -736,6 +745,14 @@ function saveCorpayOnboardingDirectorInformation(parameters: SaveCorpayOnboardin
                     isSuccess: true,
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM,
+                value: {
+                    isSavingSignerInformation: false,
+                    isSuccess: true,
+                },
+            },
         ],
         failureData: [
             {
@@ -743,6 +760,15 @@ function saveCorpayOnboardingDirectorInformation(parameters: SaveCorpayOnboardin
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isSavingCorpayOnboardingDirectorInformation: false,
+                    isSuccess: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM,
+                value: {
+                    isSavingSignerInformation: false,
                     isSuccess: false,
                     errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
@@ -833,6 +859,44 @@ function finishCorpayBankAccountOnboarding(parameters: FinishCorpayBankAccountOn
     return API.write(WRITE_COMMANDS.FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING, parameters, onyxData);
 }
 
+function sendReminderForCorpaySignerInformation(parameters: SendReminderForCorpaySignerInformationParams) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isSendingReminderForCorpaySignerInformation: true,
+                    errors: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isSendingReminderForCorpaySignerInformation: false,
+                    isSuccess: true,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isSendingReminderForCorpaySignerInformation: false,
+                    isSuccess: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        ],
+    };
+
+    return API.write(WRITE_COMMANDS.SEND_REMINDER_FOR_CORPAY_SINGER_INFORMATION, parameters, onyxData);
+}
+
 function clearCorpayBankAccountFields() {
     Onyx.set(ONYXKEYS.CORPAY_FIELDS, null);
 }
@@ -855,6 +919,14 @@ function clearReimbursementAccountSaveCorpayOnboardingDirectorInformation() {
 
 function clearReimbursementAccountFinishCorpayBankAccountOnboarding() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSuccess: null, isFinishingCorpayBankAccountOnboarding: null});
+}
+
+function clearEnterSignerInformationFormSave() {
+    Onyx.merge(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM, {isSuccess: null, isSavingSignerInformation: null});
+}
+
+function clearReimbursementAccountSendReminderForCorpaySignerInformation() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSuccess: null, isSendingReminderForCorpaySignerInformation: null});
 }
 
 /**
@@ -1147,4 +1219,7 @@ export {
     clearReimbursementAccountFinishCorpayBankAccountOnboarding,
     askForCorpaySignerInformation,
     clearReimbursementAccount,
+    clearEnterSignerInformationFormSave,
+    sendReminderForCorpaySignerInformation,
+    clearReimbursementAccountSendReminderForCorpaySignerInformation,
 };

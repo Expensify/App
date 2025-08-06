@@ -215,7 +215,12 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
                 />
             )}
 
-            {currentSubStep === SUBSTEP.HANG_TIGHT && <HangTight tempSubmit={onSubmit} />}
+            {currentSubStep === SUBSTEP.HANG_TIGHT && (
+                <HangTight
+                    policyID={policyID ?? ''}
+                    bankAccountID={bankAccountID}
+                />
+            )}
         </InteractiveStepWrapper>
     );
 }
