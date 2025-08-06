@@ -33,12 +33,9 @@ jobs:
       - name: Comment on deploy blocker
         run: |
           gh issue comment ${{ github.event.issue.number }} --body "$(cat <<'EOF'
-          :wave: Friendly reminder that deploy blockers are time-sensitive ⏱ issues! [Check out the open \`StagingDeployCash\` deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) to see the list of PRs included in this release, then work quickly to do one of the following:
+          :wave: Friendly reminder that deploy blockers are time-sensitive ⏱ issues! [Check out the open \`StagingDeployCash\` deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) to see the list of PRs included in this release.
 
-          1. Identify the pull request that introduced this issue and revert it.
-          2. Find someone who can quickly fix the issue.
-          3. Fix the issue yourself.
-
+          We should ALWAYS prioritize identifying and reverting the pull request that introduced the issue over merging a new pull request that fixes the issue. Fix PRs should only be merged in very special cases, if you're unsure, tag @app-deployers in [#expensify-open-source](https://expensify.enterprise.slack.com/archives/C01GTK53T8Q) for next steps.
           EOF
           )"
         env:
