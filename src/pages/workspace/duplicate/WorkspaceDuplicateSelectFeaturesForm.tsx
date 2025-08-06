@@ -211,7 +211,8 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         }
         duplicateWorkspaceAction(policy, {
             policyName: duplicateWorkspace.name,
-            policyID: duplicateWorkspace.policyID,
+            policyID,
+            targetPolicyID: duplicateWorkspace.policyID,
             welcomeNote: `${translate('workspace.duplicateWorkspace.welcomeNote')} ${duplicateWorkspace.name}`,
             parts: {
                 people: selectedItems.includes('members'),
@@ -221,7 +222,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 tags: selectedItems.includes('tags'),
                 taxes: selectedItems.includes('taxes'),
                 reimbursements: selectedItems.includes('invoices'),
-                expenses: selectedItems.includes('reports'),
+                expenses: selectedItems.includes('rules'),
                 customUnits: selectedItems.includes('distanceRates'),
                 invoices: selectedItems.includes('invoices'),
                 exportLayouts: selectedItems.includes('workflows'),
@@ -229,7 +230,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             file: duplicateWorkspace?.file,
         });
         Navigation.closeRHPFlow();
-    }, [duplicateWorkspace?.file, duplicateWorkspace?.name, duplicateWorkspace?.policyID, policy, selectedItems, translate]);
+    }, [duplicateWorkspace?.file, duplicateWorkspace.name, duplicateWorkspace.policyID, policy, policyID, selectedItems, translate]);
 
     const updateSelectedItems = useCallback(
         (listItem: ListItem) => {

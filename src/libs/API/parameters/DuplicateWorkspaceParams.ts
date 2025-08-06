@@ -2,6 +2,7 @@ import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 
 type DuplicateWorkspaceParams = {
     policyID: string;
+    targetPolicyID: string;
     policyName: string;
     parts: Record<string, boolean>;
     announceChatReportID: string;

@@ -164,6 +164,7 @@ type BuildPolicyDataOptions = {
 type DuplicatePolicyDataOptions = {
     policyName: string;
     policyID?: string;
+    targetPolicyID?: string;
     welcomeNote: string;
     parts: Record<string, boolean>;
     file?: File | CustomRNImageManipulatorResult;
@@ -2476,8 +2477,7 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
 }
 
 function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOptions) {
-    const {policyName = '', policyID = generatePolicyID(), file, welcomeNote, parts} = options;
-    const {customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(policy?.outputCurrency);
+    const {policyName = '', policyID = generatePolicyID(), file, welcomeNote, parts, targetPolicyID = generatePolicyID()} = options;
 
     const {
         adminsChatReportID,
@@ -2489,22 +2489,23 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         expenseReportActionData,
         expenseCreatedReportActionID,
         pendingChatMembers,
-    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, policyName);
+    } = ReportUtils.buildOptimisticWorkspaceChats(targetPolicyID, policyName);
     const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
+    const {customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(policy?.outputCurrency);
 
-    const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(policyID, [...policyMemberAccountIDs]);
+    const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(targetPolicyID, [...policyMemberAccountIDs]);
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
 
-    const optimisticCategoriesData = buildOptimisticPolicyCategories(policyID, Object.values(CONST.POLICY.DEFAULT_CATEGORIES));
+    const optimisticCategoriesData = buildOptimisticPolicyCategories(targetPolicyID, Object.values(CONST.POLICY.DEFAULT_CATEGORIES));
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
             value: {
                 ...policy,
-                id: policyID,
+                id: targetPolicyID,
                 name: policyName,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 pendingFields: {
@@ -2568,7 +2569,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         },
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${targetPolicyID}`,
             value: null,
         },
         {
@@ -2587,7 +2588,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
             value: {
                 pendingAction: null,
                 pendingFields: {
@@ -2662,7 +2663,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
             value: {employeeList: null},
         },
         {
@@ -2705,6 +2706,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
 
     const params: DuplicateWorkspaceParams = {
         policyID,
+        targetPolicyID,
         adminsChatReportID,
         expenseChatReportID,
         policyName,
