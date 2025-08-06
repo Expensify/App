@@ -18,6 +18,7 @@ The **To-do** section surfaces key report actions so you can:
 - Submit expenses waiting on you
 - Approve reports that need your review
 - Pay approved reports ready for reimbursement
+- Export finalized reports to accounting platforms
 
 These shortcuts are personalized based on your role and workspace configuration, helping you process reports in batches without manually building advanced searches.
 
@@ -31,6 +32,7 @@ Depending on your role, you’ll see shortcuts like:
 - **Submit** – Reports you’ve drafted and need to submit.
 - **Approve** – Reports awaiting your review.
 - **Pay** – Reports ready for reimbursement.
+- **Export** – Reports ready for accounting export (e.g., to QuickBooks).
 
 ---
 
@@ -52,6 +54,10 @@ Depending on your role, you’ll see shortcuts like:
 - See **Pay** for reports ready to reimburse.
 - See a celebratory message (e.g., “All reports paid!”) when cleared.
 
+### Admins (Exports)
+- See **Export** for reports eligible for accounting export (e.g., to QuickBooks Online).
+- Filter uses `exported:never` to show only unexported reports.
+
 ---
 
 # Best Practices
@@ -64,7 +70,7 @@ Depending on your role, you’ll see shortcuts like:
 
 # FAQ
 
-## What if I don't see the Submit, Approve, or Pay options?
+## What if I don't see the Submit, Approve, Pay or Export options?
 
 These search shortcuts only appear when:
 - You have reports that require those actions.
@@ -77,6 +83,6 @@ Not yet. The **Workspace filter** is currently single-select. Multi-workspace su
 ## What is the difference between Explore and To-do?
 
 - **Explore** = General browsing (e.g., Expenses, Chats)
-- **To-do** = Personalized actions based on your role (e.g., Submit, Approve, Pay)
+- **To-do** = Personalized actions based on your role (e.g., Submit, Approve, Pay, Export)
 
 </div>
