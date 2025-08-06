@@ -119,6 +119,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             currentVideoViewRef: video.viewRef,
             playVideo: video.play,
             pauseVideo: video.pause,
+            replayVideo: video.replay,
             checkIfVideoIsPlaying: video.isPlaying,
             resetVideoPlayerData: video.resetPlayerData,
         }),

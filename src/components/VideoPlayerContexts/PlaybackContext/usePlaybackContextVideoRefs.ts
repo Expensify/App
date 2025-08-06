@@ -13,6 +13,10 @@ function usePlaybackContextVideoRefs(resetCallback: () => void) {
         currentVideoPlayerRef.current?.pause();
     }, []);
 
+    const replayVideo: PlaybackContextVideoRefs['replay'] = useCallback(() => {
+        currentVideoPlayerRef.current?.replay();
+    }, []);
+
     const stopVideo: StopVideo = useCallback(() => {
         if (!currentVideoPlayerRef.current) {
             return;
@@ -44,11 +48,12 @@ function usePlaybackContextVideoRefs(resetCallback: () => void) {
             viewRef: currentVideoViewRef,
             play: playVideo,
             pause: pauseVideo,
+            replay: replayVideo,
             isPlaying: checkIfVideoIsPlaying,
             resetPlayerData: resetVideoPlayerData,
             updateRefs: updateCurrentVideoPlayerRefs,
         }),
-        [checkIfVideoIsPlaying, pauseVideo, playVideo, resetVideoPlayerData],
+        [checkIfVideoIsPlaying, pauseVideo, playVideo, replayVideo, resetVideoPlayerData],
     );
 }
 

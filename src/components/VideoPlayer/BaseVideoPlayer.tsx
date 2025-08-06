@@ -50,8 +50,18 @@ function BaseVideoPlayer({
     reportID,
 }: VideoPlayerProps & {reportID: string}) {
     const styles = useThemeStyles();
-    const {pauseVideo, playVideo, currentlyPlayingURL, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef, updateCurrentURLAndReportID, setCurrentlyPlayingURL} =
-        usePlaybackContext();
+    const {
+        pauseVideo,
+        playVideo,
+        replayVideo,
+        currentlyPlayingURL,
+        sharedElement,
+        originalParent,
+        shareVideoPlayerElements,
+        currentVideoPlayerRef,
+        updateCurrentURLAndReportID,
+        setCurrentlyPlayingURL,
+    } = usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
     const {isOffline} = useNetwork();
     const [duration, setDuration] = useState(videoDuration);
@@ -83,8 +93,8 @@ function BaseVideoPlayer({
     const {status} = useEvent(videoPlayer, 'statusChange', {status: 'idle'} as StatusChangeEventPayload);
 
     const isLoading = useMemo(() => {
-        return status === 'loading' || status === 'idle';
-    }, [status]);
+        return status === 'loading' || (status === 'idle' && !isEnded);
+    }, [isEnded, status]);
 
     const isBuffering = useMemo(() => {
         return bufferedPosition <= 0;
@@ -113,15 +123,18 @@ function BaseVideoPlayer({
     }, [videoPlayer]);
 
     const togglePlayCurrentVideo = useCallback(() => {
-        setIsEnded(false);
         if (!isCurrentlyURLSet) {
             updateCurrentURLAndReportID(url, reportID);
         } else if (videoPlayer.playing && !isLoading) {
             pauseVideo();
         } else if (!isLoading) {
+            if (isEnded) {
+                replayVideo();
+            }
             playVideo();
         }
-    }, [isCurrentlyURLSet, videoPlayer.playing, isLoading, updateCurrentURLAndReportID, url, reportID, pauseVideo, playVideo]);
+        setIsEnded(false);
+    }, [isCurrentlyURLSet, videoPlayer.playing, isLoading, updateCurrentURLAndReportID, url, reportID, pauseVideo, isEnded, playVideo, replayVideo]);
 
     const hideControl = useCallback(() => {
         if (isEnded) {
