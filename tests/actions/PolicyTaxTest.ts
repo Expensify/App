@@ -684,7 +684,7 @@ describe('actions/PolicyTax', () => {
             const taxID = 'id_TAX_RATE_1';
 
             mockFetch?.pause?.();
-            deletePolicyTaxes(fakePolicy, [taxID]);
+            deletePolicyTaxes(fakePolicy, [taxID], TestHelper.localeCompare);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -738,7 +738,7 @@ describe('actions/PolicyTax', () => {
                 },
             };
             mockFetch?.pause?.();
-            deletePolicyTaxes(fakePolicyWithForeignTaxDefault, [taxID]);
+            deletePolicyTaxes(fakePolicyWithForeignTaxDefault, [taxID], TestHelper.localeCompare);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -785,7 +785,7 @@ describe('actions/PolicyTax', () => {
             const taxID = 'id_TAX_RATE_1';
 
             mockFetch?.pause?.();
-            deletePolicyTaxes(fakePolicy, [taxID]);
+            deletePolicyTaxes(fakePolicy, [taxID], TestHelper.localeCompare);
             return waitForBatchedUpdates()
                 .then(
                     () =>

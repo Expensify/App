@@ -2,8 +2,8 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -28,6 +28,7 @@ function TableListItem<TItem extends ListItem>({
     shouldSyncFocus,
     titleContainerStyles,
     shouldUseDefaultRightHandSideCheckmark,
+    shouldAnimateInHighlight,
 }: TableListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -35,7 +36,7 @@ function TableListItem<TItem extends ListItem>({
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: styles.selectionListPressableItemWrapper.borderRadius,
-        shouldHighlight: !!item.shouldAnimateInHighlight,
+        shouldHighlight: !!shouldAnimateInHighlight,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
     });
@@ -59,7 +60,7 @@ function TableListItem<TItem extends ListItem>({
                     styles.selectionListPressableItemWrapper,
                     styles.mh0,
                     // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
-                    item.shouldAnimateInHighlight ? styles.bgTransparent : undefined,
+                    shouldAnimateInHighlight ? styles.bgTransparent : undefined,
                     item.isSelected && styles.activeComponentBG,
                     item.cursorStyle,
                 ],
@@ -107,11 +108,11 @@ function TableListItem<TItem extends ListItem>({
                             </View>
                         </PressableWithFeedback>
                     )}
-                    {!!item.icons && (
-                        <MultipleAvatars
-                            icons={item.icons ?? []}
+                    {!!item.accountID && (
+                        <ReportActionAvatars
+                            accountIDs={[item.accountID]}
                             shouldShowTooltip={showTooltip}
-                            secondAvatarStyle={[
+                            secondaryAvatarContainerStyle={[
                                 StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
                                 isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                 hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,

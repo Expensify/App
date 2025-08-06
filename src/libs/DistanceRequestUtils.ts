@@ -77,6 +77,8 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
 
 /**
  * Retrieves the default mileage rate based on a given policy.
+ * Default rate is the first created rate when you create the policy.
+ * It's NOT always the rate whose name is "Default rate" because rate name is now changeable.
  *
  * @param policy - The policy from which to extract the default mileage rate.
  *
@@ -96,7 +98,7 @@ function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy>): MileageRate | 
     }
     const mileageRates = Object.values(getMileageRates(policy));
 
-    const distanceRate = mileageRates.find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE) ?? mileageRates.at(0) ?? ({} as MileageRate);
+    const distanceRate = mileageRates.at(0) ?? ({} as MileageRate);
 
     return {
         customUnitRateID: distanceRate.customUnitRateID,
@@ -246,6 +248,8 @@ function ensureRateDefined(rate: number | undefined): asserts rate is number {
 /**
  * Retrieves the rate and unit for a P2P distance expense for a given currency.
  *
+ * Let's ensure this logic is consistent with the logic in the backend (Auth), since we're using the same method to calculate the rate value in distance requests created via Concierge.
+ *
  * @param currency
  * @returns The rate and unit in MileageRate object.
  */
@@ -351,6 +355,8 @@ function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxE
 /**
  * Get the selected rate for a transaction, from the policy or P2P default rate.
  * Use the distanceUnit stored on the transaction by default to prevent policy changes modifying existing transactions. Otherwise, get the unit from the rate.
+ *
+ * Let's ensure this logic is consistent with the logic in the backend (Auth), since we're using the same method to calculate the rate value in distance requests created via Concierge.
  */
 function getRate({
     transaction,
