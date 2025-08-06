@@ -35,6 +35,7 @@ import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
+import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {calculateBillNewDot, clearDeleteWorkspaceError, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace, updateDefaultPolicy} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
@@ -44,6 +45,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {getPolicy, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
@@ -168,6 +170,15 @@ function WorkspacesListPage() {
         setLoadingSpinnerIconIndex(null);
     }, []);
 
+    const startChangeOwnershipFlow = useCallback(
+        (policyID: string) => {
+            clearWorkspaceOwnerChangeFlow(policyID);
+            requestWorkspaceOwnerChange(policyID);
+            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, session?.accountID ?? 0, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
+        },
+        [session?.accountID],
+    );
+
     /**
      * Gets the menu item for each workspace
      */
@@ -232,6 +243,14 @@ function WorkspacesListPage() {
                 });
             }
 
+            if (isAdmin && !isOwner && shouldRenderTransferOwnerButton()) {
+                threeDotsMenuItems.push({
+                    icon: Expensicons.Transfer,
+                    text: translate('workspace.people.transferOwner'),
+                    onSelected: () => startChangeOwnershipFlow(item.policyID ?? ''),
+                });
+            }
+
             return (
                 <OfflineWithFeedback
                     key={`${item.title}_${index}`}
@@ -288,6 +307,7 @@ function WorkspacesListPage() {
             shouldCalculateBillNewDot,
             loadingSpinnerIconIndex,
             resetLoadingSpinnerIconIndex,
+            startChangeOwnershipFlow,
         ],
     );
 
