@@ -19,7 +19,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {addLog} from '@libs/actions/Console';
 import {createLog, parseStringifiedMessages, sanitizeConsoleInput} from '@libs/Console';
 import type {Log} from '@libs/Console';
@@ -50,7 +49,6 @@ function ConsolePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.CONSOLE>>();
     const isAuthenticated = useIsAuthenticated();
 
@@ -163,7 +161,6 @@ function ConsolePage() {
                 onBackButtonPress={() => Navigation.goBack(route.params?.backTo)}
                 shouldShowThreeDotsButton
                 threeDotsMenuItems={menuItems}
-                threeDotsAnchorPosition={threeDotsAnchorPosition}
                 threeDotsMenuIcon={Expensicons.Filter}
                 threeDotsMenuIconFill={theme.icon}
             />

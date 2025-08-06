@@ -21,7 +21,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -147,7 +146,6 @@ function IOURequestStepConfirmation({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {isOffline} = useNetwork();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [selectedParticipantList, setSelectedParticipantList] = useState<Participant[]>([]);
@@ -1050,7 +1048,6 @@ function IOURequestStepConfirmation({
                         subtitle={hasMultipleTransactions ? `${currentTransactionIndex + 1} ${translate('common.of')} ${transactions.length}` : undefined}
                         onBackButtonPress={navigateBack}
                         shouldShowThreeDotsButton={shouldShowThreeDotsButton}
-                        threeDotsAnchorPosition={threeDotsAnchorPosition}
                         threeDotsMenuItems={[
                             {
                                 icon: Expensicons.Receipt,

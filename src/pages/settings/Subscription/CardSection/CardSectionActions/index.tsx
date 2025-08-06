@@ -1,12 +1,11 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import usePopoverPosition from '@hooks/usePopoverPosition';
 import Navigation from '@navigation/Navigation';
-import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -16,7 +15,6 @@ const anchorAlignment = {
 };
 
 function CardSectionActions() {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const threeDotsMenuContainerRef = useRef<View>(null);
 
@@ -36,24 +34,12 @@ function CardSectionActions() {
         [translate],
     );
 
-    const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
-        if (shouldUseNarrowLayout) {
-            return Promise.resolve({horizontal: 0, vertical: 0});
-        }
-        return new Promise<AnchorPosition>((resolve) => {
-            threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
-                resolve({
-                    horizontal: x + width,
-                    vertical: y + height,
-                });
-            });
-        });
-    }, [shouldUseNarrowLayout]);
+    const {calculatePopoverPosition} = usePopoverPosition();
 
     return (
         <View ref={threeDotsMenuContainerRef}>
             <ThreeDotsMenu
-                getAnchorPosition={calculateAndSetThreeDotsMenuPosition}
+                getAnchorPosition={() => calculatePopoverPosition(threeDotsMenuContainerRef)}
                 menuItems={overflowMenu}
                 anchorAlignment={anchorAlignment}
                 shouldOverlay

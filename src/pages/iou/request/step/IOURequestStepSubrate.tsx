@@ -18,7 +18,6 @@ import ValuePicker from '@components/ValuePicker';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
@@ -70,7 +69,6 @@ function IOURequestStepSubrate({
     const styles = useThemeStyles();
     const policy = usePolicy(report?.policyID);
     const customUnit = getPerDiemCustomUnit(policy);
-    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const navigation = useNavigation();
@@ -185,7 +183,6 @@ function IOURequestStepSubrate({
                     onBackButtonPress={goBack}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     shouldSetModalVisibility={false}
-                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                     threeDotsMenuItems={[
                         {
                             icon: Expensicons.Trashcan,

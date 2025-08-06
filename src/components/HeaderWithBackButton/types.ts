@@ -5,7 +5,6 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {Action} from '@hooks/useSingleExecution';
 import type {StepCounterParams} from '@src/languages/params';
 import type {TranslationPaths} from '@src/languages/types';
-import type {AnchorPosition} from '@src/styles';
 import type {Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
@@ -84,9 +83,6 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** List of menu items for more(three dots) menu */
     threeDotsMenuItems?: PopoverMenuItem[];
-
-    /** The anchor position of the menu */
-    threeDotsAnchorPosition?: AnchorPosition;
 
     /** The anchor alignment of the menu */
     threeDotsAnchorAlignment?: AnchorAlignment;

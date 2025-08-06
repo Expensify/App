@@ -11,6 +11,7 @@ import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useSidePanel from '@hooks/useSidePanel';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobile} from '@libs/Browser';
@@ -52,6 +53,7 @@ function ThreeDotsMenu({
     const buttonRef = useRef<View>(null);
     const {translate} = useLocalize();
     const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;
+    const {isSidePanelTransitionEnded} = useSidePanel();
 
     const showPopoverMenu = () => {
         setPopupMenuVisible(true);
@@ -75,6 +77,13 @@ function ThreeDotsMenu({
         }
         hidePopoverMenu();
     }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible]);
+
+    useEffect(() => {
+        if (isSidePanelTransitionEnded) {
+            return;
+        }
+        hidePopoverMenu();
+    }, [hidePopoverMenu, isSidePanelTransitionEnded]);
 
     const onThreeDotsPress = () => {
         if (isPopupMenuVisible) {

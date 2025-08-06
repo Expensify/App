@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useRef} from 'react';
 import {ActivityIndicator, Keyboard, StyleSheet, View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
 import Avatar from '@components/Avatar';
@@ -13,6 +13,7 @@ import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import usePopoverPosition from '@hooks/usePopoverPosition';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -51,10 +52,6 @@ function HeaderWithBackButton({
     subtitle = '',
     title = '',
     titleColor,
-    threeDotsAnchorPosition = {
-        vertical: 0,
-        horizontal: 0,
-    },
     threeDotsAnchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -80,6 +77,8 @@ function HeaderWithBackButton({
     const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
+    const threeDotContainerRef = useRef<View | null>(null);
+    const {calculatePopoverPosition} = usePopoverPosition();
 
     const middleContent = useMemo(() => {
         if (progressBarPercentage) {
@@ -153,34 +152,36 @@ function HeaderWithBackButton({
                     </PressableWithoutFeedback>
                 </Tooltip>
             ) : (
-                <ThreeDotsMenu
-                    icon={threeDotsMenuIcon}
-                    iconFill={threeDotsMenuIconFill}
-                    disabled={shouldDisableThreeDotsButton}
-                    menuItems={threeDotsMenuItems}
-                    onIconPress={onThreeDotsButtonPress}
-                    anchorPosition={threeDotsAnchorPosition}
-                    shouldOverlay={shouldOverlayDots}
-                    anchorAlignment={threeDotsAnchorAlignment}
-                    shouldSetModalVisibility={shouldSetModalVisibility}
-                />
+                <View ref={threeDotContainerRef}>
+                    <ThreeDotsMenu
+                        getAnchorPosition={() => calculatePopoverPosition(threeDotContainerRef)}
+                        icon={threeDotsMenuIcon}
+                        iconFill={threeDotsMenuIconFill}
+                        disabled={shouldDisableThreeDotsButton}
+                        menuItems={threeDotsMenuItems}
+                        onIconPress={onThreeDotsButtonPress}
+                        shouldOverlay={shouldOverlayDots}
+                        anchorAlignment={threeDotsAnchorAlignment}
+                        shouldSetModalVisibility={shouldSetModalVisibility}
+                    />
+                </View>
             );
         }
         return null;
     }, [
-        onThreeDotsButtonPress,
-        shouldDisableThreeDotsButton,
-        shouldOverlayDots,
-        shouldSetModalVisibility,
         shouldShowThreeDotsButton,
-        styles.touchableButtonImage,
-        theme.icon,
-        threeDotsAnchorAlignment,
-        threeDotsAnchorPosition,
-        threeDotsMenuIcon,
-        threeDotsMenuIconFill,
         threeDotsMenuItems,
         shouldMinimizeMenuButton,
+        styles.touchableButtonImage,
+        theme.icon,
+        threeDotsMenuIcon,
+        threeDotsMenuIconFill,
+        shouldDisableThreeDotsButton,
+        onThreeDotsButtonPress,
+        shouldOverlayDots,
+        threeDotsAnchorAlignment,
+        shouldSetModalVisibility,
+        calculatePopoverPosition,
     ]);
 
     return (

@@ -474,7 +474,6 @@ function AttachmentModal({
                         onBackButtonPress={closeModal}
                         onCloseButtonPress={closeModal}
                         shouldShowThreeDotsButton={shouldShowThreeDotsButton}
-                        threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
                         threeDotsAnchorAlignment={{
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
