@@ -236,6 +236,8 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                     value={groupCurrency}
                     closeOverlay={closeOverlay}
                     onChange={(item) => updateFilterForm({groupCurrency: item?.value})}
+                    searchable
+                    searchPlaceholder={translate('common.groupCurrency')}
                 />
             );
         },
