@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftSplitTransaction, setMoneyRequestTag, updateMoneyRequestTag} from '@libs/actions/IOU';
 import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
@@ -36,7 +37,7 @@ type IOURequestStepTagProps = WithWritableReportOrNotFoundProps<typeof SCREENS.M
 function IOURequestStepTag({
     report,
     route: {
-        params: {action, orderWeight: rawTagIndex, transactionID, backTo, iouType, reportActionID},
+        params: {action, orderWeight: rawTagIndex, transactionID, backTo, iouType, reportActionID, reportID: reportIDFromRoute},
     },
     transaction,
 }: IOURequestStepTagProps) {
@@ -53,6 +54,7 @@ function IOURequestStepTag({
     const styles = useThemeStyles();
     const {currentSearchHash} = useSearchContext();
     const {translate} = useLocalize();
+    useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
 
     const tagListIndex = Number(rawTagIndex);
     const policyTagListName = getTagListName(policyTags, tagListIndex);
