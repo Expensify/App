@@ -11622,6 +11622,23 @@ async function run() {
         const prList = await GitUtils_1.default.getPullRequestsDeployedBetween(priorTag, inputTag, CONST_1.default.APP_REPO);
         console.log('Found the pull request list: ', prList);
         core.setOutput('PR_LIST', prList);
+        // Get Mobile-Expensify PRs deployed between the same tags
+        let mobileExpensifyPRList = [];
+        try {
+            mobileExpensifyPRList = await GitUtils_1.default.getPullRequestsDeployedBetween(priorTag, inputTag, CONST_1.default.MOBILE_EXPENSIFY_REPO);
+            console.log('Found Mobile-Expensify pull request list: ', mobileExpensifyPRList);
+        }
+        catch (error) {
+            // Check if this is a forked repository
+            if (process.env.GITHUB_REPOSITORY !== 'Expensify/App') {
+                console.warn("⚠️ Unable to fetch Mobile-Expensify PRs because this workflow is running on a forked repository and secrets aren't accessible. This is expected for development/testing on forks.");
+            }
+            else {
+                console.error('Failed to fetch Mobile-Expensify PRs from main repository:', error);
+                // Don't fail the entire workflow, just skip Mobile-Expensify PRs
+            }
+        }
+        core.setOutput('MOBILE_EXPENSIFY_PR_LIST', mobileExpensifyPRList);
     }
     catch (error) {
         console.error(error.message);
