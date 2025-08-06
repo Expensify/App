@@ -249,8 +249,245 @@ const tests = [
     },
 ];
 
+const nameFieldContinuationTests = [
+    {
+        query: 'to:John Smi',
+        expected: {
+            autocomplete: null,
+            ranges: [{key: 'to', value: 'John', start: 3, length: 4}],
+        },
+        description: 'Basic partial name - parser should return null autocomplete for continuation text',
+    },
+    {
+        query: 'from:Jane Do',
+        expected: {
+            autocomplete: null,
+            ranges: [{key: 'from', value: 'Jane', start: 5, length: 4}],
+        },
+        description: 'From field partial name - parser should return null autocomplete for continuation text',
+    },
+    {
+        query: 'assignee:Bob Mar',
+        expected: {
+            autocomplete: null,
+            ranges: [{key: 'assignee', value: 'Bob', start: 9, length: 3}],
+        },
+        description: 'Assignee field partial name - parser should return null autocomplete for continuation text',
+    },
+    {
+        query: 'payer:Alice Wond',
+        expected: {
+            autocomplete: null,
+            ranges: [{key: 'payer', value: 'Alice', start: 6, length: 5}],
+        },
+        description: 'Payer field partial name - parser should return null autocomplete for continuation text',
+    },
+    {
+        query: 'exporter:Charlie Bro',
+        expected: {
+            autocomplete: null,
+            ranges: [{key: 'exporter', value: 'Charlie', start: 9, length: 7}],
+        },
+        description: 'Exporter field partial name - parser should return null autocomplete for continuation text',
+    },
+
+    {
+        query: 'to:John Smith Doe',
+        expected: {
+            autocomplete: null,
+            ranges: [{key: 'to', value: 'John', start: 3, length: 4}],
+        },
+        description: 'Multiple word continuation - parser should only parse first token, rest is free text',
+    },
+    {
+        query: 'from:Mary Jane Wat',
+        expected: {
+            autocomplete: null,
+            ranges: [{key: 'from', value: 'Mary', start: 5, length: 4}],
+        },
+        description: 'Multiple word continuation with partial last name - parser should only parse first token',
+    },
+
+    {
+        query: 'to:John  Smi',
+        expected: {
+            autocomplete: null,
+            ranges: [{key: 'to', value: 'John', start: 3, length: 4}],
+        },
+        description: 'Multiple spaces before continuation text',
+    },
+    {
+        query: 'to:John\tSmi',
+        expected: {
+            autocomplete: null,
+            ranges: [{key: 'to', value: 'John', start: 3, length: 4}],
+        },
+        description: 'Tab character before continuation text',
+    },
+
+    {
+        query: 'category:Travel Exp',
+        expected: {
+            autocomplete: null,
+            ranges: [{key: 'category', value: 'Travel', start: 9, length: 6}],
+        },
+        description: 'Non-name field with space - parser treats space as separator, continuation logic applies in UI',
+    },
+    {
+        query: 'tag:Office Sup',
+        expected: {
+            autocomplete: null,
+            ranges: [{key: 'tag', value: 'Office', start: 4, length: 6}],
+        },
+        description: 'Tag field with space - parser treats space as separator, continuation logic applies in UI',
+    },
+
+    {
+        query: 'type:expense to:John Smi amount>100',
+        expected: {
+            autocomplete: null,
+            ranges: [
+                {key: 'type', value: 'expense', start: 5, length: 7},
+                {key: 'to', value: 'John', start: 16, length: 4},
+            ],
+        },
+        description: 'Complex query with name field continuation should return null autocomplete',
+    },
+    {
+        query: 'from:Jane Do category:Travel',
+        expected: {
+            autocomplete: {
+                key: 'category',
+                value: 'Travel',
+                start: 22,
+                length: 6,
+            },
+            ranges: [
+                {key: 'from', value: 'Jane', start: 5, length: 4},
+                {key: 'category', value: 'Travel', start: 22, length: 6},
+            ],
+        },
+        description: 'Mixed query with name continuation and other field should autocomplete the other field',
+    },
+
+    {
+        query: 'to:John',
+        expected: {
+            autocomplete: {
+                key: 'to',
+                value: 'John',
+                start: 3,
+                length: 4,
+            },
+            ranges: [{key: 'to', value: 'John', start: 3, length: 4}],
+        },
+        description: 'Complete single name should still provide autocomplete',
+    },
+    {
+        query: 'to:"John Smith"',
+        expected: {
+            autocomplete: {
+                key: 'to',
+                value: 'John Smith',
+                start: 3,
+                length: 12,
+            },
+            ranges: [{key: 'to', value: 'John Smith', start: 3, length: 12}],
+        },
+        description: 'Quoted complete name should provide autocomplete',
+    },
+
+    {
+        query: "to:John O'Con",
+        expected: {
+            autocomplete: null,
+            ranges: [{key: 'to', value: 'John', start: 3, length: 4}],
+        },
+        description: 'Name continuation with apostrophe should return null autocomplete',
+    },
+    {
+        query: 'to:John-Paul Smi',
+        expected: {
+            autocomplete: null,
+            ranges: [{key: 'to', value: 'John-Paul', start: 3, length: 9}],
+        },
+        description: 'Hyphenated first name with continuation should return null autocomplete',
+    },
+
+    {
+        query: 'to:John Smi',
+        expected: {
+            autocomplete: null,
+            ranges: [{key: 'to', value: 'John', start: 3, length: 4}],
+        },
+        description: 'Original issue scenario - to:John Smi should return null autocomplete for continuation detection',
+    },
+    {
+        query: 'to:FirstName PartialLastName',
+        expected: {
+            autocomplete: null,
+            ranges: [{key: 'to', value: 'FirstName', start: 3, length: 9}],
+        },
+        description: 'Test case scenario - to:FirstName PartialLastName should return null autocomplete',
+    },
+    {
+        query: 'from:Alice Bob',
+        expected: {
+            autocomplete: null,
+            ranges: [{key: 'from', value: 'Alice', start: 5, length: 5}],
+        },
+        description: 'From field with two names should return null autocomplete for continuation',
+    },
+    {
+        query: 'assignee:Manager Partial',
+        expected: {
+            autocomplete: null,
+            ranges: [{key: 'assignee', value: 'Manager', start: 9, length: 7}],
+        },
+        description: 'Assignee field with partial second name should return null autocomplete',
+    },
+
+    {
+        query: 'to:John,Jane',
+        expected: {
+            autocomplete: {
+                key: 'to',
+                value: 'Jane',
+                start: 8,
+                length: 4,
+            },
+            ranges: [
+                {key: 'to', value: 'John', start: 3, length: 4},
+                {key: 'to', value: 'Jane', start: 8, length: 4},
+            ],
+        },
+        description: 'Comma-separated names should provide autocomplete for last value',
+    },
+    {
+        query: 'to:"John Smith"',
+        expected: {
+            autocomplete: {
+                key: 'to',
+                value: 'John Smith',
+                start: 3,
+                length: 12,
+            },
+            ranges: [{key: 'to', value: 'John Smith', start: 3, length: 12}],
+        },
+        description: 'Quoted full name should provide autocomplete normally',
+    },
+];
+
 describe('autocomplete parser', () => {
     test.each(tests)(`parsing: $query`, ({query, expected}) => {
+        const result = parse(query) as SearchQueryJSON;
+
+        expect(result).toEqual(expected);
+    });
+});
+
+describe('autocomplete parser - name field continuation detection', () => {
+    test.each(nameFieldContinuationTests)(`$description: $query`, ({query, expected}) => {
         const result = parse(query) as SearchQueryJSON;
 
         expect(result).toEqual(expected);
