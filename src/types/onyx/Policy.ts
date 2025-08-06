@@ -1889,6 +1889,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Report Fields feature is enabled */
         areReportFieldsEnabled?: boolean;
 
+        /** Whether the Receipt Partners feature is enabled */
+        areReceiptPartnersEnabled?: boolean;
+
         /** Whether the Connections feature is enabled */
         areConnectionsEnabled?: boolean;
 

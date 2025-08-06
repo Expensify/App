@@ -14,13 +14,9 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data) => {
             return;
         }
 
-        console.log(value);
-
         validateFormDataParameter(command, key, value);
         formData.append(key, value as string | Blob);
     });
-
-    console.log(formData.entries());
 
     return Promise.resolve(formData);
 };
