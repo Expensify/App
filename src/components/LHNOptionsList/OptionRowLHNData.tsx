@@ -31,6 +31,7 @@ function OptionRowLHNData({
     lastReportActionTransaction,
     transactionViolations,
     lastMessageTextFromReport,
+    privatePersonalDetails,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
@@ -50,6 +51,7 @@ function OptionRowLHNData({
             parentReportAction,
             lastMessageTextFromReport,
             invoiceReceiverPolicy,
+            privatePersonalDetails,
         });
         // eslint-disable-next-line react-compiler/react-compiler
         if (deepEqual(item, optionItemRef.current)) {
@@ -82,6 +84,7 @@ function OptionRowLHNData({
         invoiceReceiverPolicy,
         lastMessageTextFromReport,
         reportAttributes,
+        privatePersonalDetails,
     ]);
 
     return (

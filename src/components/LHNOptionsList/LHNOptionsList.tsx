@@ -59,6 +59,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY, {canBeMissing: true});
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -246,6 +247,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     isFullscreenVisible={isFullscreenVisible}
                     isReportsSplitNavigatorLast={isReportsSplitNavigatorLast}
                     isScreenFocused={isScreenFocused}
+                    privatePersonalDetails={privatePersonalDetails}
                 />
             );
         },
@@ -271,6 +273,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             isFullscreenVisible,
             isReportsSplitNavigatorLast,
             isScreenFocused,
+            privatePersonalDetails,
         ],
     );
 

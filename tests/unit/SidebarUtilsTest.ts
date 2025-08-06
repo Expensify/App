@@ -327,6 +327,7 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
+                privatePersonalDetails: undefined,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_UNPINNED,
@@ -336,6 +337,7 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
+                privatePersonalDetails: undefined,
             });
 
             expect(optionDataPinned?.isPinned).toBe(true);
@@ -829,6 +831,7 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
+                privatePersonalDetails: undefined,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -886,6 +889,7 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
+                privatePersonalDetails: undefined,
             });
 
             // Then the alternate text should show @Hidden.
@@ -926,6 +930,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
+                    privatePersonalDetails: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -959,6 +964,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
+                    privatePersonalDetails: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -989,6 +995,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
+                    privatePersonalDetails: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1108,6 +1115,7 @@ describe('SidebarUtils', () => {
                     policy,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
+                    privatePersonalDetails: undefined,
                 });
                 const {totalDisplaySpend} = getMoneyRequestSpendBreakdown(iouReport);
                 const formattedAmount = convertToDisplayString(totalDisplaySpend, iouReport.currency);
@@ -1149,6 +1157,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
+                    privatePersonalDetails: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
@@ -1213,6 +1222,7 @@ describe('SidebarUtils', () => {
                     policy: undefined,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
+                    privatePersonalDetails: undefined,
                 });
 
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -1254,6 +1264,7 @@ describe('SidebarUtils', () => {
                     policy: undefined,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
+                    privatePersonalDetails: undefined,
                 });
 
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
@@ -1317,6 +1328,7 @@ describe('SidebarUtils', () => {
                     policy: undefined,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
+                    privatePersonalDetails: undefined,
                 });
 
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
@@ -1427,6 +1439,7 @@ describe('SidebarUtils', () => {
                     policy: undefined,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
+                    privatePersonalDetails: undefined,
                 });
 
                 expect(result?.alternateText).toContain(`${getReportActionMessageText(lastAction)}`);

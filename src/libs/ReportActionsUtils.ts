@@ -98,14 +98,6 @@ Onyx.connect({
     },
 });
 
-let privatePersonalDetails: PrivatePersonalDetails | undefined;
-Onyx.connect({
-    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    callback: (personalDetails) => {
-        privatePersonalDetails = personalDetails;
-    },
-});
-
 let environmentURL: string;
 getEnvironmentURL().then((url: string) => (environmentURL = url));
 
@@ -2826,7 +2818,7 @@ function isCardIssuedAction(
     );
 }
 
-function shouldShowAddMissingDetails(actionName?: ReportActionName, card?: Card) {
+function shouldShowAddMissingDetails(actionName: ReportActionName | undefined, card: Card | undefined, privatePersonalDetails: PrivatePersonalDetails | undefined) {
     const missingDetails =
         !privatePersonalDetails?.legalFirstName ||
         !privatePersonalDetails?.legalLastName ||
@@ -2853,12 +2845,14 @@ function getCardIssuedMessage({
     policyID = '-1',
     expensifyCard,
     companyCard,
+    privatePersonalDetails,
 }: {
     reportAction: OnyxEntry<ReportAction>;
     shouldRenderHTML?: boolean;
     policyID?: string;
     expensifyCard?: Card;
     companyCard?: Card;
+    privatePersonalDetails?: PrivatePersonalDetails;
 }) {
     const cardIssuedActionOriginalMessage = isCardIssuedAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
 
@@ -2876,7 +2870,7 @@ function getCardIssuedMessage({
         shouldRenderHTML && isAssigneeCurrentUser && companyCard
             ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${translateLocal('workspace.companyCards.companyCard')}</a>`
             : translateLocal('workspace.companyCards.companyCard');
-    const shouldShowAddMissingDetailsMessage = !isAssigneeCurrentUser || shouldShowAddMissingDetails(reportAction?.actionName, expensifyCard);
+    const shouldShowAddMissingDetailsMessage = !isAssigneeCurrentUser || shouldShowAddMissingDetails(reportAction?.actionName, expensifyCard, privatePersonalDetails);
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED:
             return translateLocal('workspace.expensifyCard.issuedCard', {assignee});
