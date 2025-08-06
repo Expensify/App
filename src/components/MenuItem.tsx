@@ -381,7 +381,7 @@ type MenuItemBaseProps = {
     copyValue?: string;
 
     /** Should disable copy to clipboard action */
-    disableCopyToClipboard?: boolean;
+    copiable?: boolean;
 
     /** Plaid image for the bank */
     plaidUrl?: string;
@@ -506,7 +506,7 @@ function MenuItem(
         shouldTeleportPortalToModalLayer,
         plaidUrl,
         copyValue = title,
-        disableCopyToClipboard = false,
+        copiable = false,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -973,7 +973,7 @@ function MenuItem(
                                                         additionalStyles={styles.alignSelfCenter}
                                                     />
                                                 )}
-                                                {!disableCopyToClipboard && hasHoverSupport() && !interactive && isHovered && !!copyValue && (
+                                                {copiable && hasHoverSupport() && !interactive && isHovered && !!copyValue && (
                                                     <View style={styles.justifyContentCenter}>
                                                         <CopyTextToClipboard
                                                             urlToCopy={copyValue}

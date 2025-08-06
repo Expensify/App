@@ -38,6 +38,7 @@ function KeyboardShortcutsPage() {
             description={translate(`keyboardShortcutsPage.shortcuts.${shortcut.descriptionKey}`)}
             wrapperStyle={[styles.ph0, styles.cursorAuto]}
             interactive={false}
+            copiable
         />
     );
 
