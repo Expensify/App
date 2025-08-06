@@ -16,6 +16,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestReceiptView';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import {useShowWideRHPVersion} from '@components/WideRHPContextProvider';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useCurrentReportID from '@hooks/useCurrentReportID';
@@ -851,11 +852,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                             <View style={[styles.flex1, styles.flexRow]}>
                                 {shouldShowWideRHP && (
                                     <View style={styles.wideRHPMoneyRequestReceiptViewContainer}>
-                                        <MoneyRequestReceiptView
-                                            allReports={allReports}
-                                            report={report}
-                                            fullHeight
-                                        />
+                                        <ScrollView contentContainerStyle={styles.wideRHPMoneyRequestReceiptViewScrollView}>
+                                            <MoneyRequestReceiptView
+                                                allReports={allReports}
+                                                report={report}
+                                                fillSpace
+                                            />
+                                        </ScrollView>
                                     </View>
                                 )}
                                 <View
