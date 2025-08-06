@@ -2,6 +2,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction, TransactionViolation} from '@src/types/onyx';
+import CONST from '@src/CONST';
 
 let previousTransactions: OnyxCollection<Transaction> = {};
 let previousViolations: OnyxCollection<TransactionViolation[]> = {};
@@ -48,19 +49,38 @@ export default createOnyxDerivedValueConfig({
                 continue;
             }
 
+            const transactionID = transaction.transactionID;
+            const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
+            const transactionViolations = violations?.[violationKey];
+            const previousTransactionViolations = previousViolations?.[violationKey];
+            const violationInSourceValues = transactionViolationsUpdates?.[violationKey];
+
+            // For track expenses (reportID "0"), also add them to their associated self-DM reports (in addition to storing under "0")
+            if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                const attendeeReportID = transaction?.comment?.attendees?.[0]?.reportID;
+                if (attendeeReportID && attendeeReportID !== reportID) {
+                    // Ensure the self-DM report structure exists
+                    if (!reportTransactionsAndViolations[attendeeReportID]) {
+                        reportTransactionsAndViolations[attendeeReportID] = {
+                            transactions: {},
+                            violations: {},
+                        };
+                    }
+                    
+                    reportTransactionsAndViolations[attendeeReportID].transactions[transactionKey] = transaction;
+                    
+                    if (transactionViolations && transactionViolations.length > 0) {
+                        reportTransactionsAndViolations[attendeeReportID].violations[violationKey] = transactionViolations;
+                    }
+                }
+            }
+
             if (!reportTransactionsAndViolations[reportID]) {
                 reportTransactionsAndViolations[reportID] = {
                     transactions: {},
                     violations: {},
                 };
             }
-
-            const transactionID = transaction.transactionID;
-            const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
-            const transactionViolations = violations?.[violationKey];
-            const previousTransactionViolations = previousViolations?.[violationKey];
-
-            const violationInSourceValues = transactionViolationsUpdates?.[violationKey];
 
             // If violations exist and have length > 0, add them to the structure
             if (transactionViolations && transactionViolations.length > 0) {
