@@ -37,13 +37,13 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex}: Cus
             }
             return;
         }
-        if (isEditing && formValues.bankCountry === currentCountry) {
+        if (formValues.bankCountry === currentCountry) {
             onNext();
             return;
         }
         fetchCorpayFields(currentCountry);
         resetScreenIndex?.(CONST.CORPAY_FIELDS.INDEXES.MAPPING.BANK_ACCOUNT_DETAILS);
-    }, [currentCountry, formValues.bankCountry, isEditing, onNext, resetScreenIndex, isUserValidated]);
+    }, [currentCountry, formValues.bankCountry, onNext, resetScreenIndex, isUserValidated]);
 
     const onSelectionChange = useCallback((country: Option) => {
         setCurrentCountry(country.value);
