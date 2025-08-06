@@ -37,7 +37,7 @@ const CURRENT_USER_ID = 1;
 const FAKE_NEW_REPORT_ID = '2';
 const FAKE_OLD_REPORT_ID = '3';
 const FAKE_SELF_DM_REPORT_ID = '4';
-
+const CURRENT_USER_EMAIL = 'test@test.com';
 const newReport = {
     reportID: FAKE_NEW_REPORT_ID,
     ownerAccountID: CURRENT_USER_ID,
@@ -92,7 +92,7 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_SELF_DM_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
-            changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID);
+            changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID, CURRENT_USER_EMAIL);
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
@@ -127,7 +127,7 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
-            changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID);
+            changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID, CURRENT_USER_EMAIL);
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({

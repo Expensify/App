@@ -23,7 +23,8 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const {backTo, reportID, action, shouldTurnOffSelectionMode} = route.params;
 
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
-
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const currentUserEmail = session?.email ?? '';
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
 
     const selectReport = (item: TransactionGroupListItem) => {
@@ -32,7 +33,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             return;
         }
 
-        changeTransactionsReport(selectedTransactionIDs, item.value);
+        changeTransactionsReport(selectedTransactionIDs, item.value, currentUserEmail);
         turnOffMobileSelectionMode();
         clearSelectedTransactions(true);
         Navigation.dismissModal();
@@ -42,7 +43,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         if (!transactionReport || selectedTransactionIDs.length === 0) {
             return;
         }
-        changeTransactionsReport(selectedTransactionIDs, CONST.REPORT.UNREPORTED_REPORT_ID);
+        changeTransactionsReport(selectedTransactionIDs, CONST.REPORT.UNREPORTED_REPORT_ID, currentUserEmail);
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
         }
