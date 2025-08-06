@@ -40,10 +40,12 @@ describe('useCurrentReportID', () => {
     });
 
     it('should prevent updates when currentReportID === reportID', () => {
+        // Given the hook is rendered
         const {result} = renderHook(() => useCurrentReportID(), {
             wrapper: CurrentReportIDContextProvider,
         });
 
+        // Given the navigation state is set
         const navigationState = {
             index: 0,
             routes: [
@@ -57,28 +59,33 @@ describe('useCurrentReportID', () => {
 
         mockGetTopmostReportId.mockReturnValue('123');
 
-        // First update should work
+        // When the updateCurrentReportID is called
         act(() => {
             result.current?.updateCurrentReportID(navigationState);
         });
 
+        // Then the currentReportID is updated
         expect(result.current?.currentReportID).toBe('123');
 
-        // Second update with same reportID should be prevented
+        // When the updateCurrentReportID is called with the same reportID
         const setStateSpy = jest.spyOn(React, 'useState');
+
+        // When the updateCurrentReportID is called with the same reportID
         act(() => {
             result.current?.updateCurrentReportID(navigationState);
         });
 
-        // The setState should not be called again
+        // Then the setState should not be called again
         expect(setStateSpy).not.toHaveBeenCalled();
     });
 
     it('should prevent updates when both currentReportID and reportID are empty/undefined', () => {
+        // Given the hook is rendered
         const {result} = renderHook(() => useCurrentReportID(), {
             wrapper: CurrentReportIDContextProvider,
         });
 
+        // Given the navigation state is set
         const navigationState = {
             index: 0,
             routes: [
@@ -92,28 +99,33 @@ describe('useCurrentReportID', () => {
 
         mockGetTopmostReportId.mockReturnValue(undefined);
 
-        // First update should work
+        // When the updateCurrentReportID is called
         act(() => {
             result.current?.updateCurrentReportID(navigationState);
         });
 
+        // Then the currentReportID is updated
         expect(result.current?.currentReportID).toBe('');
 
-        // Second update with both undefined should be prevented
+        // When the updateCurrentReportID is called with the same navigation state
         const setStateSpy = jest.spyOn(React, 'useState');
+
+        // When the updateCurrentReportID is called with the same navigation state
         act(() => {
             result.current?.updateCurrentReportID(navigationState);
         });
 
-        // The setState should not be called again
+        // Then the setState should not be called again
         expect(setStateSpy).not.toHaveBeenCalled();
     });
 
     it('should update when reportID changes', () => {
+        // Given the hook is rendered
         const {result} = renderHook(() => useCurrentReportID(), {
             wrapper: CurrentReportIDContextProvider,
         });
 
+        // Given the navigation state is set
         const state1 = {
             index: 0,
             routes: [
@@ -138,26 +150,30 @@ describe('useCurrentReportID', () => {
 
         mockGetTopmostReportId.mockReturnValueOnce('123').mockReturnValueOnce('456');
 
-        // First update
+        // When the updateCurrentReportID is called
         act(() => {
             result.current?.updateCurrentReportID(state1);
         });
 
+        // Then the currentReportID is updated
         expect(result.current?.currentReportID).toBe('123');
 
-        // Second update with different reportID
+        // When the updateCurrentReportID is called with a different reportID
         act(() => {
             result.current?.updateCurrentReportID(state2);
         });
 
+        // Then the currentReportID is updated
         expect(result.current?.currentReportID).toBe('456');
     });
 
     it('should prevent updates when navigating to Settings screens', () => {
+        // Given the hook is rendered
         const {result} = renderHook(() => useCurrentReportID(), {
             wrapper: CurrentReportIDContextProvider,
         });
 
+        // Given the navigation state is set
         const settingsState = {
             index: 0,
             routes: [
@@ -173,20 +189,22 @@ describe('useCurrentReportID', () => {
 
         mockGetTopmostReportId.mockReturnValue('123');
 
-        // Update should be prevented for Settings screen
+        // When the updateCurrentReportID is called
         act(() => {
             result.current?.updateCurrentReportID(settingsState);
         });
 
-        // The currentReportID should remain unchanged
+        // Then the currentReportID should remain unchanged
         expect(result.current?.currentReportID).toBe('');
     });
 
     it('should update context value when currentReportID changes', () => {
+        // Given the hook is rendered
         const {result} = renderHook(() => useCurrentReportID(), {
             wrapper: CurrentReportIDContextProvider,
         });
 
+        // Given the navigation state is set
         const reportState = {
             index: 0,
             routes: [
@@ -200,13 +218,15 @@ describe('useCurrentReportID', () => {
 
         mockGetTopmostReportId.mockReturnValue('123');
 
+        // Given the initial context value is set
         const initialContextValue = result.current;
 
+        // When the updateCurrentReportID is called
         act(() => {
             result.current?.updateCurrentReportID(reportState);
         });
 
-        // Context value should be updated
+        // Then the context value is updated
         expect(result.current?.currentReportID).toBe('123');
         expect(result.current).not.toBe(initialContextValue);
     });
