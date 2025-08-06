@@ -700,7 +700,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             >
                 <SearchRowSkeleton
                     shouldAnimate
-                    containerStyle={shouldUseNarrowLayout && styles.searchListContentContainerStyles}
+                    containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3}
                 />
             </Animated.View>
         );
