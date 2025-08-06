@@ -15,10 +15,14 @@ let betas: OnyxEntry<Beta[]>;
 let allReports: Record<string, Report>;
 let allPolicies: Record<string, Policy>;
 let isInitialized = false;
+let connectionsInitializedCount = 0;
+const totalConnections = 3;
+let initializationPromise: Promise<void> | null = null;
 
 /**
  * Initialize persistent connections to Onyx data needed for OptimisticReportNames
  * This is called lazily when OptimisticReportNames functionality is first used
+ * Returns a Promise that resolves when all connections have received their initial data
  *
  * We use Onyx.connectWithoutView because we do not use this in React components and this logic is not tied to the UI.
  * This is a centralized system that needs access to all objects of several types, so that when any updates affect
@@ -26,52 +30,55 @@ let isInitialized = false;
  * It wouldn't be possible to do this without connecting to all the data.
  *
  */
-function initialize(): void {
+function initialize(): Promise<void> {
     if (isInitialized) {
-        return;
+        return Promise.resolve();
     }
 
-    // Connect to BETAS
-    Onyx.connectWithoutView({
-        key: ONYXKEYS.BETAS,
-        callback: (val) => {
-            betas = val;
-        },
+    if (initializationPromise) {
+        return initializationPromise;
+    }
+
+    initializationPromise = new Promise<void>((resolve) => {
+        const checkAndMarkInitialized = () => {
+            connectionsInitializedCount++;
+            if (connectionsInitializedCount === totalConnections) {
+                isInitialized = true;
+                resolve();
+            }
+        };
+
+        // Connect to BETAS
+        Onyx.connectWithoutView({
+            key: ONYXKEYS.BETAS,
+            callback: (val) => {
+                betas = val;
+                checkAndMarkInitialized();
+            },
+        });
+
+        // Connect to all REPORTS
+        Onyx.connectWithoutView({
+            key: ONYXKEYS.COLLECTION.REPORT,
+            waitForCollectionCallback: true,
+            callback: (val) => {
+                allReports = (val as Record<string, Report>) ?? {};
+                checkAndMarkInitialized();
+            },
+        });
+
+        // Connect to all POLICIES
+        Onyx.connectWithoutView({
+            key: ONYXKEYS.COLLECTION.POLICY,
+            waitForCollectionCallback: true,
+            callback: (val) => {
+                allPolicies = (val as Record<string, Policy>) ?? {};
+                checkAndMarkInitialized();
+            },
+        });
     });
 
-    // Connect to all REPORTS
-    Onyx.connectWithoutView({
-        key: ONYXKEYS.COLLECTION.REPORT,
-        waitForCollectionCallback: true,
-        callback: (val) => {
-            allReports = (val as Record<string, Report>) ?? {};
-        },
-    });
-
-    // Connect to all POLICIES
-    Onyx.connectWithoutView({
-        key: ONYXKEYS.COLLECTION.POLICY,
-        waitForCollectionCallback: true,
-        callback: (val) => {
-            allPolicies = (val as Record<string, Policy>) ?? {};
-        },
-    });
-
-    isInitialized = true;
-}
-
-/**
- * Get the current update context for OptimisticReportNames
- * This provides access to the cached Onyx data without creating new connections
- * Initializes connections lazily on first use
- */
-function getUpdateContext(): UpdateContext {
-    initialize();
-    return {
-        betas,
-        allReports: allReports ?? {},
-        allPolicies: allPolicies ?? {},
-    };
+    return initializationPromise;
 }
 
 /**
@@ -79,9 +86,12 @@ function getUpdateContext(): UpdateContext {
  * Initializes connections lazily on first use
  */
 function getUpdateContextAsync(): Promise<UpdateContext> {
-    initialize();
-    return Promise.resolve(getUpdateContext());
+    return initialize().then(() => ({
+        betas,
+        allReports: allReports ?? {},
+        allPolicies: allPolicies ?? {},
+    }));
 }
 
-export {getUpdateContext, getUpdateContextAsync};
+export {getUpdateContextAsync};
 export type {UpdateContext};
