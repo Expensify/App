@@ -57,6 +57,9 @@ type ReportActionAvatarsProps = {
 
     /** Display name used as a fallback for avatar tooltip */
     fallbackDisplayName?: string;
+
+    /** Whether to include avatars for both account IDs array & policyID */
+    mergePolicyAndAccountIDs?: boolean;
 };
 
 /**
@@ -85,6 +88,7 @@ function ReportActionAvatars({
     isInReportAction = false,
     useProfileNavigationWrapper,
     fallbackDisplayName,
+    mergePolicyAndAccountIDs,
 }: ReportActionAvatarsProps) {
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
 
@@ -106,10 +110,12 @@ function ReportActionAvatars({
     } = useReportActionAvatars({
         report,
         action,
+        mergePolicyAndAccountIDs,
         shouldStackHorizontally,
         shouldUseCardFeed: !!subscriptCardFeed,
         accountIDs,
         policyID,
+        fallbackDisplayName,
     });
 
     let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE> = notPreciseAvatarType;
