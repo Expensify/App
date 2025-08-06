@@ -1240,9 +1240,8 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Parece que você não tem nenhuma despesa não relatada. Tente criar uma abaixo.',
         addUnreportedExpenseConfirm: 'Adicionar ao relatório',
         explainHold: 'Explique por que você está retendo esta despesa.',
-        undoSubmit: 'Desfazer envio',
         retracted: 'retraído',
-        undoClose: 'Desfazer fechamento',
+        retract: 'Retrair',
         reopened: 'reaberto',
         reopenReport: 'Reabrir relatório',
         reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>

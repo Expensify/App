@@ -1242,9 +1242,8 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: '未報告の経費はないようです。以下で新しく作成してみてください。',
         addUnreportedExpenseConfirm: 'レポートに追加',
         explainHold: 'この経費を保留している理由を説明してください。',
-        undoSubmit: '送信を取り消す',
         retracted: '撤回されました',
-        undoClose: '閉じるを元に戻す',
+        retract: '撤回',
         reopened: '再開されました',
         reopenReport: 'レポートを再開する',
         reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>

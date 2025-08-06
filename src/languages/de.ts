@@ -1246,9 +1246,8 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Es sieht so aus, als hätten Sie keine nicht gemeldeten Ausgaben. Versuchen Sie, unten eine zu erstellen.',
         addUnreportedExpenseConfirm: 'Zum Bericht hinzufügen',
         explainHold: 'Erklären Sie, warum Sie diese Ausgabe zurückhalten.',
-        undoSubmit: 'Senden rückgängig machen',
         retracted: 'zurückgezogen',
-        undoClose: 'Schließen rückgängig machen',
+        retract: 'Zurückziehen',
         reopened: 'wieder geöffnet',
         reopenReport: 'Bericht wieder öffnen',
         reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>

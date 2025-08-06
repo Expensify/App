@@ -833,7 +833,7 @@ function MoneyReportHeader({
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.RETRACT]: {
-            text: translate('iou.undoSubmit'),
+            text: translate('iou.retract'),
             icon: Expensicons.CircularArrowBackwards,
             value: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,
             onSelected: () => {
@@ -841,7 +841,7 @@ function MoneyReportHeader({
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
-            text: translate('iou.undoClose'),
+            text: translate('iou.retract'),
             icon: Expensicons.CircularArrowBackwards,
             value: CONST.REPORT.SECONDARY_ACTIONS.REOPEN,
             onSelected: () => {
