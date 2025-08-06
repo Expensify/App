@@ -46,6 +46,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     shouldSyncFocus,
     columns,
     groupBy,
+    shouldAnimateInHighlight,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
@@ -68,7 +69,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        shouldHighlight: shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
     });
@@ -175,6 +176,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         groupItem.transactions.map((transaction) => (
                             <TransactionItemRow
                                 key={transaction.transactionID}
+                                report={transaction.report}
                                 transactionItem={transaction}
                                 isSelected={!!transaction.isSelected}
                                 dateColumnSize={dateColumnSize}

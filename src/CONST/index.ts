@@ -326,7 +326,8 @@ const CONST = {
     OLD_DEFAULT_AVATAR_COUNT: 8,
 
     DISPLAY_NAME: {
-        MAX_LENGTH: 50,
+        // This value is consistent with the BE display name max length limit.
+        MAX_LENGTH: 100,
         RESERVED_NAMES: ['Expensify', 'Concierge'],
         EXPENSIFY_CONCIERGE: 'Expensify Concierge',
     },
@@ -341,6 +342,10 @@ const CONST = {
 
     LEGAL_NAME: {
         MAX_LENGTH: 40,
+    },
+
+    NAME: {
+        MAX_LENGTH: 50,
     },
 
     REPORT_DESCRIPTION: {
@@ -986,7 +991,7 @@ const CONST = {
     STORYLANE: {
         ADMIN_TOUR: 'https://app.storylane.io/demo/bbcreg8vccag?embed=inline',
         ADMIN_TOUR_MOBILE: 'https://app.storylane.io/demo/b6faqcdsxgww?embed=inline',
-        TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/agmsfwgasaed?embed=inline',
+        TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/mqzy3huvtrhx?embed=inline',
         TRACK_WORKSPACE_TOUR_MOBILE: 'https://app.storylane.io/share/wq4hiwsqvoho?embed=inline',
 
         // At the moment we are using Navattic links, but it will be changed to Storylane in the future.
@@ -1053,7 +1058,6 @@ const CONST = {
         SHUTTER_SIZE: 90,
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
     },
-    RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
         ROLE: {
             ADMIN: 'admin',
@@ -1426,10 +1430,16 @@ const CONST = {
             EXPORT_TO_INTEGRATION: 'exportToIntegration',
             MARK_AS_EXPORTED: 'markAsExported',
             DOWNLOAD_CSV: 'downloadCSV',
+            REPORT_LEVEL_EXPORT: 'report_level_export',
+            EXPENSE_LEVEL_EXPORT: 'detailed_export',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
         },
+    },
+    EXPORT_TEMPLATE_TYPES: {
+        INTEGRATIONS: 'integrations',
+        IN_APP: 'in-app',
     },
     NEXT_STEP: {
         ICONS: {
@@ -1523,8 +1533,6 @@ const CONST = {
         SKELETON_ANIMATION_SPEED: 3,
         SEARCH_MOST_RECENT_OPTIONS: 'search_most_recent_options',
         DEBOUNCE_HANDLE_SEARCH: 'debounce_handle_search',
-        SHOW_HOVER_PREVIEW_DELAY: 270,
-        SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 200,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -3278,9 +3286,9 @@ const CONST = {
             ALLOW: 'personal',
         },
         STATEMENT_CLOSE_DATE: {
-            LAST_DAY_OF_MONTH: 'lastDayOfMonth',
-            LAST_BUSINESS_DAY_OF_MONTH: 'lastBusinessDayOfMonth',
-            CUSTOM_DAY_OF_MONTH: 'customDayOfMonth',
+            LAST_DAY_OF_MONTH: 'LAST_DAY_OF_MONTH',
+            LAST_BUSINESS_DAY_OF_MONTH: 'LAST_BUSINESS_DAY_OF_MONTH',
+            CUSTOM_DAY_OF_MONTH: 'CUSTOM_DAY_OF_MONTH',
         },
         CARD_LIST_THRESHOLD: 8,
         DEFAULT_EXPORT_TYPE: 'default',
@@ -3484,10 +3492,6 @@ const CONST = {
         EMOJIS: /[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}](\u200D[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/du,
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJI_SKIN_TONES: /[\u{1f3fb}-\u{1f3ff}]/gu,
-        /** Regex to match emojis that are not wrapped in `<emoji>` tags */
-        get UNWRAPPED_EMOJI() {
-            return new RegExp(`(?:(?!<emoji[^>]*>))(${this.EMOJIS.source})(?:(?!</emoji[^>]*>))`, 'gu');
-        },
 
         PRIVATE_USER_AREA: /[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]/u,
 
@@ -5243,7 +5247,7 @@ const CONST = {
      * The maximum count of items per page for SelectionList.
      * When paginate, it multiplies by page number.
      */
-    MAX_SELECTION_LIST_PAGE_LENGTH: 500,
+    MAX_SELECTION_LIST_PAGE_LENGTH: 50,
 
     /**
      * Bank account names
@@ -5496,6 +5500,8 @@ const CONST = {
             },
         },
     },
+
+    /* If we update these values, let's ensure this logic is consistent with the logic in the backend (Auth), since we're using the same method to calculate the rate value in distance requests created via Concierge. */
     CURRENCY_TO_DEFAULT_MILEAGE_RATE: JSON.parse(`{
         "AED": {
             "rate": 414,
@@ -6443,14 +6449,6 @@ const CONST = {
             NEVER: 'never',
             LAST_MONTH: 'last-month',
             LAST_STATEMENT: 'last-statement',
-        },
-        get FILTER_DATE_PRESETS() {
-            return {
-                // s77rt remove DEV lock
-                [this.SYNTAX_FILTER_KEYS.POSTED]:
-                    (Config?.ENVIRONMENT ?? 'development') === 'development' ? [this.DATE_PRESETS.LAST_STATEMENT, this.DATE_PRESETS.LAST_MONTH] : [this.DATE_PRESETS.LAST_MONTH],
-                [this.SYNTAX_FILTER_KEYS.EXPORTED]: [this.DATE_PRESETS.NEVER],
-            };
         },
         SNAPSHOT_ONYX_KEYS: [
             ONYXKEYS.COLLECTION.REPORT,

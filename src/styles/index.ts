@@ -401,6 +401,10 @@ const styles = (theme: ThemeColors) =>
             lineHeight: undefined,
         },
 
+        heightUndefined: {
+            height: undefined,
+        },
+
         lineHeightLarge: {
             lineHeight: variables.lineHeightLarge,
         },
@@ -3787,16 +3791,6 @@ const styles = (theme: ThemeColors) =>
             zIndex: 2,
         },
 
-        dropInnerWrapper: {
-            borderWidth: 2,
-            borderStyle: 'dashed',
-        },
-
-        reportDropOverlay: {
-            backgroundColor: theme.dropUIBG,
-            zIndex: 2,
-        },
-
         fileDropOverlay: {
             backgroundColor: theme.fileDropUIBG,
         },
@@ -4591,10 +4585,6 @@ const styles = (theme: ThemeColors) =>
 
         expenseAndReportPreviewTextContainer: {
             gap: 8,
-        },
-
-        reportPreviewAmountSubtitleContainer: {
-            gap: 4,
         },
 
         expenseAndReportPreviewTextButtonContainer: {
@@ -5451,20 +5441,6 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
-        tripReservationRow: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            maxWidth: '50%',
-            flexShrink: 1,
-        },
-
-        iconWrapper: {
-            justifyContent: 'center',
-            alignItems: 'center',
-            alignSelf: 'flex-start', // Keeps icon from dropping below
-            paddingTop: 2, // Adjust slightly for vertical centering
-        },
-
         textLineThrough: {
             textDecorationLine: 'line-through',
         },
@@ -5606,13 +5582,6 @@ const styles = (theme: ThemeColors) =>
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
             borderLeftColor: theme.border,
         }),
-        reportPreviewCarouselDots: {
-            borderRadius: 50,
-            width: 8,
-            height: 8,
-            alignItems: 'center',
-            justifyContent: 'center',
-        },
         reportPreviewArrowButton: {
             borderRadius: 50,
             width: variables.w28,
@@ -5718,32 +5687,6 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             paddingHorizontal: 0,
             aspectRatio: 1.7,
-        },
-
-        receiptPreview: {
-            position: 'absolute',
-            left: 60,
-            top: 60,
-            width: 380,
-            maxHeight: 'calc(100vh - 120px)',
-            borderRadius: variables.componentBorderRadiusLarge,
-            borderWidth: 1,
-            borderColor: theme.border,
-            overflow: 'hidden',
-            boxShadow: theme.shadow,
-            backgroundColor: theme.appBG,
-        },
-
-        receiptPreviewEReceiptsContainer: {
-            ...sizing.w100,
-            ...sizing.h100,
-            backgroundColor: colors.green800,
-        },
-
-        receiptPreviewEReceipt: {
-            ...flex.flexColumn,
-            ...flex.justifyContentCenter,
-            ...flex.alignItemsCenter,
         },
 
         topBarWrapper: {
