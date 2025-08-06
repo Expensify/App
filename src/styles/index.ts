@@ -1794,7 +1794,9 @@ const styles = (theme: ThemeColors) =>
 
         animatedRHPNavigatorContainer: (shouldUseNarrowLayout: boolean, expandedRHPProgress: Animated.Value) => ({
             height: '100%',
-            width: shouldUseNarrowLayout ? '100%' : expandedRHPProgress.interpolate({inputRange: [0, 1], outputRange: [variables.sideBarWidth, 2 * variables.sideBarWidth]}),
+            width: shouldUseNarrowLayout
+                ? '100%'
+                : expandedRHPProgress.interpolate({inputRange: [0, 1], outputRange: [variables.sideBarWidth, variables.sideBarWidth + variables.receiptPanelRHPWidth]}),
             right: 0,
             position: 'absolute',
             overflow: 'hidden',
@@ -2043,7 +2045,7 @@ const styles = (theme: ThemeColors) =>
             ({
                 ...positioning.pFixed,
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
-                left: marginLeft ? variables.sideBarWidth : -2 * variables.sideBarWidth,
+                left: marginLeft ? variables.receiptPanelRHPWidth : -2 * variables.sideBarWidth,
                 top: 0,
                 bottom: 0,
                 right: marginRight ? variables.sideBarWidth : 0,
@@ -5764,7 +5766,7 @@ const styles = (theme: ThemeColors) =>
 
         wideRHPMoneyRequestReceiptViewContainer: {
             backgroundColor: theme.appBG,
-            width: variables.sideBarWidth,
+            width: variables.receiptPanelRHPWidth,
             height: '100%',
             borderRightWidth: 1,
             borderColor: theme.border,
