@@ -42,14 +42,6 @@ Onyx.connect({
     },
 });
 
-let customCardNames: OnyxEntry<Record<string, string>> = {};
-Onyx.connect({
-    key: ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES,
-    callback: (value) => {
-        customCardNames = value;
-    },
-});
-
 /**
  * @returns string with a month in MM format
  */
@@ -691,10 +683,6 @@ function getFundIdFromSettingsKey(key: string) {
     return Number.isNaN(fundID) ? CONST.DEFAULT_NUMBER_ID : fundID;
 }
 
-function getCustomCardName(cardID: string) {
-    return customCardNames?.[cardID];
-}
-
 export {
     isExpensifyCard,
     getDomainCards,
@@ -745,5 +733,4 @@ export {
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
     getCorrectStepForPlaidSelectedBank,
-    getCustomCardName,
 };
