@@ -70,7 +70,7 @@ import {
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
 import {isNumeric} from '@libs/ValidationUtils';
-import type {ReportsSplitNavigatorParamList} from '@navigation/types';
+import type {ReportsSplitNavigatorParamList, SearchReportParamList} from '@navigation/types';
 import {setShouldShowComposeInput} from '@userActions/Composer';
 import {
     clearDeleteTransactionNavigateBackUrl,
@@ -95,7 +95,9 @@ import ReportFooter from './report/ReportFooter';
 import type {ActionListContextType, ScrollPosition} from './ReportScreenContext';
 import {ActionListContext} from './ReportScreenContext';
 
-type ReportScreenNavigationProps = PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>;
+type ReportScreenNavigationProps =
+    | PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
+    | PlatformStackScreenProps<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>;
 
 type ReportScreenProps = ReportScreenNavigationProps;
 
@@ -135,6 +137,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
 function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const reportActionIDFromRoute = route?.params?.reportActionID;
     const isFocused = useIsFocused();
@@ -177,6 +180,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
+        if (isReportInRHP) {
+            return;
+        }
+
         const lastAccessedReportID = findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), !!route.params.openOnAdminRoom)?.reportID;
 
         // It's possible that reports aren't fully loaded yet
@@ -187,7 +194,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
         Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
         navigation.setParams({reportID: lastAccessedReportID});
-    }, [isBetaEnabled, navigation, route]);
+    }, [isBetaEnabled, navigation, route, isReportInRHP]);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const chatWithAccountManagerText = useMemo(() => {
@@ -476,26 +483,19 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        const moneyRequestReportActionID: string | undefined = route.params?.moneyRequestReportActionID;
-        const transactionID: string | undefined = route.params?.transactionID;
-
-        // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the transaction thread created yet
-        // so we have to call OpenReport in a way that the transaction thread will be created and attached to the parentReportAction
-        if (transactionID && currentUserEmail) {
-            openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID, false, [], undefined, transactionID);
-            return;
+        if (!isReportInRHP) {
+            const moneyRequestReportActionID: string | undefined = route.params?.moneyRequestReportActionID;
+            const transactionID: string | undefined = route.params?.transactionID;
+            // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the transaction thread created yet
+            // so we have to call OpenReport in a way that the transaction thread will be created and attached to the parentReportAction
+            if (transactionID && currentUserEmail) {
+                openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID, false, [], undefined, transactionID);
+                return;
+            }
         }
+
         openReport(reportIDFromRoute, reportActionIDFromRoute);
-    }, [
-        reportMetadata.isOptimisticReport,
-        report,
-        isOffline,
-        route.params?.moneyRequestReportActionID,
-        route.params?.transactionID,
-        currentUserEmail,
-        reportIDFromRoute,
-        reportActionIDFromRoute,
-    ]);
+    }, [reportMetadata.isOptimisticReport, report, isOffline, route.params, isReportInRHP, currentUserEmail, reportIDFromRoute, reportActionIDFromRoute]);
 
     const prevTransactionThreadReportID = usePrevious(transactionThreadReportID);
     useEffect(() => {
