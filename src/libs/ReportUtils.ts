@@ -2550,7 +2550,7 @@ function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, rep
         return false;
     }
 
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN && !isEmptyObject(report) && !isDM(report);
+    const isAdmin = policy?.type !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN && !isEmptyObject(report);
 
     return isActionOwner || isAdmin;
 }

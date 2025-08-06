@@ -3009,6 +3009,33 @@ describe('ReportUtils', () => {
 
             expect(canDeleteReportAction(moneyRequestAction, '1', transaction)).toBe(true);
         });
+
+        it("should return false for ADD_COMMENT report action the current user (admin of the personal policy) didn't comment", async () => {
+            const adminPolicy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.PERSONAL};
+
+            const report = {...LHNTestUtils.getFakeReport(), policyID: adminPolicy.id};
+            const reportAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: currentUserAccountID + 1,
+                parentReportID: report.reportID,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'hey',
+                        text: 'hey',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                    },
+                ],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${adminPolicy.id}`, adminPolicy);
+
+            expect(canDeleteReportAction(reportAction, report.reportID, undefined)).toBe(false);
+        });
     });
 
     describe('getPolicyExpenseChat', () => {
