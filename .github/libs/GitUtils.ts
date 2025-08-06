@@ -116,53 +116,6 @@ function fetchTag(tag: string, shallowExcludeTag = '') {
 }
 
 /**
- * Get merge logs between two tags (inclusive) as a JavaScript object.
- */
-function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitType[]> {
-    // Fetch tags, excluding commits reachable from the previous patch version (or minor for prod) (i.e: previous checklist), so that we don't have to fetch the full history
-    const previousPatchVersion = getPreviousExistingTag(fromTag.replace('-staging', ''), fromTag.endsWith('-staging') ? SEMANTIC_VERSION_LEVELS.PATCH : SEMANTIC_VERSION_LEVELS.MINOR);
-    fetchTag(fromTag, previousPatchVersion);
-    fetchTag(toTag, previousPatchVersion);
-
-    core.info(`[git log] Getting pull requests merged between the following tags: ${fromTag} ${toTag}`);
-    core.startGroup('[git log] Fetching commits');
-    return new Promise<string>((resolve, reject) => {
-        let stdout = '';
-        let stderr = '';
-        const args = ['log', '--format={"commit": "%H", "authorName": "%an", "subject": "%s"},', `${fromTag}...${toTag}`];
-        core.info(`Running command: git ${args.join(' ')}`);
-        const spawnedProcess = spawn('git', args);
-        spawnedProcess.on('message', core.info);
-        spawnedProcess.stdout.on('data', (chunk: Buffer) => {
-            core.info(chunk.toString());
-            stdout += chunk.toString();
-        });
-        spawnedProcess.stderr.on('data', (chunk: Buffer) => {
-            core.error(chunk.toString());
-            stderr += chunk.toString();
-        });
-        spawnedProcess.on('close', (code) => {
-            if (code !== 0) {
-                core.error(`Git command failed with code: ${code}`);
-                return reject(new Error(`${stderr}`));
-            }
-
-            resolve(stdout);
-        });
-        spawnedProcess.on('error', (err) => reject(err));
-    }).then((stdout) => {
-        // Sanitize just the text within commit subjects as that's the only potentially un-parseable text.
-        const sanitizedOutput = stdout.replace(/(?<="subject": ").*?(?="})/g, (subject) => sanitizeStringForJSONParse(subject));
-
-        // Then remove newlines, format as JSON and convert to a proper JS object
-        const json = `[${sanitizedOutput}]`.replace(/(\r\n|\n|\r)/gm, '').replace('},]', '}]');
-
-        core.endGroup();
-        return JSON.parse(json) as CommitType[];
-    });
-}
-
-/**
  * Parse merged PRs, excluding those from irrelevant branches.
  */
 function getValidMergedPRs(commits: CommitType[]): number[] {
@@ -198,24 +151,13 @@ function getValidMergedPRs(commits: CommitType[]): number[] {
  */
 async function getPullRequestsDeployedBetween(fromTag: string, toTag: string, repositoryName: string) {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
-
-    // const gitCommitList = await getCommitHistoryAsJSON(fromTag, toTag);
-    // const gitLogPullRequestNumbers = getValidMergedPRs(gitCommitList).sort((a, b) => a - b);
-    // console.log(`[git log] Found ${gitCommitList.length} commits.`);
-    // core.info(`[git log] Checklist PRs: ${gitLogPullRequestNumbers.join(', ')}`);
-
     const apiCommitList = await GithubUtils.getCommitHistoryBetweenTags(fromTag, toTag, repositoryName);
     const apiPullRequestNumbers = getValidMergedPRs(apiCommitList).sort((a, b) => a - b);
 
-    console.log(`[api] Found ${apiCommitList.length} commits.`);
-    core.startGroup('[api] Parsed PRs:');
+    console.log(`Found ${apiCommitList.length} commits.`);
+    core.startGroup('Parsed PRs:');
     core.info(apiPullRequestNumbers.join(', '));
     core.endGroup();
-
-    // Print diff between git log and API results for debugging
-    // const onlyInGitLog = gitLogPullRequestNumbers.filter((pr) => !apiPullRequestNumbers.includes(pr));
-    // const onlyInAPI = apiPullRequestNumbers.filter((pr) => !gitLogPullRequestNumbers.includes(pr));
-    // core.info(`PR list diff - git log only: [${onlyInGitLog.join(', ')}], API only: [${onlyInAPI.join(', ')}]`);
 
     return apiPullRequestNumbers;
 }
