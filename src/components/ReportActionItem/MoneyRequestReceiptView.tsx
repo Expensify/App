@@ -1,6 +1,7 @@
 import mapValues from 'lodash/mapValues';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -63,6 +64,9 @@ type MoneyRequestReceiptViewProps = {
 
     /** Merge transaction ID to show in merge transaction flow */
     mergeTransactionID?: string;
+
+    /** Whether the receipt view should fill the given space */
+    fillSpace?: boolean;
 };
 
 const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
@@ -76,7 +80,15 @@ const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
 
 const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
 
-function MoneyRequestReceiptView({allReports, report, readonly = false, updatedTransaction, isFromReviewDuplicates = false, mergeTransactionID}: MoneyRequestReceiptViewProps) {
+function MoneyRequestReceiptView({
+    allReports,
+    report,
+    readonly = false,
+    updatedTransaction,
+    isFromReviewDuplicates = false,
+    fillSpace = false,
+    mergeTransactionID,
+}: MoneyRequestReceiptViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -199,10 +211,20 @@ function MoneyRequestReceiptView({allReports, report, readonly = false, updatedT
         clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
     }, [transaction, chatReport, parentReportAction, linkedTransactionID, report?.reportID]);
 
-    const receiptStyle = shouldUseNarrowLayout ? styles.expenseViewImageSmall : styles.expenseViewImage;
+    let receiptStyle: StyleProp<ViewStyle>;
 
+    if (fillSpace && shouldShowReceiptEmptyState) {
+        receiptStyle = styles.fullHeight;
+    } else if (fillSpace) {
+        receiptStyle = styles.heightAuto;
+    } else {
+        receiptStyle = shouldUseNarrowLayout ? styles.expenseViewImageSmall : styles.expenseViewImage;
+    }
+
+    // For empty receipt should be fullHeight
+    // For the rest, expand to match the content
     return (
-        <View style={styles.pRelative}>
+        <View style={[fillSpace ? styles.flex1 : styles.pRelative]}>
             {shouldShowReceiptAudit && (
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('receipt')}>
                     <ReceiptAudit
@@ -214,7 +236,8 @@ function MoneyRequestReceiptView({allReports, report, readonly = false, updatedT
             {shouldShowReceiptEmptyState && (
                 <OfflineWithFeedback
                     pendingAction={getPendingFieldAction('receipt')}
-                    style={styles.mv3}
+                    style={[styles.mv3, styles.flex1]}
+                    contentContainerStyle={styles.flex1}
                 >
                     <ReceiptEmptyState
                         disabled={!canEditReceipt}
@@ -253,11 +276,13 @@ function MoneyRequestReceiptView({allReports, report, readonly = false, updatedT
                         }
                     }}
                     dismissError={dismissReceiptError}
-                    style={shouldShowReceiptEmptyState ? styles.mb3 : styles.mv3}
+                    style={[shouldShowReceiptEmptyState ? styles.mv3 : styles.mv3, styles.flex1]}
+                    contentContainerStyle={styles.flex1}
                 >
                     {hasReceipt && (
                         <View style={[styles.moneyRequestViewImage, receiptStyle]}>
                             <ReportActionItemImage
+                                shouldUseFullHeight={fillSpace}
                                 thumbnail={receiptURIs?.thumbnail}
                                 fileExtension={receiptURIs?.fileExtension}
                                 isThumbnail={receiptURIs?.isThumbnail}
