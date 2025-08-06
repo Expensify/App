@@ -48,6 +48,9 @@ type NumberWithSymbolFormProps = {
 
     /** Custom label for the TextInput */
     label?: string;
+
+    /** Whether to wrap the input in a container */
+    shouldWrapInputInContainer?: boolean;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
 
 type NumberWithSymbolFormRef = {
@@ -102,6 +105,7 @@ function NumberWithSymbolForm(
         hideFocusedState = true,
         shouldApplyPaddingToContainer = false,
         shouldUseDefaultLineHeightForPrefix = true,
+        shouldWrapInputInContainer = true,
         ...props
     }: NumberWithSymbolFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -336,79 +340,87 @@ function NumberWithSymbolForm(
         );
     }
 
+    const textInputComponent = (
+        <TextInputWithCurrencySymbol
+            formattedAmount={formattedNumber}
+            onChangeAmount={setNewNumber}
+            onSymbolButtonPress={onSymbolButtonPress}
+            placeholder={numberFormat(0)}
+            ref={(ref: BaseTextInputRef) => {
+                if (typeof forwardedRef === 'function') {
+                    forwardedRef(ref);
+                } else if (forwardedRef && 'current' in forwardedRef) {
+                    // eslint-disable-next-line no-param-reassign
+                    forwardedRef.current = ref;
+                }
+                textInput.current = ref;
+            }}
+            symbol={symbol}
+            hideSymbol={hideSymbol}
+            symbolPosition={symbolPosition}
+            selection={selection}
+            onSelectionChange={(selectionStart, selectionEnd) => {
+                if (shouldIgnoreSelectionWhenUpdatedManually && willSelectionBeUpdatedManually.current) {
+                    willSelectionBeUpdatedManually.current = false;
+                    return;
+                }
+                if (!shouldUpdateSelection) {
+                    return;
+                }
+                // When the number is updated in setNewNumber on iOS, in onSelectionChange formattedNumber stores the number before the update. Using numberRef allows us to read the updated number
+                const maxSelection = numberRef.current?.length ?? formattedNumber.length;
+                numberRef.current = undefined;
+                const start = Math.min(selectionStart, maxSelection);
+                const end = Math.min(selectionEnd, maxSelection);
+                setSelection({start, end});
+            }}
+            onKeyPress={textInputKeyPress}
+            isSymbolPressable={isSymbolPressable}
+            symbolTextStyle={symbolTextStyle}
+            style={style}
+            containerStyle={containerStyle}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            autoFocus={props.autoFocus}
+            autoGrow={autoGrow}
+            disableKeyboard={disableKeyboard}
+            prefixCharacter={prefixCharacter}
+            hideFocusedState={hideFocusedState}
+            shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
+            shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
+            autoGrowExtraSpace={props.autoGrowExtraSpace}
+            autoGrowMarginSide={props.autoGrowMarginSide}
+            contentWidth={props.contentWidth}
+            onPress={props.onPress}
+            onBlur={props.onBlur}
+            submitBehavior={props.submitBehavior}
+            testID={props.testID}
+            prefixStyle={props.prefixStyle}
+            prefixContainerStyle={props.prefixContainerStyle}
+            touchableInputWrapperStyle={props.touchableInputWrapperStyle}
+        />
+    );
+
     return (
         <>
-            <View
-                id={NUMBER_VIEW_ID}
-                onMouseDown={(event) => focusTextInput(event, [NUMBER_VIEW_ID])}
-                style={[styles.moneyRequestAmountContainer, styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
-            >
-                <TextInputWithCurrencySymbol
-                    formattedAmount={formattedNumber}
-                    onChangeAmount={setNewNumber}
-                    onSymbolButtonPress={onSymbolButtonPress}
-                    placeholder={numberFormat(0)}
-                    ref={(ref: BaseTextInputRef) => {
-                        if (typeof forwardedRef === 'function') {
-                            forwardedRef(ref);
-                        } else if (forwardedRef && 'current' in forwardedRef) {
-                            // eslint-disable-next-line no-param-reassign
-                            forwardedRef.current = ref;
-                        }
-                        textInput.current = ref;
-                    }}
-                    symbol={symbol}
-                    hideSymbol={hideSymbol}
-                    symbolPosition={symbolPosition}
-                    selection={selection}
-                    onSelectionChange={(selectionStart, selectionEnd) => {
-                        if (shouldIgnoreSelectionWhenUpdatedManually && willSelectionBeUpdatedManually.current) {
-                            willSelectionBeUpdatedManually.current = false;
-                            return;
-                        }
-                        if (!shouldUpdateSelection) {
-                            return;
-                        }
-                        // When the number is updated in setNewNumber on iOS, in onSelectionChange formattedNumber stores the number before the update. Using numberRef allows us to read the updated number
-                        const maxSelection = numberRef.current?.length ?? formattedNumber.length;
-                        numberRef.current = undefined;
-                        const start = Math.min(selectionStart, maxSelection);
-                        const end = Math.min(selectionEnd, maxSelection);
-                        setSelection({start, end});
-                    }}
-                    onKeyPress={textInputKeyPress}
-                    isSymbolPressable={isSymbolPressable}
-                    symbolTextStyle={symbolTextStyle}
-                    style={style}
-                    containerStyle={containerStyle}
-                    onMouseDown={handleMouseDown}
-                    onMouseUp={handleMouseUp}
-                    autoFocus={props.autoFocus}
-                    autoGrow={autoGrow}
-                    disableKeyboard={disableKeyboard}
-                    prefixCharacter={prefixCharacter}
-                    hideFocusedState={hideFocusedState}
-                    shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
-                    shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
-                    autoGrowExtraSpace={props.autoGrowExtraSpace}
-                    autoGrowMarginSide={props.autoGrowMarginSide}
-                    contentWidth={props.contentWidth}
-                    onPress={props.onPress}
-                    onBlur={props.onBlur}
-                    submitBehavior={props.submitBehavior}
-                    testID={props.testID}
-                    prefixStyle={props.prefixStyle}
-                    prefixContainerStyle={props.prefixContainerStyle}
-                    touchableInputWrapperStyle={props.touchableInputWrapperStyle}
-                />
-                {!!errorText && (
-                    <FormHelpMessage
-                        style={[styles.pAbsolute, styles.b0, shouldShowBigNumberPad ? styles.mb0 : styles.mb3, styles.ph5, styles.w100]}
-                        isError
-                        message={errorText}
-                    />
-                )}
-            </View>
+            {shouldWrapInputInContainer ? (
+                <View
+                    id={NUMBER_VIEW_ID}
+                    onMouseDown={(event) => focusTextInput(event, [NUMBER_VIEW_ID])}
+                    style={[styles.moneyRequestAmountContainer, styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
+                >
+                    {textInputComponent}
+                    {!!errorText && (
+                        <FormHelpMessage
+                            style={[styles.pAbsolute, styles.b0, shouldShowBigNumberPad ? styles.mb0 : styles.mb3, styles.ph5, styles.w100]}
+                            isError
+                            message={errorText}
+                        />
+                    )}
+                </View>
+            ) : (
+                textInputComponent
+            )}
             {shouldShowBigNumberPad || !!footer ? (
                 <View
                     onMouseDown={(event) => focusTextInput(event, [NUM_PAD_CONTAINER_VIEW_ID, NUM_PAD_VIEW_ID])}

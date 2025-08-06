@@ -96,6 +96,13 @@ type MoneyRequestAmountInputProps = {
 
     /** Reference to the amount form */
     moneyRequestAmountInputRef?: ForwardedRef<NumberWithSymbolFormRef>;
+
+    /**
+     * Whether to wrap the input in a container
+     * Disable when you only want to display the input alone without `flex: 1` container
+     * E.g., Split amount input
+     */
+    shouldWrapInputInContainer?: boolean;
 } & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix'>;
 
 type Selection = {
@@ -129,6 +136,7 @@ function MoneyRequestAmountInput(
         hideFocusedState = true,
         shouldApplyPaddingToContainer = false,
         shouldUseDefaultLineHeightForPrefix = true,
+        shouldWrapInputInContainer = true,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -201,6 +209,7 @@ function MoneyRequestAmountInput(
             hideFocusedState={hideFocusedState}
             shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
             shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
+            shouldWrapInputInContainer={shouldWrapInputInContainer}
             containerStyle={props.containerStyle}
             prefixStyle={props.prefixStyle}
             prefixContainerStyle={props.prefixContainerStyle}
