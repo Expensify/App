@@ -650,16 +650,14 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     useEffect(() => {
         const currentRoute = Navigation.getActiveRouteWithoutParams();
-
-        if ((hasErrors || shouldResetSearchQuery) && currentRoute === '/') {
+        if (hasErrors && (currentRoute === '/' || (shouldResetSearchQuery && currentRoute === '/search'))) {
             // Use requestAnimationFrame to safely update navigation params without overriding the current route
             requestAnimationFrame(() => {
                 Navigation.setParams({q: buildCannedSearchQuery()});
-
-                if (shouldResetSearchQuery) {
-                    setShouldResetSearchQuery(false);
-                }
             });
+            if (shouldResetSearchQuery) {
+                setShouldResetSearchQuery(false);
+            }
         }
     }, [hasErrors, queryJSON, searchResults, shouldResetSearchQuery, setShouldResetSearchQuery]);
 
