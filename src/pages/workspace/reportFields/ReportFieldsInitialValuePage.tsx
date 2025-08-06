@@ -49,15 +49,15 @@ function ReportFieldsInitialValuePage({
     const submitForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
             if (currentInitialValue !== values.initialValue) {
-                updateReportFieldInitialValue(policyID, reportFieldID, values.initialValue);
+                updateReportFieldInitialValue(policyID, reportFieldID, values.initialValue, policy);
             }
             Navigation.goBack();
         },
-        [policyID, reportFieldID, currentInitialValue],
+        [policyID, reportFieldID, currentInitialValue, policy],
     );
 
     const submitListValueUpdate = (value: string) => {
-        updateReportFieldInitialValue(policyID, reportFieldID, currentInitialValue === value ? '' : value);
+        updateReportFieldInitialValue(policyID, reportFieldID, currentInitialValue === value ? '' : value, policy);
         Navigation.goBack();
     };
 
