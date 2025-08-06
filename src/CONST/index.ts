@@ -1058,7 +1058,6 @@ const CONST = {
         SHUTTER_SIZE: 90,
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
     },
-    RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
         ROLE: {
             ADMIN: 'admin',
@@ -1128,6 +1127,7 @@ const CONST = {
                 ACTIONABLE_ADD_PAYMENT_CARD: 'ACTIONABLEADDPAYMENTCARD',
                 ACTIONABLE_JOIN_REQUEST: 'ACTIONABLEJOINREQUEST',
                 ACTIONABLE_MENTION_WHISPER: 'ACTIONABLEMENTIONWHISPER',
+                ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER: 'ACTIONABLEMENTIONINVITETOSUBMITEXPENSECONFIRMWHISPER',
                 ACTIONABLE_REPORT_MENTION_WHISPER: 'ACTIONABLEREPORTMENTIONWHISPER',
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
                 POLICY_EXPENSE_CHAT_WELCOME_WHISPER: 'POLICYEXPENSECHATWELCOMEWHISPER',
@@ -1312,7 +1312,11 @@ const CONST = {
         },
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
+            INVITE_TO_SUBMIT_EXPENSE: 'inviteToSubmitExpense',
             NOTHING: 'nothing',
+        },
+        ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER: {
+            DONE: 'done',
         },
         ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION: {
             NOTHING: 'nothing',
@@ -1539,8 +1543,6 @@ const CONST = {
         SEARCH_MOST_RECENT_OPTIONS: 'search_most_recent_options',
         DEBOUNCE_HANDLE_SEARCH: 'debounce_handle_search',
         FAST_SEARCH_TREE_CREATION: 'fast_search_tree_creation',
-        SHOW_HOVER_PREVIEW_DELAY: 270,
-        SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 200,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -2876,6 +2878,12 @@ const CONST = {
             REIMBURSEMENT_NO: 'reimburseNo', // None
             REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
         },
+        CASH_EXPENSE_REIMBURSEMENT_CHOICES: {
+            REIMBURSABLE_DEFAULT: 'reimbursableDefault', // Reimbursable by default
+            NON_REIMBURSABLE_DEFAULT: 'nonReimbursableDefault', // Non-reimbursable by default
+            ALWAYS_REIMBURSABLE: 'alwaysReimbursable', // Always Reimbursable
+            ALWAYS_NON_REIMBURSABLE: 'alwaysNonReimbursable', // Always Non Reimbursable
+        },
         ID_FAKE: '_FAKE_',
         EMPTY: 'EMPTY',
         SECONDARY_ACTIONS: {
@@ -3500,10 +3508,6 @@ const CONST = {
         EMOJIS: /[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}](\u200D[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/du,
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJI_SKIN_TONES: /[\u{1f3fb}-\u{1f3ff}]/gu,
-        /** Regex to match emojis that are not wrapped in `<emoji>` tags */
-        get UNWRAPPED_EMOJI() {
-            return new RegExp(`(?:(?!<emoji[^>]*>))(${this.EMOJIS.source})(?:(?!</emoji[^>]*>))`, 'gu');
-        },
 
         PRIVATE_USER_AREA: /[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]/u,
 
@@ -3739,6 +3743,7 @@ const CONST = {
         TAG: 'tag',
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
+        REIMBURSABLE: 'reimbursable',
         REPORT: 'report',
     },
     FOOTER: {
