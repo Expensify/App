@@ -173,6 +173,13 @@ function MoneyReportHeader({
     const isDownloadingPDF = download?.isDownloading ?? false;
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
+    const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
+
+    const customTemplates = useMemo(() => Object.entries({...policy?.exportLayouts ?? {}, ...csvExportLayouts ?? {}}).map(([templateName, layout]) => ({
+        ...layout,
+        templateName,
+    })), [csvExportLayouts, policy?.exportLayouts]);
+
     const requestParentReportAction = useMemo(() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
             return null;
@@ -626,8 +633,19 @@ function MoneyReportHeader({
             }
         }
 
+        if (customTemplates && customTemplates.length > 0) {
+            for (const template of customTemplates) {
+                options[template.name] = {
+                    text: template.name,
+                    icon: Expensicons.Table,
+                    value: template.templateName,
+                    onSelected: () => beginExportWithTemplate(template.templateName, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, transactionIDs),
+                };
+            }
+        }
+
         return options;
-    }, [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported, beginExportWithTemplate, integrationsExportTemplates]);
+    }, [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported, beginExportWithTemplate, integrationsExportTemplates, customTemplates]);
 
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
@@ -773,8 +791,8 @@ function MoneyReportHeader({
         if (!moneyRequestReport) {
             return [];
         }
-        return getSecondaryExportReportActions(moneyRequestReport, policy, reportActions, integrationsExportTemplates ?? []);
-    }, [moneyRequestReport, policy, reportActions, integrationsExportTemplates]);
+        return getSecondaryExportReportActions(moneyRequestReport, policy, reportActions, integrationsExportTemplates ?? [], customTemplates ?? []);
+    }, [moneyRequestReport, policy, reportActions, integrationsExportTemplates, customTemplates]);
 
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
