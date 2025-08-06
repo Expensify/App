@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {closeReactNativeApp} from '@userActions/HybridApp';
+import closeReactNativeApp from '@userActions/HybridApp';
 import {openOldDotLink} from '@userActions/Link';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONFIG from '@src/CONFIG';
