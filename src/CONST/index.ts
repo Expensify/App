@@ -292,6 +292,21 @@ const CONST = {
     AVATAR_MIN_WIDTH_PX: 80,
     AVATAR_MIN_HEIGHT_PX: 80,
 
+    REPORT_ACTION_AVATARS: {
+        TYPE: {
+            MULTIPLE: 'multiple',
+            MULTIPLE_DIAGONAL: 'multipleDiagonal',
+            MULTIPLE_HORIZONTAL: 'multipleHorizontal',
+            SUBSCRIPT: 'subscript',
+            SINGLE: 'single',
+        },
+        SORT_BY: {
+            ID: 'id',
+            NAME: 'name',
+            REVERSE: 'reverse',
+        },
+    },
+
     // Maximum width and height size in px for a selected image
     AVATAR_MAX_WIDTH_PX: 4096,
     AVATAR_MAX_HEIGHT_PX: 4096,
@@ -311,7 +326,8 @@ const CONST = {
     OLD_DEFAULT_AVATAR_COUNT: 8,
 
     DISPLAY_NAME: {
-        MAX_LENGTH: 50,
+        // This value is consistent with the BE display name max length limit.
+        MAX_LENGTH: 100,
         RESERVED_NAMES: ['Expensify', 'Concierge'],
         EXPENSIFY_CONCIERGE: 'Expensify Concierge',
     },
@@ -326,6 +342,10 @@ const CONST = {
 
     LEGAL_NAME: {
         MAX_LENGTH: 40,
+    },
+
+    NAME: {
+        MAX_LENGTH: 50,
     },
 
     REPORT_DESCRIPTION: {
@@ -971,7 +991,7 @@ const CONST = {
     STORYLANE: {
         ADMIN_TOUR: 'https://app.storylane.io/demo/bbcreg8vccag?embed=inline',
         ADMIN_TOUR_MOBILE: 'https://app.storylane.io/demo/b6faqcdsxgww?embed=inline',
-        TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/agmsfwgasaed?embed=inline',
+        TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/mqzy3huvtrhx?embed=inline',
         TRACK_WORKSPACE_TOUR_MOBILE: 'https://app.storylane.io/share/wq4hiwsqvoho?embed=inline',
 
         // At the moment we are using Navattic links, but it will be changed to Storylane in the future.
@@ -1410,10 +1430,16 @@ const CONST = {
             EXPORT_TO_INTEGRATION: 'exportToIntegration',
             MARK_AS_EXPORTED: 'markAsExported',
             DOWNLOAD_CSV: 'downloadCSV',
+            REPORT_LEVEL_EXPORT: 'report_level_export',
+            EXPENSE_LEVEL_EXPORT: 'detailed_export',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
         },
+    },
+    EXPORT_TEMPLATE_TYPES: {
+        INTEGRATIONS: 'integrations',
+        IN_APP: 'in-app',
     },
     NEXT_STEP: {
         ICONS: {
@@ -3124,6 +3150,7 @@ const CONST = {
         SMALL_SUBSCRIPT: 'small-subscript',
         MID_SUBSCRIPT: 'mid-subscript',
         LARGE_BORDERED: 'large-bordered',
+        MEDIUM_LARGE: 'medium-large',
         HEADER: 'header',
         MENTION_ICON: 'mention-icon',
         SMALL_NORMAL: 'small-normal',
@@ -3264,9 +3291,9 @@ const CONST = {
             ALLOW: 'personal',
         },
         STATEMENT_CLOSE_DATE: {
-            LAST_DAY_OF_MONTH: 'lastDayOfMonth',
-            LAST_BUSINESS_DAY_OF_MONTH: 'lastBusinessDayOfMonth',
-            CUSTOM_DAY_OF_MONTH: 'customDayOfMonth',
+            LAST_DAY_OF_MONTH: 'LAST_DAY_OF_MONTH',
+            LAST_BUSINESS_DAY_OF_MONTH: 'LAST_BUSINESS_DAY_OF_MONTH',
+            CUSTOM_DAY_OF_MONTH: 'CUSTOM_DAY_OF_MONTH',
         },
         CARD_LIST_THRESHOLD: 8,
         DEFAULT_EXPORT_TYPE: 'default',
@@ -5225,7 +5252,7 @@ const CONST = {
      * The maximum count of items per page for SelectionList.
      * When paginate, it multiplies by page number.
      */
-    MAX_SELECTION_LIST_PAGE_LENGTH: 500,
+    MAX_SELECTION_LIST_PAGE_LENGTH: 50,
 
     /**
      * Bank account names
@@ -5478,6 +5505,8 @@ const CONST = {
             },
         },
     },
+
+    /* If we update these values, let's ensure this logic is consistent with the logic in the backend (Auth), since we're using the same method to calculate the rate value in distance requests created via Concierge. */
     CURRENCY_TO_DEFAULT_MILEAGE_RATE: JSON.parse(`{
         "AED": {
             "rate": 414,
@@ -6425,14 +6454,6 @@ const CONST = {
             NEVER: 'never',
             LAST_MONTH: 'last-month',
             LAST_STATEMENT: 'last-statement',
-        },
-        get FILTER_DATE_PRESETS() {
-            return {
-                // s77rt remove DEV lock
-                [this.SYNTAX_FILTER_KEYS.POSTED]:
-                    (Config?.ENVIRONMENT ?? 'development') === 'development' ? [this.DATE_PRESETS.LAST_STATEMENT, this.DATE_PRESETS.LAST_MONTH] : [this.DATE_PRESETS.LAST_MONTH],
-                [this.SYNTAX_FILTER_KEYS.EXPORTED]: [this.DATE_PRESETS.NEVER],
-            };
         },
         SNAPSHOT_ONYX_KEYS: [
             ONYXKEYS.COLLECTION.REPORT,
