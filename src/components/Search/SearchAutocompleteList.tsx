@@ -143,14 +143,6 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
     );
 }
 
-const ContinuationDetectionSearchFilterKey = [
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
-] as SearchFilterKey[];
-
 function SearchAutocompleteList(
     {
         autocompleteQueryValue,
@@ -269,7 +261,15 @@ function SearchAutocompleteList(
         if (!autocomplete && ranges.length > 0) {
             const lastRange = ranges.at(ranges.length - 1);
 
-            if (lastRange && ContinuationDetectionSearchFilterKey.includes(lastRange.key)) {
+            const continuationDetectionSearchFilterKey = [
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
+            ] as SearchFilterKey[];
+
+            if (lastRange && continuationDetectionSearchFilterKey.includes(lastRange.key)) {
                 const afterLastRange = autocompleteQueryValue.substring(lastRange.start + lastRange.length);
                 const continuationMatch = afterLastRange.match(/^\s+(\w+)/);
 
@@ -677,7 +677,14 @@ function SearchAutocompleteList(
             }
 
             const fieldKey = focusedItem.mapKey?.includes(':') ? focusedItem.mapKey.split(':').at(0) : focusedItem.mapKey;
-            const isNameField = fieldKey && ContinuationDetectionSearchFilterKey.includes(fieldKey as SearchFilterKey);
+            const continuationDetectionSearchFilterKey = [
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
+            ] as SearchFilterKey[];
+            const isNameField = fieldKey && continuationDetectionSearchFilterKey.includes(fieldKey as SearchFilterKey);
 
             let trimmedUserSearchQuery;
             if (isNameField && fieldKey) {
