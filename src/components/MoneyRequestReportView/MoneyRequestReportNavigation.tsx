@@ -5,10 +5,8 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
-import {isArchivedReport} from '@libs/ReportUtils';
+import {selectArchivedReportsIdSet, selectFilteredReportActions} from '@libs/ReportUtils';
 import {getSections, getSortedSections} from '@libs/SearchUIUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import Navigation from '@navigation/Navigation';
 import saveLastSearchParams from '@userActions/ReportNavigation';
 import {search} from '@userActions/Search';
@@ -30,32 +28,12 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion, bac
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
         canBeMissing: true,
-        selector: (allReportActions) => {
-            return Object.fromEntries(
-                Object.entries(allReportActions ?? {}).map(([reporTID, reportActionsGroup]) => {
-                    const filteredReportActions = Object.values(reportActionsGroup ?? {}).filter((action) => isExportIntegrationAction(action) || isIntegrationMessageAction(action));
-                    return [reporTID, filteredReportActions];
-                }),
-            );
-        },
+        selector: selectFilteredReportActions,
     });
+
     const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
-        selector: (all): ArchivedReportsIDSet => {
-            const ids = new Set<string>();
-            if (!all) {
-                return ids;
-            }
-
-            const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
-            for (const [key, value] of Object.entries(all)) {
-                if (isArchivedReport(value)) {
-                    const reporTID = key.slice(prefixLength);
-                    ids.add(reporTID);
-                }
-            }
-            return ids;
-        },
+        selector: selectArchivedReportsIdSet,
     });
 
     const {type, status, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
@@ -79,7 +57,16 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion, bac
             return;
         }
 
-        if (currentIndex < allReportsCount - 1 && allReports.length >= (lastSearchQuery?.previousLengthOfResults ?? 0)) {
+        if (lastSearchQuery.allowPostSearchRecount) {
+            saveLastSearchParams({
+                ...lastSearchQuery,
+                allowPostSearchRecount: false,
+                previousLengthOfResults: allReports.length,
+            });
+            return;
+        }
+
+        if (currentIndex < allReportsCount - 1) {
             return;
         }
 

@@ -341,22 +341,25 @@ function search({
             .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
             .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
         if (response?.search?.offset) {
+            // Indicates that search results are extended from the Report view (with navigation between reports),
+            // using previous results to enable correct counter behavior.
             if (prevReports) {
                 saveLastSearchParams({
                     queryJSON,
                     offset,
                     hasMoreResults: !!response?.search?.hasMoreResults,
                     previousLengthOfResults: prevReports.length,
-                    willUpdateCountInFeature: false,
+                    allowPostSearchRecount: false,
                 });
             }
         } else {
+            // Applies to all searches from the Search View
             saveLastSearchParams({
                 queryJSON,
                 offset,
                 hasMoreResults: !!response?.search?.hasMoreResults,
                 previousLengthOfResults: reports.length,
-                willUpdateCountInFeature: true,
+                allowPostSearchRecount: true,
             });
         }
     });

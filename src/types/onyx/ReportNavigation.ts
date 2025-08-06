@@ -12,9 +12,9 @@ type LastSearchParams = {
      */
     previousLengthOfResults?: number;
     /**
-     * The number of results returned in the previous search.
+     * Enables post-search recount based on extra criteria unknown during the initial search.
      */
-    willUpdateCountInFeature?: boolean;
+    allowPostSearchRecount?: boolean;
     /**
      * Indicates whether there are more results available beyond the last search.
      */
