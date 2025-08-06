@@ -68,13 +68,11 @@ const areAllTransactionsValid = transactions.every((transaction) => {
 
 Good:
 ```tsx
-// ReportActionItem.tsx
 const personalDetails = usePersonalDetails();
 ```
 
 Bad:
 ```tsx
-// ReportActionItem.tsx
 const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 ```
 
