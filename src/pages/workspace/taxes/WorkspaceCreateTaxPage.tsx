@@ -117,6 +117,7 @@ function WorkspaceCreateTaxPage({
                                     autoGrowMarginSide="left"
                                     style={[styles.iouAmountTextInput, styles.textAlignRight]}
                                     containerStyle={styles.iouAmountTextInputContainer}
+                                    touchableInputWrapperStyle={styles.heightUndefined}
                                 />
                             </View>
                         </FormProvider>
