@@ -19,6 +19,12 @@ let isInitialized = false;
 /**
  * Initialize persistent connections to Onyx data needed for OptimisticReportNames
  * This is called lazily when OptimisticReportNames functionality is first used
+ *
+ * We use Onyx.connectWithoutView because we do not use this in React components and this logic is not tied to the UI.
+ * This is a centralized system that needs access to all objects of several types, so that when any updates affect
+ * the computed report names, we can compute the new names according to the formula and add the necessary updates.
+ * It wouldn't be possible to do this without connecting to all the data.
+ *
  */
 function initialize(): void {
     if (isInitialized) {
@@ -26,7 +32,6 @@ function initialize(): void {
     }
 
     // Connect to BETAS
-    // eslint-disable-next-line react-compiler/react-compiler -- This is not a React component and needs to access Onyx data for OptimisticReportNames processing without being tied to a UI view
     Onyx.connectWithoutView({
         key: ONYXKEYS.BETAS,
         callback: (val) => {
@@ -35,7 +40,6 @@ function initialize(): void {
     });
 
     // Connect to all REPORTS
-    // eslint-disable-next-line react-compiler/react-compiler -- This is not a React component and needs to access Onyx data for OptimisticReportNames processing without being tied to a UI view
     Onyx.connectWithoutView({
         key: ONYXKEYS.COLLECTION.REPORT,
         waitForCollectionCallback: true,
@@ -45,7 +49,6 @@ function initialize(): void {
     });
 
     // Connect to all POLICIES
-    // eslint-disable-next-line react-compiler/react-compiler -- This is not a React component and needs to access Onyx data for OptimisticReportNames processing without being tied to a UI view
     Onyx.connectWithoutView({
         key: ONYXKEYS.COLLECTION.POLICY,
         waitForCollectionCallback: true,
