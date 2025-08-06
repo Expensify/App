@@ -59,6 +59,7 @@ const FILTER_KEYS = {
     REIMBURSABLE: 'reimbursable',
     BILLABLE: 'billable',
     ACTION: 'action',
+    WITHDRAWAL_TYPE: 'withdrawalType',
 } as const;
 
 const ALLOWED_TYPE_FILTERS = {
@@ -70,6 +71,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.KEYWORD,
         FILTER_KEYS.POLICY_ID,
         FILTER_KEYS.EXPENSE_TYPE,
+        FILTER_KEYS.WITHDRAWAL_TYPE,
         FILTER_KEYS.MERCHANT,
         FILTER_KEYS.DATE_ON,
         FILTER_KEYS.DATE_AFTER,
@@ -265,6 +267,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.REIMBURSABLE]: string;
         [FILTER_KEYS.BILLABLE]: string;
         [FILTER_KEYS.ACTION]: string;
+        [FILTER_KEYS.WITHDRAWAL_TYPE]: string[];
     }
 >;
 

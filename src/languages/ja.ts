@@ -5992,6 +5992,11 @@ const translations = {
         noCategory: 'カテゴリなし',
         noTag: 'タグなし',
         expenseType: '経費タイプ',
+        withdrawalType: {
+            title: '出金タイプ',
+            reimbursement: '払い戻し',
+            expensifyCard: 'Expensify card',
+        },
         recentSearches: '最近の検索',
         recentChats: '最近のチャット',
         searchIn: 'で検索',

@@ -154,6 +154,11 @@ const baseFilterConfig = {
         description: 'search.expenseType' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE,
     },
+    withdrawalType: {
+        getTitle: getFilterWithdrawalTypeDisplayTitle,
+        description: 'search.withdrawalType.title' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_WITHDRAWAL_TYPE,
+    },
     tag: {
         getTitle: getFilterDisplayTitle,
         description: 'common.tag' as const,
@@ -218,6 +223,7 @@ const typeFiltersKeys = {
         ],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
@@ -522,6 +528,16 @@ function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
         : undefined;
 }
 
+function getFilterWithdrawalTypeDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
+    const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE];
+    return filterValue
+        ? Object.values(CONST.SEARCH.WITHDRAWAL_TYPE)
+              .filter((withdrawalType) => filterValue.includes(withdrawalType))
+              .map((withdrawalType) => translate(`search.withdrawalType.${withdrawalType}`))
+              .join(', ')
+        : undefined;
+}
+
 function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, _: LocaleContextProps['translate'], reports?: OnyxCollection<Report>) {
     return filters.in
         ? filters.in
@@ -695,6 +711,8 @@ function AdvancedSearchFilters() {
                         }
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, taxRates);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
+                    } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails, formatPhoneNumber);

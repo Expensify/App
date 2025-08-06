@@ -6012,6 +6012,11 @@ const translations = {
         noCategory: 'Brak kategorii',
         noTag: 'Brak tagu',
         expenseType: 'Typ wydatku',
+        withdrawalType: {
+            title: 'Typ wypłaty',
+            reimbursement: 'Zwrot',
+            expensifyCard: 'Expensify card',
+        },
         recentSearches: 'Ostatnie wyszukiwania',
         recentChats: 'Ostatnie czaty',
         searchIn: 'Szukaj w',

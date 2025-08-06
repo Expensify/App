@@ -6026,6 +6026,11 @@ const translations = {
         noCategory: 'Sem categoria',
         noTag: 'Sem etiqueta',
         expenseType: 'Tipo de despesa',
+        withdrawalType: {
+            title: 'Tipo de saque',
+            reimbursement: 'Reembolso',
+            expensifyCard: 'Expensify card',
+        },
         recentSearches: 'Pesquisas recentes',
         recentChats: 'Chats recentes',
         searchIn: 'Pesquisar em',

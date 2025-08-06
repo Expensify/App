@@ -6019,6 +6019,11 @@ const translations = {
         noCategory: 'Keine Kategorie',
         noTag: 'Kein Tag',
         expenseType: 'Ausgabentyp',
+        withdrawalType: {
+            title: 'Auszahlungstyp',
+            reimbursement: 'Erstattung',
+            expensifyCard: 'Expensify card',
+        },
         recentSearches: 'Letzte Suchanfragen',
         recentChats: 'Letzte Chats',
         searchIn: 'Suche in',

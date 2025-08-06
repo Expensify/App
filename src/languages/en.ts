@@ -5991,6 +5991,11 @@ const translations = {
         noCategory: 'No category',
         noTag: 'No tag',
         expenseType: 'Expense type',
+        withdrawalType: {
+            title: 'Withdrawal type',
+            reimbursement: 'Reimbursement',
+            expensifyCard: 'Expensify card',
+        },
         recentSearches: 'Recent searches',
         recentChats: 'Recent chats',
         searchIn: 'Search in',

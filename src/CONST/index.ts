@@ -6308,6 +6308,10 @@ const CONST = {
             YES: 'yes',
             NO: 'no',
         },
+        WITHDRAWAL_TYPE: {
+            REIMBURSEMENT: 'reimbursement',
+            EXPENSIFY_CARD: 'expensifyCard',
+        },
         TABLE_COLUMN_SIZES: {
             NORMAL: 'normal',
             WIDE: 'wide',
@@ -6412,6 +6416,7 @@ const CONST = {
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
             ACTION: 'action',
+            WITHDRAWAL_TYPE: 'withdrawalType',
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
@@ -6430,6 +6435,7 @@ const CONST = {
             DATE: 'date',
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expense-type',
+            WITHDRAWAL_TYPE: 'withdrawal-type',
             CURRENCY: 'currency',
             MERCHANT: 'merchant',
             DESCRIPTION: 'description',

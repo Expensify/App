@@ -6027,6 +6027,11 @@ const translations = {
         noCategory: 'Geen categorie',
         noTag: 'Geen tag',
         expenseType: 'Uitgavetype',
+        withdrawalType: {
+            title: 'Type opname',
+            reimbursement: 'Terugbetaling',
+            expensifyCard: 'Expensify card',
+        },
         recentSearches: 'Recente zoekopdrachten',
         recentChats: 'Recente chats',
         searchIn: 'Zoeken in',

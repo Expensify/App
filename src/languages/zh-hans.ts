@@ -5915,6 +5915,11 @@ const translations = {
         noCategory: '无类别',
         noTag: '无标签',
         expenseType: '费用类型',
+        withdrawalType: {
+            title: '提款类型',
+            reimbursement: '报销',
+            expensifyCard: 'Expensify card',
+        },
         recentSearches: '最近的搜索',
         recentChats: '最近的聊天记录',
         searchIn: '搜索在',

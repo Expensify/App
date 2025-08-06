@@ -6035,6 +6035,11 @@ const translations = {
         noCategory: 'Nessuna categoria',
         noTag: 'Nessun tag',
         expenseType: 'Tipo di spesa',
+        withdrawalType: {
+            title: 'Tipo di prelievo',
+            reimbursement: 'Rimborso',
+            expensifyCard: 'Expensify card',
+        },
         recentSearches: 'Ricerche recenti',
         recentChats: 'Chat recenti',
         searchIn: 'Cerca in',

@@ -6014,6 +6014,11 @@ const translations = {
         noCategory: 'Sin categoría',
         noTag: 'Sin etiqueta',
         expenseType: 'Tipo de gasto',
+        withdrawalType: {
+            title: 'Tipo de retiro',
+            reimbursement: 'Reembolso',
+            expensifyCard: 'Tarjeta de Expensify',
+        },
         recentSearches: 'Búsquedas recientes',
         recentChats: 'Chats recientes',
         searchIn: 'Buscar en',

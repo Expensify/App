@@ -6033,6 +6033,11 @@ const translations = {
         noCategory: 'Aucune catégorie',
         noTag: 'Aucun tag',
         expenseType: 'Type de dépense',
+        withdrawalType: {
+            title: 'Type de retrait',
+            reimbursement: 'Remboursement',
+            expensifyCard: 'Expensify card',
+        },
         recentSearches: 'Recherches récentes',
         recentChats: 'Discussions récentes',
         searchIn: 'Rechercher dans',
