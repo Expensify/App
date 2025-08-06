@@ -36,6 +36,8 @@ jobs:
           :wave: Friendly reminder that deploy blockers are time-sensitive ⏱ issues! [Check out the open \`StagingDeployCash\` deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) to see the list of PRs included in this release.
 
           We should ALWAYS prioritize identifying and reverting the pull request that introduced the issue over merging a new pull request that fixes the issue. Fix PRs should only be merged in very special cases, if you're unsure, tag @app-deployers in [#expensify-open-source](https://expensify.enterprise.slack.com/archives/C01GTK53T8Q) for next steps.
+
+          If you post a proposal/raise a PR to fix the issue where a revert is possible, it will be ignored.
           EOF
           )"
         env:
