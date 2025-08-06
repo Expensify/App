@@ -1478,14 +1478,16 @@ describe('SidebarUtils', () => {
     describe('sortReportsToDisplayInLHN', () => {
         describe('categorizeReportsForLHN', () => {
             it('should categorize reports into correct groups', () => {
-                // Mock hasValidDraftComment to return true for report '2'
+                // Given hasValidDraftComment is mocked to return true for report '2'
                 const {hasValidDraftComment} = require('@libs/DraftCommentUtils') as {hasValidDraftComment: jest.Mock};
                 hasValidDraftComment.mockImplementation((reportID: string) => reportID === '2');
 
                 const {reports, reportNameValuePairs, reportAttributes} = createSidebarTestData();
 
+                // When the reports are categorized
                 const result = SidebarUtils.categorizeReportsForLHN(reports, reportNameValuePairs, reportAttributes);
 
+                // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);
                 expect(result.pinnedAndGBRReports.at(0)?.reportID).toBe('0');
                 expect(result.errorReports).toHaveLength(1);
@@ -1499,6 +1501,7 @@ describe('SidebarUtils', () => {
             });
 
             it('should handle reports with requiresAttention flag', () => {
+                // Given the reports are created
                 const reports = createSidebarReportsCollection([
                     {
                         reportName: 'Attention Report',
@@ -1517,13 +1520,16 @@ describe('SidebarUtils', () => {
                     },
                 };
 
+                // When the reports are categorized
                 const result = SidebarUtils.categorizeReportsForLHN(reports, undefined, reportAttributes);
 
+                // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);
                 expect(result.pinnedAndGBRReports.at(0)?.reportID).toBe('0');
             });
 
             it('should skip reports without reportID', () => {
+                // Given the reports are created
                 const reports = createSidebarReportsCollection([
                     {
                         reportName: 'Valid Report',
@@ -1532,7 +1538,7 @@ describe('SidebarUtils', () => {
                     },
                 ]);
 
-                // Add a report with empty reportID manually
+                // Given a report with empty reportID
                 reports['1'] = {
                     ...createRandomReport(1),
                     reportID: '',
@@ -1541,8 +1547,10 @@ describe('SidebarUtils', () => {
                     hasErrorsOtherThanFailedReceipt: false,
                 };
 
+                // When the reports are categorized
                 const result = SidebarUtils.categorizeReportsForLHN(reports);
 
+                // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(0);
                 expect(result.errorReports).toHaveLength(0);
                 expect(result.draftReports).toHaveLength(0);
@@ -1552,8 +1560,10 @@ describe('SidebarUtils', () => {
             });
 
             it('should handle empty reports object', () => {
+                // Given the reports are empty
                 const result = SidebarUtils.categorizeReportsForLHN({});
 
+                // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(0);
                 expect(result.errorReports).toHaveLength(0);
                 expect(result.draftReports).toHaveLength(0);
@@ -1566,6 +1576,7 @@ describe('SidebarUtils', () => {
             const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
 
             it('should sort reports correctly in default mode', () => {
+                // Given the reports are created
                 const categories = {
                     pinnedAndGBRReports: [
                         {reportID: '1', displayName: 'Zebra', lastVisibleActionCreated: '2024-01-01 10:00:00'},
@@ -1589,30 +1600,32 @@ describe('SidebarUtils', () => {
                     ],
                 };
 
+                // When the reports are sorted
                 const result = SidebarUtils.sortCategorizedReports(categories, true, mockLocaleCompare);
 
-                // Check that pinned reports are sorted by display name
+                // Then the pinned reports are sorted by display name
                 expect(result.pinnedAndGBRReports.at(0)?.displayName).toBe('Alpha');
                 expect(result.pinnedAndGBRReports.at(1)?.displayName).toBe('Zebra');
 
-                // Check that error reports are sorted by display name
+                // Then the error reports are sorted by display name
                 expect(result.errorReports.at(0)?.displayName).toBe('Beta');
                 expect(result.errorReports.at(1)?.displayName).toBe('Charlie');
 
-                // Check that draft reports are sorted by display name
+                // Then the draft reports are sorted by display name
                 expect(result.draftReports.at(0)?.displayName).toBe('Delta');
                 expect(result.draftReports.at(1)?.displayName).toBe('Echo');
 
-                // Check that non-archived reports are sorted by date (most recent first) in default mode
+                // Then the non-archived reports are sorted by date (most recent first) in default mode
                 expect(result.nonArchivedReports.at(0)?.lastVisibleActionCreated).toBe('2024-01-08 10:00:00');
                 expect(result.nonArchivedReports.at(1)?.lastVisibleActionCreated).toBe('2024-01-07 10:00:00');
 
-                // Check that archived reports are sorted by date (most recent first) in default mode
+                // Then the archived reports are sorted by date (most recent first) in default mode
                 expect(result.archivedReports.at(0)?.lastVisibleActionCreated).toBe('2024-01-10 10:00:00');
                 expect(result.archivedReports.at(1)?.lastVisibleActionCreated).toBe('2024-01-09 10:00:00');
             });
 
             it('should sort reports correctly in focus mode (GSD)', () => {
+                // Given the reports are created
                 const categories = {
                     pinnedAndGBRReports: [
                         {reportID: '1', displayName: 'Zebra', lastVisibleActionCreated: '2024-01-01 10:00:00'},
@@ -1636,26 +1649,32 @@ describe('SidebarUtils', () => {
                     ],
                 };
 
+                // When the reports are sorted
                 const result = SidebarUtils.sortCategorizedReports(categories, false, mockLocaleCompare);
 
-                // Check that all reports are sorted by display name in focus mode
+                // Then the pinned reports are sorted by display name in focus mode
                 expect(result.pinnedAndGBRReports.at(0)?.displayName).toBe('Alpha');
                 expect(result.pinnedAndGBRReports.at(1)?.displayName).toBe('Zebra');
 
+                // Then the error reports are sorted by display name
                 expect(result.errorReports.at(0)?.displayName).toBe('Beta');
                 expect(result.errorReports.at(1)?.displayName).toBe('Charlie');
 
+                // Then the draft reports are sorted by display name
                 expect(result.draftReports.at(0)?.displayName).toBe('Delta');
                 expect(result.draftReports.at(1)?.displayName).toBe('Echo');
 
+                // Then the non-archived reports are sorted by display name
                 expect(result.nonArchivedReports.at(0)?.displayName).toBe('Golf');
                 expect(result.nonArchivedReports.at(1)?.displayName).toBe('Hotel');
 
+                // Then the archived reports are sorted by display name
                 expect(result.archivedReports.at(0)?.displayName).toBe('India');
                 expect(result.archivedReports.at(1)?.displayName).toBe('Juliet');
             });
 
             it('should handle reports with missing display names', () => {
+                // Given the reports are created
                 const categories = {
                     pinnedAndGBRReports: [
                         {reportID: '1', displayName: '', lastVisibleActionCreated: '2024-01-01 10:00:00'},
@@ -1667,13 +1686,15 @@ describe('SidebarUtils', () => {
                     archivedReports: [],
                 };
 
+                // When the reports are sorted
                 const result = SidebarUtils.sortCategorizedReports(categories, true, mockLocaleCompare);
 
-                // Should not crash and should maintain order
+                // Then the pinned reports are sorted by display name
                 expect(result.pinnedAndGBRReports).toHaveLength(2);
             });
 
             it('should handle reports with missing dates', () => {
+                // Given the reports are created
                 const categories = {
                     pinnedAndGBRReports: [],
                     errorReports: [],
@@ -1685,9 +1706,10 @@ describe('SidebarUtils', () => {
                     archivedReports: [],
                 };
 
+                // When the reports are sorted
                 const result = SidebarUtils.sortCategorizedReports(categories, true, mockLocaleCompare);
 
-                // Should fall back to display name comparison
+                // Then the non-archived reports are sorted by display name
                 expect(result.nonArchivedReports.at(0)?.displayName).toBe('Alpha');
                 expect(result.nonArchivedReports.at(1)?.displayName).toBe('Beta');
             });
@@ -1695,6 +1717,7 @@ describe('SidebarUtils', () => {
 
         describe('combineReportCategories', () => {
             it('should combine categories in correct order', () => {
+                // Given the reports are created
                 const pinnedAndGBRReports = [
                     {reportID: '1', displayName: 'Pinned 1'},
                     {reportID: '2', displayName: 'Pinned 2'},
@@ -1716,13 +1739,15 @@ describe('SidebarUtils', () => {
                     {reportID: '10', displayName: 'Archived 2'},
                 ];
 
+                // When the reports are combined
                 const result = SidebarUtils.combineReportCategories(pinnedAndGBRReports, errorReports, draftReports, nonArchivedReports, archivedReports);
 
-                // Should maintain the order: pinned -> error -> draft -> non-archived -> archived
+                // Then the reports are combined in the correct order
                 expect(result).toEqual(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']);
             });
 
             it('should filter out reports with undefined reportID', () => {
+                // Given the reports are created
                 const pinnedAndGBRReports = [
                     {reportID: '1', displayName: 'Pinned 1'},
                     {reportID: undefined, displayName: 'Invalid'},
@@ -1732,20 +1757,25 @@ describe('SidebarUtils', () => {
                 const nonArchivedReports: Array<{reportID?: string; displayName: string; lastVisibleActionCreated?: string}> = [];
                 const archivedReports: Array<{reportID?: string; displayName: string; lastVisibleActionCreated?: string}> = [];
 
+                // When the reports are combined
                 const result = SidebarUtils.combineReportCategories(pinnedAndGBRReports, errorReports, draftReports, nonArchivedReports, archivedReports);
 
+                // Then the reports are combined in the correct order
                 expect(result).toEqual(['1', '2']);
             });
 
             it('should handle empty categories', () => {
+                // Given the reports are empty
                 const result = SidebarUtils.combineReportCategories([], [], [], [], []);
 
+                // Then the reports are combined in the correct order
                 expect(result).toEqual([]);
             });
         });
 
         describe('sortReportsToDisplayInLHN', () => {
             it('should sort reports correctly', () => {
+                // Given the reports are created
                 const reports = createSidebarReportsCollection([
                     {
                         reportName: 'Pinned Report',
@@ -1767,9 +1797,10 @@ describe('SidebarUtils', () => {
                 const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
                 const priorityMode = CONST.PRIORITY_MODE.DEFAULT;
 
+                // When the reports are sorted
                 const result = SidebarUtils.sortReportsToDisplayInLHN(reports, priorityMode, mockLocaleCompare);
 
-                // Should return report IDs in the correct order (0-based indexing)
+                // Then the reports are sorted in the correct order
                 expect(result).toContain('0'); // Pinned first
                 expect(result).toContain('1'); // Error second
                 expect(result).toContain('2'); // Normal third
@@ -1777,6 +1808,7 @@ describe('SidebarUtils', () => {
             });
 
             it('should handle different priority modes correctly', () => {
+                // Given the reports are created
                 const reports = createSidebarReportsCollection([
                     {
                         reportName: 'Alpha',
@@ -1794,12 +1826,13 @@ describe('SidebarUtils', () => {
 
                 const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
 
-                // Test default mode (sort by date)
+                // When the reports are sorted in default mode
                 const defaultResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.DEFAULT, mockLocaleCompare);
 
-                // Test GSD mode (sort by name)
+                // When the reports are sorted in GSD mode
                 const gsdResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.GSD, mockLocaleCompare);
 
+                // Then the reports are sorted in the correct order
                 expect(defaultResult).toEqual(['1', '0']); // Most recent first (index 1 has later date)
                 expect(gsdResult).toEqual(['0', '1']); // Alphabetical (Alpha comes before Beta)
             });
