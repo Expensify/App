@@ -1,14 +1,18 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSelectionPicker';
+import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
+import SelectionList from '@components/SelectionList';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -17,34 +21,40 @@ function SearchFiltersWithdrawalTypePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const initiallySelectedItems = useMemo(
-        () =>
-            searchAdvancedFiltersForm?.withdrawalType
-                ?.filter((withdrawalType) => Object.values(CONST.SEARCH.WITHDRAWAL_TYPE).includes(withdrawalType as ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>))
-                .map((withdrawalType) => {
-                    const withdrawalTypeName = translate(`search.withdrawalType.${withdrawalType}`);
-                    return {name: withdrawalTypeName, value: withdrawalType};
-                }),
-        [searchAdvancedFiltersForm, translate],
-    );
-    const allWithdrawalTypes = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [selectedItem, setSelectedItem] = useState(() => {
+        const currentValue = searchAdvancedFiltersForm?.withdrawalType;
+        return Object.values(CONST.SEARCH.WITHDRAWAL_TYPE).includes(currentValue as ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>) 
+            ? currentValue 
+            : null;
+    });
 
-    const withdrawalTypesItems = useMemo(() => {
-        return allWithdrawalTypes.map((withdrawalType) => {
-            const withdrawalTypeName = translate(`search.withdrawalType.${withdrawalType}`);
-            return {name: withdrawalTypeName, value: withdrawalType};
-        });
-    }, [allWithdrawalTypes, translate]);
+    const listData: Array<ListItem<ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>>> = useMemo(() => {
+        return Object.values(CONST.SEARCH.WITHDRAWAL_TYPE).map((withdrawalType) => ({
+            text: translate(`search.withdrawalType.${withdrawalType}`),
+            keyForList: withdrawalType,
+            isSelected: selectedItem === withdrawalType,
+        }));
+    }, [selectedItem, translate]);
 
-    const updateWithdrawalTypeFilter = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({withdrawalType: values}), []);
+    const updateSelectedItem = useCallback((item: ListItem<ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>>) => {
+        setSelectedItem(item?.keyForList ?? null);
+    }, []);
+
+    const resetChanges = useCallback(() => {
+        setSelectedItem(null);
+    }, []);
+
+    const applyChanges = useCallback(() => {
+        updateAdvancedFilters({withdrawalType: selectedItem ?? ''});
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+    }, [selectedItem]);
 
     return (
         <ScreenWrapper
             testID={SearchFiltersWithdrawalTypePage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
@@ -54,13 +64,19 @@ function SearchFiltersWithdrawalTypePage() {
                 }}
             />
             <View style={[styles.flex1]}>
-                <SearchMultipleSelectionPicker
-                    items={withdrawalTypesItems}
-                    initiallySelectedItems={initiallySelectedItems}
-                    onSaveSelection={updateWithdrawalTypeFilter}
-                    shouldShowTextInput={false}
+                <SelectionList
+                    shouldSingleExecuteRowSelect
+                    sections={[{data: listData}]}
+                    ListItem={SingleSelectListItem}
+                    onSelectRow={updateSelectedItem}
                 />
             </View>
+            <FixedFooter style={styles.mtAuto}>
+                <SearchFilterPageFooterButtons
+                    resetChanges={resetChanges}
+                    applyChanges={applyChanges}
+                />
+            </FixedFooter>
         </ScreenWrapper>
     );
 }

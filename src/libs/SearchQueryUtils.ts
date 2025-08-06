@@ -66,6 +66,7 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
     date: 'date',
     amount: 'amount',
     expenseType: 'expense-type',
+    withdrawalType: 'withdrawal-type',
     currency: 'currency',
     merchant: 'merchant',
     description: 'description',
@@ -478,6 +479,13 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 return `${value}`;
             }
 
+            if (filterKey === FILTER_KEYS.WITHDRAWAL_TYPE && filterValue) {
+                const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+                if (keyInCorrectForm) {
+                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeSearchValue(filterValue as string)}`;
+                }
+            }
+
             if (
                 (filterKey === FILTER_KEYS.CATEGORY ||
                     filterKey === FILTER_KEYS.CARD_ID ||
@@ -491,8 +499,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.IN ||
                     filterKey === FILTER_KEYS.ASSIGNEE ||
                     filterKey === FILTER_KEYS.POLICY_ID ||
-                    filterKey === FILTER_KEYS.EXPORTER ||
-                    filterKey === FILTER_KEYS.WITHDRAWAL_TYPE) &&
+                    filterKey === FILTER_KEYS.EXPORTER) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
             ) {
@@ -566,14 +573,18 @@ function buildFilterFormValuesFromQuery(
         ) {
             filtersForm[filterKey] = filterValues.at(0);
         }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
+            const withdrawalType = filterValues.at(0);
+            const validWithdrawalTypes = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
+            if (withdrawalType && validWithdrawalTypes.has(withdrawalType as ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>)) {
+                filtersForm[filterKey] = withdrawalType;
+            }
+        }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
             const validExpenseTypes = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
             filtersForm[filterKey] = filterValues.filter((expenseType) => validExpenseTypes.has(expenseType as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>));
         }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
-            const validWithdrawalTypes = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
-            filtersForm[filterKey] = filterValues.filter((withdrawalType) => validWithdrawalTypes.has(withdrawalType as ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>));
-        }
+
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
             filtersForm[filterKey] = filterValues.filter((card) => cardList[card]);
         }

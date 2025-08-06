@@ -62,6 +62,7 @@ title = "title"i { return "title"; }
 assignee = "assignee"i { return "assignee"; }
 createdBy = "createdBy"i  / "created-by"i { return "createdBy"; }
 action = "action"i { return "action"; }
+withdrawalType = "withdrawalType"i / "withdrawal-type"i {return "withdrawalType"; }
 
 operator "operator"
   = (":" / "=") { return "eq"; }

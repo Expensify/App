@@ -530,12 +530,18 @@ function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
 
 function getFilterWithdrawalTypeDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
     const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE];
-    return filterValue
-        ? Object.values(CONST.SEARCH.WITHDRAWAL_TYPE)
-              .filter((withdrawalType) => filterValue.includes(withdrawalType))
-              .map((withdrawalType) => translate(`search.withdrawalType.${withdrawalType}`))
-              .join(', ')
-        : undefined;
+    if (!filterValue || !Object.values(CONST.SEARCH.WITHDRAWAL_TYPE).includes(filterValue as ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>)) {
+        return undefined;
+    }
+    
+    switch (filterValue) {
+        case CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT:
+            return translate('search.withdrawalType.reimbursement');
+        case CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD:
+            return translate('search.withdrawalType.expensifyCard');
+        default:
+            return undefined;
+    }
 }
 
 function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, _: LocaleContextProps['translate'], reports?: OnyxCollection<Report>) {

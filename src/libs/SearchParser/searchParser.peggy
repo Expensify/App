@@ -138,6 +138,7 @@ key "key"
       / reimbursable
       / billable
       / action
+      / withdrawalType
     )
 
 filterKey

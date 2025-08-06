@@ -267,7 +267,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.REIMBURSABLE]: string;
         [FILTER_KEYS.BILLABLE]: string;
         [FILTER_KEYS.ACTION]: string;
-        [FILTER_KEYS.WITHDRAWAL_TYPE]: string[];
+        [FILTER_KEYS.WITHDRAWAL_TYPE]: string;
     }
 >;
 

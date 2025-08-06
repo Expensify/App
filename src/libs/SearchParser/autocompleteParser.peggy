@@ -80,6 +80,7 @@ autocompleteKey "key"
       / action
       / posted
       / exported
+      / withdrawalType
     )
 
 filterKey
