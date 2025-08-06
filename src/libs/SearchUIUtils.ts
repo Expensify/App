@@ -50,7 +50,7 @@ import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {createNewReport} from './actions/Report';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
-import {convertToDisplayString} from './CurrencyUtils';
+import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import {formatPhoneNumber} from './LocalePhoneNumber';
@@ -1887,6 +1887,16 @@ function getGroupByOptions() {
     return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({text: translateLocal(`search.filters.groupBy.${value}`), value}));
 }
 
+function getGroupCurrencyOptions(currencyList: OnyxTypes.CurrencyList) {
+    return Object.keys(currencyList).reduce((options, currencyCode) => {
+        if (!currencyList?.[currencyCode]?.retired) {
+            options.push({text: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode});
+        }
+
+        return options;
+    }, [] as SingleSelectItem<string>[]);
+}
+
 function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCards: OnyxTypes.CardList) {
     return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards)).map<SingleSelectItem<string>>((cardFeed) => ({
         text: cardFeed.name,
@@ -1934,6 +1944,7 @@ export {
     getStatusOptions,
     getTypeOptions,
     getGroupByOptions,
+    getGroupCurrencyOptions,
     getFeedOptions,
     getWideAmountIndicators,
     isTransactionAmountTooLong,
