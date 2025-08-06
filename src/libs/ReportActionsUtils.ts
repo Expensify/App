@@ -234,6 +234,10 @@ function isMovedTransactionAction(reportAction: OnyxInputOrEntry<ReportAction>):
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION);
 }
 
+function isMovedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MOVED);
+}
+
 function isPolicyChangeLogAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>> {
     return reportAction?.actionName ? POLICY_CHANGE_LOG_ARRAY.has(reportAction.actionName) : false;
 }
@@ -3090,6 +3094,7 @@ export {
     isSentMoneyReportAction,
     isSplitBillAction,
     isTaskAction,
+    isMovedAction,
     isThreadParentMessage,
     isTrackExpenseAction,
     isTransactionThread,

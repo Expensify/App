@@ -149,6 +149,13 @@ type MovedTransactionParams = {
     reportName?: string;
 };
 
+type MovedActionParams = {
+    isIouReport: boolean;
+    movedReportUrl: string;
+    newParentReportUrl: string;
+    toPolicyName: string;
+};
+
 type MovedFromReportParams = {
     reportName: string;
 };
@@ -1138,4 +1145,5 @@ export type {
     MergeSuccessDescriptionParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
+    MovedActionParams,
 };

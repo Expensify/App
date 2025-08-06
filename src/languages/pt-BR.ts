@@ -140,6 +140,7 @@ import type {
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
     MissingPropertyParams,
+    MovedActionParams,
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
     MovedTransactionParams,
@@ -1069,6 +1070,12 @@ const translations = {
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `excluiu uma despesa (${amount} para ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `moveu uma despesa${reportName ? `de ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moveu esta despesa${reportName ? `para <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedAction: ({isIouReport, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
+            if (isIouReport) {
+                return `moveu este relatório para o workspace <a href="${newParentReportUrl}">${toPolicyName}</a>`;
+            }
+            return `moveu este <a href="${movedReportUrl}">relatório</a> para o workspace <a href="${newParentReportUrl}">${toPolicyName}</a>`;
+        },
         unreportedTransaction: 'movei esta despesa para o seu espaço pessoal',
         pendingMatchWithCreditCard: 'Recibo pendente de correspondência com transação do cartão',
         pendingMatch: 'Partida pendente',
