@@ -26,6 +26,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
+import useIOUUtils from '@hooks/useIOUUtils';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -38,7 +39,7 @@ import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
 import {base64ToFile, isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import {navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
+import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -119,6 +120,7 @@ function IOURequestStepScan({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const canUseMultiScan = !isEditing && iouType !== CONST.IOU.TYPE.SPLIT && !backTo && !backToReport;
     const isReplacingReceipt = (isEditing && hasReceipt(initialTransaction)) || (!!initialTransaction?.receipt && !!backTo);
+    const {shouldStartLocationPermissionFlow} = useIOUUtils();
 
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) => Object.values(items ?? {}),
@@ -348,6 +350,7 @@ function IOURequestStepScan({
                 policy: OnyxEntry<Policy>;
             },
             billable?: boolean,
+            reimbursable = true,
         ) => {
             files.forEach((receiptFile: ReceiptFile, index) => {
                 const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
@@ -369,6 +372,7 @@ function IOURequestStepScan({
                             created: transaction?.created,
                             receipt,
                             billable,
+                            reimbursable,
                             ...(gpsPoints ?? {}),
                         },
                         ...(policyParams ?? {}),
@@ -392,6 +396,7 @@ function IOURequestStepScan({
                             merchant: '',
                             receipt,
                             billable,
+                            reimbursable,
                         },
                         shouldHandleNavigation: index === files.length - 1,
                         backToReport,
@@ -478,7 +483,7 @@ function IOURequestStepScan({
                                     lat: successData.coords.latitude,
                                     long: successData.coords.longitude,
                                 };
-                                createTransaction(files, participant, gpsPoints, policyParams, false);
+                                createTransaction(files, participant, gpsPoints, policyParams, false, true);
                             },
                             (errorData) => {
                                 Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
@@ -670,7 +675,7 @@ function IOURequestStepScan({
             }
             navigateToConfirmationStep(files, false);
         },
-        [initialTransaction, iouType, navigateToConfirmationStep, shouldSkipConfirmation],
+        [initialTransaction, iouType, shouldStartLocationPermissionFlow, navigateToConfirmationStep, shouldSkipConfirmation],
     );
 
     const getScreenshot = useCallback(() => {
