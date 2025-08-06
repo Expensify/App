@@ -249,7 +249,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     icon: Expensicons.ExpensifyLogoNew,
                     ...(CONFIG.IS_HYBRID_APP
                         ? {
-                              action: () => closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true}),
+                              action: () => closeReactNativeApp({shouldSetNVP: true}),
                           }
                         : {
                               action() {

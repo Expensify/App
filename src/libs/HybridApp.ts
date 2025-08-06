@@ -97,7 +97,7 @@ function handleChangeInHybridAppSignInFlow(hybridApp: OnyxEntry<HybridApp>, tryN
     if (tryNewDot !== undefined) {
         setUseNewDotSignInPage(false).then(() => {
             if (shouldUseOldApp(tryNewDot)) {
-                closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
+                closeReactNativeApp({shouldSetNVP: false});
             } else {
                 Log.info('[HybridApp] The user should see NewDot. There is no need to block the user on the `SignInPage` until the sign-in process is completed on the OldDot side.');
                 setReadyToShowAuthScreens(true);

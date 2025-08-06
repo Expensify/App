@@ -1,3 +1,4 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import {clearSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
@@ -37,6 +38,7 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
     return Onyx.clear(keysToPreserve).then(() => {
         if (CONFIG.IS_HYBRID_APP) {
             resetSignInFlow();
+            HybridAppModule.signOutFromOldDot();
         }
         clearAllPolicies();
         if (!errorMessage) {

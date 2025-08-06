@@ -175,7 +175,7 @@ function ScreenWrapper(
         if (!CONFIG.IS_HYBRID_APP) {
             return;
         }
-        closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
+        closeReactNativeApp({shouldSetNVP: false});
     });
 
     useEffect(() => {

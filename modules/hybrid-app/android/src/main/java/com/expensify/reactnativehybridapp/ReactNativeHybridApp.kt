@@ -17,7 +17,7 @@ class ReactNativeHybridApp(reactContext: ReactApplicationContext) :
     Log.d(NAME, "`shouldUseStaging` should never be called in standalone `New Expensify` app")
   }
 
-  override fun closeReactNativeApp(shouldSignOut: Boolean, shouldSetNVP: Boolean) {
+  override fun closeReactNativeApp(shouldSetNVP: Boolean) {
     Log.d(NAME, "`closeReactNativeApp` should never be called in standalone `New Expensify` app")
   }
 
