@@ -135,8 +135,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         selector: hasSeenTourSelector,
         canBeMissing: true,
     });
-    const viewTourReportID = introSelected?.viewTour;
-    const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
 
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
@@ -529,7 +527,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                       iconFill: theme.icon,
                       text: translate('testDrive.quickAction.takeATwoMinuteTestDrive'),
                       onSelected: () =>
-                          interceptAnonymousUser(() => startTestDrive(introSelected, viewTourReport, viewTourReportID, isAnonymousUser(), tryNewDot?.hasBeenAddedToNudgeMigration)),
+                          interceptAnonymousUser(() => startTestDrive(introSelected, isAnonymousUser(), tryNewDot?.hasBeenAddedToNudgeMigration)),
                   },
               ]
             : []),

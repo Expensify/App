@@ -164,8 +164,6 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         selector: hasSeenTourSelector,
         canBeMissing: true,
     });
-    const viewTourReportID = introSelected?.viewTour;
-    const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
 
     // Default 'Folder' lottie animation, along with its background styles
     const defaultViewItemHeader = useMemo(
@@ -198,7 +196,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         }
 
         const startTestDriveAction = () => {
-            startTestDrive(introSelected, viewTourReport, viewTourReportID, false, tryNewDot?.hasBeenAddedToNudgeMigration);
+            startTestDrive(introSelected, false, tryNewDot?.hasBeenAddedToNudgeMigration);
         };
 
         // If we are grouping by reports, show a custom message rather than a type-specific message
@@ -371,8 +369,6 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         tripViewChildren,
         shouldRedirectToExpensifyClassic,
         transactions,
-        viewTourReport,
-        viewTourReportID,
         tryNewDot?.hasBeenAddedToNudgeMigration,
     ]);
 
