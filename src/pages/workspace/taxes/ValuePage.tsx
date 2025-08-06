@@ -7,6 +7,7 @@ import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updatePolicyTaxValue, validateTaxValue} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
@@ -37,6 +38,7 @@ function ValuePage({
     const {inputCallbackRef} = useAutoFocusInput();
     const currentTaxRate = getTaxByID(policy, taxID);
     const defaultValue = currentTaxRate?.value?.replace('%', '');
+    const StyleUtils = useStyleUtils();
 
     const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, taxID)), [policyID, taxID]);
 
@@ -98,7 +100,7 @@ function ValuePage({
                         autoGrowExtraSpace={variables.w80}
                         isSymbolPressable={false}
                         autoGrowMarginSide="left"
-                        style={[styles.iouAmountTextInput, styles.textAlignRight]}
+                        style={[styles.iouAmountTextInput, StyleUtils.getAmountInputLineHeightStyle(), styles.textAlignRight]}
                         containerStyle={styles.iouAmountTextInputContainer}
                     />
                 </FormProvider>
