@@ -254,8 +254,30 @@ function SearchAutocompleteList(
 
     const autocompleteSuggestions = useMemo<AutocompleteItemData[]>(() => {
         const {autocomplete, ranges = []} = autocompleteParsedQuery ?? {};
-        const autocompleteKey = autocomplete?.key;
-        const autocompleteValue = autocomplete?.value ?? '';
+
+        let autocompleteKey = autocomplete?.key;
+        let autocompleteValue = autocomplete?.value ?? '';
+
+        if (!autocomplete && ranges.length > 0) {
+            const lastRange = ranges.at(ranges.length - 1);
+            const nameFields = [
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
+            ] as const;
+
+            if (lastRange && nameFields.includes(lastRange.key as TupleToUnion<typeof nameFields>)) {
+                const afterLastRange = autocompleteQueryValue.substring(lastRange.start + lastRange.length);
+                const continuationMatch = afterLastRange.match(/^\s+(\w+)/);
+
+                if (continuationMatch) {
+                    autocompleteKey = lastRange.key;
+                    autocompleteValue = `${lastRange.value} ${continuationMatch[1]}`;
+                }
+            }
+        }
 
         const alreadyAutocompletedKeys = ranges
             .filter((range) => {
@@ -446,6 +468,7 @@ function SearchAutocompleteList(
         }
     }, [
         autocompleteParsedQuery,
+        autocompleteQueryValue,
         tagAutocompleteList,
         recentTagsAutocompleteList,
         categoryAutocompleteList,
