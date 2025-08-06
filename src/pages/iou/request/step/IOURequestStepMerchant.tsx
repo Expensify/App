@@ -31,7 +31,7 @@ type IOURequestStepMerchantProps = WithWritableReportOrNotFoundProps<typeof SCRE
 
 function IOURequestStepMerchant({
     route: {
-        params: {transactionID, reportID, backTo, action, iouType},
+        params: {transactionID, reportID, backTo, action, iouType, reportActionID},
     },
     transaction,
     report,
@@ -45,7 +45,7 @@ function IOURequestStepMerchant({
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, undefined, report, transaction);
+    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && isEditing;
     const merchant = getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction)?.merchant;
