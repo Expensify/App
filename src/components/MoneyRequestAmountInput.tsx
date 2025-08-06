@@ -98,7 +98,7 @@ type MoneyRequestAmountInputProps = {
     moneyRequestAmountInputRef?: ForwardedRef<NumberWithSymbolFormRef>;
 
     /**
-     * Whether to wrap the input in a container
+     * Whether to wrap the input in a full width & height container
      * Disable when you only want to display the input alone without `flex: 1` container
      * E.g., Split amount input
      */
