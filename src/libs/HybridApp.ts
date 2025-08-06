@@ -46,12 +46,8 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (session: OnyxEntry<Session>) => {
-        if (!currentSession?.authToken && session?.authToken) {
-            handleChangeInHybridAppSignInFlow(currentHybridApp, currentTryNewDot, currentCredentials, session);
-        } else if (isAnonymousUser(currentSession) && !isAnonymousUser(session)) {
-            handleChangeInHybridAppSignInFlow(currentHybridApp, currentTryNewDot, currentCredentials, session, true);
-        }
         currentSession = session;
+        handleChangeInHybridAppSignInFlow(currentHybridApp, currentTryNewDot, currentCredentials, session);
     },
 });
 
@@ -70,25 +66,17 @@ function shouldUseOldApp(tryNewDot: TryNewDot) {
     return tryNewDot.classicRedirect.dismissed;
 }
 
-function handleChangeInHybridAppSignInFlow(
-    hybridApp: OnyxEntry<HybridApp>,
-    tryNewDot: OnyxEntry<TryNewDot>,
-    credentials: OnyxEntry<Credentials>,
-    session: OnyxEntry<Session>,
-    usingSignInModal = false,
-) {
+function handleChangeInHybridAppSignInFlow(hybridApp: OnyxEntry<HybridApp>, tryNewDot: OnyxEntry<TryNewDot>, credentials: OnyxEntry<Credentials>, session: OnyxEntry<Session>) {
     if (!CONFIG.IS_HYBRID_APP) {
         return;
     }
 
-    if (!session?.authToken || (!hybridApp?.useNewDotSignInPage && !usingSignInModal)) {
+    if (!session?.authToken || !hybridApp?.useNewDotSignInPage) {
         return;
     }
 
     if (isAnonymousUser(session)) {
-        setUseNewDotSignInPage(false).then(() => {
-            setReadyToShowAuthScreens(true);
-        });
+        setReadyToShowAuthScreens(true);
         return;
     }
 
