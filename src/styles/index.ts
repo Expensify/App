@@ -5614,7 +5614,7 @@ const styles = (theme: ThemeColors) =>
 
         getSelectionListPopoverHeight: (itemCount: number) => ({
             height: itemCount * variables.optionRowHeightCompact,
-            ...sizing.mh65vh,
+            ...sizing.mh45vh,
         }),
 
         getUserSelectionListPopoverHeight: (itemCount: number, windowHeight: number, shouldUseNarrowLayout: boolean) => {
