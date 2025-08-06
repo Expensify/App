@@ -230,7 +230,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             file: duplicateWorkspace?.file,
         });
         Navigation.closeRHPFlow();
-    }, [duplicateWorkspace?.file, duplicateWorkspace.name, duplicateWorkspace.policyID, policy, policyID, selectedItems, translate]);
+    }, [duplicateWorkspace?.file, duplicateWorkspace?.name, duplicateWorkspace?.policyID, policy, policyID, selectedItems, translate]);
 
     const updateSelectedItems = useCallback(
         (listItem: ListItem) => {
