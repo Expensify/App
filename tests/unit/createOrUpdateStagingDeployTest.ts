@@ -130,9 +130,9 @@ const basePRList = [
 ];
 
 const baseMobileExpensifyPRList = [
-    `https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/6`,
-    `https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/7`,
-    `https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/8`,
+    `https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/20`,
+    `https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/21`,
+    `https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/22`,
 ];
 
 const baseIssueList = [`https://github.com/${process.env.GITHUB_REPOSITORY}/issues/11`, `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/12`];
@@ -189,7 +189,7 @@ describe('createOrUpdateStagingDeployCash', () => {
         mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef, repositoryName) => {
             if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
                 if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
-                    return [6, 7, 8]; // Mobile-Expensify PRs
+                    return [20, 21, 22]; // Mobile-Expensify PRs
                 }
                 return [...baseNewPullRequests]; // App PRs
             }
@@ -221,6 +221,53 @@ describe('createOrUpdateStagingDeployCash', () => {
                 `${lineBreak}${openCheckbox}${baseMobileExpensifyPRList.at(0)}` +
                 `${lineBreak}${openCheckbox}${baseMobileExpensifyPRList.at(1)}` +
                 `${lineBreak}${openCheckbox}${baseMobileExpensifyPRList.at(2)}${lineBreak}` +
+                `${lineBreakDouble}${deployerVerificationsHeader}` +
+                `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
+                `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
+                `${lineBreak}${openCheckbox}${ghVerification}` +
+                `${lineBreakDouble}${ccApplauseLeads}`,
+        });
+    });
+
+    test('creates new issue when there are no Mobile-Expensify PRs', async () => {
+        vol.reset();
+        vol.fromJSON({
+            [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.2-1'}),
+        });
+
+        // Mock: No Mobile-Expensify PRs found for this release
+        mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef, repositoryName) => {
+            if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
+                if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
+                    return []; // No Mobile-Expensify PRs
+                }
+                return [...baseNewPullRequests]; // App PRs
+            }
+            return [];
+        });
+
+        mockListIssues.mockImplementation((args: Arguments) => {
+            if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
+                return Promise.resolve({data: [closedStagingDeployCash]});
+            }
+
+            return Promise.resolve({data: []});
+        });
+
+        const result = await run();
+        expect(result).toStrictEqual({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            title: `Deploy Checklist: New Expensify ${fns.format(new Date(), 'yyyy-MM-dd')}`,
+            labels: [CONST.LABELS.STAGING_DEPLOY],
+            html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+            assignees: [CONST.APPLAUSE_BOT],
+            body:
+                `${baseExpectedOutput()}` +
+                `${openCheckbox}${basePRList.at(5)}` +
+                `${lineBreak}${openCheckbox}${basePRList.at(6)}` +
+                `${lineBreak}${openCheckbox}${basePRList.at(7)}${lineBreak}` +
+                // Note: No Mobile-Expensify PRs section since there are none
                 `${lineBreakDouble}${deployerVerificationsHeader}` +
                 `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
                 `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
@@ -286,7 +333,7 @@ describe('createOrUpdateStagingDeployCash', () => {
             mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef, repositoryName) => {
                 if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-2-staging') {
                     if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
-                        return [6, 7, 8, 9, 10]; // Mobile-Expensify PRs
+                        return [20, 21, 22, 23, 24]; // Mobile-Expensify PRs
                     }
                     return [...baseNewPullRequests, ...newPullRequests];
                 }
@@ -340,8 +387,8 @@ describe('createOrUpdateStagingDeployCash', () => {
                     `${lineBreak}${openCheckbox}${baseMobileExpensifyPRList.at(0)}` +
                     `${lineBreak}${openCheckbox}${baseMobileExpensifyPRList.at(1)}` +
                     `${lineBreak}${openCheckbox}${baseMobileExpensifyPRList.at(2)}` +
-                    `${lineBreak}${openCheckbox}https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/9` +
-                    `${lineBreak}${openCheckbox}https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/10${lineBreak}` +
+                    `${lineBreak}${openCheckbox}https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/23` +
+                    `${lineBreak}${openCheckbox}https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/24${lineBreak}` +
                     `${lineBreakDouble}${deployBlockerHeader}` +
                     `${lineBreak}${openCheckbox}${basePRList.at(5)}` +
                     `${lineBreak}${openCheckbox}${basePRList.at(8)}` +
@@ -366,7 +413,7 @@ describe('createOrUpdateStagingDeployCash', () => {
             mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef, repositoryName) => {
                 if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
                     if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
-                        return [6, 7, 8]; // Mobile-Expensify PRs
+                        return [20, 21, 22]; // Mobile-Expensify PRs
                     }
                     return [...baseNewPullRequests];
                 }
@@ -431,6 +478,60 @@ describe('createOrUpdateStagingDeployCash', () => {
                     `${lineBreakDouble}${ccApplauseLeads}`,
             });
         });
+
+        test('without Mobile-Expensify PRs, just app PRs and deploy blockers', async () => {
+            vol.reset();
+            vol.fromJSON({
+                [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.2-1'}),
+            });
+
+            // Mock: No Mobile-Expensify PRs found for this release
+            mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef, repositoryName) => {
+                if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
+                    if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
+                        return []; // No Mobile-Expensify PRs
+                    }
+                    return [...baseNewPullRequests];
+                }
+                return [];
+            });
+            mockListIssues.mockImplementation((args: Arguments) => {
+                if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
+                    return Promise.resolve({data: [openStagingDeployCashBefore, closedStagingDeployCash]});
+                }
+
+                if (args.labels === CONST.LABELS.DEPLOY_BLOCKER) {
+                    return Promise.resolve({data: currentDeployBlockers});
+                }
+
+                return Promise.resolve({data: []});
+            });
+
+            const result = await run();
+            expect(result).toStrictEqual({
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                issue_number: openStagingDeployCashBefore.number,
+                // eslint-disable-next-line max-len, @typescript-eslint/naming-convention
+                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openStagingDeployCashBefore.number}`,
+                // eslint-disable-next-line max-len
+                body:
+                    `${baseExpectedOutput('1.0.2-1')}` +
+                    `${openCheckbox}${basePRList.at(5)}` +
+                    `${lineBreak}${closedCheckbox}${basePRList.at(6)}` +
+                    `${lineBreak}${openCheckbox}${basePRList.at(7)}${lineBreak}` +
+                    // Note: No Mobile-Expensify PRs section since there are none
+                    `${lineBreakDouble}${deployBlockerHeader}` +
+                    `${lineBreak}${openCheckbox}${basePRList.at(5)}` +
+                    `${lineBreak}${openCheckbox}${basePRList.at(8)}` +
+                    `${lineBreak}${closedCheckbox}${basePRList.at(9)}${lineBreak}` +
+                    `${lineBreakDouble}${deployerVerificationsHeader}` +
+                    `${lineBreak}${closedCheckbox}${firebaseVerificationCurrentRelease}` +
+                    `${lineBreak}${closedCheckbox}${firebaseVerificationPreviousRelease}` +
+                    `${lineBreak}${closedCheckbox}${ghVerification}` +
+                    `${lineBreakDouble}${ccApplauseLeads}`,
+            });
+        });
     });
 
     describe('cherry-pick filtering', () => {
@@ -445,7 +546,7 @@ describe('createOrUpdateStagingDeployCash', () => {
             mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef, repositoryName) => {
                 if (fromRef === '1.0.2-1-staging' && toRef === '1.0.3-0-staging') {
                     if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
-                        return [6, 8, 10, 11]; // Mobile-Expensify PRs
+                        return [20, 22, 24, 25]; // Mobile-Expensify PRs
                     }
                     return [6, 8, 10, 11]; // App PRs
                 }
@@ -464,8 +565,8 @@ describe('createOrUpdateStagingDeployCash', () => {
                     {url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/8`, number: 8, isVerified: true},
                 ],
                 PRListMobileExpensify: [
-                    {url: `https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/6`, number: 6, isVerified: true},
-                    {url: `https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/8`, number: 8, isVerified: true},
+                    {url: `https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/20`, number: 20, isVerified: true},
+                    {url: `https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/22`, number: 22, isVerified: true},
                 ],
                 deployBlockers: [],
                 internalQAPRList: [],
@@ -499,6 +600,75 @@ describe('createOrUpdateStagingDeployCash', () => {
             expect(result?.body).toContain('https://github.com/Expensify/App/pull/11');
             expect(result?.body).not.toContain('https://github.com/Expensify/App/pull/6');
             expect(result?.body).not.toContain('https://github.com/Expensify/App/pull/8');
+
+            mockGetStagingDeployCashData.mockRestore();
+        });
+
+        test('filters out PRs when no Mobile-Expensify PRs exist', async () => {
+            vol.reset();
+            vol.fromJSON({
+                [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.3-0'}),
+            });
+
+            mockGetInput.mockImplementation((arg) => (arg === 'GITHUB_TOKEN' ? 'fake_token' : ''));
+            // Mock: no Mobile-Expensify PRs found
+            mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef, repositoryName) => {
+                if (fromRef === '1.0.2-1-staging' && toRef === '1.0.3-0-staging') {
+                    if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
+                        return []; // No Mobile-Expensify PRs
+                    }
+                    return [6, 8, 10, 11]; // App PRs
+                }
+                return [];
+            });
+
+            // Mock previous checklist containing PRs 6,8 but no Mobile-Expensify PRs
+            const mockGetStagingDeployCashData = jest.spyOn(GithubUtils, 'getStagingDeployCashData');
+            mockGetStagingDeployCashData.mockImplementation(() => ({
+                title: 'Previous Checklist',
+                url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+                number: 29,
+                labels: [LABELS.STAGING_DEPLOY_CASH],
+                PRList: [
+                    {url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6`, number: 6, isVerified: true},
+                    {url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/8`, number: 8, isVerified: true},
+                ],
+                PRListMobileExpensify: [], // No Mobile-Expensify PRs in previous checklist
+                deployBlockers: [],
+                internalQAPRList: [],
+                isTimingDashboardChecked: true,
+                isFirebaseChecked: true,
+                isGHStatusChecked: true,
+                tag: '1.0.2-1-staging',
+                version: '1.0.2-1',
+            }));
+
+            mockListIssues.mockImplementation((args: Arguments) => {
+                if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
+                    return Promise.resolve({
+                        data: [
+                            {
+                                number: 29,
+                                state: 'closed',
+                                labels: [LABELS.STAGING_DEPLOY_CASH],
+                            },
+                        ],
+                    });
+                }
+                return Promise.resolve({data: []});
+            });
+
+            const result = await run();
+
+            // Verify that only new PRs (10, 11) are included, not the previously included ones (6, 8)
+            expect(result?.body).toContain('https://github.com/Expensify/App/pull/10');
+            expect(result?.body).toContain('https://github.com/Expensify/App/pull/11');
+            expect(result?.body).not.toContain('https://github.com/Expensify/App/pull/6');
+            expect(result?.body).not.toContain('https://github.com/Expensify/App/pull/8');
+            
+            // Verify no Mobile-Expensify PRs section exists
+            expect(result?.body).not.toContain('**Mobile-Expensify PRs:**');
+            expect(result?.body).not.toContain('Mobile-Expensify/pull/');
 
             mockGetStagingDeployCashData.mockRestore();
         });
