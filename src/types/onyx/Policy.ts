@@ -1909,6 +1909,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicate whether the Workspace plan can be downgraded */
         canDowngrade?: boolean;
 
+        /** Policy level user created in-app export templates */
+        exportLayouts?: Record<string, OnyxTypes.CsvExportLayout>;
+
         /** Whether Attendee Tracking is enabled */
         isAttendeeTrackingEnabled?: boolean;
     } & Partial<PendingJoinRequestPolicy>,

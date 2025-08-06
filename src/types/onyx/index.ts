@@ -20,6 +20,7 @@ import type {CapturedLogs, Log} from './Console';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
 import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
 import type Credentials from './Credentials';
+import type CsvExportLayout from './CsvExportLayout';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
@@ -268,4 +269,5 @@ export type {
     BillingReceiptDetails,
     IntegrationServerExportTemplate,
     HybridApp,
+    CsvExportLayout,
 };

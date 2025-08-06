@@ -253,6 +253,9 @@ const ONYXKEYS = {
     /** The NVP containing the user's custom IS templates */
     NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES: 'nvp_expensify_integrationServerExportTemplates',
 
+    /** The NVP containing the user's account level in-app export templates */
+    NVP_CSV_EXPORT_LAYOUTS: 'nvp_expensify_csvExportLayouts',
+
     /** Plaid data (access tokens, bank accounts ...) */
     PLAID_DATA: 'plaidData',
 
@@ -1219,6 +1222,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES]: OnyxTypes.IntegrationServerExportTemplate[];
     [ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION]: OnboardingAccounting;
     [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
+    [ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS]: Record<string, OnyxTypes.CsvExportLayout>;
 };
 
 type OnyxDerivedValuesMapping = {
