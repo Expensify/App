@@ -9,6 +9,7 @@ import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
+import useNetwork from './useNetwork';
 import usePrevious from './usePrevious';
 
 type UseSearchHighlightAndScroll = {
@@ -38,6 +39,7 @@ function useSearchHighlightAndScroll({
     shouldCalculateTotals,
 }: UseSearchHighlightAndScroll) {
     const isFocused = useIsFocused();
+    const {isOffline} = useNetwork();
     // Ref to track if the search was triggered by this hook
     const triggeredByHookRef = useRef(false);
     const searchTriggeredRef = useRef(false);
@@ -81,8 +83,8 @@ function useSearchHighlightAndScroll({
 
         // Check if there is a change in the transactions or report actions list
         if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange || hasPendingSearchRef.current) {
-            // If we're not focused, don't trigger search
-            if (!isFocused) {
+            // If we're not focused or offline, don't trigger search
+            if (!isFocused || isOffline) {
                 hasPendingSearchRef.current = true;
                 return;
             }
@@ -128,6 +130,7 @@ function useSearchHighlightAndScroll({
         isChat,
         searchResults?.data,
         existingSearchResultIDs,
+        isOffline,
     ]);
 
     // Initialize the set with existing IDs only once
