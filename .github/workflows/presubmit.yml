@@ -27,10 +27,12 @@ jobs:
       - name: Read RULES.md
         id: read-rules
         run: |
-          RULES_CONTENT=$(cat contributingGuides/review/RULES.md)
-          echo "content<<EOF" >> $GITHUB_OUTPUT
-          echo "$RULES_CONTENT" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          RULES_CONTENT=$(cat "contributingGuides/review/RULES.md")
+          {
+            echo "content<<EOF"
+            echo "$RULES_CONTENT"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Print RULES.md
         run: |
