@@ -651,7 +651,7 @@ function getSecondaryExportReportActions(
     policy?: Policy,
     reportActions?: ReportAction[],
     integrationsExportTemplates?: IntegrationServerExportTemplate[],
-    customTemplates?: CsvExportLayout[],
+    customInAppTemplates?: CsvExportLayout[],
 ): Array<ValueOf<string>> {
     const options: Array<ValueOf<string>> = [];
     if (isExportAction(report, policy, reportActions)) {
@@ -664,14 +664,16 @@ function getSecondaryExportReportActions(
 
     options.push(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV, CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT);
 
+    // Add any custom IS templates that have been added to the user's account as export options
     if (integrationsExportTemplates && integrationsExportTemplates.length > 0) {
         for (const template of integrationsExportTemplates) {
             options.push(template.name);
         }
     }
 
-    if (customTemplates && customTemplates.length > 0) {
-        for (const template of customTemplates) {
+    // Add any in-app export templates that the user has created as export options
+    if (customInAppTemplates && customInAppTemplates.length > 0) {
+        for (const template of customInAppTemplates) {
             options.push(template.name);
         }
     }

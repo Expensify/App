@@ -175,7 +175,8 @@ function MoneyReportHeader({
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
 
-    const customTemplates = useMemo(() => Object.entries({...policy?.exportLayouts ?? {}, ...csvExportLayouts ?? {}}).map(([templateName, layout]) => ({
+    // Collate the list of user-created in-app export templates
+    const customInAppTemplates = useMemo(() => Object.entries({...policy?.exportLayouts ?? {}, ...csvExportLayouts ?? {}}).map(([templateName, layout]) => ({
         ...layout,
         templateName,
     })), [csvExportLayouts, policy?.exportLayouts]);
@@ -621,7 +622,7 @@ function MoneyReportHeader({
             },
         };
 
-        // If the user has any custom integration export templates, add them as export options
+        // Add any custom IS export templates that have been added to the user's account asexport options
         if (integrationsExportTemplates && integrationsExportTemplates.length > 0) {
             for (const template of integrationsExportTemplates) {
                 options[template.name] = {
@@ -633,8 +634,9 @@ function MoneyReportHeader({
             }
         }
 
-        if (customTemplates && customTemplates.length > 0) {
-            for (const template of customTemplates) {
+        // Add any in-app export templates that the user has created as export options
+        if (customInAppTemplates && customInAppTemplates.length > 0) {
+            for (const template of customInAppTemplates) {
                 options[template.name] = {
                     text: template.name,
                     icon: Expensicons.Table,
@@ -645,7 +647,7 @@ function MoneyReportHeader({
         }
 
         return options;
-    }, [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported, beginExportWithTemplate, integrationsExportTemplates, customTemplates]);
+    }, [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported, beginExportWithTemplate, integrationsExportTemplates, customInAppTemplates]);
 
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
@@ -791,8 +793,8 @@ function MoneyReportHeader({
         if (!moneyRequestReport) {
             return [];
         }
-        return getSecondaryExportReportActions(moneyRequestReport, policy, reportActions, integrationsExportTemplates ?? [], customTemplates ?? []);
-    }, [moneyRequestReport, policy, reportActions, integrationsExportTemplates, customTemplates]);
+        return getSecondaryExportReportActions(moneyRequestReport, policy, reportActions, integrationsExportTemplates ?? [], customInAppTemplates ?? []);
+    }, [moneyRequestReport, policy, reportActions, integrationsExportTemplates, customInAppTemplates]);
 
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
