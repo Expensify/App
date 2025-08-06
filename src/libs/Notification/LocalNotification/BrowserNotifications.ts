@@ -113,7 +113,7 @@ export default {
             plainTextMessage = message?.type === 'COMMENT' ? getTextFromHtml(message?.html) : '';
         }
 
-        if (isChatRoom) {
+        if (isRoomOrGroupChat) {
             const roomName = ReportUtils.getReportName(report);
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
