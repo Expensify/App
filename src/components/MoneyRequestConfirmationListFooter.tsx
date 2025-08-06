@@ -14,7 +14,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeDifferenceIntervals, getTimeForDisplay} from '@libs/PerDiemRequestUtils';
-import {canSendInvoice, getPerDiemCustomUnit, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {
@@ -323,7 +323,6 @@ function MoneyRequestConfirmationListFooter({
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
     // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
-    const requestType = getRequestType(transaction);
     const shouldShowReceiptEmptyState = (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isPerDiemRequest;
     // The per diem custom unit
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
