@@ -1,9 +1,9 @@
+import {FlashList} from '@shopify/flash-list';
+import type {ListRenderItemInfo} from '@shopify/flash-list';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {ListRenderItemInfo} from 'react-native';
-import {ActivityIndicator} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
-import FlatList from '@components/FlatList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Plus} from '@components/Icon/Expensicons';
 import {ReportReceipt} from '@components/Icon/Illustrations';
@@ -34,6 +34,7 @@ import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnecti
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import variables from '@styles/variables';
 import {openPolicyReportFieldsPage} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,6 +49,10 @@ type ReportFieldForList = ListItem & {
 };
 
 type WorkspaceReportFieldsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.REPORTS>;
+
+function keyExtractor(item: ReportFieldForList) {
+    return item.keyForList ?? '';
+}
 
 function WorkspaceReportFieldsPage({
     route: {
@@ -279,12 +284,14 @@ function WorkspaceReportFieldsPage({
                                 subMenuItems={
                                     !!policy?.areReportFieldsEnabled && (
                                         <>
-                                            <FlatList
-                                                data={reportFieldsSections}
-                                                renderItem={renderItem}
-                                                style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8, styles.mt6]}
-                                                scrollEnabled={false}
-                                            />
+                                            <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8, styles.mt6]}>
+                                                <FlashList
+                                                    data={reportFieldsSections}
+                                                    renderItem={renderItem}
+                                                    estimatedItemSize={variables.optionRowHeight}
+                                                    keyExtractor={keyExtractor}
+                                                />
+                                            </View>
                                             {!hasReportAccountingConnections && (
                                                 <MenuItem
                                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}

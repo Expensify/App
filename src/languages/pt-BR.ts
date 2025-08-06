@@ -136,6 +136,9 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeFailureDescriptionGenericParams,
+    MergeFailureUncreatedAccountDescriptionParams,
+    MergeSuccessDescriptionParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
@@ -163,6 +166,7 @@ import type {
     PolicyDisabledReportFieldAllOptionsParams,
     PolicyDisabledReportFieldOptionParams,
     PolicyExpenseChatNameParams,
+    QBDSetupErrorBodyParams,
     RailTicketParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
@@ -527,6 +531,7 @@ const translations = {
         pm: 'PM',
         tbd: 'TBD',
         selectCurrency: 'Selecione uma moeda',
+        selectSymbolOrCurrency: 'Selecione um símbolo ou moeda',
         card: 'Cartão',
         whyDoWeAskForThis: 'Por que pedimos isso?',
         required: 'Obrigatório',
@@ -846,17 +851,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `Esta sala de bate-papo é para qualquer coisa relacionada ao <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `Este bate-papo é para faturas entre <strong>${invoicePayer}</strong> e a <strong>${invoiceReceiver}</strong>. Use o botão + para enviar uma fatura.`,
+            `Este bate-papo é para faturas entre <strong>${invoicePayer}</strong> e a <strong>${invoiceReceiver}</strong>. Use o botão <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> para enviar uma fatura.`,
         beginningOfChatHistory: 'Este chat é com',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `É aqui que <strong>${submitterDisplayName}</strong> enviará as despesas para a <strong>${workspaceName}</strong>. Basta usar o botão +.`,
+            `É aqui que <strong>${submitterDisplayName}</strong> enviará as despesas para a <strong>${workspaceName}</strong>. Basta usar o botão <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>.`,
         beginningOfChatHistorySelfDM: 'Este é o seu espaço pessoal. Use-o para anotações, tarefas, rascunhos e lembretes.',
         beginningOfChatHistorySystemDM: 'Bem-vindo! Vamos configurá-lo.',
         chatWithAccountManager: 'Converse com o seu gerente de conta aqui',
         sayHello: 'Diga olá!',
         yourSpace: 'Seu espaço',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Bem-vindo(a) ao ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `Use o botão + para ${additionalText} uma despesa.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => `Use o botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} para ${additionalText} uma despesa.`,
         askConcierge: 'Faça perguntas e receba suporte em tempo real 24/7.',
         conciergeSupport: 'Suporte 24/7',
         create: 'criar',
@@ -1513,8 +1518,8 @@ const translations = {
             clearCacheAndRestart: 'Limpar cache e reiniciar',
             viewConsole: 'Ver console de depuração',
             debugConsole: 'Console de depuração',
-            description: 'Use as ferramentas abaixo para ajudar a solucionar problemas na experiência do Expensify. Se você encontrar algum problema, por favor',
-            submitBug: 'enviar um bug',
+            description:
+                '<muted-text>Use as ferramentas abaixo para ajudar a solucionar problemas na experiência da Expensify. Se você encontrar algum problema, <concierge-link>envie um bug</concierge-link>.</muted-text>',
             confirmResetDescription: 'Todas as mensagens de rascunho não enviadas serão perdidas, mas o restante dos seus dados está seguro.',
             resetAndRefresh: 'Redefinir e atualizar',
             clientSideLogging: 'Registro no lado do cliente',
@@ -1601,67 +1606,33 @@ const translations = {
         },
         mergeSuccess: {
             accountsMerged: 'Contas mescladas!',
-            successfullyMergedAllData: {
-                beforeFirstEmail: `Você mesclou com sucesso todos os dados de`,
-                beforeSecondEmail: `em`,
-                afterSecondEmail: `. A partir de agora, você pode usar qualquer login para esta conta.`,
-            },
+            description: ({from, to}: MergeSuccessDescriptionParams) =>
+                `<muted-text><centered-text>Você mesclou com êxito todos os dados de <strong>${from}</strong> em <strong>${to}</strong>. A partir de agora, você pode usar qualquer login para essa conta.</centered-text></muted-text>`,
         },
         mergePendingSAML: {
             weAreWorkingOnIt: 'Estamos trabalhando nisso',
             limitedSupport: 'Ainda não oferecemos suporte para a fusão de contas no New Expensify. Por favor, realize essa ação no Expensify Classic.',
-            reachOutForHelp: {
-                beforeLink: 'Sinta-se à vontade para',
-                linkText: 'entre em contato com o Concierge',
-                afterLink: 'se você tiver alguma dúvida!',
-            },
+            reachOutForHelp:
+                '<muted-text><centered-text>Sinta-se à vontade para entrar em <concierge-link>contato com o Concierge</concierge-link> se tiver alguma dúvida!</centered-text></muted-text>',
             goToExpensifyClassic: 'Ir para Expensify Classic',
         },
-        mergeFailureSAMLDomainControl: {
-            beforeFirstEmail: 'Você não pode mesclar',
-            beforeDomain: 'porque é controlado por',
-            afterDomain: '. Por favor',
-            linkText: 'entre em contato com o Concierge',
-            afterLink: 'para assistência.',
-        },
-        mergeFailureSAMLAccount: {
-            beforeEmail: 'Você não pode mesclar',
-            afterEmail: 'em outras contas porque o administrador do seu domínio definiu como seu login principal. Por favor, mescle outras contas nele.',
-        },
+        mergeFailureSAMLDomainControlDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>Não é possível mesclar o <strong>${email}</strong> porque ele é controlado pelo <strong>${email.split('@').at(1) ?? ''}</strong>. Entre em <concierge-link>contato com o Concierge</concierge-link> para obter ajuda.</centered-text></muted-text>`,
+        mergeFailureSAMLAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>Não é possível mesclar <strong>${email}</strong> com outras contas porque o administrador do domínio o definiu como seu login principal. Em vez disso, mescle outras contas a ele.</centered-text></muted-text>`,
         mergeFailure2FA: {
-            oldAccount2FAEnabled: {
-                beforeFirstEmail: 'Você não pode mesclar contas porque',
-                beforeSecondEmail: 'tem a autenticação de dois fatores (2FA) ativada. Por favor, desative a 2FA para',
-                afterSecondEmail: 'e tente novamente.',
-            },
+            description: ({email}: MergeFailureDescriptionGenericParams) =>
+                `<muted-text><centered-text>Não é possível mesclar contas porque o site <strong>${email}</strong> tem a autenticação de dois fatores (2FA) ativada. Desative a 2FA para <strong>${email}</strong> e tente novamente.</centered-text></muted-text>`,
             learnMore: 'Saiba mais sobre como mesclar contas.',
         },
-        mergeFailureAccountLocked: {
-            beforeEmail: 'Você não pode mesclar',
-            afterEmail: 'porque está bloqueado. Por favor,',
-            linkText: 'entre em contato com o Concierge',
-            afterLink: `para assistência.`,
-        },
-        mergeFailureUncreatedAccount: {
-            noExpensifyAccount: {
-                beforeEmail: 'Você não pode mesclar contas porque',
-                afterEmail: 'não tem uma conta Expensify.',
-            },
-            addContactMethod: {
-                beforeLink: 'Por favor',
-                linkText: 'adicione como um método de contato',
-                afterLink: 'em vez disso.',
-            },
-        },
-        mergeFailureSmartScannerAccount: {
-            beforeEmail: 'Você não pode mesclar',
-            afterEmail: 'em outras contas. Por favor, mescle outras contas nela em vez disso.',
-        },
-        mergeFailureInvoicedAccount: {
-            beforeEmail: 'Você não pode mesclar contas com ',
-            afterEmail: ' porque esta conta possui uma relação de faturamento com nota fiscal emitida.',
-        },
-
+        mergeFailureAccountLockedDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>Não é possível mesclar o site <strong>${email}</strong> porque ele está bloqueado. Entre em <concierge-link>contato com o Concierge</concierge-link> para obter ajuda.</centered-text></muted-text>`,
+        mergeFailureUncreatedAccountDescription: ({email, contactMethodLink}: MergeFailureUncreatedAccountDescriptionParams) =>
+            `<muted-text><centered-text>Não é possível mesclar contas porque <strong>${email}</strong> não tem uma conta Expensify. Em vez disso, <a href="${contactMethodLink}">adicione-o como um método de contato</a>.</centered-text></muted-text>`,
+        mergeFailureSmartScannerAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>Não é possível mesclar <strong>${email}</strong> em outras contas. Em vez disso, mescle outras contas a ela.</centered-text></muted-text>`,
+        mergeFailureInvoicedAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>Não é possível mesclar contas em <strong>${email}</strong> porque essa conta possui uma relação de faturamento.</centered-text></muted-text>`,
         mergeFailureTooManyAttempts: {
             heading: 'Tente novamente mais tarde',
             description: 'Houve muitas tentativas de mesclar contas. Por favor, tente novamente mais tarde.',
@@ -1774,9 +1745,7 @@ const translations = {
         changePaymentCurrency: 'Alterar moeda de pagamento',
         paymentCurrency: 'Moeda de pagamento',
         paymentCurrencyDescription: 'Selecione uma moeda padronizada para a qual todas as despesas pessoais devem ser convertidas.',
-        note: 'Nota: Alterar sua moeda de pagamento pode impactar quanto você pagará pelo Expensify. Consulte nosso',
-        noteLink: 'página de preços',
-        noteDetails: 'para detalhes completos.',
+        note: `Observação: a alteração da moeda de pagamento pode afetar o valor que você pagará pela Expensify. Consulte nossa <a href="${CONST.PRICING}">página de preços</a> para obter detalhes completos.`,
     },
     addDebitCardPage: {
         addADebitCard: 'Adicionar um cartão de débito',
@@ -3530,6 +3499,7 @@ const translations = {
             defaultCategory: 'Categoria padrão',
             viewTransactions: 'Ver transações',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Despesas de ${displayName}`,
+            deepDiveExpensifyCard: `<muted-text-label>As transações do cartão Expensify serão exportadas automaticamente para uma “Conta de responsabilidade do cartão Expensify” criada com <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nossa integração</a>.</muted-text-label>`,
         },
         perDiem: {
             subtitle: 'Defina taxas de diárias para controlar os gastos diários dos funcionários.',
@@ -3594,8 +3564,6 @@ const translations = {
             exportJournalEntryDescription: 'Criaremos uma entrada de diário detalhada para cada relatório do Expensify e a postaremos na conta abaixo.',
             exportVendorBillDescription:
                 'Criaremos uma fatura de fornecedor detalhada para cada relatório do Expensify e a adicionaremos à conta abaixo. Se este período estiver fechado, publicaremos no primeiro dia do próximo período aberto.',
-            deepDiveExpensifyCard: 'As transações do Cartão Expensify serão exportadas automaticamente para uma "Conta de Responsabilidade do Cartão Expensify" criada com',
-            deepDiveExpensifyCardIntegration: 'nossa integração.',
             outOfPocketTaxEnabledDescription:
                 'O QuickBooks Desktop não suporta impostos em exportações de lançamentos contábeis. Como você tem impostos habilitados no seu espaço de trabalho, essa opção de exportação não está disponível.',
             outOfPocketTaxEnabledError: 'As entradas de diário não estão disponíveis quando os impostos estão ativados. Por favor, escolha uma opção de exportação diferente.',
@@ -3632,9 +3600,8 @@ const translations = {
                 title: 'Abra este link para conectar',
                 body: 'Para concluir a configuração, abra o seguinte link no computador onde o QuickBooks Desktop está sendo executado.',
                 setupErrorTitle: 'Algo deu errado',
-                setupErrorBody1: 'A conexão do QuickBooks Desktop não está funcionando no momento. Por favor, tente novamente mais tarde ou',
-                setupErrorBody2: 'se o problema persistir.',
-                setupErrorBodyContactConcierge: 'entre em contato com o Concierge',
+                setupErrorBody: ({conciergeLink}: QBDSetupErrorBodyParams) =>
+                    `<muted-text><centered-text>A conexão com o QuickBooks Desktop não está funcionando no momento. Tente novamente mais tarde ou <a href="${conciergeLink}">entre em contato com o Concierge</a> se o problema persistir.</centered-text></muted-text>`,
             },
             importDescription: 'Escolha quais configurações de codificação importar do QuickBooks Desktop para o Expensify.',
             classes: 'Classes',
@@ -3676,8 +3643,6 @@ const translations = {
             date: 'Data de exportação',
             exportInvoices: 'Exportar faturas para',
             exportExpensifyCard: 'Exportar transações do Cartão Expensify como',
-            deepDiveExpensifyCard: 'As transações do Cartão Expensify serão exportadas automaticamente para uma "Conta de Responsabilidade do Cartão Expensify" criada com',
-            deepDiveExpensifyCardIntegration: 'nossa integração.',
             exportDate: {
                 label: 'Data de exportação',
                 description: 'Use esta data ao exportar relatórios para o QuickBooks Online.',
@@ -5539,6 +5504,17 @@ const translations = {
                     one: '1 dia',
                     other: (count: number) => `${count} dias`,
                 }),
+                cashExpenseDefault: 'Despesa em dinheiro padrão',
+                cashExpenseDefaultDescription:
+                    'Escolha como as despesas em dinheiro devem ser criadas. Uma despesa é considerada em dinheiro se não for uma transação de cartão corporativo importada. Isso inclui despesas criadas manualmente, recibos, diárias, distância e despesas de tempo.',
+                reimbursableDefault: 'Reembolsável',
+                reimbursableDefaultDescription: 'Despesas geralmente são reembolsadas aos funcionários',
+                nonReimbursableDefault: 'Não reembolsável',
+                nonReimbursableDefaultDescription: 'Despesas às vezes são reembolsadas aos funcionários',
+                alwaysReimbursable: 'Sempre reembolsável',
+                alwaysReimbursableDescription: 'Despesas são sempre reembolsadas aos funcionários',
+                alwaysNonReimbursable: 'Nunca reembolsável',
+                alwaysNonReimbursableDescription: 'Despesas nunca são reembolsadas aos funcionários',
                 billableDefault: 'Padrão faturável',
                 billableDefaultDescription: 'Escolha se as despesas em dinheiro e cartão de crédito devem ser faturáveis por padrão. Despesas faturáveis são ativadas ou desativadas em',
                 billable: 'Faturável',
@@ -5826,6 +5802,8 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `atualizou "Refaturar despesas para clientes" para "${newValue}" (anteriormente "${oldValue}")`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `atualizou "Despesa em dinheiro padrão" para "${newValue}" (anteriormente "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `transformado "Aplicar títulos padrão de relatórios" ${value ? 'em' : 'desligado'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `atualizou o nome deste espaço de trabalho para "${newName}" (anteriormente "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -5928,7 +5906,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'Nada para mostrar',
-                subtitle: 'Tente ajustar seus critérios de busca ou criar algo com o botão verde +.',
+                subtitle: `Tente ajustar seus critérios de busca ou criar algo com o botão verde ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.`,
             },
             emptyExpenseResults: {
                 title: 'Você ainda não criou nenhuma despesa ainda',
@@ -6326,7 +6304,8 @@ const translations = {
         levelThreeResult: 'Mensagem removida do canal, além de um aviso anônimo, e a mensagem foi relatada para revisão.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Convide-os',
+        inviteToSubmitExpense: 'Convidar para enviar despesas',
+        inviteToChat: 'Convidar apenas para conversar',
         nothing: 'Não faça nada',
     },
     actionableMentionJoinWorkspaceOptions: {
@@ -6908,9 +6887,8 @@ const translations = {
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `Por favor, insira o código mágico enviado para ${contactMethod} para atualizar seu copiloto.`,
         notAllowed: 'Não tão rápido...',
         noAccessMessage: 'Como copiloto, você não tem acesso a esta página. Desculpe!',
-        notAllowedMessageStart: `Como um(a)`,
-        notAllowedMessageHyperLinked: 'copilot',
-        notAllowedMessageEnd: ({accountOwnerEmail}: AccountOwnerParams) => `para ${accountOwnerEmail}, você não tem permissão para realizar esta ação. Desculpe!`,
+        notAllowedMessage: ({accountOwnerEmail}: AccountOwnerParams) =>
+            `Como <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">copiloto</a> do ${accountOwnerEmail}, você não tem permissão para realizar essa ação. Desculpe-me!`,
         copilotAccess: 'Acesso ao Copilot',
     },
     debug: {
@@ -7077,6 +7055,13 @@ const translations = {
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} convidou você para experimentar o Expensify\nEi! Acabei de conseguir *3 meses grátis* para testarmos o Expensify, a maneira mais rápida de lidar com despesas.\n\nAqui está um *recibo de teste* para mostrar como funciona:`,
+    },
+    export: {
+        basicExport: 'Exportação básica',
+        reportLevelExport: 'Todos os dados - nível de relatório',
+        expenseLevelExport: 'Todos os dados - nível de despesa',
+        exportInProgress: 'Exportação em andamento',
+        conciergeWillSend: 'Concierge enviará o arquivo em breve.',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
