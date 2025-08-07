@@ -9,6 +9,8 @@ import TooltipRefManager from '@libs/TooltipRefManager';
 import CONST from '@src/CONST';
 import type PopoverProps from './types';
 
+const DISABLED_ANIMATION_DURATION = 1;
+
 /*
  * This is a convenience wrapper around the Modal component for a responsive Popover.
  * On small screen widths, it uses BottomDocked modal type, and a Popover type on wide screen widths.
@@ -19,7 +21,6 @@ function Popover(props: PopoverProps) {
         isVisible,
         onClose,
         fullscreen,
-        animationInTiming = CONST.ANIMATED_TRANSITION,
         onLayout,
         animationOutTiming,
         disableAnimation = true,
@@ -79,8 +80,8 @@ function Popover(props: PopoverProps) {
                 onClose={onCloseWithPopoverContext}
                 type={CONST.MODAL.MODAL_TYPE.POPOVER}
                 popoverAnchorPosition={anchorPosition}
-                animationInTiming={disableAnimation ? 1 : animationInTiming}
-                animationOutTiming={disableAnimation ? 1 : animationOutTiming}
+                disableAnimationIn={disableAnimation}
+                animationOutTiming={disableAnimation ? DISABLED_ANIMATION_DURATION : animationOutTiming}
                 shouldCloseOnOutsideClick
                 onLayout={onLayout}
                 animationIn={animationIn}
@@ -112,8 +113,8 @@ function Popover(props: PopoverProps) {
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.POPOVER}
             popoverAnchorPosition={isSmallScreenWidth ? undefined : anchorPosition}
             fullscreen={shouldUseNarrowLayout ? true : fullscreen}
-            animationInTiming={disableAnimation && !shouldUseNarrowLayout ? 1 : animationInTiming}
-            animationOutTiming={disableAnimation && !shouldUseNarrowLayout ? 1 : animationOutTiming}
+            disableAnimationIn={disableAnimation && !shouldUseNarrowLayout}
+            animationOutTiming={disableAnimation && !shouldUseNarrowLayout ? DISABLED_ANIMATION_DURATION : animationOutTiming}
             onLayout={onLayout}
             animationIn={animationIn}
             animationOut={animationOut}

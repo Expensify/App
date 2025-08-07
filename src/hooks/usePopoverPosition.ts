@@ -5,19 +5,18 @@ import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import useResponsiveLayout from './useResponsiveLayout';
 
+const defaultAnchorAlignment = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+};
+
 function usePopoverPosition() {
     // Popovers are not used on small screen widths, but can be present in RHP
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const calculatePopoverPosition = useCallback(
-        (
-            anchorRef: React.RefObject<View | null>,
-            anchorAlignment: AnchorAlignment = {
-                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-            },
-        ) => {
+        (anchorRef: React.RefObject<View | null>, anchorAlignment: AnchorAlignment = defaultAnchorAlignment) => {
             if (isSmallScreenWidth || !anchorRef.current || !('measureInWindow' in anchorRef.current)) {
                 return Promise.resolve({horizontal: 0, vertical: 0, width: 0, height: 0});
             }

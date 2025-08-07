@@ -53,7 +53,6 @@ function useSidePanelDisplayStatus() {
         isSidePanelHiddenOrLargeScreen,
         shouldHideHelpButton,
         shouldHideSidePanelBackdrop,
-        sidePanelNVP,
     };
 }
 
