@@ -185,8 +185,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         protectedMenuItems.push({
             translationKey: 'common.reports',
             icon: Document,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID)))),
-            screenName: SCREENS.WORKSPACE.REPORT_FIELDS,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REPORTS.getRoute(policyID)))),
+            screenName: SCREENS.WORKSPACE.REPORTS,
         });
 
         if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]) {
