@@ -633,6 +633,7 @@ const translations = {
         getTheApp: 'Download de app',
         scanReceiptsOnTheGo: 'Scan bonnetjes vanaf je telefoon',
         headsUp: 'Let op!',
+        merge: 'Samenvoegen',
         unstableInternetConnection: 'Onstabiele internetverbinding. Controleer je netwerk en probeer het opnieuw.',
     },
     supportalNoAccess: {
@@ -1355,6 +1356,31 @@ const translations = {
         rates: 'Tarieven',
         submitsTo: ({name}: SubmitsToParams) => `Dient in bij ${name}`,
         moveExpenses: () => ({one: 'Verplaats uitgave', other: 'Verplaats uitgaven'}),
+    },
+    transactionMerge: {
+        listPage: {
+            header: 'Kosten samenvoegen',
+            noEligibleExpenseFound: 'Geen in aanmerking komende kosten gevonden',
+            noEligibleExpenseFoundSubtitle: `Je hebt geen kosten die samengevoegd kunnen worden met deze. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Meer informatie</a> over in aanmerking komende kosten.`,
+            selectTransactionToMerge: ({reportName}: {reportName: string}) =>
+                `Selecteer een <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">geschikte kost</a> om te combineren <strong>${reportName}</strong>.`,
+        },
+        receiptPage: {
+            header: 'Ontvangstbewijs selecteren',
+            pageTitle: 'Kies het ontvangstbewijs dat je wilt behouden:',
+        },
+        detailsPage: {
+            header: 'Details selecteren',
+            pageTitle: 'Selecteer de details die je wilt behouden:',
+            noDifferences: 'Geen verschillen gevonden tussen de transacties',
+            pleaseSelectError: ({field}: {field: string}) => `Selecteer een ${field}`,
+            selectAllDetailsError: 'Selecteer alle details voordat je doorgaat.',
+        },
+        confirmationPage: {
+            header: 'Bevestig details',
+            pageTitle: 'Bevestig de details die je wilt bewaren. Niet bewaarde details worden verwijderd.',
+            confirmButton: 'Kosten samenvoegen',
+        },
     },
     share: {
         shareToExpensify: 'Delen met Expensify',

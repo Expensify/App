@@ -634,6 +634,7 @@ const translations = {
         getTheApp: "Scarica l'app",
         scanReceiptsOnTheGo: 'Scansiona le ricevute dal tuo telefono',
         headsUp: 'Attenzione!',
+        merge: 'Unisci',
         unstableInternetConnection: 'Connessione Internet instabile. Controlla la tua rete e riprova.',
     },
     supportalNoAccess: {
@@ -1353,6 +1354,31 @@ const translations = {
         rates: 'Tariffe',
         submitsTo: ({name}: SubmitsToParams) => `Invia a ${name}`,
         moveExpenses: () => ({one: 'Sposta spesa', other: 'Sposta spese'}),
+    },
+    transactionMerge: {
+        listPage: {
+            header: 'Unisci spese',
+            noEligibleExpenseFound: 'Nessuna spesa idonea trovata',
+            noEligibleExpenseFoundSubtitle: `Non hai spese che possono essere unite a questa. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Scopri di più</a> sulle spese idonee.`,
+            selectTransactionToMerge: ({reportName}: {reportName: string}) =>
+                `Seleziona una <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">spesa idonea</a> da unire <strong>${reportName}</strong>.`,
+        },
+        receiptPage: {
+            header: 'Seleziona ricevuta',
+            pageTitle: 'Seleziona la ricevuta da conservare:',
+        },
+        detailsPage: {
+            header: 'Seleziona dettagli',
+            pageTitle: 'Seleziona i dettagli da conservare:',
+            noDifferences: 'Nessuna differenza trovata tra le transazioni',
+            pleaseSelectError: ({field}: {field: string}) => `Seleziona un/a ${field}`,
+            selectAllDetailsError: 'Seleziona tutti i dettagli prima di continuare.',
+        },
+        confirmationPage: {
+            header: 'Conferma i dettagli',
+            pageTitle: 'Conferma i dettagli che vuoi conservare. Quelli non mantenuti saranno eliminati.',
+            confirmButton: 'Unisci spese',
+        },
     },
     share: {
         shareToExpensify: 'Condividi su Expensify',

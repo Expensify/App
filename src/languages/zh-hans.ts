@@ -633,6 +633,7 @@ const translations = {
         getTheApp: '获取应用程序',
         scanReceiptsOnTheGo: '用手机扫描收据',
         headsUp: '\u6CE8\u610F\uFF01',
+        merge: '合并',
         unstableInternetConnection: '互联网连接不稳定。请检查你的网络，然后重试。',
     },
     supportalNoAccess: {
@@ -1339,6 +1340,30 @@ const translations = {
         rates: '费率',
         submitsTo: ({name}: SubmitsToParams) => `提交给${name}`,
         moveExpenses: () => ({one: '移动费用', other: '移动费用'}),
+    },
+    transactionMerge: {
+        listPage: {
+            header: '合并费用',
+            noEligibleExpenseFound: '未找到可合并的费用',
+            noEligibleExpenseFoundSubtitle: `您没有可与此合并的费用。<a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">了解更多</a>关于可合并费用的信息。`,
+            selectTransactionToMerge: ({reportName}: {reportName: string}) => `选择一个<a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">可合并的费用</a> <strong>${reportName}</strong>.`,
+        },
+        receiptPage: {
+            header: '选择收据',
+            pageTitle: '选择您想保留的收据：',
+        },
+        detailsPage: {
+            header: '选择详情',
+            pageTitle: '选择您想保留的详情：',
+            noDifferences: '发现交易无差异',
+            pleaseSelectError: ({field}: {field: string}) => `请选择一个${field}`,
+            selectAllDetailsError: '继续前请选取所有详情。',
+        },
+        confirmationPage: {
+            header: '确认详情',
+            pageTitle: '确认您保留的详情。未保留的详情将被删除。',
+            confirmButton: '合并费用',
+        },
     },
     share: {
         shareToExpensify: '分享到Expensify',

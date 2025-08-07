@@ -1,3 +1,4 @@
+export type {default as GetTransactionsForMergingParams} from './GetTransactionsForMergingParams';
 export type {default as ImportMultiLevelTagsParams} from './ImportMultiLevelTagsParams';
 export type {default as CleanPolicyTagsParams} from './CleanPolicyTagsParams';
 export type {default as ActivatePhysicalExpensifyCardParams} from './ActivatePhysicalExpensifyCardParams';
@@ -259,6 +260,7 @@ export type {default as SendInvoiceParams} from './SendInvoiceParams';
 export type {default as PayInvoiceParams} from './PayInvoiceParams';
 export type {default as MarkAsCashParams} from './MarkAsCashParams';
 export type {default as MergeDuplicatesParams} from './MergeDuplicatesParams';
+export type {default as MergeTransactionParams} from './MergeTransactionParams';
 export type {default as ResolveDuplicatesParams} from './ResolveDuplicatesParams';
 export type {default as UpdateSubscriptionTypeParams} from './UpdateSubscriptionTypeParams';
 export type {default as SignUpUserParams} from './SignUpUserParams';
