@@ -149,8 +149,6 @@ describe('WorkspaceCategories', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        console.log('=== DEBUG: Looking for modal ===');
-        console.log('All elements:', screen.debug());
         // After clicking delete categories dropdown menu item, verify the confirmation modal appears
         await waitFor(() => {
             const confirmModalPrompt = translateLocal('workspace.categories.deleteCategoriesPrompt');
