@@ -13,6 +13,7 @@ import {
     getCardDescription,
     getCardFeedIcon,
     getCardsByCardholderName,
+    getCompanyCardDescription,
     getCompanyFeeds,
     getCustomOrFormattedFeedName,
     getFeedType,
@@ -22,6 +23,7 @@ import {
     getYearFromExpirationDateString,
     hasIssuedExpensifyCard,
     isCustomFeed as isCustomFeedCardUtils,
+    isExpensifyCard,
     isExpensifyCardFullySetUp,
     lastFourNumbersFromCardName,
     maskCardNumber,
@@ -1041,6 +1043,80 @@ describe('CardUtils', () => {
             };
             const description = getCardDescription(card);
             expect(description).toBe('Expensify Card');
+        });
+    });
+
+    describe('isExpensifyCard', () => {
+        it('should return true for Expensify Card', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                cardID: 21570657,
+                cardName: 'CREDIT CARD...5644',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 2,
+            };
+            expect(isExpensifyCard(card)).toBe(true);
+        });
+
+        it('should return false for non-Expensify Card', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                cardID: 21310091,
+                cardName: '480801XXXXXX2554',
+                domainName: 'expensify-policy41314f4dc5ce25af.exfy',
+                fraud: 'none',
+                lastFourPAN: '2554',
+                lastUpdated: '',
+                lastScrape: '2024-11-27 11:00:53',
+                scrapeMinDate: '2024-10-17',
+                state: 3,
+            };
+            expect(isExpensifyCard(card)).toBe(false);
+        });
+    });
+
+    describe('getCompanyCardDescription', () => {
+        const cardList: CardList = {
+            '21310091': {
+                accountID: 18439984,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                cardID: 21310091,
+                cardName: '480801XXXXXX2554',
+                domainName: 'expensify-policy41314f4dc5ce25af.exfy',
+                fraud: 'none',
+                lastFourPAN: '2554',
+                lastUpdated: '',
+                lastScrape: '2024-11-27 11:00:53',
+                scrapeMinDate: '2024-10-17',
+                state: 3,
+            },
+            '21570657': {
+                accountID: 18439984,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                cardID: 21570657,
+                cardName: 'CREDIT CARD...5644',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 2,
+            },
+        };
+        it('should return the correct description for a company card', () => {
+            const description = getCompanyCardDescription('Test', 21310091, cardList);
+            expect(description).toBe('480801XXXXXX2554');
+        });
+
+        it('should return the correct description for an Expensify card', () => {
+            const description = getCompanyCardDescription('Test', 21570657, cardList);
+            expect(description).toBe('Test');
         });
     });
 });
