@@ -659,7 +659,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                 {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
                 {!!shouldShowAuditMessage && <ReceiptAuditMessages notes={receiptImageViolations} />}
                 {isCustomUnitOutOfPolicy && isPerDiemRequest && (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mh4]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mh4, styles.mb2]}>
                         <Icon
                             src={Expensicons.DotIndicator}
                             fill={theme.danger}
