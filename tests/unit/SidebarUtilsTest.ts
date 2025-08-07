@@ -23,6 +23,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('SidebarUtils', () => {
@@ -328,6 +329,8 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
+                card: undefined,
+                localeCompare,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_UNPINNED,
@@ -337,6 +340,8 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
+                card: undefined,
+                localeCompare,
             });
 
             expect(optionDataPinned?.isPinned).toBe(true);
@@ -727,7 +732,7 @@ describe('SidebarUtils', () => {
                         }),
                     )
                     .then(() => {
-                        const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined);
+                        const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, localeCompare);
                         expect(result.messageText).toBe('This chat is with One and Two.');
                     })
             );
@@ -750,7 +755,7 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, isReportArchived.current);
+                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, localeCompare, isReportArchived.current);
                     })
 
                     // Then the welcome message should indicate the report is archived
@@ -772,7 +777,7 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, isReportArchived.current);
+                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, localeCompare, isReportArchived.current);
                     })
 
                     // Then the welcome message should explain the purpose of the room
@@ -830,6 +835,8 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
+                card: undefined,
+                localeCompare,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -887,6 +894,8 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
+                card: undefined,
+                localeCompare,
             });
 
             // Then the alternate text should show @Hidden.
@@ -927,6 +936,8 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
+                    card: undefined,
+                    localeCompare,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -960,6 +971,8 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
+                    card: undefined,
+                    localeCompare,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -990,6 +1003,8 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
+                    card: undefined,
+                    localeCompare,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1016,6 +1031,7 @@ describe('SidebarUtils', () => {
                     childReportID: '5186125925096828',
                     created: '2025-07-10 17:45:31.448',
                     reportActionID: '7425617950691586420',
+                    shouldShow: true,
                     message: [
                         {
                             type: 'COMMENT',
@@ -1057,7 +1073,7 @@ describe('SidebarUtils', () => {
                     parentReportID: policyExpenseChat.reportID,
                     parentReportActionID: lastReportPreviewAction.reportActionID,
                     chatReportID: policyExpenseChat.reportID,
-                };
+                } as Report;
                 const iouAction = {
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     originalMessage: {
@@ -1108,6 +1124,8 @@ describe('SidebarUtils', () => {
                     policy,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
+                    card: undefined,
+                    localeCompare,
                 });
                 const {totalDisplaySpend} = getMoneyRequestSpendBreakdown(iouReport);
                 const formattedAmount = convertToDisplayString(totalDisplaySpend, iouReport.currency);
@@ -1152,6 +1170,8 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
+                    card: undefined,
+                    localeCompare,
                 });
 
                 expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
@@ -1216,6 +1236,8 @@ describe('SidebarUtils', () => {
                     policy: undefined,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
+                    card: undefined,
+                    localeCompare,
                 });
 
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -1257,6 +1279,8 @@ describe('SidebarUtils', () => {
                     policy: undefined,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
+                    card: undefined,
+                    localeCompare,
                 });
 
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
@@ -1267,7 +1291,6 @@ describe('SidebarUtils', () => {
 
                 iouReportR14932.reportID = '5';
                 chatReportR14932.reportID = '6';
-                iouReportR14932.lastActorAccountID = undefined;
 
                 const report: Report = {
                     ...createRandomReport(1),
@@ -1314,16 +1337,130 @@ describe('SidebarUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportR14932.reportID}`, {[linkedCreateAction.reportActionID]: linkedCreateAction});
 
                 const result = SidebarUtils.getOptionData({
-                    report: iouReportR14932,
+                    report: {...iouReportR14932, lastActorAccountID: undefined},
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
                     personalDetails: {},
                     policy: undefined,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
+                    card: undefined,
+                    localeCompare,
                 });
 
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
+            });
+
+            it('uses the 2nd-last visible message as alternateText when the latest action is a deleted IOU', async () => {
+                const MOCK_REPORT: Report = {
+                    reportID: '1',
+                    ownerAccountID: 12345,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    policyID: '6',
+                };
+
+                const MOCK_REPORTS: ReportCollectionDataSet = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT,
+                };
+                const lastAction: ReportAction = {
+                    ...createRandomReportAction(1),
+                    message: [
+                        {
+                            type: 'COMMENT',
+                            html: 'test action',
+                            text: 'test action',
+                        },
+                    ],
+                    originalMessage: {
+                        whisperedTo: [],
+                    },
+
+                    shouldShow: true,
+                    pendingAction: null,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: undefined,
+                    created: '2025-07-25 07:38:54.211',
+                };
+                const deletedAction: ReportAction = {
+                    ...createRandomReportAction(2),
+                    actionName: 'IOU',
+                    actorAccountID: 20337430,
+                    automatic: false,
+                    isAttachmentOnly: false,
+                    originalMessage: {
+                        amount: 100,
+                        comment: '',
+                        currency: 'VND',
+                        IOUTransactionID: '7823889167761419930',
+                        IOUReportID: '0',
+                        type: 'track',
+                        participantAccountIDs: [20337430, 0],
+                        lastModified: '2025-07-25 07:39:02.550',
+                        deleted: '2025-07-25 07:39:02.550',
+                        html: '',
+                    },
+                    message: [
+                        {
+                            type: '',
+                            text: '',
+                            isDeletedParentAction: true,
+                        },
+                    ],
+                    reportActionID: '869069913568459256',
+                    shouldShow: true,
+                    created: '2025-07-25 07:38:54.311',
+                    person: [
+                        {
+                            style: 'strong',
+                            text: '123',
+                            type: 'TEXT',
+                        },
+                    ],
+                    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_21.png',
+                    childReportID: '3044322706237838',
+                    lastModified: '2025-07-25 07:39:02.550',
+                    childCommenterCount: 1,
+                    childLastVisibleActionCreated: '2025-07-25 07:38:47.598',
+                    childOldestFourAccountIDs: '20337430',
+                    childStateNum: 0,
+                    childStatusNum: 0,
+                    childType: 'chat',
+                    childVisibleActionCount: 1,
+                    timestamp: 1753429134,
+                    reportActionTimestamp: 1753429134311,
+                    whisperedToAccountIDs: [],
+                    childReportNotificationPreference: 'always',
+                };
+                const MOCK_REPORT_ACTIONS: ReportActions = {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    [lastAction.reportActionID]: lastAction,
+                    [deletedAction.reportActionID]: deletedAction,
+                };
+
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {
+                        accountID: 12345,
+                    },
+                    ...MOCK_REPORTS,
+
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
+                });
+
+                const result = SidebarUtils.getOptionData({
+                    report: MOCK_REPORT,
+                    reportAttributes: undefined,
+                    reportNameValuePairs: {},
+                    personalDetails: {},
+                    policy: undefined,
+                    parentReportAction: undefined,
+                    oneTransactionThreadReport: undefined,
+                    card: undefined,
+                    localeCompare,
+                });
+
+                expect(result?.alternateText).toContain(`${getReportActionMessageText(lastAction)}`);
             });
         });
     });

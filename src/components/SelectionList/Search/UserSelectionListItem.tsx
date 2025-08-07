@@ -62,6 +62,7 @@ function UserSelectionListItem<TItem extends ListItem>({
         return getDisplayNameForParticipant({
             formatPhoneNumber,
             accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            shouldAddCurrentUserPostfix: true,
         });
     }, [item.accountID, formatPhoneNumber]);
 
