@@ -9,25 +9,25 @@ import ONYXKEYS from '../../src/ONYXKEYS';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-jest.mock('react-native-blob-util', () => ({
-    config: jest.fn(() => ({
-        fetch: jest.fn(() =>
-            Promise.resolve({
-                path: jest.fn(() => '/mocked/path/to/file'),
-            }),
-        ),
-    })),
-    fs: {
-        dirs: {
-            DocumentDir: '/mocked/document/dir',
-        },
-    },
-    fetch: jest.fn(() =>
+jest.mock('react-native-blob-util', () => {
+    const mockFetch = jest.fn(() =>
         Promise.resolve({
             path: jest.fn(() => '/mocked/path/to/file'),
         }),
-    ),
-}));
+    );
+
+    return {
+        config: jest.fn(() => ({
+            fetch: mockFetch,
+        })),
+        fs: {
+            dirs: {
+                DocumentDir: '/mocked/document/dir',
+            },
+        },
+        fetch: mockFetch,
+    };
+});
 
 describe('AttachmentStorage', () => {
     const reportID = rand64();
