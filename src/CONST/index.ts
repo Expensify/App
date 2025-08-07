@@ -1295,7 +1295,6 @@ const CONST = {
                 RECEIPT: 'receipt',
                 DATE: 'date',
                 MERCHANT: 'merchant',
-                DESCRIPTION: 'description',
                 FROM: 'from',
                 TO: 'to',
                 CATEGORY: 'category',
@@ -1528,9 +1527,6 @@ const CONST = {
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
-        SEARCH_CONVERT_SEARCH_VALUES: 'search_convert_search_values',
-        SEARCH_MAKE_TREE: 'search_make_tree',
-        SEARCH_BUILD_TREE: 'search_build_tree',
         SEARCH_FILTER_OPTIONS: 'search_filter_options',
         USE_DEBOUNCED_STATE_DELAY: 300,
         LIST_SCROLLING_DEBOUNCE_TIME: 200,
@@ -1539,10 +1535,8 @@ const CONST = {
         PLAY_SOUND_MESSAGE_DEBOUNCE_TIME: 500,
         NOTIFY_NEW_ACTION_DELAY: 700,
         SKELETON_ANIMATION_SPEED: 3,
-        SEARCH_OPTIONS_COMPARISON: 'search_options_comparison',
         SEARCH_MOST_RECENT_OPTIONS: 'search_most_recent_options',
         DEBOUNCE_HANDLE_SEARCH: 'debounce_handle_search',
-        FAST_SEARCH_TREE_CREATION: 'fast_search_tree_creation',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -2878,12 +2872,6 @@ const CONST = {
             REIMBURSEMENT_NO: 'reimburseNo', // None
             REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
         },
-        CASH_EXPENSE_REIMBURSEMENT_CHOICES: {
-            REIMBURSABLE_DEFAULT: 'reimbursableDefault', // Reimbursable by default
-            NON_REIMBURSABLE_DEFAULT: 'nonReimbursableDefault', // Non-reimbursable by default
-            ALWAYS_REIMBURSABLE: 'alwaysReimbursable', // Always Reimbursable
-            ALWAYS_NON_REIMBURSABLE: 'alwaysNonReimbursable', // Always Non Reimbursable
-        },
         ID_FAKE: '_FAKE_',
         EMPTY: 'EMPTY',
         SECONDARY_ACTIONS: {
@@ -3128,7 +3116,6 @@ const CONST = {
         CFPB_PREPAID: 'cfpb.gov/prepaid',
         CFPB_COMPLAINT: 'cfpb.gov/complaint',
         FDIC_PREPAID: 'fdic.gov/deposit/deposits/prepaid.html',
-        USE_EXPENSIFY_FEES: 'use.expensify.com/fees',
     },
 
     LAYOUT_WIDTH: {
@@ -3743,7 +3730,6 @@ const CONST = {
         TAG: 'tag',
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
-        REIMBURSABLE: 'reimbursable',
         REPORT: 'report',
     },
     FOOTER: {
@@ -4992,6 +4978,10 @@ const CONST = {
         FLAG_SEVERITY_ASSAULT: 'assault',
     },
     EMOJI_PICKER_TEXT_INPUT_SIZES: 152,
+    TEXT_INPUT_SYMBOL_POSITION: {
+        PREFIX: 'prefix',
+        SUFFIX: 'suffix',
+    },
     QR: {
         DEFAULT_LOGO_SIZE_RATIO: 0.25,
         DEFAULT_LOGO_MARGIN_RATIO: 0.02,
@@ -6487,9 +6477,6 @@ const CONST = {
             STATEMENTS: 'statements',
             UNAPPROVED_CASH: 'unapprovedCash',
             UNAPPROVED_CARD: 'unapprovedCard',
-        },
-        ANIMATION: {
-            FADE_DURATION: 200,
         },
     },
 
