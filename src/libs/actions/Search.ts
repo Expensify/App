@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {PaymentData, SearchQueryJSON} from '@components/Search/types';
