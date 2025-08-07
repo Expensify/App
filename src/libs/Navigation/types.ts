@@ -1059,7 +1059,7 @@ type SettingsNavigatorParamList = {
         cardID: string;
         backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.RULES_CUSTOM_NAME]: {
+    [SCREENS.WORKSPACE.REPORTS_DEFAULT_TITLE]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES_AUTO_APPROVE_REPORTS_UNDER]: {
@@ -1907,7 +1907,7 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.TAXES]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.REPORT_FIELDS]: {
+    [SCREENS.WORKSPACE.REPORTS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
@@ -1943,9 +1943,6 @@ type WorkspaceSplitNavigatorParamList = {
 };
 
 type OnboardingModalNavigatorParamList = {
-    [SCREENS.ONBOARDING_MODAL.ONBOARDING]: {
-        backTo?: string;
-    };
     [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
         backTo?: string;
     };

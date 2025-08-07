@@ -212,4 +212,62 @@ describe('BaseSelectionList', () => {
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}70`)).toBeTruthy();
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}70`)).toBeSelected();
     });
+
+    it('does not reset page when only selectedOptions changes', () => {
+        const {rerender} = render(
+            <BaseListItemRenderer
+                sections={[{data: largeMockSections}]}
+                canSelectMultiple={false}
+                initialNumToRender={110}
+            />,
+        );
+
+        // Click Show More button
+        fireEvent.press(screen.getByText('common.showMore'));
+
+        rerender(
+            <BaseListItemRenderer
+                sections={[{data: largeMockSections.map((item, index) => ({...item, isSelected: index === 3}))}]}
+                canSelectMultiple={false}
+                initialNumToRender={110}
+            />,
+        );
+
+        // Should now show items from second page
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}51`)).toBeTruthy();
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}62`)).toBeTruthy();
+
+        // Should not show, "Show more" button as we rendered whole list and search text was not changed
+        expect(screen.queryByText('common.showMore')).toBeFalsy();
+    });
+
+    it('should reset current page when text input changes', () => {
+        const {rerender} = render(
+            <BaseListItemRenderer
+                sections={[{data: largeMockSections}]}
+                canSelectMultiple={false}
+                initialNumToRender={110}
+            />,
+        );
+
+        // Click Show More button
+        fireEvent.press(screen.getByText('common.showMore'));
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}99`)).toBeTruthy();
+
+        // Rerender with changed `searchText` to trigger `setCurrentPage(1)`
+        rerender(
+            <BaseListItemRenderer
+                sections={[{data: largeMockSections.map((item, index) => ({...item, isSelected: index === 3}))}]}
+                canSelectMultiple={false}
+                searchText="Item"
+                initialNumToRender={110}
+            />,
+        );
+
+        // Should not show the items from second page
+        expect(screen.queryByText(`${CONST.BASE_LIST_ITEM_TEST_ID}52`)).toBeFalsy();
+
+        // Should show, "Show more" button as current page is reset
+        expect(screen.getByText('common.showMore')).toBeOnTheScreen();
+    });
 });
