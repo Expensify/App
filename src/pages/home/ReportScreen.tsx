@@ -19,6 +19,7 @@ import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
+import useLastAccessedReport from '@hooks/useLastAccessedReport';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
@@ -53,7 +54,6 @@ import {
 import {
     canEditReportAction,
     canUserPerformWriteAction,
-    findLastAccessedReport,
     getParticipantsAccountIDsForDisplay,
     getReportOfflinePendingActionAndErrors,
     isChatThread,
@@ -167,6 +167,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
 
+    const {lastAccessReportID} = useLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), !!route.params.openOnAdminRoom);
+
     useEffect(() => {
         // Don't update if there is a reportID in the params already
         if (route.params.reportID) {
@@ -178,17 +180,15 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        const lastAccessedReportID = findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), !!route.params.openOnAdminRoom)?.reportID;
-
         // It's possible that reports aren't fully loaded yet
         // in that case the reportID is undefined
-        if (!lastAccessedReportID) {
+        if (!lastAccessReportID) {
             return;
         }
 
-        Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
-        navigation.setParams({reportID: lastAccessedReportID});
-    }, [isBetaEnabled, navigation, route]);
+        Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessReportID}`);
+        navigation.setParams({reportID: lastAccessReportID});
+    }, [lastAccessReportID, navigation, route]);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const chatWithAccountManagerText = useMemo(() => {
