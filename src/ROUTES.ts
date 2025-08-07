@@ -2053,11 +2053,6 @@ const ROUTES = {
         route: 'onboarding/workspace-invite',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-invite`, backTo),
     },
-
-    ONBOARDING_DOMAIN_RESTRICTED_WORKSPACE: {
-        route: 'onboarding/domain-restricted-workspace',
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/domain-restricted-workspace`, backTo),
-    },
     WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
     TEST_DRIVE_MODAL_ROOT: {

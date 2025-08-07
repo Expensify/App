@@ -159,10 +159,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: ROUTES.ONBOARDING_WORKSPACE_INVITE.route,
                     exact: true,
                 },
-                [SCREENS.ONBOARDING.DOMAIN_RESTRICTED_WORKSPACE]: {
-                    path: ROUTES.ONBOARDING_DOMAIN_RESTRICTED_WORKSPACE.route,
-                    exact: true,
-                },
             },
         },
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {

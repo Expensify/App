@@ -1976,9 +1976,6 @@ type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING.WORKSPACE_CONFIRMATION]: {
         backTo?: string;
     };
-    [SCREENS.ONBOARDING.DOMAIN_RESTRICTED_WORKSPACE]: {
-        backTo?: string;
-    };
     [SCREENS.ONBOARDING.WORKSPACE_CURRENCY]: {
         backTo?: string;
     };

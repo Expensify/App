@@ -4,7 +4,7 @@ type SecurityGroup = {
     hasRestrictedPrimaryLogin: boolean;
 
     /** Whether the security group restricts workspace creation for non-admin users */
-    hasRestrictedWorkspaceCreation?: boolean;
+    hasRestrictedPolicyCreation?: boolean;
 };
 
 export default SecurityGroup;
