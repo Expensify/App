@@ -1,7 +1,8 @@
-import {compute, extract, FORMULA_PART_TYPES, isFormula, parse} from '@libs/Formula';
+import {compute, extract, isFormula, parse} from '@libs/Formula';
 import type {FormulaContext} from '@libs/Formula';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {Policy, Report} from '@src/types/onyx';
 
 // Mock ReportActionsUtils and ReportUtils
 jest.mock('@libs/ReportActionsUtils', () => ({
@@ -95,14 +96,15 @@ describe('CustomFormula', () => {
             report: {
                 reportID: '123',
                 reportName: '',
+                type: 'expense',
                 total: -10000, // -$100.00
                 currency: 'USD',
                 lastVisibleActionCreated: '2025-01-15T10:30:00Z',
                 policyID: 'policy1',
-            } as any,
+            } as Report,
             policy: {
                 name: 'Test Policy',
-            },
+            } as Policy,
         };
 
         beforeEach(() => {
@@ -133,16 +135,19 @@ describe('CustomFormula', () => {
                     transactionID: 'trans1',
                     created: '2025-01-08T12:00:00Z', // Oldest transaction
                     amount: 5000,
+                    merchant: 'ACME Ltd.',
                 },
                 {
                     transactionID: 'trans2',
                     created: '2025-01-14T16:45:00Z', // Later transaction
                     amount: 3000,
+                    merchant: 'ACME Ltd.',
                 },
                 {
                     transactionID: 'trans3',
                     created: '2025-01-11T09:15:00Z', // Middle transaction
                     amount: 2000,
+                    merchant: 'ACME Ltd.',
                 },
             ];
 
@@ -269,9 +274,13 @@ describe('CustomFormula', () => {
                 report: {reportID: '123'} as any,
                 policy: null,
             };
-
+            const expected = new Date().toLocaleDateString('en-US', {
+                month: '2-digit',
+                day: '2-digit',
+                year: 'numeric',
+            });
             const result = compute('{report:startdate}', context);
-            expect(result).toBe('');
+            expect(result).toBe(expected);
         });
 
         test('should call getReportTransactions with correct reportID for startdate', () => {
@@ -292,6 +301,70 @@ describe('CustomFormula', () => {
 
             compute('{report:created}', context);
             expect(mockReportActionsUtils.getAllReportActions).toHaveBeenCalledWith('test-report-456');
+        });
+
+        test('should skip partial transactions (empty merchant)', () => {
+            const mockTransactions = [
+                {
+                    transactionID: 'trans1',
+                    created: '2025-01-15T12:00:00Z',
+                    amount: 5000,
+                    merchant: 'ACME Ltd.',
+                },
+                {
+                    transactionID: 'trans2',
+                    created: '2025-01-08T16:45:00Z', // Older but partial
+                    amount: 3000,
+                    merchant: '', // Empty merchant = partial
+                },
+                {
+                    transactionID: 'trans3',
+                    created: '2025-01-12T09:15:00Z', // Should be oldest valid
+                    amount: 2000,
+                    merchant: 'Gamma Inc.',
+                },
+            ];
+
+            mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions as any);
+            const context: FormulaContext = {
+                report: {reportID: 'test-report-123'} as any,
+                policy: null,
+            };
+
+            const result = compute('{report:startdate}', context);
+            expect(result).toBe('01/12/2025'); // Should skip partial transaction
+        });
+
+        test('should skip partial transactions (zero amount)', () => {
+            const mockTransactions = [
+                {
+                    transactionID: 'trans1',
+                    created: '2025-01-15T12:00:00Z',
+                    amount: 5000,
+                    merchant: 'ACME Ltd.',
+                },
+                {
+                    transactionID: 'trans2',
+                    created: '2025-01-08T16:45:00Z', // Older but partial
+                    amount: 0, // Zero amount = partial
+                    merchant: 'Beta Corp.',
+                },
+                {
+                    transactionID: 'trans3',
+                    created: '2025-01-12T09:15:00Z', // Should be oldest valid
+                    amount: 2000,
+                    merchant: 'Gamma Inc.',
+                },
+            ];
+
+            mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions as any);
+            const context: FormulaContext = {
+                report: {reportID: 'test-report-123'} as any,
+                policy: null,
+            };
+
+            const result = compute('{report:startdate}', context);
+            expect(result).toBe('01/12/2025'); // Should skip zero amount transaction
         });
     });
 });
