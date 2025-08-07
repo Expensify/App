@@ -9,7 +9,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
-import SignInPage from './SignInPage';
+// import SignInPage from './SignInPage';
+import {SignInPageBase} from './SignInPage';
 import type {SignInPageRef} from './SignInPage';
 
 function SignInModal() {
@@ -39,7 +40,6 @@ function SignInModal() {
         <ScreenWrapper
             style={[StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.RIGHT_MODAL.SIGN_IN].backgroundColor)]}
             includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
             shouldShowOfflineIndicator={false}
             testID={SignInModal.displayName}
         >
@@ -52,10 +52,7 @@ function SignInModal() {
                     signinPageRef.current?.navigateBack();
                 }}
             />
-            <SignInPage
-                shouldEnableMaxHeight={false}
-                ref={signinPageRef}
-            />
+            <SignInPageBase ref={signinPageRef} />
         </ScreenWrapper>
     );
 }
