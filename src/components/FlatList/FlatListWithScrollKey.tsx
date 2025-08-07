@@ -4,7 +4,7 @@ import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFl
 import useFlatListScrollKey from '@hooks/useFlatListScrollKey';
 import FlatList from '.';
 
-type BaseFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'initialScrollIndex'> & {
+type FlatListWithScrollKeyProps<T> = Omit<FlatListProps<T>, 'data' | 'initialScrollIndex'> & {
     data: T[];
     initialScrollKey?: string | null | undefined;
     keyExtractor: (item: T, index: number) => string;
@@ -12,7 +12,10 @@ type BaseFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'initialScrollIndex'
     renderItem: ListRenderItem<T>;
 };
 
-function BaseFlatList<T>(props: BaseFlatListProps<T>, ref: ForwardedRef<RNFlatList>) {
+/**
+ * FlatList component that handles initial scroll key.
+ */
+function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: ForwardedRef<RNFlatList>) {
     const {shouldEnableAutoScrollToTopThreshold, initialScrollKey, data, onStartReached, renderItem, keyExtractor, ListHeaderComponent, ...rest} = props;
     const {displayedData, maintainVisibleContentPosition, handleStartReached, isInitialData} = useFlatListScrollKey<T>({
         data,
@@ -50,6 +53,6 @@ function BaseFlatList<T>(props: BaseFlatListProps<T>, ref: ForwardedRef<RNFlatLi
     );
 }
 
-BaseFlatList.displayName = 'BaseFlatList';
+FlatListWithScrollKey.displayName = 'FlatListWithScrollKey';
 
-export default forwardRef(BaseFlatList);
+export default forwardRef(FlatListWithScrollKey);

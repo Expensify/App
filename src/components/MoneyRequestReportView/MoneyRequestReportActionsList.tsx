@@ -10,7 +10,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
-import BaseFlatList from '@components/FlatList/BaseFlatList';
+import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -26,8 +26,8 @@ import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 import DateUtils from '@libs/DateUtils';
 import {parseFSAttributes} from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -704,7 +704,7 @@ function MoneyRequestReportActionsList({
                         <SearchMoneyRequestReportEmptyState />
                     </>
                 ) : (
-                    <BaseFlatList
+                    <FlatListWithScrollKey
                         initialNumToRender={initialNumToRender}
                         accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                         testID="money-request-report-actions-list"
