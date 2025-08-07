@@ -69,7 +69,7 @@ function navigateToQuickAction(
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
                     Navigation.navigate(
                         isSearchTopmostFullScreenRoute()
-                            ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID, backTo: Navigation.getActiveRoute()})
+                            ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID})
                             : ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()),
                     );
                 });
