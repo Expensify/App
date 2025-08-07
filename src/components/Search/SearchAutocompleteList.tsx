@@ -471,6 +471,7 @@ function SearchAutocompleteList(
         groupByAutocompleteList,
         statusAutocompleteList,
         expenseTypes,
+        withdrawalTypes,
         feedAutoCompleteList,
         cardAutocompleteList,
         allCards,
