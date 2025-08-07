@@ -6434,8 +6434,8 @@ const translations = {
     },
     violations: {
         allTagLevelsRequired: 'Alle Tags erforderlich',
-        autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) =>
-            `${rejectedBy} hat diese Ausgabe mit dem Kommentar "${rejectReason}" abgelehnt.`,
+        autoReportedRejectedExpense: ({comment, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) =>
+            `${rejectedBy} hat diese Ausgabe mit dem Kommentar "${comment}" abgelehnt.`,
         billableExpense: 'Abrechnungsfähig nicht mehr gültig',
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Beleg erforderlich${formattedLimit ? `über ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Kategorie nicht mehr gültig',

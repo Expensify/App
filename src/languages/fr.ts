@@ -6447,8 +6447,8 @@ const translations = {
     },
     violations: {
         allTagLevelsRequired: 'Tous les tags requis',
-        autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) =>
-            `${rejectedBy} a rejeté cette dépense avec le commentaire "${rejectReason}"`,
+        autoReportedRejectedExpense: ({comment, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) =>
+            `${rejectedBy} a rejeté cette dépense avec le commentaire "${comment}"`,
         billableExpense: "Facturable n'est plus valide",
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Receipt required${formattedLimit ? `au-delà de ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Catégorie non valide',

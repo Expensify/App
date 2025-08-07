@@ -6406,7 +6406,7 @@ const translations = {
     },
     violations: {
         allTagLevelsRequired: 'すべてのタグが必要です。',
-        autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy}はこの経費を却下しました。コメント: "${rejectReason}"`,
+        autoReportedRejectedExpense: ({comment, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy}はこの経費を却下しました。コメント: "${comment}"`,
         billableExpense: '課金対象は無効になりました',
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Receipt required${formattedLimit ? `${formattedLimit} を超える` : ''}`,
         categoryOutOfPolicy: 'カテゴリが無効になりました。',

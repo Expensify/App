@@ -6449,7 +6449,7 @@ const translations = {
     },
     violations: {
         allTagLevelsRequired: 'Tutti i tag richiesti',
-        autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} ha rifiutato questa spesa con il commento "${rejectReason}"`,
+        autoReportedRejectedExpense: ({comment, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} ha rifiutato questa spesa con il commento "${comment}"`,
         billableExpense: 'Fatturabile non più valido',
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Receipt required${formattedLimit ? `oltre ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Categoria non più valida',

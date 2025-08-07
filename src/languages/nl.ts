@@ -6441,8 +6441,8 @@ const translations = {
     },
     violations: {
         allTagLevelsRequired: 'Alle tags vereist',
-        autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) =>
-            `${rejectedBy} heeft deze uitgave afgewezen met de opmerking "${rejectReason}"`,
+        autoReportedRejectedExpense: ({comment, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) =>
+            `${rejectedBy} heeft deze uitgave afgewezen met de opmerking "${comment}"`,
         billableExpense: 'Factureerbaar niet langer geldig',
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Receipt required${formattedLimit ? `boven ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Categorie niet langer geldig',
