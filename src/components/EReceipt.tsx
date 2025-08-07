@@ -8,8 +8,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardDescription, getCompanyCardDescription} from '@libs/CardUtils';
 import {convertToDisplayString, getCurrencySymbol} from '@libs/CurrencyUtils';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getTransactionDetails} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,11 +19,11 @@ import type {TransactionListItemType} from './SelectionList/types';
 import Text from './Text';
 
 type EReceiptProps = {
-    /* TransactionID of the transaction this EReceipt corresponds to */
-    transactionID: string | undefined;
+    /** The transaction data */
+    transaction: TransactionListItemType | Transaction | undefined;
 
-    /** The transaction data in search */
-    transactionItem?: TransactionListItemType | Transaction;
+    /** Card description to display (optional, will be computed if not provided) */
+    cardDescription?: string;
 
     /** Where it is the preview */
     isThumbnail?: boolean;
@@ -33,15 +31,14 @@ type EReceiptProps = {
 
 const receiptMCCSize: number = variables.eReceiptMCCHeightWidthMedium;
 const backgroundImageMinWidth: number = variables.eReceiptBackgroundImageMinWidth;
-function EReceipt({transactionID, transactionItem, isThumbnail = false}: EReceiptProps) {
+function EReceipt({transaction, cardDescription: providedCardDescription, isThumbnail = false}: EReceiptProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const theme = useTheme();
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
 
-    const {primaryColor, secondaryColor, titleColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transactionItem ?? transaction);
+    const {primaryColor, secondaryColor, titleColor, MCCIcon, tripIcon, backgroundImage, transactionDetails} = useEReceipt(transaction, undefined, false, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
 
     const {
         amount: transactionAmount,
@@ -50,11 +47,11 @@ function EReceipt({transactionID, transactionItem, isThumbnail = false}: EReceip
         created: transactionDate,
         cardID: transactionCardID,
         cardName: transactionCardName,
-    } = getTransactionDetails(transactionItem ?? transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT) ?? {};
+    } = transactionDetails ?? {};
     const formattedAmount = convertToDisplayString(transactionAmount, transactionCurrency);
     const currency = getCurrencySymbol(transactionCurrency ?? '');
     const amount = currency ? formattedAmount.replace(currency, '') : formattedAmount;
-    const cardDescription = getCompanyCardDescription(transactionCardName, transactionCardID, cardList) ?? (transactionCardID ? getCardDescription(transactionCardID) : '');
+    const cardDescription = providedCardDescription ?? getCompanyCardDescription(transactionCardName, transactionCardID, cardList) ?? (transactionCardID ? getCardDescription(transactionCardID) : '');
 
     const secondaryBgcolorStyle = secondaryColor ? StyleUtils.getBackgroundColorStyle(secondaryColor) : undefined;
     const primaryTextColorStyle = primaryColor ? StyleUtils.getColorStyle(primaryColor) : undefined;

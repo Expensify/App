@@ -1,21 +1,25 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import variables from '@styles/variables';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 import EReceipt from './EReceipt';
 import type {TransactionListItemType} from './SelectionList/types';
 
 type EReceiptWithSizeCalculationProps = {
-    transactionID: string | undefined;
+    transactionID?: string;
 
     transactionItem?: TransactionListItemType | Transaction;
 };
 
-function EReceiptWithSizeCalculation(props: EReceiptWithSizeCalculationProps) {
+function EReceiptWithSizeCalculation({transactionID, transactionItem}: EReceiptWithSizeCalculationProps) {
     const [scaleFactor, setScaleFactor] = useState(0);
     const styles = useThemeStyles();
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
 
     const onLayout = (e: LayoutChangeEvent) => {
         const {width} = e.nativeEvent.layout;
@@ -31,8 +35,7 @@ function EReceiptWithSizeCalculation(props: EReceiptWithSizeCalculationProps) {
                 style={[styles.w100, styles.h100, {transform: `scale(${scaleFactor}) ${styles.translateZ0.transform as string}`, transformOrigin: 'top left'}]}
             >
                 <EReceipt
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
+                    transaction={transactionItem ?? transaction}
                     isThumbnail
                 />
             </View>
