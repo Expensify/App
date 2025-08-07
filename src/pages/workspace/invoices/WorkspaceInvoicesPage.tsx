@@ -25,6 +25,7 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED}
+            backToRoute={route.params.backTo}
         >
             <WorkspacePageWithSections
                 shouldUseScrollView
@@ -34,6 +35,7 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
                 route={route}
                 icon={Illustrations.InvoiceBlue}
                 addBottomSafeAreaPadding
+                backButtonRoute={route.params.backTo}
             >
                 {(_hasVBA?: boolean, policyID?: string) => (
                     <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

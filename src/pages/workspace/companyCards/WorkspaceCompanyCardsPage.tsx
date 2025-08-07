@@ -161,6 +161,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+            backToRoute={route.params.backTo}
         >
             {!!isLoading && (
                 <ActivityIndicator
@@ -178,6 +179,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                     shouldShowOfflineIndicatorInWideScreen
                     showLoadingAsFirstRender={false}
                     addBottomSafeAreaPadding
+                    backButtonRoute={route.params.backTo}
                 >
                     {(isFeedAdded || isPending) && !!selectedFeed && (
                         <WorkspaceCompanyCardsListHeaderButtons

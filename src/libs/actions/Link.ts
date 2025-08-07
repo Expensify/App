@@ -1,3 +1,4 @@
+import {findFocusedRoute} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -5,6 +6,7 @@ import type {GenerateSpotnanaTokenParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Environment from '@libs/Environment/Environment';
+import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Url from '@libs/Url';
 import CONFIG from '@src/CONFIG';
@@ -12,6 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES, {getUrlWithBackToParam} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn} from './Session';
 
 let isNetworkOffline = false;
@@ -154,6 +157,24 @@ function getInternalExpensifyPath(href: string) {
     return attrPath;
 }
 
+const SCREENS_TO_ADD_BACKTO = [
+    SCREENS.WORKSPACE.PROFILE,
+    SCREENS.WORKSPACE.MEMBERS,
+    SCREENS.WORKSPACE.REPORT_FIELDS,
+    SCREENS.WORKSPACE.ACCOUNTING.ROOT,
+    SCREENS.WORKSPACE.CATEGORIES,
+    SCREENS.WORKSPACE.TAGS,
+    SCREENS.WORKSPACE.TAXES,
+    SCREENS.WORKSPACE.WORKFLOWS,
+    SCREENS.WORKSPACE.RULES,
+    SCREENS.WORKSPACE.DISTANCE_RATES,
+    SCREENS.WORKSPACE.EXPENSIFY_CARD,
+    SCREENS.WORKSPACE.COMPANY_CARDS,
+    SCREENS.WORKSPACE.PER_DIEM,
+    SCREENS.WORKSPACE.INVOICES,
+    SCREENS.WORKSPACE.MORE_FEATURES,
+];
+
 function openLink(href: string, environmentURL: string, isAttachment = false) {
     const hasSameOrigin = Url.hasSameExpensifyOrigin(href, environmentURL);
     const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.STAGING_API_ROOT);
@@ -180,7 +201,8 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
             return;
         }
         let urlToNavigate = internalNewExpensifyPath;
-        if (CONST.POLICY.POLICY_ROUTE_REGEX.test(internalNewExpensifyPath)) {
+        const routeFromURL = findFocusedRoute(getStateFromPath(urlToNavigate as Route));
+        if (routeFromURL?.name && (SCREENS_TO_ADD_BACKTO as string[]).includes(routeFromURL?.name)) {
             urlToNavigate = getUrlWithBackToParam(internalNewExpensifyPath, Navigation.getActiveRoute());
         }
         Navigation.navigate(urlToNavigate as Route);

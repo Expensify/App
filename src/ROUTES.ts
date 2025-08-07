@@ -1030,7 +1030,7 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING: {
         route: 'workspaces/:policyID/accounting',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting` as const,
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting` as const, backTo),
     },
     WORKSPACE_OVERVIEW_CURRENCY: {
         route: 'workspaces/:policyID/overview/currency',
@@ -1272,11 +1272,11 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS: {
         route: 'workspaces/:policyID/workflows',
-        getRoute: (policyID: string | undefined) => {
+        getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS route');
             }
-            return `workspaces/${policyID}/workflows` as const;
+            return getUrlWithBackToParam(`workspaces/${policyID}/workflows` as const, backTo);
         },
     },
     WORKSPACE_WORKFLOWS_APPROVALS_NEW: {
@@ -1315,11 +1315,11 @@ const ROUTES = {
     },
     WORKSPACE_INVOICES: {
         route: 'workspaces/:policyID/invoices',
-        getRoute: (policyID: string | undefined) => {
+        getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_INVOICES route');
             }
-            return `workspaces/${policyID}/invoices` as const;
+            return getUrlWithBackToParam(`workspaces/${policyID}/invoices` as const, backTo);
         },
     },
     WORKSPACE_INVOICES_COMPANY_NAME: {
@@ -1332,11 +1332,11 @@ const ROUTES = {
     },
     WORKSPACE_MEMBERS: {
         route: 'workspaces/:policyID/members',
-        getRoute: (policyID: string | undefined) => {
+        getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_MEMBERS route');
             }
-            return `workspaces/${policyID}/members` as const;
+            return getUrlWithBackToParam(`workspaces/${policyID}/members` as const, backTo);
         },
     },
     WORKSPACE_MEMBERS_IMPORT: {
@@ -1558,11 +1558,11 @@ const ROUTES = {
     },
     WORKSPACE_TAXES: {
         route: 'workspaces/:policyID/taxes',
-        getRoute: (policyID: string | undefined) => {
+        getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_TAXES route');
             }
-            return `workspaces/${policyID}/taxes` as const;
+            return getUrlWithBackToParam(`workspaces/${policyID}/taxes` as const, backTo);
         },
     },
     WORKSPACE_TAXES_SETTINGS: {
@@ -1632,11 +1632,11 @@ const ROUTES = {
     },
     WORKSPACE_REPORT_FIELDS: {
         route: 'workspaces/:policyID/reportFields',
-        getRoute: (policyID: string | undefined) => {
+        getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_REPORT_FIELDS route');
             }
-            return `workspaces/${policyID}/reportFields` as const;
+            return getUrlWithBackToParam(`workspaces/${policyID}/reportFields` as const, backTo);
         },
     },
     WORKSPACE_CREATE_REPORT_FIELD: {
@@ -1717,11 +1717,11 @@ const ROUTES = {
     },
     WORKSPACE_EXPENSIFY_CARD: {
         route: 'workspaces/:policyID/expensify-card',
-        getRoute: (policyID: string | undefined) => {
+        getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_EXPENSIFY_CARD route');
             }
-            return `workspaces/${policyID}/expensify-card` as const;
+            return getUrlWithBackToParam(`workspaces/${policyID}/expensify-card` as const, backTo);
         },
     },
     WORKSPACE_EXPENSIFY_CARD_DETAILS: {
@@ -1799,20 +1799,20 @@ const ROUTES = {
     },
     WORKSPACE_RULES: {
         route: 'workspaces/:policyID/rules',
-        getRoute: (policyID: string | undefined) => {
+        getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_RULES route');
             }
-            return `workspaces/${policyID}/rules` as const;
+            return getUrlWithBackToParam(`workspaces/${policyID}/rules` as const, backTo);
         },
     },
     WORKSPACE_DISTANCE_RATES: {
         route: 'workspaces/:policyID/distance-rates',
-        getRoute: (policyID: string | undefined) => {
+        getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_DISTANCE_RATES route');
             }
-            return `workspaces/${policyID}/distance-rates` as const;
+            return getUrlWithBackToParam(`workspaces/${policyID}/distance-rates` as const, backTo);
         },
     },
     WORKSPACE_CREATE_DISTANCE_RATE: {

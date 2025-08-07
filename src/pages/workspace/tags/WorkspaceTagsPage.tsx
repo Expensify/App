@@ -57,6 +57,7 @@ import {
     getConnectedIntegration,
     getCurrentConnectionName,
     getTagLists,
+    goBackFromPolicyPages,
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
     hasDependentTags as hasDependentTagsPolicyUtils,
     hasIndependentTags as hasIndependentTagsPolicyUtils,
@@ -649,13 +650,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 turnOffMobileSelectionMode();
                                 return;
                             }
-
-                            if (backTo) {
-                                Navigation.goBack(backTo);
-                                return;
-                            }
-
-                            Navigation.popToSidebar();
+                            goBackFromPolicyPages(backTo);
                         }}
                     >
                         {!shouldUseNarrowLayout && getHeaderButtons()}

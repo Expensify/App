@@ -614,6 +614,14 @@ function goBackFromInvalidPolicy() {
     Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
 }
 
+function goBackFromPolicyPages(backTo?: Route) {
+    if (backTo) {
+        Navigation.goBack(backTo);
+        return;
+    }
+    Navigation.popToSidebar();
+}
+
 /** Get a tax with given ID from policy */
 function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefined {
     return policy?.taxRates?.taxes?.[taxID];
@@ -1658,6 +1666,7 @@ export {
     getPolicyRole,
     hasIndependentTags,
     getLengthOfTag,
+    goBackFromPolicyPages,
 };
 
 export type {MemberEmailsToAccountIDs};

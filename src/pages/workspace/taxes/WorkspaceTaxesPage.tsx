@@ -38,6 +38,7 @@ import {
     canEditTaxRate as canEditTaxRatePolicyUtils,
     getConnectedIntegration,
     getCurrentConnectionName,
+    goBackFromPolicyPages,
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
@@ -58,7 +59,7 @@ type WorkspaceTaxesPageProps = WithPolicyAndFullscreenLoadingProps & PlatformSta
 function WorkspaceTaxesPage({
     policy,
     route: {
-        params: {policyID},
+        params: {policyID, backTo},
     },
 }: WorkspaceTaxesPageProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -393,6 +394,7 @@ function WorkspaceTaxesPage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
+            backToRoute={backTo}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -411,7 +413,7 @@ function WorkspaceTaxesPage({
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        Navigation.popToSidebar();
+                        goBackFromPolicyPages(backTo);
                     }}
                 >
                     {!shouldUseNarrowLayout && headerButtons}

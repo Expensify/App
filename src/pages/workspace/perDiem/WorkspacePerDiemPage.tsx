@@ -36,7 +36,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {getPerDiemCustomUnit, goBackFromPolicyPages} from '@libs/PolicyUtils';
 import StringUtils from '@libs/StringUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {openExternalLink} from '@userActions/Link';
@@ -398,6 +398,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED}
+            backToRoute={route.params.backTo}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -417,13 +418,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                             turnOffMobileSelectionMode();
                             return;
                         }
-
-                        if (backTo) {
-                            Navigation.goBack(backTo);
-                            return;
-                        }
-
-                        Navigation.popToSidebar();
+                        goBackFromPolicyPages(backTo);
                     }}
                 >
                     {!shouldUseNarrowLayout && getHeaderButtons()}

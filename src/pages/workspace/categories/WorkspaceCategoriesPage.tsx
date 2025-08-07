@@ -43,7 +43,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
-import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections, shouldShowSyncError} from '@libs/PolicyUtils';
+import {getConnectedIntegration, getCurrentConnectionName, goBackFromPolicyPages, hasAccountingConnections, shouldShowSyncError} from '@libs/PolicyUtils';
 import StringUtils from '@libs/StringUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {close} from '@userActions/Modal';
@@ -459,6 +459,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyId}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+            backToRoute={backTo}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -478,13 +479,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             turnOffMobileSelectionMode();
                             return;
                         }
-
-                        if (backTo) {
-                            Navigation.goBack(backTo);
-                            return;
-                        }
-
-                        Navigation.popToSidebar();
+                        goBackFromPolicyPages(backTo);
                     }}
                 >
                     {!shouldUseNarrowLayout && getHeaderButtons()}
