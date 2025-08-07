@@ -4,7 +4,6 @@ import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-
 function CountrySelection() {
     const onCountrySelected = useCallback(() => {
         navigateToBankAccountRoute(CONST.DEFAULT_NUMBER_ID.toString(), ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE);
@@ -12,7 +11,7 @@ function CountrySelection() {
 
     return (
         <CountrySelectionList
-            selectedCountry={''}
+            selectedCountry=""
             countries={CONST.BBA_SUPPORTED_COUNTRIES}
             onCountrySelected={onCountrySelected}
         />

@@ -14,22 +14,25 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex}: Cus
         canBeMissing: false,
     });
 
-    const onCountrySelected = useCallback((country: string) => {
-        if (country === CONST.COUNTRY.US) {
-            if (isUserValidated) {
-                Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT);
-            } else {
-                Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT));
+    const onCountrySelected = useCallback(
+        (country: string) => {
+            if (country === CONST.COUNTRY.US) {
+                if (isUserValidated) {
+                    Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT);
+                } else {
+                    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT));
+                }
+                return;
             }
-            return;
-        }
-        if (isEditing && formValues.bankCountry === country) {
-            onNext();
-            return;
-        }
-        fetchCorpayFields(country);
-        resetScreenIndex?.(CONST.CORPAY_FIELDS.INDEXES.MAPPING.BANK_ACCOUNT_DETAILS);
-    }, [formValues.bankCountry, isEditing, onNext, resetScreenIndex, isUserValidated]);
+            if (isEditing && formValues.bankCountry === country) {
+                onNext();
+                return;
+            }
+            fetchCorpayFields(country);
+            resetScreenIndex?.(CONST.CORPAY_FIELDS.INDEXES.MAPPING.BANK_ACCOUNT_DETAILS);
+        },
+        [formValues.bankCountry, isEditing, onNext, resetScreenIndex, isUserValidated],
+    );
 
     const countries = useMemo(() => Object.keys(CONST.ALL_COUNTRIES).filter((countryISO) => !CONST.CORPAY_FIELDS.EXCLUDED_COUNTRIES.includes(countryISO)), []);
 
