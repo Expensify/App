@@ -1,6 +1,7 @@
 import cloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {
     ASTNode,
     QueryFilter,
@@ -26,7 +27,6 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
-import localeCompare from './LocaleCompare';
 import Log from './Log';
 import {validateAmount} from './MoneyRequestUtils';
 import navigationRef from './Navigation/navigationRef';
@@ -87,6 +87,7 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
     paid: 'paid',
     exported: 'exported',
     posted: 'posted',
+    withdrawn: 'withdrawn',
     groupBy: 'group-by',
     title: 'title',
     assignee: 'assignee',
@@ -275,6 +276,14 @@ function getUpdatedFilterValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FI
 
 /**
  * @private
+ * This is a custom collator only for getQueryHashes function.
+ * The reason for this is that the computation of hashes should not depend on the locale.
+ * This is used to ensure that hashes stay consistent.
+ */
+const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'});
+
+/**
+ * @private
  * Computes and returns a numerical hash for a given queryJSON.
  * Sorts the query keys and values to ensure that hashes stay consistent.
  */
@@ -287,7 +296,7 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
     query.flatFilters
         .map((filter) => {
             const filters = cloneDeep(filter.filters);
-            filters.sort((a, b) => localeCompare(a.value.toString(), b.value.toString()));
+            filters.sort((a, b) => customCollator.compare(a.value.toString(), b.value.toString()));
             return buildFilterValuesString(filter.key, filters);
         })
         .sort()
@@ -502,11 +511,11 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     filtersString.push(...mappedFilters);
 
     DATE_FILTER_KEYS.forEach((dateKey) => {
-        const dateFilter = buildDateFilterQuery(filterValues, dateKey);
+        const dateFilter = buildDateFilterQuery(supportedFilterValues, dateKey);
         filtersString.push(dateFilter);
     });
 
-    const amountFilter = buildAmountFilterQuery(filterValues);
+    const amountFilter = buildAmountFilterQuery(supportedFilterValues);
     filtersString.push(amountFilter);
 
     return filtersString.filter(Boolean).join(' ').trim();
@@ -883,7 +892,7 @@ function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
 /**
  * Always show `No category` and `No tag` as the first option
  */
-const sortOptionsWithEmptyValue = (a: string, b: string) => {
+const sortOptionsWithEmptyValue = (a: string, b: string, localeCompare: LocaleContextProps['localeCompare']) => {
     if (a === CONST.SEARCH.CATEGORY_EMPTY_VALUE || a === CONST.SEARCH.TAG_EMPTY_VALUE) {
         return -1;
     }
@@ -964,21 +973,21 @@ function getCurrentSearchQueryJSON() {
 
 function getTodoSearchQuery(action: TodoSearchType, userAccountID: number | undefined) {
     switch (action) {
-        case CONST.SEARCH.SEARCH_LIST.SUBMIT:
+        case CONST.SEARCH.SEARCH_KEYS.SUBMIT:
             return buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
                 from: [`${userAccountID}`],
             });
-        case CONST.SEARCH.SEARCH_LIST.APPROVE:
+        case CONST.SEARCH.SEARCH_KEYS.APPROVE:
             return buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
                 to: [`${userAccountID}`],
             });
-        case CONST.SEARCH.SEARCH_LIST.PAY:
+        case CONST.SEARCH.SEARCH_KEYS.PAY:
             return buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
@@ -986,7 +995,7 @@ function getTodoSearchQuery(action: TodoSearchType, userAccountID: number | unde
                 reimbursable: CONST.SEARCH.BOOLEAN.YES,
                 payer: userAccountID?.toString(),
             });
-        case CONST.SEARCH.SEARCH_LIST.EXPORT:
+        case CONST.SEARCH.SEARCH_KEYS.EXPORT:
             return buildQueryStringFromFilterFormValues({
                 groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 action: CONST.SEARCH.ACTION_FILTERS.EXPORT,

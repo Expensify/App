@@ -26,6 +26,9 @@ type CurrencySelectionListProps = Partial<SelectionListProps<CurrencyListItem>> 
 
     /** List of excluded currency codes */
     excludedCurrencies?: string[];
+
+    /** Whether the screen transition has ended */
+    didScreenTransitionEnd?: boolean;
 };
 
 export type {CurrencyListItem, CurrencySelectionListProps};
