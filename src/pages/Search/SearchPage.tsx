@@ -79,7 +79,9 @@ function SearchPage({route}: SearchPageProps) {
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReport?.parentReportID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
+    const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
@@ -214,6 +216,49 @@ function SearchPage({route}: SearchPageProps) {
                         onSelected: () => {
                             // Custom IS templates are not policy specific, so we don't need to pass a policyID
                             beginExportWithTemplate(template.name, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
+                        },
+                    });
+                }
+            }
+
+            // Collate a list of policyIDs based on the reports associated with the selected transactions
+            const selectedPolicyIDs = [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.policyID))];
+
+            // If all of the reports or transactions are on the same policy, add the policy-level in-app export templates as export options
+            if (selectedPolicyIDs.length == 1) {
+                const policyID = selectedPolicyIDs[0];
+                const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+                const templates = Object.entries({...(policy?.exportLayouts ?? {})}).map(([templateName, layout]) => ({
+                    ...layout,
+                    templateName,
+                }));
+
+                for (const template of templates) {
+                    exportOptions.push({
+                        text: template.name,
+                        icon: Expensicons.Table,
+                        description: policy?.name,
+                        onSelected: () => {
+                            beginExportWithTemplate(template.templateName, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, policyID);
+                        },
+                    });
+                }
+            }
+
+            // Collate a list of the account level in-app export templates for the
+            const accountInAppTemplates = Object.entries({...(csvExportLayouts ?? {})}).map(([templateName, layout]) => ({
+                ...layout,
+                templateName,
+            }));
+
+            if (accountInAppTemplates && accountInAppTemplates.length > 0) {
+                for (const template of accountInAppTemplates) {
+                    exportOptions.push({
+                        text: template.name,
+                        icon: Expensicons.Table,
+                        onSelected: () => {
+                            // Account level in-app export templates are not policy specific, so we don't need to pass a policyID
+                            beginExportWithTemplate(template.templateName, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, undefined);
                         },
                     });
                 }
@@ -455,6 +500,8 @@ function SearchPage({route}: SearchPageProps) {
         styles.textWrap,
         beginExportWithTemplate,
         integrationsExportTemplates,
+        csvExportLayouts,
+        policies,
     ]);
 
     const handleDeleteExpenses = () => {
