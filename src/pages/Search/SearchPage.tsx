@@ -221,10 +221,10 @@ function SearchPage({route}: SearchPageProps) {
                 }
             }
 
-            // Collate a list of policyIDs based on the reports associated with the selected transactions
+            // Collate a list of policyIDs from the selected transactions
             const selectedPolicyIDs = [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.policyID))];
 
-            // If all of the reports or transactions are on the same policy, add the policy-level in-app export templates as export options
+            // If all of the transactions are on the same policy, add the policy-level in-app export templates as export options
             if (selectedPolicyIDs.length === 1) {
                 const policyID = selectedPolicyIDs.at(0);
                 const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
