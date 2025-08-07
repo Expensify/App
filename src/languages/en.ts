@@ -124,6 +124,9 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeFailureDescriptionGenericParams,
+    MergeFailureUncreatedAccountDescriptionParams,
+    MergeSuccessDescriptionParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
@@ -151,6 +154,7 @@ import type {
     PolicyDisabledReportFieldAllOptionsParams,
     PolicyDisabledReportFieldOptionParams,
     PolicyExpenseChatNameParams,
+    QBDSetupErrorBodyParams,
     RailTicketParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
@@ -518,6 +522,7 @@ const translations = {
         pm: 'PM',
         tbd: 'TBD',
         selectCurrency: 'Select a currency',
+        selectSymbolOrCurrency: 'Select a symbol or currency',
         card: 'Card',
         whyDoWeAskForThis: 'Why do we ask for this?',
         required: 'Required',
@@ -553,7 +558,6 @@ const translations = {
         userID: 'User ID',
         disable: 'Disable',
         export: 'Export',
-        basicExport: 'Basic export',
         initialValue: 'Initial value',
         currentDate: 'Current date',
         value: 'Value',
@@ -836,17 +840,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `This chat room is for anything <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> related.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `This chat is for invoices between <strong>${invoicePayer}</strong> and <strong>${invoiceReceiver}</strong>. Use the + button to send an invoice.`,
+            `This chat is for invoices between <strong>${invoicePayer}</strong> and <strong>${invoiceReceiver}</strong>. Use the <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> button to send an invoice.`,
         beginningOfChatHistory: 'This chat is with ',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `This is where <strong>${submitterDisplayName}</strong> will submit expenses to <strong>${workspaceName}</strong>. Just use the + button.`,
+            `This is where <strong>${submitterDisplayName}</strong> will submit expenses to <strong>${workspaceName}</strong>. Just use the <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> button.`,
         beginningOfChatHistorySelfDM: 'This is your personal space. Use it for notes, tasks, drafts, and reminders.',
         beginningOfChatHistorySystemDM: "Welcome! Let's get you set up.",
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
         yourSpace: 'Your space',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Use the + button to ${additionalText} an expense.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Use the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button to ${additionalText} an expense.`,
         askConcierge: ' Ask questions and get 24/7 realtime support.',
         conciergeSupport: '24/7 support',
         create: 'create',
@@ -1501,8 +1505,8 @@ const translations = {
             clearCacheAndRestart: 'Clear cache and restart',
             viewConsole: 'View debug console',
             debugConsole: 'Debug console',
-            description: 'Use the tools below to help troubleshoot the Expensify experience. If you encounter any issues, please',
-            submitBug: 'submit a bug',
+            description:
+                '<muted-text>Use the tools below to help troubleshoot the Expensify experience. If you encounter any issues, please <concierge-link>submit a bug</concierge-link>.</muted-text>',
             confirmResetDescription: 'All unsent draft messages will be lost, but the rest of your data is safe.',
             resetAndRefresh: 'Reset and refresh',
             clientSideLogging: 'Client side logging',
@@ -1589,66 +1593,32 @@ const translations = {
         },
         mergeSuccess: {
             accountsMerged: 'Accounts merged!',
-            successfullyMergedAllData: {
-                beforeFirstEmail: `You've successfully merged all data from `,
-                beforeSecondEmail: ` into `,
-                afterSecondEmail: `. Moving forward, you can use either login for this account.`,
-            },
+            description: ({from, to}: MergeSuccessDescriptionParams) =>
+                `<muted-text><centered-text>You've successfully merged all data from <strong>${from}</strong> into <strong>${to}</strong>. Moving forward, you can use either login for this account.</centered-text></muted-text>`,
         },
         mergePendingSAML: {
             weAreWorkingOnIt: 'We’re working on it',
             limitedSupport: 'We don’t yet support merging accounts on New Expensify. Please take this action on Expensify Classic instead.',
-            reachOutForHelp: {
-                beforeLink: 'Feel free to ',
-                linkText: 'reach out to Concierge',
-                afterLink: ' if you have any questions!',
-            },
+            reachOutForHelp: '<muted-text><centered-text>Feel free to <concierge-link>reach out to Concierge</concierge-link> if you have any questions!</centered-text></muted-text>',
             goToExpensifyClassic: 'Go to Expensify Classic',
         },
-        mergeFailureSAMLDomainControl: {
-            beforeFirstEmail: 'You can’t merge ',
-            beforeDomain: ' because it’s controlled by ',
-            afterDomain: '. Please ',
-            linkText: 'reach out to Concierge',
-            afterLink: ' for assistance.',
-        },
-        mergeFailureSAMLAccount: {
-            beforeEmail: 'You can’t merge ',
-            afterEmail: ' into other accounts because your domain admin has set it as your primary login. Please merge other accounts into it instead.',
-        },
+        mergeFailureSAMLDomainControlDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>You can’t merge <strong>${email}</strong> because it’s controlled by <strong>${email.split('@').at(1) ?? ''}</strong>. Please <concierge-link>reach out to Concierge</concierge-link> for assistance.</centered-text></muted-text>`,
+        mergeFailureSAMLAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>You can’t merge <strong>${email}</strong> into other accounts because your domain admin has set it as your primary login. Please merge other accounts into it instead.</centered-text></muted-text>`,
         mergeFailure2FA: {
-            oldAccount2FAEnabled: {
-                beforeFirstEmail: 'You can’t merge accounts because ',
-                beforeSecondEmail: ' has two-factor authentication (2FA) enabled. Please disable 2FA for ',
-                afterSecondEmail: ' and try again.',
-            },
+            description: ({email}: MergeFailureDescriptionGenericParams) =>
+                `<muted-text><centered-text>You can’t merge accounts because <strong>${email}</strong> has two-factor authentication (2FA) enabled. Please disable 2FA for <strong>${email}</strong> and try again.</centered-text></muted-text>`,
             learnMore: 'Learn more about merging accounts.',
         },
-        mergeFailureAccountLocked: {
-            beforeEmail: 'You can’t merge ',
-            afterEmail: ' because it’s locked. Please ',
-            linkText: 'reach out to Concierge ',
-            afterLink: `for assistance.`,
-        },
-        mergeFailureUncreatedAccount: {
-            noExpensifyAccount: {
-                beforeEmail: 'You can’t merge accounts because ',
-                afterEmail: ' doesn’t have an Expensify account.',
-            },
-            addContactMethod: {
-                beforeLink: 'Please ',
-                linkText: 'add it as a contact method',
-                afterLink: ' instead.',
-            },
-        },
-        mergeFailureSmartScannerAccount: {
-            beforeEmail: 'You can’t merge ',
-            afterEmail: ' into other accounts. Please merge other accounts into it instead.',
-        },
-        mergeFailureInvoicedAccount: {
-            beforeEmail: 'You can’t merge accounts into ',
-            afterEmail: ' because this account owns an invoiced billing relationship.',
-        },
+        mergeFailureAccountLockedDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>You can’t merge <strong>${email}</strong> because it’s locked. Please <concierge-link>reach out to Concierge</concierge-link> for assistance.</centered-text></muted-text>`,
+        mergeFailureUncreatedAccountDescription: ({email, contactMethodLink}: MergeFailureUncreatedAccountDescriptionParams) =>
+            `<muted-text><centered-text>You can’t merge accounts because <strong>${email}</strong> doesn’t have an Expensify account. Please <a href="${contactMethodLink}">add it as a contact method</a> instead.</centered-text></muted-text>`,
+        mergeFailureSmartScannerAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>You can’t merge <strong>${email}</strong> into other accounts. Please merge other accounts into it instead.</centered-text></muted-text>`,
+        mergeFailureInvoicedAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>You can’t merge accounts into <strong>${email}</strong> because this account owns an invoiced billing relationship.</centered-text></muted-text>`,
         mergeFailureTooManyAttempts: {
             heading: 'Try again later',
             description: 'There were too many attempts to merge accounts. Please try again later.',
@@ -1759,9 +1729,7 @@ const translations = {
         changePaymentCurrency: 'Change payment currency',
         paymentCurrency: 'Payment currency',
         paymentCurrencyDescription: 'Select a standardized currency that all personal expenses should be converted to',
-        note: 'Note: Changing your payment currency can impact how much you’ll pay for Expensify. Refer to our',
-        noteLink: 'pricing page',
-        noteDetails: 'for full details.',
+        note: `Note: Changing your payment currency can impact how much you’ll pay for Expensify. Refer to our <a href="${CONST.PRICING}">pricing page</a> for full details.`,
     },
     addDebitCardPage: {
         addADebitCard: 'Add a debit card',
@@ -3506,6 +3474,7 @@ const translations = {
             defaultCategory: 'Default category',
             viewTransactions: 'View transactions',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}'s expenses`,
+            deepDiveExpensifyCard: `<muted-text-label>Expensify Card transactions will automatically export to an "Expensify Card Liability Account" created with <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">our integration</a>.</muted-text-label>`,
         },
         perDiem: {
             subtitle: 'Set per diem rates to control daily employee spend. ',
@@ -3570,8 +3539,6 @@ const translations = {
             exportJournalEntryDescription: "We'll create an itemized journal entry for each Expensify report and post it to the account below.",
             exportVendorBillDescription:
                 "We'll create an itemized vendor bill for each Expensify report and add it to the account below. If this period is closed, we'll post to the 1st of the next open period.",
-            deepDiveExpensifyCard: 'Expensify Card transactions will automatically export to an "Expensify Card Liability Account" created with',
-            deepDiveExpensifyCardIntegration: 'our integration.',
             outOfPocketTaxEnabledDescription:
                 "QuickBooks Desktop doesn't support taxes on journal entry exports. As you have taxes enabled on your workspace, this export option is unavailable.",
             outOfPocketTaxEnabledError: 'Journal entries are unavailable when taxes are enabled. Please choose a different export option.',
@@ -3610,9 +3577,8 @@ const translations = {
                 title: 'Open this link to connect',
                 body: 'To complete setup, open the following link on the computer where QuickBooks Desktop is running.',
                 setupErrorTitle: 'Something went wrong',
-                setupErrorBody1: "The QuickBooks Desktop connection isn't working at the moment. Please try again later or",
-                setupErrorBody2: 'if the problem persists.',
-                setupErrorBodyContactConcierge: 'reach out to Concierge',
+                setupErrorBody: ({conciergeLink}: QBDSetupErrorBodyParams) =>
+                    `<muted-text><centered-text>The QuickBooks Desktop connection isn't working at the moment. Please try again later or <a href="${conciergeLink}">reach out to Concierge</a> if the problem persists.</centered-text></muted-text>`,
             },
             importDescription: 'Choose which coding configurations to import from QuickBooks Desktop to Expensify.',
             classes: 'Classes',
@@ -3654,8 +3620,6 @@ const translations = {
             date: 'Export date',
             exportInvoices: 'Export invoices to',
             exportExpensifyCard: 'Export Expensify Card transactions as',
-            deepDiveExpensifyCard: 'Expensify Card transactions will automatically export to an "Expensify Card Liability Account" created with',
-            deepDiveExpensifyCardIntegration: 'our integration.',
             exportDate: {
                 label: 'Export date',
                 description: 'Use this date when exporting reports to QuickBooks Online.',
@@ -5893,7 +5857,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'Nothing to show',
-                subtitle: 'Try adjusting your search criteria or creating something with the green + button.',
+                subtitle: `Try adjusting your search criteria or creating something with the green ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.`,
             },
             emptyExpenseResults: {
                 title: "You haven't created any expenses yet",
@@ -6288,7 +6252,8 @@ const translations = {
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Invite them',
+        inviteToSubmitExpense: 'Invite to submit expenses',
+        inviteToChat: 'Invite to chat only',
         nothing: 'Do nothing',
     },
     actionableMentionJoinWorkspaceOptions: {
@@ -6866,9 +6831,8 @@ const translations = {
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to update your copilot.`,
         notAllowed: 'Not so fast...',
         noAccessMessage: "As a copilot, you don't have access to \nthis page. Sorry!",
-        notAllowedMessageStart: `As a`,
-        notAllowedMessageHyperLinked: ' copilot',
-        notAllowedMessageEnd: ({accountOwnerEmail}: AccountOwnerParams) => ` for ${accountOwnerEmail}, you don't have permission to take this action. Sorry!`,
+        notAllowedMessage: ({accountOwnerEmail}: AccountOwnerParams) =>
+            `As a <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">copilot</a> for ${accountOwnerEmail}, you don't have permission to take this action. Sorry!`,
         copilotAccess: 'Copilot access',
     },
     debug: {
@@ -7034,6 +6998,13 @@ const translations = {
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} invited you to test drive Expensify\nHey! I just got us *3 months free* to test drive Expensify, the fastest way to do expenses.\n\nHere’s a *test receipt* to show you how it works:`,
+    },
+    export: {
+        basicExport: 'Basic export',
+        reportLevelExport: 'All Data - report level',
+        expenseLevelExport: 'All Data - expense level',
+        exportInProgress: 'Export in progress',
+        conciergeWillSend: 'Concierge will send you the file shortly.',
     },
 };
 

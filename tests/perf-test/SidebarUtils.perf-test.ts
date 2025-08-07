@@ -13,6 +13,7 @@ import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction, {getRandomDate} from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
+import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 15000;
@@ -84,6 +85,7 @@ describe('SidebarUtils', () => {
                 parentReportAction,
                 oneTransactionThreadReport: undefined,
                 card: undefined,
+                localeCompare,
             }),
         );
     });
