@@ -47,6 +47,7 @@ import type LockAccountDetails from './LockAccountDetails';
 import type {LoginList} from './Login';
 import type Login from './Login';
 import type MapboxAccessToken from './MapboxAccessToken';
+import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
 import type Network from './Network';
 import type NewGroupChatDraft from './NewGroupChatDraft';
@@ -212,6 +213,7 @@ export type {
     TaxRates,
     TaxRatesWithDefault,
     Transaction,
+    MergeTransaction,
     TransactionViolation,
     TransactionViolations,
     TravelSettings,
