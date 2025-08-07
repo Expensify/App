@@ -286,7 +286,7 @@ function BaseTextInput(
     // Height fix is needed only for Text single line inputs
     const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
 
-    /** We added a delay to focus on text input to allow navigation/modal animations to get completed, see issue https://github.com/Expensify/App/issues/64968 for more details */
+    /** We added a delay to focus on text input to allow navigation/modal animations to get completed, see issue https://github.com/Expensify/App/issues/65855 for more details */
     useFocusEffect(
         useCallback(() => {
             if (!shouldDelayFocus || !inputProps.autoFocus) {
