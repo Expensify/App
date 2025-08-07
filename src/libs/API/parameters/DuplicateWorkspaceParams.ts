@@ -4,7 +4,7 @@ type DuplicateWorkspaceParams = {
     policyID: string;
     targetPolicyID: string;
     policyName: string;
-    parts: Record<string, boolean>;
+    parts: string;
     announceChatReportID: string;
     adminsChatReportID: string;
     welcomeNote: string;

@@ -113,8 +113,6 @@ function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.Pendi
     clearErrors(policyID);
 }
 
-const onScrollToIndexFailed = () => {};
-
 function WorkspacesListPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -522,7 +520,12 @@ function WorkspacesListPage() {
                 <FlatList
                     ref={flatlistRef}
                     data={filteredWorkspaces}
-                    onScrollToIndexFailed={onScrollToIndexFailed}
+                    onScrollToIndexFailed={(info) => {
+                        flatlistRef.current?.scrollToOffset({
+                            offset: info.averageItemLength * info.index,
+                            animated: true,
+                        });
+                    }}
                     renderItem={getMenuItem}
                     ListHeaderComponent={listHeaderComponent}
                     keyboardShouldPersistTaps="handled"

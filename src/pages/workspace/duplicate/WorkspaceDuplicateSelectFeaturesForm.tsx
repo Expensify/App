@@ -295,7 +295,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 </View>
             </ScrollView>
             <ConfirmModal
-                title={translate('workspace.common.delete')}
+                title={translate('workspace.common.duplicateWorkspace')}
                 isVisible={isDuplicateModalOpen}
                 onConfirm={confirmDuplicateAndHideModal}
                 onCancel={() => setIsDuplicateModalOpen(false)}

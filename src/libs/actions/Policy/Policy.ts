@@ -2720,7 +2720,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         announceChatReportID: optimisticAnnounceChat.announceChatReportID,
         announceChatReportActionID: optimisticAnnounceChat.announceChatReportActionID,
         customUnitID,
-        parts,
+        parts: JSON.stringify(parts),
         welcomeNote,
         customUnitRateID,
         file: clonedFile,
