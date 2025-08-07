@@ -2,7 +2,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {IntegrationServerExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {
@@ -651,9 +651,13 @@ function getSecondaryReportActions({
     return options;
 }
 
-function getSecondaryExportReportActions(report: Report, policy?: Policy, reportActions?: ReportAction[]): Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>> {
-    const options: Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>> = [];
-
+function getSecondaryExportReportActions(
+    report: Report,
+    policy?: Policy,
+    reportActions?: ReportAction[],
+    integrationsExportTemplates?: IntegrationServerExportTemplate[],
+): Array<ValueOf<string>> {
+    const options: Array<ValueOf<string>> = [];
     if (isExportAction(report, policy, reportActions)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
     }
@@ -663,6 +667,12 @@ function getSecondaryExportReportActions(report: Report, policy?: Policy, report
     }
 
     options.push(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV, CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT);
+
+    if (integrationsExportTemplates && integrationsExportTemplates.length > 0) {
+        for (const template of integrationsExportTemplates) {
+            options.push(template.name);
+        }
+    }
 
     return options;
 }
