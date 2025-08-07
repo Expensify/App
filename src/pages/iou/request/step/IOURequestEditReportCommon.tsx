@@ -34,19 +34,9 @@ type Props = {
     removeFromReport?: () => void;
     isEditing?: boolean;
     isUnreported?: boolean;
-    shouldShowNotFoundPage?: boolean;
 };
 
-function IOURequestEditReportCommon({
-    backTo,
-    transactionsReports,
-    selectReport,
-    policyID: policyIDFromProps,
-    removeFromReport,
-    isEditing = false,
-    isUnreported,
-    shouldShowNotFoundPage: shouldShowNotFoundPageFromProps = false,
-}: Props) {
+function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, policyID: policyIDFromProps, removeFromReport, isEditing = false, isUnreported}: Props) {
     const {translate, localeCompare} = useLocalize();
     const {options} = useOptionsList();
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
@@ -119,7 +109,7 @@ function IOURequestEditReportCommon({
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {
-        if (expenseReports.length === 0 || shouldShowNotFoundPageFromProps) {
+        if (expenseReports.length === 0) {
             return true;
         }
 
@@ -133,7 +123,7 @@ function IOURequestEditReportCommon({
         const isSubmitter = isReportOwner(transactionReport);
         // If the report is Open, then only submitters, admins can move expenses
         return isOpen && !isAdmin && !isSubmitter;
-    }, [transactionsReports, shouldShowNotFoundPageFromProps, reportPolicy, expenseReports.length]);
+    }, [transactionsReports, reportPolicy, expenseReports.length]);
 
     return (
         <StepScreenWrapper

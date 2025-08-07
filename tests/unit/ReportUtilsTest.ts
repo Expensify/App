@@ -32,7 +32,7 @@ import {
     canLeaveChat,
     canSeeDefaultRoom,
     canUserPerformWriteAction,
-    findLastAccessedReport,
+    findLastAccessedReportWithoutView,
     getAllAncestorReportActions,
     getApprovalChain,
     getChatByParticipants,
@@ -481,7 +481,7 @@ describe('ReportUtils', () => {
 
     describe('getDisplayNamesWithTooltips', () => {
         test('withSingleParticipantReport', () => {
-            const participants = getDisplayNamesWithTooltips(participantsPersonalDetails, false);
+            const participants = getDisplayNamesWithTooltips(participantsPersonalDetails, false, localeCompare);
             expect(participants).toHaveLength(5);
 
             expect(participants.at(0)?.displayName).toBe('(833) 240-3627');
@@ -3020,7 +3020,7 @@ describe('ReportUtils', () => {
         });
 
         it('should not return an archived report even if it was most recently accessed', () => {
-            const result = findLastAccessedReport(false);
+            const result = findLastAccessedReportWithoutView(false);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report
@@ -3063,7 +3063,7 @@ describe('ReportUtils', () => {
         });
 
         it('findLastAccessedReport should return owned report if no reports was accessed before', () => {
-            const result = findLastAccessedReport(false);
+            const result = findLastAccessedReportWithoutView(false);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report

@@ -67,12 +67,12 @@ describe('navigateAfterOnboarding', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         const testSession = {email: 'realaccount@gmail.com'};
 
-        navigateAfterOnboarding(false, true, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, (testSession?.email ?? '').includes('+'));
+        navigateAfterOnboarding(false, undefined, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, (testSession?.email ?? '').includes('+'));
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
     });
 
     it('should not navigate to the admin room report if onboardingAdminsChatReportID is not provided on larger screens', () => {
-        navigateAfterOnboarding(false, true, undefined, undefined);
+        navigateAfterOnboarding(false, undefined, undefined, undefined);
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(undefined));
     });
 
@@ -89,40 +89,36 @@ describe('navigateAfterOnboarding', () => {
         };
         await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, REPORT_ID);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, lastAccessedReport);
-        mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
 
-        navigateAfterOnboarding(true, true, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        navigateAfterOnboarding(true, lastAccessedReport, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
 
     it('should not navigate to last accessed report if it is onboarding expense chat on small screens', () => {
         const lastAccessedReport = {reportID: REPORT_ID, policyID: ONBOARDING_POLICY_ID};
-        mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
 
-        navigateAfterOnboarding(true, true, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        navigateAfterOnboarding(true, lastAccessedReport, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
 
     it('should navigate to last accessed report if shouldOpenOnAdminRoom is true on small screens', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         const lastAccessedReport = {reportID: REPORT_ID};
-        mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(true);
 
-        navigateAfterOnboarding(true, true, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        navigateAfterOnboarding(true, lastAccessedReport, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
 
     it('should navigate to Concierge room if user uses a test email', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         const lastAccessedReport = {reportID: REPORT_ID};
-        mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(true);
         const testSession = {email: 'test+account@gmail.com'};
 
-        navigateAfterOnboarding(true, true, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID, (testSession?.email ?? '').includes('+'));
+        navigateAfterOnboarding(true, lastAccessedReport, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID, (testSession?.email ?? '').includes('+'));
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
 
@@ -130,7 +126,7 @@ describe('navigateAfterOnboarding', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         jest.spyOn(Navigation, 'isNavigationReady').mockReturnValue(Promise.resolve());
 
-        navigateAfterOnboarding(true, true);
+        navigateAfterOnboarding(true, undefined);
         await waitFor(() => expect(navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_MODAL_ROOT.route));
     });
 });

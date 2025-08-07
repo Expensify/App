@@ -51,6 +51,7 @@ function useSelectedTransactionsActions({
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
 
+    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const selectedTransactions = useMemo(
@@ -212,6 +213,17 @@ function useSelectedTransactionsActions({
                 });
             }
 
+            // If the user has any custom integration export templates, add them as export options
+            if (integrationsExportTemplates && integrationsExportTemplates.length > 0) {
+                for (const template of integrationsExportTemplates) {
+                    exportOptions.push({
+                        text: template.name,
+                        icon: Expensicons.Table,
+                        onSelected: () => beginExportWithTemplate(template.name, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, selectedTransactionIDs),
+                    });
+                }
+            }
+
             return exportOptions;
         };
 
@@ -282,6 +294,7 @@ function useSelectedTransactionsActions({
         showDeleteModal,
         outstandingReportsByPolicyID,
         beginExportWithTemplate,
+        integrationsExportTemplates,
     ]);
 
     return {
