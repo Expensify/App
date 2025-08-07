@@ -290,7 +290,6 @@ const nameFieldContinuationTests = [
         },
         description: 'Exporter field partial name - parser should return null autocomplete for continuation text',
     },
-
     {
         query: 'to:John Smith Doe',
         expected: {
@@ -307,7 +306,6 @@ const nameFieldContinuationTests = [
         },
         description: 'Multiple word continuation with partial last name - parser should only parse first token',
     },
-
     {
         query: 'to:John  Smi',
         expected: {
@@ -324,7 +322,6 @@ const nameFieldContinuationTests = [
         },
         description: 'Tab character before continuation text',
     },
-
     {
         query: 'category:Travel Exp',
         expected: {
@@ -341,7 +338,6 @@ const nameFieldContinuationTests = [
         },
         description: 'Tag field with space - parser treats space as separator, continuation logic applies in UI',
     },
-
     {
         query: 'type:expense to:John Smi amount>100',
         expected: {
@@ -369,7 +365,6 @@ const nameFieldContinuationTests = [
         },
         description: 'Mixed query with name continuation and other field should autocomplete the other field',
     },
-
     {
         query: 'to:John',
         expected: {
@@ -396,7 +391,6 @@ const nameFieldContinuationTests = [
         },
         description: 'Quoted complete name should provide autocomplete',
     },
-
     {
         query: "to:John O'Con",
         expected: {
@@ -413,7 +407,6 @@ const nameFieldContinuationTests = [
         },
         description: 'Hyphenated first name with continuation should return null autocomplete',
     },
-
     {
         query: 'to:John Smi',
         expected: {
@@ -446,7 +439,6 @@ const nameFieldContinuationTests = [
         },
         description: 'Assignee field with partial second name should return null autocomplete',
     },
-
     {
         query: 'to:John,Jane',
         expected: {
