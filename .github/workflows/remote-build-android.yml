@@ -39,10 +39,10 @@ jobs:
         # rnef v2
         uses: callstackincubator/android@d9a81f860e436ff2971323990244e32830dcabd1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
           IS_HYBRID_APP: ${{ matrix.is_hybrid_build }}
         with:
           variant: ${{ matrix.variant }}
           rnef-build-extra-params: '--extra-params -PreactNativeArchitectures=arm64-v8a,x86_64'
           comment-bot: false
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
