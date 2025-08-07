@@ -17,7 +17,7 @@ import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPo
 import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchDateValues} from '@components/Search/SearchDatePresetFilterBase';
-import type {SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
+import type {SearchGroupBy, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -40,7 +40,7 @@ import {
     isFilterSupported,
     isSearchDatePreset,
 } from '@libs/SearchQueryUtils';
-import {getDatePresets, getFeedOptions, getGroupByOptions, getStatusOptions, getTypeOptions} from '@libs/SearchUIUtils';
+import {getDatePresets, getFeedOptions, getGroupByOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -163,6 +163,12 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         return [value, displayText];
     }, [filterFormValues.postedOn, filterFormValues.postedAfter, filterFormValues.postedBefore, translate]);
 
+    const [withdrawalTypeOptions, withdrawalType] = useMemo(() => {
+        const options = getWithdrawalTypeOptions(translate);
+        const value = options.find((option) => option.value === filterFormValues.withdrawalType) ?? null;
+        return [options, value];
+    }, [translate, filterFormValues.withdrawalType]);
+
     const [withdrawn, displayWithdrawn] = useMemo(() => {
         const value: SearchDateValues = {
             [CONST.SEARCH.DATE_MODIFIERS.ON]: filterFormValues.withdrawnOn,
@@ -282,6 +288,21 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         [posted, translate, updateFilterForm],
     );
 
+    const withdrawalTypeComponent = useCallback(
+        ({closeOverlay}: PopoverComponentProps) => {
+            return (
+                <SingleSelectPopup
+                    label={translate('search.withdrawalType')}
+                    items={withdrawalTypeOptions}
+                    value={withdrawalType}
+                    closeOverlay={closeOverlay}
+                    onChange={(item) => updateFilterForm({withdrawalType: item?.value})}
+                />
+            );
+        },
+        [translate, withdrawalTypeOptions, withdrawalType, updateFilterForm],
+    );
+
     const withdrawnPickerComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
             const onChange = (selectedDates: SearchDateValues) => {
@@ -377,6 +398,8 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         const shouldDisplayGroupByFilter = isDevelopment;
         const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues.feed;
         const shouldDisplayPostedFilter = !!filterFormValues.feed && (!!filterFormValues.postedOn || !!filterFormValues.postedAfter || !!filterFormValues.postedBefore);
+        // s77rt use const after adding withdrawalID to GROUP_BY
+        const shouldDisplayWithdrawalTypeFilter = groupBy?.value === ('withdrawalID' as SearchGroupBy) && !!filterFormValues.withdrawalType;
         const shouldDisplayWithdrawnFilter = !!filterFormValues.withdrawnOn || !!filterFormValues.withdrawnAfter || !!filterFormValues.withdrawnBefore;
 
         const filterList = [
@@ -416,6 +439,16 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                       },
                   ]
                 : []),
+            ...(shouldDisplayWithdrawalTypeFilter
+                ? [
+                      {
+                          label: translate('search.withdrawalType'),
+                          PopoverComponent: withdrawalTypeComponent,
+                          value: withdrawalType?.text ?? null,
+                          filterKey: FILTER_KEYS.WITHDRAWAL_TYPE,
+                      },
+                  ]
+                : []),
             ...(shouldDisplayWithdrawnFilter
                 ? [
                       {
@@ -450,6 +483,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     }, [
         type,
         groupBy,
+        withdrawalType,
         displayDate,
         displayPosted,
         displayWithdrawn,
@@ -468,6 +502,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         datePickerComponent,
         userPickerComponent,
         postedPickerComponent,
+        withdrawalTypeComponent,
         withdrawnPickerComponent,
         status,
         personalDetails,
