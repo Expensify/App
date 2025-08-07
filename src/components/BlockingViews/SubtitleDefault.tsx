@@ -13,7 +13,7 @@ function SubtitleDefault({
     linkKey,
 }: {
     /** Subtitle message below the title */
-    subtitle?: string;
+    subtitle: string;
 
     /** The style of the subtitle message */
     subtitleStyle?: StyleProp<TextStyle>;
