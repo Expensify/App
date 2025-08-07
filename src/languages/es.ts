@@ -2421,7 +2421,7 @@ const translations = {
         },
         domainWorkspaceRestriction: {
             subtitle:
-                'La creación de espacios de trabajo está restringida a los administradores. Únete a uno de los espacios a continuación o contacta con tu administrador para más información.',
+                'La creación de espacios de trabajo está restringida a los administradores. Únete a uno de los espacios a continuación o contacta a tu administrador para más información.',
             skipForNow: 'Omitir por ahora',
         },
     },
