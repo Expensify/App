@@ -7,10 +7,12 @@ import usePrevious from '@hooks/usePrevious';
 const noop = () => {};
 
 type ModalProps = {
-    closeModal: (param?: PromiseResolvePayload<'CLOSE'>) => void;
+    closeModal: (param?: PromiseResolvePayload) => void;
 };
 
-type PromiseResolvePayload<A extends string = string> = {action: A; [key: string]: unknown};
+type ModalAction = 'CONFIRM' | 'CANCEL' | 'CLOSE';
+
+type PromiseResolvePayload<A extends string = ModalAction> = {action: A; [key: string]: unknown};
 
 type ModalContextType = {
     showModal<P extends ModalProps>(options: {component: React.FunctionComponent<P>; props?: Omit<P, 'closeModal'>; id?: string; closeable?: boolean}): Promise<PromiseResolvePayload>;
@@ -90,5 +92,5 @@ function PromiseModalProvider({children}: {children: React.ReactNode}) {
     );
 }
 
-export type {PromiseResolvePayload, ModalContextType, ModalInfo, ModalProps};
+export type {PromiseResolvePayload, ModalContextType, ModalInfo, ModalProps, ModalAction};
 export {PromiseModalProvider, useModal};
