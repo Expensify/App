@@ -181,12 +181,14 @@ function MoneyReportHeader({
             ...layout,
             templateName,
             description: policy?.name,
+            policyID: policy?.id,
         }));
 
         const csvTemplates = Object.entries(csvExportLayouts ?? {}).map(([templateName, layout]) => ({
             ...layout,
             templateName,
             description: '',
+            policyID: '',
         }));
 
         return [...policyTemplates, ...csvTemplates];
@@ -296,7 +298,7 @@ function MoneyReportHeader({
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
 
     const beginExportWithTemplate = useCallback(
-        (templateName: string, templateType: string, transactionIDList: string[]) => {
+        (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => {
             if (!moneyRequestReport) {
                 return;
             }
@@ -308,10 +310,10 @@ function MoneyReportHeader({
                 jsonQuery: '{}',
                 reportIDList: [moneyRequestReport.reportID],
                 transactionIDList,
-                policyID: policy?.id,
+                policyID,
             });
         },
-        [moneyRequestReport, policy],
+        [moneyRequestReport],
     );
 
     const {
@@ -325,7 +327,7 @@ function MoneyReportHeader({
         allTransactionsLength: transactions.length,
         session,
         onExportFailed: () => setIsDownloadErrorModalVisible(true),
-        beginExportWithTemplate: (templateName, templateType, transactionIDList) => beginExportWithTemplate(templateName, templateType, transactionIDList),
+        beginExportWithTemplate: (templateName, templateType, transactionIDList, policyID) => beginExportWithTemplate(templateName, templateType, transactionIDList, policyID),
     });
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;

@@ -45,7 +45,7 @@ function useSelectedTransactionsActions({
     allTransactionsLength: number;
     session?: Session;
     onExportFailed?: () => void;
-    beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[]) => void;
+    beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
 }) {
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
@@ -59,12 +59,14 @@ function useSelectedTransactionsActions({
             ...layout,
             templateName,
             description: policy?.name,
+            policyID: policy?.id,
         }));
 
         const csvTemplates = Object.entries(csvExportLayouts ?? {}).map(([templateName, layout]) => ({
             ...layout,
             templateName,
             description: '',
+            policyID: '',
         }));
 
         return [...policyTemplates, ...csvTemplates];
@@ -249,7 +251,7 @@ function useSelectedTransactionsActions({
                         text: template.name,
                         icon: Expensicons.Table,
                         description: template.description,
-                        onSelected: () => beginExportWithTemplate(template.name, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, selectedTransactionIDs),
+                        onSelected: () => beginExportWithTemplate(template.name, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, selectedTransactionIDs, template.policyID),
                     });
                 }
             }
