@@ -440,14 +440,14 @@ describe('ReportUtils', () => {
     });
 
     describe('getIconsForParticipants', () => {
-        it('returns sorted avatar source by name, then accountID', () => {
+        it('returns sorted avatar source', () => {
             const participants = getIconsForParticipants([1, 2, 3, 4, 5], participantsPersonalDetails);
             expect(participants).toHaveLength(5);
 
-            expect(participants.at(0)?.source).toBeInstanceOf(Function);
-            expect(participants.at(0)?.name).toBe('(833) 240-3627');
-            expect(participants.at(0)?.id).toBe(4);
-            expect(participants.at(0)?.type).toBe('avatar');
+            expect(participants.at(3)?.source).toBeInstanceOf(Function);
+            expect(participants.at(3)?.name).toBe('(833) 240-3627');
+            expect(participants.at(3)?.id).toBe(4);
+            expect(participants.at(3)?.type).toBe('avatar');
 
             expect(participants.at(1)?.source).toBeInstanceOf(Function);
             expect(participants.at(1)?.name).toBe('floki@vikings.net');

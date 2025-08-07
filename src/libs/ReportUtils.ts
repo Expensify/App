@@ -2698,38 +2698,18 @@ function getDefaultGroupAvatar(reportID?: string): IconAsset {
  * The Avatar sources can be URLs or Icon components according to the chat type.
  */
 function getIconsForParticipants(participants: number[], personalDetails: OnyxInputOrEntry<PersonalDetailsList>): Icon[] {
-    const participantDetails: ParticipantDetails[] = [];
     const participantsList = participants || [];
+    const avatars: Icon[] = [];
 
     for (const accountID of participantsList) {
         const avatarSource = personalDetails?.[accountID]?.avatar ?? FallbackAvatar;
         const displayNameLogin = personalDetails?.[accountID]?.displayName ? personalDetails?.[accountID]?.displayName : personalDetails?.[accountID]?.login;
-        participantDetails.push([accountID, displayNameLogin ?? '', avatarSource, personalDetails?.[accountID]?.fallbackIcon ?? '']);
-    }
-
-    const sortedParticipantDetails = participantDetails.sort((first, second) => {
-        // First sort by displayName/login
-        const displayNameLoginOrder = localeCompareLibs(first[1], second[1]);
-        if (displayNameLoginOrder !== 0) {
-            return displayNameLoginOrder;
-        }
-
-        // Then fallback on accountID as the final sorting criteria.
-        // This will ensure that the order of avatars with same login/displayName
-        // stay consistent across all users and devices
-        return first[0] - second[0];
-    });
-
-    // Now that things are sorted, gather only the avatars (second element in the array) and return those
-    const avatars: Icon[] = [];
-
-    for (const sortedParticipantDetail of sortedParticipantDetails) {
         const userIcon = {
-            id: sortedParticipantDetail[0],
-            source: sortedParticipantDetail[2],
+            id: accountID,
+            source: avatarSource,
             type: CONST.ICON_TYPE_AVATAR,
-            name: sortedParticipantDetail[1],
-            fallbackIcon: sortedParticipantDetail[3],
+            name: displayNameLogin ?? '',
+            fallbackIcon: personalDetails?.[accountID]?.fallbackIcon ?? '',
         };
         avatars.push(userIcon);
     }
