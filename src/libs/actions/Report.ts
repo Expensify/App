@@ -4897,7 +4897,7 @@ function deleteAppReport(reportID: string | undefined) {
 
                 transactionIDToReportActionAndThreadData[transactionID] = {
                     ...transactionIDToReportActionAndThreadData[transactionID],
-                    unheldReportActionID: unHoldAction.reportActionID,
+                    unholdReportActionID: unHoldAction.reportActionID,
                 };
             }
         }
