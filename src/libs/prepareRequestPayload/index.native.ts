@@ -18,7 +18,7 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 return Promise.resolve();
             }
 
-            if (key === 'receipt' && initiatedOffline) {
+            if ((key === 'receipt' || key === 'file') && initiatedOffline) {
                 const {uri: path = '', source} = value as File;
 
                 return readFileAsync(source, path, () => {}).then((file) => {
