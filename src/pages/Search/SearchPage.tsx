@@ -79,7 +79,7 @@ function SearchPage({route}: SearchPageProps) {
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReport?.parentReportID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
-
+    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
@@ -116,13 +116,20 @@ function SearchPage({route}: SearchPageProps) {
                 queueExportSearchWithTemplate({templateName, templateType, jsonQuery: JSON.stringify(queryJSON), reportIDList: [], transactionIDList: [], policyID});
             } else {
                 // Otherwise, we will use the selected transactionIDs and reportIDs directly
-                const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
-                queueExportSearchWithTemplate({templateName, templateType, jsonQuery: '{}', reportIDList, transactionIDList: selectedTransactionsKeys, policyID});
+                const selectedTransactionReportIDs = [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.reportID))];
+                queueExportSearchWithTemplate({
+                    templateName,
+                    templateType,
+                    jsonQuery: '{}',
+                    reportIDList: selectedTransactionReportIDs,
+                    transactionIDList: selectedTransactionsKeys,
+                    policyID,
+                });
             }
 
             setIsExportWithTemplateModalVisible(true);
         },
-        [queryJSON, selectedReports, selectedTransactionsKeys, areAllMatchingItemsSelected],
+        [queryJSON, selectedTransactions, selectedTransactionsKeys, areAllMatchingItemsSelected],
     );
 
     const headerButtonsOptions = useMemo(() => {
@@ -196,6 +203,20 @@ function SearchPage({route}: SearchPageProps) {
                     shouldCloseModalOnSelect: true,
                     shouldCallAfterModalHide: true,
                 });
+            }
+
+            // If the user has any custom integration export templates, add them as export options
+            if (integrationsExportTemplates && integrationsExportTemplates.length > 0) {
+                for (const template of integrationsExportTemplates) {
+                    exportOptions.push({
+                        text: template.name,
+                        icon: Expensicons.Table,
+                        onSelected: () => {
+                            // Custom IS templates are not policy specific, so we don't need to pass a policyID
+                            beginExportWithTemplate(template.name, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
+                        },
+                    });
+                }
             }
 
             return exportOptions;
@@ -433,6 +454,7 @@ function SearchPage({route}: SearchPageProps) {
         styles.fontWeightNormal,
         styles.textWrap,
         beginExportWithTemplate,
+        integrationsExportTemplates,
     ]);
 
     const handleDeleteExpenses = () => {

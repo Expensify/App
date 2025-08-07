@@ -531,6 +531,7 @@ const translations = {
         pm: 'PM',
         tbd: 'TBD',
         selectCurrency: '选择货币',
+        selectSymbolOrCurrency: '选择一个符号或货币',
         card: '卡片',
         whyDoWeAskForThis: '我们为什么要求这个？',
         required: '必填',
@@ -848,17 +849,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `本聊天室用于与 <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> 有关的任何内容。`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `该聊天用于 <strong>${invoicePayer}</strong> 和 <strong>${invoiceReceiver}</strong> 之间的发票。使用 + 按钮发送发票。`,
+            `该聊天用于 <strong>${invoicePayer}</strong> 和 <strong>${invoiceReceiver}</strong> 之间的发票。使用 <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> 按钮发送发票。`,
         beginningOfChatHistory: '此聊天是与',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `这是<strong>${submitterDisplayName}</strong> 向<strong>${workspaceName}</strong> 提交费用的地方。使用 + 按钮即可。`,
+            `这是<strong>${submitterDisplayName}</strong> 向<strong>${workspaceName}</strong> 提交费用的地方。使用 <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> 按钮即可。`,
         beginningOfChatHistorySelfDM: '这是您的个人空间。用于记录笔记、任务、草稿和提醒。',
         beginningOfChatHistorySystemDM: '欢迎！让我们为您进行设置。',
         chatWithAccountManager: '在这里与您的客户经理聊天',
         sayHello: '说你好！',
         yourSpace: '您的空间',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `欢迎来到${roomName}！`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `使用 + 按钮${additionalText}一笔费用。`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => `使用 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮${additionalText}一笔费用。`,
         askConcierge: '随时提问并获得全天候实时支持。',
         conciergeSupport: '24/7 支持',
         create: '创建',
@@ -5781,7 +5782,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: '无内容显示',
-                subtitle: '尝试调整您的搜索条件或使用绿色的 + 按钮创建内容。',
+                subtitle: `尝试调整您的搜索条件或使用绿色的 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮创建内容。`,
             },
             emptyExpenseResults: {
                 title: '您还没有创建任何费用',
@@ -6173,8 +6174,9 @@ const translations = {
         levelThreeResult: '消息已从频道中移除，并收到匿名警告，消息已提交审核。',
     },
     actionableMentionWhisperOptions: {
-        invite: '邀请他们',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: '邀请提交费用',
+        inviteToChat: '仅邀请聊天',
+        nothing: '什么都不做',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: '接受',

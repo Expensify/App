@@ -514,6 +514,7 @@ const translations = {
         pm: 'PM',
         tbd: 'Por determinar',
         selectCurrency: 'Selecciona una moneda',
+        selectSymbolOrCurrency: 'Selecciona un símbolo o moneda',
         card: 'Tarjeta',
         whyDoWeAskForThis: '¿Por qué pedimos esto?',
         required: 'Obligatorio',
@@ -832,17 +833,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `Esta sala de chat es para cualquier cosa relacionada con <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `Este chat es para facturas entre <strong>${invoicePayer}</strong> y <strong>${invoiceReceiver}</strong>. Usa el botón + para enviar una factura.`,
+            `Este chat es para facturas entre <strong>${invoicePayer}</strong> y <strong>${invoiceReceiver}</strong>. Usa el botón <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> para enviar una factura.`,
         beginningOfChatHistory: 'Este chat es con ',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `Aquí es donde <strong>${submitterDisplayName}</strong> enviará los gastos al espacio de trabajo <strong>${workspaceName}</strong>. Solo usa el botón +.`,
+            `Aquí es donde <strong>${submitterDisplayName}</strong> enviará los gastos al espacio de trabajo <strong>${workspaceName}</strong>. Solo usa el botón <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>.`,
         beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
         beginningOfChatHistorySystemDM: '¡Bienvenido! Vamos a configurar tu cuenta.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
         yourSpace: 'Tu espacio',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Usa el botón + para ${additionalText} un gasto`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Usa el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} para ${additionalText} un gasto`,
         askConcierge: ' Haz preguntas y obtén soporte en tiempo real las 24/7.',
         conciergeSupport: 'Soporte 24/7',
         create: 'crear',
@@ -5878,7 +5879,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'No hay nada que ver aquí',
-                subtitle: 'Intenta ajustar tus criterios de búsqueda o crear algo con el botón verde +.',
+                subtitle: `Intenta ajustar tus criterios de búsqueda o crear algo con el botón verde ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.`,
             },
             emptyExpenseResults: {
                 title: 'Aún no has creado ningún gasto',
@@ -6716,7 +6717,8 @@ const translations = {
         copied: '¡Copiado!',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Invitar',
+        inviteToSubmitExpense: 'Invitar a enviar gastos',
+        inviteToChat: 'Invitar solo a chatear',
         nothing: 'No hacer nada',
     },
     actionableMentionJoinWorkspaceOptions: {

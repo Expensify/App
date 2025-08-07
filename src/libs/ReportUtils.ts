@@ -1967,16 +1967,25 @@ function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, reportM
     return lodashMaxBy(filteredReports, (a) => [reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? '', a?.lastReadTime ?? '']);
 }
 
-function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = false, policyID?: string, excludeReportID?: string): OnyxEntry<Report> {
+function findLastAccessedReport(
+    reports: OnyxCollection<OnyxEntry<Report>>,
+    policies: OnyxCollection<OnyxEntry<Policy>>,
+    reportMetadata: OnyxCollection<ReportMetadata>,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+    ignoreDomainRooms: boolean,
+    openOnAdminRoom = false,
+    policyID?: string,
+    excludeReportID?: string,
+): OnyxEntry<Report> {
     // If it's the user's first time using New Expensify, then they could either have:
     //   - just a Concierge report, if so we'll return that
     //   - their Concierge report, and a separate report that must have deeplinked them to the app before they created their account.
     // If it's the latter, we'll use the deeplinked report over the Concierge report,
     // since the Concierge report would be incorrectly selected over the deep-linked report in the logic below.
 
-    const policyMemberAccountIDs = getPolicyEmployeeListByIdWithoutCurrentUser(allPolicies, policyID, currentUserAccountID);
+    const policyMemberAccountIDs = getPolicyEmployeeListByIdWithoutCurrentUser(policies, policyID, currentUserAccountID);
 
-    let reportsValues = Object.values(allReports ?? {});
+    let reportsValues = Object.values(reports ?? {});
 
     if (!!policyID || policyMemberAccountIDs.length > 0) {
         reportsValues = filterReportsByPolicyIDAndMemberAccountIDs(reportsValues, policyMemberAccountIDs, policyID);
@@ -2016,24 +2025,29 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
     // and it prompts the user to use the Concierge chat instead.
     reportsValues =
         reportsValues.filter((report) => {
-            // This will get removed as part of https://github.com/Expensify/App/issues/59961
-            // eslint-disable-next-line deprecation/deprecation
-            const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
-
-            return !isSystemChat(report) && !isArchivedReport(reportNameValuePairs);
+            return !isSystemChat(report) && !isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]);
         }) ?? [];
 
     // At least two reports remain: self DM and Concierge chat.
     // Return the most recently visited report. Get the last read report from the report metadata.
     // If allReportMetadata is empty we'll return most recent report owned by user
-    if (isEmptyObject(allReportMetadata)) {
+    if (isEmptyObject(reportMetadata)) {
         const ownedReports = reportsValues.filter((report) => report?.ownerAccountID === currentUserAccountID);
         if (ownedReports.length > 0) {
             return lodashMaxBy(ownedReports, (a) => a?.lastReadTime ?? '');
         }
         return lodashMaxBy(reportsValues, (a) => a?.lastReadTime ?? '');
     }
-    return getMostRecentlyVisitedReport(reportsValues, allReportMetadata);
+    return getMostRecentlyVisitedReport(reportsValues, reportMetadata);
+}
+
+/**
+ * This function is used to retrieve the last accessed report in background
+ * It's used in the case we need to get the last accessed report in a listener like openReportFromDeepLink
+ * Please use useLastAccessedReport hook instead if we need to get the last accessed report from the UI
+ */
+function findLastAccessedReportWithoutView(ignoreDomainRooms: boolean, openOnAdminRoom = false, policyID?: string, excludeReportID?: string): OnyxEntry<Report> {
+    return findLastAccessedReport(allReports, allPolicies, allReportMetadata, allReportNameValuePair, ignoreDomainRooms, openOnAdminRoom, policyID, excludeReportID);
 }
 
 /**
@@ -3321,6 +3335,7 @@ function getIcons(
 function getDisplayNamesWithTooltips(
     personalDetailsList: PersonalDetails[] | PersonalDetailsList | OptionData[],
     shouldUseShortForm: boolean,
+    localeCompare: LocaleContextProps['localeCompare'],
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
 ): DisplayNameWithTooltips {
@@ -3349,7 +3364,7 @@ function getDisplayNamesWithTooltips(
         })
         .sort((first, second) => {
             // First sort by displayName/login
-            const displayNameLoginOrder = localeCompareLibs(first.displayName, second.displayName);
+            const displayNameLoginOrder = localeCompare(first.displayName, second.displayName);
             if (displayNameLoginOrder !== 0) {
                 return displayNameLoginOrder;
             }
@@ -11653,6 +11668,7 @@ export {
     isWorkspaceTaskReport,
     isWorkspaceThread,
     getReportStatusTranslation,
+    findLastAccessedReportWithoutView,
 };
 
 export type {
