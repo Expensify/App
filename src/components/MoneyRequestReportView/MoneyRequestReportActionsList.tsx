@@ -293,6 +293,9 @@ function MoneyRequestReportActionsList({
     }, []);
 
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
         if (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction, visibleReportActions))) {
             // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
