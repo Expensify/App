@@ -230,6 +230,7 @@ function useSelectedTransactionsActions({
             text: translate('common.export'),
             backButtonText: translate('common.export'),
             icon: Expensicons.Export,
+            rightIcon: Expensicons.ArrowRight,
             subMenuItems: getExportOptions(),
         });
 
