@@ -18,9 +18,14 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 return Promise.resolve();
             }
 
-            const {uri: path = '', source} = value as File;
-            if ((key === 'receipt' || key === 'file') && !!source && initiatedOffline) {
+            if ((key === 'receipt' || key === 'file') && initiatedOffline) {
+                const {uri: path = '', source} = value as File;
+                if (!source) {
+                    validateFormDataParameter(command, key, value);
+                    formData.append(key, value as string | Blob);
 
+                    return Promise.resolve();
+                }
                 return readFileAsync(source, path, () => {}).then((file) => {
                     if (!file) {
                         return;
