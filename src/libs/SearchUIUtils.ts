@@ -8,7 +8,17 @@ import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
-import type {SearchColumnType, SearchDateFilterKeys, SearchDatePreset, SearchGroupBy, SearchQueryJSON, SearchStatus, SingularSearchStatus, SortOrder} from '@components/Search/types';
+import type {
+    SearchColumnType,
+    SearchDateFilterKeys,
+    SearchDatePreset,
+    SearchGroupBy,
+    SearchQueryJSON,
+    SearchStatus,
+    SearchWithdrawalType,
+    SingularSearchStatus,
+    SortOrder,
+} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
@@ -1777,6 +1787,10 @@ function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): Sear
     }
 }
 
+function getWithdrawalTypeOptions(translate: LocaleContextProps['translate']) {
+    return Object.values(CONST.SEARCH.WITHDRAWAL_TYPE).map<SingleSelectItem<SearchWithdrawalType>>((value) => ({text: translate(`search.filters.withdrawalType.${value}`), value}));
+}
+
 export {
     getSuggestedSearches,
     getListItem,
@@ -1810,5 +1824,6 @@ export {
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
     getDatePresets,
+    getWithdrawalTypeOptions,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};

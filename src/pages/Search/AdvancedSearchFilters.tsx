@@ -162,7 +162,7 @@ const baseFilterConfig = {
     withdrawalType: {
         getTitle: getFilterDisplayTitle,
         description: 'search.withdrawalType' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE, // s77rt update route
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_WITHDRAWAL_TYPE,
     },
     tag: {
         getTitle: getFilterDisplayTitle,
