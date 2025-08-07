@@ -13,7 +13,6 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLastAccessedReport from '@hooks/useLastAccessedReport';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
@@ -28,7 +27,6 @@ import {completeOnboarding} from '@libs/actions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
-import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from '@libs/Navigation/Navigation';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
 import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
@@ -60,9 +58,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
 
     const {isBetaEnabled} = usePermissions();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-
-    const shouldPreventOpenAdminRoom = (session?.email ?? '').includes('+');
-    const {lastAccessReport} = useLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom);
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
@@ -237,28 +232,28 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         // We need to wait the policy is created before navigating out the onboarding flow
         navigateAfterOnboardingWithMicrotaskQueue(
             isSmallScreenWidth,
-            lastAccessReport,
+            isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
             policyID,
             adminsChatReportID,
             // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
             // See https://github.com/Expensify/App/issues/57167 for more details
-            shouldPreventOpenAdminRoom,
+            (session?.email ?? '').includes('+'),
         );
     }, [
-        onboardingPurposeSelected,
+        isBetaEnabled,
+        isSmallScreenWidth,
+        onboardingAdminsChatReportID,
         onboardingCompanySize,
+        onboardingMessages,
         onboardingPolicyID,
+        onboardingPurposeSelected,
         paidGroupPolicy,
-        selectedFeatures,
+        session?.email,
         userReportedIntegration,
         features,
-        onboardingAdminsChatReportID,
-        onboardingMessages,
+        selectedFeatures,
         currentUserPersonalDetails?.firstName,
         currentUserPersonalDetails?.lastName,
-        isSmallScreenWidth,
-        lastAccessReport,
-        shouldPreventOpenAdminRoom,
     ]);
 
     // Create items for enabled features
