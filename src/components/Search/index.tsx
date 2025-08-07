@@ -1,9 +1,8 @@
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import type {ContentStyle} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import {View} from 'react-native';
-import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
@@ -27,9 +26,8 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import Performance from '@libs/Performance';
 import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, generateReportID, isArchivedReport} from '@libs/ReportUtils';
-import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
-    getColumnsToShow,
     getListItem,
     getSections,
     getSortedSections,
@@ -44,7 +42,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import type {ArchivedReportsIDSet, SearchKey} from '@libs/SearchUIUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -57,7 +55,6 @@ import SCREENS from '@src/SCREENS';
 import type {ReportAction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import arraysEqual from '@src/utils/arraysEqual';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
 import SearchScopeProvider from './SearchScopeProvider';
@@ -162,9 +159,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         shouldTurnOffSelectionMode,
         setShouldShowFiltersBarLoading,
         lastSearchType,
-        setShouldShowExportModeOption,
-        isExportMode,
-        setExportMode,
+        shouldShowSelectAllMatchingItems,
+        areAllMatchingItemsSelected,
+        selectAllMatchingItems,
     } = useSearchContext();
     const [offset, setOffset] = useState(0);
 
@@ -215,12 +212,42 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (offset !== 0) {
             return false;
         }
-        if (!searchKey) {
+        if (queryJSON.type !== CONST.SEARCH.DATA_TYPES.EXPENSE) {
             return false;
         }
-        const eligibleSearchKeys: Partial<SearchKey[]> = [CONST.SEARCH.SEARCH_KEYS.STATEMENTS, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD];
-        return eligibleSearchKeys.includes(searchKey);
-    }, [offset, searchKey]);
+
+        let hasFeedFilter = false;
+        let hasPostedFilter = false;
+        let isReimbursable = false;
+
+        queryJSON.flatFilters.forEach((filter) => {
+            if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
+                hasFeedFilter = true;
+            } else if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED) {
+                hasPostedFilter = true;
+            } else if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE && filter.filters.at(0)?.value === CONST.SEARCH.BOOLEAN.YES) {
+                isReimbursable = true;
+            }
+        });
+
+        /**
+         * The total should be calculated for all accounting queries (statements, unapprovedCash and unapprovedCard)
+         * We can't use `searchKey` directly because we want to also match similar queries e.g. the statements suggested search query with a custom feed should be matched too.
+         */
+        const isStatementsLikeQuery = queryJSON.flatFilters.length === 2 && hasFeedFilter && hasPostedFilter;
+        const isUnapprovedCashLikeQuery =
+            queryJSON.flatFilters.length === 1 &&
+            isReimbursable &&
+            queryJSON.status[0] === CONST.SEARCH.STATUS.EXPENSE.DRAFTS &&
+            queryJSON.status[1] === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
+        const isUnapprovedCardLikeQuery =
+            queryJSON.flatFilters.length === 1 &&
+            hasFeedFilter &&
+            queryJSON.status[0] === CONST.SEARCH.STATUS.EXPENSE.DRAFTS &&
+            queryJSON.status[1] === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
+
+        return isStatementsLikeQuery || isUnapprovedCashLikeQuery || isUnapprovedCardLikeQuery;
+    }, [offset, queryJSON.flatFilters, queryJSON.type, queryJSON.status]);
 
     const previousReportActions = usePrevious(reportActions);
     const reportActionsArray = useMemo(
@@ -359,7 +386,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     return;
                 }
                 transactionGroup.transactions.forEach((transaction) => {
-                    if (!Object.keys(selectedTransactions).includes(transaction.transactionID) && !isExportMode) {
+                    if (!Object.keys(selectedTransactions).includes(transaction.transactionID) && !areAllMatchingItemsSelected) {
                         return;
                     }
                     newTransactionList[transaction.transactionID] = {
@@ -369,7 +396,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         canUnhold: transaction.canUnhold,
                         canChangeReport: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActionsArray, transaction.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        isSelected: isExportMode || selectedTransactions[transaction.transactionID].isSelected,
+                        isSelected: areAllMatchingItemsSelected || selectedTransactions[transaction.transactionID].isSelected,
                         canDelete: transaction.canDelete,
                         reportID: transaction.reportID,
                         policyID: transaction.policyID,
@@ -382,7 +409,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 if (!Object.hasOwn(transaction, 'transactionID') || !('transactionID' in transaction)) {
                     return;
                 }
-                if (!Object.keys(selectedTransactions).includes(transaction.transactionID) && !isExportMode) {
+                if (!Object.keys(selectedTransactions).includes(transaction.transactionID) && !areAllMatchingItemsSelected) {
                     return;
                 }
                 newTransactionList[transaction.transactionID] = {
@@ -392,7 +419,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     canUnhold: transaction.canUnhold,
                     canChangeReport: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActionsArray, transaction.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    isSelected: isExportMode || selectedTransactions[transaction.transactionID].isSelected,
+                    isSelected: areAllMatchingItemsSelected || selectedTransactions[transaction.transactionID].isSelected,
                     canDelete: transaction.canDelete,
                     reportID: transaction.reportID,
                     policyID: transaction.policyID,
@@ -408,7 +435,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
         isRefreshingSelection.current = true;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [data, setSelectedTransactions, isExportMode, isFocused]);
+    }, [data, setSelectedTransactions, areAllMatchingItemsSelected, isFocused]);
 
     useEffect(() => {
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
@@ -443,13 +470,15 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         }
         const areItemsGrouped = !!groupBy;
         const flattenedItems = areItemsGrouped ? (data as TransactionGroupListItemType[]).flatMap((item) => item.transactions) : data;
-        const isAllSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
+        const areAllItemsSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
 
-        setShouldShowExportModeOption(!!(isAllSelected && searchResults?.search?.hasMoreResults));
-        if (!isAllSelected) {
-            setExportMode(false);
+        // If the user has selected all the expenses in their view but there are more expenses matched by the search
+        // give them the option to select all matching expenses
+        shouldShowSelectAllMatchingItems(!!(areAllItemsSelected && searchResults?.search?.hasMoreResults));
+        if (!areAllItemsSelected) {
+            selectAllMatchingItems(false);
         }
-    }, [isFocused, data, searchResults?.search?.hasMoreResults, selectedTransactions, setExportMode, setShouldShowExportModeOption, groupBy]);
+    }, [isFocused, data, searchResults?.search?.hasMoreResults, selectedTransactions, selectAllMatchingItems, shouldShowSelectAllMatchingItems, groupBy]);
 
     const toggleTransaction = useCallback(
         (item: SearchListItem) => {
@@ -549,39 +578,26 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         [hash, isMobileSelectionModeEnabled, toggleTransaction],
     );
 
-    const currentColumns = useMemo(() => {
-        if (!searchResults?.data) {
-            return [];
-        }
-        const columns = getColumnsToShow(searchResults?.data);
+    const onViewableItemsChanged = useCallback(
+        ({viewableItems}: {viewableItems: ViewToken[]}) => {
+            if (!isFocused) {
+                return;
+            }
 
-        return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
-    }, [searchResults?.data]);
+            const isFirstItemVisible = viewableItems.at(0)?.index === 1;
+            // If the user is still loading the search results, or if they are scrolling down, don't refresh the search results
+            if (shouldShowLoadingState || !isFirstItemVisible) {
+                return;
+            }
 
-    // Custom animation for fade effect
-    const opacity = useSharedValue(1);
-    const animatedStyle = useAnimatedStyle(() => ({
-        opacity: opacity.get(),
-    }));
-
-    const previousColumns = usePrevious(currentColumns);
-    const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>([]);
-
-    // If columns have changed, trigger an animation before settings columnsToShow to prevent
-    // new columns appearing before the fade out animation happens
-    useEffect(() => {
-        if ((previousColumns && currentColumns && arraysEqual(previousColumns, currentColumns)) || offset === 0 || isSmallScreenWidth) {
-            setColumnsToShow(currentColumns);
-            return;
-        }
-
-        opacity.set(
-            withTiming(0, {duration: CONST.SEARCH.ANIMATION.FADE_DURATION}, () => {
-                setColumnsToShow(currentColumns);
-                opacity.set(withTiming(1, {duration: CONST.SEARCH.ANIMATION.FADE_DURATION}));
-            }),
-        );
-    }, [previousColumns, currentColumns, setColumnsToShow, opacity, offset, isSmallScreenWidth]);
+            // This line makes sure the app refreshes the search results when the user scrolls to the top.
+            // The backend sends items in parts based on the offset, with a limit on the number of items sent (pagination).
+            // As a result, it skips some items, for example, if the offset is 100, it sends the next items without the first ones.
+            // Therefore, when the user scrolls to the top, we need to refresh the search results.
+            setOffset(0);
+        },
+        [shouldShowLoadingState, isFocused],
+    );
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
@@ -614,17 +630,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     );
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
-
-    useEffect(() => {
-        const currentRoute = Navigation.getActiveRouteWithoutParams();
-
-        if ((hasErrors || !searchResults) && currentRoute === '/') {
-            // Use requestAnimationFrame to safely update navigation params without overriding the current route
-            requestAnimationFrame(() => {
-                Navigation.setParams({q: buildCannedSearchQuery()});
-            });
-        }
-    }, [hasErrors, queryJSON, searchResults]);
 
     const fetchMoreResults = useCallback(() => {
         if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
@@ -665,24 +670,14 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         );
     }, [clearSelectedTransactions, data, groupBy, reportActionsArray, selectedTransactions, setSelectedTransactions]);
 
-    const onLayoutWithScrollRestore = useCallback(() => {
-        handleSelectionListScroll(sortedSelectedData, searchListRef.current);
-        // Restore scroll position after layout if needed
-        // Removed scroll position restoration logic
-    }, [handleSelectionListScroll, sortedSelectedData]);
+    const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
 
     if (shouldShowLoadingState) {
         return (
-            <Animated.View
-                entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                style={[styles.flex1]}
-            >
-                <SearchRowSkeleton
-                    shouldAnimate
-                    containerStyle={shouldUseNarrowLayout && styles.searchListContentContainerStyles}
-                />
-            </Animated.View>
+            <SearchRowSkeleton
+                shouldAnimate
+                containerStyle={shouldUseNarrowLayout && styles.searchListContentContainerStyles}
+            />
         );
     }
 
@@ -730,56 +725,50 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     return (
         <SearchScopeProvider isOnSearch>
-            <Animated.View
-                entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                style={[styles.flex1, animatedStyle]}
-            >
-                <SearchList
-                    ref={searchListRef}
-                    data={sortedSelectedData}
-                    ListItem={ListItem}
-                    onSelectRow={openReport}
-                    onCheckboxPress={toggleTransaction}
-                    onAllCheckboxPress={toggleAllTransactions}
-                    canSelectMultiple={canSelectMultiple}
-                    shouldPreventLongPressRow={isChat || isTask}
-                    SearchTableHeader={
-                        !shouldShowTableHeader ? undefined : (
-                            <SearchTableHeader
-                                canSelectMultiple={canSelectMultiple}
-                                metadata={searchResults?.search}
-                                onSortPress={onSortPress}
-                                sortOrder={sortOrder}
-                                sortBy={sortBy}
-                                shouldShowYear={shouldShowYear}
-                                isAmountColumnWide={shouldShowAmountInWideColumn}
-                                isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
-                                shouldShowSorting={shouldShowSorting}
-                                columns={columnsToShow}
-                            />
-                        )
-                    }
-                    contentContainerStyle={{...contentContainerStyle, ...styles.pb3}}
-                    containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
-                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                    onScroll={onSearchListScroll}
-                    onEndReachedThreshold={0.75}
-                    onEndReached={fetchMoreResults}
-                    ListFooterComponent={
-                        shouldShowLoadingMoreItems ? (
-                            <SearchRowSkeleton
-                                shouldAnimate
-                                fixedNumItems={5}
-                            />
-                        ) : undefined
-                    }
-                    queryJSON={queryJSON}
-                    columns={columnsToShow}
-                    onLayout={onLayoutWithScrollRestore}
-                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                />
-            </Animated.View>
+            <SearchList
+                ref={searchListRef}
+                data={sortedSelectedData}
+                ListItem={ListItem}
+                onSelectRow={openReport}
+                onCheckboxPress={toggleTransaction}
+                onAllCheckboxPress={toggleAllTransactions}
+                canSelectMultiple={canSelectMultiple}
+                shouldPreventLongPressRow={isChat || isTask}
+                SearchTableHeader={
+                    !shouldShowTableHeader ? undefined : (
+                        <SearchTableHeader
+                            canSelectMultiple={canSelectMultiple}
+                            data={searchResults?.data}
+                            metadata={searchResults?.search}
+                            onSortPress={onSortPress}
+                            sortOrder={sortOrder}
+                            sortBy={sortBy}
+                            shouldShowYear={shouldShowYear}
+                            isAmountColumnWide={shouldShowAmountInWideColumn}
+                            isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
+                            shouldShowSorting={shouldShowSorting}
+                        />
+                    )
+                }
+                contentContainerStyle={{...contentContainerStyle, ...styles.pb3}}
+                containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
+                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                onScroll={onSearchListScroll}
+                onEndReachedThreshold={0.75}
+                onEndReached={fetchMoreResults}
+                ListFooterComponent={
+                    shouldShowLoadingMoreItems ? (
+                        <SearchRowSkeleton
+                            shouldAnimate
+                            fixedNumItems={5}
+                        />
+                    ) : undefined
+                }
+                queryJSON={queryJSON}
+                onViewableItemsChanged={onViewableItemsChanged}
+                onLayout={onLayout}
+                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+            />
         </SearchScopeProvider>
     );
 }
