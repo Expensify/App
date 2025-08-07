@@ -4136,7 +4136,7 @@ const CONST = {
         'SE',
         'SI',
         'SK',
-        'UK',
+        'GB',
         'US',
     ] as string[],
 
