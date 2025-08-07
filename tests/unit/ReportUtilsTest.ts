@@ -4938,8 +4938,6 @@ describe('ReportUtils', () => {
         });
     });
 
-
-
     describe('getReportStatusTranslation', () => {
         it('should return "Draft" for state 0, status 0', () => {
             expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN)).toBe(translateLocal('common.draft'));

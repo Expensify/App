@@ -4671,7 +4671,10 @@ function getReportPreviewMessage(
             }
         }
 
-        let actualPayerName = report.managerID === currentUserAccountID ? '' : getDisplayNameForParticipant({formatPhoneNumber: formatPhoneNumberPhoneUtils, accountID: report.managerID, shouldUseShortForm: true});
+        let actualPayerName =
+            report.managerID === currentUserAccountID
+                ? ''
+                : getDisplayNameForParticipant({formatPhoneNumber: formatPhoneNumberPhoneUtils, accountID: report.managerID, shouldUseShortForm: true});
 
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
