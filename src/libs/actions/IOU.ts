@@ -11867,7 +11867,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                     name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
                     type: CONST.VIOLATION_TYPES.WARNING,
                     data: {
-                        rejectReason: comment ?? '',
+                        comment: comment ?? '',
                     },
                 },
             ],

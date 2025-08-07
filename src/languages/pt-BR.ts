@@ -6440,7 +6440,7 @@ const translations = {
     },
     violations: {
         allTagLevelsRequired: 'Todas as tags são obrigatórias',
-        autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rejeitou esta despesa com o comentário "${rejectReason}"`,
+        autoReportedRejectedExpense: ({comment, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rejeitou esta despesa com o comentário "${comment}"`,
         billableExpense: 'Faturável não é mais válido',
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Receipt required${formattedLimit ? `acima de ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Categoria não é mais válida',
