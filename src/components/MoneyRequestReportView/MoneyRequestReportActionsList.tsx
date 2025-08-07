@@ -537,6 +537,7 @@ function MoneyRequestReportActionsList({
                     userBillingFundID={userBillingFundID}
                     emojiReactions={actionEmojiReactions}
                     draftMessage={matchingDraftMessageString}
+                    isReverted={false}
                 />
             );
         },

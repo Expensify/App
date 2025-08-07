@@ -92,6 +92,9 @@ type ReportActionsListItemRendererProps = {
 
     /** All emoji reactions collection */
     allEmojiReactions?: OnyxCollection<ReportActionReactions>;
+
+    /** Whether the flatlist is reverted */
+    isReverted?: boolean;
 };
 
 function ReportActionsListItemRenderer({
@@ -123,6 +126,7 @@ function ReportActionsListItemRenderer({
     personalDetails,
     allDraftMessages,
     allEmojiReactions,
+    isReverted,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -219,6 +223,7 @@ function ReportActionsListItemRenderer({
                 allEmojiReactions={allEmojiReactions}
                 linkedTransactionRouteError={linkedTransactionRouteError}
                 userBillingFundID={userBillingFundID}
+                isReverted={isReverted}
             />
         );
     }
@@ -250,6 +255,7 @@ function ReportActionsListItemRenderer({
             emojiReactions={emojiReactions}
             linkedTransactionRouteError={linkedTransactionRouteError}
             userBillingFundID={userBillingFundID}
+            isReverted={isReverted}
         />
     );
 }
