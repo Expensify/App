@@ -226,7 +226,10 @@ const ViolationsUtils = {
         hasDependentTags: boolean,
         isInvoiceTransaction: boolean,
     ): OnyxUpdate {
-        if (TransactionUtils.isPartial(updatedTransaction)) {
+        const isScanning = TransactionUtils.isScanning(updatedTransaction);
+        const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
+        const isPartialTransaction = TransactionUtils.isPartial(updatedTransaction);
+        if (isPartialTransaction && isScanning) {
             return {
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
@@ -235,6 +238,19 @@ const ViolationsUtils = {
         }
 
         let newTransactionViolations = [...transactionViolations];
+
+        const shouldShowSmartScanFailedError = isScanRequest && updatedTransaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED;
+        const hasSmartScanFailedError = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
+        if (shouldShowSmartScanFailedError && !hasSmartScanFailedError) {
+            return {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
+                value: [{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}],
+            };
+        }
+        if (!shouldShowSmartScanFailedError && hasSmartScanFailedError) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.SMARTSCAN_FAILED});
+        }
 
         // Calculate client-side category violations
         const policyRequiresCategories = !!policy.requiresCategory;

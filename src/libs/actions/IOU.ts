@@ -1771,11 +1771,13 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                           [chat.createdAction.reportActionID]: {
                               pendingAction: null,
                               errors: null,
+                              isOptimisticAction: null,
                           },
                       }
                     : {}),
                 [chat.reportPreviewAction.reportActionID]: {
                     pendingAction: null,
+                    isOptimisticAction: null,
                 },
             },
         },
@@ -1788,12 +1790,14 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                           [iou.createdAction.reportActionID]: {
                               pendingAction: null,
                               errors: null,
+                              isOptimisticAction: null,
                           },
                       }
                     : {}),
                 [iou.action.reportActionID]: {
                     pendingAction: null,
                     errors: null,
+                    isOptimisticAction: null,
                 },
             },
         },
@@ -1807,6 +1811,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 [transactionThreadCreatedReportAction.reportActionID]: {
                     pendingAction: null,
                     errors: null,
+                    isOptimisticAction: null,
                 },
             },
         });
@@ -2380,6 +2385,8 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
     const searchUpdate = getSearchOnyxUpdate({
         transaction,
         participant,
+        iouReport: iou.report,
+        policy: policyParams.policy,
         isInvoice: true,
         transactionThreadReportID: transactionParams.threadReport.reportID,
     });
