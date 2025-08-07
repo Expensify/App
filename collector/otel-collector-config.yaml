@@ -1,0 +1,32 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+        include_metadata: true
+        cors:
+          allowed_origins:
+            - https://dev.new.expensify.com:8082
+          max_age: 7200
+
+exporters:
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    namespace: expensify
+
+  debug:
+    verbosity: detailed
+
+  otlp:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [debug, otlp]
+    metrics:
+      receivers: [otlp]
+      exporters: [debug, prometheus]
