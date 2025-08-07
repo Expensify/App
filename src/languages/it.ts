@@ -850,17 +850,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `Questa chat è per tutto ciò che riguarda <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `Questa chat è per le fatture tra <strong>${invoicePayer}</strong> e <strong>${invoiceReceiver}</strong>. Utilizzare il pulsante <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> per inviare una fattura.`,
+            `Questa chat è per le fatture tra <strong>${invoicePayer}</strong> e <strong>${invoiceReceiver}</strong>. Utilizzare il pulsante + per inviare una fattura.`,
         beginningOfChatHistory: 'Questa chat è con',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `È qui che <strong>${submitterDisplayName}</strong> presenterà le spese a <strong>${workspaceName}</strong>. Basta usare il pulsante <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>.`,
+            `È qui che <strong>${submitterDisplayName}</strong> presenterà le spese a <strong>${workspaceName}</strong>. Basta usare il pulsante +.`,
         beginningOfChatHistorySelfDM: 'Questo è il tuo spazio personale. Usalo per appunti, compiti, bozze e promemoria.',
         beginningOfChatHistorySystemDM: 'Benvenuto! Iniziamo con la configurazione.',
         chatWithAccountManager: 'Chatta con il tuo account manager qui',
         sayHello: 'Ciao!',
         yourSpace: 'Il tuo spazio',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Benvenuto in ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `Usa il pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} per ${additionalText} una spesa.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => `Usa il pulsante + per ${additionalText} una spesa.`,
         askConcierge: 'Fai domande e ricevi supporto in tempo reale 24/7.',
         conciergeSupport: 'Supporto 24/7',
         create: 'creare',
@@ -5912,7 +5912,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'Niente da mostrare',
-                subtitle: `Prova a modificare i criteri di ricerca o a creare qualcosa con il pulsante verde ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.`,
+                subtitle: 'Prova a modificare i criteri di ricerca o a creare qualcosa con il pulsante verde +.',
             },
             emptyExpenseResults: {
                 title: 'Non hai ancora creato nessuna spesa.',
