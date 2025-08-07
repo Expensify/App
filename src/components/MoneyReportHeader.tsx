@@ -176,14 +176,21 @@ function MoneyReportHeader({
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
 
     // Collate the list of user-created in-app export templates
-    const customInAppTemplates = useMemo(
-        () =>
-            Object.entries({...(policy?.exportLayouts ?? {}), ...(csvExportLayouts ?? {})}).map(([templateName, layout]) => ({
-                ...layout,
-                templateName,
-            })),
-        [csvExportLayouts, policy?.exportLayouts],
-    );
+    const customInAppTemplates = useMemo(() => {
+        const policyTemplates = Object.entries(policy?.exportLayouts ?? {}).map(([templateName, layout]) => ({
+            ...layout,
+            templateName,
+            description: policy?.name,
+        }));
+
+        const csvTemplates = Object.entries(csvExportLayouts ?? {}).map(([templateName, layout]) => ({
+            ...layout,
+            templateName,
+            description: '',
+        }));
+
+        return [...policyTemplates, ...csvTemplates];
+    }, [csvExportLayouts, policy?.exportLayouts]);
 
     const requestParentReportAction = useMemo(() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
@@ -645,6 +652,7 @@ function MoneyReportHeader({
                     text: template.name,
                     icon: Expensicons.Table,
                     value: template.templateName,
+                    description: template.description,
                     onSelected: () => beginExportWithTemplate(template.templateName, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, transactionIDs),
                 };
             }
