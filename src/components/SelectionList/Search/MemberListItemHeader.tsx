@@ -6,9 +6,12 @@ import type {ListItem, TransactionMemberGroupListItemType} from '@components/Sel
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
+import ActionCell from './ActionCell';
+import TotalCell from './TotalCell';
 
 type MemberListItemHeaderProps<TItem extends ListItem> = {
     /** The member currently being looked at */
@@ -26,14 +29,13 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
 
 function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onCheckboxPress, isDisabled, canSelectMultiple}: MemberListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
 
     const [formattedDisplayName, formattedLogin] = useMemo(
         () => [formatPhoneNumber(getDisplayNameOrDefault(memberItem)), formatPhoneNumber(memberItem.login ?? '')],
         [memberItem, formatPhoneNumber],
     );
-
-    // s77rt add total cell, action cell and collapse/expand button
 
     return (
         <View>
@@ -69,6 +71,19 @@ function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onChe
                             />
                         </View>
                     </View>
+                </View>
+                <View style={[styles.flexShrink0, styles.mr3]}>
+                    <TotalCell
+                        total={memberItem.total}
+                        currency={memberItem.currency}
+                    />
+                </View>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+                    <ActionCell
+                        action={CONST.SEARCH.ACTION_TYPES.VIEW}
+                        goToItem={() => {}} // s77rt
+                        isSelected={memberItem.isSelected}
+                    />
                 </View>
             </View>
             <View style={[styles.pv2, styles.ph3]}>
