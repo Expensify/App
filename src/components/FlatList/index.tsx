@@ -1,5 +1,5 @@
 /* eslint-disable es/no-optional-chaining, es/no-nullish-coalescing-operators, react/prop-types */
-import type {ForwardedRef, MutableRefObject} from 'react';
+import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {FlatListProps, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {FlatList} from 'react-native';
@@ -9,7 +9,7 @@ import {isMobileSafari} from '@libs/Browser';
 // We do a best effort to avoid content jumping by using some hacks on mobile Safari only.
 const IS_MOBILE_SAFARI = isMobileSafari();
 
-function mergeRefs(...args: Array<MutableRefObject<FlatList> | ForwardedRef<FlatList> | null>) {
+function mergeRefs(...args: Array<RefObject<FlatList> | ForwardedRef<FlatList> | null>) {
     return function forwardRef(node: FlatList) {
         args.forEach((ref) => {
             if (ref == null) {
@@ -29,7 +29,7 @@ function mergeRefs(...args: Array<MutableRefObject<FlatList> | ForwardedRef<Flat
     };
 }
 
-function useMergeRefs(...args: Array<MutableRefObject<FlatList> | ForwardedRef<FlatList> | null>) {
+function useMergeRefs(...args: Array<RefObject<FlatList> | ForwardedRef<FlatList> | null>) {
     return useMemo(
         () => mergeRefs(...args),
         // eslint-disable-next-line
