@@ -176,10 +176,14 @@ function MoneyReportHeader({
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
 
     // Collate the list of user-created in-app export templates
-    const customInAppTemplates = useMemo(() => Object.entries({...policy?.exportLayouts ?? {}, ...csvExportLayouts ?? {}}).map(([templateName, layout]) => ({
-        ...layout,
-        templateName,
-    })), [csvExportLayouts, policy?.exportLayouts]);
+    const customInAppTemplates = useMemo(
+        () =>
+            Object.entries({...(policy?.exportLayouts ?? {}), ...(csvExportLayouts ?? {})}).map(([templateName, layout]) => ({
+                ...layout,
+                templateName,
+            })),
+        [csvExportLayouts, policy?.exportLayouts],
+    );
 
     const requestParentReportAction = useMemo(() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
@@ -647,7 +651,18 @@ function MoneyReportHeader({
         }
 
         return options;
-    }, [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported, beginExportWithTemplate, integrationsExportTemplates, customInAppTemplates]);
+    }, [
+        translate,
+        connectedIntegrationFallback,
+        connectedIntegration,
+        moneyRequestReport,
+        isOffline,
+        transactionIDs,
+        isExported,
+        beginExportWithTemplate,
+        integrationsExportTemplates,
+        customInAppTemplates,
+    ]);
 
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
