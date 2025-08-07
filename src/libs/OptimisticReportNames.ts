@@ -168,12 +168,10 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
 
     const policy = getPolicyByID(targetReport.policyID ?? '', allPolicies);
     if (!shouldComputeReportName(targetReport, policy)) {
-        console.log('morwa cancel');
         Performance.markEnd(CONST.TIMING.COMPUTE_REPORT_NAME);
         Timing.end(CONST.TIMING.COMPUTE_REPORT_NAME);
         return null;
     }
-    console.log('morwa continue');
 
     const titleField = ReportUtils.getTitleReportField(policy?.fieldList ?? {});
     if (!titleField?.defaultValue) {

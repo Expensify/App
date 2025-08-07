@@ -3,6 +3,7 @@ import {compute, extract, isFormula, parse} from '@libs/Formula';
 import type {FormulaContext} from '@libs/Formula';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import type {Policy, Report} from '@src/types/onyx';
 
 // Mock ReportActionsUtils and ReportUtils
@@ -11,6 +12,7 @@ jest.mock('@libs/ReportActionsUtils', () => ({
 }));
 
 jest.mock('@libs/ReportUtils', () => ({
+    ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
     getReportTransactions: jest.fn(),
 }));
 
@@ -353,6 +355,7 @@ describe('CustomFormula', () => {
                     created: '2025-01-08T16:45:00Z', // Older but partial
                     amount: 0, // Zero amount = partial
                     merchant: 'Beta Corp.',
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                 },
                 {
                     transactionID: 'trans3',

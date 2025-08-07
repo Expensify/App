@@ -2,10 +2,21 @@ import Onyx from 'react-native-onyx';
 import {computeReportNameIfNeeded, shouldComputeReportName, updateOptimisticReportNamesFromUpdates} from '@libs/OptimisticReportNames';
 import type {UpdateContext} from '@libs/OptimisticReportNames';
 import * as ReportUtils from '@libs/ReportUtils';
+import {Policy, Report} from '@src/types/onyx';
 
 // Mock dependencies
-jest.mock('@libs/ReportUtils');
-jest.mock('@libs/Permissions');
+jest.mock('@libs/ReportUtils', () => ({
+    ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
+    isExpenseReport: jest.fn(),
+    getTitleReportField: jest.fn(),
+}));
+jest.mock('@libs/Permissions', () => ({
+    canUseCustomReportNames: jest.fn().mockReturnValue(true),
+}));
+
+jest.mock('@libs/CurrencyUtils', () => ({
+    getCurrencySymbol: jest.fn().mockReturnValue('$'),
+}));
 
 const mockReportUtils = ReportUtils as jest.Mocked<typeof ReportUtils>;
 
@@ -17,7 +28,7 @@ describe('OptimisticReportNames', () => {
                 defaultValue: '{report:type} - {report:total}',
             },
         },
-    };
+    } as any as Policy;
 
     const mockReport = {
         reportID: '123',
@@ -26,7 +37,8 @@ describe('OptimisticReportNames', () => {
         total: -10000,
         currency: 'USD',
         lastVisibleActionCreated: '2025-01-15T10:30:00Z',
-    };
+        type: 'expense',
+    } as Report;
 
     const mockContext: UpdateContext = {
         betas: ['authAutoReportTitles'],
@@ -50,9 +62,16 @@ describe('OptimisticReportNames', () => {
             expect(result).toBe(true);
         });
 
-        test('should return false for non-expense reports', () => {
+        test('should return false for reports with unsupported type', () => {
             mockReportUtils.isExpenseReport.mockReturnValue(false);
-            const result = shouldComputeReportName(mockReport as any, mockPolicy as any);
+
+            const result = shouldComputeReportName(
+                {
+                    ...mockReport,
+                    type: 'iou',
+                } as Report,
+                mockPolicy,
+            );
             expect(result).toBe(false);
         });
 
@@ -89,7 +108,7 @@ describe('OptimisticReportNames', () => {
             };
 
             const result = computeReportNameIfNeeded(mockReport as any, update, mockContext);
-            expect(result).toEqual('Expense Report - USD 200.00');
+            expect(result).toEqual('Expense Report - $200.00');
         });
 
         test('should return null when name would not change', () => {
@@ -99,7 +118,14 @@ describe('OptimisticReportNames', () => {
                 value: {description: 'Updated description'},
             };
 
-            const result = computeReportNameIfNeeded(mockReport as any, update, mockContext);
+            const result = computeReportNameIfNeeded(
+                {
+                    ...mockReport,
+                    reportName: 'Expense Report - $100.00',
+                },
+                update,
+                mockContext,
+            );
             expect(result).toBeNull();
         });
     });
@@ -115,6 +141,7 @@ describe('OptimisticReportNames', () => {
                         policyID: 'policy1',
                         total: -15000,
                         currency: 'USD',
+                        type: 'expense',
                     },
                 },
             ];
@@ -124,7 +151,7 @@ describe('OptimisticReportNames', () => {
             expect(result[1]).toEqual({
                 key: 'report_456',
                 onyxMethod: Onyx.METHOD.MERGE,
-                value: {reportName: 'Expense Report - USD 150.00'},
+                value: {reportName: 'Expense Report - $150.00'},
             });
         });
 
@@ -139,7 +166,7 @@ describe('OptimisticReportNames', () => {
 
             const result = updateOptimisticReportNamesFromUpdates(updates, mockContext);
             expect(result).toHaveLength(2); // Original + name update
-            expect(result[1].value).toEqual({reportName: 'Expense Report - USD 250.00'});
+            expect(result[1].value).toEqual({reportName: 'Expense Report - $250.00'});
         });
 
         test('should handle policy updates affecting multiple reports', () => {
@@ -148,6 +175,7 @@ describe('OptimisticReportNames', () => {
                 allReports: {
                     report_123: {...mockReport, reportID: '123'},
                     report_456: {...mockReport, reportID: '456'},
+                    report_456: {...mockReport, reportID: '789'},
                 },
             };
 
