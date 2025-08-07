@@ -250,6 +250,9 @@ const ONYXKEYS = {
     /** Details on whether an account is locked or not */
     NVP_PRIVATE_LOCK_ACCOUNT_DETAILS: 'nvp_private_lockAccountDetails',
 
+    /** The NVP containing the user's custom IS templates */
+    NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES: 'nvp_expensify_integrationServerExportTemplates',
+
     /** Plaid data (access tokens, bank accounts ...) */
     PLAID_DATA: 'plaidData',
 
@@ -1215,6 +1218,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_LAST_IPHONE_LOGIN]: string;
     [ONYXKEYS.NVP_LAST_ANDROID_LOGIN]: string;
     [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS]: string[];
+    [ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES]: OnyxTypes.IntegrationServerExportTemplate[];
     [ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION]: OnboardingAccounting;
     [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
 };
