@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
@@ -13,6 +13,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLastAccessedReport from '@hooks/useLastAccessedReport';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
@@ -27,6 +28,7 @@ import {completeOnboarding} from '@libs/actions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
+import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from '@libs/Navigation/Navigation';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
 import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
@@ -59,11 +61,15 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const {isBetaEnabled} = usePermissions();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
+    const shouldPreventOpenAdminRoom = (session?.email ?? '').includes('+');
+    const {lastAccessReport} = useLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom);
+
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const {isOffline} = useNetwork();
     const isLoading = onboarding?.isLoading;
     const prevIsLoading = usePrevious(isLoading);
+    const didOpenOldDotLink = useRef(false);
 
     const features: Feature[] = useMemo(() => {
         return [
@@ -148,7 +154,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     }, [paidGroupPolicy, onboardingPolicyID]);
 
     useEffect(() => {
-        if (!!isLoading || !prevIsLoading) {
+        if (!!isLoading || !prevIsLoading || didOpenOldDotLink.current) {
             return;
         }
 
@@ -158,6 +164,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             return;
         }
         waitForIdle().then(() => {
+            didOpenOldDotLink.current = true;
             openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
         });
     }, [isLoading, prevIsLoading, setRootStatusBarEnabled]);
@@ -168,23 +175,32 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         }
 
         const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
-
         const newUserReportedIntegration = selectedFeatures.some((feature) => feature === 'accounting') ? userReportedIntegration : undefined;
+        const featuresMap = features.map((feature) => ({
+            ...feature,
+            enabled: selectedFeatures.includes(feature.id),
+        }));
 
         // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
         // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
-        const {adminsChatReportID, policyID} = shouldCreateWorkspace
-            ? createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM, '', undefined, false, onboardingCompanySize, newUserReportedIntegration)
-            : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
+        const {adminsChatReportID, policyID, type} = shouldCreateWorkspace
+            ? createWorkspace({
+                  policyOwnerEmail: undefined,
+                  makeMeAdmin: true,
+                  policyName: '',
+                  policyID: generatePolicyID(),
+                  engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                  currency: '',
+                  file: undefined,
+                  shouldAddOnboardingTasks: false,
+                  companySize: onboardingCompanySize,
+                  userReportedIntegration: newUserReportedIntegration,
+                  featuresMap,
+              })
+            : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID, type: undefined};
 
         if (policyID) {
-            updateInterestedFeatures(
-                features.map((feature) => ({
-                    ...feature,
-                    programmaticallyEnabled: selectedFeatures.includes(feature.id),
-                })),
-                policyID,
-            );
+            updateInterestedFeatures(featuresMap, policyID, type);
         }
 
         if (shouldCreateWorkspace) {
@@ -204,10 +220,12 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         });
 
         if (shouldOnboardingRedirectToOldDot(onboardingCompanySize, newUserReportedIntegration)) {
-            if (CONFIG.IS_HYBRID_APP) {
+            if (CONFIG.IS_HYBRID_APP || didOpenOldDotLink.current) {
                 return;
             }
+            didOpenOldDotLink.current = true;
             openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+            return;
         }
 
         // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
@@ -219,28 +237,28 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         // We need to wait the policy is created before navigating out the onboarding flow
         navigateAfterOnboardingWithMicrotaskQueue(
             isSmallScreenWidth,
-            isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+            lastAccessReport,
             policyID,
             adminsChatReportID,
             // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
             // See https://github.com/Expensify/App/issues/57167 for more details
-            (session?.email ?? '').includes('+'),
+            shouldPreventOpenAdminRoom,
         );
     }, [
-        isBetaEnabled,
-        isSmallScreenWidth,
-        onboardingAdminsChatReportID,
-        onboardingCompanySize,
-        onboardingMessages,
-        onboardingPolicyID,
         onboardingPurposeSelected,
+        onboardingCompanySize,
+        onboardingPolicyID,
         paidGroupPolicy,
-        session?.email,
+        selectedFeatures,
         userReportedIntegration,
         features,
-        selectedFeatures,
+        onboardingAdminsChatReportID,
+        onboardingMessages,
         currentUserPersonalDetails?.firstName,
         currentUserPersonalDetails?.lastName,
+        isSmallScreenWidth,
+        lastAccessReport,
+        shouldPreventOpenAdminRoom,
     ]);
 
     // Create items for enabled features

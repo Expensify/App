@@ -3,6 +3,7 @@ import type {NativeSyntheticEvent, StyleProp, ViewProps, ViewStyle} from 'react-
 import type {ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import type {SharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
+import type {FocusTrapOptions} from '@components/Modal/types';
 import type CONST from '@src/CONST';
 
 type GestureProps = {
@@ -136,6 +137,12 @@ type ReanimatedModalProps = ViewProps &
 
         /** Modal type */
         type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
+
+        /** Whether to prevent scroll on focus */
+        shouldPreventScrollOnFocus?: boolean;
+
+        /** Whether to use a custom backdrop for the modal? (This prevents focus issues on desktop) */
+        initialFocus?: FocusTrapOptions['initialFocus'];
     };
 
 type BackdropProps = {

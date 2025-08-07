@@ -102,6 +102,7 @@ const SCREENS = {
             STATUS_CLEAR_AFTER: 'Settings_Status_Clear_After',
             STATUS_CLEAR_AFTER_DATE: 'Settings_Status_Clear_After_Date',
             STATUS_CLEAR_AFTER_TIME: 'Settings_Status_Clear_After_Time',
+            VACATION_DELEGATE: 'Settings_Status_Vacation_Delegate',
             STATUS: 'Settings_Status',
             PRONOUNS: 'Settings_Pronouns',
             TIMEZONE: 'Settings_Timezone',
@@ -224,9 +225,6 @@ const SCREENS = {
         SCHEDULE_CALL: 'ScheduleCall',
     },
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
-    ONBOARDING_MODAL: {
-        ONBOARDING: 'Onboarding',
-    },
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
     DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',

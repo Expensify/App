@@ -169,6 +169,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
+    [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
     [SCREENS.WORKSPACE.ADDRESS]: {
         policyID: string;
@@ -1807,7 +1808,6 @@ type ReportsSplitNavigatorParamList = {
         backTo?: Routes;
         moneyRequestReportActionID?: string;
         transactionID?: string;
-        iouReportID?: string;
     };
     [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
 };
@@ -1943,9 +1943,6 @@ type WorkspaceSplitNavigatorParamList = {
 };
 
 type OnboardingModalNavigatorParamList = {
-    [SCREENS.ONBOARDING_MODAL.ONBOARDING]: {
-        backTo?: string;
-    };
     [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
         backTo?: string;
     };
