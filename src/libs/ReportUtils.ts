@@ -2843,7 +2843,7 @@ function getDisplayNameForParticipant({
 
     // If the user's personal details (first name) should be hidden, make sure we return "hidden" instead of the short name
     if (shouldFallbackToHidden && longName === hiddenTranslation) {
-        return formatPhoneNumberPhoneUtils(longName);
+        return formatPhoneNumber(longName);
     }
 
     const shortName = personalDetails.firstName ? personalDetails.firstName : longName;
