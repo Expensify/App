@@ -2877,12 +2877,6 @@ const CONST = {
             REIMBURSEMENT_NO: 'reimburseNo', // None
             REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
         },
-        CASH_EXPENSE_REIMBURSEMENT_CHOICES: {
-            REIMBURSABLE_DEFAULT: 'reimbursableDefault', // Reimbursable by default
-            NON_REIMBURSABLE_DEFAULT: 'nonReimbursableDefault', // Non-reimbursable by default
-            ALWAYS_REIMBURSABLE: 'alwaysReimbursable', // Always Reimbursable
-            ALWAYS_NON_REIMBURSABLE: 'alwaysNonReimbursable', // Always Non Reimbursable
-        },
         ID_FAKE: '_FAKE_',
         EMPTY: 'EMPTY',
         SECONDARY_ACTIONS: {
@@ -3742,7 +3736,6 @@ const CONST = {
         TAG: 'tag',
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
-        REIMBURSABLE: 'reimbursable',
         REPORT: 'report',
     },
     FOOTER: {
@@ -4991,6 +4984,10 @@ const CONST = {
         FLAG_SEVERITY_ASSAULT: 'assault',
     },
     EMOJI_PICKER_TEXT_INPUT_SIZES: 152,
+    TEXT_INPUT_SYMBOL_POSITION: {
+        PREFIX: 'prefix',
+        SUFFIX: 'suffix',
+    },
     QR: {
         DEFAULT_LOGO_SIZE_RATIO: 0.25,
         DEFAULT_LOGO_MARGIN_RATIO: 0.02,
