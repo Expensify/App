@@ -171,7 +171,7 @@ function useReportActionAvatars({
     const {avatar, fallbackIcon, login} = personalDetails?.[accountID] ?? {};
 
     const defaultDisplayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails}) ?? '';
-    const invoiceReport = [iouReport, chatReport, reportChatReport].find(isInvoiceReport);
+    const invoiceReport = [iouReport, chatReport, reportChatReport].find((susReport) => isInvoiceReport(susReport) || susReport?.chatType === CONST.REPORT.TYPE.INVOICE);
     const isNestedInInvoiceReport = !!invoiceReport;
     const isWorkspaceActor = isAInvoiceReport || (isAWorkspaceChat && (!actorAccountID || displayAllActors));
     const isChatReportOnlyProp = !iouReport && chatReport;
@@ -243,6 +243,21 @@ function useReportActionAvatars({
         avatars = getIconsWithDefaults(invoiceReport);
     } else if (shouldUseMappedAccountIDs) {
         avatars = avatarsForAccountIDs;
+    }
+
+    if (isNestedInInvoiceReport && avatars.length > 1) {
+        // If we have B2B Invoice between two workspaces we only should show subscript if it is not a report preview
+        if (avatars.every(({type}) => type === CONST.ICON_TYPE_WORKSPACE)) {
+            avatarType = isAReportPreviewAction ? CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE : CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT;
+            // But if it is a report preview between workspace and another user it should never be displayed as a multiple avatar
+        } else if (
+            avatars.at(0)?.type === CONST.ICON_TYPE_WORKSPACE &&
+            avatars.at(1)?.type === CONST.ICON_TYPE_AVATAR &&
+            avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE &&
+            isAReportPreviewAction
+        ) {
+            avatarType = CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT;
+        }
     }
 
     return {
