@@ -81,16 +81,18 @@ function BaseVideoPlayer({
     }));
 
     /* eslint-disable no-param-reassign */
-    const videoPlayer = useVideoPlayer(sourceURL, (player) => {
-        player.loop = isLooping;
-        player.muted = true;
-        player.timeUpdateEventInterval = 0.05;
-    });
+    const videoPlayerRef = useRef<VideoPlayer>(
+        useVideoPlayer(sourceURL, (player) => {
+            player.loop = isLooping;
+            player.muted = true;
+            player.timeUpdateEventInterval = 0.1;
+        }),
+    );
     /* eslint-enable no-param-reassign */
 
-    const {currentTime, bufferedPosition} = useEvent(videoPlayer, 'timeUpdate', {currentTime: 0, bufferedPosition: 0} as TimeUpdateEventPayload);
-    const {isPlaying} = useEvent(videoPlayer, 'playingChange', {isPlaying: false});
-    const {status} = useEvent(videoPlayer, 'statusChange', {status: 'idle'} as StatusChangeEventPayload);
+    const {currentTime, bufferedPosition} = useEvent(videoPlayerRef.current, 'timeUpdate', {currentTime: 0, bufferedPosition: 0} as TimeUpdateEventPayload);
+    const {isPlaying} = useEvent(videoPlayerRef.current, 'playingChange', {isPlaying: false});
+    const {status} = useEvent(videoPlayerRef.current, 'statusChange', {status: 'idle'} as StatusChangeEventPayload);
 
     const isLoading = useMemo(() => {
         return status === 'loading' || (status === 'idle' && !isEnded);
@@ -100,7 +102,6 @@ function BaseVideoPlayer({
         return bufferedPosition <= 0;
     }, [bufferedPosition]);
 
-    const videoPlayerRef = useRef<VideoPlayer | null>(null);
     const videoViewRef = useRef<VideoView | null>(null);
     const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
     const videoPlayerElementRef = useRef<View | HTMLDivElement | null>(null);
@@ -118,14 +119,10 @@ function BaseVideoPlayer({
     const {videoPopoverMenuPlayerRef, videoPopoverMenuSource, setCurrentPlaybackSpeed, setSource: setPopoverMenuSource} = useVideoPopoverMenuContext();
     const shouldUseNewRate = !videoPopoverMenuSource.current || videoPopoverMenuSource.current !== sourceURL;
 
-    useEffect(() => {
-        videoPlayerRef.current = videoPlayer;
-    }, [videoPlayer]);
-
     const togglePlayCurrentVideo = useCallback(() => {
         if (!isCurrentlyURLSet) {
             updateCurrentURLAndReportID(url, reportID);
-        } else if (videoPlayer.playing && !isLoading) {
+        } else if (videoPlayerRef.current.playing && !isLoading) {
             pauseVideo();
         } else if (!isLoading) {
             if (isEnded) {
@@ -134,7 +131,7 @@ function BaseVideoPlayer({
             playVideo();
         }
         setIsEnded(false);
-    }, [isCurrentlyURLSet, videoPlayer.playing, isLoading, updateCurrentURLAndReportID, url, reportID, pauseVideo, isEnded, playVideo, replayVideo]);
+    }, [isCurrentlyURLSet, isLoading, updateCurrentURLAndReportID, url, reportID, pauseVideo, isEnded, playVideo, replayVideo]);
 
     const hideControl = useCallback(() => {
         if (isEnded) {
@@ -198,21 +195,21 @@ function BaseVideoPlayer({
         setPopoverAnchorPosition({horizontal: event.nativeEvent.pageX, vertical: event.nativeEvent.pageY});
     };
 
-    useEventListener(videoPlayer, 'mutedChange', (payload: MutedChangeEventPayload) => {
+    useEventListener(videoPlayerRef.current, 'mutedChange', (payload: MutedChangeEventPayload) => {
         if (payload.muted || !payload.oldMuted) {
             return;
         }
         updateVolume(lastNonZeroVolume.get());
     });
 
-    useEventListener(videoPlayer, 'playingChange', (payload: PlayingChangeEventPayload) => {
+    useEventListener(videoPlayerRef.current, 'playingChange', (payload: PlayingChangeEventPayload) => {
         const isVideoPlaying = payload.isPlaying;
         if (isVideoPlaying && isEnded) {
             setIsEnded(false);
         }
     });
 
-    useEventListener(videoPlayer, 'statusChange', (payload: StatusChangeEventPayload) => {
+    useEventListener(videoPlayerRef.current, 'statusChange', (payload: StatusChangeEventPayload) => {
         if (payload.status === 'readyToPlay' && isFirstLoad) {
             playVideo();
             setIsFirstLoad(false);
@@ -227,18 +224,18 @@ function BaseVideoPlayer({
         }
     });
 
-    useEventListener(videoPlayer, 'playToEnd', () => {
+    useEventListener(videoPlayerRef.current, 'playToEnd', () => {
         setIsEnded(true);
         setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
         controlsOpacity.set(1);
     });
 
     useEffect(() => {
-        if (!videoPlayer.duration) {
+        if (!videoPlayerRef.current.duration) {
             return;
         }
-        setDuration(videoPlayer.duration);
-    }, [videoPlayer.duration]);
+        setDuration(videoPlayerRef.current.duration);
+    }, [videoPlayerRef.current.duration]);
 
     // use `useLayoutEffect` instead of `useEffect` because ref is null when unmount in `useEffect` hook
     // ref url: https://reactjs.org/blog/2020/08/10/react-v17-rc.html#effect-cleanup-timing
@@ -312,8 +309,9 @@ function BaseVideoPlayer({
             }
             return;
         }
-
-        videoPlayerRef.current = currentVideoPlayerRef.current;
+        if (currentVideoPlayerRef.current) {
+            videoPlayerRef.current = currentVideoPlayerRef.current;
+        }
         if (currentlyPlayingURL === url && newParentRef && 'appendChild' in newParentRef) {
             newParentRef.appendChild(sharedElement as HTMLDivElement);
         }
@@ -391,7 +389,7 @@ function BaseVideoPlayer({
                                     >
                                         <VideoView
                                             allowsFullscreen
-                                            player={videoPlayer}
+                                            player={videoPlayerRef.current}
                                             style={[styles.w100, styles.h100, videoPlayerStyle]}
                                             nativeControls={isFullScreenRef.current}
                                             playsInline
@@ -415,7 +413,7 @@ function BaseVideoPlayer({
                                                 }
 
                                                 // Sync volume updates in full screen mode after leaving it
-                                                updateVolume(videoPlayer.muted ? 0 : videoPlayer.volume || 1);
+                                                updateVolume(videoPlayerRef.current.muted ? 0 : videoPlayerRef.current.volume || 1);
                                             }}
                                         />
                                     </View>
