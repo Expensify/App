@@ -6626,9 +6626,9 @@ const translations = {
                     `Sie haben die Belastung von ${amountOwed} auf der Karte mit der Endung ${cardEnding} angefochten. Ihr Konto wird gesperrt, bis der Streit mit Ihrer Bank geklärt ist.`,
             },
             cardAuthenticationRequired: {
-                title: 'Ihre Karte konnte nicht belastet werden.',
+                title: 'Ihre Zahlungskarte wurde nicht vollständig authentifiziert.',
                 subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) =>
-                    `Ihre Zahlungskarte wurde nicht vollständig authentifiziert. Bitte schließen Sie den Authentifizierungsprozess ab, um Ihre Zahlungskarte mit der Endung ${cardEnding} zu aktivieren.`,
+                    `Bitte schließen Sie den Authentifizierungsprozess ab, um Ihre Zahlungskarte mit der Endung ${cardEnding} zu aktivieren.`,
             },
             insufficientFunds: {
                 title: 'Ihre Karte konnte nicht belastet werden.',

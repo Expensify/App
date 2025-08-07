@@ -6503,8 +6503,8 @@ const translations = {
                     `您对卡号以${cardEnding}结尾的卡上的${amountOwed}费用提出了异议。在与您的银行解决争议之前，您的账户将被锁定。`,
             },
             cardAuthenticationRequired: {
-                title: '您的卡无法扣款',
-                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) => `您的支付卡尚未完全认证。请完成认证过程以激活以${cardEnding}结尾的支付卡。`,
+                title: '您的付款卡尚未完成身份验证。',
+                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) => `请完成身份验证流程，以激活以 ${cardEnding} 结尾的付款卡。`,
             },
             insufficientFunds: {
                 title: '您的卡无法扣款',

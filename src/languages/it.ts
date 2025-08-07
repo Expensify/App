@@ -6638,9 +6638,8 @@ const translations = {
                     `Hai contestato l'addebito di ${amountOwed} sulla carta che termina con ${cardEnding}. Il tuo account sarà bloccato fino a quando la disputa non sarà risolta con la tua banca.`,
             },
             cardAuthenticationRequired: {
-                title: 'La tua carta non può essere addebitata',
-                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) =>
-                    `La tua carta di pagamento non è stata completamente autenticata. Completa il processo di autenticazione per attivare la tua carta di pagamento che termina con ${cardEnding}.`,
+                title: 'La tua carta di pagamento non è stata completamente autenticata.',
+                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) => `Completa il processo di autenticazione per attivare la tua carta che termina con ${cardEnding}.`,
             },
             insufficientFunds: {
                 title: 'La tua carta non può essere addebitata',

@@ -6613,9 +6613,8 @@ const translations = {
                     `Zakwestionowałeś opłatę w wysokości ${amountOwed} na karcie kończącej się na ${cardEnding}. Twoje konto zostanie zablokowane do czasu rozwiązania sporu z bankiem.`,
             },
             cardAuthenticationRequired: {
-                title: 'Nie można było obciążyć Twojej karty',
-                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) =>
-                    `Twoja karta płatnicza nie została w pełni uwierzytelniona. Proszę ukończyć proces uwierzytelniania, aby aktywować kartę płatniczą kończącą się na ${cardEnding}.`,
+                title: 'Twoja karta płatnicza nie została w pełni uwierzytelniona.',
+                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) => `Dokończ proces uwierzytelnienia, aby aktywować kartę kończącą się na ${cardEnding}.`,
             },
             insufficientFunds: {
                 title: 'Nie można było obciążyć Twojej karty',

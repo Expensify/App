@@ -6628,9 +6628,8 @@ const translations = {
                     `U betwistte de ${amountOwed} kosten op de kaart die eindigt op ${cardEnding}. Uw account wordt geblokkeerd totdat het geschil met uw bank is opgelost.`,
             },
             cardAuthenticationRequired: {
-                title: 'Uw kaart kon niet worden belast.',
-                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) =>
-                    `Uw betaalkaart is niet volledig geverifieerd. Voltooi het verificatieproces om uw betaalkaart met eindcijfers ${cardEnding} te activeren.`,
+                title: 'Je betaalkaart is nog niet volledig geverifieerd.',
+                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) => `Voltooi de verificatie om je betaalkaart met eindigend op ${cardEnding} te activeren.`,
             },
             insufficientFunds: {
                 title: 'Uw kaart kon niet worden belast.',

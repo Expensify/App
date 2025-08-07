@@ -6637,9 +6637,9 @@ const translations = {
                     `Vous avez contesté le débit de ${amountOwed} sur la carte se terminant par ${cardEnding}. Votre compte sera verrouillé jusqu'à ce que le litige soit résolu avec votre banque.`,
             },
             cardAuthenticationRequired: {
-                title: "Votre carte n'a pas pu être débitée",
+                title: "Votre carte de paiement n'a pas été entièrement authentifiée.",
                 subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) =>
-                    `Votre carte de paiement n'a pas été entièrement authentifiée. Veuillez compléter le processus d'authentification pour activer votre carte de paiement se terminant par ${cardEnding}.`,
+                    `Veuillez terminer le processus d'authentification pour activer votre carte se terminant par ${cardEnding}.`,
             },
             insufficientFunds: {
                 title: "Votre carte n'a pas pu être débitée",

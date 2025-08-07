@@ -6592,9 +6592,8 @@ const translations = {
                     `あなたは、${cardEnding}で終わるカードの${amountOwed}の請求を異議申し立てしました。異議が銀行で解決されるまで、あなたのアカウントはロックされます。`,
             },
             cardAuthenticationRequired: {
-                title: 'カードを請求できませんでした。',
-                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) =>
-                    `お支払いカードが完全に認証されていません。${cardEnding}で終わるお支払いカードを有効にするために、認証プロセスを完了してください。`,
+                title: 'お支払いカードの認証が完了していません。',
+                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) => `末尾が${cardEnding}の支払いカードを有効にするには、認証プロセスを完了してください。`,
             },
             insufficientFunds: {
                 title: 'カードを請求できませんでした。',

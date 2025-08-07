@@ -6627,9 +6627,8 @@ const translations = {
                     `Você contestou a cobrança de ${amountOwed} no cartão com final ${cardEnding}. Sua conta será bloqueada até que a disputa seja resolvida com seu banco.`,
             },
             cardAuthenticationRequired: {
-                title: 'Não foi possível cobrar no seu cartão',
-                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) =>
-                    `Seu cartão de pagamento não foi totalmente autenticado. Por favor, complete o processo de autenticação para ativar seu cartão de pagamento com final ${cardEnding}.`,
+                title: 'Seu cartão de pagamento não foi totalmente autenticado.',
+                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) => `Conclua o processo de autenticação para ativar seu cartão que termina em ${cardEnding}.`,
             },
             insufficientFunds: {
                 title: 'Não foi possível cobrar no seu cartão',
