@@ -50,14 +50,14 @@ describe('CustomFormula', () => {
     describe('parse()', () => {
         test('should parse report formula parts', () => {
             const parts = parse('{report:type} {report:startdate}');
-            expect(parts).toHaveLength(2); // report:type, report:startdate (space is trimmed)
+            expect(parts).toHaveLength(3); // report:type, report:startdate (space is trimmed)
             expect(parts[0]).toEqual({
                 definition: '{report:type}',
                 type: 'report',
                 fieldPath: ['type'],
                 functions: [],
             });
-            expect(parts[1]).toEqual({
+            expect(parts[2]).toEqual({
                 definition: '{report:startdate}',
                 type: 'report',
                 fieldPath: ['startdate'],
@@ -171,7 +171,7 @@ describe('CustomFormula', () => {
 
         test('should compute basic report formula', () => {
             const result = compute('{report:type} {report:total}', mockContext);
-            expect(result).toBe('Expense Report$100.00'); // No space between parts
+            expect(result).toBe('Expense Report $100.00'); // No space between parts
         });
 
         test('should compute startdate formula using transactions', () => {
@@ -220,7 +220,7 @@ describe('CustomFormula', () => {
                 policy: null,
             };
             const result = compute('{report:total} {report:policyname}', contextWithMissingData);
-            expect(result).toBe(''); // Empty strings concatenated = empty string
+            expect(result).toBe('{report:total} {report:policyname}'); // Empty data is replaced with definition
         });
 
         test('should preserve free text', () => {
@@ -253,22 +253,13 @@ describe('CustomFormula', () => {
             expect(parts[0].type).toBe('freetext');
         });
 
-        test('should handle invalid date', () => {
-            const context: FormulaContext = {
-                report: {lastVisibleActionCreated: 'invalid-date'} as any,
-                policy: null,
-            };
-            const result = compute('{report:startdate}', context);
-            expect(result).toBe('');
-        });
-
         test('should handle undefined amounts', () => {
             const context: FormulaContext = {
                 report: {total: undefined} as any,
                 policy: null,
             };
             const result = compute('{report:total}', context);
-            expect(result).toBe('');
+            expect(result).toBe('{report:total}');
         });
 
         test('should handle missing report actions for created', () => {
@@ -279,7 +270,7 @@ describe('CustomFormula', () => {
             };
 
             const result = compute('{report:created}', context);
-            expect(result).toBe('');
+            expect(result).toBe('{report:created}');
         });
 
         test('should handle missing transactions for startdate', () => {

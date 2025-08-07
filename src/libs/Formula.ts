@@ -111,7 +111,7 @@ function parse(formula: string): FormulaPart[] {
         // Add any free text before this formula part
         if (partIndex > lastIndex) {
             const freeText = remainingFormula.substring(lastIndex, partIndex);
-            if (freeText.trim()) {
+            if (freeText) {
                 parts.push({
                     definition: freeText,
                     type: FORMULA_PART_TYPES.FREETEXT,
@@ -129,7 +129,7 @@ function parse(formula: string): FormulaPart[] {
     // Add any remaining free text after the last formula part
     if (lastIndex < remainingFormula.length) {
         const freeText = remainingFormula.substring(lastIndex);
-        if (freeText.trim()) {
+        if (freeText) {
             parts.push({
                 definition: freeText,
                 type: FORMULA_PART_TYPES.FREETEXT,
@@ -207,6 +207,7 @@ function compute(formula: string, context: FormulaContext): string {
         switch (part.type) {
             case FORMULA_PART_TYPES.REPORT:
                 value = computeReportPart(part, context);
+                value = value === '' ? part.definition : value;
                 break;
             case FORMULA_PART_TYPES.FIELD:
                 value = computeFieldPart(part);
