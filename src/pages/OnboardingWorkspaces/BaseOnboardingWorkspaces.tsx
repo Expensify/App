@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
+import useLastAccessedReport from '@hooks/useLastAccessedReport';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
@@ -16,6 +17,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
+import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isCurrentUserValidated} from '@libs/UserUtils';
@@ -53,6 +55,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
     const {isBetaEnabled} = usePermissions();
 
+    const {lastAccessReport} = useLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), shouldOpenOnAdminRoom());
+
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
@@ -73,9 +77,9 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID(policy.policyID);
 
-            navigateAfterOnboardingWithMicrotaskQueue(isSmallScreenWidth, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), policy.automaticJoiningEnabled ? policy.policyID : undefined);
+            navigateAfterOnboardingWithMicrotaskQueue(isSmallScreenWidth, lastAccessReport, policy.automaticJoiningEnabled ? policy.policyID : undefined, undefined, false);
         },
-        [onboardingMessages, onboardingPersonalDetails?.firstName, onboardingPersonalDetails?.lastName, isSmallScreenWidth, isBetaEnabled],
+        [onboardingMessages, onboardingPersonalDetails?.firstName, onboardingPersonalDetails?.lastName, lastAccessReport, isSmallScreenWidth],
     );
 
     const policyIDItems = useMemo(() => {
