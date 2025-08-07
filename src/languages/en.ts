@@ -6589,7 +6589,7 @@ const translations = {
                     `You disputed the ${amountOwed} charge on the card ending in ${cardEnding}. Your account will be locked until the dispute is resolved with your bank.`,
             },
             cardAuthenticationRequired: {
-                title: "Your payment card hasn't been fully authenticated.",
+                title: 'Your payment card hasn’t been fully authenticated.',
                 subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) =>
                     `Please complete the authentication process to activate your payment card ending in ${cardEnding}.`,
             },
