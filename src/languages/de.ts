@@ -1364,7 +1364,8 @@ const translations = {
             heldExpenseLeftBehindTitle: 'Gehaltene Ausgaben werden zurückgelassen, wenn Sie einen gesamten Bericht genehmigen.',
             declineExpenseTitle: 'Lehnen Sie eine Ausgabe ab, die Sie nicht genehmigen oder bezahlen möchten.',
             reasonPageTitle: 'Ausgabe ablehnen',
-            reasonPageDescription1: 'Lehnen Sie eine Ausgabe ab, wenn Sie sie niemals genehmigen oder bezahlen möchten. Verwenden Sie ansonsten "halten", um die Ausgabe zu pausieren und nach mehr Kontext zu fragen.',
+            reasonPageDescription1:
+                'Lehnen Sie eine Ausgabe ab, wenn Sie sie niemals genehmigen oder bezahlen möchten. Verwenden Sie ansonsten "halten", um die Ausgabe zu pausieren und nach mehr Kontext zu fragen.',
             reasonPageDescription2: 'Wenn Sie die Ausgabe ablehnen möchten, fügen Sie bitte einen Kommentar hinzu, um zu erklären warum:',
             declineReason: 'Ablehnungsgrund',
             markAsResolved: 'Als gelöst markieren',
@@ -6434,8 +6435,7 @@ const translations = {
     },
     violations: {
         allTagLevelsRequired: 'Alle Tags erforderlich',
-        autoReportedRejectedExpense: ({comment, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) =>
-            `${rejectedBy} hat diese Ausgabe mit dem Kommentar "${comment}" abgelehnt.`,
+        autoReportedRejectedExpense: ({comment, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} hat diese Ausgabe mit dem Kommentar "${comment}" abgelehnt.`,
         billableExpense: 'Abrechnungsfähig nicht mehr gültig',
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Beleg erforderlich${formattedLimit ? `über ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Kategorie nicht mehr gültig',

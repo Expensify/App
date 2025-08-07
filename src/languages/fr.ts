@@ -1362,12 +1362,13 @@ const translations = {
         moveExpenses: () => ({one: 'Déplacer la dépense', other: 'Déplacer les dépenses'}),
         decline: {
             educationalTitle: 'Devriez-vous mettre en attente ou refuser ?',
-            educationalText: 'Si vous n\'êtes pas prêt à approuver ou payer une dépense, vous pouvez la mettre en attente ou la refuser.',
-            holdExpenseTitle: 'Mettez une dépense en attente pour demander plus de détails avant l\'approbation ou le paiement.',
+            educationalText: "Si vous n'êtes pas prêt à approuver ou payer une dépense, vous pouvez la mettre en attente ou la refuser.",
+            holdExpenseTitle: "Mettez une dépense en attente pour demander plus de détails avant l'approbation ou le paiement.",
             heldExpenseLeftBehindTitle: 'Les dépenses en attente sont laissées derrière lorsque vous approuvez un rapport entier.',
-            declineExpenseTitle: 'Refusez une dépense que vous n\'avez pas l\'intention d\'approuver ou de payer.',
+            declineExpenseTitle: "Refusez une dépense que vous n'avez pas l'intention d'approuver ou de payer.",
             reasonPageTitle: 'Refuser la dépense',
-            reasonPageDescription1: 'Refusez une dépense si vous ne prévoyez jamais de l\'approuver ou de la payer. Sinon, utilisez "mettre en attente" pour suspendre la dépense et demander plus de contexte.',
+            reasonPageDescription1:
+                'Refusez une dépense si vous ne prévoyez jamais de l\'approuver ou de la payer. Sinon, utilisez "mettre en attente" pour suspendre la dépense et demander plus de contexte.',
             reasonPageDescription2: 'Si vous allez refuser la dépense, veuillez ajouter un commentaire pour expliquer pourquoi :',
             declineReason: 'Raison du refus',
             markAsResolved: 'Marquer comme résolu',
@@ -6447,8 +6448,7 @@ const translations = {
     },
     violations: {
         allTagLevelsRequired: 'Tous les tags requis',
-        autoReportedRejectedExpense: ({comment, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) =>
-            `${rejectedBy} a rejeté cette dépense avec le commentaire "${comment}"`,
+        autoReportedRejectedExpense: ({comment, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} a rejeté cette dépense avec le commentaire "${comment}"`,
         billableExpense: "Facturable n'est plus valide",
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Receipt required${formattedLimit ? `au-delà de ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Catégorie non valide',

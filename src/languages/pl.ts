@@ -1359,7 +1359,8 @@ const translations = {
             heldExpenseLeftBehindTitle: 'Wstrzymane wydatki pozostają w tyle, gdy zatwierdzasz cały raport.',
             declineExpenseTitle: 'Odrzuć wydatek, którego nie zamierzasz zatwierdzić ani zapłacić.',
             reasonPageTitle: 'Odrzuć wydatek',
-            reasonPageDescription1: 'Odrzuć wydatek, jeśli nigdy nie planujesz go zatwierdzić ani zapłacić. W przeciwnym razie użyj "wstrzymaj", aby wstrzymać wydatek i poprosić o więcej kontekstu.',
+            reasonPageDescription1:
+                'Odrzuć wydatek, jeśli nigdy nie planujesz go zatwierdzić ani zapłacić. W przeciwnym razie użyj "wstrzymaj", aby wstrzymać wydatek i poprosić o więcej kontekstu.',
             reasonPageDescription2: 'Jeśli zamierzasz odrzucić wydatek, dodaj komentarz wyjaśniający dlaczego:',
             declineReason: 'Powód odrzucenia',
             markAsResolved: 'Oznacz jako rozwiązane',

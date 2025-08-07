@@ -1362,7 +1362,8 @@ const translations = {
             heldExpenseLeftBehindTitle: 'Uitgaven in behandeling blijven achter wanneer je een volledig rapport goedkeurt.',
             declineExpenseTitle: 'Wijs een uitgave af die je niet van plan bent goed te keuren of te betalen.',
             reasonPageTitle: 'Uitgave afwijzen',
-            reasonPageDescription1: 'Wijs een uitgave af als je deze nooit van plan bent goed te keuren of te betalen. Gebruik anders "in behandeling houden" om de uitgave te pauzeren en meer context te vragen.',
+            reasonPageDescription1:
+                'Wijs een uitgave af als je deze nooit van plan bent goed te keuren of te betalen. Gebruik anders "in behandeling houden" om de uitgave te pauzeren en meer context te vragen.',
             reasonPageDescription2: 'Als je de uitgave gaat afwijzen, voeg dan een opmerking toe om uit te leggen waarom:',
             declineReason: 'Afwijzingsreden',
             markAsResolved: 'Als opgelost markeren',
@@ -6441,8 +6442,7 @@ const translations = {
     },
     violations: {
         allTagLevelsRequired: 'Alle tags vereist',
-        autoReportedRejectedExpense: ({comment, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) =>
-            `${rejectedBy} heeft deze uitgave afgewezen met de opmerking "${comment}"`,
+        autoReportedRejectedExpense: ({comment, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} heeft deze uitgave afgewezen met de opmerking "${comment}"`,
         billableExpense: 'Factureerbaar niet langer geldig',
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Receipt required${formattedLimit ? `boven ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Categorie niet langer geldig',
