@@ -196,7 +196,7 @@ function AttachmentView({
                     style={styles.w100}
                     contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}
                 >
-                    <EReceipt transactionID={transaction.transactionID} />
+                    <EReceipt transaction={transaction} />
                 </ScrollView>
             </View>
         );

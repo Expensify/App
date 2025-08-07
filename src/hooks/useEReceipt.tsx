@@ -17,7 +17,7 @@ const backgroundImages = {
     [CONST.ERECEIPT_COLORS.PINK]: eReceiptBGs.EReceiptBG_Pink,
 };
 
-export default function useEReceipt(transactionData: Transaction | TransactionListItemType | undefined, fileExtension?: string, isReceiptThumbnail?: boolean) {
+export default function useEReceipt(transactionData: Transaction | TransactionListItemType | undefined, fileExtension?: string, isReceiptThumbnail?: boolean, dateFormat?: string) {
     const StyleUtils = useStyleUtils();
 
     const colorCode = isReceiptThumbnail ? StyleUtils.getFileExtensionColorCode(fileExtension) : StyleUtils.getEReceiptColorCode(transactionData);
@@ -25,7 +25,7 @@ export default function useEReceipt(transactionData: Transaction | TransactionLi
     const primaryColor = colorStyles?.backgroundColor;
     const secondaryColor = colorStyles?.color;
     const titleColor = colorStyles?.titleColor;
-    const transactionDetails = getTransactionDetails(transactionData);
+    const transactionDetails = getTransactionDetails(transactionData, dateFormat);
     const transactionMCCGroup = transactionDetails?.mccGroup;
     const MCCIcon = transactionMCCGroup ? MCCIcons[`${transactionMCCGroup}`] : undefined;
     const tripIcon = getTripEReceiptIcon(transactionData);
@@ -39,5 +39,6 @@ export default function useEReceipt(transactionData: Transaction | TransactionLi
         MCCIcon,
         tripIcon,
         backgroundImage,
+        transactionDetails,
     };
 }
