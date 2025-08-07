@@ -4811,7 +4811,7 @@ const translations = {
             confirmDuplicate: 'Czy na pewno chcesz kontynuować?',
             categories: 'kategorie i zasady automatycznej kategoryzacji',
             reimbursementAccount: 'konto zwrotu',
-            expectedSubmission: 'opóźnione przesłanie',
+            delayedSubmission: 'opóźnione przesłanie',
             welcomeNote: 'Proszę rozpocząć korzystanie z mojego nowego obszaru roboczego',
             confirmTitle: ({newWorkspaceName, oldWorkspaceName, totalMembers}: {newWorkspaceName?: string; oldWorkspaceName?: string; totalMembers?: number}) =>
                 `Zamierzasz udostępnić ${newWorkspaceName ?? ''} to ${totalMembers ?? 0} osobom, które mają ${oldWorkspaceName ?? ''} udostępniono im. Pamiętaj, że każda z tych osób otrzyma powiadomienie informujące, że znajduje się teraz w ${newWorkspaceName ?? ''}.`,

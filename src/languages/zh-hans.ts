@@ -4733,7 +4733,7 @@ const translations = {
             title: '命名您的新工作区',
             selectFeatures: '选择要复制的功能',
             whichFeatures: '您想要将哪些功能复制到您的新工作区？',
-            confirmedDuplicate: '您确定要继续吗？',
+            confirmDuplicate: '您确定要继续吗？',
             categories: '类别和您的自动分类规则',
             reimbursementAccount: '报销账户',
             delayedSubmission: '延迟提交',
