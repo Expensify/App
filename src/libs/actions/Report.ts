@@ -114,7 +114,7 @@ import {
     buildOptimisticSelfDMReport,
     buildOptimisticUnreportedTransactionAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    findLastAccessedReportWithoutView,
+    findLastAccessedReport,
     findSelfDMReportID,
     formatReportLastMessageText,
     generateReportID,
@@ -3412,7 +3412,7 @@ function openReportFromDeepLink(
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
-            const connection = Onyx.connectWithoutView({
+            const connection = Onyx.connect({
                 key: ONYXKEYS.NVP_ONBOARDING,
                 callback: (val) => {
                     if (!val && !isAnonymousUser()) {
@@ -3458,7 +3458,7 @@ function openReportFromDeepLink(
                             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                             // If the report does not exist, navigate to the last accessed report or Concierge chat
                             if (reportID && !report) {
-                                const lastAccessedReportID = findLastAccessedReportWithoutView(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
+                                const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
                                 if (lastAccessedReportID) {
                                     const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
                                     Navigation.navigate(lastAccessedReportRoute);
@@ -3504,7 +3504,9 @@ function getCurrentUserEmail(): string | undefined {
     return currentUserEmail;
 }
 
-function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, lastAccessedReportID: string | undefined) {
+function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
+    const lastAccessedReportID = findLastAccessedReport(false, false, undefined, currentReport?.reportID)?.reportID;
+
     if (lastAccessedReportID) {
         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
         Navigation.goBack(lastAccessedReportRoute);
@@ -3520,7 +3522,8 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, lastAccess
     }
 }
 
-function getMostRecentReportID(lastAccessedReportID: string | undefined) {
+function getMostRecentReportID(currentReport: OnyxEntry<Report>) {
+    const lastAccessedReportID = findLastAccessedReport(false, false, undefined, currentReport?.reportID)?.reportID;
     return lastAccessedReportID ?? conciergeReportID;
 }
 
@@ -3537,7 +3540,7 @@ function joinRoom(report: OnyxEntry<Report>) {
     );
 }
 
-function leaveGroupChat(reportID: string, lastAccessedReportID: string | undefined) {
+function leaveGroupChat(reportID: string) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!report) {
         Log.warn('Attempting to leave Group Chat that does not existing locally');
@@ -3589,12 +3592,12 @@ function leaveGroupChat(reportID: string, lastAccessedReportID: string | undefin
         },
     ];
 
-    navigateToMostRecentReport(report, lastAccessedReportID);
+    navigateToMostRecentReport(report);
     API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData, successData, failureData});
 }
 
 /** Leave a report by setting the state to submitted and closed */
-function leaveRoom(reportID: string, lastAccessedReportID: string | undefined, isWorkspaceMemberLeavingWorkspaceRoom = false) {
+function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = false) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     if (!report) {
@@ -3701,7 +3704,7 @@ function leaveRoom(reportID: string, lastAccessedReportID: string | undefined, i
         return;
     }
     // In other cases, the report is deleted and we should move the user to another report.
-    navigateToMostRecentReport(report, lastAccessedReportID);
+    navigateToMostRecentReport(report);
 }
 
 function buildInviteToRoomOnyxData(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
