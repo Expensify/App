@@ -2,17 +2,17 @@ import type {ValueOf} from 'type-fest';
 import type Form from './Form';
 
 const INPUT_IDS = {
-    CUSTOM_NAME: 'customName',
+    DEFAULT_TITLE: 'defaultTitle',
 } as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
 
-type RulesCustomNameModalForm = Form<
+type ReportsDefaultTitleModalForm = Form<
     InputID,
     {
-        [INPUT_IDS.CUSTOM_NAME]: string;
+        [INPUT_IDS.DEFAULT_TITLE]: string;
     }
 >;
 
-export type {RulesCustomNameModalForm};
+export type {ReportsDefaultTitleModalForm};
 export default INPUT_IDS;
