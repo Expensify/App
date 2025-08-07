@@ -225,8 +225,8 @@ function SearchPage({route}: SearchPageProps) {
             const selectedPolicyIDs = [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.policyID))];
 
             // If all of the reports or transactions are on the same policy, add the policy-level in-app export templates as export options
-            if (selectedPolicyIDs.length == 1) {
-                const policyID = selectedPolicyIDs[0];
+            if (selectedPolicyIDs.length === 1) {
+                const policyID = selectedPolicyIDs.at(0);
                 const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
                 const templates = Object.entries({...(policy?.exportLayouts ?? {})}).map(([templateName, layout]) => ({
                     ...layout,

@@ -190,7 +190,7 @@ function MoneyReportHeader({
         }));
 
         return [...policyTemplates, ...csvTemplates];
-    }, [csvExportLayouts, policy?.exportLayouts]);
+    }, [csvExportLayouts, policy]);
 
     const requestParentReportAction = useMemo(() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
@@ -633,7 +633,7 @@ function MoneyReportHeader({
             },
         };
 
-        // Add any custom IS export templates that have been added to the user's account asexport options
+        // Add any custom IS export templates that have been added to the user's account as export options
         if (integrationsExportTemplates && integrationsExportTemplates.length > 0) {
             for (const template of integrationsExportTemplates) {
                 options[template.name] = {
