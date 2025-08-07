@@ -6,7 +6,16 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {PartialPolicyForSidebar, ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, PersonalDetailsList, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {
+    PersonalDetails,
+    PersonalDetailsList,
+    PrivatePersonalDetails,
+    ReportActions,
+    ReportAttributesDerivedValue,
+    ReportNameValuePairs,
+    Transaction,
+    TransactionViolation,
+} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -510,6 +519,7 @@ function getOptionData({
     parentReportAction,
     lastMessageTextFromReport: lastMessageTextFromReportProp,
     invoiceReceiverPolicy,
+    privatePersonalDetails,
     localeCompare,
 }: {
     report: OnyxEntry<Report>;
@@ -521,6 +531,7 @@ function getOptionData({
     lastMessageTextFromReport?: string;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
     reportAttributes: OnyxEntry<ReportAttributes>;
+    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
     localeCompare: LocaleContextProps['localeCompare'];
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
@@ -747,7 +758,7 @@ function getOptionData({
             result.alternateText = getPolicyChangeLogEmployeeLeftMessage(lastAction, true);
         } else if (isCardIssuedAction(lastAction)) {
             const card = getExpensifyCardFromReportAction({reportAction: lastAction, policyID: report.policyID});
-            result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card});
+            result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, privatePersonalDetails});
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             result.alternateText = formatReportLastMessageText(Parser.htmlToText(`${lastActorDisplayName}: ${lastMessageText}`));
         } else if (lastAction && isOldDotReportAction(lastAction)) {

@@ -31,6 +31,7 @@ function OptionRowLHNData({
     lastReportActionTransaction,
     transactionViolations,
     lastMessageTextFromReport,
+    privatePersonalDetails,
     localeCompare,
     ...propsToForward
 }: OptionRowLHNDataProps) {
@@ -51,6 +52,7 @@ function OptionRowLHNData({
             parentReportAction,
             lastMessageTextFromReport,
             invoiceReceiverPolicy,
+            privatePersonalDetails,
             localeCompare,
         });
         // eslint-disable-next-line react-compiler/react-compiler
@@ -84,6 +86,7 @@ function OptionRowLHNData({
         invoiceReceiverPolicy,
         lastMessageTextFromReport,
         reportAttributes,
+        privatePersonalDetails,
         localeCompare,
     ]);
 

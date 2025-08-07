@@ -150,6 +150,7 @@ function BaseReportActionContextMenu({
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {canBeMissing: true});
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const policyID = report?.policyID;
 
@@ -347,6 +348,7 @@ function BaseReportActionContextMenu({
                             setIsEmojiPickerActive,
                             moneyRequestAction,
                             card,
+                            privatePersonalDetails,
                         };
 
                         if ('renderContent' in contextAction) {

@@ -127,7 +127,18 @@ import {
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type {Account, Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
+import type {
+    Account,
+    Beta,
+    Card,
+    Download as DownloadOnyx,
+    OnyxInputOrEntry,
+    PrivatePersonalDetails,
+    ReportAction,
+    ReportActionReactions,
+    Report as ReportType,
+    Transaction,
+} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
@@ -193,6 +204,7 @@ type ContextMenuActionPayload = {
     anchorRef?: RefObject<View | null>;
     moneyRequestAction: ReportAction | undefined;
     card?: Card;
+    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -484,7 +496,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fall back to
         // the `text` and `icon`
-        onPress: (closePopover, {reportAction, transaction, selection, report, reportID, card}) => {
+        onPress: (closePopover, {reportAction, transaction, selection, report, reportID, card, privatePersonalDetails}) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
             const messageHtml = getActionHtml(reportAction);
             const messageText = getReportActionMessageText(reportAction);
@@ -641,7 +653,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
                     setClipboardMessage(getIntegrationSyncFailedMessage(reportAction, report?.policyID));
                 } else if (isCardIssuedAction(reportAction)) {
-                    setClipboardMessage(getCardIssuedMessage({reportAction, shouldRenderHTML: true, policyID: report?.policyID, expensifyCard: card}));
+                    setClipboardMessage(getCardIssuedMessage({reportAction, shouldRenderHTML: true, policyID: report?.policyID, expensifyCard: card, privatePersonalDetails}));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION)) {
                     setClipboardMessage(getAddedConnectionMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {

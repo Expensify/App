@@ -84,6 +84,7 @@ describe('SidebarUtils', () => {
                 policy,
                 parentReportAction,
                 oneTransactionThreadReport: undefined,
+                privatePersonalDetails: undefined,
                 localeCompare,
             }),
         );
