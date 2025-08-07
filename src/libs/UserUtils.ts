@@ -16,7 +16,6 @@ type AvatarSource = IconAsset | string;
 
 type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
 
-
 /**
  * Searches through given loginList for any contact method / login with an error.
  *

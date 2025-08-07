@@ -199,19 +199,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             sectionTranslationKey: 'initialSettingsPage.account',
             items,
         };
-    }, [
-        loginList,
-        privatePersonalDetails,
-        vacationDelegate,
-        walletBrickRoadIndicator,
-        hasActivatedWallet,
-        userWallet?.currentBalance,
-        subscriptionPlan,
-        styles.accountSettingsSectionContainer,
-        styles.badgeSuccess,
-        privateSubscription?.errors,
-        freeTrialText,
-    ]);
+    }, [loginList, privatePersonalDetails, vacationDelegate, session?.email, walletBrickRoadIndicator, hasActivatedWallet, userWallet?.currentBalance, subscriptionPlan, styles.accountSettingsSectionContainer, styles.badgeSuccess, privateSubscription?.errors, freeTrialText]);
 
     /**
      * Return a list of menu items data for general section

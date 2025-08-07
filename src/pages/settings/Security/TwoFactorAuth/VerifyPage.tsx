@@ -34,9 +34,8 @@ function VerifyPage({route}: VerifyPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const contactMethod = getContactMethod(loginList?.primaryLogin ?? '', session?.email ?? '');
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const contactMethod = getContactMethod(account?.primaryLogin ?? '', session?.email ?? '');
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
 
     useEffect(() => {
