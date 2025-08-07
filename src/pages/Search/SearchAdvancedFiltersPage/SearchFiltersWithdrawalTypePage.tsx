@@ -24,10 +24,10 @@ function SearchFiltersWithdrawalTypePage() {
     const [selectedItem, setSelectedItem] = useState(searchAdvancedFiltersForm?.withdrawalType);
 
     const listData: Array<ListItem<SearchWithdrawalType>> = useMemo(() => {
-        return getWithdrawalTypeOptions(translate).map((withwralTypeOption) => ({
-            text: withwralTypeOption.text,
-            keyForList: withwralTypeOption.value,
-            isSelected: selectedItem === withwralTypeOption.value,
+        return getWithdrawalTypeOptions(translate).map((withdrawalTypeOption) => ({
+            text: withdrawalTypeOption.text,
+            keyForList: withdrawalTypeOption.value,
+            isSelected: selectedItem === withdrawalTypeOption.value,
         }));
     }, [translate, selectedItem]);
 
