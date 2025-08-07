@@ -20,6 +20,8 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+jest.unmock('react-native-reanimated');
+
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
 TestHelper.setupGlobalFetchMock();
@@ -147,6 +149,8 @@ describe('WorkspaceCategories', () => {
 
         await waitForBatchedUpdatesWithAct();
 
+        console.log('=== DEBUG: Looking for modal ===');
+        console.log('All elements:', screen.debug());
         // After clicking delete categories dropdown menu item, verify the confirmation modal appears
         await waitFor(() => {
             const confirmModalPrompt = translateLocal('workspace.categories.deleteCategoriesPrompt');
@@ -250,6 +254,7 @@ describe('WorkspaceCategories', () => {
             currentTarget: disableMenuItem,
         };
         fireEvent.press(disableMenuItem, mockEvent);
+        console.log('Modal state after press:', screen.debug());
 
         await waitForBatchedUpdatesWithAct();
 
