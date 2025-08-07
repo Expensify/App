@@ -944,7 +944,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'cardName':
         case 'cardNumber':
         case 'taxValue':
-        case 'transactionThreadReportID':
             return validateString(value);
         case 'created':
         case 'modifiedCreated':
@@ -1083,7 +1082,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     splitExpenses: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isDemoTransaction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxValue: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                    transactionThreadReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
