@@ -9,7 +9,7 @@ type TransactionThreadInfo = {
     moneyRequestPreviewReportActionID: string;
     transactionThreadReportID?: string;
     transactionThreadCreatedReportActionID?: string;
-    unheldReportActionID?: string;
+    unholdReportActionID?: string;
     selfDMReportID?: string;
     selfDMCreatedReportActionID?: string;
 };
