@@ -69,7 +69,6 @@ import {
     getOriginalMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogDefaultBillableMessage,
-    getPolicyChangeLogDefaultReimbursableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getPolicyChangeLogDeleteMemberMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
@@ -1187,8 +1186,6 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogMaxExpenseAmountMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE)) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogDefaultBillableMessage(action)} />;
-        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_REIMBURSABLE)) {
-            children = <ReportActionItemBasicMessage message={getPolicyChangeLogDefaultReimbursableMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED)) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogDefaultTitleEnforcedMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
