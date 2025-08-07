@@ -36,7 +36,7 @@ function UnreportedExpensesSkeleton({fixedNumberOfItems}: {fixedNumberOfItems?: 
     const [pageWidth, setPageWidth] = React.useState(0);
     useLayoutEffect(() => {
         containerRef.current?.measure((x, y, width) => {
-            setPageWidth(width - 24);
+            setPageWidth(width - 40);
         });
     }, []);
 
@@ -85,7 +85,7 @@ function UnreportedExpensesSkeleton({fixedNumberOfItems}: {fixedNumberOfItems?: 
         >
             <ItemListSkeletonView
                 itemViewHeight={64}
-                itemViewStyle={[styles.highlightBG, styles.mb2, styles.br2, styles.ml3, styles.mr3]}
+                itemViewStyle={[styles.highlightBG, styles.mb2, styles.br2, styles.ml5, styles.mr5]}
                 shouldAnimate
                 fixedNumItems={fixedNumberOfItems}
                 renderSkeletonItem={skeletonItem}
