@@ -8,7 +8,7 @@ import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
-import {getCleanedTagName} from '@libs/PolicyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
@@ -112,7 +112,7 @@ function SplitListItem<TItem extends ListItem>({
                                         numberOfLines={1}
                                         style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                     >
-                                        {getCleanedTagName(splitItem.tags?.at(0) ?? '')}
+                                        {getCommaSeparatedTagNameWithSanitizedColons(splitItem.tags?.at(0) ?? '')}
                                     </Text>
                                 </View>
                             )}
@@ -160,9 +160,10 @@ function SplitListItem<TItem extends ListItem>({
                                 containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
                                 touchableInputWrapperStyle={[styles.ml3]}
                                 maxLength={formattedOriginalAmount.length + 1}
+                                contentWidth={contentWidth}
                                 shouldApplyPaddingToContainer
                                 shouldUseDefaultLineHeightForPrefix={false}
-                                contentWidth={contentWidth}
+                                shouldWrapInputInContainer={false}
                             />
                         )}
                     </View>
