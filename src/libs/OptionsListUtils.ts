@@ -34,6 +34,7 @@ import type {
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageMovedTransaction} from '@src/types/onyx/OriginalMessage';
+import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Timing from './actions/Timing';
 import {getEnabledCategoriesCount} from './CategoryUtils';
@@ -880,6 +881,7 @@ function createOption(
     report: OnyxInputOrEntry<Report>,
     config?: PreviewConfig,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+    transactions?: SearchTransaction[],
 ): OptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
     const result: OptionData = {
@@ -990,7 +992,9 @@ function createOption(
         // If displaying chat preview line is needed, let's overwrite the default alternate text
         result.alternateText = showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview});
 
-        reportName = showPersonalDetails ? getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '') : getReportName(report);
+        reportName = showPersonalDetails
+            ? getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '')
+            : getReportName(report, undefined, undefined, undefined, undefined, undefined, transactions);
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         reportName = getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '');
@@ -1224,6 +1228,7 @@ function processReport(
     report: OnyxEntry<Report>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+    transactions?: SearchTransaction[],
 ): {
     reportMapEntry?: [number, Report]; // The entry to add to reportMapForAccountIDs if applicable
     reportOption: SearchOption<Report> | null; // The report option to add to allReportOptions if applicable
@@ -1247,7 +1252,7 @@ function processReport(
         reportMapEntry,
         reportOption: {
             item: report,
-            ...createOption(accountIDs, personalDetails, report, undefined, reportAttributesDerived),
+            ...createOption(accountIDs, personalDetails, report, undefined, reportAttributesDerived, transactions),
         },
     };
 }
@@ -1634,7 +1639,7 @@ function getUserToInviteContactOption({
     return userToInvite;
 }
 
-function isValidReport(reportOption: SearchOption<Report>, config: GetValidReportsConfig): boolean {
+function isValidReport(option: SearchOption<Report>, config: GetValidReportsConfig): boolean {
     const {
         betas = [],
         includeMultipleParticipantReports = false,
@@ -1654,14 +1659,11 @@ function isValidReport(reportOption: SearchOption<Report>, config: GetValidRepor
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
 
-    // eslint-disable-next-line rulesdir/prefer-at
-    const option = reportOption;
-    const report = reportOption.item;
-    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${option.chatReportID}`];
-    const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${option.item.chatReportID}`];
+    const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(option.item, transactionViolations);
 
     const shouldBeInOptionList = shouldReportBeInOptionList({
-        report,
+        report: option.item,
         chatReport,
         currentReportId: topmostReportId,
         betas,
@@ -1684,13 +1686,13 @@ function isValidReport(reportOption: SearchOption<Report>, config: GetValidRepor
     const isMoneyRequestReport = option.isMoneyRequestReport;
     const isSelfDM = option.isSelfDM;
     const isChatRoom = option.isChatRoom;
-    const accountIDs = getParticipantsAccountIDsForDisplay(report);
+    const accountIDs = getParticipantsAccountIDsForDisplay(option.item);
 
     if (excludeNonAdminWorkspaces && !isPolicyAdmin(option.policyID, policies)) {
         return false;
     }
 
-    if (isPolicyExpenseChat && report?.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
+    if (isPolicyExpenseChat && option.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
         return false;
     }
     // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to expense chats only.
@@ -1714,12 +1716,12 @@ function isValidReport(reportOption: SearchOption<Report>, config: GetValidRepor
         return false;
     }
 
-    if (!canUserPerformWriteAction(report) && !includeReadOnly) {
+    if (!canUserPerformWriteAction(option.item) && !includeReadOnly) {
         return false;
     }
 
     // In case user needs to add credit bank account, don't allow them to submit an expense from the workspace.
-    if (includeOwnedWorkspaceChats && hasIOUWaitingOnCurrentUserBankAccount(report)) {
+    if (includeOwnedWorkspaceChats && hasIOUWaitingOnCurrentUserBankAccount(option.item)) {
         return false;
     }
 
@@ -1734,7 +1736,7 @@ function isValidReport(reportOption: SearchOption<Report>, config: GetValidRepor
         option.isPolicyExpenseChat && option.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !option.private_isArchived;
 
     const shouldShowInvoiceRoom =
-        includeInvoiceRooms && isInvoiceRoom(report) && isPolicyAdmin(option.policyID, policies) && !option.private_isArchived && canSendInvoiceFromWorkspace(report.policyID);
+        includeInvoiceRooms && isInvoiceRoom(option.item) && isPolicyAdmin(option.policyID, policies) && !option.private_isArchived && canSendInvoiceFromWorkspace(option.policyID);
 
     /*
     Exclude the report option if it doesn't meet any of the following conditions:
@@ -1929,10 +1931,7 @@ function getValidOptions(
 
     if (includeRecentReports) {
         // if maxElements is passed, filter the recent reports by searchString and return only most recent reports (@see recentReportsComparator)
-        const searchTerms = deburr(searchString ?? '')
-            .toLowerCase()
-            .split(' ')
-            .filter((term) => term.length > 0);
+        const searchTerms = processSearchString(searchString);
 
         const filteringFunction = (report: SearchOption<Report>) => {
             let searchText = `${report.text ?? ''}${report.login ?? ''}`;
@@ -1945,7 +1944,7 @@ function getValidOptions(
                 searchText += `${report.subtitle ?? ''}${report.policyName ?? ''}`;
             }
             searchText = deburr(searchText.toLocaleLowerCase());
-            const searchTermsFound = searchTerms.length > 0 ? searchTerms.every((term) => searchText.includes(term)) : true;
+            const searchTermsFound = searchTerms.every((term) => searchText.includes(term));
 
             if (!searchTermsFound) {
                 return false;
@@ -2005,10 +2004,7 @@ function getValidOptions(
             };
         }
 
-        const searchTerms = deburr(searchString ?? '')
-            .toLowerCase()
-            .split(' ')
-            .filter((term) => term.length > 0);
+        const searchTerms = processSearchString(searchString);
         const filteringFunction = (personalDetail: OptionData) => {
             if (
                 !personalDetail?.login ||
@@ -2025,7 +2021,7 @@ function getValidOptions(
             }
             const searchText = deburr(`${personalDetail.text ?? ''} ${personalDetail.login ?? ''}`.toLocaleLowerCase());
 
-            return searchTerms.length > 0 ? searchTerms.every((term) => searchText.includes(term)) : true;
+            return searchTerms.every((term) => searchText.includes(term));
         };
 
         personalDetailsOptions = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxElements, filteringFunction, true);
@@ -2692,7 +2688,9 @@ function shallowOptionsListCompare(a: OptionList, b: OptionList): boolean {
         return false;
     }
     for (let i = 0; i < a.reports.length; i++) {
-        if (a.reports.at(i)?.reportID !== b.reports.at(i)?.reportID) {
+        const aReport = a.reports.at(i);
+        const bReport = b.reports.at(i);
+        if (aReport?.reportID !== bReport?.reportID || aReport?.text !== bReport?.text) {
             return false;
         }
     }
@@ -2702,6 +2700,18 @@ function shallowOptionsListCompare(a: OptionList, b: OptionList): boolean {
         }
     }
     return true;
+}
+
+/**
+ * Process a search string into normalized search terms
+ * @param searchString - The raw search string to process
+ * @returns Array of normalized search terms
+ */
+function processSearchString(searchString: string | undefined): string[] {
+    return deburr(searchString ?? '')
+        .toLowerCase()
+        .split(' ')
+        .filter((term) => term.length > 0);
 }
 
 export {

@@ -1770,6 +1770,8 @@ function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): Sear
             return [...(hasFeed ? [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT] : []), CONST.SEARCH.DATE_PRESETS.LAST_MONTH];
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
             return [CONST.SEARCH.DATE_PRESETS.NEVER];
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
+            return [CONST.SEARCH.DATE_PRESETS.LAST_MONTH];
         default:
             return undefined;
     }
