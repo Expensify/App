@@ -3669,12 +3669,6 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
-        threeDotsPopoverOffset: (windowWidth: number) =>
-            ({
-                ...getPopOverVerticalOffset(60),
-                horizontal: windowWidth - 60,
-            }) satisfies AnchorPosition,
-
         popoverMenuOffset: (windowWidth: number) =>
             ({
                 ...getPopOverVerticalOffset(180),

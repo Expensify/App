@@ -39,7 +39,7 @@ function CardSectionActions() {
     return (
         <View ref={threeDotsMenuContainerRef}>
             <ThreeDotsMenu
-                getAnchorPosition={() => calculatePopoverPosition(threeDotsMenuContainerRef)}
+                getAnchorPosition={() => calculatePopoverPosition(threeDotsMenuContainerRef, anchorAlignment)}
                 menuItems={overflowMenu}
                 anchorAlignment={anchorAlignment}
                 shouldOverlay

@@ -14,6 +14,11 @@ type SavedSearchItemThreeDotMenuProps = {
     shouldRenderTooltip: boolean;
 };
 
+const anchorAlignment = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+};
+
 function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, hideProductTrainingTooltip, renderTooltipContent, shouldRenderTooltip}: SavedSearchItemThreeDotMenuProps) {
     const threeDotsMenuContainerRef = useRef<View>(null);
     const styles = useThemeStyles();
@@ -27,13 +32,10 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, hideProductTrai
         >
             <ThreeDotsMenu
                 menuItems={menuItems}
-                getAnchorPosition={() => calculatePopoverPosition(threeDotsMenuContainerRef)}
+                getAnchorPosition={() => calculatePopoverPosition(threeDotsMenuContainerRef, anchorAlignment)}
                 renderProductTrainingTooltipContent={renderTooltipContent}
                 shouldShowProductTrainingTooltip={shouldRenderTooltip}
-                anchorAlignment={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                }}
+                anchorAlignment={anchorAlignment}
                 iconStyles={styles.wAuto}
                 hideProductTrainingTooltip={hideProductTrainingTooltip}
             />

@@ -43,7 +43,7 @@ function Popover(props: PopoverProps) {
             return;
         }
         onClose?.();
-    }, [onClose, isSidePanelTransitionEnded]);
+    }, [onClose, isSidePanelTransitionEnded, isSmallScreenWidth, isVisible]);
 
     // Not adding this inside the PopoverProvider
     // because this is an issue on smaller screens as well.

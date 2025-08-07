@@ -65,6 +65,11 @@ type RouteParams = {
     shouldDisconnectIntegrationBeforeConnecting?: boolean;
 };
 
+const anchorAlignment = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+};
+
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
@@ -387,12 +392,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 ) : (
                     <View ref={threeDotsMenuContainerRef}>
                         <ThreeDotsMenu
-                            getAnchorPosition={() => calculatePopoverPosition(threeDotsMenuContainerRef)}
+                            getAnchorPosition={() => calculatePopoverPosition(threeDotsMenuContainerRef, anchorAlignment)}
                             menuItems={overflowMenu}
-                            anchorAlignment={{
-                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                            }}
+                            anchorAlignment={anchorAlignment}
                         />
                     </View>
                 ),

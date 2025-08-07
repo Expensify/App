@@ -83,6 +83,8 @@ type BrickRoadIndicatorIconProps = {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
 
+const anchorAlignment = {horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP};
+
 const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType']): IconAsset => {
     switch (workspaceType) {
         case CONST.POLICY.TYPE.CORPORATE:
@@ -191,9 +193,9 @@ function WorkspacesListRow({
                     </View>
                     <View ref={threeDotsMenuContainerRef}>
                         <ThreeDotsMenu
-                            getAnchorPosition={() => calculatePopoverPosition(threeDotsMenuContainerRef)}
+                            getAnchorPosition={() => calculatePopoverPosition(threeDotsMenuContainerRef, anchorAlignment)}
                             menuItems={menuItems}
-                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                            anchorAlignment={anchorAlignment}
                             shouldOverlay
                             disabled={shouldDisableThreeDotsMenu}
                             isNested

@@ -27,8 +27,8 @@ type EditReportFieldPageProps = PlatformStackScreenProps<EditRequestNavigatorPar
 function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const {backTo, reportID, policyID} = route.params;
     const fieldKey = getReportFieldKey(route.params.fieldID);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
     const policyField = policy?.fieldList?.[fieldKey] ?? reportField;
     const isDisabled = isReportFieldDisabled(report, reportField, policy);

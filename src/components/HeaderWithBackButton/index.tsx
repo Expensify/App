@@ -154,7 +154,7 @@ function HeaderWithBackButton({
             ) : (
                 <View ref={threeDotContainerRef}>
                     <ThreeDotsMenu
-                        getAnchorPosition={() => calculatePopoverPosition(threeDotContainerRef)}
+                        getAnchorPosition={() => calculatePopoverPosition(threeDotContainerRef, threeDotsAnchorAlignment)}
                         icon={threeDotsMenuIcon}
                         iconFill={threeDotsMenuIconFill}
                         disabled={shouldDisableThreeDotsButton}
