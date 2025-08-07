@@ -11738,6 +11738,13 @@ function dismissDeclineUseExplanation() {
     });
 }
 
+/**
+ * Decline a money request
+ * @param transactionID - The ID of the transaction to decline
+ * @param reportID - The ID of the expense report to decline
+ * @param comment - The comment to add to the decline action
+ * @returns The route to navigate back to
+ */
 function declineMoneyRequest(transactionID: string, reportID: string, comment: string): Route | undefined {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -11752,23 +11759,11 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     const childReportID = reportAction?.childReportID;
 
     const autoAddedActionReportActionID = NumberUtils.rand64();
-    const removedFromReportActionID = NumberUtils.rand64();
     let movedToReport;
     let movedToReportID;
     let urlToNavigateBack;
 
-    const hasMultipleExpenses = (() => {
-        let count = 0;
-        for (const key in allTransactions ?? {}) {
-            if (allTransactions?.[key]?.reportID === reportID) {
-                count++;
-                if (count > 1) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    })();
+    const hasMultipleExpenses = getReportTransactions(reportID).length > 1;
 
     // Build optimistic data updates
     const optimisticData: OnyxUpdate[] = [];
@@ -11799,7 +11794,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: null,
             });
-            urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(report.chatReportID);
+            urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(childReportID);
         }
     } else if (hasMultipleExpenses) {
         // For reports with multiple expenses:
@@ -11827,11 +11822,6 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 },
             });
         } else {
-            // const transactionOwner = reportAction?.actorAccountID ?? currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
-            // const personalDetails = getPersonalDetailsForAccountID(transactionOwner);
-            // if (!personalDetails) {
-            //     return;
-            // }
             movedToReportID = generateReportID();
         }
         optimisticData.push(
@@ -11862,8 +11852,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             },
         });
-        // movedToReportID = reportID;
-        urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(report.chatReportID);
+        urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(childReportID);
     }
 
     // Add rter transaction violation
@@ -11977,8 +11966,8 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         comment,
         movedToReportID,
         autoAddedActionReportActionID,
-        removedFromReportActionID,
-        declinedActionReportActionID: '', // Let the server create the decline action
+        removedFromReportActionID: optimisticRemoveReportAction.reportActionID,
+        declinedActionReportActionID: optimisticDeclineReportAction.reportActionID,
         declinedCommentReportActionID: optimisticDeclineReportActionComment.reportActionID,
     };
 
