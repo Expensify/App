@@ -1,6 +1,6 @@
+import type {VideoPlayer, VideoView} from 'expo-video';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import type {View} from 'react-native';
-import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
 import {getReportOrDraftReport, isChatThread} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -16,6 +16,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     const [sharedElement, setSharedElement] = useState<PlaybackContextValues['sharedElement']>(null);
     const [originalParent, setOriginalParent] = useState<OriginalParent>(null);
     const [currentRouteReportID, setCurrentRouteReportID] = useState<ProtectedCurrentRouteReportID>(NO_REPORT_ID);
+
     const resetContextProperties = () => {
         setSharedElement(null);
         setOriginalParent(null);
@@ -57,7 +58,8 @@ function PlaybackContextProvider({children}: ChildrenProps) {
 
     const shareVideoPlayerElements: PlaybackContextValues['shareVideoPlayerElements'] = useCallback(
         (
-            ref: VideoWithOnFullScreenUpdate | null,
+            playerRef: VideoPlayer | null,
+            viewRef: VideoView | null,
             parent: View | HTMLDivElement | null,
             child: View | HTMLDivElement | null,
             shouldNotAutoPlay: boolean,
@@ -67,12 +69,14 @@ function PlaybackContextProvider({children}: ChildrenProps) {
                 return;
             }
 
-            video.updateRef(ref);
+            video.updateRefs(playerRef, viewRef);
             setOriginalParent(parent);
             setSharedElement(child);
             // Prevents autoplay when uploading the attachment
             if (!shouldNotAutoPlay) {
-                video.play();
+                // causes 'The request is not allowed by the user agent or the platform in the current context, possibly because the user denied permission.'
+                // video.play();
+                
             }
         },
         [currentRouteReportID, currentlyPlayingURL, video],
@@ -111,11 +115,12 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             sharedElement,
             shareVideoPlayerElements,
             setCurrentlyPlayingURL,
-            currentVideoPlayerRef: video.ref,
+            currentVideoPlayerRef: video.playerRef,
+            currentVideoViewRef: video.viewRef,
             playVideo: video.play,
             pauseVideo: video.pause,
+            replayVideo: video.replay,
             checkIfVideoIsPlaying: video.isPlaying,
-            videoResumeTryNumberRef: video.resumeTryNumberRef,
             resetVideoPlayerData: video.resetPlayerData,
         }),
         [updateCurrentURLAndReportID, currentlyPlayingURL, currentRouteReportID, originalParent, sharedElement, video, shareVideoPlayerElements],
