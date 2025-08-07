@@ -116,8 +116,10 @@ function BaseModal(
 
     const {sidePanelOffset} = useSidePanel();
     const sidePanelStyle = !shouldUseReanimatedModal && shouldApplySidePanelOffset && !isSmallScreenWidth ? {paddingRight: sidePanelOffset.current} : undefined;
-    const sidePanelReanimatedStyle =
-        shouldUseReanimatedModal && shouldApplySidePanelOffset && !isSmallScreenWidth ? {transform: [{translateX: Animated.multiply(sidePanelOffset.current, -1)}]} : undefined;
+    const sidePanelAnimatedStyle =
+        (shouldUseReanimatedModal || type === CONST.MODAL.MODAL_TYPE.POPOVER) && shouldApplySidePanelOffset && !isSmallScreenWidth
+            ? {transform: [{translateX: Animated.multiply(sidePanelOffset.current, -1)}]}
+            : undefined;
     const keyboardStateContextValue = useKeyboardState();
 
     const [modalOverlapsWithTopSafeArea, setModalOverlapsWithTopSafeArea] = useState(false);
@@ -415,7 +417,7 @@ function BaseModal(
                             >
                                 <Animated.View
                                     onLayout={onViewLayout}
-                                    style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone, sidePanelReanimatedStyle]}
+                                    style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone, sidePanelAnimatedStyle]}
                                     ref={ref}
                                 >
                                     <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
