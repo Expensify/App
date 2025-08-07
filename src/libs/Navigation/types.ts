@@ -11,6 +11,7 @@ import type {
     Route,
 } from '@react-navigation/native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {SearchQueryString} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
@@ -2062,6 +2063,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     };
     [SCREENS.WORKSPACE_AVATAR]: {
         policyID: string;
+        letter?: UpperCaseCharacters;
     };
     [SCREENS.WORKSPACE_JOIN_USER]: {
         policyID: string;

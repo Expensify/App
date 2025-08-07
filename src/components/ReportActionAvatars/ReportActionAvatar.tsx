@@ -3,6 +3,7 @@ import React, {useMemo} from 'react';
 import type {ColorValue, ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import {WorkspaceBuilding} from '@components/Icon/WorkspaceDefaultAvatars';
@@ -67,7 +68,7 @@ type AvatarSizeToStylesMap = Record<AvatarSizeToStyles, AvatarStyles>;
 
 function ProfileAvatar(props: Parameters<typeof Avatar>[0] & {useProfileNavigationWrapper?: boolean}) {
     const {translate} = useLocalize();
-    const {avatarID, useProfileNavigationWrapper, type} = props;
+    const {avatarID, useProfileNavigationWrapper, type, name} = props;
 
     if (!useProfileNavigationWrapper) {
         return (
@@ -77,10 +78,11 @@ function ProfileAvatar(props: Parameters<typeof Avatar>[0] & {useProfileNavigati
     }
 
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
+    const firstLetter = (name?.at(0) ?? 'A').toUpperCase() as UpperCaseCharacters;
 
     const onPress = () => {
         if (isWorkspace) {
-            return Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(String(avatarID)));
+            return Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(String(avatarID), firstLetter));
         }
         return Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(Number(avatarID), Navigation.getActiveRoute()));
     };
