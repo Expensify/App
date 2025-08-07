@@ -677,6 +677,7 @@ const CONST = {
         EUR_BILLING: 'eurBilling',
         MANUAL_DISTANCE: 'manualDistance',
         VACATION_DELEGATE: 'vacationDelegate',
+        UBER_FOR_BUSINESS: 'uberForBusiness',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -2899,6 +2900,7 @@ const CONST = {
             ARE_WORKFLOWS_ENABLED: 'areWorkflowsEnabled',
             ARE_REPORT_FIELDS_ENABLED: 'areReportFieldsEnabled',
             ARE_CONNECTIONS_ENABLED: 'areConnectionsEnabled',
+            ARE_RECEIPT_PARTNERS_ENABLED: 'areReceiptPartnersEnabled',
             ARE_COMPANY_CARDS_ENABLED: 'areCompanyCardsEnabled',
             ARE_EXPENSIFY_CARDS_ENABLED: 'areExpensifyCardsEnabled',
             ARE_INVOICES_ENABLED: 'areInvoicesEnabled',

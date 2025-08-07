@@ -620,6 +620,7 @@ const SCREENS = {
         UPGRADE: 'Workspace_Upgrade',
         DOWNGRADE: 'Workspace_Downgrade',
         PAY_AND_DOWNGRADE: 'Workspace_Pay_And_Downgrade',
+        RECEIPT_PARTNERS: 'Workspace_Receipt_Partners',
         RULES: 'Policy_Rules',
         REPORTS_DEFAULT_TITLE: 'Reports_Default_Title',
         RULES_AUTO_APPROVE_REPORTS_UNDER: 'Rules_Auto_Approve_Reports_Under',

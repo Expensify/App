@@ -3412,6 +3412,7 @@ const translations = {
             travel: 'Reis',
             members: 'Leden',
             accounting: 'Boekhouding',
+            receiptPartners: 'Bonnetjespartners',
             rules: 'Regels',
             displayedAs: 'Weergegeven als',
             plan: 'Plan',
@@ -4621,11 +4622,20 @@ const translations = {
                 title: 'Boekhouding',
                 subtitle: 'Synchroniseer uw rekeningschema en meer.',
             },
+            receiptPartners: {
+                title: 'Bonnetjespartners',
+                subtitle: 'Automatisch bonnetjes importeren.',
+            },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Niet zo snel...',
                 featureEnabledText: 'Om deze functie in of uit te schakelen, moet je je boekhoudimportinstellingen wijzigen.',
                 disconnectText: 'Om boekhouding uit te schakelen, moet je de boekhoudkoppeling van je werkruimte loskoppelen.',
                 manageSettings: 'Instellingen beheren',
+            },
+            receiptPartnersWarningModal: {
+                featureEnabledTitle: 'Uber verbreken',
+                disconnectText: 'Om deze functie uit te schakelen, verbreek eerst de Uber for Business integratie.',
+                confirmText: 'Begrepen',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Niet zo snel...',

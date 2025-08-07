@@ -3365,6 +3365,7 @@ const translations = {
             travel: '旅行',
             members: '成员',
             accounting: '会计',
+            receiptPartners: '收据合作伙伴',
             rules: '规则',
             displayedAs: '显示为',
             plan: '计划',
@@ -4536,11 +4537,20 @@ const translations = {
                 title: '会计',
                 subtitle: '同步您的会计科目表及更多内容。',
             },
+            receiptPartners: {
+                title: '收据合作伙伴',
+                subtitle: '自动导入收据。',
+            },
             connectionsWarningModal: {
                 featureEnabledTitle: '慢着...',
                 featureEnabledText: '要启用或禁用此功能，您需要更改会计导入设置。',
                 disconnectText: '要禁用会计功能，您需要从工作区断开会计连接。',
                 manageSettings: '管理设置',
+            },
+            receiptPartnersWarningModal: {
+                featureEnabledTitle: '断开Uber连接',
+                disconnectText: '要禁用此功能，请先断开Uber for Business集成。',
+                confirmText: '明白了',
             },
             workflowWarningModal: {
                 featureEnabledTitle: '慢着...',
