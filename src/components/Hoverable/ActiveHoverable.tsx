@@ -110,7 +110,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
     const {onMouseEnter, onMouseLeave} = child.props as OnMouseEvents;
 
     return cloneElement(child, {
-        ref: mergeRefs(elementRef, ref, child.ref),
+        ref: mergeRefs(elementRef, ref, child.props.ref),
         onMouseEnter: (e: React.MouseEvent) => {
             handleMouseEvents('enter')();
             onMouseEnter?.(e);

@@ -16,7 +16,7 @@ function Hoverable({isDisabled, ref, ...props}: HoverableProps) {
     if (isDisabled || !hasHoverSupport()) {
         const child = getReturnValue(props.children, false);
         // eslint-disable-next-line react-compiler/react-compiler
-        return cloneElement(child, {ref: mergeRefs(ref, child.ref)} as React.HTMLAttributes<HTMLElement>);
+        return cloneElement(child, {ref: mergeRefs(ref, child.props.ref)} as React.HTMLAttributes<HTMLElement>);
     }
 
     return (
