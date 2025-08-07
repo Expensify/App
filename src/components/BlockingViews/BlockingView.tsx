@@ -147,7 +147,7 @@ function BlockingView({
             <View>
                 <Text style={[styles.notFoundTextHeader]}>{title}</Text>
 
-                {!!CustomSubtitle && CustomSubtitle}
+                {CustomSubtitle}
                 {!CustomSubtitle && (
                     <SubtitleWrapper style={subtitleWrapperStyle}>
                         {!!subtitleKeyBelowLink && !!linkKey ? (
