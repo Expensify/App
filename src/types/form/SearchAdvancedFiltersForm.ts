@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type {SearchDateFilterKeys, SearchGroupBy} from '@components/Search/types';
+import type {SearchDateFilterKeys, SearchGroupBy, SearchWithdrawalType} from '@components/Search/types';
 import CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type Form from './Form';
@@ -36,6 +36,7 @@ const FILTER_KEYS = {
     POSTED_ON: 'postedOn',
     POSTED_AFTER: 'postedAfter',
     POSTED_BEFORE: 'postedBefore',
+    WITHDRAWAL_TYPE: 'withdrawalType',
     WITHDRAWN_ON: 'withdrawnOn',
     WITHDRAWN_AFTER: 'withdrawnAfter',
     WITHDRAWN_BEFORE: 'withdrawnBefore',
@@ -90,6 +91,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.POSTED_AFTER,
         FILTER_KEYS.POSTED_BEFORE,
         FILTER_KEYS.POSTED_ON,
+        FILTER_KEYS.WITHDRAWAL_TYPE,
         FILTER_KEYS.WITHDRAWN_AFTER,
         FILTER_KEYS.WITHDRAWN_BEFORE,
         FILTER_KEYS.WITHDRAWN_ON,
@@ -137,6 +139,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.POSTED_AFTER,
         FILTER_KEYS.POSTED_BEFORE,
         FILTER_KEYS.POSTED_ON,
+        FILTER_KEYS.WITHDRAWAL_TYPE,
         FILTER_KEYS.WITHDRAWN_AFTER,
         FILTER_KEYS.WITHDRAWN_BEFORE,
         FILTER_KEYS.WITHDRAWN_ON,
@@ -251,6 +254,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.POSTED_ON]: string;
         [FILTER_KEYS.POSTED_AFTER]: string;
         [FILTER_KEYS.POSTED_BEFORE]: string;
+        [FILTER_KEYS.WITHDRAWAL_TYPE]: SearchWithdrawalType;
         [FILTER_KEYS.WITHDRAWN_ON]: string;
         [FILTER_KEYS.WITHDRAWN_AFTER]: string;
         [FILTER_KEYS.WITHDRAWN_BEFORE]: string;
