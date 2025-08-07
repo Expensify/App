@@ -32,6 +32,26 @@ import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
+jest.mock('react-native-blob-util', () => {
+    const mockFetch = jest.fn(() =>
+        Promise.resolve({
+            path: jest.fn(() => '/mocked/path/to/file'),
+        }),
+    );
+
+    return {
+        config: jest.fn(() => ({
+            fetch: mockFetch,
+        })),
+        fs: {
+            dirs: {
+                DocumentDir: '/mocked/document/dir',
+            },
+        },
+        fetch: mockFetch,
+    };
+});
+
 jest.mock('@libs/NextStepUtils', () => ({
     buildNextStep: jest.fn(),
 }));
