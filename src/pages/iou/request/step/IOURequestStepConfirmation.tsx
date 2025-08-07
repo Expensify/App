@@ -35,6 +35,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
+import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import {getAttendees, getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints, hasReceipt, isScanRequest} from '@libs/TransactionUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
@@ -240,7 +241,7 @@ function IOURequestStepConfirmation({
         });
     }, [transactionIDs, defaultBillable]);
 
-    const defaultReimbursable = !!policy?.defaultReimbursable;
+    const defaultReimbursable = isPaidGroupPolicy(policy) ? !!policy?.defaultReimbursable : true;
     useEffect(() => {
         transactionIDs.forEach((transactionID) => {
             setMoneyRequestReimbursable(transactionID, defaultReimbursable);

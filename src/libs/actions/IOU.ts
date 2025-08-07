@@ -3315,6 +3315,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         taxCode,
         taxAmount,
         billable,
+        reimbursable,
         linkedTrackedExpenseReportAction,
     } = transactionParams;
 
@@ -3404,6 +3405,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             source,
             taxAmount: isExpenseReport(iouReport) ? -(taxAmount ?? 0) : taxAmount,
             billable,
+            reimbursable,
             pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
         },
         isDemoTransactionParam: isSelectedManagerMcTest(participant.login) || transactionParams.receipt?.isTestDriveReceipt,
@@ -11818,6 +11820,7 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, isOpenC
                 participants: transaction?.participants,
                 attendees: transactionDetails?.attendees as Attendee[],
                 reportID: originalTransaction?.reportID,
+                reimbursable: transactionDetails?.reimbursable,
             },
         });
 
@@ -11865,6 +11868,7 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, isOpenC
             participants: transaction?.participants,
             attendees: transactionDetails?.attendees as Attendee[],
             reportID,
+            reimbursable: transactionDetails?.reimbursable,
         },
     });
 
@@ -12065,6 +12069,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
                 originalTransactionID,
                 attendees: draftTransaction?.comment?.attendees,
                 source: CONST.IOU.TYPE.SPLIT,
+                reimbursable: draftTransaction?.reimbursable,
             },
         };
 
