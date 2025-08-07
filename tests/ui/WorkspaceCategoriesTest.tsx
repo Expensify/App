@@ -252,7 +252,6 @@ describe('WorkspaceCategories', () => {
             currentTarget: disableMenuItem,
         };
         fireEvent.press(disableMenuItem, mockEvent);
-        console.log('Modal state after press:', screen.debug());
 
         await waitForBatchedUpdatesWithAct();
 
