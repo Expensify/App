@@ -43,6 +43,12 @@ type ColumnsToShow = {
 
     /** Whether the tax column should be shown */
     shouldShowTaxColumn: boolean;
+
+    /** Whether the from column should be shown */
+    shouldShowFromColumn: boolean;
+
+    /** Whether the to column should be shown */
+    shouldShowToColumn: boolean;
 };
 
 /** Model of search result state */
