@@ -16,18 +16,6 @@ import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils'
 import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
 
-let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allPolicyTags = {};
-            return;
-        }
-        allPolicyTags = value;
-    },
-});
 
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
@@ -169,10 +157,12 @@ function getForReportAction({
     reportOrID,
     reportAction,
     searchReports,
+    policyTags,
 }: {
     reportOrID: string | SearchReport | undefined;
     reportAction: OnyxEntry<ReportAction>;
     searchReports?: SearchReport[];
+    policyTags?: OnyxCollection<PolicyTagLists>;
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
@@ -271,16 +261,16 @@ function getForReportAction({
 
     const hasModifiedTag = isReportActionOriginalMessageAnObject && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
     if (hasModifiedTag) {
-        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`] ?? {};
+        const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`] ?? {};
         const transactionTag = reportActionOriginalMessage?.tag ?? '';
         const oldTransactionTag = reportActionOriginalMessage?.oldTag ?? '';
         const splittedTag = getTagArrayFromName(transactionTag);
         const splittedOldTag = getTagArrayFromName(oldTransactionTag);
         const localizedTagListName = translateLocal('common.tag');
-        const sortedTagKeys = getSortedTagKeys(policyTags);
+        const sortedTagKeys = getSortedTagKeys(reportPolicyTags);
 
         sortedTagKeys.forEach((policyTagKey, index) => {
-            const policyTagListName = policyTags[policyTagKey].name || localizedTagListName;
+            const policyTagListName = reportPolicyTags[policyTagKey].name || localizedTagListName;
 
             const newTag = splittedTag.at(index) ?? '';
             const oldTag = splittedOldTag.at(index) ?? '';
