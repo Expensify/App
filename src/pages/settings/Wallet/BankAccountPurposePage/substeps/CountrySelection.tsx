@@ -1,18 +1,13 @@
-import React, {useCallback, useMemo} from 'react';
-import useOnyx from '@hooks/useOnyx';
-import Navigation from '@libs/Navigation/Navigation';
+import React, {useCallback} from 'react';
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
+import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-type CountrySelectionProps = {
 
-}
-
-function CountrySelection({}: CountrySelectionProps) {
-    const onCountrySelected = useCallback((country: string) => {
-      console.log(country)
+function CountrySelection() {
+    const onCountrySelected = useCallback(() => {
+        navigateToBankAccountRoute(CONST.DEFAULT_NUMBER_ID.toString(), ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE);
     }, []);
 
     return (

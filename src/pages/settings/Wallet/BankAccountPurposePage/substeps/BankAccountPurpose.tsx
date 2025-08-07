@@ -7,8 +7,14 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 
-function BankAccountPurpose() {
+type BankAccountPurposeProps = {
+    /** Callback to call when the user selects a purpose */
+    showCountrySelectionStep: () => void;
+};
+
+function BankAccountPurpose({showCountrySelectionStep}: BankAccountPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -21,7 +27,7 @@ function BankAccountPurpose() {
                     title={translate('bankAccount.getReimbursed')}
                     description={translate('bankAccount.getReimbursedDescription')}
                     shouldShowRightIcon
-                    onPress={() => {}}
+                    onPress={showCountrySelectionStep}
                     displayInDefaultIconColor
                     iconStyles={[styles.ml3, styles.mr2]}
                     iconWidth={variables.menuIconSize}
@@ -33,7 +39,7 @@ function BankAccountPurpose() {
                     title={translate('bankAccount.makePayments')}
                     description={translate('bankAccount.makePaymentsDescription')}
                     shouldShowRightIcon
-                    onPress={() => {}}
+                    onPress={() => openPersonalBankAccountSetupView({})}
                     displayInDefaultIconColor
                     iconStyles={[styles.ml3, styles.mr2]}
                     iconWidth={variables.menuIconSize}

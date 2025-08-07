@@ -1,13 +1,18 @@
-import React from 'react';
+import React, {useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@navigation/Navigation';
+import BankAccountPurpose from './substeps/BankAccountPurpose';
 import CountrySelection from './substeps/CountrySelection';
-
 
 function BankAccountPurposePage() {
     const {translate} = useLocalize();
+    const [showCountrySelection, setShowCountrySelection] = useState(false);
+
+    const showCountrySelectionStep = () => {
+        setShowCountrySelection(true);
+    };
 
     return (
         <ScreenWrapper
@@ -20,7 +25,7 @@ function BankAccountPurposePage() {
                 onBackButtonPress={() => Navigation.goBack()}
                 shouldDisplayHelpButton={false}
             />
-            <CountrySelection />
+            {showCountrySelection ? <CountrySelection /> : <BankAccountPurpose showCountrySelectionStep={showCountrySelectionStep} />}
         </ScreenWrapper>
     );
 }
