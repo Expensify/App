@@ -53,3 +53,4 @@ const getContacts = (deviceContacts: DeviceContact[] | [], localeCompare: Locale
 };
 
 export default getContacts;
+export {sortEmailObjects};
