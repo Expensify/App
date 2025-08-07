@@ -1,5 +1,5 @@
 import isEmpty from 'lodash/isEmpty';
-import {memo, default as React, useCallback, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
