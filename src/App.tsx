@@ -42,7 +42,6 @@ import {CurrentReportIDContextProvider} from './hooks/useCurrentReportID';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
-import './libs/HybridApp';
 import {AttachmentModalContextProvider} from './pages/media/AttachmentModalScreen/AttachmentModalContext';
 import './setup/backgroundTask';
 import './setup/hybridApp';
@@ -71,58 +70,48 @@ function App() {
                 <InitialURLContextProvider>
                     <HybridAppHandler />
                     <GestureHandlerRootView style={fill}>
-                        {/* Initialize metrics early to ensure the UI renders even when NewDot is hidden.
-                            This is necessary for iOS HybridApp's SignInPage to appear correctly without the bootsplash.
-                            See: https://github.com/Expensify/App/pull/65178#issuecomment-3139026551
-                        */}
-                        <SafeAreaProvider
-                            initialMetrics={{
-                                insets: {top: 0, right: 0, bottom: 0, left: 0},
-                                frame: {x: 0, y: 0, width: 0, height: 0},
-                            }}
+                        <ComposeProviders
+                            components={[
+                                OnyxListItemProvider,
+                                ThemeProvider,
+                                ThemeStylesProvider,
+                                ThemeIllustrationsProvider,
+                                SafeAreaProvider,
+                                HTMLEngineProvider,
+                                PortalProvider,
+                                SafeArea,
+                                LocaleContextProvider,
+                                PopoverContextProvider,
+                                CurrentReportIDContextProvider,
+                                ScrollOffsetContextProvider,
+                                AttachmentModalContextProvider,
+                                PickerStateProvider,
+                                EnvironmentProvider,
+                                CustomStatusBarAndBackgroundContextProvider,
+                                ActiveElementRoleProvider,
+                                ActionSheetAwareScrollViewProvider,
+                                PlaybackContextProvider,
+                                FullScreenContextProvider,
+                                VolumeContextProvider,
+                                VideoPopoverMenuContextProvider,
+                                KeyboardProvider,
+                                KeyboardStateProvider,
+                                SearchRouterContextProvider,
+                                ProductTrainingContextProvider,
+                                InputBlurContextProvider,
+                                FullScreenBlockingViewContextProvider,
+                                FullScreenLoaderContextProvider,
+                                KYCWallContextProvider,
+                            ]}
                         >
-                            <ComposeProviders
-                                components={[
-                                    OnyxListItemProvider,
-                                    ThemeProvider,
-                                    ThemeStylesProvider,
-                                    ThemeIllustrationsProvider,
-                                    HTMLEngineProvider,
-                                    PortalProvider,
-                                    SafeArea,
-                                    LocaleContextProvider,
-                                    PopoverContextProvider,
-                                    CurrentReportIDContextProvider,
-                                    ScrollOffsetContextProvider,
-                                    AttachmentModalContextProvider,
-                                    PickerStateProvider,
-                                    EnvironmentProvider,
-                                    CustomStatusBarAndBackgroundContextProvider,
-                                    ActiveElementRoleProvider,
-                                    ActionSheetAwareScrollViewProvider,
-                                    PlaybackContextProvider,
-                                    FullScreenContextProvider,
-                                    VolumeContextProvider,
-                                    VideoPopoverMenuContextProvider,
-                                    KeyboardProvider,
-                                    KeyboardStateProvider,
-                                    SearchRouterContextProvider,
-                                    ProductTrainingContextProvider,
-                                    InputBlurContextProvider,
-                                    FullScreenBlockingViewContextProvider,
-                                    FullScreenLoaderContextProvider,
-                                    KYCWallContextProvider,
-                                ]}
-                            >
-                                <CustomStatusBarAndBackground />
-                                <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                                    <ColorSchemeWrapper>
-                                        <Expensify />
-                                    </ColorSchemeWrapper>
-                                </ErrorBoundary>
-                                <NavigationBar />
-                            </ComposeProviders>
-                        </SafeAreaProvider>
+                            <CustomStatusBarAndBackground />
+                            <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                                <ColorSchemeWrapper>
+                                    <Expensify />
+                                </ColorSchemeWrapper>
+                            </ErrorBoundary>
+                            <NavigationBar />
+                        </ComposeProviders>
                     </GestureHandlerRootView>
                 </InitialURLContextProvider>
             </SplashScreenStateContextProvider>

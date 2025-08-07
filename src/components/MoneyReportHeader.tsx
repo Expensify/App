@@ -173,6 +173,7 @@ function MoneyReportHeader({
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${reportPDFFilename}`, {canBeMissing: true});
     const isDownloadingPDF = download?.isDownloading ?? false;
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const requestParentReportAction = useMemo(() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
             return null;
@@ -551,8 +552,8 @@ function MoneyReportHeader({
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
 
-    const exportSubMenuOptions: Record<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>>> = useMemo(
-        () => ({
+    const exportSubmenuOptions: Record<string, DropdownOption<string>> = useMemo(() => {
+        const options: Record<string, DropdownOption<string>> = {
             [CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV]: {
                 text: translate('export.basicExport'),
                 icon: Expensicons.Table,
@@ -613,9 +614,22 @@ function MoneyReportHeader({
                     markAsManuallyExported(moneyRequestReport?.reportID, connectedIntegration);
                 },
             },
-        }),
-        [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported, beginExportWithTemplate],
-    );
+        };
+
+        // If the user has any custom integration export templates, add them as export options
+        if (integrationsExportTemplates && integrationsExportTemplates.length > 0) {
+            for (const template of integrationsExportTemplates) {
+                options[template.name] = {
+                    text: template.name,
+                    icon: Expensicons.Table,
+                    value: template.name,
+                    onSelected: () => beginExportWithTemplate(template.name, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, transactionIDs),
+                };
+            }
+        }
+
+        return options;
+    }, [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported, beginExportWithTemplate, integrationsExportTemplates]);
 
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
@@ -761,8 +775,8 @@ function MoneyReportHeader({
         if (!moneyRequestReport) {
             return [];
         }
-        return getSecondaryExportReportActions(moneyRequestReport, policy, reportActions);
-    }, [moneyRequestReport, policy, reportActions]);
+        return getSecondaryExportReportActions(moneyRequestReport, policy, reportActions, integrationsExportTemplates ?? []);
+    }, [moneyRequestReport, policy, reportActions, integrationsExportTemplates]);
 
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
@@ -781,7 +795,7 @@ function MoneyReportHeader({
             text: translate('common.export'),
             backButtonText: translate('common.export'),
             icon: Expensicons.Export,
-            subMenuItems: secondaryExportActions.map((action) => exportSubMenuOptions[action]),
+            subMenuItems: secondaryExportActions.map((action) => exportSubmenuOptions[action as string]),
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF,
