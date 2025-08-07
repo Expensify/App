@@ -3,11 +3,12 @@ import type {ValueOf} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {getReportAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     getDisplayNameForParticipant,
     getIcons,
     getReportActionActorAccountID,
+    getWorkspaceIcon,
     isChatThread,
     isInvoiceReport,
     isPolicyExpenseChat,
@@ -26,15 +27,16 @@ function useReportActionAvatars({
     shouldStackHorizontally = false,
     shouldUseCardFeed = false,
     accountIDs = [],
+    policyID: passedPolicyID,
 }: {
     report: OnyxEntry<Report>;
     action: OnyxEntry<ReportAction>;
     shouldStackHorizontally?: boolean;
     shouldUseCardFeed?: boolean;
     accountIDs?: number[];
+    policyID?: string;
 }) {
     /* Get avatar type */
-
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
     });
@@ -47,7 +49,15 @@ function useReportActionAvatars({
     const chatReport = isReportAChatReport ? report : reportChatReport;
     const iouReport = isReportAChatReport ? undefined : report;
 
-    const action = passedAction ?? (iouReport?.parentReportActionID ? getReportAction(chatReport?.reportID ?? iouReport?.chatReportID, iouReport?.parentReportActionID) : undefined);
+    let action;
+
+    if (passedAction) {
+        action = passedAction;
+    } else if (iouReport?.parentReportActionID) {
+        action = getReportAction(chatReport?.reportID ?? iouReport?.chatReportID, iouReport?.parentReportActionID);
+    } else if (!!reportChatReport && !!chatReport?.parentReportActionID && !iouReport) {
+        action = getReportAction(reportChatReport?.reportID, chatReport.parentReportActionID);
+    }
 
     const isReportArchived = useReportIsArchived(iouReport?.reportID);
 
@@ -57,11 +67,36 @@ function useReportActionAvatars({
         chatReport,
     });
 
-    const policyID = chatReport?.policyID === CONST.POLICY.ID_FAKE || !chatReport?.policyID ? (iouReport?.policyID ?? chatReport?.policyID) : chatReport?.policyID;
+    const policyID = passedPolicyID ?? (chatReport?.policyID === CONST.POLICY.ID_FAKE || !chatReport?.policyID ? (iouReport?.policyID ?? chatReport?.policyID) : chatReport?.policyID);
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
+    const {chatReportIDAdmins, chatReportIDAnnounce, workspaceAccountID} = policy ?? {};
+    const [policyChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportIDAnnounce ?? chatReportIDAdmins}`, {canBeMissing: true});
+
+    if (passedPolicyID) {
+        const policyChatReportAvatar = {...getWorkspaceIcon(policyChatReport, policy), id: policyID, name: policy?.name};
+
+        return {
+            avatars: [policyChatReportAvatar],
+            avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE,
+            details: {
+                ...(personalDetails?.[workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
+                shouldDisplayAllActors: false,
+                isWorkspaceActor: false,
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                actorHint: String(policyID).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
+                accountID: workspaceAccountID,
+                delegateAccountID: undefined,
+            },
+            source: {
+                policyChatReport,
+            },
+        };
+    }
+
+    const isWorkspacePolicy = !!policy && policy.type !== CONST.POLICY.TYPE.PERSONAL;
     const isATripRoom = isTripRoom(chatReport);
-    const isWorkspaceWithoutChatReportProp = !chatReport && policy?.type !== CONST.POLICY.TYPE.PERSONAL;
+    const isWorkspaceWithoutChatReportProp = !chatReport && isWorkspacePolicy;
     const isAWorkspaceChat = isPolicyExpenseChat(chatReport) || isWorkspaceWithoutChatReportProp;
     const isATripPreview = action?.actionName === CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW;
     const isAReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
@@ -74,13 +109,15 @@ function useReportActionAvatars({
     const shouldUseAccountIDs = accountIDs.length > 0;
     const shouldShowAllActors = displayAllActors && !reportPreviewSenderID;
     const isChatThreadOutsideTripRoom = isChatThread(chatReport) && !isATripRoom;
-    const shouldShowSubscriptAvatar = shouldReportShowSubscript(iouReport ?? chatReport, isReportArchived) && policy?.type !== CONST.POLICY.TYPE.PERSONAL;
+    const shouldShowSubscriptAvatar = shouldReportShowSubscript(iouReport ?? chatReport, isReportArchived) && isWorkspacePolicy;
     const shouldShowConvertedSubscriptAvatar = (shouldStackHorizontally || shouldUseAccountIDs) && shouldShowSubscriptAvatar && !reportPreviewSenderID;
+    const isExpense = isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.ACTION.CREATE;
+    const isWorkspaceExpense = isWorkspacePolicy && isExpense;
 
     const shouldUseSubscriptAvatar =
-        (((shouldShowSubscriptAvatar && isReportPreviewOrNoAction) || isReportPreviewInTripRoom || isATripPreview) &&
+        (((shouldShowSubscriptAvatar && isReportPreviewOrNoAction) || isReportPreviewInTripRoom || isATripPreview || isWorkspaceExpense) &&
             !shouldStackHorizontally &&
-            !isChatThreadOutsideTripRoom &&
+            !(isChatThreadOutsideTripRoom && !isWorkspaceExpense) &&
             !shouldShowConvertedSubscriptAvatar) ||
         shouldUseCardFeed;
 
@@ -107,6 +144,8 @@ function useReportActionAvatars({
 
     const defaultDisplayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails}) ?? '';
     const isAInvoiceReport = isInvoiceReport(iouReport ?? null);
+    const invoiceReport = [iouReport, chatReport, reportChatReport].find(isInvoiceReport);
+    const isNestedInInvoiceReport = !!invoiceReport;
     const isWorkspaceActor = isAInvoiceReport || (isAWorkspaceChat && (!actorAccountID || displayAllActors));
     const isChatReportOnlyProp = !iouReport && chatReport;
     const isWorkspaceChatWithoutChatReport = !chatReport && isAWorkspaceChat;
@@ -167,22 +206,37 @@ function useReportActionAvatars({
         fallbackIcon,
     };
 
-    const avatarsForAccountIDs: IconType[] = accountIDs.map((id) => ({
+    const shouldUseActorAccountID = isAInvoiceReport && !isAReportPreviewAction;
+    const accountIDsToMap = shouldUseActorAccountID && actorAccountID ? [actorAccountID] : accountIDs;
+
+    const avatarsForAccountIDs: IconType[] = accountIDsToMap.map((id) => ({
         id,
         type: CONST.ICON_TYPE_AVATAR,
         source: personalDetails?.[id]?.avatar ?? FallbackAvatar,
-        name: personalDetails?.[id]?.login ?? '',
+        name: personalDetails?.[id]?.[shouldUseActorAccountID ? 'displayName' : 'login'] ?? '',
     }));
 
+    const shouldUseMappedAccountIDs = avatarsForAccountIDs.length > 0 && (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE || shouldUseActorAccountID);
+    const shouldUsePrimaryAvatarID = isWorkspaceActor && !!primaryAvatar.id;
+    const shouldUseInvoiceExpenseIcons = isWorkspaceExpense && isNestedInInvoiceReport && !!accountID;
+
+    let avatars = [primaryAvatar, secondaryAvatar];
+
+    if (shouldUseInvoiceExpenseIcons) {
+        avatars = getIconsWithDefaults(invoiceReport);
+    } else if (shouldUseMappedAccountIDs) {
+        avatars = avatarsForAccountIDs;
+    }
+
     return {
-        avatars: avatarsForAccountIDs.length > 0 && avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE ? avatarsForAccountIDs : [primaryAvatar, secondaryAvatar],
+        avatars,
         avatarType,
         details: {
             ...(personalDetails?.[accountID] ?? {}),
             shouldDisplayAllActors: displayAllActors,
             isWorkspaceActor,
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            actorHint: String(isWorkspaceActor ? primaryAvatar.id : login || (defaultDisplayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
+            actorHint: String(shouldUsePrimaryAvatarID ? primaryAvatar.id : login || defaultDisplayName || 'Unknown user').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
             accountID,
             delegateAccountID: !isWorkspaceActor && delegatePersonalDetails ? actorAccountID : undefined,
         },
