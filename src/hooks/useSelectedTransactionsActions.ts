@@ -103,9 +103,6 @@ function useSelectedTransactionsActions({
             deletedTransactionIDs.push(transactionID);
         });
         clearSelectedTransactions(true);
-        if (allTransactionsLength - transactionsWithActions.length <= 1) {
-            turnOffMobileSelectionMode();
-        }
         setIsDeleteModalVisible(false);
     }, [duplicateTransactions, duplicateTransactionViolations, allTransactionsLength, reportActions, selectedTransactionIDs, clearSelectedTransactions]);
 
