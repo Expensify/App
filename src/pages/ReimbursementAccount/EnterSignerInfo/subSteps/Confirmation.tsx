@@ -16,7 +16,7 @@ function Confirmation({onNext, onMove, isEditing, policyID}: ConfirmationProps) 
     const [enterSignerInfoForm] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM, {canBeMissing: true});
     const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT, {canBeMissing: false});
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const currency = policy?.outputCurrency ?? '';
     const country = mapCurrencyToCountry(currency);
     const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, country);
