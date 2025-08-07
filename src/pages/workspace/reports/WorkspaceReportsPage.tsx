@@ -48,7 +48,7 @@ type ReportFieldForList = ListItem & {
     isDisabled: boolean;
 };
 
-type WorkspaceReportFieldsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS>;
+type WorkspaceReportFieldsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.REPORTS>;
 
 function keyExtractor(item: ReportFieldForList) {
     return item.keyForList ?? '';
@@ -204,12 +204,12 @@ function WorkspaceReportFieldsPage({
                             title={translate('workspace.common.reportTitle')}
                             renderSubtitle={() => (
                                 <Text style={[[styles.textLabelSupportingEmptyValue, styles.lh20, styles.mt1]]}>
-                                    {translate('workspace.rules.expenseReportRules.customReportNamesSubtitle')}
+                                    {translate('workspace.reports.customReportNamesSubtitle')}
                                     <TextLink
                                         style={[styles.link]}
                                         href={CONST.CUSTOM_REPORT_NAME_HELP_URL}
                                     >
-                                        {translate('workspace.rules.expenseReportRules.customNameDescriptionLink')}
+                                        {translate('workspace.reports.customNameDescriptionLink')}
                                     </TextLink>
                                     .
                                 </Text>
@@ -225,17 +225,17 @@ function WorkspaceReportFieldsPage({
                                 onClose={clearTitleFieldError}
                             >
                                 <MenuItemWithTopDescription
-                                    description={translate('workspace.rules.expenseReportRules.customNameTitle')}
+                                    description={translate('workspace.reports.customNameTitle')}
                                     title={Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue ?? '')}
                                     shouldShowRightIcon
                                     style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                                    onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM_NAME.getRoute(policyID))}
+                                    onPress={() => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID))}
                                 />
                             </OfflineWithFeedback>
                             <ToggleSettingOptionRow
                                 pendingAction={reportTitlePendingFields.deletable}
-                                title={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
-                                switchAccessibilityLabel={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
+                                title={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
+                                switchAccessibilityLabel={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
                                 titleStyle={styles.pv2}
                                 isActive={!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].deletable}
@@ -245,7 +245,7 @@ function WorkspaceReportFieldsPage({
                                             ROUTES.WORKSPACE_UPGRADE.getRoute(
                                                 policyID,
                                                 CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias,
-                                                ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID),
+                                                ROUTES.WORKSPACE_REPORTS.getRoute(policyID),
                                             ),
                                         );
                                         return;
@@ -273,11 +273,7 @@ function WorkspaceReportFieldsPage({
                                     }
                                     if (!isControlPolicy(policy)) {
                                         Navigation.navigate(
-                                            ROUTES.WORKSPACE_UPGRADE.getRoute(
-                                                policyID,
-                                                CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias,
-                                                ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID),
-                                            ),
+                                            ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias, ROUTES.WORKSPACE_REPORTS.getRoute(policyID)),
                                         );
                                         return;
                                     }
