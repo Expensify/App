@@ -1,12 +1,13 @@
+import lodashHas from 'lodash/has';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
+import type Transaction from '@src/types/onyx/Transaction';
 import {getCurrencySymbol} from './CurrencyUtils';
 import {getAllReportActions} from './ReportActionsUtils';
 import {getReportTransactions} from './ReportUtils';
-import {getCreated, isPartialTransaction} from './TransactionUtils';
 
 type FormulaPart = {
     /** The original definition from the formula */
@@ -490,6 +491,50 @@ function getOldestTransactionDate(reportID: string): string | undefined {
     });
 
     return oldestDate;
+}
+
+/**
+ * Replacement to getCreated from `TransactionUtils`. Inlined because of circular dependency.
+ * @param transaction
+ * @returns
+ */
+function getCreated(transaction: Transaction): string | undefined {
+    return transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '';
+}
+
+/**
+ * Replacement to isPartialTransaction from `TransactionUtils`. Inlined because of circular dependency.
+ * @param transaction
+ * @returns
+ */
+function isPartialTransaction(transaction: Transaction): boolean {
+    const merchant = transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? '');
+
+    if (!merchant || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
+        return true;
+    }
+    if (transaction?.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0)) {
+        return true;
+    }
+
+    if (isScanRequest(transaction)) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Replacement to isScanRequest from `TransactionUtils`. Inlined because of circular dependency.
+ * @param transaction
+ * @returns
+ */
+function isScanRequest(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
+    // This is used during the expense creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
+    }
+
+    return !!transaction?.receipt?.source && transaction?.amount === 0;
 }
 
 /**

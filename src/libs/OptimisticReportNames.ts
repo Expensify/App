@@ -190,6 +190,9 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
     // Check if any formula part might be affected by this update
     const isAffected = formulaParts.some((part) => {
         if (part.type === Formula.FORMULA_PART_TYPES.REPORT) {
+            // Checking if the formula part is affected in this manner works, but it could certainly be more precise.
+            // For example, a policy update only affects the part if the formula in the policy changed, or if the report part references a field on the policy.
+            // However, if we run into performance problems, this would be a good place to optimize.
             return updateType === 'report' || updateType === 'transaction' || updateType === 'policy';
         }
         if (part.type === Formula.FORMULA_PART_TYPES.FIELD) {
