@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import {render} from '@testing-library/react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import ComposeProviders from '@components/ComposeProviders';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import DateUtils from '@libs/DateUtils';
 import type {OptionList, Options, SearchOption} from '@libs/OptionsListUtils';
 import {
@@ -57,6 +61,10 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 }));
 
 type PersonalDetailsList = Record<string, PersonalDetails & OptionData>;
+
+const renderLocaleContextProvider = () => {
+    render(<ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]} />);
+};
 
 describe('OptionsListUtils', () => {
     beforeAll(() => {
@@ -1081,6 +1089,7 @@ describe('OptionsListUtils', () => {
 
     describe('getLastActorDisplayName()', () => {
         it('should return correct display name', () => {
+            renderLocaleContextProvider();
             // Given two different personal details
             // When we call getLastActorDisplayName
             const result1 = getLastActorDisplayName(PERSONAL_DETAILS['2']);
@@ -1230,6 +1239,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should put the item with latest lastVisibleActionCreated on top when search value match multiple items', () => {
+            renderLocaleContextProvider();
             const searchText = 'fantastic';
             // Given a set of options
             const options = getSearchOptions(OPTIONS);
@@ -1650,6 +1660,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('createOptionList() localization', () => {
+            renderLocaleContextProvider();
             // Given a set of reports and personal details
             // When we call createOptionList and extract the reports
             const reports = createOptionList(PERSONAL_DETAILS, REPORTS).reports;
@@ -1734,6 +1745,7 @@ describe('OptionsListUtils', () => {
 
     describe('Alternative text', () => {
         it("The text should not contain the last actor's name at prefix if the report is archived.", async () => {
+            renderLocaleContextProvider();
             // When we set the preferred locale to English and create an ADD_COMMENT report action
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_PREFERRED_LOCALE]: CONST.LOCALES.EN,

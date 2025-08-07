@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import {render} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import ComposeProviders from '@components/ComposeProviders';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import reportAttributes from '@libs/actions/OnyxDerived/configs/reportAttributes';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
@@ -11,6 +15,10 @@ import type {ReportActions} from '@src/types/onyx/ReportAction';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+const renderLocaleContextProvider = () => {
+    render(<ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]} />);
+};
 
 describe('OnyxDerived', () => {
     beforeAll(() => {
@@ -47,6 +55,7 @@ describe('OnyxDerived', () => {
         });
 
         it('computes report attributes when reports are set', async () => {
+            renderLocaleContextProvider();
             await waitForBatchedUpdates();
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
@@ -64,6 +73,7 @@ describe('OnyxDerived', () => {
         });
 
         it('updates when locale changes', async () => {
+            renderLocaleContextProvider();
             await waitForBatchedUpdates();
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
