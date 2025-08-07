@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
-import SubtitleDefault from './SubtitleDefault';
+import BlockingViewSubtitle from './BlockingViewSubtitle';
 import SubtitleWithBelowLink from './SubtitleWithBelowLink';
 
 type BaseBlockingViewProps = {
@@ -159,7 +159,7 @@ function BlockingView({
                                 linkKey={linkKey}
                             />
                         ) : (
-                            <SubtitleDefault
+                            <BlockingViewSubtitle
                                 subtitle={subtitle}
                                 subtitleStyle={subtitleStyle}
                                 onLinkPress={onLinkPress}

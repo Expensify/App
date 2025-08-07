@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TranslationPaths} from '@src/languages/types';
 
-function SubtitleDefault({
+function BlockingViewSubtitle({
     subtitle,
     subtitleStyle,
     onLinkPress = () => {},
@@ -46,6 +46,6 @@ function SubtitleDefault({
     );
 }
 
-SubtitleDefault.displayName = 'SubtitleDefault';
+BlockingViewSubtitle.displayName = 'BlockingViewSubtitle';
 
-export default SubtitleDefault;
+export default BlockingViewSubtitle;
