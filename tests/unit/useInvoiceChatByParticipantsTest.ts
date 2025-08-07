@@ -19,7 +19,7 @@ const archivedReportInvoiceReceiver: InvoiceReceiver = {
     type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
 };
 
-const archivedReportNameValuePiars = {
+const archivedReportNameValuePairs = {
     private_isArchived: '12-3-2024',
 };
 
@@ -48,10 +48,10 @@ describe('useInvoiceChatByParticipants', () => {
         expect(result.current).toEqual(mockInvoiceReport);
     });
 
-    it('should reutrn undefined when the invoice report is archived', async () => {
+    it('should return undefined when the invoice report is archived', async () => {
         // Given that there is an archived individual invoice room with an invoice receiver
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockArchivedInvoiceReport?.reportID}`, mockArchivedInvoiceReport);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockArchivedInvoiceReport?.reportID}`, archivedReportNameValuePiars);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockArchivedInvoiceReport?.reportID}`, archivedReportNameValuePairs);
 
         // When sending invoice to the same receiver from FAB flow (outside of invoice room)
         const {result} = renderHook(({receiverID, receiverType, policyID}) => useInvoiceChatByParticipants(receiverID, receiverType, policyID), {
