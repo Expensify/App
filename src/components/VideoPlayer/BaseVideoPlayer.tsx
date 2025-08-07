@@ -59,6 +59,7 @@ function BaseVideoPlayer({
         originalParent,
         shareVideoPlayerElements,
         currentVideoPlayerRef,
+        currentVideoViewRef,
         updateCurrentURLAndReportID,
         setCurrentlyPlayingURL,
     } = usePlaybackContext();
@@ -266,7 +267,8 @@ function BaseVideoPlayer({
         }
 
         currentVideoPlayerRef.current = videoPlayerRef.current;
-    }, [url, currentVideoPlayerRef, isUploading, pauseVideo]);
+        currentVideoViewRef.current = videoViewRef.current;
+    }, [url, currentVideoPlayerRef, isUploading, pauseVideo, currentVideoViewRef]);
 
     const isCurrentlyURLSetRef = useRef<boolean | undefined>(undefined);
     isCurrentlyURLSetRef.current = isCurrentlyURLSet;
@@ -311,6 +313,7 @@ function BaseVideoPlayer({
         }
         if (currentVideoPlayerRef.current) {
             videoPlayerRef.current = currentVideoPlayerRef.current;
+            videoViewRef.current = currentVideoViewRef.current;
         }
         if (currentlyPlayingURL === url && newParentRef && 'appendChild' in newParentRef) {
             newParentRef.appendChild(sharedElement as HTMLDivElement);
@@ -326,7 +329,7 @@ function BaseVideoPlayer({
             }
             newParentRef.childNodes[0]?.remove();
         };
-    }, [currentVideoPlayerRef, currentlyPlayingURL, isFullScreenRef, originalParent, reportID, sharedElement, shouldUseSharedVideoElement, url]);
+    }, [currentVideoPlayerRef, currentVideoViewRef, currentlyPlayingURL, isFullScreenRef, originalParent, reportID, sharedElement, shouldUseSharedVideoElement, url]);
 
     useEffect(() => {
         if (!shouldPlay) {
