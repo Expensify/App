@@ -1,10 +1,10 @@
 import React, {useEffect, useState} from 'react';
 import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
-import BaseTextInputWithCurrencySymbol from './BaseTextInputWithCurrencySymbol';
-import type {TextInputWithCurrencySymbolProps} from './types';
+import BaseTextInputWithSymbol from './BaseTextInputWithSymbol';
+import type {TextInputWithSymbolProps} from './types';
 
-function TextInputWithCurrencySymbol({onSelectionChange = () => {}, ...props}: TextInputWithCurrencySymbolProps, ref: React.ForwardedRef<BaseTextInputRef>) {
+function TextInputWithSymbol({onSelectionChange = () => {}, ...props}: TextInputWithSymbolProps, ref: React.ForwardedRef<BaseTextInputRef>) {
     const [skipNextSelectionChange, setSkipNextSelectionChange] = useState(false);
 
     useEffect(() => {
@@ -12,7 +12,7 @@ function TextInputWithCurrencySymbol({onSelectionChange = () => {}, ...props}: T
     }, [props.formattedAmount]);
 
     return (
-        <BaseTextInputWithCurrencySymbol
+        <BaseTextInputWithSymbol
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             ref={ref}
@@ -27,6 +27,6 @@ function TextInputWithCurrencySymbol({onSelectionChange = () => {}, ...props}: T
     );
 }
 
-TextInputWithCurrencySymbol.displayName = 'TextInputWithCurrencySymbol';
+TextInputWithSymbol.displayName = 'TextInputWithSymbol';
 
-export default React.forwardRef(TextInputWithCurrencySymbol);
+export default React.forwardRef(TextInputWithSymbol);
