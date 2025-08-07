@@ -6,13 +6,14 @@ permissions:
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, labeled]
   pull_request_review_comment:
     types: [created]
 
 jobs:
   review:
     runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'AI Review')
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
