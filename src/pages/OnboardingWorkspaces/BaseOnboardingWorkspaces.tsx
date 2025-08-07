@@ -140,7 +140,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         >
             <HeaderWithBackButton
                 shouldShowBackButton={!isDomainRestriction}
-                progressBarPercentage={isDomainRestriction ? 0 : 60}
+                progressBarPercentage={isDomainRestriction ? 100 : 60}
                 onBackButtonPress={handleBackButtonPress}
             />
             <SelectionList
