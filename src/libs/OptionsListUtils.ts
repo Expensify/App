@@ -243,6 +243,7 @@ type GetValidReportsReturnTypeCombined = {
 
 type GetOptionsConfig = {
     excludeLogins?: Record<string, boolean>;
+    includeCurrentUser?: boolean;
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
     recentAttendees?: Option[];
@@ -251,7 +252,6 @@ type GetOptionsConfig = {
     searchString?: string;
     maxElements?: number;
     includeUserToInvite?: boolean;
-    includeCurrentUser?: boolean;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
@@ -2360,7 +2360,7 @@ function formatSectionsFromSearchTerm(
     // This will add them to the list of options, deduping them if they already exist in the other lists
     const selectedParticipantsWithoutDetails = selectedOptions.filter((participant) => {
         const accountID = participant.accountID ?? null;
-        const searchTerms = currentUserAccountID === accountID ? getCurrentUserSearchTerms(participant) : getPersonalDetailSearchTerms(participant);
+        const searchTerms = getPersonalDetailSearchTerms(participant);
         const isPartOfSearchTerm = searchTerms.join(' ').toLowerCase().includes(cleanSearchTerm);
         const isReportInRecentReports = filteredRecentReports.some((report) => report.accountID === accountID) || filteredWorkspaceChats.some((report) => report.accountID === accountID);
         const isReportInPersonalDetails = filteredPersonalDetails.some((personalDetail) => personalDetail.accountID === accountID);
@@ -2396,10 +2396,13 @@ function getFirstKeyForList(data?: Option[] | null) {
 }
 
 function getPersonalDetailSearchTerms(item: Partial<OptionData>) {
+    if (item.accountID === currentUserAccountID) {
+        return getCurrentUserSearchTerms(item);
+    }
     return [item.participantsList?.[0]?.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
 }
 
-function getCurrentUserSearchTerms(item: OptionData) {
+function getCurrentUserSearchTerms(item: Partial<OptionData>) {
     return [item.text ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? '', translateLocal('common.you'), translateLocal('common.me')];
 }
 

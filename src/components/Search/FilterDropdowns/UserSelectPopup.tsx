@@ -124,17 +124,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             };
         });
 
-        const userOptions =
-            filteredOptions.currentUserOption && !filteredOptions.personalDetails.find((personalDetail) => personalDetail.accountID === accountID)
-                ? [
-                      {
-                          ...filteredOptions.currentUserOption,
-                          isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === filteredOptions.currentUserOption?.accountID),
-                      },
-                  ]
-                : [];
-
-        return [...userOptions, ...personalDetailList, ...recentReportsList];
+        return [...personalDetailList, ...recentReportsList];
     }, [filteredOptions, selectedOptions, accountID, selectedAccountIDs]);
 
     const {sections, headerMessage} = useMemo(() => {
