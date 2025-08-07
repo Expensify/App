@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import type {OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import {handleActionButtonPress} from '@libs/actions/Search';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {LastPaymentMethod, SearchResults} from '@src/types/onyx';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
@@ -60,6 +64,9 @@ const mockReportItemWithHold = {
     },
     transactions: [
         {
+            report: {
+                reportID: '1350959062018695',
+            },
             accountID: 1206,
             action: 'view',
             amount: -1200,
@@ -135,6 +142,9 @@ const mockReportItemWithHold = {
             shouldAnimateInHighlight: false,
         },
         {
+            report: {
+                reportID: '1350959062018695',
+            },
             accountID: 1206,
             action: 'view',
             amount: -12300,
@@ -208,23 +218,62 @@ const updatedMockReportItem = {
     }),
 };
 
+const mockSnapshotForItem: OnyxEntry<SearchResults> = {
+    // @ts-expect-error: Allow partial record in snapshot update for testing
+    data: {
+        [`${ONYXKEYS.COLLECTION.POLICY}${mockReportItemWithHold?.policyID}`]: {
+            ...(mockReportItemWithHold.policyID
+                ? {
+                      [String(mockReportItemWithHold.policyID)]: {
+                          type: 'policy',
+                          id: String(mockReportItemWithHold.policyID),
+                          role: 'admin',
+                          owner: 'apb@apb.com',
+                          ...mockReportItemWithHold,
+                      },
+                  }
+                : {}),
+        },
+    },
+};
+
+const mockLastPaymentMethod: OnyxEntry<LastPaymentMethod> = {
+    expense: 'Elsewhere',
+    lastUsed: 'Elsewhere',
+};
+
 describe('handleActionButtonPress', () => {
     const searchHash = 1;
+    beforeAll(() => {
+        Onyx.merge(
+            `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+            // @ts-expect-error: Allow partial record in snapshot update for testing
+            mockSnapshotForItem,
+        );
+        Onyx.merge(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, mockLastPaymentMethod);
+    });
+
+    const snapshotReport = mockSnapshotForItem?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${mockReportItemWithHold.reportID}`] ?? {};
+    const snapshotPolicy = mockSnapshotForItem?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${mockReportItemWithHold.policyID}`] ?? {};
+
     test('Should navigate to item when report has one transaction on hold', () => {
         const goToItem = jest.fn(() => {});
-        handleActionButtonPress(searchHash, mockReportItemWithHold, goToItem, false);
+        // @ts-expect-error: Allow partial record in snapshot update for testing
+        handleActionButtonPress(searchHash, mockReportItemWithHold, goToItem, false, snapshotReport, snapshotPolicy, mockLastPaymentMethod);
         expect(goToItem).toHaveBeenCalledTimes(1);
     });
 
     test('Should not navigate to item when the hold is removed', () => {
         const goToItem = jest.fn(() => {});
-        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem, false);
+        // @ts-expect-error: Allow partial record in snapshot update for testing
+        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem, false, snapshotReport, snapshotPolicy, mockLastPaymentMethod);
         expect(goToItem).toHaveBeenCalledTimes(0);
     });
 
     test('Should run goToItem callback when user is in mobile selection mode', () => {
         const goToItem = jest.fn(() => {});
-        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem, true);
+        // @ts-expect-error: Allow partial record in snapshot update for testing
+        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem, true, snapshotReport, snapshotPolicy, mockLastPaymentMethod);
         expect(goToItem).toHaveBeenCalledTimes(1);
     });
 });

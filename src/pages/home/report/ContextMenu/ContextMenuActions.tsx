@@ -117,6 +117,7 @@ import {
     deleteReportActionDraft,
     markCommentAsUnread,
     navigateToAndOpenChildReport,
+    openReport,
     readNewestAction,
     saveReportActionDraft,
     toggleEmojiReaction,
@@ -337,8 +338,9 @@ const ContextMenuActions: ContextMenuAction[] = [
         onPress: (closePopover, {reportID, reportAction, draftMessage, moneyRequestAction}) => {
             if (isMoneyRequestAction(reportAction) || isMoneyRequestAction(moneyRequestAction)) {
                 const editExpense = () => {
-                    const originalReportID = getOriginalReportID(reportID, reportAction);
-                    navigateToAndOpenChildReport(reportAction?.childReportID, reportAction, originalReportID);
+                    const childReportID = reportAction?.childReportID;
+                    openReport(childReportID);
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 };
                 if (closePopover) {
                     hideContextMenu(false, editExpense);

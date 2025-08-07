@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import type {ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Checkbox from '@components/Checkbox';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
@@ -27,7 +27,7 @@ import {
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {TransactionViolation} from '@src/types/onyx';
+import type {Report, TransactionViolation} from '@src/types/onyx';
 import type {SearchPersonalDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
 import ChatBubbleCell from './DataCells/ChatBubbleCell';
@@ -77,6 +77,7 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
 type TransactionItemRowProps = {
     transactionItem: TransactionWithOptionalSearchFields;
+    report?: Report;
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
@@ -87,7 +88,7 @@ type TransactionItemRowProps = {
     shouldShowCheckbox: boolean;
     columns?: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>;
     onButtonPress?: () => void;
-    columnWrapperStyles?: ViewStyle[];
+    style?: StyleProp<ViewStyle>;
     isReportItemChild?: boolean;
     isActionLoading?: boolean;
     isInSingleTransactionReport?: boolean;
@@ -116,6 +117,7 @@ function getMerchantNameWithFallback(transactionItem: TransactionWithOptionalSea
 
 function TransactionItemRow({
     transactionItem,
+    report,
     shouldUseNarrowLayout,
     isSelected,
     shouldShowTooltip,
@@ -126,7 +128,7 @@ function TransactionItemRow({
     shouldShowCheckbox = false,
     columns,
     onButtonPress = () => {},
-    columnWrapperStyles,
+    style,
     isReportItemChild = false,
     isActionLoading,
     isInSingleTransactionReport = false,
@@ -345,14 +347,13 @@ function TransactionItemRow({
             transactionItem,
         ],
     );
-    const safeColumnWrapperStyle = columnWrapperStyles ?? [styles.p3, styles.expenseWidgetRadius];
     const shouldRenderChatBubbleCell = useMemo(() => {
         return columns?.includes(CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS) ?? false;
     }, [columns]);
 
     if (shouldUseNarrowLayout) {
         return (
-            <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.p3, styles.pt2, bgActiveStyles]}>
+            <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, bgActiveStyles, style, styles.overflowHidden]}>
                 <View style={[styles.flexRow]}>
                     {shouldShowCheckbox && (
                         <Checkbox
@@ -428,6 +429,7 @@ function TransactionItemRow({
                         )}
                         <TransactionItemRowRBRWithOnyx
                             transaction={transactionItem}
+                            report={report}
                             containerStyles={[styles.mt2, styles.minHeight4]}
                             missingFieldError={missingFieldError}
                         />
@@ -445,7 +447,7 @@ function TransactionItemRow({
     }
 
     return (
-        <View style={[...safeColumnWrapperStyle, styles.flex1, styles.gap2, bgActiveStyles, styles.mw100]}>
+        <View style={[styles.expenseWidgetRadius, styles.flex1, styles.gap2, bgActiveStyles, styles.mw100, style]}>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                 <Checkbox
                     disabled={isDisabled}
@@ -461,6 +463,7 @@ function TransactionItemRow({
             </View>
             <TransactionItemRowRBRWithOnyx
                 transaction={transactionItem}
+                report={report}
                 missingFieldError={missingFieldError}
             />
         </View>

@@ -19,6 +19,7 @@ import {
 } from '@libs/actions/IOU';
 import {verifyTestDriveRecipient} from '@libs/actions/Onboarding';
 import setTestReceipt from '@libs/actions/setTestReceipt';
+import type AccountExistsError from '@libs/Errors/AccountExistsError';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TestDriveModalNavigatorParamList} from '@libs/Navigation/types';
@@ -93,13 +94,13 @@ function EmployeeTestDriveModal() {
                     },
                     () => {
                         setIsLoading(false);
-                        setFormError(translate('testDrive.modal.employee.error'));
+                        setFormError(translate('common.genericErrorMessage'));
                     },
                 );
             })
-            .catch(() => {
+            .catch((e: AccountExistsError) => {
                 setIsLoading(false);
-                setFormError(translate('testDrive.modal.employee.error'));
+                setFormError(e.translationKey ? translate(e.translationKey) : 'common.genericErrorMessage');
             });
     };
 

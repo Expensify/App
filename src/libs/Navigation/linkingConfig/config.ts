@@ -365,6 +365,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS,
                         },
+                        [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: {
+                            path: ROUTES.SETTINGS_VACATION_DELEGATE,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_SIZE.route,
                             parse: {
@@ -932,8 +936,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.TAX_VALUE]: {
                             path: ROUTES.WORKSPACE_TAX_VALUE.route,
                         },
-                        [SCREENS.WORKSPACE.RULES_CUSTOM_NAME]: {
-                            path: ROUTES.RULES_CUSTOM_NAME.route,
+                        [SCREENS.WORKSPACE.REPORTS_DEFAULT_TITLE]: {
+                            path: ROUTES.REPORTS_DEFAULT_TITLE.route,
                         },
                         [SCREENS.WORKSPACE.RULES_AUTO_APPROVE_REPORTS_UNDER]: {
                             path: ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.route,
@@ -1682,8 +1686,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.WORKSPACE.TAXES]: {
                     path: ROUTES.WORKSPACE_TAXES.route,
                 },
-                [SCREENS.WORKSPACE.REPORT_FIELDS]: {
-                    path: ROUTES.WORKSPACE_REPORT_FIELDS.route,
+                [SCREENS.WORKSPACE.REPORTS]: {
+                    path: ROUTES.WORKSPACE_REPORTS.route,
                 },
                 [SCREENS.WORKSPACE.DISTANCE_RATES]: {
                     path: ROUTES.WORKSPACE_DISTANCE_RATES.route,
