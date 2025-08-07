@@ -4218,19 +4218,19 @@ function completeOnboarding({
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
-            value: {isLoading: true, hasCompletedGuidedSetupFlow: false},
+            value: {isLoading: true},
         });
 
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
-            value: {isLoading: false, hasCompletedGuidedSetupFlow: true},
+            value: {isLoading: false},
         });
 
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
-            value: {isLoading: false, hasCompletedGuidedSetupFlow: false},
+            value: {isLoading: false},
         });
     }
 
