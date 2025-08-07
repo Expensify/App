@@ -269,8 +269,6 @@ type SpendBreakdown = {
     totalDisplaySpend: number;
 };
 
-type ParticipantDetails = [number, string, AvatarSource, AvatarSource];
-
 type OptimisticAddCommentReportAction = Pick<
     ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>,
     | 'reportActionID'
