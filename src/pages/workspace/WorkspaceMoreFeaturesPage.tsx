@@ -328,8 +328,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             isActive: policy?.areReceiptPartnersEnabled ?? false,
             pendingAction: policy?.pendingFields?.areReceiptPartnersEnabled,
             disabledAction: () => {
-                // TODO: When Uber integration is added, check if any integration exists
-                // and show the warning modal to disconnect integration first
+                // TODO: When Uber integration is added, check if any integration exists if(!hasReceiptPartnersIntegration) return;
                 setIsReceiptPartnersWarningModalOpen(true);
             },
             action: (isEnabled: boolean) => {
