@@ -3087,10 +3087,6 @@ const styles = (theme: ThemeColors) =>
             transform: `rotate(180deg)`,
         },
 
-        mirror: {
-            transform: `scaleX(-1)`,
-        },
-
         navigationScreenCardStyle: {
             backgroundColor: theme.appBG,
             height: '100%',
