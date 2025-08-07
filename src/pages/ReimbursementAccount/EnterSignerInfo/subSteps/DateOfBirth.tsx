@@ -14,7 +14,7 @@ function DateOfBirth({onNext, onMove, isEditing}: SubStepProps) {
     const styles = useThemeStyles();
 
     const inputID = INPUT_IDS.SIGNER_DATE_OF_BIRTH;
-    const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT);
+    const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT, {canBeMissing: false});
     const defaultValue = enterSignerInfoFormDraft?.[inputID] ?? '';
 
     const handleSubmit = useEnterSignerInfoStepFormSubmit({

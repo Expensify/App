@@ -81,7 +81,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
             return;
         }
 
-        if (reimbursementAccount?.isSuccess) {
+        if (reimbursementAccount?.isSuccess && currentSubStep !== SUBSTEP.HANG_TIGHT) {
             if (currency === CONST.CURRENCY.AUD) {
                 setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
                 clearReimbursementAccountSaveCorpayOnboardingDirectorInformation();
@@ -94,7 +94,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
         return () => {
             clearReimbursementAccountSaveCorpayOnboardingDirectorInformation();
         };
-    }, [reimbursementAccount, onSubmit, currency]);
+    }, [reimbursementAccount, onSubmit, currency, currentSubStep]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -217,7 +217,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
 
             {currentSubStep === SUBSTEP.HANG_TIGHT && (
                 <HangTight
-                    policyID={policyID ?? ''}
+                    policyID={policyID}
                     bankAccountID={bankAccountID}
                 />
             )}

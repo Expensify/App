@@ -30,7 +30,7 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT);
+    const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const [environmentUrl, setEnvironmentUrl] = useState<string | null>(null);
 

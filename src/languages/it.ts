@@ -197,6 +197,7 @@ import type {
     SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
+    SignerInfoMessageParams,
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
@@ -3187,6 +3188,10 @@ const translations = {
         PDSandFSGDescription:
             'La nostra partnership con Corpay utilizza una connessione API per sfruttare la loro vasta rete di partner bancari internazionali per alimentare i Rimborsi Globali in Expensify. Secondo la normativa australiana, ti forniamo la Guida ai Servizi Finanziari (FSG) e la Dichiarazione di Divulgazione del Prodotto (PDS) di Corpay.\n\nSi prega di leggere attentamente i documenti FSG e PDS poiché contengono dettagli completi e informazioni importanti sui prodotti e servizi offerti da Corpay. Conserva questi documenti per riferimento futuro.',
         pleaseUpload: "Si prega di caricare ulteriore documentazione qui sotto per aiutarci a verificare la tua identità come direttore o dirigente senior dell'entità aziendale.",
+        enterSignerInfo: 'Inserisci le informazioni del firmatario',
+        thisStep: 'Questo passaggio è stato completato',
+        isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
+            `sta collegando un conto bancario aziendale in ${currency} terminante con ${bankAccountLastFour} a Expensify per pagare i dipendenti in ${currency}. Il prossimo passaggio richiede le informazioni di un firmatario, come un direttore o un dirigente.`,
     },
     agreementsStep: {
         agreements: 'Accordi',

@@ -11,7 +11,7 @@ import INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
 
 function Address({onNext, isEditing, onMove}: SubStepProps) {
     const {translate} = useLocalize();
-    const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT);
+    const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT, {canBeMissing: false});
 
     const inputKeys = {
         street: INPUT_IDS.SIGNER_STREET,

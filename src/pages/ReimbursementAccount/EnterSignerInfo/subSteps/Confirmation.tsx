@@ -13,8 +13,8 @@ type ConfirmationProps = SubStepProps & {policyID: string};
 function Confirmation({onNext, onMove, isEditing, policyID}: ConfirmationProps) {
     const {translate} = useLocalize();
 
-    const [enterSignerInfoForm] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM);
-    const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT);
+    const [enterSignerInfoForm] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM, {canBeMissing: true});
+    const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT, {canBeMissing: false});
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';

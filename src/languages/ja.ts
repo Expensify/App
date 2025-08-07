@@ -197,6 +197,7 @@ import type {
     SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
+    SignerInfoMessageParams,
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
@@ -3190,6 +3191,10 @@ const translations = {
         PDSandFSGDescription:
             '私たちのCorpayとの提携は、API接続を利用して、彼らの広範な国際銀行パートナーのネットワークを活用し、Expensifyでのグローバル払い戻しを実現します。オーストラリアの規制に従い、Corpayの金融サービスガイド（FSG）と製品開示声明（PDS）を提供しています。\n\nFSGとPDSの文書には、Corpayが提供する製品とサービスに関する詳細情報と重要な情報が含まれているため、注意深くお読みください。これらの文書は、将来の参考のために保管してください。',
         pleaseUpload: '事業体の取締役または上級役員としての身元を確認するために、追加の書類を以下にアップロードしてください。',
+        enterSignerInfo: '署名者情報を入力してください',
+        thisStep: 'このステップは完了しました',
+        isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
+            `${currency}のビジネス銀行口座（下4桁：${bankAccountLastFour}）をExpensifyに接続して、従業員に${currency}で支払います。次のステップでは、取締役または上級役員の署名者情報が必要です。`,
     },
     agreementsStep: {
         agreements: '契約書',

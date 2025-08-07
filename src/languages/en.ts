@@ -3153,7 +3153,6 @@ const translations = {
         legalName: 'Legal name',
         proofOf: 'Proof of personal address',
         enterOneEmail: ({companyName}: CompanyNameParams) => `Enter the email of director or senior officer at ${companyName}`,
-        enterOneEmailAuthorizedUser: 'Enter the email of an authorized user for his bank account',
         regulationRequiresOneMoreDirector: 'Regulation requires at least one more director or senior officer as a signer.',
         hangTight: 'Hang tight...',
         enterTwoEmails: ({companyName}: CompanyNameParams) => `Enter the emails of two directors or senior officers at ${companyName}`,

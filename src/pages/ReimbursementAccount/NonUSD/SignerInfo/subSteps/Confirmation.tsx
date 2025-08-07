@@ -15,8 +15,8 @@ const {OWNS_MORE_THAN_25_PERCENT} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const isUserOwner = reimbursementAccount?.achData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
     const values = useMemo(() => getValuesForSignerInfo(reimbursementAccountDraft), [reimbursementAccountDraft]);
 

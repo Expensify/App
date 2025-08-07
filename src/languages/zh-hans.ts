@@ -3155,6 +3155,10 @@ const translations = {
         PDSandFSGDescription:
             '我们与 Corpay 的合作利用了 API 连接，以利用其庞大的国际银行合作伙伴网络来支持 Expensify 的全球报销。根据澳大利亚法规，我们向您提供 Corpay 的金融服务指南 (FSG) 和产品披露声明 (PDS)。\n\n请仔细阅读 FSG 和 PDS 文件，因为它们包含 Corpay 提供的产品和服务的完整详细信息和重要信息。请保留这些文件以备将来参考。',
         pleaseUpload: '请在下方上传其他文件，以帮助我们验证您作为企业实体的董事或高级管理人员的身份。',
+        enterSignerInfo: '输入签署人信息',
+        thisStep: '此步骤已完成',
+        isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
+            `正在将以 ${bankAccountLastFour} 结尾的 ${currency} 公司银行账户连接到 Expensify，以便用 ${currency} 向员工付款。下一步需要董事或高级管理人员的签署人信息。`,
     },
     agreementsStep: {
         agreements: '协议',

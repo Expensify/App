@@ -17,7 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 type HangTightProps = {
     /** ID of policy */
-    policyID: string;
+    policyID: string | undefined;
 
     /** ID of bank account */
     bankAccountID: number;
@@ -34,7 +34,7 @@ function HangTight({policyID, bankAccountID}: HangTightProps) {
     const error = getLatestErrorMessage(reimbursementAccount);
 
     const handleSendReminder = () => {
-        if (!signerEmail) {
+        if (!signerEmail || !policyID) {
             return;
         }
 
