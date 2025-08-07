@@ -1353,6 +1353,26 @@ const translations = {
         rates: 'Tariffe',
         submitsTo: ({name}: SubmitsToParams) => `Invia a ${name}`,
         moveExpenses: () => ({one: 'Sposta spesa', other: 'Sposta spese'}),
+        decline: {
+            educationalTitle: 'Dovresti mettere in attesa o rifiutare?',
+            educationalText: 'Se non sei pronto ad approvare o pagare una spesa, puoi metterla in attesa o rifiutarla.',
+            holdExpenseTitle: 'Metti una spesa in attesa per chiedere più dettagli prima dell\'approvazione o del pagamento.',
+            heldExpenseLeftBehindTitle: 'Le spese in attesa vengono lasciate indietro quando approvi un intero rapporto.',
+            declineExpenseTitle: 'Rifiuta una spesa che non intendi approvare o pagare.',
+            reasonPageTitle: 'Rifiuta spesa',
+            reasonPageDescription1: 'Rifiuta una spesa se non prevedi mai di approvarla o pagarla. Altrimenti, usa "mettere in attesa" per sospendere la spesa e chiedere più contesto.',
+            reasonPageDescription2: 'Se stai per rifiutare la spesa, aggiungi un commento per spiegare perché:',
+            declineReason: 'Motivo del rifiuto',
+            markAsResolved: 'Segna come risolto',
+            declinedStatus: 'Questa spesa è stata rifiutata. In attesa che corregga il/i problema/i e segni come risolto per abilitare l\'invio.',
+            reportActions: {
+                removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
+                    `rimosso <a href="${linkToReport}">${amount}${merchant ? ` da ${merchant}` : ''}</a>`,
+                declinedExpense: 'rifiutato questa spesa',
+                markedAsResolved: 'segnato il motivo del rifiuto come risolto',
+                autoAddedToReport: ({amount, merchant}: {amount: string; merchant?: string}) => `aggiunto ${amount} ${merchant ? `da ${merchant}` : ''}`,
+            },
+        },
     },
     share: {
         shareToExpensify: 'Condividi su Expensify',

@@ -1354,6 +1354,26 @@ const translations = {
         rates: '料金',
         submitsTo: ({name}: SubmitsToParams) => `${name}に送信`,
         moveExpenses: () => ({one: '経費を移動', other: '経費を移動'}),
+        decline: {
+            educationalTitle: '保留にするか、却下しますか？',
+            educationalText: '経費を承認または支払う準備ができていない場合は、保留にするか却下できます。',
+            holdExpenseTitle: '承認または支払いの前に詳細を求めるために経費を保留にします。',
+            heldExpenseLeftBehindTitle: '報告書全体を承認すると、保留中の経費は取り残されます。',
+            declineExpenseTitle: '承認または支払う予定のない経費を却下します。',
+            reasonPageTitle: '経費を却下',
+            reasonPageDescription1: '経費を承認または支払う予定がない場合は却下してください。そうでなければ、「保留」を使用して経費を一時停止し、より多くのコンテキストを求めてください。',
+            reasonPageDescription2: '経費を却下する場合は、理由を説明するコメントを追加してください：',
+            declineReason: '却下理由',
+            markAsResolved: '解決済みとしてマーク',
+            declinedStatus: 'この経費は却下されました。問題を修正し、解決済みとしてマークして送信を有効にするのを待っています。',
+            reportActions: {
+                removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
+                    `削除 <a href="${linkToReport}">${amount}${merchant ? ` ${merchant}から` : ''}</a>`,
+                declinedExpense: 'この経費を却下しました',
+                markedAsResolved: '却下理由を解決済みとしてマークしました',
+                autoAddedToReport: ({amount, merchant}: {amount: string; merchant?: string}) => `追加 ${amount} ${merchant ? `${merchant}から` : ''}`,
+            },
+        },
     },
     share: {
         shareToExpensify: 'Expensifyに共有',

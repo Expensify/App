@@ -1357,6 +1357,26 @@ const translations = {
         rates: 'Preise',
         submitsTo: ({name}: SubmitsToParams) => `Übermittelt an ${name}`,
         moveExpenses: () => ({one: 'Ausgabe verschieben', other: 'Ausgaben verschieben'}),
+        decline: {
+            educationalTitle: 'Sollten Sie halten oder ablehnen?',
+            educationalText: 'Wenn Sie nicht bereit sind, eine Ausgabe zu genehmigen oder zu bezahlen, können Sie sie halten oder ablehnen.',
+            holdExpenseTitle: 'Halten Sie eine Ausgabe, um vor der Genehmigung oder Zahlung nach weiteren Details zu fragen.',
+            heldExpenseLeftBehindTitle: 'Gehaltene Ausgaben werden zurückgelassen, wenn Sie einen gesamten Bericht genehmigen.',
+            declineExpenseTitle: 'Lehnen Sie eine Ausgabe ab, die Sie nicht genehmigen oder bezahlen möchten.',
+            reasonPageTitle: 'Ausgabe ablehnen',
+            reasonPageDescription1: 'Lehnen Sie eine Ausgabe ab, wenn Sie sie niemals genehmigen oder bezahlen möchten. Verwenden Sie ansonsten "halten", um die Ausgabe zu pausieren und nach mehr Kontext zu fragen.',
+            reasonPageDescription2: 'Wenn Sie die Ausgabe ablehnen möchten, fügen Sie bitte einen Kommentar hinzu, um zu erklären warum:',
+            declineReason: 'Ablehnungsgrund',
+            markAsResolved: 'Als gelöst markieren',
+            declinedStatus: 'Diese Ausgabe wurde abgelehnt. Warten auf Sie, um das Problem zu beheben und als gelöst zu markieren, um die Einreichung zu ermöglichen.',
+            reportActions: {
+                removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
+                    `entfernt <a href="${linkToReport}">${amount}${merchant ? ` von ${merchant}` : ''}</a>`,
+                declinedExpense: 'diese Ausgabe abgelehnt',
+                markedAsResolved: 'den Ablehnungsgrund als gelöst markiert',
+                autoAddedToReport: ({amount, merchant}: {amount: string; merchant?: string}) => `${amount} hinzugefügt ${merchant ? `von ${merchant}` : ''}`,
+            },
+        },
     },
     share: {
         shareToExpensify: 'Teilen mit Expensify',

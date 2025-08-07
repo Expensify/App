@@ -1352,6 +1352,26 @@ const translations = {
         rates: 'Stawki',
         submitsTo: ({name}: SubmitsToParams) => `Przesyła do ${name}`,
         moveExpenses: () => ({one: 'Przenieś wydatek', other: 'Przenieś wydatki'}),
+        decline: {
+            educationalTitle: 'Czy powinieneś wstrzymać czy odrzucić?',
+            educationalText: 'Jeśli nie jesteś gotowy do zatwierdzenia lub zapłaty wydatku, możesz go wstrzymać lub odrzucić.',
+            holdExpenseTitle: 'Wstrzymaj wydatek, aby poprosić o więcej szczegółów przed zatwierdzeniem lub zapłatą.',
+            heldExpenseLeftBehindTitle: 'Wstrzymane wydatki pozostają w tyle, gdy zatwierdzasz cały raport.',
+            declineExpenseTitle: 'Odrzuć wydatek, którego nie zamierzasz zatwierdzić ani zapłacić.',
+            reasonPageTitle: 'Odrzuć wydatek',
+            reasonPageDescription1: 'Odrzuć wydatek, jeśli nigdy nie planujesz go zatwierdzić ani zapłacić. W przeciwnym razie użyj "wstrzymaj", aby wstrzymać wydatek i poprosić o więcej kontekstu.',
+            reasonPageDescription2: 'Jeśli zamierzasz odrzucić wydatek, dodaj komentarz wyjaśniający dlaczego:',
+            declineReason: 'Powód odrzucenia',
+            markAsResolved: 'Oznacz jako rozwiązane',
+            declinedStatus: 'Ten wydatek został odrzucony. Oczekiwanie na naprawienie problemu i oznaczenie jako rozwiązane, aby umożliwić przesłanie.',
+            reportActions: {
+                removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
+                    `usunięto <a href="${linkToReport}">${amount}${merchant ? ` z ${merchant}` : ''}</a>`,
+                declinedExpense: 'odrzucił ten wydatek',
+                markedAsResolved: 'oznaczył powód odrzucenia jako rozwiązany',
+                autoAddedToReport: ({amount, merchant}: {amount: string; merchant?: string}) => `dodano ${amount} ${merchant ? `z ${merchant}` : ''}`,
+            },
+        },
     },
     share: {
         shareToExpensify: 'Udostępnij do Expensify',

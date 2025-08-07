@@ -1355,6 +1355,26 @@ const translations = {
         rates: 'Tarieven',
         submitsTo: ({name}: SubmitsToParams) => `Dient in bij ${name}`,
         moveExpenses: () => ({one: 'Verplaats uitgave', other: 'Verplaats uitgaven'}),
+        decline: {
+            educationalTitle: 'Moet je in behandeling houden of afwijzen?',
+            educationalText: 'Als je niet klaar bent om een uitgave goed te keuren of te betalen, kun je deze in behandeling houden of afwijzen.',
+            holdExpenseTitle: 'Houd een uitgave in behandeling om meer details te vragen voordat je goedkeurt of betaalt.',
+            heldExpenseLeftBehindTitle: 'Uitgaven in behandeling blijven achter wanneer je een volledig rapport goedkeurt.',
+            declineExpenseTitle: 'Wijs een uitgave af die je niet van plan bent goed te keuren of te betalen.',
+            reasonPageTitle: 'Uitgave afwijzen',
+            reasonPageDescription1: 'Wijs een uitgave af als je deze nooit van plan bent goed te keuren of te betalen. Gebruik anders "in behandeling houden" om de uitgave te pauzeren en meer context te vragen.',
+            reasonPageDescription2: 'Als je de uitgave gaat afwijzen, voeg dan een opmerking toe om uit te leggen waarom:',
+            declineReason: 'Afwijzingsreden',
+            markAsResolved: 'Als opgelost markeren',
+            declinedStatus: 'Deze uitgave is afgewezen. Wachtend op jou om het probleem op te lossen en als opgelost te markeren om inzending mogelijk te maken.',
+            reportActions: {
+                removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
+                    `verwijderd <a href="${linkToReport}">${amount}${merchant ? ` van ${merchant}` : ''}</a>`,
+                declinedExpense: 'deze uitgave afgewezen',
+                markedAsResolved: 'de afwijzingsreden als opgelost gemarkeerd',
+                autoAddedToReport: ({amount, merchant}: {amount: string; merchant?: string}) => `${amount} toegevoegd ${merchant ? `van ${merchant}` : ''}`,
+            },
+        },
     },
     share: {
         shareToExpensify: 'Delen met Expensify',

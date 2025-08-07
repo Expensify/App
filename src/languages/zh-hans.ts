@@ -1339,6 +1339,26 @@ const translations = {
         rates: '费率',
         submitsTo: ({name}: SubmitsToParams) => `提交给${name}`,
         moveExpenses: () => ({one: '移动费用', other: '移动费用'}),
+        decline: {
+            educationalTitle: '您应该暂停还是拒绝？',
+            educationalText: '如果您还没有准备好批准或支付费用，您可以暂停或拒绝它。',
+            holdExpenseTitle: '暂停费用以在批准或付款前要求更多详细信息。',
+            heldExpenseLeftBehindTitle: '当您批准整个报告时，暂停的费用会被留下。',
+            declineExpenseTitle: '拒绝您不打算批准或支付的费用。',
+            reasonPageTitle: '拒绝费用',
+            reasonPageDescription1: '如果您永远不打算批准或支付费用，请拒绝它。否则，使用"暂停"来暂停费用并要求更多上下文。',
+            reasonPageDescription2: '如果您要拒绝费用，请添加评论说明原因：',
+            declineReason: '拒绝原因',
+            markAsResolved: '标记为已解决',
+            declinedStatus: '此费用已被拒绝。等待您修复问题并标记为已解决以启用提交。',
+            reportActions: {
+                removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
+                    `已删除 <a href="${linkToReport}">${amount}${merchant ? ` 来自 ${merchant}` : ''}</a>`,
+                declinedExpense: '拒绝了此费用',
+                markedAsResolved: '将拒绝原因标记为已解决',
+                autoAddedToReport: ({amount, merchant}: {amount: string; merchant?: string}) => `已添加 ${amount} ${merchant ? `来自 ${merchant}` : ''}`,
+            },
+        },
     },
     share: {
         shareToExpensify: '分享到Expensify',

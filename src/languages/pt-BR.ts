@@ -1353,6 +1353,26 @@ const translations = {
         rates: 'Taxas',
         submitsTo: ({name}: SubmitsToParams) => `Envia para ${name}`,
         moveExpenses: () => ({one: 'Mover despesa', other: 'Mover despesas'}),
+        decline: {
+            educationalTitle: 'Você deve colocar em espera ou recusar?',
+            educationalText: 'Se você não está pronto para aprovar ou pagar uma despesa, você pode colocá-la em espera ou recusá-la.',
+            holdExpenseTitle: 'Coloque uma despesa em espera para pedir mais detalhes antes da aprovação ou pagamento.',
+            heldExpenseLeftBehindTitle: 'Despesas em espera são deixadas para trás quando você aprova um relatório inteiro.',
+            declineExpenseTitle: 'Recuse uma despesa que você não pretende aprovar ou pagar.',
+            reasonPageTitle: 'Recusar despesa',
+            reasonPageDescription1: 'Recuse uma despesa se você nunca planeja aprová-la ou pagá-la. Caso contrário, use "colocar em espera" para pausar a despesa e pedir mais contexto.',
+            reasonPageDescription2: 'Se você vai recusar a despesa, adicione um comentário para explicar por quê:',
+            declineReason: 'Motivo da recusa',
+            markAsResolved: 'Marcar como resolvido',
+            declinedStatus: 'Esta despesa foi recusada. Aguardando que você corrija o(s) problema(s) e marque como resolvido para permitir o envio.',
+            reportActions: {
+                removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
+                    `removido <a href="${linkToReport}">${amount}${merchant ? ` de ${merchant}` : ''}</a>`,
+                declinedExpense: 'recusou esta despesa',
+                markedAsResolved: 'marcou o motivo da recusa como resolvido',
+                autoAddedToReport: ({amount, merchant}: {amount: string; merchant?: string}) => `adicionado ${amount} ${merchant ? `de ${merchant}` : ''}`,
+            },
+        },
     },
     share: {
         shareToExpensify: 'Compartilhar no Expensify',
