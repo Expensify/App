@@ -531,6 +531,7 @@ const translations = {
         pm: 'PM',
         tbd: 'TBD',
         selectCurrency: '选择货币',
+        selectSymbolOrCurrency: '选择一个符号或货币',
         card: '卡片',
         whyDoWeAskForThis: '我们为什么要求这个？',
         required: '必填',
@@ -848,17 +849,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `本聊天室用于与 <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> 有关的任何内容。`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `该聊天用于 <strong>${invoicePayer}</strong> 和 <strong>${invoiceReceiver}</strong> 之间的发票。使用 + 按钮发送发票。`,
+            `该聊天用于 <strong>${invoicePayer}</strong> 和 <strong>${invoiceReceiver}</strong> 之间的发票。使用 <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> 按钮发送发票。`,
         beginningOfChatHistory: '此聊天是与',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `这是<strong>${submitterDisplayName}</strong> 向<strong>${workspaceName}</strong> 提交费用的地方。使用 + 按钮即可。`,
+            `这是<strong>${submitterDisplayName}</strong> 向<strong>${workspaceName}</strong> 提交费用的地方。使用 <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> 按钮即可。`,
         beginningOfChatHistorySelfDM: '这是您的个人空间。用于记录笔记、任务、草稿和提醒。',
         beginningOfChatHistorySystemDM: '欢迎！让我们为您进行设置。',
         chatWithAccountManager: '在这里与您的客户经理聊天',
         sayHello: '说你好！',
         yourSpace: '您的空间',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `欢迎来到${roomName}！`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `使用 + 按钮${additionalText}一笔费用。`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => `使用 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮${additionalText}一笔费用。`,
         askConcierge: '随时提问并获得全天候实时支持。',
         conciergeSupport: '24/7 支持',
         create: '创建',
@@ -3364,6 +3365,7 @@ const translations = {
             travel: '旅行',
             members: '成员',
             accounting: '会计',
+            receiptPartners: '收据合作伙伴',
             rules: '规则',
             displayedAs: '显示为',
             plan: '计划',
@@ -4535,11 +4537,20 @@ const translations = {
                 title: '会计',
                 subtitle: '同步您的会计科目表及更多内容。',
             },
+            receiptPartners: {
+                title: '收据合作伙伴',
+                subtitle: '自动导入收据。',
+            },
             connectionsWarningModal: {
                 featureEnabledTitle: '慢着...',
                 featureEnabledText: '要启用或禁用此功能，您需要更改会计导入设置。',
                 disconnectText: '要禁用会计功能，您需要从工作区断开会计连接。',
                 manageSettings: '管理设置',
+            },
+            receiptPartnersWarningModal: {
+                featureEnabledTitle: '断开Uber连接',
+                disconnectText: '要禁用此功能，请先断开Uber for Business集成。',
+                confirmText: '明白了',
             },
             workflowWarningModal: {
                 featureEnabledTitle: '慢着...',
@@ -4550,6 +4561,20 @@ const translations = {
                 title: '规则',
                 subtitle: '需要收据，标记高消费等。',
             },
+        },
+        reports: {
+            reportsCustomTitleExamples: '示例：',
+            customReportNamesSubtitle: '使用我们的自定义报告标题',
+            customNameTitle: '默认报告标题',
+            customNameDescription: '使用我们的功能为费用报告选择一个自定义名称',
+            customNameDescriptionLink: '广泛的公式',
+            customNameInputLabel: '名称',
+            customNameEmailPhoneExample: '成员的电子邮件或电话：{report:submit:from}',
+            customNameStartDateExample: '报告开始日期：{report:startdate}',
+            customNameWorkspaceNameExample: '工作区名称：{report:workspacename}',
+            customNameReportIDExample: '报告 ID: {report:id}',
+            customNameTotalExample: '总计：{report:total}。',
+            preventMembersFromChangingCustomNamesTitle: '禁止成员更改自定义报告名称',
         },
         reportFields: {
             addField: '添加字段',
@@ -5415,20 +5440,8 @@ const translations = {
                 adultEntertainment: '成人娱乐',
             },
             expenseReportRules: {
-                examples: '示例：',
                 title: '费用报告',
                 subtitle: '自动化费用报告合规、审批和支付。',
-                customReportNamesSubtitle: '使用我们的自定义报告标题',
-                customNameTitle: '默认报告标题',
-                customNameDescription: '使用我们的功能为费用报告选择一个自定义名称',
-                customNameDescriptionLink: '广泛的公式',
-                customNameInputLabel: '名称',
-                customNameEmailPhoneExample: '成员的电子邮件或电话：{report:submit:from}',
-                customNameStartDateExample: '报告开始日期：{report:startdate}',
-                customNameWorkspaceNameExample: '工作区名称：{report:workspacename}',
-                customNameReportIDExample: '报告 ID: {report:id}',
-                customNameTotalExample: '总计：{report:total}。',
-                preventMembersFromChangingCustomNamesTitle: '禁止成员更改自定义报告名称',
                 preventSelfApprovalsTitle: '防止自我批准',
                 preventSelfApprovalsSubtitle: '防止工作区成员批准自己的费用报告。',
                 autoApproveCompliantReportsTitle: '自动批准合规报告',
@@ -5781,7 +5794,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: '无内容显示',
-                subtitle: '尝试调整您的搜索条件或使用绿色的 + 按钮创建内容。',
+                subtitle: `尝试调整您的搜索条件或使用绿色的 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮创建内容。`,
             },
             emptyExpenseResults: {
                 title: '您还没有创建任何费用',
@@ -5887,6 +5900,7 @@ const translations = {
             paid: '支付日期',
             exported: '导出日期',
             posted: '发布日期',
+            withdrawn: '撤回日期',
             billable: '可计费的',
             reimbursable: '可报销的',
             groupBy: {
@@ -6173,8 +6187,9 @@ const translations = {
         levelThreeResult: '消息已从频道中移除，并收到匿名警告，消息已提交审核。',
     },
     actionableMentionWhisperOptions: {
-        invite: '邀请他们',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: '邀请提交费用',
+        inviteToChat: '仅邀请聊天',
+        nothing: '什么都不做',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: '接受',

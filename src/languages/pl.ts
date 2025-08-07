@@ -531,6 +531,7 @@ const translations = {
         pm: 'PM',
         tbd: 'TBD',
         selectCurrency: 'Wybierz walutę',
+        selectSymbolOrCurrency: 'Wybierz symbol lub walutę',
         card: 'Karta',
         whyDoWeAskForThis: 'Dlaczego o to prosimy?',
         required: 'Wymagane',
@@ -849,17 +850,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `Ten czat jest przeznaczony do wszystkiego, co związane z <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `Ten czat służy do wystawiania faktur między <strong>${invoicePayer}</strong> i <strong>${invoiceReceiver}</strong>. Użyj przycisku +, aby wysłać fakturę.`,
+            `Ten czat służy do wystawiania faktur między <strong>${invoicePayer}</strong> i <strong>${invoiceReceiver}</strong>. Użyj przycisku <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>, aby wysłać fakturę.`,
         beginningOfChatHistory: 'Ta rozmowa jest z',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `W tym miejscu <strong>${submitterDisplayName}</strong> będzie przesyłać wydatki do <strong>${workspaceName}</strong>. Wystarczy użyć przycisku +.`,
+            `W tym miejscu <strong>${submitterDisplayName}</strong> będzie przesyłać wydatki do <strong>${workspaceName}</strong>. Wystarczy użyć przycisku <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>.`,
         beginningOfChatHistorySelfDM: 'To jest Twoja przestrzeń osobista. Używaj jej do notatek, zadań, szkiców i przypomnień.',
         beginningOfChatHistorySystemDM: 'Witamy! Zacznijmy konfigurację.',
         chatWithAccountManager: 'Czat z Twoim opiekunem konta tutaj',
         sayHello: 'Powiedz cześć!',
         yourSpace: 'Twoja przestrzeń',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Witamy w ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `Użyj przycisku +, aby ${additionalText} wydatek.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => `Użyj przycisku ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}, aby ${additionalText} wydatek.`,
         askConcierge: 'Zadawaj pytania i otrzymuj wsparcie w czasie rzeczywistym 24/7.',
         conciergeSupport: 'Całodobowe wsparcie',
         create: 'utwórz',
@@ -3404,6 +3405,7 @@ const translations = {
             travel: 'Podróżować',
             members: 'Członkowie',
             accounting: 'Księgowość',
+            receiptPartners: 'Partnerzy paragonów',
             rules: 'Zasady',
             displayedAs: 'Wyświetlane jako',
             plan: 'Plan',
@@ -4609,11 +4611,20 @@ const translations = {
                 title: 'Księgowość',
                 subtitle: 'Synchronizuj swój plan kont i więcej.',
             },
+            receiptPartners: {
+                title: 'Partnerzy paragonów',
+                subtitle: 'Automatycznie importuj paragony.',
+            },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Nie tak szybko...',
                 featureEnabledText: 'Aby włączyć lub wyłączyć tę funkcję, musisz zmienić ustawienia importu księgowego.',
                 disconnectText: 'Aby wyłączyć księgowość, musisz odłączyć swoje połączenie księgowe od przestrzeni roboczej.',
                 manageSettings: 'Zarządzaj ustawieniami',
+            },
+            receiptPartnersWarningModal: {
+                featureEnabledTitle: 'Rozłącz Uber',
+                disconnectText: 'Aby wyłączyć tę funkcję, najpierw rozłącz integrację Uber for Business.',
+                confirmText: 'Rozumiem',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Nie tak szybko...',
@@ -4625,6 +4636,20 @@ const translations = {
                 title: 'Zasady',
                 subtitle: 'Wymagaj paragonów, oznaczaj wysokie wydatki i więcej.',
             },
+        },
+        reports: {
+            reportsCustomTitleExamples: 'Przykłady:',
+            customReportNamesSubtitle: 'Dostosuj tytuły raportów za pomocą naszego',
+            customNameTitle: 'Domyślny tytuł raportu',
+            customNameDescription: 'Wybierz niestandardową nazwę dla raportów wydatków za pomocą naszego',
+            customNameDescriptionLink: 'rozbudowane formuły',
+            customNameInputLabel: 'Imię',
+            customNameEmailPhoneExample: 'Email lub telefon członka: {report:submit:from}',
+            customNameStartDateExample: 'Data rozpoczęcia raportu: {report:startdate}',
+            customNameWorkspaceNameExample: 'Nazwa przestrzeni roboczej: {report:workspacename}',
+            customNameReportIDExample: 'Report ID: {report:id}',
+            customNameTotalExample: 'Suma: {report:total}.',
+            preventMembersFromChangingCustomNamesTitle: 'Uniemożliw członkom zmianę nazw raportów niestandardowych',
         },
         reportFields: {
             addField: 'Dodaj pole',
@@ -5499,20 +5524,8 @@ const translations = {
                 adultEntertainment: 'Rozrywka dla dorosłych',
             },
             expenseReportRules: {
-                examples: 'Przykłady:',
                 title: 'Raporty wydatków',
                 subtitle: 'Zautomatyzuj zgodność raportów wydatków, zatwierdzenia i płatności.',
-                customReportNamesSubtitle: 'Dostosuj tytuły raportów za pomocą naszego',
-                customNameTitle: 'Domyślny tytuł raportu',
-                customNameDescription: 'Wybierz niestandardową nazwę dla raportów wydatków za pomocą naszego',
-                customNameDescriptionLink: 'rozbudowane formuły',
-                customNameInputLabel: 'Imię',
-                customNameEmailPhoneExample: 'Email lub telefon członka: {report:submit:from}',
-                customNameStartDateExample: 'Data rozpoczęcia raportu: {report:startdate}',
-                customNameWorkspaceNameExample: 'Nazwa przestrzeni roboczej: {report:workspacename}',
-                customNameReportIDExample: 'Report ID: {report:id}',
-                customNameTotalExample: 'Suma: {report:total}.',
-                preventMembersFromChangingCustomNamesTitle: 'Uniemożliw członkom zmianę nazw raportów niestandardowych',
                 preventSelfApprovalsTitle: 'Zapobiegaj samodzielnym zatwierdzeniom',
                 preventSelfApprovalsSubtitle: 'Uniemożliwiaj członkom przestrzeni roboczej zatwierdzanie własnych raportów wydatków.',
                 autoApproveCompliantReportsTitle: 'Automatycznie zatwierdzaj zgodne raporty',
@@ -5876,7 +5889,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'Brak danych do wyświetlenia',
-                subtitle: 'Spróbuj dostosować kryteria wyszukiwania lub utwórz coś za pomocą zielonego przycisku +.',
+                subtitle: `Spróbuj dostosować kryteria wyszukiwania lub utwórz coś za pomocą zielonego przycisku ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.`,
             },
             emptyExpenseResults: {
                 title: 'Nie utworzyłeś jeszcze żadnych wydatków.',
@@ -5982,6 +5995,7 @@ const translations = {
             paid: 'Data płatności',
             exported: 'Data eksportu',
             posted: 'Data opublikowania',
+            withdrawn: 'Data wycofania',
             billable: 'Podlegające fakturowaniu',
             reimbursable: 'Podlegające zwrotowi',
             groupBy: {
@@ -6274,8 +6288,9 @@ const translations = {
         levelThreeResult: 'Wiadomość usunięta z kanału, dodano anonimowe ostrzeżenie, a wiadomość została zgłoszona do przeglądu.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Zaproś ich',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: 'Zaproś do przesyłania wydatków',
+        inviteToChat: 'Zaproś tylko do czatu',
+        nothing: 'Nie rób nic',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Akceptuj',
