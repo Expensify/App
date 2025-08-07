@@ -4830,8 +4830,8 @@ const translations = {
             updateTaxCodeFailureMessage: 'Ocorreu um erro ao atualizar o código de imposto, por favor, tente novamente.',
         },
         emptyWorkspace: {
-            title: `Você não tem espaços de trabalho`,
-            subtitle: `Acompanhe recibos, reembolse despesas, gerencie viagens, envie faturas e muito mais.`,
+            title: 'Você não tem espaços de trabalho',
+            subtitle: 'Acompanhe recibos, reembolse despesas, gerencie viagens, envie faturas e muito mais.',
             createAWorkspaceCTA: 'Começar',
             features: {
                 trackAndCollect: 'Acompanhe e colete recibos',

@@ -4833,8 +4833,8 @@ const translations = {
             updateTaxCodeFailureMessage: "Si è verificato un errore durante l'aggiornamento del codice fiscale, riprova.",
         },
         emptyWorkspace: {
-            title: `Non hai spazi di lavoro`,
-            subtitle: `Traccia ricevute, rimborsa spese, gestisci viaggi, invia fatture e altro ancora.`,
+            title: 'Non hai spazi di lavoro',
+            subtitle: 'Traccia ricevute, rimborsa spese, gestisci viaggi, invia fatture e altro ancora.',
             createAWorkspaceCTA: 'Inizia',
             features: {
                 trackAndCollect: 'Traccia e raccogli ricevute',

@@ -4812,8 +4812,8 @@ const translations = {
             updateTaxCodeFailureMessage: '税コードの更新中にエラーが発生しました。もう一度お試しください。',
         },
         emptyWorkspace: {
-            title: `ワークスペースがありません`,
-            subtitle: `領収書の管理、経費精算、出張管理、請求書の送信などができます。`,
+            title: 'ワークスペースがありません',
+            subtitle: '領収書の管理、経費精算、出張管理、請求書の送信などができます。',
             createAWorkspaceCTA: '開始する',
             features: {
                 trackAndCollect: '領収書を追跡して収集する',

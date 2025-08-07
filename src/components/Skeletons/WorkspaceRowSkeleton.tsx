@@ -22,6 +22,8 @@ function WorkspaceRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpac
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // We calculate the width of the sections on the skeleton by first calculating the skeleton view width
+    // Then we subtract the width by 66, which is the x position of the first part.
     const partWidth = Math.floor((windowWidth - leftPaneWidth - gapWidth * 2 - 66) / 3);
     return (
         <ItemListSkeletonView

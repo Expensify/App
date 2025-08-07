@@ -4749,8 +4749,8 @@ const translations = {
             updateTaxCodeFailureMessage: '更新税码时发生错误，请重试',
         },
         emptyWorkspace: {
-            title: `您没有任何工作区`,
-            subtitle: `跟踪收据、报销费用、管理差旅、发送发票等。`,
+            title: '您没有任何工作区',
+            subtitle: '跟踪收据、报销费用、管理差旅、发送发票等。',
             createAWorkspaceCTA: '开始使用',
             features: {
                 trackAndCollect: '跟踪并收集收据',

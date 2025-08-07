@@ -4834,8 +4834,8 @@ const translations = {
             updateTaxCodeFailureMessage: "Une erreur s'est produite lors de la mise à jour du code fiscal, veuillez réessayer.",
         },
         emptyWorkspace: {
-            title: `Vous n'avez aucun espace de travail`,
-            subtitle: `Suivez les reçus, remboursez les dépenses, gérez les déplacements, envoyez des factures, et plus encore.`,
+            title: "Vous n'avez aucun espace de travail",
+            subtitle: 'Suivez les reçus, remboursez les dépenses, gérez les déplacements, envoyez des factures, et plus encore.',
             createAWorkspaceCTA: 'Commencer',
             features: {
                 trackAndCollect: 'Suivre et collecter les reçus',
