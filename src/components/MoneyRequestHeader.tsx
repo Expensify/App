@@ -13,6 +13,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {deleteMoneyRequest, deleteTrackExpense, initSplitExpense, markDeclineViolationAsResolved} from '@libs/actions/IOU';
+import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportActions, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction, isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
@@ -274,6 +275,19 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {
                 initSplitExpense(transaction);
+            },
+        },
+        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE]: {
+            text: translate('common.merge'),
+            icon: Expensicons.ArrowCollapse,
+            value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE,
+            onSelected: () => {
+                if (!transaction) {
+                    return;
+                }
+
+                setupMergeTransactionData(transaction.transactionID, {targetTransactionID: transaction.transactionID});
+                Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID, Navigation.getActiveRoute()));
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS]: {

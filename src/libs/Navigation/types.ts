@@ -1723,6 +1723,25 @@ type TransactionDuplicateNavigatorParamList = {
     };
 };
 
+type MergeTransactionNavigatorParamList = {
+    [SCREENS.MERGE_TRANSACTION.LIST_PAGE]: {
+        transactionID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.MERGE_TRANSACTION.RECEIPT_PAGE]: {
+        transactionID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.MERGE_TRANSACTION.DETAILS_PAGE]: {
+        transactionID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE]: {
+        transactionID: string;
+        backTo?: Routes;
+    };
+};
+
 type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SETTINGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: NavigatorScreenParams<TwoFactorAuthNavigatorParamList>;
@@ -1767,6 +1786,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: NavigatorScreenParams<SplitExpenseParamList>;
     [SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE]: NavigatorScreenParams<{reportId: string | undefined}>;
     [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: NavigatorScreenParams<ScheduleCallParamList>;
+    [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: NavigatorScreenParams<MergeTransactionNavigatorParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -2106,6 +2126,7 @@ type AuthScreensParamList = SharedScreensParamList & {
         isFromReviewDuplicates?: string;
         action?: IOUAction;
         iouType?: IOUType;
+        mergeTransactionID?: string;
     };
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
@@ -2340,4 +2361,5 @@ export type {
     SetParamsAction,
     WorkspacesTabNavigatorName,
     TestToolsModalModalNavigatorParamList,
+    MergeTransactionNavigatorParamList,
 };

@@ -610,6 +610,7 @@ const ONYXKEYS = {
         SKIP_CONFIRMATION: 'skipConfirmation_',
         TRANSACTION_BACKUP: 'transactionsBackup_',
         SPLIT_TRANSACTION_DRAFT: 'splitTransactionDraft_',
+        MERGE_TRANSACTION: 'mergeTransaction_',
         PRIVATE_NOTES_DRAFT: 'privateNotesDraft_',
         NEXT_STEP: 'reportNextStep_',
 
@@ -1014,6 +1015,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.TRANSACTION_BACKUP]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: OnyxTypes.TransactionViolations;
     [ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT]: OnyxTypes.Transaction;
+    [ONYXKEYS.COLLECTION.MERGE_TRANSACTION]: OnyxTypes.MergeTransaction;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
     [ONYXKEYS.COLLECTION.OLD_POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
     [ONYXKEYS.COLLECTION.SELECTED_TAB]: OnyxTypes.SelectedTabRequest;
