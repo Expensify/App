@@ -39,6 +39,7 @@ import CONFIG from './CONFIG';
 import Expensify from './Expensify';
 import {CurrentReportIDContextProvider} from './hooks/useCurrentReportID';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
+import {SidePanelProvider} from './hooks/useSidePanel';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import {AttachmentModalContextProvider} from './pages/media/AttachmentModalScreen/AttachmentModalContext';
@@ -100,6 +101,7 @@ function App() {
                                 InputBlurContextProvider,
                                 FullScreenBlockingViewContextProvider,
                                 FullScreenLoaderContextProvider,
+                                SidePanelProvider,
                             ]}
                         >
                             <CustomStatusBarAndBackground />

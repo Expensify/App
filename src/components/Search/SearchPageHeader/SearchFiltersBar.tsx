@@ -442,7 +442,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                         }}
-                        popoverHorizontalOffsetType={CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT}
                     />
                     {!areAllMatchingItemsSelected && showSelectAllMatchingItems && (
                         <Button

@@ -4,6 +4,7 @@ import Modal from '@components/Modal';
 import {PopoverContext} from '@components/PopoverProvider';
 import PopoverWithoutOverlay from '@components/PopoverWithoutOverlay';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePanel from '@hooks/useSidePanel';
 import TooltipRefManager from '@libs/TooltipRefManager';
 import CONST from '@src/CONST';
 import type PopoverProps from './types';
@@ -35,6 +36,14 @@ function Popover(props: PopoverProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const withoutOverlayRef = useRef(null);
     const {close, popover} = React.useContext(PopoverContext);
+    const {isSidePanelTransitionEnded} = useSidePanel();
+
+    React.useEffect(() => {
+        if (isSidePanelTransitionEnded || isSmallScreenWidth || !isVisible) {
+            return;
+        }
+        onClose?.();
+    }, [onClose, isSidePanelTransitionEnded]);
 
     // Not adding this inside the PopoverProvider
     // because this is an issue on smaller screens as well.

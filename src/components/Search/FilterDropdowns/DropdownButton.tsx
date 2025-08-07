@@ -1,5 +1,5 @@
 import type {ReactNode} from 'react';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
@@ -7,7 +7,9 @@ import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import Text from '@components/Text';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
 import useOnyx from '@hooks/useOnyx';
+import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {useSidePanelDisplayStatus} from '@hooks/useSidePanel';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -34,21 +36,20 @@ type DropdownButtonProps = {
 
 const PADDING_MODAL = 8;
 
-const ANCHOR_ORIGIN = {
-    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-};
-
 function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: DropdownButtonProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+
+    const {shouldHideSidePanel} = useSidePanelDisplayStatus();
 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
     const triggerRef = useRef<View | null>(null);
     const [isOverlayVisible, setIsOverlayVisible] = useState(false);
+    const {calculatePopoverPosition} = usePopoverPosition();
+
     const [popoverTriggerPosition, setPopoverTriggerPosition] = useState({
         horizontal: 0,
         vertical: 0,
@@ -69,18 +70,21 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
         });
     }, [willAlertModalBecomeVisible]);
 
-    /**
-     * Calculate popover position and toggle overlay
-     */
-    const calculatePopoverPositionAndToggleOverlay = useCallback(() => {
-        triggerRef.current?.measureInWindow((x, y, _, height) => {
-            setPopoverTriggerPosition({
-                horizontal: x,
-                vertical: y + height + PADDING_MODAL,
-            });
-            toggleOverlay();
-        });
-    }, [toggleOverlay]);
+    const anchorAlignment = useMemo(
+        () => ({
+            horizontal: shouldHideSidePanel ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+        }),
+        [shouldHideSidePanel],
+    );
+
+    useEffect(() => {
+        if (!triggerRef.current) {
+            return;
+        }
+
+        calculatePopoverPosition(triggerRef, anchorAlignment).then((pos) => setPopoverTriggerPosition({...pos, vertical: pos.vertical + PADDING_MODAL}));
+    }, [isOverlayVisible, calculatePopoverPosition, anchorAlignment]);
 
     /**
      * When no items are selected, render the label, otherwise, render the
@@ -106,7 +110,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
         return PopoverComponent({closeOverlay: toggleOverlay});
         // PopoverComponent is stable so we don't need it here as a dep.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isOverlayVisible, toggleOverlay]);
+    }, [toggleOverlay]);
 
     return (
         <>
@@ -115,7 +119,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
                 small
                 ref={triggerRef}
                 innerStyles={[isOverlayVisible && styles.buttonHoveredBG, {maxWidth: 256}]}
-                onPress={calculatePopoverPositionAndToggleOverlay}
+                onPress={toggleOverlay}
             >
                 <CaretWrapper style={[styles.flex1, styles.mw100]}>
                     <Text
@@ -134,7 +138,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
                 isVisible={isOverlayVisible}
                 onClose={toggleOverlay}
                 anchorPosition={popoverTriggerPosition}
-                anchorAlignment={ANCHOR_ORIGIN}
+                anchorAlignment={anchorAlignment}
                 restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
                 shouldEnableNewFocusManagement
                 shouldMeasureAnchorPositionFromTop={false}

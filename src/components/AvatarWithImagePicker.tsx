@@ -1,11 +1,11 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import usePopoverPosition from '@hooks/usePopoverPosition';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
@@ -124,10 +124,9 @@ type AvatarWithImagePickerProps = {
 
     /** Optionally override the default "Edit" icon */
     editIcon?: IconAsset;
-
-    /** Determines if a style utility function should be used for calculating the PopoverMenu anchor position. */
-    shouldUseStyleUtilityForAnchorPosition?: boolean;
 };
+
+const anchorAlignment = {horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP};
 
 function AvatarWithImagePicker({
     DefaultAvatar = () => null,
@@ -156,12 +155,10 @@ function AvatarWithImagePicker({
     enablePreview = false,
     shouldDisableViewPhoto = false,
     editIcon = Expensicons.Pencil,
-    shouldUseStyleUtilityForAnchorPosition = false,
 }: AvatarWithImagePickerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
-    const {windowWidth} = useWindowDimensions();
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [errorData, setErrorData] = useState<ErrorData>({validationError: null, phraseParam: {}});
@@ -171,6 +168,7 @@ function AvatarWithImagePicker({
         name: '',
         type: '',
     });
+    const {calculatePopoverPosition} = usePopoverPosition();
     const anchorRef = useRef<View>(null);
     const {translate} = useLocalize();
 
@@ -296,23 +294,6 @@ function AvatarWithImagePicker({
         return menuItems;
     };
 
-    useEffect(() => {
-        if (!anchorRef.current) {
-            return;
-        }
-
-        if (!isMenuVisible) {
-            return;
-        }
-
-        anchorRef.current.measureInWindow((x, y, width, height) => {
-            setPopoverPosition({
-                horizontal: x + (width - variables.photoUploadPopoverWidth) / 2,
-                vertical: y + height + variables.spacing2,
-            });
-        });
-    }, [isMenuVisible, windowWidth]);
-
     const onPressAvatar = useCallback(
         (openPicker: OpenPicker) => {
             if (disabled && enablePreview && onViewPhotoPress) {
@@ -329,6 +310,16 @@ function AvatarWithImagePicker({
         },
         [disabled, enablePreview, isUsingDefaultAvatar, onViewPhotoPress, showAvatarCropModal],
     );
+
+    useLayoutEffect(() => {
+        if (!anchorRef.current || !isMenuVisible) {
+            return;
+        }
+
+        calculatePopoverPosition(anchorRef, anchorAlignment).then(({vertical, horizontal, width}) => {
+            setPopoverPosition({ vertical: vertical + variables.spacing2, horizontal: horizontal - width + (width - variables.photoUploadPopoverWidth) / 2});
+        });
+    }, [calculatePopoverPosition, isMenuVisible]);
 
     return (
         <View style={[styles.w100, style]}>
@@ -414,6 +405,7 @@ function AvatarWithImagePicker({
                                             </Tooltip>
                                         </OfflineWithFeedback>
                                         <PopoverMenu
+                                            anchorPosition={popoverPosition}
                                             isVisible={isMenuVisible}
                                             onClose={() => setIsMenuVisible(false)}
                                             onItemSelected={(item, index) => {
@@ -428,8 +420,7 @@ function AvatarWithImagePicker({
                                                 }
                                             }}
                                             menuItems={menuItems}
-                                            anchorPosition={shouldUseStyleUtilityForAnchorPosition ? styles.popoverMenuOffset(windowWidth) : popoverPosition}
-                                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                                            anchorAlignment={anchorAlignment}
                                             anchorRef={anchorRef}
                                         />
                                     </>

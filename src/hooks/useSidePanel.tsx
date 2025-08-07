@@ -1,4 +1,5 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
+import type {PropsWithChildren, RefObject} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 // Import Animated directly from 'react-native' as animations are used with navigation.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
@@ -56,16 +57,40 @@ function useSidePanelDisplayStatus() {
     };
 }
 
+type SidePanelContextProps = {
+    isSidePanelTransitionEnded: boolean;
+    shouldHideSidePanel: boolean;
+    shouldHideSidePanelBackdrop: boolean;
+    shouldHideHelpButton: boolean;
+    shouldHideToolTip: boolean;
+    sidePanelOffset: RefObject<Animated.Value>;
+    sidePanelTranslateX: RefObject<Animated.Value>;
+    openSidePanel: () => void;
+    closeSidePanel: () => void;
+};
+
+const SidePanelContext = createContext<SidePanelContextProps>({
+    isSidePanelTransitionEnded: true,
+    shouldHideSidePanel: true,
+    shouldHideSidePanelBackdrop: true,
+    shouldHideHelpButton: true,
+    shouldHideToolTip: false,
+    sidePanelOffset: {current: new Animated.Value(0)},
+    sidePanelTranslateX: {current: new Animated.Value(0)},
+    openSidePanel: () => {},
+    closeSidePanel: () => {},
+});
+
 /**
  * Hook to get the animated position of the Side Panel and the margin of the navigator
  */
-function useSidePanel() {
+function SidePanelProvider({children}: PropsWithChildren) {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
     const sidePanelWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
 
     const [isSidePanelTransitionEnded, setIsSidePanelTransitionEnded] = useState(true);
-    const {shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideHelpButton, sidePanelNVP} = useSidePanelDisplayStatus();
+    const {shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideHelpButton} = useSidePanelDisplayStatus();
     const shouldHideToolTip = isExtraLargeScreenWidth ? !isSidePanelTransitionEnded : !shouldHideSidePanel;
 
     const shouldApplySidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel;
@@ -107,19 +132,25 @@ function useSidePanel() {
         [isExtraLargeScreenWidth],
     );
 
-    return {
-        sidePanelNVP,
-        isSidePanelTransitionEnded,
-        shouldHideSidePanel,
-        shouldHideSidePanelBackdrop,
-        shouldHideHelpButton,
-        shouldHideToolTip,
-        sidePanelOffset,
-        sidePanelTranslateX,
-        openSidePanel,
-        closeSidePanel,
-    };
+    const value = useMemo(
+        () => ({
+            isSidePanelTransitionEnded,
+            shouldHideSidePanel,
+            shouldHideSidePanelBackdrop,
+            shouldHideHelpButton,
+            shouldHideToolTip,
+            sidePanelOffset,
+            sidePanelTranslateX,
+            openSidePanel,
+            closeSidePanel,
+        }),
+        [closeSidePanel, isSidePanelTransitionEnded, openSidePanel, shouldHideHelpButton, shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideToolTip],
+    );
+
+    return <SidePanelContext.Provider value={value}>{children}</SidePanelContext.Provider>;
 }
 
+const useSidePanel = () => useContext(SidePanelContext);
+
 export default useSidePanel;
-export {useSidePanelDisplayStatus};
+export {useSidePanelDisplayStatus, SidePanelProvider};
