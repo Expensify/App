@@ -157,12 +157,12 @@ function getForReportAction({
     reportOrID,
     reportAction,
     searchReports,
-    policyTags,
+    policyTags = {},
 }: {
     reportOrID: string | SearchReport | undefined;
     reportAction: OnyxEntry<ReportAction>;
     searchReports?: SearchReport[];
-    policyTags?: OnyxCollection<PolicyTagLists>;
+    policyTags: PolicyTagLists;
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
@@ -261,16 +261,15 @@ function getForReportAction({
 
     const hasModifiedTag = isReportActionOriginalMessageAnObject && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
     if (hasModifiedTag) {
-        const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`] ?? {};
         const transactionTag = reportActionOriginalMessage?.tag ?? '';
         const oldTransactionTag = reportActionOriginalMessage?.oldTag ?? '';
         const splittedTag = getTagArrayFromName(transactionTag);
         const splittedOldTag = getTagArrayFromName(oldTransactionTag);
         const localizedTagListName = translateLocal('common.tag');
-        const sortedTagKeys = getSortedTagKeys(reportPolicyTags);
+        const sortedTagKeys = getSortedTagKeys(policyTags);
 
         sortedTagKeys.forEach((policyTagKey, index) => {
-            const policyTagListName = reportPolicyTags[policyTagKey].name || localizedTagListName;
+            const policyTagListName = policyTags[policyTagKey].name || localizedTagListName;
 
             const newTag = splittedTag.at(index) ?? '';
             const oldTag = splittedOldTag.at(index) ?? '';
