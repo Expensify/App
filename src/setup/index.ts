@@ -1,5 +1,6 @@
 import {I18nManager} from 'react-native';
 import Onyx from 'react-native-onyx';
+import {prewarmCurrencyCache} from '@libs/CurrencyUtils';
 import intlPolyfill from '@libs/IntlPolyfill';
 import {setDeviceID} from '@userActions/Device';
 import initLocale from '@userActions/Locale';
@@ -59,6 +60,8 @@ export default function () {
     initOnyxDerivedValues();
 
     setDeviceID();
+
+    prewarmCurrencyCache();
 
     // Force app layout to work left to right because our design does not currently support devices using this mode
     I18nManager.allowRTL(false);
