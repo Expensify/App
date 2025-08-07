@@ -52,7 +52,7 @@ const getInitialTransactionViolation = () =>
             displayPercentVariance: undefined,
             duplicates: [],
             rterType: undefined,
-            comment: undefined
+            comment: undefined,
         },
     } satisfies TransactionViolation);
 
