@@ -817,7 +817,7 @@ function MoneyReportHeader({
 
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
-        DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText'>
+        DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>
     > = {
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
@@ -832,6 +832,7 @@ function MoneyReportHeader({
             text: translate('common.export'),
             backButtonText: translate('common.export'),
             icon: Expensicons.Export,
+            rightIcon: Expensicons.ArrowRight,
             subMenuItems: secondaryExportActions.map((action) => exportSubmenuOptions[action as string]),
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF]: {
@@ -992,6 +993,7 @@ function MoneyReportHeader({
             text: translate('iou.addExpense'),
             backButtonText: translate('iou.addExpense'),
             icon: Expensicons.Plus,
+            rightIcon: Expensicons.ArrowRight,
             value: CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE,
             subMenuItems: addExpenseDropdownOptions,
             onSelected: () => {

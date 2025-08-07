@@ -936,8 +936,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.TAX_VALUE]: {
                             path: ROUTES.WORKSPACE_TAX_VALUE.route,
                         },
-                        [SCREENS.WORKSPACE.RULES_CUSTOM_NAME]: {
-                            path: ROUTES.RULES_CUSTOM_NAME.route,
+                        [SCREENS.WORKSPACE.REPORTS_DEFAULT_TITLE]: {
+                            path: ROUTES.REPORTS_DEFAULT_TITLE.route,
                         },
                         [SCREENS.WORKSPACE.RULES_AUTO_APPROVE_REPORTS_UNDER]: {
                             path: ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.route,
@@ -1449,6 +1449,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_PAID_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_PAID,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_EXPORTED_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_EXPORTED,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_POSTED_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_POSTED,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_WITHDRAWN_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_WITHDRAWN,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_CURRENCY_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_CURRENCY,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_MERCHANT_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_MERCHANT,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_DESCRIPTION_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_DESCRIPTION,
@@ -1687,8 +1688,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.WORKSPACE.TAXES]: {
                     path: ROUTES.WORKSPACE_TAXES.route,
                 },
-                [SCREENS.WORKSPACE.REPORT_FIELDS]: {
-                    path: ROUTES.WORKSPACE_REPORT_FIELDS.route,
+                [SCREENS.WORKSPACE.REPORTS]: {
+                    path: ROUTES.WORKSPACE_REPORTS.route,
                 },
                 [SCREENS.WORKSPACE.DISTANCE_RATES]: {
                     path: ROUTES.WORKSPACE_DISTANCE_RATES.route,
