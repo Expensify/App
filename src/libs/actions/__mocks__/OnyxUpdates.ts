@@ -13,7 +13,8 @@ type OnyxUpdatesMock = typeof OnyxUpdatesImport & {
 };
 
 let lastUpdateIDAppliedToClient: number | undefined = 0;
-Onyx.connect({
+// Use connectWithoutView because this is a mock for testing and does not involve any UI updates.
+Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     callback: (val) => (lastUpdateIDAppliedToClient = val),
 });
@@ -24,7 +25,7 @@ const apply = jest.fn(({lastUpdateID, request, response}: OnyxUpdatesFromServer)
     }
 
     if (request && response) {
-        return applyHTTPSOnyxUpdates(request, response).then(() => undefined);
+        return applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID)).then(() => undefined);
     }
 
     return Promise.resolve();
