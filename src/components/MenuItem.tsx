@@ -1,6 +1,6 @@
 import type {ImageContentFit} from 'expo-image';
 import type {ReactElement, ReactNode, Ref} from 'react';
-import React, {forwardRef, useContext, useMemo, useRef} from 'react';
+import React, {useContext, useMemo, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -63,9 +63,8 @@ type NoIcon = {
 };
 
 type MenuItemBaseProps = {
-    /* View ref  */
-    /* eslint-disable-next-line react/no-unused-prop-types */
-    ref?: Ref<View>;
+    /** Reference to the outer element */
+    ref?: PressableRef | Ref<View>;
 
     /** Function to fire when component is pressed */
     onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
@@ -502,8 +501,8 @@ function MenuItem(
         copyValue,
         plaidUrl,
         hasSubMenuItems = false,
+        ref,
     }: MenuItemProps,
-    ref: PressableRef,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -1006,4 +1005,4 @@ function MenuItem(
 MenuItem.displayName = 'MenuItem';
 
 export type {MenuItemBaseProps, MenuItemProps};
-export default forwardRef(MenuItem);
+export default MenuItem;
