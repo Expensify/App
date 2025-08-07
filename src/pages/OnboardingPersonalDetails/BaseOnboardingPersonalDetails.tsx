@@ -105,11 +105,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 return;
             }
 
-            if (!isPrivateDomainAndHasAccessiblePolicies && onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
-                Navigation.navigate(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(route.params?.backTo));
-                return;
-            }
-
             completeOnboarding(firstName, lastName);
         },
         [isPrivateDomainAndHasAccessiblePolicies, onboardingPurposeSelected, isValidated, route.params?.backTo, completeOnboarding, isVsb, isSmb, formatPhoneNumber],
