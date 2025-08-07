@@ -19,8 +19,9 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-function CountrySelection({isEditing, onNext, formValues, resetScreenIndex}: CustomSubStepProps) {
+function CountrySelection({isEditing, onNext, formValues, resetScreenIndex, fieldsMap}: CustomSubStepProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -37,13 +38,13 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex}: Cus
             }
             return;
         }
-        if (formValues.bankCountry === currentCountry) {
+        if (!isEmptyObject(fieldsMap) && formValues.bankCountry === currentCountry) {
             onNext();
             return;
         }
         fetchCorpayFields(currentCountry);
         resetScreenIndex?.(CONST.CORPAY_FIELDS.INDEXES.MAPPING.BANK_ACCOUNT_DETAILS);
-    }, [currentCountry, formValues.bankCountry, onNext, resetScreenIndex, isUserValidated]);
+    }, [currentCountry, fieldsMap, formValues.bankCountry, resetScreenIndex, isUserValidated, onNext]);
 
     const onSelectionChange = useCallback((country: Option) => {
         setCurrentCountry(country.value);
