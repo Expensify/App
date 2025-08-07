@@ -2,6 +2,7 @@ import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {getValidConnectedIntegration} from '@libs/PolicyUtils';
+// eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getReportPrimaryAction, getTransactionThreadPrimaryAction, isReviewDuplicatesAction} from '@libs/ReportPrimaryActionUtils';
 import CONST from '@src/CONST';
