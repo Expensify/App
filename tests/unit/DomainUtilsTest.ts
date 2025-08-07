@@ -38,7 +38,7 @@ describe('DomainUtils', () => {
         });
 
         it('should return false when email format is invalid or domain not found', () => {
-            expect(hasWorkspaceCreationRestriction('invalidemail', mockMyDomainSecurityGroups, mockSecurityGroupsWithRestriction)).toBe(false);
+            expect(hasWorkspaceCreationRestriction('invalid-email', mockMyDomainSecurityGroups, mockSecurityGroupsWithRestriction)).toBe(false);
             expect(hasWorkspaceCreationRestriction('user@otherdomain.com', mockMyDomainSecurityGroups, mockSecurityGroupsWithRestriction)).toBe(false);
         });
 
