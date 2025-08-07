@@ -14,9 +14,6 @@ import Text from '@src/components/Text';
 import type {TranslationPaths} from '@src/languages/types';
 
 type CountrySelectionListProps = {
-    /** Whether the user is editing an existing account */
-    isEditing: boolean;
-
     /** The currently selected country */
     selectedCountry: string;
 
@@ -25,6 +22,9 @@ type CountrySelectionListProps = {
 
     /** Function to call on step confirmation */
     onCountrySelected: (country: string) => void;
+
+    /** Whether the user is editing an existing account */
+    isEditing?: boolean;
 };
 
 function CountrySelectionList({isEditing, selectedCountry, countries, onCountrySelected}: CountrySelectionListProps) {

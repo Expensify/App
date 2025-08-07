@@ -3,6 +3,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@navigation/Navigation';
+import CountrySelection from './substeps/CountrySelection';
 
 
 function BankAccountPurposePage() {
@@ -19,6 +20,7 @@ function BankAccountPurposePage() {
                 onBackButtonPress={() => Navigation.goBack()}
                 shouldDisplayHelpButton={false}
             />
+            <CountrySelection />
         </ScreenWrapper>
     );
 }
