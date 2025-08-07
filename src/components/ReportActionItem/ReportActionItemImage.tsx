@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -98,6 +98,65 @@ function ReportActionItemImage({
     const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
     const showMapAsImage = isDistanceRequest && (hasErrors || hasPendingWaypoints);
 
+    const attachmentModalSource = tryResolveUrlFromApiRoot(image ?? '');
+    const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
+    const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
+
+    const receiptProps = useMemo<ReceiptImageProps>(() => {
+        let propsObj: ReceiptImageProps;
+
+        if (isEReceipt) {
+            propsObj = {isEReceipt: true, transactionID: transaction.transactionID, iconSize: isSingleImage ? 'medium' : ('small' as IconSize)};
+        } else if (thumbnail && !isLocalFile) {
+            propsObj = {
+                shouldUseThumbnailImage: true,
+                source: thumbnailSource,
+                fallbackIcon: Expensicons.Receipt,
+                fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
+                isAuthTokenRequired: true,
+                shouldUseInitialObjectPosition: isDistanceRequest,
+            };
+        } else if (isLocalFile && filename && Str.isPDF(filename) && typeof attachmentModalSource === 'string') {
+            propsObj = {isPDFThumbnail: true, source: attachmentModalSource};
+        } else {
+            propsObj = {
+                isThumbnail,
+                ...(isThumbnail && {iconSize: (isSingleImage ? 'medium' : 'small') as IconSize, fileExtension}),
+                shouldUseThumbnailImage: true,
+                isAuthTokenRequired: false,
+                source: thumbnail ?? image ?? '',
+                shouldUseInitialObjectPosition: isDistanceRequest,
+                isEmptyReceipt,
+                onPress,
+            };
+        }
+
+        propsObj.isPerDiemRequest = isPerDiemRequest(transaction);
+
+        return propsObj;
+
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        attachmentModalSource,
+        fileExtension,
+        filename,
+        image,
+        isDistanceRequest,
+        isEReceipt,
+        isEmptyReceipt,
+        isLocalFile,
+        isSingleImage,
+        isThumbnail,
+        onPress,
+        thumbnail,
+        thumbnailSource,
+        transaction?.transactionID,
+        transaction?.iouRequestType,
+        transaction?.comment?.type,
+        transaction?.comment?.customUnit?.name,
+    ]);
+
     if (showMapAsImage) {
         return (
             <View style={[styles.w100, styles.h100]}>
@@ -111,40 +170,6 @@ function ReportActionItemImage({
             </View>
         );
     }
-
-    const attachmentModalSource = tryResolveUrlFromApiRoot(image ?? '');
-    const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
-    const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
-
-    let propsObj: ReceiptImageProps;
-
-    if (isEReceipt) {
-        propsObj = {isEReceipt: true, transactionID: transaction.transactionID, iconSize: isSingleImage ? 'medium' : ('small' as IconSize)};
-    } else if (thumbnail && !isLocalFile) {
-        propsObj = {
-            shouldUseThumbnailImage: true,
-            source: thumbnailSource,
-            fallbackIcon: Expensicons.Receipt,
-            fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
-            isAuthTokenRequired: true,
-            shouldUseInitialObjectPosition: isDistanceRequest,
-        };
-    } else if (isLocalFile && filename && Str.isPDF(filename) && typeof attachmentModalSource === 'string') {
-        propsObj = {isPDFThumbnail: true, source: attachmentModalSource};
-    } else {
-        propsObj = {
-            isThumbnail,
-            ...(isThumbnail && {iconSize: (isSingleImage ? 'medium' : 'small') as IconSize, fileExtension}),
-            shouldUseThumbnailImage: true,
-            isAuthTokenRequired: false,
-            source: thumbnail ?? image ?? '',
-            shouldUseInitialObjectPosition: isDistanceRequest,
-            isEmptyReceipt,
-            onPress,
-        };
-    }
-
-    propsObj.isPerDiemRequest = isPerDiemRequest(transaction);
 
     if (enablePreviewModal) {
         return (
@@ -160,7 +185,7 @@ function ReportActionItemImage({
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         accessibilityRole={CONST.ROLE.BUTTON}
                     >
-                        <ReceiptImage {...propsObj} />
+                        <ReceiptImage {...receiptProps} />
                     </PressableWithoutFocus>
                 )}
             </ShowContextMenuContext.Consumer>
@@ -169,7 +194,7 @@ function ReportActionItemImage({
 
     return (
         <ReceiptImage
-            {...propsObj}
+            {...receiptProps}
             shouldUseFullHeight={shouldUseFullHeight}
             thumbnailContainerStyles={styles.thumbnailImageContainerHover}
         />

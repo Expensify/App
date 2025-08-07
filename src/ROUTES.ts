@@ -93,12 +93,16 @@ const ROUTES = {
         getRoute: ({
             reportID,
             reportActionID,
+            parentReportID,
+            parentReportActionID,
             backTo,
             moneyRequestReportActionID,
             transactionID,
         }: {
             reportID: string | undefined;
             reportActionID?: string;
+            parentReportID?: string;
+            parentReportActionID?: string;
             backTo?: string;
             moneyRequestReportActionID?: string;
             transactionID?: string;
@@ -116,6 +120,14 @@ const ROUTES = {
             }
             if (moneyRequestReportActionID) {
                 queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
+            }
+
+            if (parentReportID) {
+                queryParams.push(`parentReportID=${parentReportID}`);
+            }
+
+            if (parentReportActionID) {
+                queryParams.push(`parentReportActionID=${parentReportActionID}`);
             }
 
             const queryString = queryParams.length > 0 ? (`${baseRoute}?${queryParams.join('&')}` as const) : baseRoute;

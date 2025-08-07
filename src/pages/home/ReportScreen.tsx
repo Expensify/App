@@ -136,7 +136,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
-    const reportActionIDFromRoute = route?.params?.reportActionID;
+    const {reportActionID: reportActionIDFromRoute, parentReportID: parentReportIDFromRoute, parentReportActionID: parentReportActionIDFromRoute} = route.params;
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const firstRenderRef = useRef(true);
@@ -156,9 +156,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true, allowStaleData: true});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<OnyxTypes.Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
-    const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportOnyx?.parentReportID)}`, {
+    const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportOnyx?.parentReportID ?? parentReportIDFromRoute)}`, {
         canEvict: false,
-        selector: (parentReportActions) => getParentReportAction(parentReportActions, reportOnyx?.parentReportActionID),
+        selector: (parentReportActions) => getParentReportAction(parentReportActions, reportOnyx?.parentReportActionID ?? parentReportActionIDFromRoute),
         canBeMissing: true,
     });
     const deletedParentAction = isDeletedParentAction(parentReportAction);
@@ -204,6 +204,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         return '';
     }, [accountManagerReportID, accountManagerReport, personalDetails, translate]);
 
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportIDFromRoute}`, {canBeMissing: true});
+
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
      * passing in only the required props.
@@ -214,48 +216,61 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
      */
     const report = useMemo(
         () =>
-            reportOnyx && {
-                lastReadTime: reportOnyx.lastReadTime,
-                reportID: reportOnyx.reportID,
-                policyID: reportOnyx.policyID,
-                lastVisibleActionCreated: reportOnyx.lastVisibleActionCreated,
-                statusNum: reportOnyx.statusNum,
-                stateNum: reportOnyx.stateNum,
-                writeCapability: reportOnyx.writeCapability,
-                type: reportOnyx.type,
-                errorFields: reportOnyx.errorFields,
-                parentReportID: reportOnyx.parentReportID,
-                parentReportActionID: reportOnyx.parentReportActionID,
-                chatType: reportOnyx.chatType,
-                pendingFields: reportOnyx.pendingFields,
-                isDeletedParentAction: reportOnyx.isDeletedParentAction,
-                reportName: reportOnyx.reportName,
-                description: reportOnyx.description,
-                managerID: reportOnyx.managerID,
-                total: reportOnyx.total,
-                nonReimbursableTotal: reportOnyx.nonReimbursableTotal,
-                fieldList: reportOnyx.fieldList,
-                ownerAccountID: reportOnyx.ownerAccountID,
-                currency: reportOnyx.currency,
-                unheldTotal: reportOnyx.unheldTotal,
-                unheldNonReimbursableTotal: reportOnyx.unheldNonReimbursableTotal,
-                participants: reportOnyx.participants,
-                isWaitingOnBankAccount: reportOnyx.isWaitingOnBankAccount,
-                iouReportID: reportOnyx.iouReportID,
-                isOwnPolicyExpenseChat: reportOnyx.isOwnPolicyExpenseChat,
-                isPinned: reportOnyx.isPinned,
-                chatReportID: reportOnyx.chatReportID,
-                visibility: reportOnyx.visibility,
-                oldPolicyName: reportOnyx.oldPolicyName,
-                policyName: reportOnyx.policyName,
-                private_isArchived: reportNameValuePairsOnyx?.private_isArchived,
-                lastMentionedTime: reportOnyx.lastMentionedTime,
-                avatarUrl: reportOnyx.avatarUrl,
-                permissions,
-                invoiceReceiver: reportOnyx.invoiceReceiver,
-                policyAvatar: reportOnyx.policyAvatar,
-            },
-        [reportOnyx, reportNameValuePairsOnyx, permissions],
+            // For transaction threads, transaction data is already available in the parent report to display previews.
+            // However, when opening a thread for the first time, we rely on backend data instead of rendering optimistic data from the local transaction.
+            // To render optimistic data immediately, we need to create an optimistic report that references the parent report and parent report action.
+            // This allows us to create an optimistic report action containing the transaction details
+            parentReportIDFromRoute && parentReportActionIDFromRoute
+                ? ({
+                      ...reportOnyx,
+                      reportID: reportIDFromRoute,
+                      parentReportID: parentReportIDFromRoute,
+                      parentReportActionID: parentReportActionIDFromRoute,
+                      policyID: parentReport?.policyID,
+                      type: CONST.REPORT.TYPE.CHAT,
+                  } as OnyxTypes.Report)
+                : reportOnyx && {
+                      lastReadTime: reportOnyx.lastReadTime,
+                      reportID: reportOnyx.reportID,
+                      policyID: reportOnyx.policyID,
+                      lastVisibleActionCreated: reportOnyx.lastVisibleActionCreated,
+                      statusNum: reportOnyx.statusNum,
+                      stateNum: reportOnyx.stateNum,
+                      writeCapability: reportOnyx.writeCapability,
+                      type: reportOnyx.type,
+                      errorFields: reportOnyx.errorFields,
+                      parentReportID: reportOnyx.parentReportID,
+                      parentReportActionID: reportOnyx.parentReportActionID,
+                      chatType: reportOnyx.chatType,
+                      pendingFields: reportOnyx.pendingFields,
+                      isDeletedParentAction: reportOnyx.isDeletedParentAction,
+                      reportName: reportOnyx.reportName,
+                      description: reportOnyx.description,
+                      managerID: reportOnyx.managerID,
+                      total: reportOnyx.total,
+                      nonReimbursableTotal: reportOnyx.nonReimbursableTotal,
+                      fieldList: reportOnyx.fieldList,
+                      ownerAccountID: reportOnyx.ownerAccountID,
+                      currency: reportOnyx.currency,
+                      unheldTotal: reportOnyx.unheldTotal,
+                      unheldNonReimbursableTotal: reportOnyx.unheldNonReimbursableTotal,
+                      participants: reportOnyx.participants,
+                      isWaitingOnBankAccount: reportOnyx.isWaitingOnBankAccount,
+                      iouReportID: reportOnyx.iouReportID,
+                      isOwnPolicyExpenseChat: reportOnyx.isOwnPolicyExpenseChat,
+                      isPinned: reportOnyx.isPinned,
+                      chatReportID: reportOnyx.chatReportID,
+                      visibility: reportOnyx.visibility,
+                      oldPolicyName: reportOnyx.oldPolicyName,
+                      policyName: reportOnyx.policyName,
+                      private_isArchived: reportNameValuePairsOnyx?.private_isArchived,
+                      lastMentionedTime: reportOnyx.lastMentionedTime,
+                      avatarUrl: reportOnyx.avatarUrl,
+                      permissions,
+                      invoiceReceiver: reportOnyx.invoiceReceiver,
+                      policyAvatar: reportOnyx.policyAvatar,
+                  },
+        [parentReportIDFromRoute, parentReportActionIDFromRoute, reportOnyx, reportIDFromRoute, parentReport?.policyID, reportNameValuePairsOnyx?.private_isArchived, permissions],
     );
     const reportID = report?.reportID;
 
@@ -312,7 +327,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const combinedReportActions = getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
     const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
     // wrapping in useMemo to stabilize children re-rendering
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? parentReport?.policyID}`];
     const isTopMostReportId = currentReportIDValue?.currentReportID === reportIDFromRoute;
     const didSubscribeToReportLeavingEvents = useRef(false);
     const isTransactionThreadView = isReportTransactionThread(report);
@@ -374,6 +389,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             <MoneyRequestHeader
                 report={report}
                 policy={policy}
+                backTo={backTo}
                 parentReportAction={parentReportAction}
                 onBackButtonPress={onBackButtonPress}
             />
@@ -832,11 +848,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                     <ReportActionsView
                                         report={report}
                                         reportActions={reportActions}
-                                        isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
+                                        isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions && !isTransactionThreadView}
                                         hasNewerActions={hasNewerActions}
                                         hasOlderActions={hasOlderActions}
                                         parentReportAction={parentReportAction}
                                         transactionThreadReportID={transactionThreadReportID}
+                                        isReportTransactionThread={isTransactionThreadView}
                                     />
                                 ) : null}
                                 {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (

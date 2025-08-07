@@ -43,7 +43,7 @@ type MoneyRequestReportTransactionItemProps = {
     toggleTransaction: (transactionID: string) => void;
 
     /** Callback function triggered upon pressing a transaction. */
-    handleOnPress: (transactionID: string) => void;
+    handleOnPress: (transaction: TransactionWithOptionalHighlight) => void;
 
     /** Callback function triggered upon long pressing a transaction. */
     handleLongPress: (transactionID: string) => void;
@@ -109,7 +109,7 @@ function MoneyRequestReportTransactionItem({
             <PressableWithFeedback
                 key={transaction.transactionID}
                 onPress={() => {
-                    handleOnPress(transaction.transactionID);
+                    handleOnPress(transaction);
                 }}
                 accessibilityLabel={translate('iou.viewDetails')}
                 role={getButtonRole(true)}
