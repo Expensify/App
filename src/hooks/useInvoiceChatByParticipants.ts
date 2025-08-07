@@ -14,15 +14,21 @@ const reportNameValuePairsSelector = (reportNameValuePairs: OnyxEntry<ReportName
         private_isArchived: reportNameValuePairs.private_isArchived,
     }) as ReportNameValuePairsSelector;
 
+const reportSelector = (report: OnyxEntry<Report>): Report | undefined => report?.invoiceReceiver && report;
+
 function useInvoiceChatByParticipants(receiverID: string | number | undefined, receiverType: InvoiceReceiverType, policyID?: string): OnyxEntry<Report> {
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true, selector: (c) => mapOnyxCollectionItems(c, reportSelector)});
     const [allReportNameValuePair] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true, selector: (c) => mapOnyxCollectionItems(c, reportNameValuePairsSelector)});
 
     const invoiceReport = useMemo(() => {
         return Object.values(allReports ?? {}).find((report) => {
+            if (!report) {
+                return false;
+            }
             const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
             const isReportArchived = isArchivedReport(reportNameValuePairs);
-            if (!report || !isInvoiceRoom(report) || isArchivedNonExpenseReport(report, isReportArchived)) {
+
+            if (!isInvoiceRoom(report) || isArchivedNonExpenseReport(report, isReportArchived)) {
                 return false;
             }
 
