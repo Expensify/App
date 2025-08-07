@@ -38,9 +38,42 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     const policyID = route.params.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`, {canBeMissing: true});
     const rateID = route.params.rateID;
-
     const customUnit = getDistanceRateCustomUnit(policy);
     const rate = customUnit?.rates[rateID];
+    const customUnitID = customUnit?.customUnitID;
+    const [eligibleTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (transactions) => {
+            return Object.values(transactions ?? {}).reduce((transactionIDs, transaction) => {
+                if (
+                    transaction &&
+                    customUnitID &&
+                    transaction?.comment?.customUnit?.customUnitID === customUnitID &&
+                    transaction?.comment?.customUnit?.customUnitRateID &&
+                    transaction?.comment?.customUnit?.customUnitRateID === rateID
+                ) {
+                    transactionIDs.add(transaction?.transactionID);
+                }
+                return transactionIDs;
+            }, new Set<string>());
+        },
+        canBeMissing: true,
+    });
+
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
+        selector: (violations) => {
+            if (!eligibleTransactionIDs || eligibleTransactionIDs.size === 0) {
+                return undefined;
+            }
+            return Object.fromEntries(
+                Object.entries(violations ?? {}).filter(([key]) => {
+                    const id = key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '');
+                    return eligibleTransactionIDs?.has(id);
+                }),
+            );
+        },
+        canBeMissing: true,
+    });
+
     const currency = rate?.currency ?? CONST.CURRENCY.USD;
     const taxClaimablePercentage = rate?.attributes?.taxClaimablePercentage;
     const taxRateExternalID = rate?.attributes?.taxRateExternalID;
@@ -83,7 +116,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
 
     const deleteRate = () => {
         Navigation.goBack();
-        deletePolicyDistanceRates(policyID, customUnit, [rateID]);
+        deletePolicyDistanceRates(policyID, customUnit, [rateID], Array.from(eligibleTransactionIDs ?? []), transactionViolations);
         setIsDeleteModalVisible(false);
     };
 

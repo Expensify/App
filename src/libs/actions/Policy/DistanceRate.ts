@@ -18,7 +18,7 @@ import {getDistanceRateCustomUnit, goBackWhenEnableFeature, removePendingFieldsF
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, TransactionViolation} from '@src/types/onyx';
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -53,29 +53,6 @@ Onyx.connect({
         }
 
         allPolicies[key] = val;
-    },
-});
-
-let allTransactions: NonNullable<OnyxCollection<Transaction>> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allTransactions = {};
-            return;
-        }
-
-        allTransactions = value;
-    },
-});
-
-let transactionViolations: OnyxCollection<TransactionViolation[]>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        transactionViolations = value;
     },
 });
 
@@ -451,7 +428,13 @@ function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit,
     API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_ENABLED, params, {optimisticData, successData, failureData});
 }
 
-function deletePolicyDistanceRates(policyID: string, customUnit: CustomUnit, rateIDsToDelete: string[]) {
+function deletePolicyDistanceRates(
+    policyID: string,
+    customUnit: CustomUnit,
+    rateIDsToDelete: string[],
+    transactionIDsAffected: string[],
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+) {
     const currentRates = customUnit.rates;
     const optimisticRates: Record<string, Rate> = {};
     const successRates: Record<string, Rate> = {};
@@ -520,22 +503,18 @@ function deletePolicyDistanceRates(policyID: string, customUnit: CustomUnit, rat
         },
     ];
 
-    const transactions = Object.values(allTransactions ?? {}).filter(
-        (transaction) =>
-            transaction?.comment?.customUnit?.customUnitID === customUnit.customUnitID &&
-            transaction?.comment?.customUnit?.customUnitRateID &&
-            rateIDsToDelete.includes(transaction?.comment?.customUnit?.customUnitRateID),
-    );
     const optimisticTransactionsViolations: OnyxUpdate[] = [];
+    const failureTransactionsViolations: OnyxUpdate[] = [];
 
-    transactions.forEach((transaction) => {
-        const currentTransactionViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`] ?? [];
+    for (const transactionID of transactionIDsAffected) {
+        const currentTransactionViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         if (currentTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY)) {
             return;
         }
+
         optimisticTransactionsViolations.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
             value: [
                 ...currentTransactionViolations,
                 {
@@ -545,12 +524,13 @@ function deletePolicyDistanceRates(policyID: string, customUnit: CustomUnit, rat
                 },
             ],
         });
-    });
 
-    const failureTransactionsViolations: OnyxUpdate[] = transactions.map((transaction) => {
-        const currentTransactionViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`];
-        return {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`, value: currentTransactionViolations};
-    });
+        failureTransactionsViolations.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: currentTransactionViolations,
+        });
+    }
 
     optimisticData.push(...optimisticTransactionsViolations);
     failureData.push(...failureTransactionsViolations);
