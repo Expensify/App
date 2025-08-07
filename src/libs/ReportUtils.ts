@@ -9751,6 +9751,10 @@ function hasMissingPaymentMethod(userWalletTierName: string | undefined, iouRepo
  * - we have one, but we can't add more transactions to it due to: report is approved or settled
  */
 function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxInputOrEntry<Report> | undefined, chatReport: OnyxInputOrEntry<Report>, isScanRequest: boolean): boolean {
+    if (existingIOUReport && !!existingIOUReport.errorFields?.createChat) {
+        return true;
+    }
+
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddTransaction(existingIOUReport) || (isScanRequest && isASAPSubmitBetaEnabled);
 }
