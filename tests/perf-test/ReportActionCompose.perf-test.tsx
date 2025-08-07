@@ -86,6 +86,7 @@ function ReportActionComposeWrapper() {
                 disabled={false}
                 report={LHNTestUtils.getFakeReport()}
                 isComposerFullSize
+                onLayout={() => {}}
             />
         </ComposeProviders>
     );
