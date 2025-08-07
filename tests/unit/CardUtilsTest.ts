@@ -834,7 +834,7 @@ describe('CardUtils', () => {
             expect(hasIssuedExpensifyCard(workspaceAccountID, {})).toBe(false);
         });
 
-        it('should not erronously return true when workspaceAccountID is 0', () => {
+        it('should not erroneously return true when workspaceAccountID is 0', () => {
             const workspaceAccountID = 0;
             expect(hasIssuedExpensifyCard(workspaceAccountID, allCardsList)).toBe(false);
         });
