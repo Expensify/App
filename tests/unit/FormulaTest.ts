@@ -1,3 +1,4 @@
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import {compute, extract, isFormula, parse} from '@libs/Formula';
 import type {FormulaContext} from '@libs/Formula';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -13,8 +14,13 @@ jest.mock('@libs/ReportUtils', () => ({
     getReportTransactions: jest.fn(),
 }));
 
+jest.mock('@libs/CurrencyUtils', () => ({
+    getCurrencySymbol: jest.fn(),
+}));
+
 const mockReportActionsUtils = ReportActionsUtils as jest.Mocked<typeof ReportActionsUtils>;
 const mockReportUtils = ReportUtils as jest.Mocked<typeof ReportUtils>;
+const mockCurrencyUtils = CurrencyUtils as jest.Mocked<typeof CurrencyUtils>;
 
 describe('CustomFormula', () => {
     describe('extract()', () => {
@@ -110,6 +116,14 @@ describe('CustomFormula', () => {
         beforeEach(() => {
             jest.clearAllMocks();
 
+            // Mock getCurrencySymbol to return $ for USD
+            mockCurrencyUtils.getCurrencySymbol.mockImplementation((currency: string) => {
+                if (currency === 'USD') {
+                    return '$';
+                }
+                return currency;
+            });
+
             // Mock report actions - test the iteration logic for finding oldest date (for 'created' field)
             const mockReportActions = {
                 '1': {
@@ -157,7 +171,7 @@ describe('CustomFormula', () => {
 
         test('should compute basic report formula', () => {
             const result = compute('{report:type} {report:total}', mockContext);
-            expect(result).toBe('Expense ReportUSD100.00'); // No space between parts
+            expect(result).toBe('Expense Report$100.00'); // No space between parts
         });
 
         test('should compute startdate formula using transactions', () => {
@@ -211,7 +225,7 @@ describe('CustomFormula', () => {
 
         test('should preserve free text', () => {
             const result = compute('Expense Report - {report:total}', mockContext);
-            expect(result).toBe('Expense Report - USD100.00');
+            expect(result).toBe('Expense Report - $100.00');
         });
 
         test('should preserve exact spacing around formula parts', () => {
