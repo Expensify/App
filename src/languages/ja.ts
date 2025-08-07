@@ -5976,6 +5976,7 @@ const translations = {
             paid: '支払日',
             exported: 'エクスポートされた日付',
             posted: '投稿日',
+            withdrawn: '取り消し日',
             billable: 'ビラブル',
             reimbursable: '払い戻し可能',
             groupBy: {

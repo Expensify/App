@@ -6016,6 +6016,7 @@ const translations = {
             paid: 'Date de paiement',
             exported: 'Date exportée',
             posted: 'Date de publication',
+            withdrawn: 'Date de retrait',
             billable: 'Facturable',
             reimbursable: 'Remboursable',
             groupBy: {
