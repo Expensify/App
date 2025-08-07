@@ -531,6 +531,7 @@ const translations = {
         pm: 'PM',
         tbd: 'TBD',
         selectCurrency: 'Wählen Sie eine Währung aus',
+        selectSymbolOrCurrency: 'Wählen Sie ein Symbol oder eine Währung aus',
         card: 'Karte',
         whyDoWeAskForThis: 'Warum fragen wir danach?',
         required: 'Erforderlich',
@@ -850,17 +851,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `Dieser Chatraum ist für alles, was mit <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> zu tun hat.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `Dieser Chat ist für Rechnungen zwischen <strong>${invoicePayer}</strong> und <strong>${invoiceReceiver}</strong>. Verwenden Sie die Schaltfläche +, um eine Rechnung zu senden.`,
+            `Dieser Chat ist für Rechnungen zwischen <strong>${invoicePayer}</strong> und <strong>${invoiceReceiver}</strong>. Verwenden Sie die Schaltfläche <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>, um eine Rechnung zu senden.`,
         beginningOfChatHistory: 'Dieser Chat ist mit',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `Hier wird <strong>${submitterDisplayName}</strong> die Ausgaben an <strong>${workspaceName}</strong> übermitteln. Verwenden Sie einfach die Schaltfläche +.`,
+            `Hier wird <strong>${submitterDisplayName}</strong> die Ausgaben an <strong>${workspaceName}</strong> übermitteln. Verwenden Sie einfach die Schaltfläche <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>.`,
         beginningOfChatHistorySelfDM: 'Dies ist Ihr persönlicher Bereich. Nutzen Sie ihn für Notizen, Aufgaben, Entwürfe und Erinnerungen.',
         beginningOfChatHistorySystemDM: 'Willkommen! Lassen Sie uns mit der Einrichtung beginnen.',
         chatWithAccountManager: 'Hier mit Ihrem Kundenbetreuer chatten',
         sayHello: 'Hallo!',
         yourSpace: 'Ihr Bereich',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Willkommen in ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `Verwenden Sie die + Taste, um ${additionalText} einen Ausgabenposten hinzuzufügen.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => `Verwenden Sie die ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} Taste, um ${additionalText} einen Ausgabenposten hinzuzufügen.`,
         askConcierge: 'Stellen Sie Fragen und erhalten Sie rund um die Uhr Unterstützung in Echtzeit.',
         conciergeSupport: '24/7 Support',
         create: 'erstellen',
@@ -5884,7 +5885,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'Nichts zu zeigen',
-                subtitle: 'Versuchen Sie, Ihre Suchkriterien anzupassen oder etwas mit dem grünen + Button zu erstellen.',
+                subtitle: `Versuchen Sie, Ihre Suchkriterien anzupassen oder etwas mit dem grünen ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} Button zu erstellen.`,
             },
             emptyExpenseResults: {
                 title: 'Sie haben noch keine Ausgaben erstellt.',
@@ -6282,7 +6283,8 @@ const translations = {
         levelThreeResult: 'Nachricht aus dem Kanal entfernt, anonyme Warnung gesendet und Nachricht zur Überprüfung gemeldet.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Lade sie ein',
+        inviteToSubmitExpense: 'Zum Einreichen von Ausgaben einladen',
+        inviteToChat: 'Nur zum Chatten einladen',
         nothing: 'Nichts tun',
     },
     actionableMentionJoinWorkspaceOptions: {
