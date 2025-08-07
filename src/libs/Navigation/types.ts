@@ -1059,7 +1059,7 @@ type SettingsNavigatorParamList = {
         cardID: string;
         backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.RULES_CUSTOM_NAME]: {
+    [SCREENS.WORKSPACE.REPORTS_DEFAULT_TITLE]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES_AUTO_APPROVE_REPORTS_UNDER]: {
@@ -1914,7 +1914,7 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
         backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.REPORT_FIELDS]: {
+    [SCREENS.WORKSPACE.REPORTS]: {
         policyID: string;
         backTo?: Routes;
     };
