@@ -778,7 +778,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                 {shouldShowTax && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('taxCode')}>
                         <MenuItemWithTopDescription
-                            title={taxRateTitle ?? fallbackRateTitle}
+                            title={taxRateTitle ?? fallbackTaxRateTitle}
                             description={taxRatesDescription}
                             interactive={canEditTaxFields}
                             shouldShowRightIcon={canEditTaxFields}
