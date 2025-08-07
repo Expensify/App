@@ -317,7 +317,7 @@ function AvatarWithImagePicker({
         }
 
         calculatePopoverPosition(anchorRef, anchorAlignment).then(({vertical, horizontal, width}) => {
-            setPopoverPosition({ vertical: vertical + variables.spacing2, horizontal: horizontal - width + (width - variables.photoUploadPopoverWidth) / 2});
+            setPopoverPosition({vertical: vertical + variables.spacing2, horizontal: horizontal - width + (width - variables.photoUploadPopoverWidth) / 2});
         });
     }, [calculatePopoverPosition, isMenuVisible]);
 
