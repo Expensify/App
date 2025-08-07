@@ -2,14 +2,25 @@ import {useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {isArchivedNonExpenseReport, isArchivedReport, isInvoiceRoom} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportNameValuePairs} from '@src/types/onyx';
 import type {InvoiceReceiverType} from '@src/types/onyx/Report';
+import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import useOnyx from './useOnyx';
+
+type ReportNameValuePairsSelector = Pick<ReportNameValuePairs, 'private_isArchived'>;
+
+const reportNameValuePairsSelector = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>): ReportNameValuePairsSelector =>
+    (reportNameValuePairs && {
+        private_isArchived: reportNameValuePairs.private_isArchived,
+    }) as ReportNameValuePairsSelector;
 
 function useInvoiceChatByParticipants(receiverID: string | number | undefined, receiverType: InvoiceReceiverType, policyID?: string): OnyxEntry<Report> {
     const [invoiceReport, setInvoiceReport] = useState<OnyxEntry<Report>>(undefined);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [allReportNameValuePair] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
+    const [aaallReportNameValuePair] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
+    const [allReportNameValuePair] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true, selector: (c) => mapOnyxCollectionItems(c, reportNameValuePairsSelector)});
+
+    console.log(Object.values(aaallReportNameValuePair ?? {})?.length, Object.values(allReportNameValuePair ?? {})?.length);
 
     useEffect(() => {
         const existingInvoiceReport = Object.values(allReports ?? {}).find((report) => {
