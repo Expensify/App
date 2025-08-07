@@ -2420,8 +2420,9 @@ const translations = {
             subtitle: 'Añade a tu equipo o invita a tu contador. ¡Cuantos más, mejor!',
         },
         domainWorkspaceRestriction: {
-            title: 'Unirse a espacios de trabajo existentes',
-            subtitle: 'Tu empresa ha desactivado la creación de espacios de trabajo. Por favor, elige uno de los existentes a continuación o salta este paso por ahora.',
+            subtitle:
+                'La creación de espacios de trabajo está restringida a los administradores. Únete a uno de los espacios a continuación o contacta con tu administrador para más información.',
+            skipForNow: 'Omitir por ahora',
         },
     },
     featureTraining: {

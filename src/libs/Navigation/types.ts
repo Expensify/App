@@ -1951,6 +1951,7 @@ type OnboardingModalNavigatorParamList = {
     };
     [SCREENS.ONBOARDING.WORKSPACES]: {
         backTo?: string;
+        isDomainRestriction?: boolean;
     };
     [SCREENS.ONBOARDING.PURPOSE]: {
         backTo?: string;

@@ -2449,8 +2449,8 @@ const translations = {
             subtitle: 'Add your team or invite your accountant. The more, the merrier!',
         },
         domainWorkspaceRestriction: {
-            title: 'Join existing workspaces',
-            subtitle: 'Your company has disabled workspace creation. Please choose from existing workspaces below or skip for now.',
+            subtitle: 'Workspace creation is restricted to admins. Join one of the workspaces below or contact your admin for more information.',
+            skipForNow: 'Skip for now',
         },
     },
     featureTraining: {

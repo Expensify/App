@@ -2441,8 +2441,8 @@ const translations = {
             subtitle: '与会计师管理和分享您的费用，或与朋友组建旅行团体。',
         },
         domainWorkspaceRestriction: {
-            title: '加入现有工作区',
-            subtitle: '您的公司已禁用工作区创建功能。请选择以下现有工作区之一，或暂时跳过。',
+            subtitle: '仅管理员可创建工作区。您可以加入以下任一工作区，或联系管理员了解更多信息。',
+            skipForNow: '暂时跳过',
         },
     },
     featureTraining: {

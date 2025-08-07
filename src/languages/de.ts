@@ -2448,8 +2448,9 @@ const translations = {
             subtitle: 'Verwalten und teilen Sie Ihre Ausgaben mit einem Buchhalter oder gründen Sie eine Reisegruppe mit Freunden.',
         },
         domainWorkspaceRestriction: {
-            title: 'Vorhandenen Workspaces beitreten',
-            subtitle: 'Ihr Unternehmen hat die Erstellung von Workspaces deaktiviert. Bitte wählen Sie unten einen bestehenden Workspace aus oder überspringen Sie diesen Schritt vorerst.',
+            subtitle:
+                'Das Erstellen von Arbeitsbereichen ist nur Administratoren erlaubt. Tritt einem der unten aufgeführten Arbeitsbereiche bei oder kontaktiere deinen Administrator für weitere Informationen.',
+            skipForNow: 'Für jetzt überspringen',
         },
     },
     featureTraining: {

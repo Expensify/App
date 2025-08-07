@@ -2463,8 +2463,9 @@ const translations = {
             subtitle: 'Gestisci e condividi le tue spese con un commercialista o avvia un gruppo di viaggio con gli amici.',
         },
         domainWorkspaceRestriction: {
-            title: 'Unisciti a workspace esistenti',
-            subtitle: 'La tua azienda ha disabilitato la creazione di workspace. Scegli tra i workspace esistenti qui sotto oppure salta per ora.',
+            subtitle:
+                'La creazione degli spazi di lavoro è consentita solo agli amministratori. Unisciti a uno degli spazi sottostanti o contatta il tuo amministratore per maggiori informazioni.',
+            skipForNow: 'Salta per ora',
         },
     },
     featureTraining: {

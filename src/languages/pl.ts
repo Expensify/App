@@ -2465,8 +2465,9 @@ const translations = {
             subtitle: 'Zarządzaj i udostępniaj swoje wydatki księgowemu lub rozpocznij grupę podróżniczą z przyjaciółmi.',
         },
         domainWorkspaceRestriction: {
-            title: 'Dołącz do istniejących przestrzeni roboczych',
-            subtitle: 'Twoja firma wyłączyła możliwość tworzenia przestrzeni roboczych. Wybierz jedną z istniejących poniżej lub pomiń ten krok.',
+            subtitle:
+                'Tworzenie przestrzeni roboczych jest zastrzeżone dla administratorów. Dołącz do jednej z poniższych przestrzeni lub skontaktuj się z administratorem, aby uzyskać więcej informacji.',
+            skipForNow: 'Pomiń na razie',
         },
     },
     featureTraining: {

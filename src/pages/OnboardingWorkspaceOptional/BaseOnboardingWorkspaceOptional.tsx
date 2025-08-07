@@ -166,7 +166,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                             const hasRestriction = hasWorkspaceCreationRestriction(currentUserPersonalDetails.login, myDomainSecurityGroups, securityGroups);
 
                             if (hasRestriction) {
-                                Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute());
+                                Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(undefined, true));
                                 return;
                             }
                             Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.getRoute());

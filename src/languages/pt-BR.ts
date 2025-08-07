@@ -2469,8 +2469,8 @@ const translations = {
             subtitle: 'Gerencie e compartilhe suas despesas com um contador ou inicie um grupo de viagem com amigos.',
         },
         domainWorkspaceRestriction: {
-            title: 'Entrar em workspaces existentes',
-            subtitle: 'Sua empresa desativou a criação de workspaces. Escolha um dos existentes abaixo ou pule por enquanto.',
+            subtitle: 'A criação de espaços de trabalho é restrita aos administradores. Junte-se a um dos espaços abaixo ou entre em contato com seu administrador para mais informações.',
+            skipForNow: 'Pular por enquanto',
         },
     },
     featureTraining: {

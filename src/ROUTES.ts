@@ -2027,7 +2027,12 @@ const ROUTES = {
     },
     ONBOARDING_WORKSPACES: {
         route: 'onboarding/join-workspaces',
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/join-workspaces`, backTo),
+        getRoute: (backTo?: string, isDomainRestriction?: boolean) => {
+            if (isDomainRestriction) {
+                return getUrlWithBackToParam(`onboarding/join-workspaces?isDomainRestriction=true`, backTo);
+            }
+            return getUrlWithBackToParam(`onboarding/join-workspaces`, backTo);
+        },
     },
     ONBOARDING_WORK_EMAIL: {
         route: 'onboarding/work-email',
