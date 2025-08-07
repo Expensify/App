@@ -840,7 +840,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER]: Parameters.SaveCorpayOnboardingBeneficialOwnerParams;
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_DIRECTOR_INFORMATION]: Parameters.SaveCorpayOnboardingDirectorInformationParams;
     [WRITE_COMMANDS.ASK_FOR_CORPAY_SIGNER_INFORMATION]: Parameters.AskForCorpaySignerInformationParams;
-    [WRITE_COMMANDS.SEND_REMINDER_FOR_CORPAY_SINGER_INFORMATION]: Parameters.Send;
+    [WRITE_COMMANDS.SEND_REMINDER_FOR_CORPAY_SINGER_INFORMATION]: Parameters.SendReminderForCorpaySignerInformationParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT]: Parameters.UpdateWorkspaceCustomUnitParams;
     [WRITE_COMMANDS.RESET_SMS_DELIVERY_FAILURE_STATUS]: Parameters.ResetSMSDeliveryFailureStatusParams;
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS]: Parameters.SaveCorpayOnboardingCompanyDetailsParams;

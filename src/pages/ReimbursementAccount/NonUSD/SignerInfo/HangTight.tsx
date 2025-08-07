@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -10,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {clearReimbursementAccountSendReminderForCorpaySignerInformation, sendReminderForCorpaySignerInformation} from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -29,6 +31,7 @@ function HangTight({policyID, bankAccountID}: HangTightProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const signerEmail = reimbursementAccount?.achData?.corpay?.signerEmail;
     const secondSignerEmail = reimbursementAccount?.achData?.corpay?.secondSignerEmail;
+    const error = getLatestErrorMessage(reimbursementAccount);
 
     const handleSendReminder = () => {
         if (!signerEmail) {
@@ -67,16 +70,24 @@ function HangTight({policyID, bankAccountID}: HangTightProps) {
                     />
                 </View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5, styles.mb3, styles.mt5]}>{translate('signerInfoStep.hangTight')}</Text>
-                <Text style={[styles.mutedTextLabel, styles.mh5]}>{translate('signerInfoStep.weAreWaiting')}</Text>
+                <Text style={[styles.textAlignCenter, styles.mutedTextLabel, styles.mh5]}>{translate('signerInfoStep.weAreWaiting')}</Text>
             </View>
             <View style={[styles.ph5, styles.flexGrow1, styles.justifyContentEnd]}>
+                {!!error && error.length > 0 && (
+                    <DotIndicatorMessage
+                        textStyles={[styles.formError]}
+                        type="error"
+                        messages={{error}}
+                    />
+                )}
                 <Button
                     success
                     style={[styles.w100]}
                     onPress={handleSendReminder}
                     large
-                    icon={Expensicons.Bell}
+                    icon={reimbursementAccount?.isSendingReminderForCorpaySignerInformation ? undefined : Expensicons.Bell}
                     text={translate('signerInfoStep.sendReminder')}
+                    isLoading={reimbursementAccount?.isSendingReminderForCorpaySignerInformation}
                 />
             </View>
         </ScrollView>
