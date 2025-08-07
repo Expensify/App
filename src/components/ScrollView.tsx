@@ -11,11 +11,13 @@ type ScrollViewProps = RNScrollViewProps & {
 
     /** Whether to add bottom safe area padding to the content. */
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<RNScrollView>;
 };
 
 function ScrollView(
-    {children, scrollIndicatorInsets, contentContainerStyle: contentContainerStyleProp, addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, ...props}: ScrollViewProps,
-    ref: ForwardedRef<RNScrollView>,
+    {children, scrollIndicatorInsets, contentContainerStyle: contentContainerStyleProp, addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, ref, ...props}: ScrollViewProps,
 ) {
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding,
@@ -44,4 +46,4 @@ ScrollView.displayName = 'ScrollView';
 
 export type {ScrollViewProps};
 
-export default React.forwardRef(ScrollView);
+export default ScrollView;
