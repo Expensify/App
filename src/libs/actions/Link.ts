@@ -157,7 +157,7 @@ function getInternalExpensifyPath(href: string) {
     return attrPath;
 }
 
-const SCREENS_TO_ADD_BACKTO = [
+const SCREENS_TO_ADD_BACK_TO_PARAM = [
     SCREENS.WORKSPACE.PROFILE,
     SCREENS.WORKSPACE.MEMBERS,
     SCREENS.WORKSPACE.REPORTS,
@@ -202,7 +202,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
         }
         let urlToNavigate = internalNewExpensifyPath;
         const routeFromURL = findFocusedRoute(getStateFromPath(urlToNavigate as Route));
-        if (routeFromURL?.name && (SCREENS_TO_ADD_BACKTO as string[]).includes(routeFromURL?.name)) {
+        if (routeFromURL?.name && (SCREENS_TO_ADD_BACK_TO_PARAM as string[]).includes(routeFromURL?.name)) {
             urlToNavigate = getUrlWithBackToParam(internalNewExpensifyPath, Navigation.getActiveRoute());
         }
         Navigation.navigate(urlToNavigate as Route);
