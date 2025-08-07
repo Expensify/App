@@ -6,6 +6,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -13,7 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {doesContainReservedWord} from '@libs/ValidationUtils';
+import {doesContainReservedWord, isValidLegalName} from '@libs/ValidationUtils';
 import {updateLegalName as updateLegalNamePersonalDetails} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,16 +22,16 @@ import INPUT_IDS from '@src/types/form/LegalNameForm';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-const updateLegalName = (values: PrivatePersonalDetails) => {
-    updateLegalNamePersonalDetails(values.legalFirstName?.trim() ?? '', values.legalLastName?.trim() ?? '');
+const updateLegalName = (values: PrivatePersonalDetails, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) => {
+    updateLegalNamePersonalDetails(values.legalFirstName?.trim() ?? '', values.legalLastName?.trim() ?? '', formatPhoneNumber);
 };
 
 function LegalNamePage() {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true, canBeMissing: true});
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
 
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const legalFirstName = privatePersonalDetails?.legalFirstName ?? '';
     const legalLastName = privatePersonalDetails?.legalLastName ?? '';
 
@@ -41,6 +42,8 @@ function LegalNamePage() {
             if (typeof values.legalFirstName === 'string') {
                 if (!values.legalFirstName) {
                     errors.legalFirstName = translate('common.error.fieldRequired');
+                } else if (!isValidLegalName(values.legalFirstName)) {
+                    addErrorMessage(errors, 'legalFirstName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
                 } else if (values.legalFirstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
                     addErrorMessage(
                         errors,
@@ -56,6 +59,8 @@ function LegalNamePage() {
             if (typeof values.legalLastName === 'string') {
                 if (!values.legalLastName) {
                     errors.legalLastName = translate('common.error.fieldRequired');
+                } else if (!isValidLegalName(values.legalLastName)) {
+                    addErrorMessage(errors, 'legalLastName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
                 } else if (values.legalLastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
                     addErrorMessage(
                         errors,
@@ -91,7 +96,7 @@ function LegalNamePage() {
                         style={[styles.flexGrow1, styles.ph5]}
                         formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
                         validate={validate}
-                        onSubmit={updateLegalName}
+                        onSubmit={(values) => updateLegalName(values, formatPhoneNumber)}
                         submitButtonText={translate('common.save')}
                         enabledWhenOffline
                     >

@@ -78,6 +78,9 @@ autocompleteKey "key"
       / billable
       / policyID
       / action
+      / posted
+      / withdrawn
+      / exported
     )
 
 filterKey

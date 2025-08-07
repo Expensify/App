@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {SearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
@@ -69,6 +70,7 @@ type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 
 type SearchContextData = {
     currentSearchHash: number;
+    currentSearchKey: SearchKey | undefined;
     selectedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
@@ -77,7 +79,7 @@ type SearchContextData = {
 };
 
 type SearchContext = SearchContextData & {
-    setCurrentSearchHash: (hash: number) => void;
+    setCurrentSearchHashAndKey: (hash: number, key: SearchKey | undefined) => void;
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
     setSelectedTransactions: {
         (selectedTransactionIDs: string[], unused?: undefined): void;
@@ -93,10 +95,10 @@ type SearchContext = SearchContextData & {
     setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
     lastSearchType: string | undefined;
-    shouldShowExportModeOption: boolean;
-    setShouldShowExportModeOption: (shouldShow: boolean) => void;
-    isExportMode: boolean;
-    setExportMode: (on: boolean) => void;
+    showSelectAllMatchingItems: boolean;
+    shouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
+    areAllMatchingItemsSelected: boolean;
+    selectAllMatchingItems: (on: boolean) => void;
 };
 
 type ASTNode = {
@@ -118,7 +120,8 @@ type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED;
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN;
 
 type SearchFilterKey =
     | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
@@ -142,7 +145,7 @@ type SearchQueryAST = {
     sortOrder: SortOrder;
     groupBy?: SearchGroupBy;
     filters: ASTNode;
-    policyID?: string;
+    policyID?: string[];
 };
 
 type SearchQueryJSON = {
@@ -167,7 +170,9 @@ type SearchAutocompleteQueryRange = {
 
 type SearchParams = {
     queryJSON: SearchQueryJSON;
+    searchKey: SearchKey | undefined;
     offset: number;
+    shouldCalculateTotals: boolean;
 };
 
 export type {

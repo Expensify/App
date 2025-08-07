@@ -58,6 +58,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 },
                 contentModel: HTMLContentModel.block,
             }),
+            'muted-link': HTMLElementModel.fromCustomModel({
+                tagName: 'muted-link',
+                mixedUAStyles: {...styles.subTextFileUpload, ...styles.textSupporting},
+                contentModel: HTMLContentModel.block,
+            }),
             'muted-text': HTMLElementModel.fromCustomModel({
                 tagName: 'muted-text',
                 mixedUAStyles: {...styles.colorMuted, ...styles.mb0},
@@ -66,6 +71,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             'muted-text-label': HTMLElementModel.fromCustomModel({
                 tagName: 'muted-text-label',
                 mixedUAStyles: {...styles.mutedNormalTextLabel, ...styles.mb0},
+                contentModel: HTMLContentModel.block,
+            }),
+            'centered-text': HTMLElementModel.fromCustomModel({
+                tagName: 'centered-text',
+                mixedUAStyles: {...styles.textAlignCenter},
                 contentModel: HTMLContentModel.block,
             }),
             comment: HTMLElementModel.fromCustomModel({
@@ -91,6 +101,16 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 },
                 contentModel: HTMLContentModel.block,
             }),
+            tooltip: HTMLElementModel.fromCustomModel({
+                tagName: 'tooltip',
+                mixedUAStyles: {whiteSpace: 'pre', ...styles.productTrainingTooltipText},
+                contentModel: HTMLContentModel.block,
+            }),
+            success: HTMLElementModel.fromCustomModel({
+                tagName: 'success',
+                mixedUAStyles: {...styles.textSuccess},
+                contentModel: HTMLContentModel.textual,
+            }),
             strong: HTMLElementModel.fromCustomModel({
                 tagName: 'strong',
                 getMixedUAStyles: (tnode) => (isChildOfTaskTitle(tnode as TNode) ? {} : styles.strong),
@@ -110,6 +130,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             'mention-report': HTMLElementModel.fromCustomModel({tagName: 'mention-report', contentModel: HTMLContentModel.textual}),
             'mention-here': HTMLElementModel.fromCustomModel({tagName: 'mention-here', contentModel: HTMLContentModel.textual}),
             'mention-short': HTMLElementModel.fromCustomModel({tagName: 'mention-short', contentModel: HTMLContentModel.textual}),
+            'concierge-link': HTMLElementModel.fromCustomModel({tagName: 'concierge-link', contentModel: HTMLContentModel.textual}),
             'next-step': HTMLElementModel.fromCustomModel({
                 tagName: 'next-step',
                 mixedUAStyles: {...styles.textLabelSupporting, ...styles.lh16},
@@ -144,6 +165,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.mb0,
             styles.colorMuted,
             styles.mutedNormalTextLabel,
+            styles.productTrainingTooltipText,
             styles.textLabelSupporting,
             styles.lh16,
             styles.textSupporting,
@@ -156,6 +178,9 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.h1,
             styles.blockquote,
             styles.onlyEmojisTextLineHeight,
+            styles.subTextFileUpload,
+            styles.textAlignCenter,
+            styles.textSuccess,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */

@@ -1,5 +1,6 @@
 import {useCallback, useMemo, useState} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {deleteMoneyRequest, unholdRequest} from '@libs/actions/IOU';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -21,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OriginalMessageIOU, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useReportIsArchived from './useReportIsArchived';
@@ -36,15 +38,19 @@ function useSelectedTransactionsActions({
     allTransactionsLength,
     session,
     onExportFailed,
+    beginExportWithTemplate,
 }: {
     report?: Report;
     reportActions: ReportAction[];
     allTransactionsLength: number;
     session?: Session;
     onExportFailed?: () => void;
+    beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[]) => void;
 }) {
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
+    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const selectedTransactions = useMemo(
         () =>
@@ -62,6 +68,7 @@ function useSelectedTransactionsActions({
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const isTrackExpenseThread = isTrackExpenseReport(report);
     const isInvoice = isInvoiceReport(report);
+
     let iouType: IOUType = CONST.IOU.TYPE.SUBMIT;
 
     if (isTrackExpenseThread) {
@@ -81,14 +88,21 @@ function useSelectedTransactionsActions({
                 return transactionID === IOUTransactionID;
             }),
         }));
+        const deletedTransactionIDs: string[] = [];
+        transactionsWithActions.forEach(({transactionID, action}) => {
+            if (!action) {
+                return;
+            }
 
-        transactionsWithActions.forEach(({transactionID, action}) => action && deleteMoneyRequest(transactionID, action));
+            deleteMoneyRequest(transactionID, action, duplicateTransactions, duplicateTransactionViolations, false, deletedTransactionIDs);
+            deletedTransactionIDs.push(transactionID);
+        });
         clearSelectedTransactions(true);
         if (allTransactionsLength - transactionsWithActions.length <= 1) {
             turnOffMobileSelectionMode();
         }
         setIsDeleteModalVisible(false);
-    }, [allTransactionsLength, reportActions, selectedTransactionIDs, clearSelectedTransactions]);
+    }, [duplicateTransactions, duplicateTransactionViolations, allTransactionsLength, reportActions, selectedTransactionIDs, clearSelectedTransactions]);
 
     const showDeleteModal = useCallback(() => {
         setIsDeleteModalVisible(true);
@@ -157,19 +171,66 @@ function useSelectedTransactionsActions({
             });
         }
 
-        options.push({
-            value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_CSV,
-            text: translate('common.downloadAsCSV'),
-            icon: Expensicons.Download,
-            onSelected: () => {
-                if (!report) {
-                    return;
-                }
-                exportReportToCSV({reportID: report.reportID, transactionIDList: selectedTransactionIDs}, () => {
-                    onExportFailed?.();
+        // Gets the list of options for the export sub-menu
+        const getExportOptions = (): PopoverMenuItem[] => {
+            // We provide the basic and expense level export options by default
+            const exportOptions: PopoverMenuItem[] = [
+                {
+                    text: translate('export.basicExport'),
+                    icon: Expensicons.Table,
+                    onSelected: () => {
+                        if (!report) {
+                            return;
+                        }
+                        exportReportToCSV({reportID: report.reportID, transactionIDList: selectedTransactionIDs}, () => {
+                            onExportFailed?.();
+                        });
+                        clearSelectedTransactions(true);
+                    },
+                },
+                {
+                    text: translate('export.expenseLevelExport'),
+                    icon: Expensicons.Table,
+                    onSelected: () => {
+                        if (!report) {
+                            return;
+                        }
+                        beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, selectedTransactionIDs);
+                    },
+                },
+            ];
+
+            // If we've selected all the transactions on the report, we can also provide the report level export option
+            if (allTransactionsLength === selectedTransactionIDs.length) {
+                exportOptions.push({
+                    text: translate('export.reportLevelExport'),
+                    icon: Expensicons.Table,
+                    onSelected: () =>
+                        // The report level export template is not policy specific, so we don't need to pass a policyID
+                        beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, selectedTransactionIDs),
                 });
-                clearSelectedTransactions(true);
-            },
+            }
+
+            // If the user has any custom integration export templates, add them as export options
+            if (integrationsExportTemplates && integrationsExportTemplates.length > 0) {
+                for (const template of integrationsExportTemplates) {
+                    exportOptions.push({
+                        text: template.name,
+                        icon: Expensicons.Table,
+                        onSelected: () => beginExportWithTemplate(template.name, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, selectedTransactionIDs),
+                    });
+                }
+            }
+
+            return exportOptions;
+        };
+
+        options.push({
+            value: CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
+            text: translate('common.export'),
+            backButtonText: translate('common.export'),
+            icon: Expensicons.Export,
+            subMenuItems: getExportOptions(),
         });
 
         const canSelectedExpensesBeMoved = selectedTransactions.every((transaction) => {
@@ -189,7 +250,8 @@ function useSelectedTransactionsActions({
                 icon: Expensicons.DocumentMerge,
                 value: MOVE,
                 onSelected: () => {
-                    const route = ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, report?.reportID);
+                    const shouldTurnOffSelectionMode = allTransactionsLength - selectedTransactionIDs.length <= 1;
+                    const route = ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, report?.reportID, shouldTurnOffSelectionMode);
                     Navigation.navigate(route);
                 },
             });
@@ -220,13 +282,16 @@ function useSelectedTransactionsActions({
         report,
         selectedTransactions,
         translate,
+        isReportArchived,
         reportActions,
         clearSelectedTransactions,
         onExportFailed,
+        allTransactionsLength,
         iouType,
         session?.accountID,
         showDeleteModal,
-        isReportArchived,
+        beginExportWithTemplate,
+        integrationsExportTemplates,
     ]);
 
     return {

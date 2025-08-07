@@ -472,6 +472,9 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'isDeletedParentAction':
         case 'isWaitingOnBankAccount':
         case 'isCancelledIOU':
+        case 'hasReportBeenReopened':
+        case 'isExportedToIntegration':
+        case 'hasExportError':
             return validateBoolean(value);
         case 'exportFailedTime':
         case 'lastReadSequenceNumber':
@@ -623,6 +626,9 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 unheldNonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isWaitingOnBankAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isCancelledIOU: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                hasReportBeenReopened: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isExportedToIntegration: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                hasExportError: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 iouReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 preexistingReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 nonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -817,6 +823,8 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                             ...CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION,
                         },
                         deleted: 'string',
+                        bankAccountID: 'string',
+                        payAsBusiness: 'string',
                     }),
                 () =>
                     validateObject<ObjectElement<ReportAction, 'message'>>(value, {
@@ -900,6 +908,8 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                         expenseReportID: 'string',
                         resolution: 'string',
                         deleted: 'string',
+                        bankAccountID: 'string',
+                        payAsBusiness: 'string',
                     }),
             );
     }
@@ -933,6 +943,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'bank':
         case 'cardName':
         case 'cardNumber':
+        case 'taxValue':
             return validateString(value);
         case 'created':
         case 'modifiedCreated':
@@ -1069,6 +1080,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     inserted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     accountant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitExpenses: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isDemoTransaction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    taxValue: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1107,6 +1120,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 splits: 'array',
                 dismissedViolations: 'object',
                 splitExpenses: 'array',
+                isDemoTransaction: 'boolean',
             });
         case 'accountant':
             return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {

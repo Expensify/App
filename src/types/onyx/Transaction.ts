@@ -69,6 +69,9 @@ type Comment = {
     /** Whether the transaction comment is loading */
     isLoading?: boolean;
 
+    /** Whether the transaction comment is a demo transaction */
+    isDemoTransaction?: boolean;
+
     /** Type of the transaction */
     type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
 
@@ -402,6 +405,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The transaction tax code */
         taxCode?: string;
+
+        /** The transaction tax value */
+        taxValue?: string | undefined;
 
         /** Whether the expense is billable */
         billable?: boolean;

@@ -20,7 +20,7 @@ import INPUT_IDS from '@src/types/form/DateOfBirthForm';
 
 function DateOfBirthPage() {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     /**
