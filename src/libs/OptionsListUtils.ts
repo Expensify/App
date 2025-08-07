@@ -2714,13 +2714,6 @@ function processSearchString(searchString: string | undefined): string[] {
         .filter((term) => term.length > 0);
 }
 
-/**
- * Check if all search terms are found in the given search text
- * @param searchTerms - Array of normalized search terms
- * @param searchText - The text to search within
- * @returns True if all search terms are found in the search text
- */
-
 export {
     canCreateOptimisticPersonalDetailOption,
     combineOrderingOfReportsAndPersonalDetails,
