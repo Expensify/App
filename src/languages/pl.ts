@@ -6426,7 +6426,7 @@ const translations = {
     },
     violations: {
         allTagLevelsRequired: 'Wszystkie wymagane tagi',
-        autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} odrzucił ten wydatek z komentarzem „${rejectReason}”`,
+        autoReportedRejectedExpense: ({comment, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} odrzucił ten wydatek z komentarzem „${comment}”`,
         billableExpense: 'Opłata nie jest już ważna',
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Receipt required${formattedLimit ? `powyżej ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Kategoria nie jest już ważna',
