@@ -49,6 +49,7 @@ function useSelectedTransactionsActions({
 }) {
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const selectedTransactions = useMemo(
@@ -210,6 +211,17 @@ function useSelectedTransactionsActions({
                 });
             }
 
+            // If the user has any custom integration export templates, add them as export options
+            if (integrationsExportTemplates && integrationsExportTemplates.length > 0) {
+                for (const template of integrationsExportTemplates) {
+                    exportOptions.push({
+                        text: template.name,
+                        icon: Expensicons.Table,
+                        onSelected: () => beginExportWithTemplate(template.name, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, selectedTransactionIDs),
+                    });
+                }
+            }
+
             return exportOptions;
         };
 
@@ -218,6 +230,7 @@ function useSelectedTransactionsActions({
             text: translate('common.export'),
             backButtonText: translate('common.export'),
             icon: Expensicons.Export,
+            rightIcon: Expensicons.ArrowRight,
             subMenuItems: getExportOptions(),
         });
 
@@ -279,6 +292,7 @@ function useSelectedTransactionsActions({
         session?.accountID,
         showDeleteModal,
         beginExportWithTemplate,
+        integrationsExportTemplates,
     ]);
 
     return {
