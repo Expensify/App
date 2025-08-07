@@ -1,4 +1,4 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
@@ -8,6 +8,7 @@ import type {
     OpenPolicyExpensifyCardsPageParams,
     RequestFeedSetupParams,
     SetCompanyCardExportAccountParams,
+    SetFeedStatementPeriodEndDayParams,
     UpdateCompanyCardNameParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -21,7 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds} from '@src/types/onyx';
 import type {AssignCard, AssignCardData} from '@src/types/onyx/AssignCard';
-import type {AddNewCardFeedData, AddNewCardFeedStep, CardFeedDetails, CompanyCardFeed} from '@src/types/onyx/CardFeeds';
+import type {AddNewCardFeedData, AddNewCardFeedStep, CardFeedData, CardFeedDetails, CompanyCardFeed, StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 type AddNewCompanyCardFlowData = {
@@ -47,7 +48,7 @@ function clearAssignCardStepAndData() {
     Onyx.set(ONYXKEYS.ASSIGN_CARD, {});
 }
 
-function setAddNewCompanyCardStepAndData({data, isEditing, step}: AddNewCompanyCardFlowData) {
+function setAddNewCompanyCardStepAndData({data, isEditing, step}: NullishDeep<AddNewCompanyCardFlowData>) {
     Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {data, isEditing, currentStep: step});
 }
 
@@ -58,7 +59,15 @@ function clearAddNewCardFlow() {
     });
 }
 
-function addNewCompanyCardsFeed(policyID: string | undefined, cardFeed: CompanyCardFeed, feedDetails: CardFeedDetails, cardFeeds: OnyxEntry<CardFeeds>, lastSelectedFeed?: CompanyCardFeed) {
+function addNewCompanyCardsFeed(
+    policyID: string | undefined,
+    cardFeed: CompanyCardFeed,
+    feedDetails: CardFeedDetails,
+    cardFeeds: OnyxEntry<CardFeeds>,
+    statementPeriodEnd: StatementPeriodEnd | undefined,
+    statementPeriodEndDay: StatementPeriodEndDay | undefined,
+    lastSelectedFeed?: CompanyCardFeed,
+) {
     const authToken = NetworkStore.getAuthToken();
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
@@ -82,6 +91,7 @@ function addNewCompanyCardsFeed(policyID: string | undefined, cardFeed: CompanyC
                 settings: {
                     companyCards: {
                         [feedType]: {
+                            statementPeriodEndDay: statementPeriodEndDay ?? statementPeriodEnd ?? null,
                             errors: null,
                         },
                     },
@@ -134,6 +144,8 @@ function addNewCompanyCardsFeed(policyID: string | undefined, cardFeed: CompanyC
         feedDetails: Object.entries(feedDetails)
             .map(([key, value]) => `${key}: ${value}`)
             .join(', '),
+        statementPeriodEnd,
+        statementPeriodEndDay,
     };
 
     API.write(WRITE_COMMANDS.REQUEST_FEED_SETUP, parameters, {optimisticData, failureData, successData, finallyData});
@@ -811,6 +823,104 @@ function openPolicyAddCardFeedPage(policyID: string | undefined) {
     API.write(WRITE_COMMANDS.OPEN_POLICY_ADD_CARD_FEED_PAGE, parameters);
 }
 
+function setFeedStatementPeriodEndDay(
+    policyID: string,
+    bankName: string,
+    domainAccountID: number,
+    newStatementPeriodEnd: StatementPeriodEnd | undefined,
+    newStatementPeriodEndDay: StatementPeriodEndDay | undefined,
+    oldStatementPeriodEndDay: StatementPeriodEnd | StatementPeriodEndDay | undefined,
+) {
+    const authToken = NetworkStore.getAuthToken();
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
+            value: {
+                settings: {
+                    companyCards: {
+                        [bankName]: {
+                            statementPeriodEndDay: newStatementPeriodEndDay ?? newStatementPeriodEnd ?? null,
+                            pendingFields: {
+                                statementPeriodEndDay: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                statementPeriodEndDay: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
+            value: {
+                settings: {
+                    companyCards: {
+                        [bankName]: {
+                            pendingFields: {
+                                statementPeriodEndDay: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
+            value: {
+                settings: {
+                    companyCards: {
+                        [bankName]: {
+                            statementPeriodEndDay: oldStatementPeriodEndDay ?? null,
+                            pendingFields: {
+                                statementPeriodEndDay: null,
+                            },
+                            errorFields: {
+                                statementPeriodEndDay: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters: SetFeedStatementPeriodEndDayParams = {
+        authToken,
+        policyID,
+        bankName,
+        domainAccountID,
+        statementPeriodEnd: newStatementPeriodEnd,
+        statementPeriodEndDay: newStatementPeriodEndDay,
+    };
+
+    API.write(WRITE_COMMANDS.SET_FEED_STATEMENT_PERIOD_END_DAY, parameters, {optimisticData, successData, failureData});
+}
+
+function clearErrorField(bankName: string, domainAccountID: number, fieldName: keyof CardFeedData) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
+        settings: {
+            companyCards: {
+                [bankName]: {
+                    errorFields: {
+                        [fieldName]: null,
+                    },
+                },
+            },
+        },
+    });
+}
+
 export {
     setWorkspaceCompanyCardFeedName,
     deleteWorkspaceCompanyCardFeed,
@@ -831,4 +941,6 @@ export {
     openAssignFeedCardPage,
     openPolicyAddCardFeedPage,
     setTransactionStartDate,
+    setFeedStatementPeriodEndDay,
+    clearErrorField,
 };
