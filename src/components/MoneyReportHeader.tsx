@@ -298,12 +298,7 @@ function MoneyReportHeader({
         [moneyRequestReport, policy, showExportProgressModal],
     );
 
-    const {
-        options: originalSelectedTransactionsOptions,
-        handleDeleteTransactions,
-        isDeleteModalVisible: hookDeleteModalVisible,
-        hideDeleteModal,
-    } = useSelectedTransactionsActions({
+    const {options: originalSelectedTransactionsOptions, handleDeleteTransactions} = useSelectedTransactionsActions({
         report: moneyRequestReport,
         reportActions,
         allTransactionsLength: transactions.length,
@@ -864,9 +859,10 @@ function MoneyReportHeader({
                         cancelText: translate('common.cancel'),
                         danger: true,
                     }).then((result) => {
-                        if (result.action === 'CONFIRM') {
-                            unapproveExpenseReport(moneyRequestReport);
+                        if (result.action !== 'CONFIRM') {
+                            return;
                         }
+                        unapproveExpenseReport(moneyRequestReport);
                     });
                     return;
                 }
@@ -1087,16 +1083,18 @@ function MoneyReportHeader({
             confirmText: translate('workspace.exportAgainModal.confirmText'),
             cancelText: translate('workspace.exportAgainModal.cancelText'),
         }).then((result) => {
-            if (result.action === 'CONFIRM') {
-                confirmExport();
+            if (result.action !== 'CONFIRM') {
+                return;
             }
+            confirmExport();
         });
     }, [showConfirmModal, translate, connectedIntegration, connectedIntegrationFallback, moneyRequestReport?.reportName, confirmExport]);
 
     useEffect(() => {
-        if (exportModalStatus) {
-            showExportModal();
+        if (!exportModalStatus) {
+            return;
         }
+        showExportModal();
     }, [exportModalStatus, showExportModal]);
 
     const selectedTransactionsOptions = useMemo(() => {
