@@ -105,9 +105,8 @@ function FullPageNotFoundView({
                         iconHeight={variables.modalTopIconHeight}
                         title={translate(titleKey)}
                         subtitle={subtitleKey && translate(subtitleKey)}
-                        linkKey={linkKey}
+                        linkKey={shouldShowLink ? linkKey : undefined}
                         subtitleKeyBelowLink={subtitleKeyBelowLink}
-                        shouldShowLink={shouldShowLink}
                         onLinkPress={onLinkPress}
                         subtitleStyle={subtitleStyle}
                         addBottomSafeAreaPadding={addBottomSafeAreaPadding}

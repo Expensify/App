@@ -9,7 +9,6 @@ import type {TranslationPaths} from '@src/languages/types';
 function SubtitleDefault({
     subtitle,
     subtitleStyle,
-    shouldShowLink,
     onLinkPress = () => {},
     linkKey,
 }: {
@@ -18,9 +17,6 @@ function SubtitleDefault({
 
     /** The style of the subtitle message */
     subtitleStyle?: StyleProp<TextStyle>;
-
-    /** Whether we should show a link to navigate elsewhere */
-    shouldShowLink?: boolean;
 
     /** Function to call when pressing the navigation link */
     onLinkPress?: () => void;
@@ -38,7 +34,7 @@ function SubtitleDefault({
                     text={subtitle}
                 />
             )}
-            {shouldShowLink && !!linkKey ? (
+            {linkKey ? (
                 <TextLink
                     onPress={onLinkPress}
                     style={[styles.link, styles.mt2]}

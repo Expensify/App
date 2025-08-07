@@ -33,9 +33,6 @@ type BaseBlockingViewProps = {
     /** Message below the link message */
     subtitleKeyBelowLink?: TranslationPaths | '';
 
-    /** Whether we should show a link to navigate elsewhere */
-    shouldShowLink?: boolean;
-
     /** Function to call when pressing the navigation link */
     onLinkPress?: () => void;
 
@@ -99,9 +96,8 @@ function BlockingView({
     title,
     subtitle = '',
     subtitleStyle,
-    linkKey = 'notFound.goBackHome',
+    linkKey,
     subtitleKeyBelowLink,
-    shouldShowLink = false,
     iconWidth = variables.iconSizeSuperLarge,
     iconHeight = variables.iconSizeSuperLarge,
     onLinkPress = () => Navigation.dismissModal(),
@@ -154,7 +150,7 @@ function BlockingView({
                 {!!CustomSubtitle && CustomSubtitle}
                 {!CustomSubtitle && (
                     <SubtitleWrapper style={subtitleWrapperStyle}>
-                        {!!subtitleKeyBelowLink && shouldShowLink ? (
+                        {!!subtitleKeyBelowLink && !!linkKey ? (
                             <SubtitleWithBelowLink
                                 subtitle={subtitle}
                                 subtitleStyle={subtitleStyle}
@@ -166,7 +162,6 @@ function BlockingView({
                             <SubtitleDefault
                                 subtitle={subtitle}
                                 subtitleStyle={subtitleStyle}
-                                shouldShowLink={shouldShowLink}
                                 onLinkPress={onLinkPress}
                                 linkKey={linkKey}
                             />

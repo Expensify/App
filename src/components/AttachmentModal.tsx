@@ -495,7 +495,6 @@ function AttachmentModal({
                                 title={translate('notFound.notHere')}
                                 subtitle={translate('notFound.pageNotFound')}
                                 linkKey="notFound.goBackHome"
-                                shouldShowLink
                                 onLinkPress={() => Navigation.dismissModal()}
                             />
                         )}

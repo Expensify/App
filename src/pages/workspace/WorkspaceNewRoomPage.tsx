@@ -44,7 +44,6 @@ function EmptyWorkspaceView() {
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.emptyWorkspace.notFound')}
                 subtitle={translate('workspace.emptyWorkspace.description')}
-                shouldShowLink={false}
                 addBottomSafeAreaPadding
             />
             <Button
