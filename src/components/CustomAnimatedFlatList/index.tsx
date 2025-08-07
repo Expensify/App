@@ -6,15 +6,13 @@ import {FlatList} from 'react-native';
 import type {AnimatedProps, ILayoutAnimationBuilder} from 'react-native-reanimated';
 import Animated, {LayoutAnimationConfig} from 'react-native-reanimated';
 
+// eslint-disable-next-line deprecation/deprecation
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
 type CellRendererProps<T> = RNCellRendererProps<T>;
 type CellRendererComponentProps<T> = React.ComponentType<CellRendererProps<T>> | null | undefined;
 
-const createCellRendererComponent = <Item,>(
-    CellRendererComponentProp?: CellRendererComponentProps<Item>,
-    itemLayoutAnimationRef?: React.MutableRefObject<ILayoutAnimationBuilder | undefined>,
-) => {
+const createCellRendererComponent = <Item,>(CellRendererComponentProp?: CellRendererComponentProps<Item>, itemLayoutAnimationRef?: React.RefObject<ILayoutAnimationBuilder | undefined>) => {
     // Make CellRendererComponent specifically use the 'Item' type from its parent scope
     function CellRendererComponent(props: CellRendererProps<Item>) {
         return (
