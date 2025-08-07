@@ -4738,7 +4738,7 @@ const translations = {
             reimbursementAccount: '报销账户',
             delayedSubmission: '延迟提交',
             welcomeNote: '请开始使用我的新工作区',
-            confirmedTitle: ({newWorkspaceName, oldWorkspaceName, totalMembers}: {newWorkspaceName?: string; oldWorkspaceName?: string; totalMembers?: number}) =>
+            confirmTitle: ({newWorkspaceName, oldWorkspaceName, totalMembers}: {newWorkspaceName?: string; oldWorkspaceName?: string; totalMembers?: number}) =>
                 `您即将与已共享 ${oldWorkspaceName ?? ''} 的 ${totalMembers ?? 0} 位用户共享此 ${newWorkspaceName ?? ''}。请注意，这些人都会收到一条通知，告知他们现在位于 ${newWorkspaceName ?? ''}。`,
         },
         emptyWorkspace: {

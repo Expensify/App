@@ -4809,8 +4809,8 @@ const translations = {
             selectFeatures: 'Wybierz funkcje do skopiowania',
             whichFeatures: 'Które funkcje chcesz skopiować do nowego obszaru roboczego?',
             confirmDuplicate: 'Czy na pewno chcesz kontynuować?',
-            categoris: 'kategorie i zasady automatycznej kategoryzacji',
-            rewardmentAccount: 'konto zwrotu',
+            categories: 'kategorie i zasady automatycznej kategoryzacji',
+            reimbursementAccount: 'konto zwrotu',
             expectedSubmission: 'opóźnione przesłanie',
             welcomeNote: 'Proszę rozpocząć korzystanie z mojego nowego obszaru roboczego',
             confirmTitle: ({newWorkspaceName, oldWorkspaceName, totalMembers}: {newWorkspaceName?: string; oldWorkspaceName?: string; totalMembers?: number}) =>
