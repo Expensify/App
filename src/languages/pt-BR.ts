@@ -531,6 +531,7 @@ const translations = {
         pm: 'PM',
         tbd: 'TBD',
         selectCurrency: 'Selecione uma moeda',
+        selectSymbolOrCurrency: 'Selecione um símbolo ou moeda',
         card: 'Cartão',
         whyDoWeAskForThis: 'Por que pedimos isso?',
         required: 'Obrigatório',
@@ -850,17 +851,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `Esta sala de bate-papo é para qualquer coisa relacionada ao <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `Este bate-papo é para faturas entre <strong>${invoicePayer}</strong> e a <strong>${invoiceReceiver}</strong>. Use o botão + para enviar uma fatura.`,
+            `Este bate-papo é para faturas entre <strong>${invoicePayer}</strong> e a <strong>${invoiceReceiver}</strong>. Use o botão <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> para enviar uma fatura.`,
         beginningOfChatHistory: 'Este chat é com',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `É aqui que <strong>${submitterDisplayName}</strong> enviará as despesas para a <strong>${workspaceName}</strong>. Basta usar o botão +.`,
+            `É aqui que <strong>${submitterDisplayName}</strong> enviará as despesas para a <strong>${workspaceName}</strong>. Basta usar o botão <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>.`,
         beginningOfChatHistorySelfDM: 'Este é o seu espaço pessoal. Use-o para anotações, tarefas, rascunhos e lembretes.',
         beginningOfChatHistorySystemDM: 'Bem-vindo! Vamos configurá-lo.',
         chatWithAccountManager: 'Converse com o seu gerente de conta aqui',
         sayHello: 'Diga olá!',
         yourSpace: 'Seu espaço',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Bem-vindo(a) ao ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `Use o botão + para ${additionalText} uma despesa.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => `Use o botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} para ${additionalText} uma despesa.`,
         askConcierge: 'Faça perguntas e receba suporte em tempo real 24/7.',
         conciergeSupport: 'Suporte 24/7',
         create: 'criar',
@@ -3409,6 +3410,7 @@ const translations = {
             travel: 'Viagem',
             members: 'Membros',
             accounting: 'Contabilidade',
+            receiptPartners: 'Parceiros de recibos',
             rules: 'Regras',
             displayedAs: 'Exibido como',
             plan: 'Plano',
@@ -4615,11 +4617,20 @@ const translations = {
                 title: 'Contabilidade',
                 subtitle: 'Sincronize seu plano de contas e mais.',
             },
+            receiptPartners: {
+                title: 'Parceiros de recibos',
+                subtitle: 'Importar recibos automaticamente.',
+            },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Não tão rápido...',
                 featureEnabledText: 'Para ativar ou desativar este recurso, você precisará alterar suas configurações de importação de contabilidade.',
                 disconnectText: 'Para desativar a contabilidade, você precisará desconectar sua conexão contábil do seu espaço de trabalho.',
                 manageSettings: 'Gerenciar configurações',
+            },
+            receiptPartnersWarningModal: {
+                featureEnabledTitle: 'Desconectar Uber',
+                disconnectText: 'Para desativar este recurso, desconecte primeiro a integração do Uber for Business.',
+                confirmText: 'Entendi',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Não tão rápido...',
@@ -4631,6 +4642,20 @@ const translations = {
                 title: 'Regras',
                 subtitle: 'Exigir recibos, sinalizar gastos altos e mais.',
             },
+        },
+        reports: {
+            reportsCustomTitleExamples: 'Exemplos:',
+            customReportNamesSubtitle: 'Personalize os títulos dos relatórios usando nosso',
+            customNameTitle: 'Título padrão do relatório',
+            customNameDescription: 'Escolha um nome personalizado para relatórios de despesas usando nosso',
+            customNameDescriptionLink: 'fórmulas extensivas',
+            customNameInputLabel: 'Nome',
+            customNameEmailPhoneExample: 'Email ou telefone do membro: {report:submit:from}',
+            customNameStartDateExample: 'Data de início do relatório: {report:startdate}',
+            customNameWorkspaceNameExample: 'Nome do espaço de trabalho: {report:workspacename}',
+            customNameReportIDExample: 'ID do Relatório: {report:id}',
+            customNameTotalExample: 'Total: {report:total}.',
+            preventMembersFromChangingCustomNamesTitle: 'Impedir que os membros alterem os nomes dos relatórios personalizados',
         },
         reportFields: {
             addField: 'Adicionar campo',
@@ -5510,20 +5535,8 @@ const translations = {
                 adultEntertainment: 'Entretenimento adulto',
             },
             expenseReportRules: {
-                examples: 'Exemplos:',
                 title: 'Relatórios de despesas',
                 subtitle: 'Automatize a conformidade, aprovações e pagamentos de relatórios de despesas.',
-                customReportNamesSubtitle: 'Personalize os títulos dos relatórios usando nosso',
-                customNameTitle: 'Título padrão do relatório',
-                customNameDescription: 'Escolha um nome personalizado para relatórios de despesas usando nosso',
-                customNameDescriptionLink: 'fórmulas extensivas',
-                customNameInputLabel: 'Nome',
-                customNameEmailPhoneExample: 'Email ou telefone do membro: {report:submit:from}',
-                customNameStartDateExample: 'Data de início do relatório: {report:startdate}',
-                customNameWorkspaceNameExample: 'Nome do espaço de trabalho: {report:workspacename}',
-                customNameReportIDExample: 'ID do Relatório: {report:id}',
-                customNameTotalExample: 'Total: {report:total}.',
-                preventMembersFromChangingCustomNamesTitle: 'Impedir que os membros alterem os nomes dos relatórios personalizados',
                 preventSelfApprovalsTitle: 'Prevenir autoaprovações',
                 preventSelfApprovalsSubtitle: 'Impedir que os membros do espaço de trabalho aprovem seus próprios relatórios de despesas.',
                 autoApproveCompliantReportsTitle: 'Aprovar automaticamente relatórios em conformidade',
@@ -5890,7 +5903,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'Nada para mostrar',
-                subtitle: 'Tente ajustar seus critérios de busca ou criar algo com o botão verde +.',
+                subtitle: `Tente ajustar seus critérios de busca ou criar algo com o botão verde ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.`,
             },
             emptyExpenseResults: {
                 title: 'Você ainda não criou nenhuma despesa ainda',
@@ -6288,7 +6301,8 @@ const translations = {
         levelThreeResult: 'Mensagem removida do canal, além de um aviso anônimo, e a mensagem foi relatada para revisão.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Convide-os',
+        inviteToSubmitExpense: 'Convidar para enviar despesas',
+        inviteToChat: 'Convidar apenas para conversar',
         nothing: 'Não faça nada',
     },
     actionableMentionJoinWorkspaceOptions: {
