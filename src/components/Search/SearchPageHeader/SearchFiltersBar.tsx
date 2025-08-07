@@ -17,7 +17,7 @@ import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPo
 import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchDateValues} from '@components/Search/SearchDatePresetFilterBase';
-import type {SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
+import type {SearchDateFilterKeys, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -48,6 +48,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {CurrencyList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import type {TranslationPaths} from '@src/languages/types';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
 
 type SearchFiltersBarProps = {
@@ -142,47 +143,47 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         return [value, displayText];
     }, [filterFormValues.dateOn, filterFormValues.dateAfter, filterFormValues.dateBefore, translate]);
 
-    const [posted, displayPosted] = useMemo(() => {
-        const value: SearchDateValues = {
-            [CONST.SEARCH.DATE_MODIFIERS.ON]: filterFormValues.postedOn,
-            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterFormValues.postedAfter,
-            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterFormValues.postedBefore,
-        };
-
-        const displayText: string[] = [];
-        if (value.On) {
-            displayText.push(isSearchDatePreset(value.On) ? translate(`search.filters.date.presets.${value.On}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On)}`);
-        }
-        if (value.After) {
-            displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After)}`);
-        }
-        if (value.Before) {
-            displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
-        }
-
-        return [value, displayText];
-    }, [filterFormValues.postedOn, filterFormValues.postedAfter, filterFormValues.postedBefore, translate]);
-
-    const [withdrawn, displayWithdrawn] = useMemo(() => {
-        const value: SearchDateValues = {
-            [CONST.SEARCH.DATE_MODIFIERS.ON]: filterFormValues.withdrawnOn,
-            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterFormValues.withdrawnAfter,
-            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterFormValues.withdrawnBefore,
-        };
-
-        const displayText: string[] = [];
-        if (value.On) {
-            displayText.push(isSearchDatePreset(value.On) ? translate(`search.filters.date.presets.${value.On}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On)}`);
-        }
-        if (value.After) {
-            displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After)}`);
-        }
-        if (value.Before) {
-            displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
-        }
-
-        return [value, displayText];
-    }, [filterFormValues.withdrawnOn, filterFormValues.withdrawnAfter, filterFormValues.withdrawnBefore, translate]);
+    const createDateDisplayValue = useCallback(
+        (filterValues: { on?: string; after?: string; before?: string }): [SearchDateValues, string[]] => {
+            const value: SearchDateValues = {
+                [CONST.SEARCH.DATE_MODIFIERS.ON]: filterValues.on,
+                [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterValues.after,
+                [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterValues.before,
+            };
+    
+            const displayText: string[] = [];
+            if (value.On) {
+                displayText.push(isSearchDatePreset(value.On) ? translate(`search.filters.date.presets.${value.On}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On)}`);
+            }
+            if (value.After) {
+                displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After)}`);
+            }
+            if (value.Before) {
+                displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
+            }
+    
+            return [value, displayText];
+        },
+        [translate],
+    );
+    
+    const [posted, displayPosted] = useMemo(() => 
+        createDateDisplayValue({
+            on: filterFormValues.postedOn,
+            after: filterFormValues.postedAfter,
+            before: filterFormValues.postedBefore,
+        }),
+        [filterFormValues.postedOn, filterFormValues.postedAfter, filterFormValues.postedBefore, createDateDisplayValue]
+    );
+    
+    const [withdrawn, displayWithdrawn] = useMemo(() => 
+        createDateDisplayValue({
+            on: filterFormValues.withdrawnOn,
+            after: filterFormValues.withdrawnAfter,
+            before: filterFormValues.withdrawnBefore,
+        }),
+        [filterFormValues.withdrawnOn, filterFormValues.withdrawnAfter, filterFormValues.withdrawnBefore, createDateDisplayValue]
+    );
 
     const updateFilterForm = useCallback(
         (values: Partial<SearchAdvancedFiltersForm>) => {
@@ -257,54 +258,49 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         [translate, feedOptions, feed, updateFilterForm],
     );
 
-    const postedPickerComponent = useCallback(
-        ({closeOverlay}: PopoverComponentProps) => {
-            const onChange = (selectedDates: SearchDateValues) => {
-                const dateFormValues = {
-                    postedOn: selectedDates[CONST.SEARCH.DATE_MODIFIERS.ON],
-                    postedAfter: selectedDates[CONST.SEARCH.DATE_MODIFIERS.AFTER],
-                    postedBefore: selectedDates[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
+    const createDatePickerComponent = useCallback(
+        (filterKey: SearchDateFilterKeys, value: SearchDateValues, translationKey: TranslationPaths) => {
+            return ({closeOverlay}: PopoverComponentProps) => {
+                const onChange = (selectedDates: SearchDateValues) => {
+                    const dateFormValues = {
+                        [`${filterKey}On`]: selectedDates[CONST.SEARCH.DATE_MODIFIERS.ON],
+                        [`${filterKey}After`]: selectedDates[CONST.SEARCH.DATE_MODIFIERS.AFTER],
+                        [`${filterKey}Before`]: selectedDates[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
+                    };
+    
+                    updateFilterForm(dateFormValues);
                 };
-
-                updateFilterForm(dateFormValues);
+    
+                return (
+                    <DateSelectPopup
+                        label={translate(translationKey)}
+                        value={value}
+                        onChange={onChange}
+                        closeOverlay={closeOverlay}
+                        presets={getDatePresets(filterKey, true)}
+                    />
+                );
             };
-
-            return (
-                <DateSelectPopup
-                    label={translate('search.filters.posted')}
-                    value={posted}
-                    onChange={onChange}
-                    closeOverlay={closeOverlay}
-                    presets={getDatePresets(CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED, true)}
-                />
-            );
         },
-        [posted, translate, updateFilterForm],
+        [translate, updateFilterForm],
     );
-
-    const withdrawnPickerComponent = useCallback(
-        ({closeOverlay}: PopoverComponentProps) => {
-            const onChange = (selectedDates: SearchDateValues) => {
-                const dateFormValues = {
-                    withdrawnOn: selectedDates[CONST.SEARCH.DATE_MODIFIERS.ON],
-                    withdrawnAfter: selectedDates[CONST.SEARCH.DATE_MODIFIERS.AFTER],
-                    withdrawnBefore: selectedDates[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
-                };
-
-                updateFilterForm(dateFormValues);
-            };
-
-            return (
-                <DateSelectPopup
-                    label={translate('search.filters.withdrawn')}
-                    value={withdrawn}
-                    onChange={onChange}
-                    closeOverlay={closeOverlay}
-                    presets={getDatePresets(CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN, true)}
-                />
-            );
-        },
-        [withdrawn, translate, updateFilterForm],
+    
+    const postedPickerComponent = useMemo(
+        () => createDatePickerComponent(
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
+            posted,
+            'search.filters.posted'
+        ),
+        [createDatePickerComponent, posted]
+    );
+    
+    const withdrawnPickerComponent = useMemo(
+        () => createDatePickerComponent(
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
+            withdrawn,
+            'search.filters.withdrawn'
+        ),
+        [createDatePickerComponent, withdrawn]
     );
 
     const statusComponent = useCallback(
