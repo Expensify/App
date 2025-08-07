@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {getCurrentAddress, getDefaultCountry} from '@libs/PersonalDetailsUtils';
+import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import AddressPage from '@pages/AddressPage';
 import type {FormOnyxValues} from '@src/components/Form/types';
 import type {Country} from '@src/CONST';
@@ -25,7 +25,7 @@ function updateAddress(values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS
 
 function PersonalAddressPage() {
     const {translate} = useLocalize();
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [defaultCountry] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: true});
     const address = useMemo(() => getCurrentAddress(privatePersonalDetails), [privatePersonalDetails]);
