@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -469,16 +469,11 @@ function MoneyReportHeader({
     };
 
     const statusBarProps = getStatusBarProps();
-
-    const hasUseDeclineDismissedRef = useRef(false);
     const dismissModalAndUpdateUseDecline = () => {
         setIsDeclineEducationalModalVisible(false);
-        if (!hasUseDeclineDismissedRef.current) {
-            dismissDeclineUseExplanation();
-            hasUseDeclineDismissedRef.current = true;
-            if (requestParentReportAction) {
-                declineMoneyRequestReason(requestParentReportAction);
-            }
+        dismissDeclineUseExplanation();
+        if (requestParentReportAction) {
+            declineMoneyRequestReason(requestParentReportAction);
         }
     };
 
