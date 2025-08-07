@@ -19,7 +19,7 @@ REGEX="(?:<iframe[^>]*?)(?:\s*width=[\"\"'](?<width>[^\"\"']+)[\"\"']|\s*height=
 
 while IFS= read -r FILE; do
     while IFS= read -r MATCH; do
-        error "Do not use iframes for video embeds: $FILE:$MATCH"
+        error "$FILE:$MATCH Do not use iframes for video embeds."
         HAS_VIOLATION=true
     done < <(pcregrep -n "$REGEX" "$FILE")
 done <<< "$CHANGED_FILES"
@@ -38,7 +38,7 @@ CDN_REGEX="https:\/\/(?:\S+)\.cloudflarestream.com\/(?:\S*)"
 while IFS= read -r FILE; do
     while IFS= read -r MATCH; do
         if ! echo "$MATCH" | pcregrep -q "$CDN_REGEX"; then
-            error "Video URL must be from Cloudflare CDN: $FILE:$MATCH"
+            error "$FILE:$MATCH Video URL must be from Cloudflare CDN."
             HAS_VIOLATION=true
         fi
     done < <(pcregrep -n "$REGEX" "$FILE")
