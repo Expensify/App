@@ -44,6 +44,7 @@ import {
     chatIncludesChronos,
     chatIncludesConcierge,
     getParentReport,
+    getPreferredScannableIOUType,
     getReportRecipientAccountIDs,
     isReportApproved,
     isReportTransactionThread,
@@ -65,7 +66,7 @@ import {addAttachment as addAttachmentReportActions, setIsComposerFullSize} from
 import Timing from '@userActions/Timing';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
-import CONST from '@src/CONST';
+import CONST, {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -240,6 +241,7 @@ function ReportActionCompose({
 
     const hasReceipt = useMemo(() => hasReceiptTransactionUtils(transaction), [transaction]);
 
+    const scannableOption = getPreferredScannableIOUType(temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs), report);
     const shouldDisplayDualDropZone = useMemo(() => {
         const parentReport = getParentReport(report);
         const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
