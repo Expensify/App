@@ -392,12 +392,6 @@ type OriginalMessagePolicyChangeLog = {
     /** New default billable value */
     newDefaultBillable?: string;
 
-    /** Old default reimbursable value */
-    oldDefaultReimbursable?: string;
-
-    /** New default reimbursable value */
-    newDefaultReimbursable?: string;
-
     /** value -- returned when updating "Auto-approve compliant reports" */
     value?: boolean;
 
