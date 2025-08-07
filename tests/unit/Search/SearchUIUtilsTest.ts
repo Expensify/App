@@ -1632,5 +1632,4 @@ describe('SearchUIUtils', () => {
         expect(isAmountLengthLong3).toBe(true);
         expect(isTaxAmountLengthLong2).toBe(true);
     });
-
 });
