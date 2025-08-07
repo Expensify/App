@@ -955,7 +955,11 @@ function startOutCreateTaskQuickAction(reportID: string, targetAccountID: number
 /**
  * Get the assignee data
  */
-function getAssignee(assigneeAccountID: number | undefined, personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>): Assignee | undefined {
+function getAssignee(
+    assigneeAccountID: number | undefined,
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
+    localeCompare: LocaleContextProps['localeCompare'],
+): Assignee | undefined {
     if (!assigneeAccountID) {
         return;
     }
@@ -971,7 +975,7 @@ function getAssignee(assigneeAccountID: number | undefined, personalDetails: Ony
     }
 
     return {
-        icons: ReportUtils.getIconsForParticipants([details.accountID], personalDetails),
+        icons: ReportUtils.getIconsForParticipants([details.accountID], personalDetails, localeCompare),
         displayName: LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
         subtitle: details.login ?? '',
     };
@@ -1010,7 +1014,7 @@ function getShareDestination(
         subtitle = ReportUtils.getChatRoomSubtitle(report) ?? '';
     }
     return {
-        icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar),
+        icons: ReportUtils.getIcons(report, localeCompare, personalDetails, Expensicons.FallbackAvatar),
         displayName: ReportUtils.getReportName(report),
         subtitle,
         displayNamesWithTooltips,

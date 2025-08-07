@@ -109,7 +109,7 @@ describe('ReportUtils', () => {
         const participants = Array.from({length: 1000}, (v, i) => i + 1);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getIconsForParticipants(participants, personalDetails));
+        await measureFunction(() => getIconsForParticipants(participants, personalDetails, localeCompare));
     });
 
     test('[ReportUtils] getIcons on 1k participants', async () => {
@@ -120,7 +120,7 @@ describe('ReportUtils', () => {
         const defaultIconId = -1;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getIcons(report, personalDetails, defaultIcon, defaultName, defaultIconId, policy));
+        await measureFunction(() => getIcons(report, localeCompare, personalDetails, defaultIcon, defaultName, defaultIconId, policy));
     });
 
     test('[ReportUtils] getDisplayNamesWithTooltips 1k participants', async () => {

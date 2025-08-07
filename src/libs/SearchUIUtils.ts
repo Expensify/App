@@ -1022,7 +1022,7 @@ function getAction(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getTaskSections(data: OnyxTypes.SearchResults['data'], archivedReportsIDList?: ArchivedReportsIDSet): TaskListItemType[] {
+function getTaskSections(data: OnyxTypes.SearchResults['data'], localeCompare: LocaleContextProps['localeCompare'], archivedReportsIDList?: ArchivedReportsIDSet): TaskListItemType[] {
     return (
         Object.keys(data)
             .filter(isReportEntry)
@@ -1063,7 +1063,7 @@ function getTaskSections(data: OnyxTypes.SearchResults['data'], archivedReportsI
                     const policy = getPolicy(parentReport.policyID);
                     const parentReportName = getReportName(parentReport, policy, undefined, undefined);
                     const isParentReportArchived = archivedReportsIDList?.has(parentReport?.reportID);
-                    const icons = getIcons(parentReport, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
+                    const icons = getIcons(parentReport, localeCompare, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                     const parentReportIcon = icons?.at(0);
 
                     result.parentReportName = parentReportName;
@@ -1274,6 +1274,7 @@ function getSections(
     type: SearchDataTypes,
     data: OnyxTypes.SearchResults['data'],
     metadata: OnyxTypes.SearchResults['search'],
+    localeCompare: LocaleContextProps['localeCompare'],
     groupBy?: SearchGroupBy,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
     currentSearch: SearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
@@ -1283,7 +1284,7 @@ function getSections(
         return getReportActionsSections(data);
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return getTaskSections(data, archivedReportsIDList);
+        return getTaskSections(data, localeCompare, archivedReportsIDList);
     }
 
     if (groupBy) {

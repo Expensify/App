@@ -560,7 +560,10 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         return getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participants, personalDetails), hasMultipleParticipants, localeCompare);
     }, [participants, personalDetails, localeCompare]);
 
-    const icons = useMemo(() => getIcons(report, personalDetails, null, '', -1, policy, undefined, isReportArchived), [report, personalDetails, policy, isReportArchived]);
+    const icons = useMemo(
+        () => getIcons(report, localeCompare, personalDetails, null, '', -1, policy, undefined, isReportArchived),
+        [report, personalDetails, policy, isReportArchived, localeCompare],
+    );
 
     const chatRoomSubtitleText = chatRoomSubtitle ? (
         <DisplayNames

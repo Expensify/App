@@ -441,7 +441,7 @@ describe('ReportUtils', () => {
 
     describe('getIconsForParticipants', () => {
         it('returns sorted avatar source by name, then accountID', () => {
-            const participants = getIconsForParticipants([1, 2, 3, 4, 5], participantsPersonalDetails);
+            const participants = getIconsForParticipants([1, 2, 3, 4, 5], participantsPersonalDetails, localeCompare);
             expect(participants).toHaveLength(5);
 
             expect(participants.at(0)?.source).toBeInstanceOf(Function);

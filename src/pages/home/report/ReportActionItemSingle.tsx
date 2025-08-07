@@ -76,9 +76,9 @@ function ReportActionItemSingle({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
 
-    const {avatarType, avatars, details, source} = useReportActionAvatars({report: potentialIOUReport ?? report, action});
+    const {avatarType, avatars, details, source} = useReportActionAvatars({report: potentialIOUReport ?? report, action, localeCompare});
 
     const reportID = source.chatReport?.reportID;
     const iouReportID = source.iouReport?.reportID;

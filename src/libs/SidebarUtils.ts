@@ -829,6 +829,7 @@ function getOptionData({
 
     result.icons = getIcons(
         report,
+        localeCompare,
         personalDetails,
         personalDetail?.avatar,
         personalDetail?.login,

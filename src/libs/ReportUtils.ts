@@ -2697,7 +2697,7 @@ function getDefaultGroupAvatar(reportID?: string): IconAsset {
  * Returns the appropriate icons for the given chat report using the stored personalDetails.
  * The Avatar sources can be URLs or Icon components according to the chat type.
  */
-function getIconsForParticipants(participants: number[], personalDetails: OnyxInputOrEntry<PersonalDetailsList>): Icon[] {
+function getIconsForParticipants(participants: number[], personalDetails: OnyxInputOrEntry<PersonalDetailsList>, localeCompare: LocaleContextProps['localeCompare']): Icon[] {
     const participantDetails: ParticipantDetails[] = [];
     const participantsList = participants || [];
 
@@ -2709,7 +2709,7 @@ function getIconsForParticipants(participants: number[], personalDetails: OnyxIn
 
     const sortedParticipantDetails = participantDetails.sort((first, second) => {
         // First sort by displayName/login
-        const displayNameLoginOrder = localeCompareLibs(first[1], second[1]);
+        const displayNameLoginOrder = localeCompare(first[1], second[1]);
         if (displayNameLoginOrder !== 0) {
             return displayNameLoginOrder;
         }
@@ -3035,9 +3035,14 @@ function getParticipantIcon(accountID: number | undefined, personalDetails: Onyx
 /**
  * Helper function to get the icons for the invoice receiver. Only to be used in getIcons().
  */
-function getInvoiceReceiverIcons(report: OnyxInputOrEntry<Report>, personalDetails: OnyxInputOrEntry<PersonalDetailsList>, invoiceReceiverPolicy: OnyxInputOrEntry<Policy>): Icon[] {
+function getInvoiceReceiverIcons(
+    report: OnyxInputOrEntry<Report>,
+    personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
+    invoiceReceiverPolicy: OnyxInputOrEntry<Policy>,
+    localeCompare: LocaleContextProps['localeCompare'],
+): Icon[] {
     if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
-        return getIconsForParticipants([report?.invoiceReceiver.accountID], personalDetails);
+        return getIconsForParticipants([report?.invoiceReceiver.accountID], personalDetails, localeCompare);
     }
 
     const receiverPolicyID = report?.invoiceReceiver?.policyID;
@@ -3139,13 +3144,14 @@ function getIconsForPolicyRoom(
     personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
     policy: OnyxInputOrEntry<Policy>,
     invoiceReceiverPolicy: OnyxInputOrEntry<Policy>,
+    localeCompare: LocaleContextProps['localeCompare'],
 ): Icon[] {
     if (!report) {
         return [];
     }
     const icons = [getWorkspaceIcon(report, policy)];
     if (report && isInvoiceRoom(report)) {
-        icons.push(...getInvoiceReceiverIcons(report, personalDetails, invoiceReceiverPolicy));
+        icons.push(...getInvoiceReceiverIcons(report, personalDetails, invoiceReceiverPolicy, localeCompare));
     }
     return icons;
 }
@@ -3233,6 +3239,7 @@ function getIconsForInvoiceReport(
     personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
     policy: OnyxInputOrEntry<Policy>,
     invoiceReceiverPolicy: OnyxInputOrEntry<Policy>,
+    localeCompare: LocaleContextProps['localeCompare'],
 ): Icon[] {
     if (!report) {
         return [];
@@ -3241,7 +3248,7 @@ function getIconsForInvoiceReport(
     const icons = [getWorkspaceIcon(invoiceRoomReport, policy)];
 
     if (invoiceRoomReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
-        icons.push(...getIconsForParticipants([invoiceRoomReport?.invoiceReceiver.accountID], personalDetails));
+        icons.push(...getIconsForParticipants([invoiceRoomReport?.invoiceReceiver.accountID], personalDetails, localeCompare));
         return icons;
     }
 
@@ -3268,6 +3275,7 @@ function getIconsForInvoiceReport(
  */
 function getIcons(
     report: OnyxInputOrEntry<Report>,
+    localeCompare: LocaleContextProps['localeCompare'],
     personalDetails: OnyxInputOrEntry<PersonalDetailsList> = allPersonalDetails,
     defaultIcon: AvatarSource | null = null,
     defaultName = '',
@@ -3299,7 +3307,7 @@ function getIcons(
         return getIconsForDomainRoom(report);
     }
     if (isAdminRoom(report) || isAnnounceRoom(report) || isChatRoom(report) || (isArchivedNonExpenseReport(report, isReportArchived) && !chatIncludesConcierge(report))) {
-        return getIconsForPolicyRoom(report, personalDetails, policy, invoiceReceiverPolicy);
+        return getIconsForPolicyRoom(report, personalDetails, policy, invoiceReceiverPolicy, localeCompare);
     }
     if (isPolicyExpenseChat(report)) {
         return getIconsForPolicyExpenseChat(report, personalDetails, policy);
@@ -3311,25 +3319,25 @@ function getIcons(
         return getIconsForIOUReport(report, personalDetails);
     }
     if (isSelfDM(report)) {
-        return getIconsForParticipants(currentUserAccountID ? [currentUserAccountID] : [], personalDetails);
+        return getIconsForParticipants(currentUserAccountID ? [currentUserAccountID] : [], personalDetails, localeCompare);
     }
     if (isSystemChat(report)) {
-        return getIconsForParticipants([CONST.ACCOUNT_ID.NOTIFICATIONS ?? 0], personalDetails);
+        return getIconsForParticipants([CONST.ACCOUNT_ID.NOTIFICATIONS ?? 0], personalDetails, localeCompare);
     }
     if (isGroupChat(report)) {
         return getIconsForGroupChat(report);
     }
     if (isInvoiceReport(report)) {
-        return getIconsForInvoiceReport(report, personalDetails, policy, invoiceReceiverPolicy);
+        return getIconsForInvoiceReport(report, personalDetails, policy, invoiceReceiverPolicy, localeCompare);
     }
     if (isOneOnOneChat(report)) {
         const otherParticipantsAccountIDs = Object.keys(report.participants ?? {})
             .map(Number)
             .filter((accountID) => accountID !== currentUserAccountID);
-        return getIconsForParticipants(otherParticipantsAccountIDs, personalDetails);
+        return getIconsForParticipants(otherParticipantsAccountIDs, personalDetails, localeCompare);
     }
     const participantAccountIDs = Object.keys(report.participants ?? {}).map(Number);
-    return getIconsForParticipants(participantAccountIDs, personalDetails);
+    return getIconsForParticipants(participantAccountIDs, personalDetails, localeCompare);
 }
 
 function getDisplayNamesWithTooltips(
