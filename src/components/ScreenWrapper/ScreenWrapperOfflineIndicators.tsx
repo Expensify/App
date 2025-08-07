@@ -1,8 +1,10 @@
 import type {ReactNode} from 'react';
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
+import {Platform} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import ImportedStateIndicator from '@components/ImportedStateIndicator';
+import {useKeyboardDismissibleFlatListContext} from '@components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
 import OfflineIndicator from '@components/OfflineIndicator';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useNetwork from '@hooks/useNetwork';
@@ -50,8 +52,9 @@ function ScreenWrapperOfflineIndicators({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
+    const {keyboardHeight} = useKeyboardDismissibleFlatListContext();
 
-    const {insets} = useSafeAreaPaddings(true);
+    const {insets, paddingBottom} = useSafeAreaPaddings(true);
     const navigationBarType = useMemo(() => StyleUtils.getNavigationBarType(insets), [StyleUtils, insets]);
     const isSoftKeyNavigation = navigationBarType === CONST.NAVIGATION_BAR_TYPE.SOFT_KEYS;
 
@@ -114,15 +117,27 @@ function ScreenWrapperOfflineIndicators({
         [isSoftKeyNavigation, smallScreenOfflineIndicatorBackgroundStyle, offlineIndicatorStyle, styles.pl5],
     );
 
+    const animatedIosStyles = useAnimatedStyle(() => {
+        if (Platform.OS !== 'ios') {
+            return {};
+        }
+
+        return {
+            position: 'absolute',
+            bottom: 0,
+            transform: [{translateY: keyboardHeight.get() > paddingBottom ? -keyboardHeight.get() + paddingBottom : 0}],
+        };
+    });
+
     return (
         <>
             {shouldShowSmallScreenOfflineIndicator && (
                 <>
-                    {isOffline && (
-                        <View style={[smallScreenOfflineIndicatorContainerStyle]}>
+                    {!isOffline && (
+                        <Animated.View style={[smallScreenOfflineIndicatorContainerStyle, animatedIosStyles]}>
                             <OfflineIndicator style={smallScreenOfflineIndicatorStyle} />
                             {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
-                        </View>
+                        </Animated.View>
                     )}
                     <ImportedStateIndicator />
                 </>
