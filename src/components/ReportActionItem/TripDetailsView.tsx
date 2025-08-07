@@ -194,14 +194,11 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
 
             switch (firstReservation?.type) {
                 case CONST.RESERVATION_TYPE.FLIGHT: {
-                    if (reservations.length === 2 && firstReservation.start.shortName === lastReservation.end.shortName) {
-                        return `${translate('travel.flightTo')} ${formatAirportInfo(lastReservation.start, true)}`;
+                    const destinationReservation = reservations.filter((reservation) => reservation.reservation.legId === 0).at(-1);
+                    if (!destinationReservation) {
+                        return '';
                     }
-                    if (reservations.length > 2 && lastReservation.end.shortName === firstReservation.start.shortName) {
-                        const secondLastReservation = reservations.at(reservations.length - 2)?.reservation;
-                        return secondLastReservation ? `${translate('travel.flightTo')} ${formatAirportInfo(secondLastReservation.end, true)}` : '';
-                    }
-                    return `${translate('travel.flightTo')} ${formatAirportInfo(lastReservation.end, true)}`;
+                    return `${translate('travel.flightTo')} ${formatAirportInfo(destinationReservation?.reservation.end, true)}`;
                 }
                 case CONST.RESERVATION_TYPE.TRAIN:
                     if (reservations.length === 2 && firstReservation.start.shortName === lastReservation.end.shortName) {

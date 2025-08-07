@@ -204,6 +204,7 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservat
                     start,
                     end,
                     route,
+                    legId: legIdx,
                     confirmations,
                     arrivalGate: flightObject?.arrivalGate,
                     seatNumber: getSeatByLegAndFlight(travelerInfo, legIdx, flightIdx),
@@ -347,6 +348,7 @@ function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reserva
             reservationList.push({
                 reservationIndex: legIndex,
                 reservation: {
+                    legId: legIdx,
                     reservationID: pnr.pnrId,
                     start: {
                         date: leg.departAt.iso8601,
