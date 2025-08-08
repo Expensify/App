@@ -522,6 +522,12 @@ type Section<TItem extends ListItem> = {
     shouldShow?: boolean;
 };
 
+type LoadingPlaceholderComponentProps = {
+    shouldStyleAsTable?: boolean;
+    fixedNumItems?: number;
+    speed?: number;
+};
+
 type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
     /** The initial index of this section given the total number of options in each section's data array */
     indexOffset?: number;
@@ -646,6 +652,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to show the loading placeholder */
     showLoadingPlaceholder?: boolean;
+
+    /** The component to show when the list is loading */
+    LoadingPlaceholderComponent?: React.ComponentType<LoadingPlaceholderComponentProps>;
 
     /** Whether to show the default confirm button */
     showConfirmButton?: boolean;
