@@ -26,17 +26,6 @@ You can merge two expenses if at least one is a cash expense. You cannot merge t
 6. Select the details you want to keep from each expense—like merchant name, amount, or category.
 7. Tap **Continue**, then **Confirm** to complete the merge.
 
-## Merging from the Reports or Expenses page
-
-1. In the left-hand menu, select **Reports > Expense Reports** or **Reports > Expenses**
-2. Select two eligible expenses.
-3. Tap the **2 selected** button and choose **Merge**.
-4. If both expenses have receipts, select the one you want to keep.
-   - If only one has a receipt, it's selected automatically.
-   - If neither has a receipt, this step is skipped.
-5. Select which details to keep.
-6. Tap **Continue**, then **Confirm**.
-
 ## Eligible expenses for merging
 
 To merge two expenses, they must meet all of the following:
@@ -47,12 +36,7 @@ To merge two expenses, they must meet all of the following:
 
 - **By permission**:
   - **Submitters** can merge their own expenses (including unreported and in-progress ones).
-  - **Approvers:**
-    - When merging from an expense on a report, approvers and admins can only choose from expenses on the report.
-    - When merging from the Reports page, approvers can merge expenses from the same user, waiting for their approval.
-  - **Admins:** 
-    - When merging from an expense on a report, admins can only choose from expenses on the report.
-    - When merging from the Reports page, admins can merge editable expenses from the same user.
+  - **Approvers and Admins** can merge expenses on the same report 
 
 - **By status**:
   - Both expenses must be editable. That includes unreported expenses, or ones on a Draft or Processing report that hasn’t yet been approved.
