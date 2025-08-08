@@ -132,6 +132,7 @@ function IOURequestStepConfirmation({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${realPolicyID}`, {canBeMissing: true});
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${realPolicyID}`, {canBeMissing: true});
 
     /*
      * We want to use a report from the transaction if it exists
@@ -546,6 +547,9 @@ function IOURequestStepConfirmation({
                     policyTagList: policyTags,
                     policyCategories,
                 },
+                recentlyUsedParams: {
+                    destinations: recentlyUsedDestinations,
+                },
                 transactionParams: {
                     currency: transaction.currency,
                     created: transaction.created,
@@ -559,7 +563,7 @@ function IOURequestStepConfirmation({
                 },
             });
         },
-        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories],
+        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories, recentlyUsedDestinations],
     );
 
     const trackExpense = useCallback(

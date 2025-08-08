@@ -225,7 +225,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearByKey as clearPdfByOnyxKey} from './CachedPDFPaths';
 import {buildOptimisticPolicyRecentlyUsedCategories, getPolicyCategoriesData} from './Policy/Category';
 import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxData} from './Policy/Member';
-import {buildOptimisticPolicyRecentlyUsedDestinations} from './Policy/PerDiem';
 import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from './Policy/Tag';
 import type {GuidedSetupData} from './Report';
@@ -408,6 +407,10 @@ type BasePolicyParams = {
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
 };
 
+type RecentlyUsedParams = {
+    destinations?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
+};
+
 type RequestMoneyParticipantParams = {
     payeeEmail: string | undefined;
     payeeAccountID: number;
@@ -418,6 +421,7 @@ type PerDiemExpenseInformation = {
     report: OnyxEntry<OnyxTypes.Report>;
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
+    recentlyUsedParams?: RecentlyUsedParams;
     transactionParams: PerDiemExpenseTransactionParams;
 };
 
@@ -426,6 +430,7 @@ type PerDiemExpenseInformationParams = {
     transactionParams: PerDiemExpenseTransactionParams;
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
+    recentlyUsedParams?: RecentlyUsedParams;
     moneyRequestReportID?: string;
 };
 
@@ -3573,9 +3578,10 @@ function computeDefaultPerDiemExpenseComment(customUnit: TransactionCustomUnit, 
  * it creates optimistic versions of them and uses those instead
  */
 function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseInformationParams): MoneyRequestInformation {
-    const {parentChatReport, transactionParams, participantParams, policyParams = {}, moneyRequestReportID = ''} = perDiemExpenseInformation;
+    const {parentChatReport, transactionParams, participantParams, policyParams = {}, recentlyUsedParams = {}, moneyRequestReportID = ''} = perDiemExpenseInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
+    const {destinations: recentlyUsedDestinations} = recentlyUsedParams;
     const {comment = '', currency, created, category, tag, customUnit, billable, attendees, reimbursable} = transactionParams;
 
     const amount = computePerDiemExpenseAmount(customUnit);
@@ -3666,7 +3672,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     const optimisticPolicyRecentlyUsedCategories = buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
     const optimisticPolicyRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
-    const optimisticPolicyRecentlyUsedDestinations = buildOptimisticPolicyRecentlyUsedDestinations(iouReport.policyID, customUnit.customUnitRateID);
+    const optimisticPolicyRecentlyUsedDestinations = customUnit.customUnitRateID ? [...new Set([customUnit.customUnitRateID, ...(recentlyUsedDestinations ?? [])])] : [];
 
     // STEP 4: Build optimistic reportActions. We need:
     // 1. CREATED action for the chatReport
@@ -5690,7 +5696,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
  * Submit per diem expense to another user
  */
 function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInformation) {
-    const {report, participantParams, policyParams = {}, transactionParams} = submitPerDiemExpenseInformation;
+    const {report, participantParams, policyParams = {}, recentlyUsedParams = {}, transactionParams} = submitPerDiemExpenseInformation;
     const {payeeAccountID} = participantParams;
     const {currency, comment = '', category, tag, created, customUnit, attendees} = transactionParams;
 
@@ -5727,6 +5733,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         parentChatReport: currentChatReport,
         participantParams,
         policyParams,
+        recentlyUsedParams,
         transactionParams,
         moneyRequestReportID,
     });

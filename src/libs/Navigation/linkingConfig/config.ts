@@ -1364,6 +1364,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                     },
                 },
+                [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: {
+                    screens: {
+                        [SCREENS.MERGE_TRANSACTION.LIST_PAGE]: ROUTES.MERGE_TRANSACTION_LIST_PAGE.route,
+                        [SCREENS.MERGE_TRANSACTION.RECEIPT_PAGE]: ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.route,
+                        [SCREENS.MERGE_TRANSACTION.DETAILS_PAGE]: ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.route,
+                        [SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE]: ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.route,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.SPLIT_DETAILS]: {
                     screens: {
                         [SCREENS.SPLIT_DETAILS.ROOT]: ROUTES.SPLIT_BILL_DETAILS.route,
