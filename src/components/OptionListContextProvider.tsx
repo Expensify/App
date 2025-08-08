@@ -55,6 +55,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const personalDetails = usePersonalDetails();
     const prevPersonalDetails = usePrevious(personalDetails);
     const hasInitialData = useMemo(() => Object.keys(personalDetails ?? {}).length > 0, [personalDetails]);
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
 
     const loadOptions = useCallback(() => {
         const optionLists = createOptionList(personalDetails, reports, reportAttributes?.reports);
@@ -164,7 +165,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 reports: Array.from(updatedReportsMap.values()),
             };
         });
-    }, [changedReportActions, personalDetails, reportAttributes?.reports]);
+    }, [changedReportActions, personalDetails, reportAttributes?.reports, transactions]);
 
     /**
      * This effect is used to update the options list when personal details change.
