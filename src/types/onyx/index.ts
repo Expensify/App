@@ -34,11 +34,8 @@ import type {FundList} from './Fund';
 import type Fund from './Fund';
 import type HybridApp from './HybridApp';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
-<<<<<<< HEAD
 import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData';
-=======
 import type IntegrationServerExportTemplate from './IntegrationServerExportTemplate';
->>>>>>> main
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
