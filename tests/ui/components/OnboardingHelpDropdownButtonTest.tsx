@@ -19,11 +19,6 @@ import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithA
 jest.mock('@libs/actions/Link', () => ({
     openExternalLink: jest.fn(),
 }));
-
-jest.mock('@hooks/useResponsiveLayout', () => () => ({
-    isSmallScreenWidth: false,
-}));
-
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
 }));
