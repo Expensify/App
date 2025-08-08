@@ -28,7 +28,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
-import {getCleanedTagName} from '@libs/PolicyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import StringUtils from '@libs/StringUtils';
 import {getCurrency} from '@libs/TransactionUtils';
 import {openReport} from '@userActions/Report';
@@ -176,7 +176,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                                 return StringUtils.lineBreaksToSpaces(Parser.htmlToText(value.toString()));
                             }
                             if (field === 'tag') {
-                                return getCleanedTagName(value.toString());
+                                return getCommaSeparatedTagNameWithSanitizedColons(value.toString());
                             }
                             return String(value);
                         };
