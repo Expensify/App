@@ -160,3 +160,27 @@ jest.mock('@src/hooks/useWorkletStateMachine/executeOnUIRuntimeSync', () => ({
 jest.mock('react-native-nitro-sqlite', () => ({
     open: jest.fn(),
 }));
+
+jest.mock('@components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext', () => {
+    return {
+        useKeyboardDismissibleFlatListContext: () => ({
+            keyboardHeight: {
+                get: jest.fn().mockReturnValue(0),
+            },
+            keyboardOffset: {
+                get: jest.fn().mockReturnValue(0),
+            },
+            scrollY: {
+                get: jest.fn().mockReturnValue(0),
+            },
+            onScroll: jest.fn(),
+            contentSizeHeight: {
+                get: jest.fn().mockReturnValue(0),
+            },
+            layoutMeasurementHeight: {
+                get: jest.fn().mockReturnValue(0),
+            },
+            setListBehavior: jest.fn(),
+        }),
+    };
+});
