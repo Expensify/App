@@ -162,7 +162,6 @@ jest.mock('react-native-nitro-sqlite', () => ({
 }));
 
 jest.mock('@src/hooks/useKeyboardDismissibleFlatListValues.ts', () => {
-    // Create a mock SharedValue that matches the react-native-reanimated SharedValue interface
     const createMockSharedValue = (initialValue = 0) => ({
         value: initialValue,
         get: jest.fn().mockReturnValue(initialValue),
