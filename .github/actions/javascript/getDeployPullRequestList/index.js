@@ -11630,7 +11630,7 @@ async function run() {
         }
         catch (error) {
             // Check if this is a forked repository
-            if (process.env.GITHUB_REPOSITORY !== 'Expensify/App') {
+            if (process.env.GITHUB_REPOSITORY !== CONST_1.default.APP_REPO) {
                 console.warn("⚠️ Unable to fetch Mobile-Expensify PRs because this workflow is running on a forked repository and secrets aren't accessible. This is expected for development/testing on forks.");
             }
             else {
