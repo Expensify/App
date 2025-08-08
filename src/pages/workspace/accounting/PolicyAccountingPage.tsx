@@ -40,6 +40,7 @@ import {
     getCurrentXeroOrganizationName,
     getIntegrationLastSuccessfulDate,
     getXeroTenants,
+    goBackFromPolicyPages,
     hasAccountingConnections,
     hasUnsupportedIntegration,
     isControlPolicy,
@@ -54,6 +55,7 @@ import {openOldDotLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {AccountingContextProvider, useAccountingContext} from './AccountingContext';
@@ -64,6 +66,7 @@ type RouteParams = {
     newConnectionName?: ConnectionName;
     integrationToDisconnect?: ConnectionName;
     shouldDisconnectIntegrationBeforeConnecting?: boolean;
+    backTo?: Route;
 };
 
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
@@ -521,6 +524,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            backToRoute={params?.backTo}
         >
             <ScreenWrapper
                 testID={PolicyAccountingPage.displayName}
@@ -532,7 +536,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     icon={Illustrations.Accounting}
                     shouldUseHeadlineHeader
                     threeDotsAnchorPosition={threeDotsAnchorPosition}
-                    onBackButtonPress={Navigation.popToSidebar}
+                    onBackButtonPress={() => goBackFromPolicyPages(params?.backTo)}
                 />
                 <ScrollView
                     contentContainerStyle={styles.pt3}

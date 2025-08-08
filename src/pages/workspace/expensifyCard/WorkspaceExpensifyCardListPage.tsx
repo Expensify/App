@@ -197,6 +197,10 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle();
 
     const handleBackButtonPress = () => {
+        if (route.params.backTo) {
+            Navigation.goBack(route.params.backTo);
+            return true;
+        }
         Navigation.popToSidebar();
         return true;
     };

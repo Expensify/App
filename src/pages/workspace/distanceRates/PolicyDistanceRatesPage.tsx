@@ -36,7 +36,7 @@ import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, goBackFromPolicyPages} from '@libs/PolicyUtils';
 import StringUtils from '@libs/StringUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -52,7 +52,7 @@ type PolicyDistanceRatesPageProps = PlatformStackScreenProps<WorkspaceSplitNavig
 
 function PolicyDistanceRatesPage({
     route: {
-        params: {policyID},
+        params: {policyID, backTo},
     },
 }: PolicyDistanceRatesPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -387,6 +387,7 @@ function PolicyDistanceRatesPage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
+            backToRoute={backTo}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -405,7 +406,7 @@ function PolicyDistanceRatesPage({
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        Navigation.popToSidebar();
+                        goBackFromPolicyPages(backTo);
                     }}
                 >
                     {!shouldUseNarrowLayout && headerButtons}

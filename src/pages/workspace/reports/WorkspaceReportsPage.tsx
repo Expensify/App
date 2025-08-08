@@ -30,7 +30,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
+import {getConnectedIntegration, getCurrentConnectionName, goBackFromPolicyPages, hasAccountingConnections, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -56,7 +56,7 @@ function keyExtractor(item: ReportFieldForList) {
 
 function WorkspaceReportFieldsPage({
     route: {
-        params: {policyID},
+        params: {policyID, backTo},
     },
 }: WorkspaceReportFieldsPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for the small screen selection mode
@@ -175,6 +175,7 @@ function WorkspaceReportFieldsPage({
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            backToRoute={backTo}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -188,7 +189,7 @@ function WorkspaceReportFieldsPage({
                     title={translate('common.reports')}
                     shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    onBackButtonPress={Navigation.popToSidebar}
+                    onBackButtonPress={() => goBackFromPolicyPages(backTo)}
                 />
                 {isLoading && (
                     <ActivityIndicator
