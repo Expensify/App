@@ -284,6 +284,20 @@ const allCardsList = {
             state: 2,
         },
     },
+    'cards_10101_Expensify Card': {
+        '21570657': {
+            accountID: 18439984,
+            bank: CONST.EXPENSIFY_CARD.BANK,
+            cardID: 21570657,
+            cardName: 'CREDIT CARD...5644',
+            domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+            fraud: 'none',
+            lastFourPAN: '',
+            lastScrape: '',
+            lastUpdated: '',
+            state: 2,
+        },
+    },
 } as OnyxCollection<WorkspaceCardsList>;
 
 const mockIllustrations = {
@@ -821,6 +835,11 @@ describe('CardUtils', () => {
         it('should return false when Expensify Card was not issued for given workspace', () => {
             const workspaceAccountID = 11111111;
             expect(hasIssuedExpensifyCard(workspaceAccountID, {})).toBe(false);
+        });
+
+        it('should not erroneously return true when workspaceAccountID is 0', () => {
+            const workspaceAccountID = 0;
+            expect(hasIssuedExpensifyCard(workspaceAccountID, allCardsList)).toBe(false);
         });
     });
 
