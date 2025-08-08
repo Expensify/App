@@ -140,8 +140,8 @@ const Pagination: Middleware = (requestResponse, request) => {
             // This value is reset once the report has finished loading.
             const oldestUnreadReportActionID = response.oldestUnreadReportActionID ?? CONST.NOT_FOUND_ID;
             response.onyxData.push({
-                key: `${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${resourceID}`,
                 onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${resourceID}`,
                 value: oldestUnreadReportActionID,
             });
         }
