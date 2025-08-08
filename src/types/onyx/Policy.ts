@@ -131,7 +131,7 @@ type UberReceiptPartner = {
         /**
          * fname for uber partner
          */
-        fname: string;
+        fname?: string;
         /**
          * hash for uber partner
          */
@@ -143,7 +143,7 @@ type UberReceiptPartner = {
         /**
          * lname for uber partner
          */
-        lname: string;
+        lname?: string;
         /**
          * name for uber partner
          */
@@ -155,7 +155,7 @@ type UberReceiptPartner = {
         /**
          * requestID for uber partner
          */
-        requestID: string;
+        requestID?: string;
     };
 };
 
