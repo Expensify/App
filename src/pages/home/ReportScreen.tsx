@@ -51,6 +51,7 @@ import {
     isCreatedAction,
     isDeletedParentAction,
     isMoneyRequestAction,
+    isTransactionThread,
     isWhisperAction,
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
@@ -794,7 +795,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     // @ts-expect-error TODO somebody messed up the types
-    const shouldShowWideRHP = route.name === SCREENS.SEARCH.REPORT_RHP && !isSmallScreenWidth;
+    const shouldShowWideRHP = route.name === SCREENS.SEARCH.REPORT_RHP && !isSmallScreenWidth && isTransactionThread(parentReportAction);
     useShowWideRHPVersion(shouldShowWideRHP);
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
