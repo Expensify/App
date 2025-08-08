@@ -50,7 +50,7 @@ describe('ValidationUtils', () => {
 
         test('Should return false for a invalid date format', () => {
             const validDate = '2025-07';
-            const isValid = isValidDate(validDate, true);
+            const isValid = isValidDate(validDate);
             expect(isValid).toBe(false);
         });
     });

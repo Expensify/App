@@ -60,7 +60,7 @@ function isValidAddress(value: FormValue): boolean {
 /**
  * Validate date fields
  */
-function isValidDate(date: string | Date, isStrict = false): boolean {
+function isValidDate(date: string | Date, isStrict = true): boolean {
     if (!date) {
         return false;
     }
