@@ -4,7 +4,6 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {deleteMoneyRequest, unholdRequest} from '@libs/actions/IOU';
 import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
-import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {exportReportToCSV} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -123,11 +122,8 @@ function useSelectedTransactionsActions({
             deletedTransactionIDs.push(transactionID);
         });
         clearSelectedTransactions(true);
-        if (allTransactionsLength - transactionsWithActions.length <= 1) {
-            turnOffMobileSelectionMode();
-        }
         setIsDeleteModalVisible(false);
-    }, [duplicateTransactions, duplicateTransactionViolations, allTransactionsLength, reportActions, selectedTransactionIDs, clearSelectedTransactions]);
+    }, [duplicateTransactions, duplicateTransactionViolations, reportActions, selectedTransactionIDs, clearSelectedTransactions]);
 
     const showDeleteModal = useCallback(() => {
         setIsDeleteModalVisible(true);
