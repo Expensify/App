@@ -11,7 +11,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
-import {getOutstandingReportsForUser, getPolicyName, isIOUReport, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {getOutstandingReportsForUser, getPolicyName, getReportTransactions, isIOUReport, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -63,7 +63,15 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
     const onlyReport = transactionsReports.length === 1 ? transactionsReports.at(0) : undefined;
     const isOwner = onlyReport ? onlyReport.ownerAccountID === currentUserPersonalDetails.accountID : false;
     const isReportIOU = onlyReport ? isIOUReport(onlyReport) : false;
-    const shouldShowRemoveFromReport = isEditing && isOwner && !isReportIOU && !isUnreported;
+    const isCardTransaction = useMemo(() => {
+        if (!onlyReport) {
+            return false;
+        }
+        const transactions = getReportTransactions(onlyReport.reportID) ?? [];
+        return transactions.some((transaction) => transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT);
+    }, [onlyReport]);
+
+    const shouldShowRemoveFromReport = isEditing && isOwner && !isReportIOU && !isUnreported && !isCardTransaction;
 
     const expenseReports = useMemo(
         () =>
