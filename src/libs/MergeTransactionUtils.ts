@@ -173,6 +173,14 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
         const isTargetValueEmpty = isEmptyMergeValue(targetValue);
         const isSourceValueEmpty = isEmptyMergeValue(sourceValue);
 
+        // If target transaction is a card transaction, always preserve the target transaction's amount and currency
+        // See https://github.com/Expensify/App/issues/68189#issuecomment-3167156907
+        if (field === 'amount' && isCardTransaction(targetTransaction)) {
+            mergeableData[field] = targetValue;
+            mergeableData.currency = targetTransaction?.currency;
+            return;
+        }
+
         if (isTargetValueEmpty || isSourceValueEmpty || targetValue === sourceValue) {
             if (field === 'amount' && getMergeFieldValue(targetTransaction, 'currency') !== getMergeFieldValue(sourceTransaction, 'currency')) {
                 conflictFields.push('amount');
