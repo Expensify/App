@@ -53,7 +53,9 @@ import type {TransactionDetails} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
+    getAmount,
     getBillable,
+    getCurrency,
     getDescription,
     getDistanceInMeters,
     getOriginalTransactionWithSplitInfo,
@@ -104,8 +106,11 @@ type MoneyRequestViewProps = {
     /** whether or not this report is from review duplicates */
     isFromReviewDuplicates?: boolean;
 
-    /** Updated transaction to show in duplicate transaction flow  */
+    /** Updated transaction to show in duplicate & merge transaction flow  */
     updatedTransaction?: OnyxEntry<OnyxTypes.Transaction>;
+
+    /** Merge transaction ID to show in merge transaction flow */
+    mergeTransactionID?: string;
 };
 
 const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
@@ -119,7 +124,16 @@ const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
 
 const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
 
-function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
+function MoneyRequestView({
+    allReports,
+    report,
+    policy,
+    shouldShowAnimatedBackground,
+    readonly = false,
+    updatedTransaction,
+    isFromReviewDuplicates = false,
+    mergeTransactionID,
+}: MoneyRequestViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
@@ -178,9 +192,13 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
-    const shouldDisplayTransactionAmount = ((isDistanceRequest && hasRoute) || !!transactionAmount) && transactionAmount !== undefined;
-    const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(transactionAmount, transactionCurrency) : '';
-    const formattedPerAttendeeAmount = shouldDisplayTransactionAmount ? convertToDisplayString(transactionAmount / (transactionAttendees?.length ?? 1), transactionCurrency) : '';
+
+    const actualAmount = updatedTransaction ? getAmount(updatedTransaction) : transactionAmount;
+    const actualCurrency = updatedTransaction ? getCurrency(updatedTransaction) : transactionCurrency;
+    const shouldDisplayTransactionAmount = ((isDistanceRequest && hasRoute) || !!actualAmount) && actualAmount !== undefined;
+    const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount, actualCurrency) : '';
+    const formattedPerAttendeeAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount / (transactionAttendees?.length ?? 1), actualCurrency) : '';
+
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
     const cardProgramName = getCompanyCardDescription(transaction?.cardName, transaction?.cardID, cardList);
@@ -646,6 +664,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                                     enablePreviewModal
                                     readonly={readonly || !canEditReceipt}
                                     isFromReviewDuplicates={isFromReviewDuplicates}
+                                    mergeTransactionID={mergeTransactionID}
                                 />
                             </View>
                         )}
