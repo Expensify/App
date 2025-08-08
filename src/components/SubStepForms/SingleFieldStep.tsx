@@ -1,9 +1,11 @@
-import React from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {forwardRef, useCallback, useRef} from 'react';
 import type {InputModeOptions} from 'react-native';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -58,6 +60,9 @@ type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStep
 
     /** Placeholder displayed inside input */
     placeholder?: string;
+
+    /** Whether to delay autoFocus to avoid conflicts with navigation animations */
+    shouldDelayAutoFocus?: boolean;
 };
 
 function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -77,9 +82,31 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
     shouldUseDefaultValue = true,
     disabled = false,
     placeholder,
+    shouldDelayAutoFocus = false,
 }: SingleFieldStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const internalInputRef = useRef<AnimatedTextInputRef>(null);
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!shouldDelayAutoFocus) {
+                return;
+            }
+
+            focusTimeoutRef.current = setTimeout(() => {
+                internalInputRef.current?.focus();
+            }, CONST.ANIMATED_TRANSITION);
+
+            return () => {
+                if (!focusTimeoutRef.current) {
+                    return;
+                }
+                clearTimeout(focusTimeoutRef.current);
+            };
+        }, [shouldDelayAutoFocus]),
+    );
 
     return (
         <FormProvider
@@ -110,7 +137,8 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
                         shouldUseDefaultValue={shouldUseDefaultValue}
                         disabled={disabled}
                         placeholder={placeholder}
-                        autoFocus
+                        autoFocus={!shouldDelayAutoFocus}
+                        ref={internalInputRef}
                     />
                 </View>
                 {shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt5]} />}
@@ -121,4 +149,4 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
 
 SingleFieldStep.displayName = 'SingleFieldStep';
 
-export default SingleFieldStep;
+export default forwardRef(SingleFieldStep);
