@@ -92,7 +92,9 @@ function ReportActionAvatars({
         potentialReportID ??
         ([CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW].find((act) => act === action?.actionName) ? action?.childReportID : undefined);
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    // reportID can be an empty string causing Onyx to fetch the whole collection
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || undefined}`, {canBeMissing: true});
 
     const shouldStackHorizontally = !!horizontalStacking;
     const isHorizontalStackingAnObject = shouldStackHorizontally && typeof horizontalStacking !== 'boolean';

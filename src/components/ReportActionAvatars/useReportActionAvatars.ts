@@ -2,6 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
@@ -43,7 +44,6 @@ function useReportActionAvatars({
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
     });
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
     const isReportAChatReport = report?.type === CONST.REPORT.TYPE.CHAT && report?.chatType !== CONST.REPORT.CHAT_TYPE.TRIP_ROOM;
 
@@ -71,7 +71,10 @@ function useReportActionAvatars({
     });
 
     const policyID = passedPolicyID ?? (chatReport?.policyID === CONST.POLICY.ID_FAKE || !chatReport?.policyID ? (iouReport?.policyID ?? chatReport?.policyID) : chatReport?.policyID);
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const policy = usePolicy(policyID);
+
+    const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
+    const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
 
     const {chatReportIDAdmins, chatReportIDAnnounce, workspaceAccountID} = policy ?? {};
     const [policyChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportIDAnnounce ?? chatReportIDAdmins}`, {canBeMissing: true});
@@ -162,10 +165,6 @@ function useReportActionAvatars({
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const accountID = reportPreviewSenderID || (actorAccountID ?? CONST.DEFAULT_NUMBER_ID);
-
-    const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
-
-    const invoiceReceiverPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`];
     const {avatar, fallbackIcon, login} = personalDetails?.[delegatePersonalDetails ? delegatePersonalDetails.accountID : accountID] ?? {};
 
     const defaultDisplayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails}) ?? '';
