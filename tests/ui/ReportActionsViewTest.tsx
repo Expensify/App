@@ -115,6 +115,7 @@ const renderReportActionsView = (
         isLoadingInitialReportActions: false,
         hasNewerActions: false,
         hasOlderActions: false,
+        composerHeight: 89,
         ...props,
     };
 
