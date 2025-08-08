@@ -20,7 +20,7 @@ const CurrentReportIDContext = createContext<CurrentReportIDContextValue | null>
 
 function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderProps) {
     const [currentReportID, setCurrentReportID] = useState<string | undefined>('');
-    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
+    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
     const lastAccessReportFromPath = getReportIDFromLink(lastVisitedPath ?? null);
 
     /**
@@ -39,9 +39,18 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
             if (params && 'screen' in params && typeof params.screen === 'string' && params.screen.indexOf('Settings_') !== -1) {
                 return;
             }
+            // Prevent unnecessary updates when the report ID hasn't changed
+            if (currentReportID === reportID) {
+                return;
+            }
+
+            // Also prevent updates when both are undefined/null (no report context)
+            if (!currentReportID && !reportID) {
+                return;
+            }
             setCurrentReportID(reportID);
         },
-        [setCurrentReportID],
+        [setCurrentReportID, currentReportID],
     );
 
     /**
