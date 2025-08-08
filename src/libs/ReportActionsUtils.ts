@@ -2974,7 +2974,7 @@ function getDeclinedTransactionRemoveMessage(action: OnyxInputOrEntry<ReportActi
     const amount = convertToDisplayString(Math.abs(originalMessage?.amount ?? 0), originalMessage?.currency ?? '');
     const merchant = originalMessage?.merchant ?? '';
     const messageReportID = originalMessage?.transactionThreadReportID?.toString() ?? '';
-    const linkToReport = messageReportID ? `${environmentURL}/${ROUTES.SEARCH_REPORT.getRoute({reportID: messageReportID})}` : '';
+    const linkToReport = messageReportID ? `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(messageReportID)}` : '';
     return translateLocal('iou.decline.reportActions.removedFromReport', {amount, merchant, linkToReport});
 }
 
