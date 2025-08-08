@@ -189,6 +189,7 @@ function MoneyReportHeader({
             ...layout,
             templateName,
             description: '',
+            policyID: undefined,
         }));
 
         return [...policyTemplates, ...csvTemplates];
@@ -656,7 +657,7 @@ function MoneyReportHeader({
                     icon: Expensicons.Table,
                     value: template.templateName,
                     description: template.description,
-                    onSelected: () => beginExportWithTemplate(template.templateName, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, transactionIDs),
+                    onSelected: () => beginExportWithTemplate(template.templateName, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, transactionIDs, template.policyID),
                 };
             }
         }

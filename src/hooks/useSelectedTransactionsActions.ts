@@ -69,6 +69,7 @@ function useSelectedTransactionsActions({
             ...layout,
             templateName,
             description: '',
+            policyID: undefined,
         }));
 
         return [...policyTemplates, ...csvTemplates];
@@ -250,8 +251,7 @@ function useSelectedTransactionsActions({
                         text: template.name,
                         icon: Expensicons.Table,
                         description: template.description,
-                        onSelected: () =>
-                            beginExportWithTemplate(template.name, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, selectedTransactionIDs, 'policyID' in template ? template.policyID : undefined),
+                        onSelected: () => beginExportWithTemplate(template.templateName, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, selectedTransactionIDs, template.policyID),
                     });
                 }
             }
