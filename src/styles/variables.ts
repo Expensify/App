@@ -94,7 +94,7 @@ export default {
     iouAmountTextSize: 40,
     extraSmallMobileResponsiveWidthBreakpoint: 320,
     extraSmallMobileResponsiveHeightBreakpoint: 667,
-    mobileResponsiveWidthBreakpoint: 800,
+    mobileResponsiveWidthBreakpoint: 840,
     tabletResponsiveWidthBreakpoint: 1024,
     sidePanelResponsiveWidthBreakpoint: 1300,
     iosSafeAreaInsetsPercentage: 0.7,
