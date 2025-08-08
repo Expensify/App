@@ -1,7 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useEffect} from 'react';
-import type {View} from 'react-native';
+import React, {useEffect} from 'react';
 import type {ValueOf} from 'type-fest';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Navigation from '@libs/Navigation/Navigation';
@@ -33,9 +31,6 @@ type ConstantSelectorProps = {
 
 function ConstantSelector(
     {formType, policyID, errorText = '', name, value, onInputChange}: ConstantSelectorProps,
-    // The ref is required by React.forwardRef to avoid warnings, even though it's not used yet.
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    ref: ForwardedRef<View>,
 ) {
     const fieldValue = (useRoute().params as Record<string, string> | undefined)?.[name];
 
@@ -71,4 +66,4 @@ function ConstantSelector(
 
 ConstantSelector.displayName = 'ConstantSelector';
 
-export default forwardRef(ConstantSelector);
+export default ConstantSelector;
