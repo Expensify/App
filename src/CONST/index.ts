@@ -2907,7 +2907,6 @@ const CONST = {
             ARE_TAXES_ENABLED: 'tax',
             ARE_RULES_ENABLED: 'areRulesEnabled',
             ARE_PER_DIEM_RATES_ENABLED: 'arePerDiemRatesEnabled',
-            ARE_RECEIPT_PARTNERS_ENABLED: 'areReceiptPartnersEnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
