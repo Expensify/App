@@ -4,7 +4,6 @@ import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
-import SidePanelContextProvider from '@components/SidePanel/SidePanelContextProvider';
 import '../wdyr';
 import {ActionSheetAwareScrollViewProvider} from './components/ActionSheetAwareScrollView';
 import ActiveElementRoleProvider from './components/ActiveElementRoleProvider';
@@ -27,6 +26,7 @@ import {ProductTrainingContextProvider} from './components/ProductTrainingContex
 import SafeArea from './components/SafeArea';
 import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvider';
 import {SearchRouterContextProvider} from './components/Search/SearchRouter/SearchRouterContext';
+import SidePanelContextProvider from './components/SidePanel/SidePanelContextProvider';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesProvider';
