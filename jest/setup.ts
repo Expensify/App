@@ -161,26 +161,31 @@ jest.mock('react-native-nitro-sqlite', () => ({
     open: jest.fn(),
 }));
 
-jest.mock('@components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext', () => {
+jest.mock('@src/hooks/useKeyboardDismissibleFlatListValues.ts', () => {
+    // Create a mock SharedValue that matches the react-native-reanimated SharedValue interface
+    const createMockSharedValue = (initialValue = 0) => ({
+        value: initialValue,
+        get: jest.fn().mockReturnValue(initialValue),
+        set: jest.fn(),
+        addListener: jest.fn().mockReturnValue(0),
+        removeListener: jest.fn(),
+        modify: jest.fn(),
+    });
+
+    const mockScrollHandler = jest.fn();
+    const mockSetListBehavior = jest.fn();
+
     return {
-        useKeyboardDismissibleFlatListContext: () => ({
-            keyboardHeight: {
-                get: jest.fn().mockReturnValue(0),
-            },
-            keyboardOffset: {
-                get: jest.fn().mockReturnValue(0),
-            },
-            scrollY: {
-                get: jest.fn().mockReturnValue(0),
-            },
-            onScroll: jest.fn(),
-            contentSizeHeight: {
-                get: jest.fn().mockReturnValue(0),
-            },
-            layoutMeasurementHeight: {
-                get: jest.fn().mockReturnValue(0),
-            },
-            setListBehavior: jest.fn(),
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        __esModule: true,
+        default: jest.fn().mockReturnValue({
+            keyboardHeight: createMockSharedValue(0),
+            keyboardOffset: createMockSharedValue(0),
+            scrollY: createMockSharedValue(0),
+            onScroll: mockScrollHandler,
+            contentSizeHeight: createMockSharedValue(0),
+            layoutMeasurementHeight: createMockSharedValue(0),
+            setListBehavior: mockSetListBehavior,
         }),
     };
 });

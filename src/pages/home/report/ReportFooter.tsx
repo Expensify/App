@@ -10,9 +10,9 @@ import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import Banner from '@components/Banner';
 import BlockedReportFooter from '@components/BlockedReportFooter';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {useKeyboardDismissibleFlatListContext} from '@components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import useKeyboardDismissibleFlatListValues from '@hooks/useKeyboardDismissibleFlatListValues';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -107,7 +107,7 @@ function ReportFooter({
     const {unmodifiedPaddings} = useSafeAreaPaddings();
     const {isKeyboardActive} = useKeyboardState();
     const [composerHeight, setComposerHeight] = useState<number>(CONST.CHAT_FOOTER_MIN_HEIGHT);
-    const {keyboardHeight} = useKeyboardDismissibleFlatListContext();
+    const {keyboardHeight} = useKeyboardDismissibleFlatListValues();
 
     const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
     const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS, canBeMissing: false});
