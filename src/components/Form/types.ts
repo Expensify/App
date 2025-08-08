@@ -12,6 +12,7 @@ import type CountrySelector from '@components/CountrySelector';
 import type CurrencySelector from '@components/CurrencySelector';
 import type DatePicker from '@components/DatePicker';
 import type EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
+import type NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type PercentageForm from '@components/PercentageForm';
 import type Picker from '@components/Picker';
 import type PushRowWithModal from '@components/PushRowWithModal';
@@ -52,6 +53,7 @@ type ValidInputs =
     | typeof CountrySelector
     | typeof CurrencySelector
     | typeof AmountForm
+    | typeof NumberWithSymbolForm
     | typeof PercentageForm
     | typeof BusinessTypePicker
     | typeof DimensionTypeSelector

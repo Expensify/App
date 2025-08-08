@@ -136,6 +136,9 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeFailureDescriptionGenericParams,
+    MergeFailureUncreatedAccountDescriptionParams,
+    MergeSuccessDescriptionParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
@@ -163,6 +166,7 @@ import type {
     PolicyDisabledReportFieldAllOptionsParams,
     PolicyDisabledReportFieldOptionParams,
     PolicyExpenseChatNameParams,
+    QBDSetupErrorBodyParams,
     RailTicketParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
@@ -527,6 +531,7 @@ const translations = {
         pm: 'PM',
         tbd: 'TBD',
         selectCurrency: 'Seleziona una valuta',
+        selectSymbolOrCurrency: 'Seleziona un simbolo o una valuta',
         card: 'Carta',
         whyDoWeAskForThis: 'Perché lo chiediamo?',
         required: 'Richiesto',
@@ -562,7 +567,6 @@ const translations = {
         userID: 'User ID',
         disable: 'Disabilita',
         export: 'Esporta',
-        basicExport: 'Esportazione basica',
         initialValue: 'Valore iniziale',
         currentDate: 'La data odierna',
         value: 'Valore',
@@ -630,6 +634,7 @@ const translations = {
         getTheApp: "Scarica l'app",
         scanReceiptsOnTheGo: 'Scansiona le ricevute dal tuo telefono',
         headsUp: 'Attenzione!',
+        merge: 'Unisci',
         unstableInternetConnection: 'Connessione Internet instabile. Controlla la tua rete e riprova.',
     },
     supportalNoAccess: {
@@ -1350,6 +1355,31 @@ const translations = {
         submitsTo: ({name}: SubmitsToParams) => `Invia a ${name}`,
         moveExpenses: () => ({one: 'Sposta spesa', other: 'Sposta spese'}),
     },
+    transactionMerge: {
+        listPage: {
+            header: 'Unisci spese',
+            noEligibleExpenseFound: 'Nessuna spesa idonea trovata',
+            noEligibleExpenseFoundSubtitle: `Non hai spese che possono essere unite a questa. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Scopri di più</a> sulle spese idonee.`,
+            selectTransactionToMerge: ({reportName}: {reportName: string}) =>
+                `Seleziona una <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">spesa idonea</a> da unire <strong>${reportName}</strong>.`,
+        },
+        receiptPage: {
+            header: 'Seleziona ricevuta',
+            pageTitle: 'Seleziona la ricevuta da conservare:',
+        },
+        detailsPage: {
+            header: 'Seleziona dettagli',
+            pageTitle: 'Seleziona i dettagli da conservare:',
+            noDifferences: 'Nessuna differenza trovata tra le transazioni',
+            pleaseSelectError: ({field}: {field: string}) => `Seleziona un/a ${field}`,
+            selectAllDetailsError: 'Seleziona tutti i dettagli prima di continuare.',
+        },
+        confirmationPage: {
+            header: 'Conferma i dettagli',
+            pageTitle: 'Conferma i dettagli che vuoi conservare. Quelli non mantenuti saranno eliminati.',
+            confirmButton: 'Unisci spese',
+        },
+    },
     share: {
         shareToExpensify: 'Condividi su Expensify',
         messageInputLabel: 'Messaggio',
@@ -1604,67 +1634,32 @@ const translations = {
         },
         mergeSuccess: {
             accountsMerged: 'Account uniti!',
-            successfullyMergedAllData: {
-                beforeFirstEmail: `Hai unito con successo tutti i dati da`,
-                beforeSecondEmail: `in`,
-                afterSecondEmail: `. D'ora in poi, puoi utilizzare entrambi i login per questo account.`,
-            },
+            description: ({from, to}: MergeSuccessDescriptionParams) =>
+                `<muted-text><centered-text>Tutti i dati di <strong>${from}</strong> sono stati uniti a <strong>${to}</strong>. In futuro, è possibile utilizzare entrambi i login per questo account.</centered-text></muted-text>`,
         },
         mergePendingSAML: {
             weAreWorkingOnIt: 'Ci stiamo lavorando su.',
             limitedSupport: 'Non supportiamo ancora la fusione degli account su New Expensify. Si prega di effettuare questa operazione su Expensify Classic.',
-            reachOutForHelp: {
-                beforeLink: 'Sentiti libero di',
-                linkText: 'contatta Concierge',
-                afterLink: 'se hai domande!',
-            },
+            reachOutForHelp: '<muted-text><centered-text>Non esitate a <concierge-link>contattare il Concierge</concierge-link> per qualsiasi domanda!</centered-text></muted-text>',
             goToExpensifyClassic: 'Vai a Expensify Classic',
         },
-        mergeFailureSAMLDomainControl: {
-            beforeFirstEmail: 'Non puoi unire',
-            beforeDomain: 'perché è controllato da',
-            afterDomain: '. Per favore',
-            linkText: 'contatta Concierge',
-            afterLink: 'per assistenza.',
-        },
-        mergeFailureSAMLAccount: {
-            beforeEmail: 'Non puoi unire',
-            afterEmail: "in altri account perché l'amministratore del tuo dominio l'ha impostato come login principale. Unisci invece altri account in questo.",
-        },
+        mergeFailureSAMLDomainControlDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>Non è possibile unire <strong>${email}</strong> perché è controllato da <strong>${email.split('@').at(1) ?? ''}</strong>. Si prega di <concierge-link>contattare Concierge</concierge-link> per assistenza.</centered-text></muted-text>`,
+        mergeFailureSAMLAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>Non è possibile unire <strong>${email}</strong> ad altri account perché l'amministratore del dominio lo ha impostato come login principale. Si prega di unire altri account al suo posto.</centered-text></muted-text>`,
         mergeFailure2FA: {
-            oldAccount2FAEnabled: {
-                beforeFirstEmail: 'Non puoi unire gli account perché',
-                beforeSecondEmail: "ha l'autenticazione a due fattori (2FA) abilitata. Si prega di disabilitare 2FA per",
-                afterSecondEmail: 'e riprova.',
-            },
+            description: ({email}: MergeFailureDescriptionGenericParams) =>
+                `<muted-text><centered-text>Non è possibile unire gli account perché <strong>${email}</strong> ha attivato l'autenticazione a due fattori (2FA). Disattivare la 2FA per <strong>${email}</strong> e riprovare.</centered-text></muted-text>`,
             learnMore: 'Scopri di più sulla fusione degli account.',
         },
-        mergeFailureAccountLocked: {
-            beforeEmail: 'Non puoi unire',
-            afterEmail: 'perché è bloccato. Per favore',
-            linkText: 'contatta Concierge',
-            afterLink: `per assistenza.`,
-        },
-        mergeFailureUncreatedAccount: {
-            noExpensifyAccount: {
-                beforeEmail: 'Non puoi unire gli account perché',
-                afterEmail: 'non ha un account Expensify.',
-            },
-            addContactMethod: {
-                beforeLink: 'Per favore',
-                linkText: 'aggiungilo come metodo di contatto',
-                afterLink: 'invece.',
-            },
-        },
-        mergeFailureSmartScannerAccount: {
-            beforeEmail: 'Non puoi unire',
-            afterEmail: 'in altri account. Si prega di unire altri account in esso invece.',
-        },
-        mergeFailureInvoicedAccount: {
-            beforeEmail: 'Non puoi unire account in ',
-            afterEmail: ' perché questo account possiede una relazione di fatturazione con fattura emessa.',
-        },
-
+        mergeFailureAccountLockedDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>Non è possibile unire <strong>${email}</strong> perché è bloccato. Si prega di <concierge-link>contattare Concierge</concierge-link> per assistenza.</centered-text></muted-text>`,
+        mergeFailureUncreatedAccountDescription: ({email, contactMethodLink}: MergeFailureUncreatedAccountDescriptionParams) =>
+            `<muted-text><centered-text>Non è possibile unire gli account perché <strong>${email}</strong> non ha un account Expensify. Si prega di <a href="${contactMethodLink}">aggiungerlo come metodo di contatto</a>.</centered-text></muted-text>`,
+        mergeFailureSmartScannerAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>Non è possibile unire <strong>${email}</strong> ad altri conti. Si prega invece di unire altri account.</centered-text></muted-text>`,
+        mergeFailureInvoicedAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>Non è possibile unire i conti in <strong>${email}</strong> perché questo conto possiede una relazione di fatturazione.</centered-text></muted-text>`,
         mergeFailureTooManyAttempts: {
             heading: 'Riprova più tardi',
             description: 'Ci sono stati troppi tentativi di unire gli account. Per favore riprova più tardi.',
@@ -3436,6 +3431,7 @@ const translations = {
             travel: 'Viaggio',
             members: 'Membri',
             accounting: 'Contabilità',
+            receiptPartners: 'Partner ricevute',
             rules: 'Regole',
             displayedAs: 'Visualizzato come',
             plan: 'Piano',
@@ -3626,9 +3622,8 @@ const translations = {
                 title: 'Apri questo link per connetterti',
                 body: 'Per completare la configurazione, apri il seguente link sul computer dove è in esecuzione QuickBooks Desktop.',
                 setupErrorTitle: 'Qualcosa è andato storto',
-                setupErrorBody1: 'La connessione a QuickBooks Desktop non funziona al momento. Per favore, riprova più tardi o',
-                setupErrorBody2: 'se il problema persiste.',
-                setupErrorBodyContactConcierge: 'contatta Concierge',
+                setupErrorBody: ({conciergeLink}: QBDSetupErrorBodyParams) =>
+                    `<muted-text><centered-text>La connessione a QuickBooks Desktop non funziona al momento. Riprovare più tardi o <a href="${conciergeLink}">contattare Concierge</a> se il problema persiste.</centered-text></muted-text>`,
             },
             importDescription: 'Scegli quali configurazioni di codifica importare da QuickBooks Desktop a Expensify.',
             classes: 'Classi',
@@ -4651,11 +4646,20 @@ const translations = {
                 title: 'Contabilità',
                 subtitle: 'Sincronizza il tuo piano dei conti e altro ancora.',
             },
+            receiptPartners: {
+                title: 'Partner ricevute',
+                subtitle: 'Importa automaticamente le ricevute.',
+            },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Non così in fretta...',
                 featureEnabledText: 'Per abilitare o disabilitare questa funzione, dovrai modificare le impostazioni di importazione contabile.',
                 disconnectText: 'Per disabilitare la contabilità, dovrai disconnettere la tua connessione contabile dal tuo spazio di lavoro.',
                 manageSettings: 'Gestisci impostazioni',
+            },
+            receiptPartnersWarningModal: {
+                featureEnabledTitle: 'Disconnetti Uber',
+                disconnectText: "Per disabilitare questa funzionalità, disconnetti prima l'integrazione Uber for Business.",
+                confirmText: 'Capito',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Non così in fretta...',
@@ -4667,6 +4671,20 @@ const translations = {
                 title: 'Regole',
                 subtitle: 'Richiedi ricevute, segnala spese elevate e altro ancora.',
             },
+        },
+        reports: {
+            reportsCustomTitleExamples: 'Esempi:',
+            customReportNamesSubtitle: 'Personalizza i titoli dei report utilizzando il nostro',
+            customNameTitle: 'Titolo predefinito del report',
+            customNameDescription: 'Scegli un nome personalizzato per i report di spesa utilizzando il nostro',
+            customNameDescriptionLink: 'formule estese',
+            customNameInputLabel: 'Nome',
+            customNameEmailPhoneExample: 'Email o telefono del membro: {report:submit:from}',
+            customNameStartDateExample: 'Data di inizio del report: {report:startdate}',
+            customNameWorkspaceNameExample: "Nome dell'area di lavoro: {report:workspacename}",
+            customNameReportIDExample: 'Report ID: {report:id}',
+            customNameTotalExample: 'Totale: {report:total}.',
+            preventMembersFromChangingCustomNamesTitle: 'Impedisci ai membri di modificare i nomi dei report personalizzati',
         },
         reportFields: {
             addField: 'Aggiungi campo',
@@ -5548,20 +5566,8 @@ const translations = {
                 adultEntertainment: 'Intrattenimento per adulti',
             },
             expenseReportRules: {
-                examples: 'Esempi:',
                 title: 'Report di spesa',
                 subtitle: 'Automatizza la conformità, le approvazioni e il pagamento dei report di spesa.',
-                customReportNamesSubtitle: 'Personalizza i titoli dei report utilizzando il nostro',
-                customNameTitle: 'Titolo predefinito del report',
-                customNameDescription: 'Scegli un nome personalizzato per i report di spesa utilizzando il nostro',
-                customNameDescriptionLink: 'formule estese',
-                customNameInputLabel: 'Nome',
-                customNameEmailPhoneExample: 'Email o telefono del membro: {report:submit:from}',
-                customNameStartDateExample: 'Data di inizio del report: {report:startdate}',
-                customNameWorkspaceNameExample: "Nome dell'area di lavoro: {report:workspacename}",
-                customNameReportIDExample: 'Report ID: {report:id}',
-                customNameTotalExample: 'Totale: {report:total}.',
-                preventMembersFromChangingCustomNamesTitle: 'Impedisci ai membri di modificare i nomi dei report personalizzati',
                 preventSelfApprovalsTitle: 'Impedisci auto-approvazioni',
                 preventSelfApprovalsSubtitle: 'Impedisci ai membri del workspace di approvare i propri report di spesa.',
                 autoApproveCompliantReportsTitle: 'Approva automaticamente i rapporti conformi',
@@ -6038,6 +6044,7 @@ const translations = {
             paid: 'Data di pagamento',
             exported: 'Data esportata',
             posted: 'Data di pubblicazione',
+            withdrawn: 'Data di ritiro',
             billable: 'Fatturabile',
             reimbursable: 'Rimborsabile',
             groupBy: {
@@ -7083,6 +7090,13 @@ const translations = {
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} ti ha invitato a provare Expensify\nEhi! Ho appena ottenuto *3 mesi gratis* per provare Expensify, il modo più veloce per gestire le spese.\n\nEcco una *ricevuta di prova* per mostrarti come funziona:`,
+    },
+    export: {
+        basicExport: 'Esportazione basica',
+        reportLevelExport: 'Tutti i dati - livello report',
+        expenseLevelExport: 'Tutti i dati - livello spesa',
+        exportInProgress: 'Esportazione in corso',
+        conciergeWillSend: 'Concierge ti invierà il file a breve.',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
