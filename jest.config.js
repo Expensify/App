@@ -32,6 +32,5 @@ module.exports = {
     cacheDirectory: '<rootDir>/.jest-cache',
     moduleNameMapper: {
         '\\.(lottie)$': '<rootDir>/__mocks__/fileMock.ts',
-        '^p-defer$': '<rootDir>/__mocks__/p-defer.ts',
     },
 };

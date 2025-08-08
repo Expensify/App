@@ -107,7 +107,7 @@ function App() {
                                     FullScreenBlockingViewContextProvider,
                                     FullScreenLoaderContextProvider,
                                     PromiseModalProvider,
-                            ]}
+                                ]}
                             >
                                 <CustomStatusBarAndBackground />
                                 <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
