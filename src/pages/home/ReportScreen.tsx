@@ -803,12 +803,16 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         [reportMetadata?.isLoadingInitialReportActions, reportMetadata?.hasOnceLoadedReportActions],
     );
 
-    // When opening an unread report, it is very likely that the message we will open to is not the latest, which is the
-    // only one we will have in cache.
-    const isInitiallyLoadingReport = isUnread(report, transactionThreadReport) && (reportMetadata.isLoadingInitialReportActions ?? false) && reportActions.length <= 1;
-    const isInitiallyLoadingReportWhileOffline = isUnread(report, transactionThreadReport) && (reportMetadata.isLoadingInitialReportActions ?? false) && isOffline;
-    const isLoadingOldestUnreadReportActionID = !isOffline && !oldestUnreadReportActionID;
-    const isReportReady = !isInitiallyLoadingReport && !isInitiallyLoadingReportWhileOffline && !isLoadingOldestUnreadReportActionID;
+    // When opening an unread report, it is very likely that the message we will open to is not the latest,
+    // which is the only one we will have in cache.
+    const isInitiallyLoadingReport = isUnread(report, transactionThreadReport) && (reportMetadata.isLoadingInitialReportActions ?? false) && (isOffline || reportActions.length <= 1);
+
+    // When we open a report, we have to wait for the oldest unread report action ID to be set and
+    // retrieved from Onyx, in order to get the correct initial report action page from store.
+    const isLoadingOldestUnreadReportActionID = !isOffline && !oldestUnreadReportActionID && !reportMetadata.isLoadingInitialReportActions;
+
+    // Once all the above conditions are met, we can consider the report ready.
+    const isReportReady = !isInitiallyLoadingReport && !isLoadingOldestUnreadReportActionID;
 
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
