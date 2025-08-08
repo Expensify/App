@@ -14,6 +14,7 @@ import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useResponsiveLayout from './useResponsiveLayout';
+import useReportIsArchived from './useReportIsArchived';
 
 type PartialPolicyForSidebar = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatarURL' | 'employeeList'>;
 
@@ -71,6 +72,7 @@ function SidebarOrderedReportsContextProvider({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {accountID} = useCurrentUserPersonalDetails();
     const currentReportIDValue = useCurrentReportID();
+    const isReportArchived = useReportIsArchived(currentReportIDValue?.currentReportID);
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportIDFromPath ?? currentReportIDValue?.currentReportID;
     const prevDerivedCurrentReportID = usePrevious(derivedCurrentReportID);
 
@@ -119,7 +121,7 @@ function SidebarOrderedReportsContextProvider({
         return reportsToUpdate;
     }, [
         reportUpdates,
-        reportNameValuePairsUpdates,
+        isReportArchived,
         transactionsUpdates,
         transactionViolationsUpdates,
         reportsDraftsUpdates,
@@ -150,8 +152,8 @@ function SidebarOrderedReportsContextProvider({
                 betas,
                 policies,
                 transactionViolations,
-                reportNameValuePairs,
                 reportAttributes,
+                isReportArchived,
             );
         } else {
             reportsToDisplay = SidebarUtils.getReportsToDisplayInLHN(
@@ -161,14 +163,14 @@ function SidebarOrderedReportsContextProvider({
                 policies,
                 priorityMode,
                 transactionViolations,
-                reportNameValuePairs,
                 reportAttributes,
+                isReportArchived,
             );
         }
         return reportsToDisplay;
         // Rule disabled intentionally — triggering a re-render on currentReportsToDisplay would cause an infinite loop
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [getUpdatedReports, chatReports, derivedCurrentReportID, priorityMode, betas, policies, transactionViolations, reportNameValuePairs, reportAttributes]);
+    }, [getUpdatedReports, chatReports, derivedCurrentReportID, priorityMode, betas, policies, transactionViolations, isReportArchived, reportAttributes]);
 
     useEffect(() => {
         setCurrentReportsToDisplay(reportsToDisplayInLHN);
@@ -234,7 +236,7 @@ function SidebarOrderedReportsContextProvider({
         policies,
         transactions,
         transactionViolations,
-        reportNameValuePairs,
+        isReportArchived,
         betas,
         reportAttributes,
         currentReportsToDisplay,
