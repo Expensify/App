@@ -7,6 +7,7 @@ import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, O
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as API from '@libs/API';
@@ -67,7 +68,7 @@ import * as Environment from '@libs/Environment/Environment';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import getEnvironment from '@libs/Environment/getEnvironment';
 import type EnvironmentType from '@libs/Environment/getEnvironment/types';
-import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey, getMicroSecondTranslationErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import HttpUtils from '@libs/HttpUtils';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
@@ -106,6 +107,7 @@ import {
     buildOptimisticExportIntegrationAction,
     buildOptimisticGroupChatReport,
     buildOptimisticIOUReportAction,
+    buildOptimisticMovedReportAction,
     buildOptimisticRenamedRoomReportAction,
     buildOptimisticReportPreview,
     buildOptimisticRoomDescriptionUpdatedReportAction,
@@ -2751,15 +2753,6 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
             value: optimisticNextStep,
         },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            value: {
-                action: CONST.QUICK_ACTIONS.CREATE_REPORT,
-                chatReportID: parentReport?.reportID,
-                isFirstQuickAction: isEmptyObject(quickAction),
-            },
-        },
     ];
 
     const failureData: OnyxUpdate[] = [
@@ -2772,11 +2765,6 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {[reportActionID]: {errorFields: {createReport: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}}},
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            value: quickAction ?? null,
         },
 
         {
@@ -3506,16 +3494,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
     const lastAccessedReportID = findLastAccessedReport(false, false, undefined, currentReport?.reportID)?.reportID;
 
     if (lastAccessedReportID) {
-        const isChatThread = isChatThreadReportUtils(currentReport);
         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
-        if (isChatThread) {
-            // Using requestAnimationFrame to wait for RHP modal dismissal before navigating, avoiding navigation stack issues on web/desktop.
-            requestAnimationFrame(() => {
-                Navigation.navigate(lastAccessedReportRoute);
-            });
-            return;
-        }
-
         Navigation.goBack(lastAccessedReportRoute);
     } else {
         const isChatThread = isChatThreadReportUtils(currentReport);
@@ -3714,7 +3693,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     navigateToMostRecentReport(report);
 }
 
-function buildInviteToRoomOnyxData(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
+function buildInviteToRoomOnyxData(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const reportMetadata = getReportMetadata(reportID);
     const isGroupChat = isGroupChatReportUtils(report);
@@ -3740,7 +3719,7 @@ function buildInviteToRoomOnyxData(reportID: string, inviteeEmailsToAccountIDs: 
         {...report?.participants},
     );
 
-    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs);
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
     const pendingChatMembers = getPendingChatMembers(inviteeAccountIDs, reportMetadata?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
     const newParticipantAccountCleanUp = newAccountIDs.reduce<Record<number, null>>((participantCleanUp, newAccountID) => {
@@ -3813,8 +3792,8 @@ function buildInviteToRoomOnyxData(reportID: string, inviteeEmailsToAccountIDs: 
 }
 
 /** Invites people to a room */
-function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
-    const {optimisticData, successData, failureData, isGroupChat, inviteeEmails, newAccountIDs} = buildInviteToRoomOnyxData(reportID, inviteeEmailsToAccountIDs);
+function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
+    const {optimisticData, successData, failureData, isGroupChat, inviteeEmails, newAccountIDs} = buildInviteToRoomOnyxData(reportID, inviteeEmailsToAccountIDs, formatPhoneNumber);
 
     if (isGroupChat) {
         const parameters: InviteToGroupChatParams = {
@@ -3894,8 +3873,8 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
 }
 
 /** Invites people to a group chat */
-function inviteToGroupChat(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
-    inviteToRoom(reportID, inviteeEmailsToAccountIDs);
+function inviteToGroupChat(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
+    inviteToRoom(reportID, inviteeEmailsToAccountIDs, formatPhoneNumber);
 }
 
 /** Removes people from a room
@@ -5008,8 +4987,9 @@ function deleteAppReport(reportID: string | undefined) {
  * Moves an IOU report to a policy by converting it to an expense report
  * @param reportID - The ID of the IOU report to move
  * @param policyID - The ID of the policy to move the report to
+ * @param isFromSettlementButton - Whether the action is from report preview
  */
-function moveIOUReportToPolicy(reportID: string, policyID: string) {
+function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlementButton?: boolean) {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
@@ -5022,7 +5002,7 @@ function moveIOUReportToPolicy(reportID: string, policyID: string) {
     const isReimbursed = isReportManuallyReimbursed(iouReport);
 
     // We do not want to create negative amount expenses
-    if (!isReimbursed && ReportActionsUtils.hasRequestFromCurrentAccount(reportID, iouReport.managerID ?? CONST.DEFAULT_NUMBER_ID)) {
+    if (!isReimbursed && ReportActionsUtils.hasRequestFromCurrentAccount(reportID, iouReport.managerID ?? CONST.DEFAULT_NUMBER_ID) && !isFromSettlementButton) {
         return;
     }
 
@@ -5167,10 +5147,24 @@ function moveIOUReportToPolicy(reportID: string, policyID: string) {
         },
     });
 
+    // Create the MOVED report action and add it to the DM chat which indicates to the user where the report has been moved
+    const movedReportAction = buildOptimisticMovedReportAction(iouReport.policyID, policyID, expenseChatReportId, iouReportID, policyName);
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
+        value: {[movedReportAction.reportActionID]: movedReportAction},
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
+        value: {[movedReportAction.reportActionID]: null},
+    });
+
     const parameters: MoveIOUReportToExistingPolicyParams = {
         iouReportID,
         policyID,
         changePolicyReportActionID: changePolicyReportAction.reportActionID,
+        dmMovedReportActionID: movedReportAction.reportActionID,
     };
 
     API.write(WRITE_COMMANDS.MOVE_IOU_REPORT_TO_EXISTING_POLICY, parameters, {optimisticData, successData, failureData});
@@ -5181,7 +5175,11 @@ function moveIOUReportToPolicy(reportID: string, policyID: string) {
  * @param reportID - The ID of the IOU report to move
  * @param policyID - The ID of the policy to move the report to
  */
-function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: string) {
+function moveIOUReportToPolicyAndInviteSubmitter(
+    reportID: string,
+    policyID: string,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): {policyExpenseChatReportID?: string} | undefined {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
@@ -5195,6 +5193,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
     const submitterAccountID = iouReport.ownerAccountID;
     const submitterEmail = PersonalDetailsUtils.getLoginByAccountID(submitterAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const submitterLogin = PhoneNumber.addSMSDomainIfPhoneNumber(submitterEmail);
+    const iouReportID = iouReport.reportID;
 
     // This flow only works for admins moving an IOU report to a policy where the submitter is NOT yet a member of the policy
     if (!isPolicyAdmin || !isIOUReportUsingReport(iouReport) || !submitterAccountID || !submitterEmail || isPolicyMember(submitterLogin, policyID)) {
@@ -5223,7 +5222,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
 
     // Get personal details onyx data (similar to addMembersToWorkspace)
     const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins([submitterLogin], [submitterAccountID]);
-    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs);
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
 
     // Build announce room members data for the new member
     const announceRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, [submitterAccountID]);
@@ -5405,15 +5404,30 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
         },
     });
 
+    // Create the MOVED report action and add it to the DM chat which indicates to the user where the report has been moved
+    const movedReportAction = buildOptimisticMovedReportAction(iouReport.policyID, policyID, optimisticPolicyExpenseChatReportID, iouReportID, policy.name);
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
+        value: {[movedReportAction.reportActionID]: movedReportAction},
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
+        value: {[movedReportAction.reportActionID]: null},
+    });
+
     const parameters: MoveIOUReportToPolicyAndInviteSubmitterParams = {
         iouReportID: reportID,
         policyID,
         policyExpenseChatReportID: optimisticPolicyExpenseChatReportID ?? String(CONST.DEFAULT_NUMBER_ID),
         policyExpenseCreatedReportActionID: optimisticPolicyExpenseChatCreatedReportActionID ?? String(CONST.DEFAULT_NUMBER_ID),
         changePolicyReportActionID: changePolicyReportAction.reportActionID,
+        dmMovedReportActionID: movedReportAction.reportActionID,
     };
 
     API.write(WRITE_COMMANDS.MOVE_IOU_REPORT_TO_POLICY_AND_INVITE_SUBMITTER, parameters, {optimisticData, successData, failureData});
+    return {policyExpenseChatReportID: optimisticPolicyExpenseChatReportID};
 }
 
 /**
@@ -5695,7 +5709,7 @@ function buildOptimisticChangePolicyData(report: Report, policyID: string, repor
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         value: {
             [optimisticMovedReportAction.reportActionID]: {
-                errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                errors: getMicroSecondTranslationErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
     });
@@ -5745,7 +5759,7 @@ function changeReportPolicy(report: Report, policyID: string, reportNextStep?: R
 /**
  * Invites the submitter to the new report policy, changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat
  */
-function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, employeeList: PolicyEmployeeList | undefined) {
+function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, employeeList: PolicyEmployeeList | undefined, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
     if (!report.reportID || !policyID || report.policyID === policyID || !isExpenseReport(report) || !report.ownerAccountID) {
         return;
     }
@@ -5761,6 +5775,7 @@ function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, 
         policyID,
         policyMemberAccountIDs,
         CONST.POLICY.ROLE.USER,
+        formatPhoneNumber,
     );
     const optimisticPolicyExpenseChatReportID = membersChats.reportCreationData[submitterEmail].reportID;
     const optimisticPolicyExpenseChatCreatedReportActionID = membersChats.reportCreationData[submitterEmail].reportActionID;

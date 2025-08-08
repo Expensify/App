@@ -1,3 +1,4 @@
+import {useFocusEffect} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
@@ -78,6 +79,8 @@ function BaseTextInput(
         placeholderTextColor,
         onClearInput,
         iconContainerStyle,
+        shouldDelayFocus = false,
+        shouldUseDefaultLineHeightForPrefix = true,
         ...props
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -92,6 +95,7 @@ function BaseTextInput(
     const markdownStyle = useMarkdownStyle(false, excludedMarkdownStyles);
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const {hasError = false} = inputProps;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
@@ -275,11 +279,30 @@ function BaseTextInput(
         shouldAddPaddingBottom && styles.pb1,
     ]);
 
+    const verticalPaddingDiff = StyleUtils.getVerticalPaddingDiffFromStyle(newTextInputContainerStyles);
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl1.paddingLeft);
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
 
     // Height fix is needed only for Text single line inputs
     const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
+
+    /** We added a delay to focus on text input to allow navigation/modal animations to get completed, see issue https://github.com/Expensify/App/issues/65855 for more details */
+    useFocusEffect(
+        useCallback(() => {
+            if (!shouldDelayFocus || !inputProps.autoFocus) {
+                return;
+            }
+
+            focusTimeoutRef.current = setTimeout(() => {
+                if (!input.current) {
+                    return;
+                }
+                input.current.focus();
+            }, CONST.ANIMATED_TRANSITION);
+
+            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
+        }, [shouldDelayFocus, inputProps.autoFocus]),
+    );
 
     return (
         <>
@@ -300,7 +323,7 @@ function BaseTextInput(
                                 variables.componentSizeLarge,
                                 typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0,
                             ),
-                        isAutoGrowHeightMarkdown && {minHeight: variables.componentSizeLarge},
+                        isAutoGrowHeightMarkdown && {minHeight: variables.inputHeight},
                         !isMultiline && styles.componentHeightLarge,
                         touchableInputWrapperStyle,
                     ]}
@@ -346,7 +369,7 @@ function BaseTextInput(
                                 </View>
                             )}
                             {!!prefixCharacter && (
-                                <View style={[styles.textInputPrefixWrapper, prefixContainerStyle]}>
+                                <View style={[styles.textInputPrefixWrapper, prefixContainerStyle, shouldApplyHeight && {height}]}>
                                     <Text
                                         onLayout={(event) => {
                                             if (event.nativeEvent.layout.width === 0 && event.nativeEvent.layout.height === 0) {
@@ -358,6 +381,7 @@ function BaseTextInput(
                                         tabIndex={-1}
                                         style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, prefixStyle]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                        shouldUseDefaultLineHeight={!!shouldUseDefaultLineHeightForPrefix && !shouldApplyHeight}
                                     >
                                         {prefixCharacter}
                                     </Text>
@@ -417,6 +441,7 @@ function BaseTextInput(
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
+                                autoFocus={shouldDelayFocus ? false : inputProps.autoFocus}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
@@ -431,7 +456,7 @@ function BaseTextInput(
                             )}
                             {((isFocused && !isReadOnly && shouldShowClearButton) || !shouldHideClearButton) && !!value && (
                                 <TextInputClearButton
-                                    style={StyleUtils.getTextInputIconContainerStyles(hasLabel, false)}
+                                    style={StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)}
                                     onPressButton={() => {
                                         setValue('');
                                         onClearInput?.();
@@ -443,9 +468,8 @@ function BaseTextInput(
                                     size="small"
                                     color={theme.iconSuccessFill}
                                     style={[
-                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, false),
+                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff),
                                         styles.ml1,
-                                        styles.justifyContentStart,
                                         loadingSpinnerStyle,
                                         StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0),
                                     ]}
@@ -453,7 +477,7 @@ function BaseTextInput(
                             )}
                             {!!inputProps.secureTextEntry && (
                                 <Checkbox
-                                    style={StyleUtils.getTextInputIconContainerStyles(hasLabel)}
+                                    style={StyleUtils.getTextInputIconContainerStyles(hasLabel, true, verticalPaddingDiff)}
                                     onPress={togglePasswordVisibility}
                                     onMouseDown={(event) => {
                                         event.preventDefault();
@@ -467,7 +491,13 @@ function BaseTextInput(
                                 </Checkbox>
                             )}
                             {!inputProps.secureTextEntry && !!icon && (
-                                <View style={[StyleUtils.getTextInputIconContainerStyles(hasLabel), !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone, iconContainerStyle]}>
+                                <View
+                                    style={[
+                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, true, verticalPaddingDiff),
+                                        !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone,
+                                        iconContainerStyle,
+                                    ]}
+                                >
                                     <Icon
                                         src={icon}
                                         fill={theme.icon}
