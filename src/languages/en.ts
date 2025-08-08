@@ -1,6 +1,7 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
 import type {OnboardingCompanySize, OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -522,6 +523,7 @@ const translations = {
         pm: 'PM',
         tbd: 'TBD',
         selectCurrency: 'Select a currency',
+        selectSymbolOrCurrency: 'Select a symbol or currency',
         card: 'Card',
         whyDoWeAskForThis: 'Why do we ask for this?',
         required: 'Required',
@@ -623,6 +625,7 @@ const translations = {
         getTheApp: 'Get the app',
         scanReceiptsOnTheGo: 'Scan receipts from your phone',
         headsUp: 'Heads up!',
+        merge: 'Merge',
         unstableInternetConnection: 'Unstable internet connection. Please check your network and try again.',
     },
     supportalNoAccess: {
@@ -1339,6 +1342,34 @@ const translations = {
         rates: 'Rates',
         submitsTo: ({name}: SubmitsToParams) => `Submits to ${name}`,
         moveExpenses: () => ({one: 'Move expense', other: 'Move expenses'}),
+    },
+    transactionMerge: {
+        listPage: {
+            header: 'Merge expenses',
+            noEligibleExpenseFound: 'No eligible expenses found',
+            noEligibleExpenseFoundSubtitle: `You don't have any expenses that can be merged with this one. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Learn more</a> about eligible expenses.`,
+            selectTransactionToMerge: ({reportName}: {reportName: string}) =>
+                `Select an <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">eligible expense</a> to merge with <strong>${reportName}</strong>.`,
+        },
+        receiptPage: {
+            header: 'Select receipt',
+            pageTitle: 'Select the receipt you want to keep:',
+        },
+        detailsPage: {
+            header: 'Select details',
+            pageTitle: 'Select the details you want to keep:',
+            noDifferences: 'No differences found between the transactions',
+            pleaseSelectError: ({field}: {field: string}) => {
+                const article = StringUtils.startsWithVowel(field) ? 'an' : 'a';
+                return `Please select ${article} ${field}`;
+            },
+            selectAllDetailsError: 'Select all details before continuing.',
+        },
+        confirmationPage: {
+            header: 'Confirm details',
+            pageTitle: "Confirm the details you're keeping. The details you don't keep will be deleted.",
+            confirmButton: 'Merge expenses',
+        },
     },
     share: {
         shareToExpensify: 'Share to Expensify',
@@ -3384,6 +3415,7 @@ const translations = {
             travel: 'Travel',
             members: 'Members',
             accounting: 'Accounting',
+            receiptPartners: 'Receipt partners',
             rules: 'Rules',
             displayedAs: 'Displayed as',
             plan: 'Plan',
@@ -4582,11 +4614,20 @@ const translations = {
                 title: 'Accounting',
                 subtitle: 'Sync your chart of accounts and more.',
             },
+            receiptPartners: {
+                title: 'Receipt partners',
+                subtitle: 'Automatically import receipts.',
+            },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Not so fast...',
                 featureEnabledText: "To enable or disable this feature, you'll need to change your accounting import settings.",
                 disconnectText: "To disable accounting, you'll need to disconnect your accounting connection from your workspace.",
                 manageSettings: 'Manage settings',
+            },
+            receiptPartnersWarningModal: {
+                featureEnabledTitle: 'Disconnect Uber',
+                disconnectText: 'To disable this feature, please disconnect the Uber for Business integration first.',
+                confirmText: 'Got it',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Not so fast...',
@@ -4598,6 +4639,20 @@ const translations = {
                 title: 'Rules',
                 subtitle: 'Require receipts, flag high spend, and more.',
             },
+        },
+        reports: {
+            reportsCustomTitleExamples: 'Examples:',
+            customReportNamesSubtitle: 'Customize report titles using our ',
+            customNameTitle: 'Default report title',
+            customNameDescription: 'Choose a custom name for expense reports using our ',
+            customNameDescriptionLink: 'extensive formulas',
+            customNameInputLabel: 'Name',
+            customNameEmailPhoneExample: 'Member’s email or phone: {report:submit:from}',
+            customNameStartDateExample: 'Report start date: {report:startdate}',
+            customNameWorkspaceNameExample: 'Workspace name: {report:workspacename}',
+            customNameReportIDExample: 'Report ID: {report:id}',
+            customNameTotalExample: 'Total: {report:total}.',
+            preventMembersFromChangingCustomNamesTitle: 'Prevent members from changing custom report names',
         },
         reportFields: {
             addField: 'Add field',
@@ -5453,17 +5508,6 @@ const translations = {
                     one: '1 day',
                     other: (count: number) => `${count} days`,
                 }),
-                cashExpenseDefault: 'Cash expense default',
-                cashExpenseDefaultDescription:
-                    'Choose how cash expenses should be created. An expense is considered a cash expense if it is not an imported company card transaction. This includes manually created expenses, receipts, per diem, distance, and time expenses.',
-                reimbursableDefault: 'Reimbursable',
-                reimbursableDefaultDescription: 'Expenses are most often paid back to employees',
-                nonReimbursableDefault: 'Non-reimbursable',
-                nonReimbursableDefaultDescription: 'Expenses are occasionally paid back to employees',
-                alwaysReimbursable: 'Always reimbursable',
-                alwaysReimbursableDescription: 'Expenses are always paid back to employees',
-                alwaysNonReimbursable: 'Always non-reimbursable',
-                alwaysNonReimbursableDescription: 'Expenses are never paid back to employees',
                 billableDefault: 'Billable default',
                 billableDefaultDescription: 'Choose whether cash and credit card expenses should be billable by default. Billable expenses are enabled or disabled in',
                 billable: 'Billable',
@@ -5485,20 +5529,8 @@ const translations = {
                 adultEntertainment: 'Adult entertainment',
             },
             expenseReportRules: {
-                examples: 'Examples:',
                 title: 'Expense reports',
                 subtitle: 'Automate expense report compliance, approvals, and payment.',
-                customReportNamesSubtitle: 'Customize report titles using our ',
-                customNameTitle: 'Default report title',
-                customNameDescription: 'Choose a custom name for expense reports using our ',
-                customNameDescriptionLink: 'extensive formulas',
-                customNameInputLabel: 'Name',
-                customNameEmailPhoneExample: 'Member’s email or phone: {report:submit:from}',
-                customNameStartDateExample: 'Report start date: {report:startdate}',
-                customNameWorkspaceNameExample: 'Workspace name: {report:workspacename}',
-                customNameReportIDExample: 'Report ID: {report:id}',
-                customNameTotalExample: 'Total: {report:total}.',
-                preventMembersFromChangingCustomNamesTitle: 'Prevent members from changing custom report names',
                 preventSelfApprovalsTitle: 'Prevent self-approvals',
                 preventSelfApprovalsSubtitle: 'Prevent workspace members from approving their own expense reports.',
                 autoApproveCompliantReportsTitle: 'Auto-approve compliant reports',
@@ -5765,7 +5797,6 @@ const translations = {
             return `updated the monthly report submission date to "${newValue}" (previously "${oldValue}")`;
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `updated "Re-bill expenses to clients" to "${newValue}" (previously "${oldValue}")`,
-        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `updated "Cash expense default" to "${newValue}" (previously "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `turned "Enforce default report titles" ${value ? 'on' : 'off'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `updated the name of this workspace to "${newName}" (previously "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -5974,6 +6005,7 @@ const translations = {
             paid: 'Paid date',
             exported: 'Exported date',
             posted: 'Posted date',
+            withdrawn: 'Withdrawn date',
             billable: 'Billable',
             reimbursable: 'Reimbursable',
             groupBy: {
@@ -6263,8 +6295,7 @@ const translations = {
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Invite to submit expenses',
-        inviteToChat: 'Invite to chat only',
+        invite: 'Invite them',
         nothing: 'Do nothing',
     },
     actionableMentionJoinWorkspaceOptions: {

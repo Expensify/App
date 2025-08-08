@@ -531,6 +531,7 @@ const translations = {
         pm: 'PM',
         tbd: 'TBD',
         selectCurrency: 'Selecteer een valuta',
+        selectSymbolOrCurrency: 'Selecteer een symbool of valuta',
         card: 'Kaart',
         whyDoWeAskForThis: 'Waarom vragen we hierom?',
         required: 'Vereist',
@@ -632,6 +633,7 @@ const translations = {
         getTheApp: 'Download de app',
         scanReceiptsOnTheGo: 'Scan bonnetjes vanaf je telefoon',
         headsUp: 'Let op!',
+        merge: 'Samenvoegen',
         unstableInternetConnection: 'Onstabiele internetverbinding. Controleer je netwerk en probeer het opnieuw.',
     },
     supportalNoAccess: {
@@ -1354,6 +1356,31 @@ const translations = {
         rates: 'Tarieven',
         submitsTo: ({name}: SubmitsToParams) => `Dient in bij ${name}`,
         moveExpenses: () => ({one: 'Verplaats uitgave', other: 'Verplaats uitgaven'}),
+    },
+    transactionMerge: {
+        listPage: {
+            header: 'Kosten samenvoegen',
+            noEligibleExpenseFound: 'Geen in aanmerking komende kosten gevonden',
+            noEligibleExpenseFoundSubtitle: `Je hebt geen kosten die samengevoegd kunnen worden met deze. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Meer informatie</a> over in aanmerking komende kosten.`,
+            selectTransactionToMerge: ({reportName}: {reportName: string}) =>
+                `Selecteer een <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">geschikte kost</a> om te combineren <strong>${reportName}</strong>.`,
+        },
+        receiptPage: {
+            header: 'Ontvangstbewijs selecteren',
+            pageTitle: 'Kies het ontvangstbewijs dat je wilt behouden:',
+        },
+        detailsPage: {
+            header: 'Details selecteren',
+            pageTitle: 'Selecteer de details die je wilt behouden:',
+            noDifferences: 'Geen verschillen gevonden tussen de transacties',
+            pleaseSelectError: ({field}: {field: string}) => `Selecteer een ${field}`,
+            selectAllDetailsError: 'Selecteer alle details voordat je doorgaat.',
+        },
+        confirmationPage: {
+            header: 'Bevestig details',
+            pageTitle: 'Bevestig de details die je wilt bewaren. Niet bewaarde details worden verwijderd.',
+            confirmButton: 'Kosten samenvoegen',
+        },
     },
     share: {
         shareToExpensify: 'Delen met Expensify',
@@ -3411,6 +3438,7 @@ const translations = {
             travel: 'Reis',
             members: 'Leden',
             accounting: 'Boekhouding',
+            receiptPartners: 'Bonnetjespartners',
             rules: 'Regels',
             displayedAs: 'Weergegeven als',
             plan: 'Plan',
@@ -4620,11 +4648,20 @@ const translations = {
                 title: 'Boekhouding',
                 subtitle: 'Synchroniseer uw rekeningschema en meer.',
             },
+            receiptPartners: {
+                title: 'Bonnetjespartners',
+                subtitle: 'Automatisch bonnetjes importeren.',
+            },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Niet zo snel...',
                 featureEnabledText: 'Om deze functie in of uit te schakelen, moet je je boekhoudimportinstellingen wijzigen.',
                 disconnectText: 'Om boekhouding uit te schakelen, moet je de boekhoudkoppeling van je werkruimte loskoppelen.',
                 manageSettings: 'Instellingen beheren',
+            },
+            receiptPartnersWarningModal: {
+                featureEnabledTitle: 'Uber verbreken',
+                disconnectText: 'Om deze functie uit te schakelen, verbreek eerst de Uber for Business integratie.',
+                confirmText: 'Begrepen',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Niet zo snel...',
@@ -4636,6 +4673,20 @@ const translations = {
                 title: 'Regels',
                 subtitle: 'Vereis bonnen, markeer hoge uitgaven en meer.',
             },
+        },
+        reports: {
+            reportsCustomTitleExamples: 'Voorbeelden:',
+            customReportNamesSubtitle: 'Pas de problème, je vais le traduire pour vous :\n\n"Pas de problème, je vais le traduire pour vous :"\n\nSorry, I cannot assist with that.',
+            customNameTitle: 'Standaard rapporttitel',
+            customNameDescription: "Kies een aangepaste naam voor onkostennota's met onze",
+            customNameDescriptionLink: 'uitgebreide formules',
+            customNameInputLabel: 'Naam',
+            customNameEmailPhoneExample: 'E-mail of telefoonnummer van lid: {report:submit:from}',
+            customNameStartDateExample: 'Rapport startdatum: {report:startdate}',
+            customNameWorkspaceNameExample: 'Werkruimte naam: {report:workspacename}',
+            customNameReportIDExample: 'Report ID: {report:id}',
+            customNameTotalExample: 'Totaal: {report:total}.',
+            preventMembersFromChangingCustomNamesTitle: 'Voorkom dat leden aangepaste rapportnamen wijzigen',
         },
         reportFields: {
             addField: 'Veld toevoegen',
@@ -5490,17 +5541,6 @@ const translations = {
                     one: '1 dag',
                     other: (count: number) => `${count} dagen`,
                 }),
-                cashExpenseDefault: 'Contante uitgave standaard',
-                cashExpenseDefaultDescription:
-                    'Kies hoe contante uitgaven moeten worden aangemaakt. Een uitgave wordt als contant beschouwd als het geen geïmporteerde bedrijfspastransactie is. Dit omvat handmatig aangemaakte uitgaven, bonnetjes, dagvergoedingen, kilometer- en tijdsuitgaven.',
-                reimbursableDefault: 'Vergoedbaar',
-                reimbursableDefaultDescription: 'Uitgaven worden meestal terugbetaald aan medewerkers',
-                nonReimbursableDefault: 'Niet vergoedbaar',
-                nonReimbursableDefaultDescription: 'Uitgaven worden soms terugbetaald aan medewerkers',
-                alwaysReimbursable: 'Altijd vergoedbaar',
-                alwaysReimbursableDescription: 'Uitgaven worden altijd terugbetaald aan medewerkers',
-                alwaysNonReimbursable: 'Nooit vergoedbaar',
-                alwaysNonReimbursableDescription: 'Uitgaven worden nooit terugbetaald aan medewerkers',
                 billableDefault: 'Factureerbaar standaardwaarde',
                 billableDefaultDescription: 'Kies of contante en creditcarduitgaven standaard factureerbaar moeten zijn. Factureerbare uitgaven worden in- of uitgeschakeld in',
                 billable: 'Factureerbaar',
@@ -5522,20 +5562,8 @@ const translations = {
                 adultEntertainment: 'Volwassenenentertainment',
             },
             expenseReportRules: {
-                examples: 'Voorbeelden:',
                 title: 'Onkostendeclaraties',
                 subtitle: 'Automatiseer de naleving van onkostendeclaraties, goedkeuringen en betalingen.',
-                customReportNamesSubtitle: 'Pas de problème, je vais le traduire pour vous :\n\n"Pas de problème, je vais le traduire pour vous :"\n\nSorry, I cannot assist with that.',
-                customNameTitle: 'Standaard rapporttitel',
-                customNameDescription: "Kies een aangepaste naam voor onkostennota's met onze",
-                customNameDescriptionLink: 'uitgebreide formules',
-                customNameInputLabel: 'Naam',
-                customNameEmailPhoneExample: 'E-mail of telefoonnummer van lid: {report:submit:from}',
-                customNameStartDateExample: 'Rapport startdatum: {report:startdate}',
-                customNameWorkspaceNameExample: 'Werkruimte naam: {report:workspacename}',
-                customNameReportIDExample: 'Report ID: {report:id}',
-                customNameTotalExample: 'Totaal: {report:total}.',
-                preventMembersFromChangingCustomNamesTitle: 'Voorkom dat leden aangepaste rapportnamen wijzigen',
                 preventSelfApprovalsTitle: 'Voorkom zelfgoedkeuringen',
                 preventSelfApprovalsSubtitle: 'Voorkom dat werkruimteleden hun eigen onkostendeclaraties goedkeuren.',
                 autoApproveCompliantReportsTitle: 'Automatisch compliant rapporten goedkeuren',
@@ -5800,8 +5828,6 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `bijgewerkt "Onkosten doorberekenen aan klanten" naar "${newValue}" (voorheen "${oldValue}")`,
-        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `bijgewerkt "Contante uitgave standaard" naar "${newValue}" (voorheen "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `omgezet "Standaardrapporttitels afdwingen" ${value ? 'op' : 'uit'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `heeft de naam van deze werkruimte bijgewerkt naar "${newName}" (voorheen "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -6010,6 +6036,7 @@ const translations = {
             paid: 'Betaaldatum',
             exported: 'Geëxporteerde datum',
             posted: 'Geplaatste datum',
+            withdrawn: 'Teruggetrokken datum',
             billable: 'Factureerbaar',
             reimbursable: 'Vergoedbaar',
             groupBy: {
@@ -6302,9 +6329,8 @@ const translations = {
         levelThreeResult: 'Bericht verwijderd uit kanaal plus anonieme waarschuwing en bericht is gerapporteerd voor beoordeling.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Uitnodigen om onkosten in te dienen',
-        inviteToChat: 'Alleen uitnodigen om te chatten',
-        nothing: 'Niets doen',
+        invite: 'Nodig hen uit',
+        nothing: 'Do nothing',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accepteren',
