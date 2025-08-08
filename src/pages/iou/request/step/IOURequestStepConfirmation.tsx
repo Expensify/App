@@ -148,7 +148,6 @@ function IOURequestStepConfirmation({
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-
     const {isOffline} = useNetwork();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [selectedParticipantList, setSelectedParticipantList] = useState<Participant[]>([]);
