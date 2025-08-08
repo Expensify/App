@@ -54,7 +54,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
-    const {orderedReports} = useSidebarOrderedReports();
+    const {orderedReportIDs} = useSidebarOrderedReports();
     const subscriptionPlan = useSubscriptionPlan();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const navigationState = useNavigationState(findFocusedRoute);
@@ -105,10 +105,8 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const shouldRenderDebugTabViewOnWideLayout = !!account?.isDebugModeEnabled && !isTopLevelBar;
 
     useEffect(() => {
-        setChatTabBrickRoad(getChatTabBrickRoad(orderedReports));
-        // We need to get a new brick road state when report attributes are updated, otherwise we'll be showing an outdated brick road.
-        // That's why reportAttributes is added as a dependency here
-    }, [orderedReports, reportAttributes]);
+        setChatTabBrickRoad(getChatTabBrickRoad(orderedReportIDs, reportAttributes));
+    }, [orderedReportIDs, reportAttributes]);
 
     const navigateToChats = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.HOME) {

@@ -1,64 +1,44 @@
-import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import {convertToDisplayString} from './CurrencyUtils';
 
 type BrickRoad = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
 
-let reportAttributes: ReportAttributesDerivedValue['reports'];
-Onyx.connect({
-    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        reportAttributes = value.reports;
-    },
-});
 /**
- * @param altReportActions Replaces (local) allReportActions used within (local) function getWorkspacesBrickRoads
- * @returns BrickRoad for the policy passed as a param and optionally actionsByReport (if passed)
+ * @returns BrickRoad for the given reportID using reportAttributes
  */
-const getBrickRoadForPolicy = (report: Report): BrickRoad => {
-    return reportAttributes?.[report.reportID]?.brickRoadStatus;
+const getBrickRoadForPolicy = (reportID: string, reportAttributes: ReportAttributesDerivedValue['reports'] | undefined): BrickRoad => {
+    return reportAttributes?.[reportID]?.brickRoadStatus;
 };
 
-function getChatTabBrickRoadReport(orderedReports: Array<OnyxEntry<Report>> = []): OnyxEntry<Report> {
-    if (!orderedReports.length) {
+function getChatTabBrickRoadReportID(orderedReportIDs: string[], reportAttributes: ReportAttributesDerivedValue['reports'] | undefined): string | undefined {
+    if (!orderedReportIDs.length) {
         return undefined;
     }
 
-    let reportWithGBR: OnyxEntry<Report>;
+    let reportIDWithGBR: string | undefined;
 
-    const reportWithRBR = orderedReports.find((report) => {
-        const brickRoad = report ? getBrickRoadForPolicy(report) : undefined;
-        if (!reportWithGBR && brickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
-            reportWithGBR = report;
-            return false;
+    for (const reportID of orderedReportIDs) {
+        const brickRoad = getBrickRoadForPolicy(reportID, reportAttributes);
+        if (brickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
+            reportIDWithGBR = reportID;
         }
-        return brickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    });
-
-    if (reportWithRBR) {
-        return reportWithRBR;
+        if (brickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
+            return reportID;
+        }
     }
 
-    if (reportWithGBR) {
-        return reportWithGBR;
-    }
-
-    return undefined;
+    return reportIDWithGBR;
 }
 
-function getChatTabBrickRoad(orderedReports: Array<OnyxEntry<Report>>): BrickRoad | undefined {
-    const report = getChatTabBrickRoadReport(orderedReports);
-    return report ? getBrickRoadForPolicy(report) : undefined;
+function getChatTabBrickRoad(orderedReportIDs: string[], reportAttributes: ReportAttributesDerivedValue['reports'] | undefined): BrickRoad | undefined {
+    const reportID = getChatTabBrickRoadReportID(orderedReportIDs, reportAttributes);
+    return reportID ? getBrickRoadForPolicy(reportID, reportAttributes) : undefined;
 }
 
 /**
@@ -145,11 +125,5 @@ function getOwnershipChecksDisplayText(
     return {title, text, buttonText};
 }
 
-export {
-    getChatTabBrickRoadReport,
-    getBrickRoadForPolicy,
-    getChatTabBrickRoad,
-    getUnitTranslationKey,
-    getOwnershipChecksDisplayText,
-};
+export {getChatTabBrickRoadReportID, getBrickRoadForPolicy, getChatTabBrickRoad, getUnitTranslationKey, getOwnershipChecksDisplayText};
 export type {BrickRoad};
