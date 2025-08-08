@@ -62,6 +62,12 @@ type ReportActionsViewProps = {
 
     /** If the report has older actions to load */
     hasOlderActions: boolean;
+
+    /** The current composer height */
+    composerHeight: number;
+
+    /** Whether the composer is in full size */
+    isComposerFullSize?: boolean;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -74,6 +80,8 @@ function ReportActionsView({
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
+    composerHeight,
+    isComposerFullSize,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -307,6 +315,8 @@ function ReportActionsView({
                 loadNewerChats={loadNewerChats}
                 listID={listID}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
+                composerHeight={composerHeight}
+                isComposerFullSize={isComposerFullSize}
             />
             <UserTypingEventListener report={report} />
         </>

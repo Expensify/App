@@ -1,3 +1,4 @@
+import type {ReactNode} from 'react';
 import React, {useContext, useEffect} from 'react';
 import type {ViewProps} from 'react-native';
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
@@ -60,9 +61,10 @@ const useAnimatedKeyboard = () => {
     return {state, height, heightWhenOpened};
 };
 
-type ActionSheetKeyboardSpaceProps = ViewProps & {
+type ActionSheetKeyboardSpaceProps = Omit<ViewProps, 'children'> & {
     /** scroll offset of the parent ScrollView */
     position?: SharedValue<number>;
+    children?: ReactNode | SharedValue<ReactNode>;
 };
 
 function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
