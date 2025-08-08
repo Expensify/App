@@ -13,7 +13,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Card, Locale, OnyxInputOrEntry, OriginalMessageIOU, Policy, PrivatePersonalDetails} from '@src/types/onyx';
-import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
+import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration, OriginalMessageDeclinedTransaction} from '@src/types/onyx/OriginalMessage';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -2970,11 +2970,11 @@ function getVacationer(action: OnyxEntry<ReportAction>): string | undefined {
  * Get the declined transaction message text
  */
 function getDeclinedTransactionRemoveMessage(action: OnyxInputOrEntry<ReportAction>): string {
-    const originalMessage = getOriginalMessage(action) as {amount?: string; merchant?: string; reportID?: string; currency?: string};
-    const amount = convertToDisplayString(Math.abs(Number(originalMessage?.amount) ?? 0), originalMessage?.currency ?? '');
+    const originalMessage = getOriginalMessage(action) as {amount?: number; merchant?: string; currency?: string; transactionThreadReportID?: number};
+    const amount = convertToDisplayString(Math.abs(originalMessage?.amount ?? 0), originalMessage?.currency ?? '');
     const merchant = originalMessage?.merchant ?? '';
-    const messageReportID = originalMessage?.reportID ?? '';
-    const linkToReport = messageReportID ? `${environmentURL}/${ROUTES.SEARCH_REPORT.getRoute({reportID: messageReportID})}` : '';
+    const messageReportID = originalMessage?.transactionThreadReportID?.toString() ?? '';
+    const linkToReport = messageReportID ? `${getEnvironmentURL()}/${ROUTES.SEARCH_REPORT.getRoute({reportID: messageReportID})}` : '';
     return translateLocal('iou.decline.reportActions.removedFromReport', {amount, merchant, linkToReport});
 }
 
