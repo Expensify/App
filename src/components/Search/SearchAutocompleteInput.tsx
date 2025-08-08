@@ -239,6 +239,7 @@ function SearchAutocompleteInput(
                         multiline={false}
                         parser={parser}
                         selection={selection}
+                        shouldDelayFocus
                     />
                 </View>
                 {!!value && (
