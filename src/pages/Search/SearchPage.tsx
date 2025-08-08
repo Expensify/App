@@ -223,7 +223,13 @@ function SearchPage({route}: SearchPageProps) {
             }
 
             // Collate a list of policyIDs from the selected transactions
-            const selectedPolicyIDs = [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.policyID))];
+            const selectedPolicyIDs = [
+                ...new Set(
+                    Object.values(selectedTransactions)
+                        .map((transaction) => transaction.policyID)
+                        .filter(Boolean),
+                ),
+            ];
 
             // If all of the transactions are on the same policy, add the policy-level in-app export templates as export options
             if (selectedPolicyIDs.length === 1) {

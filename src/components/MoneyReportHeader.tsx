@@ -189,7 +189,6 @@ function MoneyReportHeader({
             ...layout,
             templateName,
             description: '',
-            policyID: '',
         }));
 
         return [...policyTemplates, ...csvTemplates];

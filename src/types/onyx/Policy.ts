@@ -1910,7 +1910,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         canDowngrade?: boolean;
 
         /** Policy level user created in-app export templates */
-        exportLayouts?: Record<string, OnyxTypes.CsvExportLayout>;
+        exportLayouts?: Record<string, OnyxTypes.ExportTemplate>;
 
         /** Whether Attendee Tracking is enabled */
         isAttendeeTrackingEnabled?: boolean;

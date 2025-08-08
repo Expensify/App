@@ -70,7 +70,6 @@ function useSelectedTransactionsActions({
             ...layout,
             templateName,
             description: '',
-            policyID: '',
         }));
 
         return [...policyTemplates, ...csvTemplates];

@@ -2,7 +2,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CsvExportLayout, IntegrationServerExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {
@@ -679,8 +679,8 @@ function getSecondaryExportReportActions(
     report: Report,
     policy?: Policy,
     reportActions?: ReportAction[],
-    integrationsExportTemplates?: IntegrationServerExportTemplate[],
-    customInAppTemplates?: CsvExportLayout[],
+    integrationsExportTemplates?: ExportTemplate[],
+    customInAppTemplates?: ExportTemplate[],
 ): Array<ValueOf<string>> {
     const options: Array<ValueOf<string>> = [];
     if (isExportAction(report, policy, reportActions)) {
