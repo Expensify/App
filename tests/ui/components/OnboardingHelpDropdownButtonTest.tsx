@@ -27,6 +27,10 @@ jest.mock('@libs/actions/ScheduleCall', () => ({
     cancelBooking: jest.fn(),
 }));
 
+jest.mock('@hooks/useResponsiveLayout', () => () => ({
+    isSmallScreenWidth: false,
+}));
+
 const mockOpenExternalLink = jest.mocked(openExternalLink);
 const mockNavigate = jest.mocked(Navigation.navigate);
 const mockClearBookingDraft = jest.mocked(clearBookingDraft);
