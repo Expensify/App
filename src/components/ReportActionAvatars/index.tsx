@@ -57,9 +57,6 @@ type ReportActionAvatarsProps = {
 
     /** Display name used as a fallback for avatar tooltip */
     fallbackDisplayName?: string;
-
-    /** Whether to include avatars for both account IDs array & policyID */
-    mergePolicyAndAccountIDs?: boolean;
 };
 
 /**
@@ -88,7 +85,6 @@ function ReportActionAvatars({
     isInReportAction = false,
     useProfileNavigationWrapper,
     fallbackDisplayName,
-    mergePolicyAndAccountIDs,
 }: ReportActionAvatarsProps) {
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
 
@@ -110,7 +106,6 @@ function ReportActionAvatars({
     } = useReportActionAvatars({
         report,
         action,
-        mergePolicyAndAccountIDs,
         shouldStackHorizontally,
         shouldUseCardFeed: !!subscriptCardFeed,
         accountIDs,
@@ -130,7 +125,7 @@ function ReportActionAvatars({
 
     const [primaryAvatar, secondaryAvatar] = icons;
 
-    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT) {
+    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && !!secondaryAvatar?.name) {
         return (
             <ReportActionAvatar.Subscript
                 primaryAvatar={primaryAvatar}
@@ -161,7 +156,7 @@ function ReportActionAvatars({
         );
     }
 
-    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL && icons.length !== 1) {
+    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL && !!secondaryAvatar?.name) {
         return (
             <ReportActionAvatar.Multiple.Diagonal
                 shouldShowTooltip={shouldShowTooltip}

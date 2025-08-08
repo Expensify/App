@@ -58,6 +58,10 @@ function UserListItem<TItem extends ListItem>({
         selector: (report) => !!report,
     });
 
+    const reportExists = isReportInOnyx && !!item.reportID;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const itemAccountID = Number(item.accountID || item.icons?.at(1)?.id) || 0;
+
     return (
         <BaseListItem
             item={item}
@@ -107,7 +111,7 @@ function UserListItem<TItem extends ListItem>({
                             </View>
                         </PressableWithFeedback>
                     )}
-                    {(!!isReportInOnyx || !!item.accountID || !!item.policyID) && (
+                    {(!!reportExists || !!itemAccountID || !!item.policyID) && (
                         <ReportActionAvatars
                             subscriptAvatarBorderColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                             shouldShowTooltip={showTooltip}
@@ -116,11 +120,10 @@ function UserListItem<TItem extends ListItem>({
                                 isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                 hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                             ]}
-                            reportID={isReportInOnyx ? item.reportID : undefined}
+                            reportID={reportExists ? item.reportID : undefined}
                             /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
-                            accountIDs={!isReportInOnyx ? [Number(item.accountID || item.icons?.at(1)?.id)] : []}
-                            policyID={!isReportInOnyx && !item.accountID ? item.policyID : undefined}
-                            mergePolicyAndAccountIDs
+                            accountIDs={!reportExists && !!itemAccountID ? [itemAccountID] : []}
+                            policyID={!reportExists && !itemAccountID ? item.policyID : undefined}
                             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
                             fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
                         />

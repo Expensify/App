@@ -110,6 +110,7 @@ function TableListItem<TItem extends ListItem>({
                     {!!item.accountID && (
                         <ReportActionAvatars
                             accountIDs={[item.accountID]}
+                            fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
                             shouldShowTooltip={showTooltip}
                             secondaryAvatarContainerStyle={[
                                 StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
