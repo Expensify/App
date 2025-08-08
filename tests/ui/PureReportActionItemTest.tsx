@@ -13,12 +13,12 @@ import {translateLocal} from '@libs/Localize';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import PureReportActionItem from '@pages/home/report/PureReportActionItem';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
-import type {TranslationPaths} from '@src/languages/types';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -136,7 +136,7 @@ describe('PureReportActionItem', () => {
             }
             const [, textBeforeLink, , linkText] = match;
             return {textBeforeLink, linkText};
-        }
+        };
 
         it.each(testCases)('$testTitle', async ({actionName, originalMessageExtras, translationKey}) => {
             const action = createReportAction(actionName, originalMessageExtras);
@@ -147,7 +147,7 @@ describe('PureReportActionItem', () => {
 
             const parsedText = parseTextWithTrailingLink(translateLocal(translationKey as TranslationPaths));
             if (!parsedText) {
-                throw new Error("Text cannot be parsed, translation failed");
+                throw new Error('Text cannot be parsed, translation failed');
             }
 
             const {textBeforeLink, linkText} = parsedText;

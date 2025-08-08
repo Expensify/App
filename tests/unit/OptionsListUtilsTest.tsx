@@ -64,7 +64,7 @@ type PersonalDetailsList = Record<string, PersonalDetails & OptionData>;
 
 const renderLocaleContextProvider = () => {
     // @ts-expect-error TS2741: Property 'children' is missing
-    render(<ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}/>);
+    render(<ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]} />);
 };
 
 describe('OptionsListUtils', () => {
