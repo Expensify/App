@@ -61,6 +61,7 @@ export type {WorkspaceInvoicesCompanyWebsiteForm} from './WorkspaceInvoicesCompa
 export type {PolicyCreateDistanceRateForm} from './PolicyCreateDistanceRateForm';
 export type {PolicyDistanceRateTaxReclaimableOnEditForm} from './PolicyDistanceRateTaxReclaimableOnEditForm';
 export type {PolicyDistanceRateEditForm} from './PolicyDistanceRateEditForm';
+export type {PolicyDistanceRateNameEditForm} from './PolicyDistanceRateNameEditForm';
 export type {WalletAdditionalDetailsForm} from './WalletAdditionalDetailsForm';
 export type {NewChatNameForm} from './NewChatNameForm';
 export type {SageIntacctDimensionForm} from './SageIntacctDimensionsForm';
@@ -74,7 +75,7 @@ export type {SearchAdvancedFiltersForm} from './SearchAdvancedFiltersForm';
 export type {EditExpensifyCardLimitForm} from './EditExpensifyCardLimitForm';
 export type {default as TextPickerModalForm} from './TextPickerModalForm';
 export type {default as Form} from './Form';
-export type {RulesCustomNameModalForm} from './RulesCustomNameModalForm';
+export type {ReportsDefaultTitleModalForm} from './ReportsDefaultTitleModalForm';
 export type {RulesAutoApproveReportsUnderModalForm} from './RulesAutoApproveReportsUnderModalForm';
 export type {RulesRandomReportAuditModalForm} from './RulesRandomReportAuditModalForm';
 export type {RulesAutoPayReportsUnderModalForm} from './RulesAutoPayReportsUnderModalForm';

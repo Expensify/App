@@ -1,9 +1,11 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -11,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+import {openReport} from '@libs/actions/Report';
 import {dismissDuplicateTransactionViolation} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -28,6 +31,7 @@ function TransactionDuplicateReview() {
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const currentPersonalDetails = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`, {canBeMissing: true});
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.threadReportID}`, {canBeMissing: true});
     const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const transactionID = getLinkedTransactionID(reportAction, report?.reportID) ?? undefined;
     const transactionViolations = useTransactionViolations(transactionID);
@@ -56,9 +60,34 @@ function TransactionDuplicateReview() {
 
     const hasSettledOrApprovedTransaction = transactions?.some((transaction) => isSettled(transaction?.reportID) || isReportIDApproved(transaction?.reportID));
 
+    useEffect(() => {
+        if (!route.params.threadReportID || report?.reportID) {
+            return;
+        }
+        openReport(route.params.threadReportID);
+    }, [report?.reportID, route.params.threadReportID]);
+
+    const isLoadingPage = (!report?.reportID && reportMetadata?.isLoadingInitialReportActions !== false) || !reportAction?.reportActionID;
+
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFound = !isLoadingPage && !transactionID;
+
+    if (isLoadingPage) {
+        return (
+            <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
+                <View style={[styles.flex1]}>
+                    <View style={[styles.appContentHeader, styles.borderBottom]}>
+                        <ReportHeaderSkeletonView onBackButtonPress={() => {}} />
+                    </View>
+                    <ReportActionsSkeletonView />
+                </View>
+            </ScreenWrapper>
+        );
+    }
+
     return (
         <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
-            <FullPageNotFoundView shouldShow={!transactionID}>
+            <FullPageNotFoundView shouldShow={shouldShowNotFound}>
                 <HeaderWithBackButton
                     title={translate('iou.reviewDuplicates')}
                     onBackButtonPress={() => Navigation.goBack(route.params.backTo)}

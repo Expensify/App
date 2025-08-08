@@ -17,6 +17,9 @@ type WorkspaceResetBankAccountModalProps = {
     /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
     setShouldShowConnectedVerifiedBankAccount?: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
 
+    /** Method to set the state of shouldShowContinueSetupButton */
+    setShouldShowContinueSetupButton?: (shouldShowContinueSetupButton: boolean) => void;
+
     /** Method to set the state of setUSDBankAccountStep */
     setUSDBankAccountStep?: (step: string | null) => void;
 
@@ -33,15 +36,21 @@ function WorkspaceResetBankAccountModal({
     setUSDBankAccountStep,
     setNonUSDBankAccountStep,
     isNonUSDWorkspace,
+    setShouldShowContinueSetupButton,
 }: WorkspaceResetBankAccountModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const policyID = reimbursementAccount?.achData?.policyID;
     const achData = reimbursementAccount?.achData;
     const isInOpenState = achData?.state === BankAccount.STATE.OPEN;
     const bankAccountID = achData?.bankAccountID;
     const bankShortName = `${achData?.addressName ?? ''} ${(achData?.accountNumber ?? '').slice(-4)}`;
+
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
+        canBeMissing: true,
+        selector: (paymentMethods) => (policyID ? (paymentMethods?.[policyID] as OnyxTypes.LastPaymentMethodType) : undefined),
+    });
 
     const handleConfirm = () => {
         if (isNonUSDWorkspace) {
@@ -51,11 +60,19 @@ function WorkspaceResetBankAccountModal({
                 setShouldShowConnectedVerifiedBankAccount(false);
             }
 
+            if (setShouldShowContinueSetupButton) {
+                setShouldShowContinueSetupButton(false);
+            }
+
             if (setNonUSDBankAccountStep) {
                 setNonUSDBankAccountStep(null);
             }
         } else {
-            resetUSDBankAccount(bankAccountID, session, policyID);
+            resetUSDBankAccount(bankAccountID, session, policyID, lastPaymentMethod);
+
+            if (setShouldShowContinueSetupButton) {
+                setShouldShowContinueSetupButton(false);
+            }
 
             if (setShouldShowConnectedVerifiedBankAccount) {
                 setShouldShowConnectedVerifiedBankAccount(false);

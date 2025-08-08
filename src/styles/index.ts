@@ -401,6 +401,10 @@ const styles = (theme: ThemeColors) =>
             lineHeight: undefined,
         },
 
+        heightUndefined: {
+            height: undefined,
+        },
+
         lineHeightLarge: {
             lineHeight: variables.lineHeightLarge,
         },
@@ -439,6 +443,11 @@ const styles = (theme: ThemeColors) =>
         textSmall: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
+        },
+
+        textExtraSmall: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeExtraSmall,
         },
 
         textMicro: {
@@ -1317,8 +1326,8 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.lineHeightXLarge,
             color: theme.text,
-            paddingTop: 15,
-            paddingBottom: 8,
+            paddingTop: variables.inputPaddingTop,
+            paddingBottom: variables.inputPaddingBottom,
             paddingLeft: 0,
             borderWidth: 0,
         },
@@ -1329,7 +1338,7 @@ const styles = (theme: ThemeColors) =>
 
         textInputMultilineContainer: {
             height: '100%',
-            paddingTop: 15,
+            paddingTop: variables.inputPaddingTop,
         },
 
         textInputAndIconContainer: (isMarkdownEnabled: boolean) => {
@@ -1378,8 +1387,8 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            paddingTop: 15,
-            paddingBottom: 8,
+            paddingTop: variables.inputPaddingTop,
+            paddingBottom: variables.inputPaddingBottom,
             height: '100%',
         },
 
@@ -1390,8 +1399,8 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            paddingTop: 15,
-            paddingBottom: 8,
+            paddingTop: variables.inputPaddingTop,
+            paddingBottom: variables.inputPaddingBottom,
         },
 
         textInputPrefix: {
@@ -2380,6 +2389,13 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 52,
         },
 
+        singleAvatarMediumLarge: {
+            height: 60,
+            width: 60,
+            backgroundColor: theme.icon,
+            borderRadius: 80,
+        },
+
         secondAvatar: {
             position: 'absolute',
             right: -18,
@@ -2407,10 +2423,25 @@ const styles = (theme: ThemeColors) =>
             borderColor: 'transparent',
         },
 
+        secondAvatarMediumLarge: {
+            position: 'absolute',
+            right: -42,
+            bottom: -42,
+            borderWidth: 3,
+            borderRadius: 80,
+            borderColor: 'transparent',
+        },
+
         secondAvatarSubscript: {
             position: 'absolute',
             right: -6,
             bottom: -6,
+        },
+
+        secondAvatarSubscriptXLarge: {
+            position: 'absolute',
+            right: -10,
+            bottom: -10,
         },
 
         secondAvatarSubscriptCompact: {
@@ -2479,6 +2510,11 @@ const styles = (theme: ThemeColors) =>
         emptyAvatarLarge: {
             height: variables.avatarSizeLarge,
             width: variables.avatarSizeLarge,
+        },
+
+        emptyAvatarXLarge: {
+            height: variables.avatarSizeXLarge,
+            width: variables.avatarSizeXLarge,
         },
 
         emptyAvatarMargin: {
@@ -3051,10 +3087,6 @@ const styles = (theme: ThemeColors) =>
 
         flipUpsideDown: {
             transform: `rotate(180deg)`,
-        },
-
-        mirror: {
-            transform: `scaleX(-1)`,
         },
 
         navigationScreenCardStyle: {
@@ -3755,16 +3787,6 @@ const styles = (theme: ThemeColors) =>
             zIndex: 2,
         },
 
-        dropInnerWrapper: {
-            borderWidth: 2,
-            borderStyle: 'dashed',
-        },
-
-        reportDropOverlay: {
-            backgroundColor: theme.dropUIBG,
-            zIndex: 2,
-        },
-
         fileDropOverlay: {
             backgroundColor: theme.fileDropUIBG,
         },
@@ -4084,6 +4106,10 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeLarge,
             color: theme.success,
             marginBottom: 16,
+        },
+
+        textSuccess: {
+            color: theme.success,
         },
 
         footerRow: {
@@ -4481,6 +4507,15 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 0,
         },
 
+        dropDownButtonCartIcon: {
+            minWidth: 22,
+        },
+
+        dropDownSmallButtonArrowContain: {
+            marginLeft: 3,
+            marginRight: 6,
+        },
+
         dropDownMediumButtonArrowContain: {
             marginLeft: 12,
             marginRight: 16,
@@ -4546,10 +4581,6 @@ const styles = (theme: ThemeColors) =>
 
         expenseAndReportPreviewTextContainer: {
             gap: 8,
-        },
-
-        reportPreviewAmountSubtitleContainer: {
-            gap: 4,
         },
 
         expenseAndReportPreviewTextButtonContainer: {
@@ -4693,6 +4724,16 @@ const styles = (theme: ThemeColors) =>
         justSignedInModalAnimation: (is2FARequired: boolean) => ({
             height: is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight,
         }),
+
+        settlementButtonListContainer: {
+            maxHeight: 500,
+            paddingBottom: 0,
+            paddingTop: 0,
+        },
+
+        settlementButtonShortFormWidth: {
+            minWidth: 90,
+        },
 
         moneyRequestViewImage: {
             ...spacing.mh5,
@@ -5396,20 +5437,6 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
-        tripReservationRow: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            maxWidth: '50%',
-            flexShrink: 1,
-        },
-
-        iconWrapper: {
-            justifyContent: 'center',
-            alignItems: 'center',
-            alignSelf: 'flex-start', // Keeps icon from dropping below
-            paddingTop: 2, // Adjust slightly for vertical centering
-        },
-
         textLineThrough: {
             textDecorationLine: 'line-through',
         },
@@ -5551,13 +5578,6 @@ const styles = (theme: ThemeColors) =>
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
             borderLeftColor: theme.border,
         }),
-        reportPreviewCarouselDots: {
-            borderRadius: 50,
-            width: 8,
-            height: 8,
-            alignItems: 'center',
-            justifyContent: 'center',
-        },
         reportPreviewArrowButton: {
             borderRadius: 50,
             width: variables.w28,

@@ -1,5 +1,5 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import {createOptionFromReport, createOptionList, processReport, shallowOptionsListCompare} from '@libs/OptionsListUtils';
@@ -54,6 +54,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const personalDetails = usePersonalDetails();
     const prevPersonalDetails = usePrevious(personalDetails);
     const hasInitialData = useMemo(() => Object.keys(personalDetails ?? {}).length > 0, [personalDetails]);
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
 
     const loadOptions = useCallback(() => {
         const optionLists = createOptionList(personalDetails, reports, reportAttributes?.reports);
@@ -87,13 +88,11 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     }, [prevReportAttributesLocale, loadOptions, reportAttributes?.locale]);
 
     const changedReportsEntries = useMemo(() => {
-        const result: OnyxCollection<Report> = {};
+        const result: OnyxCollection<OnyxEntry<Report>> = {};
 
         Object.keys(changedReports ?? {}).forEach((key) => {
             const report = reports?.[key];
-            if (report) {
-                result[key] = report;
-            }
+            result[key] = report;
         });
         return result;
     }, [changedReports, reports]);
@@ -162,7 +161,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 reports: Array.from(updatedReportsMap.values()),
             };
         });
-    }, [changedReportActions, personalDetails, reportAttributes?.reports]);
+    }, [changedReportActions, personalDetails, reportAttributes?.reports, transactions]);
 
     /**
      * This effect is used to update the options list when personal details change.
@@ -263,14 +262,15 @@ const useOptionsListContext = () => useContext(OptionsListContext);
 const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const {shouldInitialize = true} = options ?? {};
     const {initializeOptions, options: optionsList, areOptionsInitialized, resetOptions} = useOptionsListContext();
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const [internalOptions, setInternalOptions] = useState<OptionList>(optionsList);
     const prevOptions = useRef<OptionList>(null);
+    const [areInternalOptionsInitialized, setAreInternalOptionsInitialized] = useState(false);
 
     useEffect(() => {
         if (!prevOptions.current) {
             prevOptions.current = optionsList;
             setInternalOptions(optionsList);
+            setAreInternalOptionsInitialized(areOptionsInitialized);
             return;
         }
         /**
@@ -283,24 +283,30 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
             return;
         }
         setInternalOptions(optionsList);
-    }, [optionsList]);
+        setAreInternalOptionsInitialized(areOptionsInitialized);
+    }, [optionsList, areOptionsInitialized]);
 
     useEffect(() => {
-        if (!shouldInitialize || areOptionsInitialized || isLoadingApp) {
+        if (!shouldInitialize || areOptionsInitialized) {
             return;
         }
 
         initializeOptions();
-    }, [shouldInitialize, initializeOptions, areOptionsInitialized, isLoadingApp]);
+    }, [shouldInitialize, initializeOptions, areOptionsInitialized]);
+
+    const resetInternalOptions = useCallback(() => {
+        setAreInternalOptionsInitialized(false);
+        resetOptions();
+    }, [resetOptions]);
 
     return useMemo(
         () => ({
             initializeOptions,
             options: internalOptions,
-            areOptionsInitialized,
-            resetOptions,
+            areOptionsInitialized: areInternalOptionsInitialized,
+            resetOptions: resetInternalOptions,
         }),
-        [initializeOptions, internalOptions, areOptionsInitialized, resetOptions],
+        [initializeOptions, internalOptions, resetInternalOptions, areInternalOptionsInitialized],
     );
 };
 
