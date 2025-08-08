@@ -387,8 +387,8 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         const shouldDisplayGroupByFilter = isDevelopment;
         const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues.feed;
         const shouldDisplayPostedFilter = !!filterFormValues.feed && (!!filterFormValues.postedOn || !!filterFormValues.postedAfter || !!filterFormValues.postedBefore);
-        // s77rt remove DEV lock + use const after adding withdrawalID to GROUP_BY
-        const shouldDisplayWithdrawalTypeFilter = isDevelopment && groupBy?.value === ('withdrawalID' as SearchGroupBy) && !!filterFormValues.withdrawalType;
+        // s77rt use const after adding withdrawalID to GROUP_BY
+        const shouldDisplayWithdrawalTypeFilter = groupBy?.value === ('withdrawalID' as SearchGroupBy) && !!filterFormValues.withdrawalType;
         const shouldDisplayWithdrawnFilter = !!filterFormValues.withdrawnOn || !!filterFormValues.withdrawnAfter || !!filterFormValues.withdrawnBefore;
 
         const filterList = [

@@ -631,9 +631,6 @@ function AdvancedSearchFilters() {
     // s77rt remove DEV lock
     const shouldDisplayGroupByFilter = isDevelopment;
 
-    // s77rt remove DEV lock
-    const shouldDisplayWithdrawalTypeFilter = isDevelopment;
-
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
     if (!Object.keys(typeFiltersKeys).includes(currentType)) {
         currentType = CONST.SEARCH.DATA_TYPES.EXPENSE;
@@ -689,6 +686,7 @@ function AdvancedSearchFilters() {
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE
                     ) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
@@ -733,11 +731,6 @@ function AdvancedSearchFilters() {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, currentType, groupBy, translate);
                     } else if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
                         if (!shouldDisplayGroupByFilter) {
-                            return;
-                        }
-                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
-                    } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
-                        if (!shouldDisplayWithdrawalTypeFilter) {
                             return;
                         }
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
