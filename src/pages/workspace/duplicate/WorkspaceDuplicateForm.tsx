@@ -63,11 +63,12 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
 
     const onSubmit = useCallback(
         ({name, avatarFile}: {name?: string; avatarFile?: File | CustomRNImageManipulatorResult}) => {
-            if (policyID) {
-                const newPolicyID = generatePolicyID();
-                setDuplicateWorkspaceData({policyID: newPolicyID, name, file: avatarFile});
-                Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE_SELECT_FEATURES.getRoute(policyID));
+            if (!policyID) {
+                return;
             }
+            const newPolicyID = generatePolicyID();
+            setDuplicateWorkspaceData({policyID: newPolicyID, name, file: avatarFile});
+            Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE_SELECT_FEATURES.getRoute(policyID));
         },
         [policyID],
     );
