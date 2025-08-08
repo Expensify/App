@@ -23,6 +23,7 @@ function Popover(props: PopoverProps) {
         fullscreen,
         onLayout,
         animationOutTiming,
+        animationInTiming = CONST.ANIMATED_TRANSITION,
         disableAnimation = true,
         withoutOverlay = false,
         anchorPosition = {},
@@ -80,7 +81,7 @@ function Popover(props: PopoverProps) {
                 onClose={onCloseWithPopoverContext}
                 type={CONST.MODAL.MODAL_TYPE.POPOVER}
                 popoverAnchorPosition={anchorPosition}
-                disableAnimationIn={disableAnimation}
+                animationInTiming={disableAnimation ? DISABLED_ANIMATION_DURATION : animationInTiming}
                 animationOutTiming={disableAnimation ? DISABLED_ANIMATION_DURATION : animationOutTiming}
                 shouldCloseOnOutsideClick
                 onLayout={onLayout}
@@ -113,7 +114,7 @@ function Popover(props: PopoverProps) {
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.POPOVER}
             popoverAnchorPosition={isSmallScreenWidth ? undefined : anchorPosition}
             fullscreen={shouldUseNarrowLayout ? true : fullscreen}
-            disableAnimationIn={disableAnimation && !shouldUseNarrowLayout}
+            animationInTiming={disableAnimation && !shouldUseNarrowLayout ? DISABLED_ANIMATION_DURATION : animationInTiming}
             animationOutTiming={disableAnimation && !shouldUseNarrowLayout ? DISABLED_ANIMATION_DURATION : animationOutTiming}
             onLayout={onLayout}
             animationIn={animationIn}
