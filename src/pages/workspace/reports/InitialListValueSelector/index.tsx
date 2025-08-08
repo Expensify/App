@@ -1,5 +1,4 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -9,7 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import InitialListValueSelectorModal from './InitialListValueSelectorModal';
 
-type InitialListValueSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel' | 'errorText'> & {
+type InitialListValueSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel' | 'errorText' | 'ref'> & {
     /** Currently selected value */
     value?: string;
 
@@ -20,7 +19,7 @@ type InitialListValueSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLab
     onInputChange?: (value: string) => void;
 };
 
-function InitialListValueSelector({value = '', label = '', rightLabel, subtitle = '', errorText = '', onInputChange}: InitialListValueSelectorProps, forwardedRef: ForwardedRef<View>) {
+function InitialListValueSelector({value = '', label = '', rightLabel, subtitle = '', errorText = '', onInputChange, ref}: InitialListValueSelectorProps) {
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -51,7 +50,7 @@ function InitialListValueSelector({value = '', label = '', rightLabel, subtitle 
     return (
         <View>
             <MenuItemWithTopDescription
-                ref={forwardedRef}
+                ref={ref}
                 shouldShowRightIcon
                 title={value}
                 description={label}
@@ -74,4 +73,4 @@ function InitialListValueSelector({value = '', label = '', rightLabel, subtitle 
 
 InitialListValueSelector.displayName = 'InitialListValueSelector';
 
-export default forwardRef(InitialListValueSelector);
+export default InitialListValueSelector;
