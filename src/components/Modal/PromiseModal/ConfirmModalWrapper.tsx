@@ -55,10 +55,6 @@ function ConfirmModalWrapper({
     };
 
     const handleCancel = () => {
-        closeModal({action: 'CANCEL'});
-    };
-
-    const handleClose = () => {
         closeModal({action: 'CLOSE'});
     };
 
@@ -68,7 +64,6 @@ function ConfirmModalWrapper({
             isVisible
             onConfirm={handleConfirm}
             onCancel={handleCancel}
-            onClose={handleClose}
             prompt={prompt}
             confirmText={confirmText}
             cancelText={cancelText}
