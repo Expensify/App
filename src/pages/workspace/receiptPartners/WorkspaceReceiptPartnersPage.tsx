@@ -130,7 +130,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                     shouldShowOfflineIndicatorInWideScreen
                 >
                     <HeaderWithBackButton
-                        title={translate('workspace.common.accounting')}
+                        title={translate('workspace.common.receiptPartners')}
                         shouldShowBackButton={shouldUseNarrowLayout}
                         icon={Illustrations.ReceiptPartners}
                         shouldUseHeadlineHeader
