@@ -437,7 +437,7 @@ function ReportActionsList({
                 if (!isFromCurrentUser || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
                     return;
                 }
-                if (!hasNewestReportActionRef.current) {
+                if (!hasNewestReportActionRef.current && !isFromCurrentUser) {
                     if (Navigation.getReportRHPActiveRoute()) {
                         return;
                     }
