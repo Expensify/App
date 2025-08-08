@@ -8,17 +8,16 @@ import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
-import {BackArrow, DotIndicator, FallbackAvatar} from '@components/Icon/Expensicons';
+import {BackArrow, DotIndicator} from '@components/Icon/Expensicons';
 import LoadingBar from '@components/LoadingBar';
-import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OnboardingHelpDropdownButton from '@components/OnboardingHelpDropdownButton';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
-import SubscriptAvatar from '@components/SubscriptAvatar';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -40,7 +39,6 @@ import {
     canUserPerformWriteAction,
     getChatRoomSubtitle,
     getDisplayNamesWithTooltips,
-    getIcons,
     getParentNavigationSubtitle,
     getParticipantsAccountIDsForDisplay,
     getPolicyDescriptionText,
@@ -76,7 +74,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportAction} from '@src/types/onyx';
-import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type HeaderViewProps = {
@@ -94,13 +91,6 @@ type HeaderViewProps = {
 
     /** Whether we should display the header as in narrow layout */
     shouldUseNarrowLayout?: boolean;
-};
-
-const fallbackIcon: IconType = {
-    source: FallbackAvatar,
-    type: CONST.ICON_TYPE_AVATAR,
-    name: '',
-    id: -1,
 };
 
 function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, shouldUseNarrowLayout = false}: HeaderViewProps) {
@@ -121,7 +111,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: true});
     const isReportArchived = isArchivedReport(reportNameValuePairs);
 
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const isSelfDM = isSelfDMReportUtils(report);
@@ -133,7 +123,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isMultipleParticipant = participants.length > 1;
 
     const participantPersonalDetails = getPersonalDetailsForAccountIDs(participants, personalDetails);
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant, undefined, isSelfDM);
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant, localeCompare, undefined, isSelfDM);
 
     const isChatThread = isChatThreadReportUtils(report);
     const isChatRoom = isChatRoomReportUtils(report);
@@ -211,7 +201,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
     const shouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
     const defaultSubscriptSize = isExpenseRequest(report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
-    const icons = getIcons(reportHeaderData, personalDetails, null, '', -1, policy, invoiceReceiverPolicy, isReportArchived);
     const brickRoadIndicator = hasReportNameError(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report);
     const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);
@@ -235,6 +224,14 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
             shouldShowRegisterForWebinar={shouldShowRegisterForWebinar}
             shouldShowGuideBooking={shouldShowGuideBooking}
             hasActiveScheduledCall={hasActiveScheduledCall}
+        />
+    );
+
+    const multipleAvatars = (
+        <ReportActionAvatars
+            reportID={report?.reportID}
+            size={shouldShowSubscript ? defaultSubscriptSize : undefined}
+            singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
         />
     );
 
@@ -278,17 +275,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     accessibilityLabel={title}
                                     role={CONST.ROLE.BUTTON}
                                 >
-                                    {shouldShowSubscript ? (
-                                        <SubscriptAvatar
-                                            mainAvatar={icons.at(0) ?? fallbackIcon}
-                                            secondaryAvatar={icons.at(1)}
-                                            size={defaultSubscriptSize}
-                                        />
-                                    ) : (
-                                        <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>
-                                            <MultipleAvatars icons={icons} />
-                                        </OfflineWithFeedback>
-                                    )}
+                                    {shouldShowSubscript ? multipleAvatars : <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>{multipleAvatars}</OfflineWithFeedback>}
                                     <View
                                         fsClass="fs-unmask"
                                         style={[styles.flex1, styles.flexColumn]}

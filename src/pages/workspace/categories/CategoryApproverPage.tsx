@@ -5,12 +5,12 @@ import WorkspaceMembersSelectionList from '@components/WorkspaceMembersSelection
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CategoryUtils from '@libs/CategoryUtils';
+import {getCategoryApproverRule} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Category from '@userActions/Policy/Category';
+import {setPolicyCategoryApprover} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -26,7 +26,7 @@ function CategoryApproverPage({
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
 
-    const selectedApprover = CategoryUtils.getCategoryApproverRule(policy?.rules?.approvalRules ?? [], categoryName)?.approver ?? '';
+    const selectedApprover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], categoryName)?.approver ?? '';
 
     return (
         <AccessOrNotFoundWrapper
@@ -48,7 +48,7 @@ function CategoryApproverPage({
                     policyID={policyID}
                     selectedApprover={selectedApprover}
                     setApprover={(email) => {
-                        Category.setPolicyCategoryApprover(policyID, categoryName, email);
+                        setPolicyCategoryApprover(policyID, categoryName, email, policy?.rules?.approvalRules ?? []);
                         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
                     }}
                 />
