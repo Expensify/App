@@ -40,6 +40,13 @@ function getMonthFromExpirationDateString(expirationDateString: string) {
  * @param card
  * @returns boolean
  */
+function getAssignedCardSortKey(card: Card): number {
+    if (!isExpensifyCard(card)) {
+        return 2;
+    }
+    return card?.nameValuePairs?.isVirtual ? 1 : 0;
+}
+
 function isExpensifyCard(card?: Card) {
     if (!card) {
         return false;
@@ -663,6 +670,7 @@ function getFundIdFromSettingsKey(key: string) {
 }
 
 export {
+    getAssignedCardSortKey,
     isExpensifyCard,
     getDomainCards,
     formatCardExpiration,

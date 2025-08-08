@@ -3,11 +3,13 @@ import type IllustrationsType from '@styles/theme/illustrations/types';
 import type * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import lodashSortBy from 'lodash/sortBy';
 import {
     checkIfFeedConnectionIsBroken,
     filterInactiveCards,
     flatAllCardsList,
     formatCardExpiration,
+    getAssignedCardSortKey,
     getBankCardDetailsImage,
     getBankName,
     getCardDescription,
@@ -33,6 +35,8 @@ import type {Card, CardFeeds, CardList, CompanyCardFeed, ExpensifyCardSettings, 
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const shortDate = '0924';
 const shortDateSlashed = '09/24';
@@ -1136,6 +1140,29 @@ describe('CardUtils', () => {
         it('should return the correct description for an Expensify card', () => {
             const description = getCompanyCardDescription('Test', 21570657, cardList);
             expect(description).toBe('Test');
+        });
+    });
+
+    describe('Expensify card sort comparator', () => {
+        it('should not change the order of non-Expensify cards', () => {
+            const cardList = {
+                10: {cardID: 10, bank: 'chase'}, // non-Expensify
+                11: {cardID: 11, bank: 'chase'}, // non-Expensify
+            } as unknown as CardList;
+
+            const sorted = lodashSortBy(Object.values(cardList), getAssignedCardSortKey);
+            expect(sorted.map((r: any) => r.cardID)).toEqual([10, 11]);
+        });
+
+        it('places physical Expensify card before its virtual sibling', async () => {
+            const cardList = {
+                10: {cardID: 10, bank: CONST.EXPENSIFY_CARD.BANK, nameValuePairs: {isVirtual: true}}, // Expensify virtual
+                11: {cardID: 11, bank: CONST.EXPENSIFY_CARD.BANK}, // Expensify physical
+                99: {cardID: 99, bank: 'chase'}, // non-Expensify
+            } as unknown as CardList;
+
+            const sorted = lodashSortBy(Object.values(cardList), getAssignedCardSortKey);
+            expect(sorted.map((r: any) => r.cardID)).toEqual([11, 10, 99]);
         });
     });
 });
