@@ -115,7 +115,7 @@ describe('actions/Tour', () => {
                 expect(Object.values(getFinishOnboardingTaskOnyxData(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR)).length).toBe(0);
             });
 
-            it('should show the Test Drive demo if user is admin of a paid policy', async () => {
+            it('should show the Test Drive demo if user is member of a paid policy', async () => {
                 startTestDrive({choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND}, false, false, true);
                 await waitForBatchedUpdates();
 
