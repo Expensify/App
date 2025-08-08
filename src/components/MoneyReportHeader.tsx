@@ -16,6 +16,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported, openReport, openUnreportedExpense} from '@libs/actions/Report';
 import {queueExportSearchWithTemplate} from '@libs/actions/Search';
@@ -172,6 +173,7 @@ function MoneyReportHeader({
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${reportPDFFilename}`, {canBeMissing: true});
     const isDownloadingPDF = download?.isDownloading ?? false;
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const requestParentReportAction = useMemo(() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
             return null;
@@ -305,6 +307,7 @@ function MoneyReportHeader({
         allTransactionsLength: transactions.length,
         session,
         onExportFailed: () => setIsDownloadErrorModalVisible(true),
+        policy,
         beginExportWithTemplate: (templateName, templateType, transactionIDList) => beginExportWithTemplate(templateName, templateType, transactionIDList),
     });
 
@@ -549,8 +552,8 @@ function MoneyReportHeader({
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
 
-    const exportSubMenuOptions: Record<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>>> = useMemo(
-        () => ({
+    const exportSubmenuOptions: Record<string, DropdownOption<string>> = useMemo(() => {
+        const options: Record<string, DropdownOption<string>> = {
             [CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV]: {
                 text: translate('export.basicExport'),
                 icon: Expensicons.Table,
@@ -611,9 +614,22 @@ function MoneyReportHeader({
                     markAsManuallyExported(moneyRequestReport?.reportID, connectedIntegration);
                 },
             },
-        }),
-        [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported, beginExportWithTemplate],
-    );
+        };
+
+        // If the user has any custom integration export templates, add them as export options
+        if (integrationsExportTemplates && integrationsExportTemplates.length > 0) {
+            for (const template of integrationsExportTemplates) {
+                options[template.name] = {
+                    text: template.name,
+                    icon: Expensicons.Table,
+                    value: template.name,
+                    onSelected: () => beginExportWithTemplate(template.name, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, transactionIDs),
+                };
+            }
+        }
+
+        return options;
+    }, [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported, beginExportWithTemplate, integrationsExportTemplates]);
 
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
@@ -759,12 +775,12 @@ function MoneyReportHeader({
         if (!moneyRequestReport) {
             return [];
         }
-        return getSecondaryExportReportActions(moneyRequestReport, policy, reportActions);
-    }, [moneyRequestReport, policy, reportActions]);
+        return getSecondaryExportReportActions(moneyRequestReport, policy, reportActions, integrationsExportTemplates ?? []);
+    }, [moneyRequestReport, policy, reportActions, integrationsExportTemplates]);
 
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
-        DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText'>
+        DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>
     > = {
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
@@ -779,7 +795,8 @@ function MoneyReportHeader({
             text: translate('common.export'),
             backButtonText: translate('common.export'),
             icon: Expensicons.Export,
-            subMenuItems: secondaryExportActions.map((action) => exportSubMenuOptions[action]),
+            rightIcon: Expensicons.ArrowRight,
+            subMenuItems: secondaryExportActions.map((action) => exportSubmenuOptions[action as string]),
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF,
@@ -877,6 +894,20 @@ function MoneyReportHeader({
                 initSplitExpense(currentTransaction);
             },
         },
+        [CONST.REPORT.SECONDARY_ACTIONS.MERGE]: {
+            text: translate('common.merge'),
+            icon: Expensicons.ArrowCollapse,
+            value: CONST.REPORT.SECONDARY_ACTIONS.MERGE,
+            onSelected: () => {
+                const currentTransaction = transactions.at(0);
+                if (!currentTransaction) {
+                    return;
+                }
+
+                setupMergeTransactionData(currentTransaction.transactionID, {targetTransactionID: currentTransaction.transactionID});
+                Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(currentTransaction.transactionID, Navigation.getActiveRoute()));
+            },
+        },
         [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE]: {
             text: translate('iou.changeWorkspace'),
             icon: Expensicons.Buildings,
@@ -924,6 +955,7 @@ function MoneyReportHeader({
             text: translate('iou.addExpense'),
             backButtonText: translate('iou.addExpense'),
             icon: Expensicons.Plus,
+            rightIcon: Expensicons.ArrowRight,
             value: CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE,
             subMenuItems: addExpenseDropdownOptions,
             onSelected: () => {
