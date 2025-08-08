@@ -2,7 +2,6 @@ import Onyx from 'react-native-onyx';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {getFinishOnboardingTaskOnyxData} from '@libs/actions/Task';
 import {startTestDrive} from '@libs/actions/Tour';
-import HttpUtils from '@libs/HttpUtils';
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
@@ -14,9 +13,7 @@ import ROUTES from '@src/ROUTES';
 import type {OnboardingPurpose, Report, ReportAction} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
-import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
-import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -24,11 +21,9 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
 }));
 
-const originalXHR = HttpUtils.xhr;
 OnyxUpdateManager();
 describe('actions/Tour', () => {
     beforeAll(async () => {
-        PusherHelper.setup();
         Onyx.init({
             keys: ONYXKEYS,
         });
@@ -36,29 +31,11 @@ describe('actions/Tour', () => {
         await waitForBatchedUpdates();
     });
 
-    beforeEach(() => {
-        HttpUtils.xhr = originalXHR;
-        const promise = Onyx.clear().then(() => {
-            jest.useRealTimers();
-            return waitForBatchedUpdates();
-        });
-
-        if (getIsUsingFakeTimers()) {
-            // flushing pending timers
-            // Onyx.clear() promise is resolved in batch which happens after the current microtasks cycle
-            setImmediate(jest.runOnlyPendingTimers);
-        }
+    beforeEach(async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
-
-        // Clear the queue before each test to avoid test pollution
         SequentialQueue.resetQueue();
-
-        return promise;
-    });
-
-    afterEach(() => {
-        jest.clearAllMocks();
-        PusherHelper.teardown();
+        await Onyx.clear();
+        await waitForBatchedUpdates();
     });
 
     describe('startTestDrive', () => {
