@@ -471,6 +471,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'hasParentAccess':
         case 'isDeletedParentAction':
         case 'isWaitingOnBankAccount':
+        case 'hasReportBeenRetracted':
         case 'isCancelledIOU':
         case 'hasReportBeenReopened':
         case 'isExportedToIntegration':
@@ -626,6 +627,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 unheldNonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isWaitingOnBankAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isCancelledIOU: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                hasReportBeenRetracted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasReportBeenReopened: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isExportedToIntegration: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasExportError: CONST.RED_BRICK_ROAD_PENDING_ACTION,

@@ -21,6 +21,7 @@ import {
     hasExportError as hasExportErrorUtil,
     hasOnlyHeldExpenses,
     hasReportBeenReopened as hasReportBeenReopenedUtils,
+    hasReportBeenRetracted as hasReportBeenRetractedUtils,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
@@ -87,7 +88,7 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
     }
 
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
-    const hasReportBeenReopened = hasReportBeenReopenedUtils(reportActions);
+    const hasReportBeenRetracted = hasReportBeenReopenedUtils(report, reportActions) || hasReportBeenRetractedUtils(report, reportActions);
 
     if (isAnyReceiptBeingScanned) {
         return false;
@@ -100,7 +101,7 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
     }
 
     const baseIsSubmit = isExpenseReport && isReportSubmitter && isOpenReport && reportTransactions.length !== 0 && transactionAreComplete;
-    if (hasReportBeenReopened && baseIsSubmit) {
+    if (hasReportBeenRetracted && baseIsSubmit) {
         return true;
     }
 

@@ -197,6 +197,7 @@ import {
     isReopenedAction,
     isReportActionAttachment,
     isReportPreviewAction,
+    isRetractedAction,
     isReversedTransaction,
     isRoomChangeLogAction,
     isSentMoneyReportAction,
@@ -11263,7 +11264,7 @@ function findReportIDForAction(action?: ReportAction): string | undefined {
         ?.replace(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}`, '');
 }
 
-function hasReportBeenReopened(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>): boolean {
+function hasReportBeenReopened(report: OnyxEntry<Report>, reportActions?: OnyxEntry<ReportActions> | ReportAction[]): boolean {
     // If report object is provided and has the property, use it directly
     if (report?.hasReportBeenReopened !== undefined) {
         return report.hasReportBeenReopened;
@@ -11276,6 +11277,21 @@ function hasReportBeenReopened(reportActions: OnyxEntry<ReportActions> | ReportA
 
     const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions);
     return reportActionList.some((action) => isReopenedAction(action));
+}
+
+function hasReportBeenRetracted(report: OnyxEntry<Report>, reportActions?: OnyxEntry<ReportActions> | ReportAction[]): boolean {
+    // If report object is provided and has the property, use it directly
+    if (report?.hasReportBeenRetracted !== undefined) {
+        return report.hasReportBeenRetracted;
+    }
+
+    // Fallback to checking actions for backward compatibility
+    if (!reportActions) {
+        return false;
+    }
+
+    const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions);
+    return reportActionList.some((action) => isRetractedAction(action));
 }
 
 function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Report>, isInvoice?: boolean) {
@@ -11704,6 +11720,7 @@ export {
     pushTransactionViolationsOnyxData,
     navigateOnDeleteExpense,
     hasReportBeenReopened,
+    hasReportBeenRetracted,
     getMoneyReportPreviewName,
     getNextApproverAccountID,
     isWorkspaceTaskReport,
