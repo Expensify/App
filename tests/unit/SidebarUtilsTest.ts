@@ -328,6 +328,7 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
+                card: undefined,
                 localeCompare,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
@@ -338,6 +339,7 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
+                card: undefined,
                 localeCompare,
             });
 
@@ -832,6 +834,7 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
+                card: undefined,
                 localeCompare,
             });
 
@@ -890,6 +893,7 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 parentReportAction: undefined,
                 oneTransactionThreadReport: undefined,
+                card: undefined,
                 localeCompare,
             });
 
@@ -931,6 +935,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
+                    card: undefined,
                     localeCompare,
                 });
 
@@ -965,6 +970,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
+                    card: undefined,
                     localeCompare,
                 });
 
@@ -996,6 +1002,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
+                    card: undefined,
                     localeCompare,
                 });
 
@@ -1116,6 +1123,7 @@ describe('SidebarUtils', () => {
                     policy,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
+                    card: undefined,
                     localeCompare,
                 });
                 const {totalDisplaySpend} = getMoneyRequestSpendBreakdown(iouReport);
@@ -1158,6 +1166,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
+                    card: undefined,
                     localeCompare,
                 });
 
@@ -1223,6 +1232,7 @@ describe('SidebarUtils', () => {
                     policy: undefined,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
+                    card: undefined,
                     localeCompare,
                 });
 
@@ -1265,6 +1275,7 @@ describe('SidebarUtils', () => {
                     policy: undefined,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
+                    card: undefined,
                     localeCompare,
                 });
 
@@ -1329,6 +1340,7 @@ describe('SidebarUtils', () => {
                     policy: undefined,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
+                    card: undefined,
                     localeCompare,
                 });
 
@@ -1440,6 +1452,7 @@ describe('SidebarUtils', () => {
                     policy: undefined,
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
+                    card: undefined,
                     localeCompare,
                 });
 
