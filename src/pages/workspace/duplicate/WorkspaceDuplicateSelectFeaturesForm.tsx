@@ -164,7 +164,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 : undefined,
         ];
 
-        return result.filter((item): item is NonNullable<typeof item> => item !== undefined);
+        return result.filter((item): item is NonNullable<typeof item> => !!item);
     }, [
         policy,
         translate,
