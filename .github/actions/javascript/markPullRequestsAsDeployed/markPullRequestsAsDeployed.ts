@@ -98,7 +98,7 @@ async function commentStagingDeployPRs(
 async function run() {
     const prList = (ActionUtils.getJSONInput('PR_LIST', {required: true}) as string[]).map((num) => Number.parseInt(num, 10));
     const mobileExpensifyPRListInput = ActionUtils.getJSONInput('MOBILE_EXPENSIFY_PR_LIST', {required: false});
-    const mobileExpensifyPRList = Array.isArray(mobileExpensifyPRListInput) ? mobileExpensifyPRListInput.map((num) => Number.parseInt(num, 10)) : [];
+    const mobileExpensifyPRList = Array.isArray(mobileExpensifyPRListInput) ? mobileExpensifyPRListInput.map((num: string) => Number.parseInt(num, 10)) : [];
     const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true}) as boolean;
     const version = core.getInput('DEPLOY_VERSION', {required: true});
 
