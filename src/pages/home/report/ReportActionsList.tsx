@@ -419,33 +419,20 @@ function ReportActionsList({
             return;
         }
 
-        if (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction))) {
+        if (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction, sortedVisibleReportActions))) {
             // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
             const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
-            if ((isVisible || isFromNotification) && scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
+            const isScrolledToEnd = scrollingVerticalOffset.current <= CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD;
+
+            if ((isVisible || isFromNotification) && !hasNewerActions && isScrolledToEnd) {
                 readNewestAction(report.reportID);
                 if (isFromNotification) {
                     Navigation.setParams({referrer: undefined});
                 }
-            } else {
-                readActionSkipped.current = true;
+                return;
             }
-        }
-
-        // On desktop, when the notification center is displayed, isVisible will return false.
-        // Currently, there's no programmatic way to dismiss the notification center panel.
-        // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
-        const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
-        const isScrolledToEnd = scrollingVerticalOffset.current <= CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD;
-
-        if ((isVisible || isFromNotification) && !hasNewerActions && isScrolledToEnd) {
-            readNewestAction(report.reportID);
-            if (isFromNotification) {
-                Navigation.setParams({referrer: undefined});
-            }
-            return;
         }
 
         readActionSkipped.current = true;
