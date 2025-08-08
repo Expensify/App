@@ -1,5 +1,4 @@
-import React, {forwardRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Navigation from '@libs/Navigation/Navigation';
@@ -9,8 +8,7 @@ import ValueSelectionList from './ValueSelectionList';
 import ValueSelectorModal from './ValueSelectorModal';
 
 function ValuePicker(
-    {value, label, items, placeholder = '', errorText = '', onInputChange, furtherDetails, shouldShowTooltips = true, shouldShowModal = true}: ValuePickerProps,
-    forwardedRef: ForwardedRef<View>,
+    {value, label, items, placeholder = '', errorText = '', onInputChange, furtherDetails, shouldShowTooltips = true, shouldShowModal = true, forwardedRef}: ValuePickerProps,
 ) {
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
@@ -72,4 +70,4 @@ function ValuePicker(
 
 ValuePicker.displayName = 'ValuePicker';
 
-export default forwardRef(ValuePicker);
+export default ValuePicker;

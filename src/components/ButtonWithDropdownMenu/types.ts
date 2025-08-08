@@ -51,6 +51,10 @@ type DropdownOption<TValueType> = {
     shouldShowLoadingSpinnerIcon?: boolean;
 };
 
+type ButtonWithDropdownMenuRef = {
+    setIsMenuVisible: (visible: boolean) => void;
+};
+
 type ButtonWithDropdownMenuProps<TValueType> = {
     /** The custom text to display on the main button instead of selected option */
     customText?: string;
@@ -159,6 +163,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Whether to display the option icon when only one option is available */
     shouldUseOptionIcon?: boolean;
+
+    /** Reference to the outside element */
+    ref?: React.Ref<ButtonWithDropdownMenuRef>
 };
 
 export type {
@@ -171,4 +178,5 @@ export type {
     WorkspaceTaxRatesBulkActionType,
     ReportExportType,
     OnboardingHelpType,
+    ButtonWithDropdownMenuRef
 };

@@ -1,11 +1,9 @@
 import React from 'react';
 import GenericPressable from './GenericPressable';
-import type {PressableRef} from './GenericPressable/types';
 import type PressableProps from './GenericPressable/types';
 
 function PressableWithoutFeedback(
-    {pressStyle, focusStyle, screenReaderActiveStyle, shouldUseHapticsOnPress, shouldUseHapticsOnLongPress = false, ...rest}: PressableProps,
-    ref: PressableRef,
+    {pressStyle, focusStyle, screenReaderActiveStyle, shouldUseHapticsOnPress, shouldUseHapticsOnLongPress = false, ref, ...rest}: PressableProps,
 ) {
     return (
         <GenericPressable
@@ -19,4 +17,4 @@ function PressableWithoutFeedback(
 
 PressableWithoutFeedback.displayName = 'PressableWithoutFeedback';
 
-export default React.forwardRef(PressableWithoutFeedback);
+export default PressableWithoutFeedback;

@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {forwardRef, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import type {ForwardedRef} from 'react';
 import type {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -29,11 +29,13 @@ type CurrencySelectorProps = {
 
     /** object to get route details from */
     currencySelectorRoute?: typeof ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY | typeof ROUTES.SETTINGS_CHANGE_CURRENCY;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<View>;
 };
 
 function CurrencySelector(
-    {errorText = '', value: currency, onInputChange = () => {}, onBlur, currencySelectorRoute = ROUTES.SETTINGS_CHANGE_CURRENCY}: CurrencySelectorProps,
-    ref: ForwardedRef<View>,
+    {errorText = '', value: currency, onInputChange = () => {}, onBlur, currencySelectorRoute = ROUTES.SETTINGS_CHANGE_CURRENCY, ref}: CurrencySelectorProps,
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -75,4 +77,4 @@ function CurrencySelector(
 
 CurrencySelector.displayName = 'CurrencySelector';
 
-export default forwardRef(CurrencySelector);
+export default CurrencySelector;

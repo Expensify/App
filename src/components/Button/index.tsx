@@ -17,6 +17,7 @@ import HapticFeedback from '@libs/HapticFeedback';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import {getButtonRole} from './utils';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
@@ -161,6 +162,11 @@ type ButtonProps = Partial<ChildrenProps> & {
      * This is needed for buttons that allow content to display under them.
      */
     shouldBlendOpacity?: boolean;
+
+    /**
+     * Reference to the outer element.
+     */
+    ref?: ForwardedRef<View>;
 };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority' | 'isPressOnEnterActive'>;
@@ -266,9 +272,9 @@ function Button(
         isNested = false,
         secondLineText = '',
         shouldBlendOpacity = false,
+        ref,
         ...rest
     }: ButtonProps,
-    ref: ForwardedRef<View>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -447,7 +453,7 @@ function Button(
                 dataSet={{
                     listener: pressOnEnter ? CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey : undefined,
                 }}
-                ref={ref}
+                ref={ref as PressableRef}
                 onLayout={onLayout}
                 onPress={(event) => {
                     if (event?.type === 'click') {
@@ -517,6 +523,6 @@ function Button(
 
 Button.displayName = 'Button';
 
-export default withNavigationFallback(React.forwardRef(Button));
+export default withNavigationFallback(Button);
 
 export type {ButtonProps};

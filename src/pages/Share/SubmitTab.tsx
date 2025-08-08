@@ -1,4 +1,4 @@
-import React, {forwardRef} from 'react';
+import React from 'react';
 import ShareTabParticipantsSelector from '@components/Share/ShareTabParticipantsSelector';
 import ROUTES from '@src/ROUTES';
 
@@ -6,7 +6,11 @@ type InputFocusRef = {
     focus?: () => void;
 };
 
-function SubmitTabComponent(_props: unknown, ref: React.Ref<InputFocusRef>) {
+type SubmitTabComponentProps = {
+    ref?: React.Ref<InputFocusRef>;
+};
+
+function SubmitTabComponent({ref}: SubmitTabComponentProps) {
     return (
         <ShareTabParticipantsSelector
             ref={ref}
@@ -15,5 +19,5 @@ function SubmitTabComponent(_props: unknown, ref: React.Ref<InputFocusRef>) {
     );
 }
 
-const SubmitTab = forwardRef(SubmitTabComponent);
+const SubmitTab = SubmitTabComponent;
 export default SubmitTab;
