@@ -16,7 +16,7 @@ Upload expenses and check reports from your phone by downloading the Expensify m
 - [iOS](https://apps.apple.com/us/app/expensify-expense-tracker/id471713959)
 - [Android](https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg&hl=en_US&gl=US)
 
-For a full walkthrough on creating and submitting expenses via the mobile app, click [here](https://expensify.navattic.com/fl150n1n)!
+For a full walkthrough on creating and submitting expenses via the mobile app, click [here](https://app.storylane.io/share/wckqdetaacgy?embed=inline)!
 
 ---
 
