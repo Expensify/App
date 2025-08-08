@@ -7,7 +7,6 @@ import {
     isValidRegistrationNumber,
     isValidTaxIDEINNumber,
     isValidWebsite,
-    isValidZipCode,
     isValidZipCodeInternational,
 } from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
