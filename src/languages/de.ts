@@ -634,6 +634,7 @@ const translations = {
         getTheApp: 'Hole dir die App',
         scanReceiptsOnTheGo: 'Scannen Sie Belege von Ihrem Telefon aus',
         headsUp: 'Achtung!',
+        merge: 'Zusammenführen',
         unstableInternetConnection: 'Instabile Internetverbindung. Bitte überprüfe dein Netzwerk und versuche es erneut.',
     },
     supportalNoAccess: {
@@ -1357,6 +1358,31 @@ const translations = {
         rates: 'Preise',
         submitsTo: ({name}: SubmitsToParams) => `Übermittelt an ${name}`,
         moveExpenses: () => ({one: 'Ausgabe verschieben', other: 'Ausgaben verschieben'}),
+    },
+    transactionMerge: {
+        listPage: {
+            header: 'Ausgaben zusammenführen',
+            noEligibleExpenseFound: 'Keine geeigneten Ausgaben gefunden',
+            noEligibleExpenseFoundSubtitle: `Du hast keine Ausgaben, die mit dieser zusammengeführt werden können. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Erfahre mehr</a> über geeignete Ausgaben.`,
+            selectTransactionToMerge: ({reportName}: {reportName: string}) =>
+                `Wähle eine <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">geeignete Ausgabe</a> zum Zusammenführen <strong>${reportName}</strong>.`,
+        },
+        receiptPage: {
+            header: 'Beleg auswählen',
+            pageTitle: 'Wähle den Beleg, den du behalten möchtest:',
+        },
+        detailsPage: {
+            header: 'Details auswählen',
+            pageTitle: 'Wähle die Details, die du behalten möchtest:',
+            noDifferences: 'Keine Unterschiede zwischen den Transaktionen gefunden',
+            pleaseSelectError: ({field}: {field: string}) => `Bitte wähle ein(e) ${field}`,
+            selectAllDetailsError: 'Wähle alle Details, bevor du fortfährst.',
+        },
+        confirmationPage: {
+            header: 'Details bestätigen',
+            pageTitle: 'Bestätige die Details, die du behalten möchtest. Die nicht behaltenen Details werden gelöscht.',
+            confirmButton: 'Ausgaben zusammenführen',
+        },
     },
     share: {
         shareToExpensify: 'Teilen mit Expensify',
@@ -6296,8 +6322,7 @@ const translations = {
         levelThreeResult: 'Nachricht aus dem Kanal entfernt, anonyme Warnung gesendet und Nachricht zur Überprüfung gemeldet.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Zum Einreichen von Ausgaben einladen',
-        inviteToChat: 'Nur zum Chatten einladen',
+        invite: 'Lade sie ein',
         nothing: 'Nichts tun',
     },
     actionableMentionJoinWorkspaceOptions: {
