@@ -4,7 +4,7 @@ import type {TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportMetadata, Transaction} from '@src/types/onyx';
 import {convertToDisplayString} from './CurrencyUtils';
-import {getIOUActionForTransactionID, getOriginalMessage, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
@@ -69,7 +69,7 @@ function getReportIDForTransaction(transactionItem: TransactionListItemType) {
 }
 
 /**
- * Filters all available transactions and returns the ones that belong to not removed parent action.
+ * Filters all available transactions and returns the ones that belong to not removed action and not removed parent action.
  */
 function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[]) {
     return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
@@ -77,7 +77,7 @@ function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>,
             return false;
         }
         const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-        return !isDeletedParentAction(action);
+        return !isDeletedParentAction(action) && !isDeletedAction(action);
     });
 }
 
