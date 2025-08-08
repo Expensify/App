@@ -1,9 +1,9 @@
+import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection} from 'react-native-onyx';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import type * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import lodashSortBy from 'lodash/sortBy';
 import {
     checkIfFeedConnectionIsBroken,
     filterInactiveCards,
@@ -35,8 +35,6 @@ import type {Card, CardFeeds, CardList, CompanyCardFeed, ExpensifyCardSettings, 
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import Onyx from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 const shortDate = '0924';
 const shortDateSlashed = '09/24';
