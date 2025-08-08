@@ -717,6 +717,7 @@ function SearchPage({route}: SearchPageProps) {
                             prompt={translate('export.conciergeWillSend')}
                             confirmText={translate('common.buttonConfirm')}
                             shouldShowCancelButton={false}
+                            shouldHandleNavigationBack
                         />
                     </View>
                 )}
