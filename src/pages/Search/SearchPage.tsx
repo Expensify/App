@@ -222,8 +222,9 @@ function SearchPage({route}: SearchPageProps) {
             return exportOptions;
         };
 
-        const exportButtonOption: DropdownOption<SearchHeaderOptionValue> = {
+        const exportButtonOption: DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'rightIcon'> = {
             icon: Expensicons.Export,
+            rightIcon: Expensicons.ArrowRight,
             text: translate('common.export'),
             backButtonText: translate('common.export'),
             value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
