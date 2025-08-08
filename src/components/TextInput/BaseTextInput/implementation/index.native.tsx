@@ -1,3 +1,4 @@
+import {useFocusEffect} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
@@ -78,6 +79,7 @@ function BaseTextInput(
         placeholderTextColor,
         onClearInput,
         iconContainerStyle,
+        shouldDelayFocus = false,
         shouldUseDefaultLineHeightForPrefix = true,
         ...props
     }: BaseTextInputProps,
@@ -93,6 +95,7 @@ function BaseTextInput(
     const markdownStyle = useMarkdownStyle(false, excludedMarkdownStyles);
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const {hasError = false} = inputProps;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
@@ -283,6 +286,24 @@ function BaseTextInput(
     // Height fix is needed only for Text single line inputs
     const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
 
+    /** We added a delay to focus on text input to allow navigation/modal animations to get completed, see issue https://github.com/Expensify/App/issues/65855 for more details */
+    useFocusEffect(
+        useCallback(() => {
+            if (!shouldDelayFocus || !inputProps.autoFocus) {
+                return;
+            }
+
+            focusTimeoutRef.current = setTimeout(() => {
+                if (!input.current) {
+                    return;
+                }
+                input.current.focus();
+            }, CONST.ANIMATED_TRANSITION);
+
+            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
+        }, [shouldDelayFocus, inputProps.autoFocus]),
+    );
+
     return (
         <>
             <View style={[containerStyles]}>
@@ -420,6 +441,7 @@ function BaseTextInput(
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
+                                autoFocus={shouldDelayFocus ? false : inputProps.autoFocus}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
