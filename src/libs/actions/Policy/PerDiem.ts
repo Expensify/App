@@ -1,59 +1,21 @@
 import lodashDeepClone from 'lodash/cloneDeep';
-import lodashUnion from 'lodash/union';
-import type {NullishDeep, OnyxCollection} from 'react-native-onyx';
+import type {NullishDeep} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import * as ApiUtils from '@libs/ApiUtils';
+import {getCommandURL} from '@libs/ApiUtils';
 import fileDownload from '@libs/fileDownload';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {translateLocal} from '@libs/Localize';
 import enhanceParameters from '@libs/Network/enhanceParameters';
-import * as NumberUtils from '@libs/NumberUtils';
+import {generateHexadecimalValue} from '@libs/NumberUtils';
 import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, RecentlyUsedCategories, Report} from '@src/types/onyx';
 import type {ErrorFields, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-
-const allPolicies: OnyxCollection<Policy> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (val, key) => {
-        if (!key) {
-            return;
-        }
-        if (val === null || val === undefined) {
-            // If we are deleting a policy, we have to check every report linked to that policy
-            // and unset the draft indicator (pencil icon) alongside removing any draft comments. Clearing these values will keep the newly archived chats from being displayed in the LHN.
-            // More info: https://github.com/Expensify/App/issues/14260
-            const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
-            const policyReports = ReportUtils.getAllPolicyReports(policyID);
-            const cleanUpMergeQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, NullishDeep<Report>> = {};
-            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
-            const cleanUpDrafts: Record<string, null> = {};
-            policyReports.forEach((policyReport) => {
-                if (!policyReport) {
-                    return;
-                }
-                const {reportID} = policyReport;
-                cleanUpDrafts[reportID] = null;
-                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
-            });
-            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, cleanUpMergeQueries);
-            Onyx.multiSet(cleanUpSetQueries);
-            Onyx.merge(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, cleanUpDrafts);
-            delete allPolicies[key];
-            return;
-        }
-
-        allPolicies[key] = val;
-    },
-});
 
 type SubRateData = {
     pendingAction?: PendingAction;
@@ -69,7 +31,7 @@ type SubRateData = {
  * Returns a client generated 13 character hexadecimal value for a custom unit ID
  */
 function generateCustomUnitID(): string {
-    return NumberUtils.generateHexadecimalValue(13);
+    return generateHexadecimalValue(13);
 }
 
 function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string, shouldGoBack?: boolean) {
@@ -195,7 +157,7 @@ function downloadPerDiemCSV(policyID: string, onDownloadFailed: () => void) {
         formData.append(key, String(value));
     });
 
-    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_PER_DIEM_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    fileDownload(getCommandURL({command: WRITE_COMMANDS.EXPORT_PER_DIEM_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 function clearPolicyPerDiemRatesErrorFields(policyID: string, customUnitID: string, updatedErrorFields: ErrorFields) {
@@ -402,23 +364,6 @@ function editPerDiemRateCurrency(policyID: string, rateID: string, customUnit: C
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
 }
 
-let allRecentlyUsedDestinations: OnyxCollection<RecentlyUsedCategories> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS,
-    waitForCollectionCallback: true,
-    callback: (val) => (allRecentlyUsedDestinations = val),
-});
-
-function buildOptimisticPolicyRecentlyUsedDestinations(policyID: string | undefined, destination: string | undefined) {
-    if (!policyID || !destination) {
-        return [];
-    }
-
-    const policyRecentlyUsedDestinations = allRecentlyUsedDestinations?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`] ?? [];
-
-    return lodashUnion([destination], policyRecentlyUsedDestinations);
-}
-
 export {
     generateCustomUnitID,
     enablePerDiem,
@@ -431,5 +376,4 @@ export {
     editPerDiemRateSubrate,
     editPerDiemRateAmount,
     editPerDiemRateCurrency,
-    buildOptimisticPolicyRecentlyUsedDestinations,
 };

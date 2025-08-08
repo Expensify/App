@@ -2,14 +2,17 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {FileObject} from '@components/AttachmentModal';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {GpsPoint} from '@libs/actions/IOU';
 import {getIOURequestPolicyID, getMoneyRequestParticipantsFromReport, initMoneyRequest, requestMoney, trackExpense, updateLastLocationPermissionPrompt} from '@libs/actions/IOU';
@@ -55,6 +58,20 @@ function SubmitDetailsPage({
 
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+
+    const {isBetaEnabled} = usePermissions();
+    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
+
+    const [validFilesToUpload, setValidFilesToUpload] = useState<FileObject[]>([]);
+    const {validateFiles} = useFilesValidation(setValidFilesToUpload);
+
+    useEffect(() => {
+        if (!currentAttachment || validFilesToUpload.length !== 0) {
+            return;
+        }
+
+        validateFiles([{name: currentAttachment.id, uri: currentAttachment.content, type: currentAttachment.mimeType}]);
+    }, [currentAttachment, validFilesToUpload.length, validateFiles]);
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
@@ -138,6 +155,7 @@ function SubmitDetailsPage({
                     linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
                 },
+                shouldGenerateTransactionThreadReport,
             });
         }
     };
@@ -184,12 +202,13 @@ function SubmitDetailsPage({
             return;
         }
 
+        const validatedFile = validFilesToUpload.at(0);
         readFileAsync(
-            currentAttachment?.content ?? '',
-            getFileName(currentAttachment?.content ?? 'shared_image.png'),
+            validatedFile?.uri ?? '',
+            getFileName(validatedFile?.name ?? 'shared_image.png'),
             (file) => onSuccess(file, shouldStartLocationPermissionFlow),
             () => {},
-            currentAttachment?.mimeType ?? 'image/jpeg',
+            validatedFile?.type ?? 'image/jpeg',
         );
     };
 
@@ -220,8 +239,8 @@ function SubmitDetailsPage({
                         iouComment={trimmedComment}
                         iouCategory={transaction?.category}
                         onConfirm={() => onConfirm(true)}
-                        receiptPath={currentAttachment?.content}
-                        receiptFilename={getFileName(currentAttachment?.content ?? '')}
+                        receiptPath={validFilesToUpload.at(0)?.uri}
+                        receiptFilename={getFileName(validFilesToUpload.at(0)?.name ?? '')}
                         reportID={reportOrAccountID}
                         shouldShowSmartScanFields={false}
                         isDistanceRequest={false}

@@ -24,8 +24,10 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
+import useIOUUtils from '@hooks/useIOUUtils';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,7 +40,7 @@ import getPlatform from '@libs/getPlatform';
 import type Platform from '@libs/getPlatform/types';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import HapticFeedback from '@libs/HapticFeedback';
-import {navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
+import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -90,6 +92,7 @@ function IOURequestStepScan({
 }: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
     const {isLoaderVisible, setIsLoaderVisible} = useFullScreenLoader();
     const device = useCameraDevice('back', {
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
@@ -117,6 +120,8 @@ function IOURequestStepScan({
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
     const [shouldShowMultiScanEducationalPopup, setShouldShowMultiScanEducationalPopup] = useState(false);
     const [cameraKey, setCameraKey] = useState(0);
+    const {shouldStartLocationPermissionFlow} = useIOUUtils();
+    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
 
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
@@ -339,11 +344,12 @@ function IOURequestStepScan({
                         },
                         shouldHandleNavigation: index === files.length - 1,
                         backToReport,
+                        shouldGenerateTransactionThreadReport,
                     });
                 }
             });
         },
-        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transactions],
+        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transactions, shouldGenerateTransactionThreadReport],
     );
 
     const navigateToConfirmationStep = useCallback(
@@ -602,7 +608,7 @@ function IOURequestStepScan({
             }
             navigateToConfirmationStep(files, false);
         },
-        [initialTransaction, iouType, navigateToConfirmationStep, shouldSkipConfirmation],
+        [shouldSkipConfirmation, navigateToConfirmationStep, initialTransaction, iouType, shouldStartLocationPermissionFlow],
     );
 
     const capturePhoto = useCallback(() => {

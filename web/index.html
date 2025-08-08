@@ -20,7 +20,7 @@
         <meta name="robots" content="noindex, nofollow">
     <% } %>
 
-    <% if (htmlWebpackPlugin.options.isWeb && (htmlWebpackPlugin.options.isStaging || htmlWebpackPlugin.options.isProduction)) { %>
+    <% if (htmlWebpackPlugin.options.isWeb) { %>
         <!-- begin Convert Experiences code-->
         <script type="text/javascript" src="//cdn-4.convertexperiments.com/v1/js/10042537-100413459.js">
         </script>
@@ -121,6 +121,7 @@
             align-items: center;
             transition-duration: 250ms;
             transition-property: opacity;
+            z-index: 10000; /* Ensure splash stays above third-party overlays like Convert survey */
         }
 
         .animation {

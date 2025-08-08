@@ -29,6 +29,7 @@ import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransact
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -98,7 +99,7 @@ function MoneyRequestReportTransactionList({
     useCopySelectionHelper();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -152,12 +153,12 @@ function MoneyRequestReportTransactionList({
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
         return [...transactions]
-            .sort((a, b) => compareValues(a[getTransactionKey(a, sortBy)], b[getTransactionKey(b, sortBy)], sortOrder, sortBy))
+            .sort((a, b) => compareValues(a[getTransactionKey(a, sortBy)], b[getTransactionKey(b, sortBy)], sortOrder, sortBy, localeCompare))
             .map((transaction) => ({
                 ...transaction,
                 shouldBeHighlighted: newTransactions?.includes(transaction),
             }));
-    }, [newTransactions, sortBy, sortOrder, transactions]);
+    }, [newTransactions, sortBy, sortOrder, transactions, localeCompare]);
 
     const navigateToTransaction = useCallback(
         (activeTransactionID: string) => {
@@ -282,6 +283,7 @@ function MoneyRequestReportTransactionList({
                         <MoneyRequestReportTransactionItem
                             key={transaction.transactionID}
                             transaction={transaction}
+                            report={report}
                             isSelectionModeEnabled={isMobileSelectionModeEnabled}
                             toggleTransaction={toggleTransaction}
                             isSelected={isTransactionSelected(transaction.transactionID)}
@@ -299,15 +301,18 @@ function MoneyRequestReportTransactionList({
             {shouldShowBreakdown && (
                 <View style={[styles.dFlex, styles.alignItemsEnd, listHorizontalPadding, styles.gap2, styles.mb2]}>
                     {[
-                        {text: translate('cardTransactions.outOfPocket'), value: formattedOutOfPocketAmount},
-                        {text: translate('cardTransactions.companySpend'), value: formattedCompanySpendAmount},
+                        {text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount},
+                        {text: 'cardTransactions.companySpend', value: formattedCompanySpendAmount},
                     ].map(({text, value}) => (
-                        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}>
+                        <View
+                            key={text}
+                            style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}
+                        >
                             <Text
                                 style={[styles.textLabelSupporting, styles.mr3]}
                                 numberOfLines={1}
                             >
-                                {text}
+                                {translate(text as TranslationPaths)}
                             </Text>
                             <Text
                                 numberOfLines={1}
