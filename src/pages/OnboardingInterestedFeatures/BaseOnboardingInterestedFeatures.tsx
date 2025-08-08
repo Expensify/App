@@ -31,7 +31,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
 import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import closeReactNativeApp from '@userActions/HybridApp';
+import {closeReactNativeApp} from '@userActions/HybridApp';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -152,7 +152,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         }
 
         if (CONFIG.IS_HYBRID_APP) {
-            closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+            closeReactNativeApp({shouldSetNVP: true});
             setRootStatusBarEnabled(false);
             return;
         }
