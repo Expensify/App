@@ -77,7 +77,7 @@ function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>,
             return false;
         }
         const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-        return !isDeletedParentAction(action) && !isDeletedAction(action);
+        return !isDeletedParentAction(action) && (reportActions.length === 0 || !isDeletedAction(action));
     });
 }
 
