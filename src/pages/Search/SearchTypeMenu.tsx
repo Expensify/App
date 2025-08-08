@@ -277,7 +277,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                     <View>
                         <Text style={styles.sectionTitle}>{translate('search.savedSearchesMenuItemTitle')}</Text>
                         {renderSavedSearchesSection(savedSearchesMenuItems)}
-                        <DeleteConfirmModal />
+                        {DeleteConfirmModal}
                     </View>
                 )}
             </View>
