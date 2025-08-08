@@ -2511,9 +2511,7 @@ function openPolicyReceiptPartnersPage(policyID?: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    // TODO uncomment this when ToggleReceiptPartners API will be ready
-                    // isLoading: true,
-                    isLoading: false,
+                    isLoading: true,
                 },
             },
         ],
