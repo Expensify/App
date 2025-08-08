@@ -24,7 +24,6 @@ import containerComposeStyles from './containerComposeStyles';
 import createModalStyleUtils from './generators/ModalStyleUtils';
 import createReportActionContextMenuStyleUtils from './generators/ReportActionContextMenuStyleUtils';
 import createTooltipStyleUtils from './generators/TooltipStyleUtils';
-import getAmountInputLineHeightStyle from './getAmountInputLineHeightStyles';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
 import getHighResolutionInfoWrapperStyle from './getHighResolutionInfoWrapperStyle';
 import getMoneyRequestReportPreviewStyle from './getMoneyRequestReportPreviewStyle';
@@ -1341,7 +1340,6 @@ const staticStyleUtils = {
     getItemBackgroundColorStyle,
     getNavigationBarType,
     getSuccessReportCardLostIllustrationStyle,
-    getAmountInputLineHeightStyle,
     getOptionMargin,
 };
 
