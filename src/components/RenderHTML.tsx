@@ -15,9 +15,12 @@ type RenderHTMLProps = {
 function RenderHTML({html: htmlParam}: RenderHTMLProps) {
     const {windowWidth} = useWindowDimensions();
     const html = useMemo(() => {
-        // Sanitize emoji characters already wrapped in <emoji> tags to prevent double-tagging.
-        const sanitizedHtml = htmlParam.replaceAll(/<\/?emoji>/g, '');
-        return Parser.replace(sanitizedHtml, {shouldEscapeText: false, filterRules: ['emoji']});
+        return (
+            Parser.replace(htmlParam, {shouldEscapeText: false, filterRules: ['emoji']})
+                // Remove double <emoji> tag if exists and keep the outermost tag (always the original tag).
+                .replace(/(<emoji[^>]*>)(?:<emoji[^>]*>)+/g, '$1')
+                .replace(/(<\/emoji[^>]*>)(?:<\/emoji[^>]*>)+/g, '$1')
+        );
     }, [htmlParam]);
     return (
         <RenderHTMLSource
