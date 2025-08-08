@@ -88,7 +88,7 @@ type Response = {
     hasNewerActions?: boolean;
 
     /** The oldest unread report action ID */
-    oldestUnreadReportActionID?: string;
+    oldestUnreadReportActionID?: string | null;
 
     /** The email of the original user (returned when in delegate mode) */
     requesterEmail?: string;
