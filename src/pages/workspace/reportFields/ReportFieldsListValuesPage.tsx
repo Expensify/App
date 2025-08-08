@@ -126,10 +126,10 @@ function ReportFieldsListValuesPage({
                 text: value,
                 keyForList: value,
                 isSelected: selectedValues[value] && canSelectMultiple,
-                enabled: !disabledListValues.at(index) ?? true,
+                enabled: !disabledListValues.at(index),
                 rightElement: (
                     <Switch
-                        isOn={!disabledListValues.at(index) ?? true}
+                        isOn={!disabledListValues.at(index)}
                         accessibilityLabel={translate('workspace.distanceRates.trackTax')}
                         onToggle={(newValue: boolean) => updateReportFieldListValueEnabled(newValue, index)}
                     />
