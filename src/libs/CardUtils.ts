@@ -9,7 +9,6 @@ import type IllustrationsType from '@styles/theme/illustrations/types';
 import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, CurrencyList, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {FilteredCardList} from '@src/types/onyx/Card';
@@ -21,26 +20,6 @@ import {filterObject} from './ObjectUtils';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
 
-let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
-Onyx.connect({
-    key: ONYXKEYS.CARD_LIST,
-    callback: (val) => {
-        if (!val || Object.keys(val).length === 0) {
-            return;
-        }
-
-        allCards = val;
-    },
-});
-
-let customCardNames: OnyxEntry<Record<string, string>> = {};
-Onyx.connect({
-    key: ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES,
-    callback: (value) => {
-        customCardNames = value;
-    },
-});
-
 /**
  * @returns string with a month in MM format
  */
@@ -49,14 +28,10 @@ function getMonthFromExpirationDateString(expirationDateString: string) {
 }
 
 /**
- * @param cardID
+ * @param card
  * @returns boolean
  */
-function isExpensifyCard(cardID?: number) {
-    if (!cardID) {
-        return false;
-    }
-    const card = allCards[cardID];
+function isExpensifyCard(card?: Card) {
     if (!card) {
         return false;
     }
@@ -64,14 +39,10 @@ function isExpensifyCard(cardID?: number) {
 }
 
 /**
- * @param cardID
+ * @param card
  * @returns string in format %<bank> - <lastFourPAN || Not Activated>%.
  */
-function getCardDescription(cardID?: number, cards: CardList = allCards) {
-    if (!cardID) {
-        return '';
-    }
-    const card = cards[cardID];
+function getCardDescription(card?: Card) {
     if (!card) {
         return '';
     }
@@ -89,7 +60,7 @@ function getCardDescription(cardID?: number, cards: CardList = allCards) {
  * @returns company card name
  */
 function getCompanyCardDescription(transactionCardName?: string, cardID?: number, cards?: CardList) {
-    if (!cardID || isExpensifyCard(cardID) || !cards?.[cardID]) {
+    if (!cardID || !cards?.[cardID] || isExpensifyCard(cards[cardID])) {
         return transactionCardName;
     }
     const card = cards[cardID];
@@ -109,9 +80,9 @@ function isCardClosed(card: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.CLOSED;
 }
 
-function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList = allCards, shouldExcludeCardHiddenFromSearch = false) {
+function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList: CardList | undefined, shouldExcludeCardHiddenFromSearch = false) {
     const feedCards: CardList = {};
-    Object.values(cardList).forEach((card) => {
+    Object.values(cardList ?? {}).forEach((card) => {
         if (!isCard(card) || (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card))) {
             return;
         }
@@ -574,7 +545,7 @@ function getAllCardsForWorkspace(
         .map((key) => key.split('_').at(-1))
         .filter((id): id is string => !!id);
     for (const [key, values] of Object.entries(allCardList ?? {})) {
-        const isWorkspaceAccountCards = key.includes(workspaceAccountID.toString());
+        const isWorkspaceAccountCards = workspaceAccountID !== CONST.DEFAULT_NUMBER_ID && key.includes(workspaceAccountID.toString());
         const isCompanyDomainCards = companyCardsDomainFeeds?.some((domainFeed) => domainFeed.domainID && key.includes(domainFeed.domainID.toString()) && key.includes(domainFeed.feedName));
         const isExpensifyDomainCards = expensifyCardsDomainIDs.some((domainID) => key.includes(domainID.toString()) && key.includes(CONST.EXPENSIFY_CARD.BANK));
         if ((isWorkspaceAccountCards || isCompanyDomainCards || isExpensifyDomainCards) && values) {
@@ -677,10 +648,6 @@ function getFundIdFromSettingsKey(key: string) {
     return Number.isNaN(fundID) ? CONST.DEFAULT_NUMBER_ID : fundID;
 }
 
-function getCustomCardName(cardID: string) {
-    return customCardNames?.[cardID];
-}
-
 export {
     isExpensifyCard,
     getDomainCards,
@@ -730,5 +697,4 @@ export {
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
     getCorrectStepForPlaidSelectedBank,
-    getCustomCardName,
 };
