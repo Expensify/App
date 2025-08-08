@@ -10,6 +10,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {GetAdditionalSectionsCallback} from '@components/Search/SearchAutocompleteList';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
+import {useSearchContext} from '@components/Search/SearchContext';
 import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
 import type {SearchQueryString} from '@components/Search/types';
 import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
@@ -82,6 +83,7 @@ type SearchRouterProps = {
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed}: SearchRouterProps, ref: React.Ref<View>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {setShouldResetSearchQuery} = useSearchContext();
     const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const personalDetails = usePersonalDetails();
@@ -259,6 +261,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 return;
             }
 
+            // Reset the search query flag when performing a new search
+            setShouldResetSearchQuery(false);
+
             backHistory(() => {
                 onRouterClose();
                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
@@ -267,7 +272,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             setTextInputValue('');
             setAutocompleteQueryValue('');
         },
-        [autocompleteSubstitutions, onRouterClose, setTextInputValue],
+        [autocompleteSubstitutions, onRouterClose, setTextInputValue, setShouldResetSearchQuery],
     );
 
     const setTextAndUpdateSelection = useCallback(
