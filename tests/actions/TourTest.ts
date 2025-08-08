@@ -41,7 +41,7 @@ describe('actions/Tour', () => {
     describe('startTestDrive', () => {
         describe('migrated users', () => {
             it('should show the Test Drive demo if user has been nudged to migrate', async () => {
-                startTestDrive(undefined, false, true);
+                startTestDrive(undefined, false, true, false);
                 await waitForBatchedUpdates();
 
                 expect(Navigation.navigate).toBeCalledWith(ROUTES.TEST_DRIVE_DEMO_ROOT);
@@ -89,7 +89,7 @@ describe('actions/Tour', () => {
             it.each(onboardingChoices.filter((choice) => onboardingDemoChoices.includes(choice)))('should show the Test Drive demo if user has "%s" onboarding choice', async (choice) => {
                 await setTestDriveTaskData();
 
-                startTestDrive({choice}, false, false);
+                startTestDrive({choice}, false, false, false);
                 await waitForBatchedUpdates();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_DEMO_ROOT);
@@ -98,7 +98,7 @@ describe('actions/Tour', () => {
             });
 
             it.each(onboardingChoices.filter((choice) => !onboardingDemoChoices.includes(choice)))('should show the Test Drive modal if user has "%s" onboarding choice', async (choice) => {
-                startTestDrive({choice}, false, false);
+                startTestDrive({choice}, false, false, false);
                 await waitForBatchedUpdates();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
@@ -107,12 +107,19 @@ describe('actions/Tour', () => {
             it('should show the Test Drive demo if user is an invited employee', async () => {
                 await setTestDriveTaskData();
 
-                startTestDrive({choice: CONST.ONBOARDING_CHOICES.SUBMIT, inviteType: CONST.ONBOARDING_INVITE_TYPES.WORKSPACE}, false, false);
+                startTestDrive({choice: CONST.ONBOARDING_CHOICES.SUBMIT, inviteType: CONST.ONBOARDING_INVITE_TYPES.WORKSPACE}, false, false, false);
                 await waitForBatchedUpdates();
 
                 expect(Navigation.navigate).toBeCalledWith(ROUTES.TEST_DRIVE_DEMO_ROOT);
                 // An empty object means the task was completed.
                 expect(Object.values(getFinishOnboardingTaskOnyxData(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR)).length).toBe(0);
+            });
+
+            it('should show the Test Drive demo if user is admin of a paid policy', async () => {
+                startTestDrive({choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND}, false, false, true);
+                await waitForBatchedUpdates();
+
+                expect(Navigation.navigate).toBeCalledWith(ROUTES.TEST_DRIVE_DEMO_ROOT);
             });
         });
     });

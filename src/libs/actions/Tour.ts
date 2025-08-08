@@ -5,10 +5,11 @@ import ROUTES from '@src/ROUTES';
 import type {IntroSelected} from './Report';
 import {completeTestDriveTask} from './Task';
 
-function startTestDrive(introSelected: IntroSelected | undefined, shouldUpdateSelfTourViewedOnlyLocally = false, hasUserBeenAddedToNudgeMigration = false) {
+function startTestDrive(introSelected: IntroSelected | undefined, shouldUpdateSelfTourViewedOnlyLocally: boolean, hasUserBeenAddedToNudgeMigration: boolean, isUserPolicyAdmin: boolean) {
     InteractionManager.runAfterInteractions(() => {
         if (
             hasUserBeenAddedToNudgeMigration ||
+            isUserPolicyAdmin ||
             introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
             introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER ||
             introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ||
