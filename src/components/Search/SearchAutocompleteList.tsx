@@ -22,6 +22,7 @@ import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions} from '@lib
 import Performance from '@libs/Performance';
 import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import {getReportOrDraftReport, isChatReport} from '@libs/ReportUtils';
 import {
     getAutocompleteCategories,
     getAutocompleteRecentCategories,
@@ -125,12 +126,16 @@ function getItemHeight(item: OptionData | SearchQueryItem) {
 
 function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryListItemProps) {
     const styles = useThemeStyles();
+    const item = props.item;
+    const report = getReportOrDraftReport(item.reportID);
+    const shouldDisplayRBR = report && isChatReport(report) && !report.chatReportID;
 
     if (isSearchQueryListItem(props)) {
         return (
             <SearchQueryListItem
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
+                shouldDisplayRBR={shouldDisplayRBR}
             />
         );
     }
@@ -139,6 +144,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
             pressableStyle={[styles.br2, styles.ph3]}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
+            shouldDisplayRBR={shouldDisplayRBR}
         />
     );
 }
