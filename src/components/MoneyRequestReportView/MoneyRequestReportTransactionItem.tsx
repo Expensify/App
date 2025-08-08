@@ -1,11 +1,9 @@
 import React, {useEffect, useRef} from 'react';
 import type {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {TableColumnSize} from '@components/Search/types';
-import type {SortableColumnName} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
@@ -19,6 +17,17 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
+
+const allReportColumns = [
+    CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT,
+    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE,
+    CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE,
+    CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT,
+    CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY,
+    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG,
+    CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS,
+    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT,
+];
 
 type MoneyRequestReportTransactionItemProps = {
     /** The transaction that is being displayed */
@@ -51,16 +60,12 @@ type MoneyRequestReportTransactionItemProps = {
     /** The size of the tax amount column */
     taxAmountColumnSize: TableColumnSize;
 
-    /** Columns to show */
-    columns: SortableColumnName[];
-
     /** Callback function that scrolls to this transaction in case it is newly added */
     scrollToNewTransaction?: (offset: number) => void;
 };
 
 function MoneyRequestReportTransactionItem({
     transaction,
-    columns,
     report,
     isSelectionModeEnabled,
     toggleTransaction,
@@ -133,8 +138,9 @@ function MoneyRequestReportTransactionItem({
                     shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
                     shouldShowCheckbox={!!isSelectionModeEnabled || !isSmallScreenWidth}
                     onCheckboxPress={toggleTransaction}
-                    columns={columns as Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>}
+                    columns={allReportColumns}
                     isDisabled={isPendingDelete}
+                    style={[styles.p3]}
                 />
             </PressableWithFeedback>
         </OfflineWithFeedback>
