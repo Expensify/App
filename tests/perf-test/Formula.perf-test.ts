@@ -1,24 +1,25 @@
 import {measureFunction} from 'reassure';
 import {compute, extract, parse} from '@libs/Formula';
 import type {FormulaContext} from '@libs/Formula';
+import type {Policy, Report} from '@src/types/onyx';
 
 describe('[CustomFormula] Performance Tests', () => {
     const mockReport = {
         reportID: '123',
         reportName: 'Test Report',
-        total: -10000, // -$100.00
+        total: -10000,
         currency: 'USD',
         lastVisibleActionCreated: '2025-01-15T10:30:00Z',
         policyID: 'policy1',
-    };
+    } as Report;
 
     const mockPolicy = {
         name: 'Test Policy',
         id: 'policy1',
-    };
+    } as Policy;
 
     const mockContext: FormulaContext = {
-        report: mockReport as any,
+        report: mockReport,
         policy: mockPolicy,
     };
 
@@ -73,8 +74,8 @@ describe('[CustomFormula] Performance Tests', () => {
         test('[CustomFormula] compute() with missing data context', async () => {
             const formula = '{report:type} - {report:total} - {report:unknown} - {report:policyname}';
             const contextWithMissingData: FormulaContext = {
-                report: {} as any,
-                policy: null,
+                report: {} as Report,
+                policy: null as unknown as Policy,
             };
             await measureFunction(() => compute(formula, contextWithMissingData));
         });

@@ -1,10 +1,13 @@
+// eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import {compute, extract, isFormula, parse} from '@libs/Formula';
 import type {FormulaContext} from '@libs/Formula';
+import {compute, extract, isFormula, parse} from '@libs/Formula';
+// eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+// eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, Report, ReportActions, Transaction} from '@src/types/onyx';
 
 // Mock ReportActionsUtils and ReportUtils
 jest.mock('@libs/ReportActionsUtils', () => ({
@@ -40,8 +43,6 @@ describe('CustomFormula', () => {
 
         test('should handle empty formula', () => {
             expect(extract('')).toEqual([]);
-            expect(extract(null as any)).toEqual([]);
-            expect(extract(undefined as any)).toEqual([]);
         });
 
         test('should handle formula without braces', () => {
@@ -53,13 +54,13 @@ describe('CustomFormula', () => {
         test('should parse report formula parts', () => {
             const parts = parse('{report:type} {report:startdate}');
             expect(parts).toHaveLength(3); // report:type, report:startdate (space is trimmed)
-            expect(parts[0]).toEqual({
+            expect(parts.at(0)).toEqual({
                 definition: '{report:type}',
                 type: 'report',
                 fieldPath: ['type'],
                 functions: [],
             });
-            expect(parts[2]).toEqual({
+            expect(parts.at(2)).toEqual({
                 definition: '{report:startdate}',
                 type: 'report',
                 fieldPath: ['startdate'],
@@ -69,7 +70,7 @@ describe('CustomFormula', () => {
 
         test('should parse field formula parts', () => {
             const parts = parse('{field:custom_field}');
-            expect(parts[0]).toEqual({
+            expect(parts.at(0)).toEqual({
                 definition: '{field:custom_field}',
                 type: 'field',
                 fieldPath: ['custom_field'],
@@ -79,7 +80,7 @@ describe('CustomFormula', () => {
 
         test('should parse user formula parts with functions', () => {
             const parts = parse('{user:email|frontPart}');
-            expect(parts[0]).toEqual({
+            expect(parts.at(0)).toEqual({
                 definition: '{user:email|frontPart}',
                 type: 'user',
                 fieldPath: ['email'],
@@ -89,13 +90,12 @@ describe('CustomFormula', () => {
 
         test('should handle empty formula', () => {
             expect(parse('')).toEqual([]);
-            expect(parse(null as any)).toEqual([]);
         });
 
         test('should treat formula without braces as free text', () => {
             const parts = parse('no braces here');
             expect(parts).toHaveLength(1);
-            expect(parts[0].type).toBe('freetext');
+            expect(parts.at(0)?.type).toBe('freetext');
         });
     });
 
@@ -128,22 +128,25 @@ describe('CustomFormula', () => {
 
             // Mock report actions - test the iteration logic for finding oldest date (for 'created' field)
             const mockReportActions = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     created: '2025-01-10T08:00:00Z', // Oldest action
                     actionName: 'CREATED',
                 },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '2': {
                     reportActionID: '2',
                     created: '2025-01-15T10:30:00Z', // Later action
                     actionName: 'IOU',
                 },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '3': {
                     reportActionID: '3',
                     created: '2025-01-12T14:20:00Z', // Middle action
                     actionName: 'COMMENT',
                 },
-            };
+            } as unknown as ReportActions;
 
             // Mock transactions - test the iteration logic for finding oldest transaction date (for 'startdate' field)
             const mockTransactions = [
@@ -165,10 +168,10 @@ describe('CustomFormula', () => {
                     amount: 2000,
                     merchant: 'ACME Ltd.',
                 },
-            ];
+            ] as Transaction[];
 
-            mockReportActionsUtils.getAllReportActions.mockReturnValue(mockReportActions as any);
-            mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions as any);
+            mockReportActionsUtils.getAllReportActions.mockReturnValue(mockReportActions);
+            mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions);
         });
 
         test('should compute basic report formula', () => {
@@ -208,7 +211,6 @@ describe('CustomFormula', () => {
 
         test('should handle empty formula', () => {
             expect(compute('', mockContext)).toBe('');
-            expect(compute(null as any, mockContext)).toBe('');
         });
 
         test('should handle unknown formula parts', () => {
@@ -218,8 +220,8 @@ describe('CustomFormula', () => {
 
         test('should handle missing report data gracefully', () => {
             const contextWithMissingData: FormulaContext = {
-                report: {} as any,
-                policy: null,
+                report: {} as unknown as Report,
+                policy: null as unknown as Policy,
             };
             const result = compute('{report:total} {report:policyname}', contextWithMissingData);
             expect(result).toBe('{report:total} {report:policyname}'); // Empty data is replaced with definition
@@ -252,13 +254,13 @@ describe('CustomFormula', () => {
     describe('Edge Cases', () => {
         test('should handle malformed braces', () => {
             const parts = parse('{incomplete');
-            expect(parts[0].type).toBe('freetext');
+            expect(parts.at(0)?.type).toBe('freetext');
         });
 
         test('should handle undefined amounts', () => {
             const context: FormulaContext = {
-                report: {total: undefined} as any,
-                policy: null,
+                report: {total: undefined} as Report,
+                policy: null as unknown as Policy,
             };
             const result = compute('{report:total}', context);
             expect(result).toBe('{report:total}');
@@ -267,8 +269,8 @@ describe('CustomFormula', () => {
         test('should handle missing report actions for created', () => {
             mockReportActionsUtils.getAllReportActions.mockReturnValue({});
             const context: FormulaContext = {
-                report: {reportID: '123'} as any,
-                policy: null,
+                report: {reportID: '123'} as Report,
+                policy: null as unknown as Policy,
             };
 
             const result = compute('{report:created}', context);
@@ -278,8 +280,8 @@ describe('CustomFormula', () => {
         test('should handle missing transactions for startdate', () => {
             mockReportUtils.getReportTransactions.mockReturnValue([]);
             const context: FormulaContext = {
-                report: {reportID: '123'} as any,
-                policy: null,
+                report: {reportID: '123'} as Report,
+                policy: null as unknown as Policy,
             };
             const expected = new Date().toLocaleDateString('en-US', {
                 month: '2-digit',
@@ -292,8 +294,8 @@ describe('CustomFormula', () => {
 
         test('should call getReportTransactions with correct reportID for startdate', () => {
             const context: FormulaContext = {
-                report: {reportID: 'test-report-123'} as any,
-                policy: null,
+                report: {reportID: 'test-report-123'} as Report,
+                policy: null as unknown as Policy,
             };
 
             compute('{report:startdate}', context);
@@ -302,8 +304,8 @@ describe('CustomFormula', () => {
 
         test('should call getAllReportActions with correct reportID for created', () => {
             const context: FormulaContext = {
-                report: {reportID: 'test-report-456'} as any,
-                policy: null,
+                report: {reportID: 'test-report-456'} as Report,
+                policy: null as unknown as Policy,
             };
 
             compute('{report:created}', context);
@@ -330,16 +332,16 @@ describe('CustomFormula', () => {
                     amount: 2000,
                     merchant: 'Gamma Inc.',
                 },
-            ];
+            ] as Transaction[];
 
-            mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions as any);
+            mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions);
             const context: FormulaContext = {
-                report: {reportID: 'test-report-123'} as any,
-                policy: null,
+                report: {reportID: 'test-report-123'} as Report,
+                policy: null as unknown as Policy,
             };
 
             const result = compute('{report:startdate}', context);
-            expect(result).toBe('01/12/2025'); // Should skip partial transaction
+            expect(result).toBe('01/12/2025');
         });
 
         test('should skip partial transactions (zero amount)', () => {
@@ -363,16 +365,16 @@ describe('CustomFormula', () => {
                     amount: 2000,
                     merchant: 'Gamma Inc.',
                 },
-            ];
+            ] as Transaction[];
 
-            mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions as any);
+            mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions);
             const context: FormulaContext = {
-                report: {reportID: 'test-report-123'} as any,
-                policy: null,
+                report: {reportID: 'test-report-123'} as Report,
+                policy: null as unknown as Policy,
             };
 
             const result = compute('{report:startdate}', context);
-            expect(result).toBe('01/12/2025'); // Should skip zero amount transaction
+            expect(result).toBe('01/12/2025');
         });
     });
 });

@@ -342,3 +342,4 @@ function createUpdateContext(): Promise<UpdateContext> {
 }
 
 export {updateOptimisticReportNamesFromUpdates, computeReportNameIfNeeded, createUpdateContext, shouldComputeReportName};
+export type {UpdateContext};

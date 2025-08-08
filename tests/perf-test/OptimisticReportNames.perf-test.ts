@@ -2,16 +2,17 @@ import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import {computeReportNameIfNeeded, updateOptimisticReportNamesFromUpdates} from '@libs/OptimisticReportNames';
 import type {UpdateContext} from '@libs/OptimisticReportNames';
+// eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
 import * as ReportUtils from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type Report from '@src/types/onyx/Report';
+import type {OnyxKey} from '@src/ONYXKEYS';
+import type {Policy, Report} from '@src/types/onyx';
 import createCollection from '../utils/collections/createCollection';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Mock dependencies
 jest.mock('@libs/ReportUtils');
-jest.mock('@libs/Permissions');
 jest.mock('@libs/Performance', () => ({
     markStart: jest.fn(),
     markEnd: jest.fn(),
@@ -34,13 +35,14 @@ describe('[OptimisticReportNames] Performance Tests', () => {
         id: 'policy1',
         name: 'Test Policy',
         fieldList: {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             text_title: {
                 defaultValue: '{report:type} - {report:startdate} - {report:total} {report:currency}',
             },
         },
-    };
+    } as unknown as Policy;
 
-    const mockPolicies = createCollection(
+    const mockPolicies = createCollection<Policy>(
         (item) => `policy_${item.id}`,
         (index) => ({
             ...mockPolicy,
@@ -63,15 +65,15 @@ describe('[OptimisticReportNames] Performance Tests', () => {
     );
 
     const mockContext: UpdateContext = {
-        betas: ['authAutoReportTitles'],
+        betas: ['authAutoReportTitle'],
         allReports: mockReports,
         allPolicies: mockPolicies,
     };
 
-    beforeAll(async () => {
-        await Onyx.init({keys: ONYXKEYS});
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
         mockReportUtils.isExpenseReport.mockReturnValue(true);
-        mockReportUtils.getTitleReportField.mockReturnValue(mockPolicy.fieldList.text_title);
+        mockReportUtils.getTitleReportField.mockReturnValue(mockPolicy.fieldList?.text_title);
         await waitForBatchedUpdates();
     });
 
@@ -81,9 +83,9 @@ describe('[OptimisticReportNames] Performance Tests', () => {
 
     describe('Single Report Name Computation', () => {
         test('[OptimisticReportNames] computeReportNameIfNeeded() single report', async () => {
-            const report = Object.values(mockReports)[0];
+            const report = Object.values(mockReports).at(0);
             const update = {
-                key: `report_${report.reportID}`,
+                key: `report_${report?.reportID}` as OnyxKey,
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {total: -20000},
             };
@@ -95,7 +97,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
     describe('Batch Processing Performance', () => {
         test('[OptimisticReportNames] updateOptimisticReportNamesFromUpdates() with 10 new reports', async () => {
             const updates = Array.from({length: 10}, (_, i) => ({
-                key: `report_new${i}`,
+                key: `report_new${i}` as OnyxKey,
                 onyxMethod: Onyx.METHOD.SET,
                 value: {
                     reportID: `new${i}`,
@@ -110,8 +112,8 @@ describe('[OptimisticReportNames] Performance Tests', () => {
         });
 
         test('[OptimisticReportNames] updateOptimisticReportNamesFromUpdates() with 50 existing report updates', async () => {
-            const reportKeys = Object.keys(mockReports).slice(0, 50);
-            const updates = reportKeys.map((key, i) => ({
+            const reportKeys = Object.keys(mockReports).slice(0, 50) as OnyxKey[];
+            const updates = reportKeys.map((key) => ({
                 key,
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {total: -(Math.random() * 100000)},
@@ -122,7 +124,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
 
         test('[OptimisticReportNames] updateOptimisticReportNamesFromUpdates() with 100 mixed updates', async () => {
             const newReportUpdates = Array.from({length: 50}, (_, i) => ({
-                key: `report_batch${i}`,
+                key: `report_batch${i}` as OnyxKey,
                 onyxMethod: Onyx.METHOD.SET,
                 value: {
                     reportID: `batch${i}`,
@@ -136,7 +138,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             const existingReportUpdates = Object.keys(mockReports)
                 .slice(0, 50)
                 .map((key) => ({
-                    key,
+                    key: key as OnyxKey,
                     onyxMethod: Onyx.METHOD.MERGE,
                     value: {total: -(Math.random() * 125000)},
                 }));
@@ -150,7 +152,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
     describe('Policy Update Impact Performance', () => {
         test('[OptimisticReportNames] policy update affecting multiple reports', async () => {
             const policyUpdate = {
-                key: 'policy_policy1',
+                key: 'policy_policy1' as OnyxKey,
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {name: 'Updated Policy Name'},
             };
@@ -161,7 +163,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
 
         test('[OptimisticReportNames] multiple policy updates', async () => {
             const policyUpdates = Array.from({length: 10}, (_, i) => ({
-                key: `policy_policy${i}`,
+                key: `policy_policy${i}` as OnyxKey,
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {name: `Bulk Updated Policy ${i}`},
             }));
@@ -173,7 +175,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
     describe('Large Dataset Performance', () => {
         test('[OptimisticReportNames] processing with large context (1000 reports)', async () => {
             const updates = Array.from({length: 1000}, (_, i) => ({
-                key: `report_large${i}`,
+                key: `report_large${i}` as OnyxKey,
                 onyxMethod: Onyx.METHOD.SET,
                 value: {
                     reportID: `large${i}`,
@@ -190,7 +192,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
         test('[OptimisticReportNames] worst case: many irrelevant updates', async () => {
             // Create updates that won't trigger name computation to test filtering performance
             const irrelevantUpdates = Array.from({length: 100}, (_, i) => ({
-                key: `transaction_${i}`,
+                key: `transaction_${i}` as OnyxKey,
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {description: `Updated transaction ${i}`},
             }));
@@ -210,6 +212,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                         id: `policy${index}`,
                         name: `Policy ${index}`,
                         fieldList: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
                             text_title: {defaultValue: 'Static Title'}, // No formula
                         },
                     }),
@@ -218,7 +221,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             };
 
             const updates = Array.from({length: 20}, (_, i) => ({
-                key: `report_static${i}`,
+                key: `report_static${i}` as OnyxKey,
                 onyxMethod: Onyx.METHOD.SET,
                 value: {
                     reportID: `static${i}`,
@@ -233,13 +236,13 @@ describe('[OptimisticReportNames] Performance Tests', () => {
 
         test('[OptimisticReportNames] missing policies and reports', async () => {
             const contextWithMissingData: UpdateContext = {
-                betas: ['authAutoReportTitles'],
+                betas: ['authAutoReportTitle'],
                 allReports: {},
                 allPolicies: {},
             };
 
             const updates = Array.from({length: 10}, (_, i) => ({
-                key: `report_missing${i}`,
+                key: `report_missing${i}` as OnyxKey,
                 onyxMethod: Onyx.METHOD.SET,
                 value: {
                     reportID: `missing${i}`,
