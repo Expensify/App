@@ -3525,7 +3525,7 @@ const translations = {
         },
         receiptPartners: {
             uber: {
-                subtitle: 'Automate travel and meal delivery expenses across your organization.',
+                subtitle: '組織全体で出張費や食事の配達費を自動化します。',
             },
         },
         perDiem: {

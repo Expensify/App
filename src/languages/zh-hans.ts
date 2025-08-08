@@ -3483,7 +3483,7 @@ const translations = {
         },
         receiptPartners: {
             uber: {
-                subtitle: 'Automate travel and meal delivery expenses across your organization.',
+                subtitle: '自动化整个组织的差旅和送餐费用。',
             },
         },
         perDiem: {
