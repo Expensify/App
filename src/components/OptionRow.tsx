@@ -154,6 +154,8 @@ function OptionRow({
         subscriptColor = focusedBackgroundColor;
     }
 
+    const reportID = (option.iouReportID ?? option.reportID) || undefined;
+
     return (
         <Hoverable>
             {(hovered) => (
@@ -209,7 +211,8 @@ function OptionRow({
                                 {!!option.icons?.length && !!firstIcon && (
                                     <ReportActionAvatars
                                         subscriptAvatarBorderColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
-                                        reportID={option.iouReportID ?? option.reportID}
+                                        reportID={reportID}
+                                        accountIDs={!reportID && option.accountID ? [option.accountID] : []}
                                         size={CONST.AVATAR_SIZE.DEFAULT}
                                         secondaryAvatarContainerStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor)]}
                                         shouldShowTooltip={showTitleTooltip && shouldOptionShowTooltip(option)}
