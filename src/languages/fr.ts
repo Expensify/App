@@ -6138,7 +6138,7 @@ const translations = {
         genericUpdateReportFieldFailureMessage: 'Erreur inattendue lors de la mise à jour du champ. Veuillez réessayer plus tard.',
         genericUpdateReportNameEditFailureMessage: 'Erreur inattendue lors du renommage du rapport. Veuillez réessayer plus tard.',
         noActivityYet: 'Aucune activité pour le moment',
-        connectionSettings: 'Connection Settings',
+        connectionSettings: 'Paramètres de connexion',
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `modifié ${fieldName} de ${oldValue} à ${newValue}`,
@@ -6205,7 +6205,7 @@ const translations = {
                 leftTheChat: 'a quitté le chat',
             },
             error: {
-                invalidCredentials: 'Invalid credentials, please check the configuration of your connection.',
+                invalidCredentials: 'Identifiants invalides, veuillez vérifier la configuration de votre connexion.',
             },
         },
     },

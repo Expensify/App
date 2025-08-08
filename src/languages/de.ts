@@ -6125,7 +6125,7 @@ const translations = {
         genericUpdateReportFieldFailureMessage: 'Unerwarteter Fehler beim Aktualisieren des Feldes. Bitte versuchen Sie es später erneut.',
         genericUpdateReportNameEditFailureMessage: 'Unerwarteter Fehler beim Umbenennen des Berichts. Bitte versuchen Sie es später erneut.',
         noActivityYet: 'Noch keine Aktivität',
-        connectionSettings: 'Connection Settings',
+        connectionSettings: 'Verbindungseinstellungen',
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `geändert ${fieldName} von ${oldValue} zu ${newValue}`,
@@ -6192,7 +6192,7 @@ const translations = {
                 leftTheChat: 'hat den Chat verlassen',
             },
             error: {
-                invalidCredentials: 'Invalid credentials, please check the configuration of your connection.',
+                invalidCredentials: 'Ungültige Anmeldedaten, bitte überprüfen Sie die Konfiguration Ihrer Verbindung.',
             },
         },
     },

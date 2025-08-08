@@ -6117,7 +6117,7 @@ const translations = {
         genericUpdateReportFieldFailureMessage: 'Nieoczekiwany błąd podczas aktualizacji pola. Spróbuj ponownie później.',
         genericUpdateReportNameEditFailureMessage: 'Nieoczekiwany błąd podczas zmiany nazwy raportu. Proszę spróbować ponownie później.',
         noActivityYet: 'Brak aktywności',
-        connectionSettings: 'Connection Settings',
+        connectionSettings: 'Ustawienia połączenia',
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `zmieniono ${fieldName} z ${oldValue} na ${newValue}`,
@@ -6184,7 +6184,7 @@ const translations = {
                 leftTheChat: 'opuścił czat',
             },
             error: {
-                invalidCredentials: 'Invalid credentials, please check the configuration of your connection.',
+                invalidCredentials: 'Nieprawidłowe dane logowania, sprawdź konfigurację połączenia.',
             },
         },
     },

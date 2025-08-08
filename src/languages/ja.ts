@@ -6098,7 +6098,7 @@ const translations = {
         genericUpdateReportFieldFailureMessage: 'フィールドの更新中に予期しないエラーが発生しました。後でもう一度お試しください。',
         genericUpdateReportNameEditFailureMessage: 'レポートの名前変更中に予期しないエラーが発生しました。後でもう一度お試しください。',
         noActivityYet: 'まだ活動がありません',
-        connectionSettings: 'Connection Settings',
+        connectionSettings: '接続設定',
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `${fieldName}を${oldValue}から${newValue}に変更しました`,
@@ -6165,7 +6165,7 @@ const translations = {
                 leftTheChat: 'チャットを退出しました',
             },
             error: {
-                invalidCredentials: 'Invalid credentials, please check the configuration of your connection.',
+                invalidCredentials: '認証情報が無効です。接続の設定を確認してください。',
             },
         },
     },

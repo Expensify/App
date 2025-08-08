@@ -6020,7 +6020,7 @@ const translations = {
         genericUpdateReportFieldFailureMessage: '更新字段时出现意外错误。请稍后再试。',
         genericUpdateReportNameEditFailureMessage: '重命名报告时出现意外错误。请稍后再试。',
         noActivityYet: '暂无活动',
-        connectionSettings: 'Connection Settings',
+        connectionSettings: '连接设置',
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `将${fieldName}从${oldValue}更改为${newValue}`,
@@ -6083,7 +6083,7 @@ const translations = {
                 leftTheChat: '离开了聊天',
             },
             error: {
-                invalidCredentials: 'Invalid credentials, please check the configuration of your connection.',
+                invalidCredentials: '凭证无效，请检查您的连接配置。',
             },
         },
     },
