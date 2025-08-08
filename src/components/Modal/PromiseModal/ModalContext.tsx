@@ -1,8 +1,6 @@
-import {produce} from 'immer';
-import type {DeferredPromise} from 'p-defer';
-import pDefer from 'p-defer';
 import React, {useCallback, useContext, useMemo, useState} from 'react';
 import usePrevious from '@hooks/usePrevious';
+import createDeferredPromise from '@libs/createDeferredPromise';
 
 const noop = () => {};
 
@@ -32,7 +30,7 @@ type ModalInfo = {
     id: string;
     component: React.FunctionComponent<ModalProps>;
     props?: Record<string, unknown>;
-    deferred: DeferredPromise<PromiseResolvePayload>;
+    deferred: ReturnType<typeof createDeferredPromise<PromiseResolvePayload>>;
     closeable: boolean;
 };
 
@@ -48,14 +46,12 @@ function PromiseModalProvider({children}: {children: React.ReactNode}) {
                 return existingModal.deferred.promise;
             }
 
-            const deferred = pDefer<PromiseResolvePayload>();
+            const deferred = createDeferredPromise<PromiseResolvePayload>();
 
-            setState((prevState) =>
-                produce(prevState, (draft) => {
-                    draft.modals.push({component: component as React.FunctionComponent<ModalProps>, props, deferred, closeable, id: id ?? String(modalId++)});
-                    return draft;
-                }),
-            );
+            setState((prevState) => ({
+                ...prevState,
+                modals: [...prevState.modals, {component: component as React.FunctionComponent<ModalProps>, props, deferred, closeable, id: id ?? String(modalId++)}],
+            }));
 
             return deferred.promise;
         },
@@ -63,13 +59,14 @@ function PromiseModalProvider({children}: {children: React.ReactNode}) {
     );
 
     const closeModal = useCallback<ModalContextType['closeModal']>((data = {action: 'CLOSE'}) => {
-        setState((prevState) =>
-            produce(prevState, (draft) => {
-                const lastModal = draft.modals.pop();
-                lastModal?.deferred.resolve(data);
-                return draft;
-            }),
-        );
+        setState((prevState) => {
+            const lastModal = prevState.modals.at(-1);
+            lastModal?.deferred.resolve(data);
+            return {
+                ...prevState,
+                modals: prevState.modals.slice(0, -1),
+            };
+        });
     }, []);
 
     const modalToRender = state.modals.length > 0 ? state.modals.at(state.modals.length - 1) : null;
