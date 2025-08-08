@@ -48,6 +48,8 @@ import {
     getReportStatusTranslation,
     getTransactionsWithReceipts,
     hasHeldExpenses as hasHeldExpensesReportUtils,
+    hasReportBeenReopened as hasReportBeenReopenedUtils,
+    hasReportBeenRetracted as hasReportBeenRetractedUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasOnlyTransactionsWithPendingRoutes as hasOnlyTransactionsWithPendingRoutesReportUtils,
@@ -186,15 +188,14 @@ function MoneyRequestReportPreviewContent({
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {canBeMissing: true});
 
-    const hasReportBeenReopened = iouReport?.hasReportBeenReopened ?? false;
-    const hasReportBeenRetracted = iouReport?.hasReportBeenRetracted ?? false;
+    const hasReportBeenRetracted = hasReportBeenReopenedUtils(iouReport, reportActions) || hasReportBeenRetractedUtils(iouReport, reportActions);
 
     // The submit button should be success green color only if the user is submitter and the policy does not have Scheduled Submit turned on
     // Or if the report has been reopened or retracted
     const isWaitingForSubmissionFromCurrentUser = useMemo(() => {
-        const isOwnAndReportHasBeenRetracted = isReportOwner(iouReport) && (hasReportBeenRetracted || hasReportBeenReopened);
+        const isOwnAndReportHasBeenRetracted = isReportOwner(iouReport) && hasReportBeenRetracted;
         return isOwnAndReportHasBeenRetracted || isWaitingForSubmissionFromCurrentUserReportUtils(chatReport, policy);
-    }, [chatReport, policy, hasReportBeenReopened, hasReportBeenRetracted, iouReport]);
+    }, [chatReport, policy, hasReportBeenRetracted, iouReport]);
 
     const confirmPayment = useCallback(
         (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {

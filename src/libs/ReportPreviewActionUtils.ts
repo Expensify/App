@@ -17,6 +17,8 @@ import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
     getReportTransactions,
+    hasReportBeenReopened as hasReportBeenReopenedUtils,
+    hasReportBeenRetracted as hasReportBeenRetractedUtils,
     hasAnyViolations as hasAnyViolationsUtil,
     hasMissingSmartscanFields,
     isClosedReport,
@@ -45,7 +47,7 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
     const isOpen = isOpenReport(report);
     const isManager = report.managerID === getCurrentUserAccountID();
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const hasBeenReopened = report.hasReportBeenReopened ?? false;
+    const hasBeenRetracted = hasReportBeenReopenedUtils(report) || hasReportBeenRetractedUtils(report);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
 
     if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
@@ -63,8 +65,8 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
 
     const baseCanSubmit = isExpense && (isSubmitter || isManager || isAdmin) && isOpen && !hasAnyViolations && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
 
-    // If a report has been reopened, we allow submission regardless of the auto reporting frequency.
-    if (baseCanSubmit && hasBeenReopened) {
+    // If a report has been retracted, we allow submission regardless of the auto reporting frequency.
+    if (baseCanSubmit && hasBeenRetracted) {
         return true;
     }
 
