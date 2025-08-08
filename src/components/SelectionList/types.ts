@@ -12,7 +12,7 @@ import type {
     TextStyle,
     ViewStyle,
 } from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType, SearchGroupBy} from '@components/Search/types';
@@ -22,7 +22,7 @@ import type SpendCategorySelectorListItem from '@pages/workspace/categories/Spen
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
-import type {Policy, Report, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, TransactionViolation} from '@src/types/onyx';
 import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchCard, SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -219,6 +219,9 @@ type ListItem<K extends string | number = string> = {
 
 type TransactionListItemType = ListItem &
     SearchTransaction & {
+        /** Report to which the transaction belongs */
+        report: Report;
+
         /** The personal details of the user requesting money */
         from: SearchPersonalDetails;
 
@@ -243,9 +246,6 @@ type TransactionListItemType = ListItem &
         /** Whether we should show the merchant column */
         shouldShowMerchant: boolean;
 
-        /** Whether the description column should be shown */
-        shouldShowDescription: boolean;
-
         /** Whether we should show the category column */
         shouldShowCategory: boolean;
 
@@ -254,12 +254,6 @@ type TransactionListItemType = ListItem &
 
         /** Whether we should show the tax column */
         shouldShowTax: boolean;
-
-        /** Whether we should show the From column */
-        shouldShowFrom: boolean;
-
-        /** Whether we should show the to column */
-        shouldShowTo: boolean;
 
         /** Whether we should show the transaction year.
          * This is true if at least one transaction in the dataset was created in past years
@@ -463,7 +457,6 @@ type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Whether the item's action is loading */
     isLoading?: boolean;
-    columns?: SortableColumnName[];
 };
 
 type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -474,7 +467,6 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     groupBy?: SearchGroupBy;
     policies?: OnyxCollection<Policy>;
-    columns?: SortableColumnName[];
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -488,6 +480,18 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
     /** The report data */
     report?: Report;
+
+    /** The user wallet tierName */
+    userWalletTierName: string | undefined;
+
+    /** Whether the user is validated */
+    isUserValidated: boolean | undefined;
+
+    /** Personal details list */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+
+    /** User billing fund ID */
+    userBillingFundID: number | undefined;
 };
 
 type ValidListItem =
@@ -516,6 +520,12 @@ type Section<TItem extends ListItem> = {
 
     /** Whether this section should be shown or not */
     shouldShow?: boolean;
+};
+
+type LoadingPlaceholderComponentProps = {
+    shouldStyleAsTable?: boolean;
+    fixedNumItems?: number;
+    speed?: number;
 };
 
 type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
@@ -642,6 +652,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to show the loading placeholder */
     showLoadingPlaceholder?: boolean;
+
+    /** The component to show when the list is loading */
+    LoadingPlaceholderComponent?: React.ComponentType<LoadingPlaceholderComponentProps>;
 
     /** Whether to show the default confirm button */
     showConfirmButton?: boolean;

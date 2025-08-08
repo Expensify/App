@@ -27,6 +27,13 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [reportMetadata = CONST.DEFAULT_REPORT_METADATA] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: true});
 
+    // If we have a merge transaction, we need to use the receipt from the merge transaction
+    const mergeTransactionID = route.params.mergeTransactionID;
+    const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, {canBeMissing: true});
+    if (mergeTransactionID && mergeTransaction && transactionMain) {
+        transactionMain.receipt = mergeTransaction.receipt;
+    }
+
     const isDraftTransaction = !!action;
     const transaction = isDraftTransaction ? transactionDraft : transactionMain;
     const receiptURIs = getThumbnailAndImageURIs(transaction);
