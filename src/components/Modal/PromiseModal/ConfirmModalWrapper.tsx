@@ -1,38 +1,11 @@
 import React from 'react';
+import type {ConfirmModalProps} from '@components/ConfirmModal';
 import ConfirmModal from '@components/ConfirmModal';
 import type {ModalProps} from './ModalContext';
 
-type ConfirmModalWrapperProps = ModalProps & {
-    /** Title of the modal */
-    title?: string;
-    /** Modal content text/element */
-    prompt?: string | React.ReactNode;
-    /** Confirm button text */
-    confirmText?: string;
-    /** Cancel button text */
-    cancelText?: string;
-    /** Whether we should use the success button color */
-    success?: boolean;
-    /** Is the action destructive */
-    danger?: boolean;
-    /** Whether we should disable the confirm button when offline */
-    shouldDisableConfirmButtonWhenOffline?: boolean;
-    /** Whether we should show the cancel button */
-    shouldShowCancelButton?: boolean;
-    /** Should we announce the Modal visibility changes? */
-    shouldSetModalVisibility?: boolean;
-    /** Whether to show the dismiss icon */
-    shouldShowDismissIcon?: boolean;
-    /** Whether to center the icon / text content */
-    shouldCenterContent?: boolean;
-    /** Whether to stack the buttons */
-    shouldStackButtons?: boolean;
-    /** Whether to reverse the order of the stacked buttons */
-    shouldReverseStackedButtons?: boolean;
-    /** Whether the confirm button is loading */
-    isConfirmLoading?: boolean;
-};
+type ConfirmModalWrapperProps = ModalProps & Omit<ConfirmModalProps, 'onConfirm' | 'onCancel' | 'isVisible'>;
 
+// This wrapper component can be removed after migrating all the ConfirmModal components to use the promise-based modal architecture
 function ConfirmModalWrapper({
     closeModal,
     title = '',

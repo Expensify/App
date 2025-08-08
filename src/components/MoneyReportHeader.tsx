@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
@@ -129,23 +128,18 @@ type MoneyReportHeaderProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Array of report actions for the report */
-    // eslint-disable-next-line react/no-unused-prop-types
     reportActions: OnyxTypes.ReportAction[];
 
     /** The reportID of the transaction thread report associated with this current report, if any */
-    // eslint-disable-next-line react/no-unused-prop-types
     transactionThreadReportID: string | undefined;
 
     /** whether we are loading report data in openReport command */
-    // eslint-disable-next-line react/no-unused-prop-types
     isLoadingInitialReportActions?: boolean;
 
     /** Whether back button should be displayed in header */
-    // eslint-disable-next-line react/no-unused-prop-types
     shouldDisplayBackButton?: boolean;
 
     /** Method to trigger when pressing close button of the header */
-    // eslint-disable-next-line react/no-unused-prop-types
     onBackButtonPress: () => void;
 };
 
