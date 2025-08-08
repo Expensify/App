@@ -9483,7 +9483,7 @@ function canSubmitReport(
         transactions.length > 0;
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? [];
     const hasBeenRetracted = hasReportBeenReopened(report, reportActions) || hasReportBeenRetracted(report, reportActions);
-    if (baseCanSubmit && hasBeenReopened) {
+    if (baseCanSubmit && hasBeenRetracted) {
         return true;
     }
 
