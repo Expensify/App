@@ -49,6 +49,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
                     title={pan}
                     interactive={false}
                     copyValue={pan}
+                    copiable
                 />
             )}
             {expiration?.length > 0 && (
@@ -56,6 +57,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
                     description={translate('cardPage.cardDetails.expiration')}
                     title={expiration}
                     interactive={false}
+                    copiable
                 />
             )}
             {cvv?.length > 0 && (
@@ -63,6 +65,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
                     description={translate('cardPage.cardDetails.cvv')}
                     title={cvv}
                     interactive={false}
+                    copiable
                 />
             )}
             {pan?.length > 0 && (
