@@ -45,6 +45,7 @@ function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, o
             isVisible={isVisible}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
+            shouldUseReanimatedModal
         >
             <View style={[styles.m5]}>
                 <View>
