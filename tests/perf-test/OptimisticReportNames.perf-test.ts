@@ -6,7 +6,7 @@ import type {UpdateContext} from '@libs/OptimisticReportNames';
 import * as ReportUtils from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxKey} from '@src/ONYXKEYS';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
 import createCollection from '../utils/collections/createCollection';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -71,7 +71,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
         allReportNameValuePairs: {},
     };
 
-    beforeAll(() => {
+    beforeAll(async () => {
         Onyx.init({keys: ONYXKEYS});
         mockReportUtils.isExpenseReport.mockReturnValue(true);
         mockReportUtils.getTitleReportField.mockReturnValue(mockPolicy.fieldList?.text_title);
@@ -209,14 +209,27 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 ...mockContext,
                 allPolicies: createCollection(
                     (item) => `policy_${item.id}`,
-                    (index) => ({
-                        id: `policy${index}`,
-                        name: `Policy ${index}`,
-                        fieldList: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            text_title: {defaultValue: 'Static Title'}, // No formula
-                        },
-                    }),
+                    (index) =>
+                        ({
+                            id: `policy${index}`,
+                            name: `Policy ${index}`,
+                            fieldList: {
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                text_title: {
+                                    name: 'Title',
+                                    defaultValue: 'Static Title',
+                                    fieldID: 'text_title',
+                                    orderWeight: 0,
+                                    type: 'text' as const,
+                                    deletable: true,
+                                    values: [],
+                                    keys: [],
+                                    externalIDs: [],
+                                    disabledOptions: [],
+                                    isTax: false,
+                                },
+                            },
+                        }) as unknown as Policy,
                     50,
                 ),
                 allReportNameValuePairs: {},

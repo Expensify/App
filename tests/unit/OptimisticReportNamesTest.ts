@@ -175,7 +175,7 @@ describe('OptimisticReportNames', () => {
 
             const result = updateOptimisticReportNamesFromUpdates(updates, mockContext);
             expect(result).toHaveLength(2); // Original + name update
-            expect(result.at(1).value).toEqual({reportName: 'Expense Report - $250.00'});
+            expect(result.at(1)?.value).toEqual({reportName: 'Expense Report - $250.00'});
         });
 
         test('should handle policy updates affecting multiple reports', () => {

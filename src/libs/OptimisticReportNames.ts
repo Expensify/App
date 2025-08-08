@@ -1,7 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import ONYXKEYS, {OnyxKey} from '@src/ONYXKEYS';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import Timing from './actions/Timing';
@@ -112,8 +112,8 @@ function getReportByTransactionID(): Report | undefined {
 /**
  * Generate the Onyx key for a report
  */
-function getReportKey(reportID: string): string {
-    return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+function getReportKey(reportID: string): OnyxKey {
+    return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as OnyxKey;
 }
 
 /**
