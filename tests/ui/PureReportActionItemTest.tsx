@@ -18,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
+import type {TranslationPaths} from '@src/languages/types';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -101,40 +102,57 @@ describe('PureReportActionItem', () => {
     }
 
     describe('Automatic actions', () => {
-        it('APPROVED action via workspace rules', async () => {
-            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.APPROVED, {automaticAction: true});
+        const testCases = [
+            {
+                testTitle: 'APPROVED action via workspace rules',
+                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                originalMessageExtras: {automaticAction: true},
+                translationKey: 'iou.automaticallyApproved',
+            },
+            {
+                testTitle: 'FORWARDED action via workspace rules',
+                actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                originalMessageExtras: {automaticAction: true},
+                translationKey: 'iou.automaticallyForwarded',
+            },
+            {
+                testTitle: 'SUBMITTED action via harvesting',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                originalMessageExtras: {harvesting: true},
+                translationKey: 'iou.automaticallySubmitted',
+            },
+            {
+                testTitle: 'SUBMITTED_AND_CLOSED action via harvesting',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                originalMessageExtras: {harvesting: true},
+                translationKey: 'iou.automaticallySubmitted',
+            },
+        ];
+
+        const parseTextWithTrailingLink = (translatedText: string) => {
+            const match = translatedText.match(/^(.*?)(<a[^>]*>)(.*?)(<\/a>)$/);
+            if (!match) {
+                return null;
+            }
+            const [, textBeforeLink, , linkText] = match;
+            return {textBeforeLink, linkText};
+        }
+
+        it.each(testCases)('$testTitle', async ({actionName, originalMessageExtras, translationKey}) => {
+            const action = createReportAction(actionName, originalMessageExtras);
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText('approved via')).toBeOnTheScreen();
-        });
 
-        it('FORWARDED action via workspace rules', async () => {
-            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED, {automaticAction: true});
-            renderItemWithAction(action);
-            await waitForBatchedUpdatesWithAct();
+            const parsedText = parseTextWithTrailingLink(translateLocal(translationKey as TranslationPaths));
+            if (!parsedText) {
+                throw new Error("Text cannot be parsed, translation failed");
+            }
 
-            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText('approved via')).toBeOnTheScreen();
-        });
-
-        it('SUBMITTED action via harvesting', async () => {
-            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {harvesting: true});
-            renderItemWithAction(action);
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText('submitted via')).toBeOnTheScreen();
-        });
-
-        it('SUBMITTED_AND_CLOSED action via harvesting', async () => {
-            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, {harvesting: true});
-            renderItemWithAction(action);
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText('submitted via')).toBeOnTheScreen();
+            const {textBeforeLink, linkText} = parsedText;
+            expect(screen.getByText(textBeforeLink)).toBeOnTheScreen();
+            expect(screen.getByText(linkText)).toBeOnTheScreen();
         });
     });
 
