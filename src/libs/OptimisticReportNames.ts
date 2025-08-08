@@ -47,7 +47,7 @@ function getPolicyIDFromKey(key: string): string {
 /**
  * Extract transaction ID from an Onyx key
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- this will be used in near futur
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- this will be used in near future
 function getTransactionIDFromKey(key: string): string {
     return key.replace(ONYXKEYS.COLLECTION.TRANSACTION, '');
 }
