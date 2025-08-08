@@ -25,7 +25,7 @@ function CustomCloseDateSelectionList({initiallySelectedDay, onConfirmSelectedDa
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [error, setError] = useState<string | undefined>(undefined);
 
-    const sections = useMemo(() => {
+    const {sections, headerMessage} = useMemo(() => {
         const data = CONST.DATE.MONTH_DAYS.reduce<CustomCloseDateListItem[]>((days, dayValue) => {
             const day = {
                 value: dayValue,
@@ -45,8 +45,11 @@ function CustomCloseDateSelectionList({initiallySelectedDay, onConfirmSelectedDa
             return days;
         }, []);
 
-        return [{data, indexOffset: 0}];
-    }, [selectedDay, debouncedSearchValue]);
+        return {
+            sections: [{data, indexOffset: 0}],
+            headerMessage: data.length === 0 ? translate('common.noResultsFound') : undefined,
+        };
+    }, [selectedDay, debouncedSearchValue, translate]);
 
     const selectDayAndClearError = useCallback((item: CustomCloseDateListItem) => {
         setSelectedDay(item.value);
@@ -80,6 +83,7 @@ function CustomCloseDateSelectionList({initiallySelectedDay, onConfirmSelectedDa
             textInputLabel={translate('common.search')}
             textInputValue={searchValue}
             onChangeText={setSearchValue}
+            headerMessage={headerMessage}
         >
             {!!error && (
                 <FormHelpMessage
