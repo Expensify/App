@@ -2984,7 +2984,7 @@ function getGroupChatName(
     }
 
     return translateLocal('groupChat.defaultReportName', {
-        displayName: getDisplayNameForParticipant({formatPhoneNumber: formatPhoneNumberPhoneUtils, accountID: participantAccountIDs.at(0)}),
+        displayName: getDisplayNameForParticipant({formatPhoneNumber, accountID: participantAccountIDs.at(0)}),
     });
 }
 
