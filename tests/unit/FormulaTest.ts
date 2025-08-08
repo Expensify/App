@@ -9,7 +9,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {Policy, Report, ReportActions, Transaction} from '@src/types/onyx';
 
-// Mock ReportActionsUtils and ReportUtils
 jest.mock('@libs/ReportActionsUtils', () => ({
     getAllReportActions: jest.fn(),
 }));
@@ -53,7 +52,7 @@ describe('CustomFormula', () => {
     describe('parse()', () => {
         test('should parse report formula parts', () => {
             const parts = parse('{report:type} {report:startdate}');
-            expect(parts).toHaveLength(3); // report:type, report:startdate (space is trimmed)
+            expect(parts).toHaveLength(3);
             expect(parts.at(0)).toEqual({
                 definition: '{report:type}',
                 type: 'report',
@@ -118,7 +117,6 @@ describe('CustomFormula', () => {
         beforeEach(() => {
             jest.clearAllMocks();
 
-            // Mock getCurrencySymbol to return $ for USD
             mockCurrencyUtils.getCurrencySymbol.mockImplementation((currency: string) => {
                 if (currency === 'USD') {
                     return '$';
@@ -126,7 +124,6 @@ describe('CustomFormula', () => {
                 return currency;
             });
 
-            // Mock report actions - test the iteration logic for finding oldest date (for 'created' field)
             const mockReportActions = {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
@@ -148,7 +145,6 @@ describe('CustomFormula', () => {
                 },
             } as unknown as ReportActions;
 
-            // Mock transactions - test the iteration logic for finding oldest transaction date (for 'startdate' field)
             const mockTransactions = [
                 {
                     transactionID: 'trans1',
