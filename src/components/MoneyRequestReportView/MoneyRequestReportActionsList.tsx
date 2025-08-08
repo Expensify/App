@@ -737,6 +737,7 @@ function MoneyRequestReportActionsList({
             />
             <ConfirmModal
                 onConfirm={() => setIsExportWithTemplateModalVisible(false)}
+                onCancel={() => setIsExportWithTemplateModalVisible(false)}
                 isVisible={isExportWithTemplateModalVisible}
                 title={translate('export.exportInProgress')}
                 prompt={translate('export.conciergeWillSend')}

@@ -192,9 +192,10 @@ function SearchPage({route}: SearchPageProps) {
             const selectedReportIDs = Object.values(selectedReports).map((report) => report.reportID);
             const areFullReportsSelected = selectedTransactionReportIDs.length === selectedReportIDs.length && selectedTransactionReportIDs.every((id) => selectedReportIDs.includes(id));
             const groupByReports = queryJSON?.groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
+            const typeInvoice = queryJSON?.type === CONST.REPORT.TYPE.INVOICE;
 
             // Add the report level export if fully reports are selected and we're on the report page
-            if (groupByReports && areFullReportsSelected) {
+            if ((groupByReports || typeInvoice) && areFullReportsSelected) {
                 exportOptions.push({
                     text: translate('export.reportLevelExport'),
                     icon: Expensicons.Table,
@@ -705,6 +706,7 @@ function SearchPage({route}: SearchPageProps) {
                                 setIsExportWithTemplateModalVisible(false);
                                 clearSelectedTransactions(undefined, true);
                             }}
+                            onCancel={() => setIsExportWithTemplateModalVisible(false)}
                             title={translate('export.exportInProgress')}
                             prompt={translate('export.conciergeWillSend')}
                             confirmText={translate('common.buttonConfirm')}
@@ -799,6 +801,7 @@ function SearchPage({route}: SearchPageProps) {
                         setIsExportWithTemplateModalVisible(false);
                         clearSelectedTransactions(undefined, true);
                     }}
+                    onCancel={() => setIsExportWithTemplateModalVisible(false)}
                     title={translate('export.exportInProgress')}
                     prompt={translate('export.conciergeWillSend')}
                     confirmText={translate('common.buttonConfirm')}
