@@ -1,5 +1,6 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {FileObject} from './components/AttachmentModal';
 import type CONST from './CONST';
 import type {OnboardingAccounting} from './CONST';
 import type {OnboardingCompanySize} from './libs/actions/Welcome/OnboardingFlow';
@@ -497,6 +498,8 @@ const ONYXKEYS = {
 
     /** Temporary file to be shared from outside the app */
     SHARE_TEMP_FILE: 'shareTempFile',
+
+    SHARE_FILE_OBJECT: 'shareFileObject',
 
     /** Corpay fields to be used in the bank account creation setup */
     CORPAY_FIELDS: 'corpayFields',
@@ -1197,6 +1200,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CONCIERGE_REPORT_ID]: string;
     [ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS]: Participant;
     [ONYXKEYS.SHARE_TEMP_FILE]: OnyxTypes.ShareTempFile;
+    [ONYXKEYS.SHARE_FILE_OBJECT]: OnyxTypes.FileObject[];
     [ONYXKEYS.CORPAY_FIELDS]: OnyxTypes.CorpayFields;
     [ONYXKEYS.PRESERVED_USER_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: OnyxTypes.DismissedProductTraining;

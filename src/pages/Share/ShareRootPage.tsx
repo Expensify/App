@@ -5,9 +5,11 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabNavigatorSkeleton from '@components/Skeletons/TabNavigatorSkeleton';
 import TabSelector from '@components/TabSelector/TabSelector';
+import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addTempShareFile, clearShareData} from '@libs/actions/Share';
+import {addTempShareFile, addValidatedShareFile, clearShareData} from '@libs/actions/Share';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -15,6 +17,7 @@ import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import ShareActionHandler from '@libs/ShareActionHandlerModule';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ShareTempFile} from '@src/types/onyx';
 import getFileSize from './getFileSize';
@@ -33,6 +36,26 @@ function showErrorAlert(title: string, message: string) {
 }
 
 function ShareRootPage() {
+    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
+    const [validatedFile] = useOnyx(ONYXKEYS.SHARE_FILE_OBJECT, {canBeMissing: true});
+
+    const {validateFiles} = useFilesValidation(addValidatedShareFile);
+    const isTextShared = currentAttachment?.mimeType === 'txt';
+
+    const validateFilesWrapper = useCallback(() => {
+        if (!currentAttachment || isTextShared || validatedFile?.length !== 0) {
+            return;
+        }
+
+        validateFiles([
+            {
+                name: currentAttachment.id,
+                uri: currentAttachment.content,
+                type: currentAttachment.mimeType,
+            },
+        ]);
+    }, [currentAttachment, isTextShared, validatedFile, validateFiles]);
+
     const appState = useRef(AppState.currentState);
     const [isFileReady, setIsFileReady] = useState(false);
 
@@ -107,6 +130,7 @@ function ShareRootPage() {
         const subscription = AppState.addEventListener('change', (nextAppState) => {
             if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
                 handleProcessFiles();
+                validateFilesWrapper();
             }
 
             appState.current = nextAppState;
@@ -115,11 +139,12 @@ function ShareRootPage() {
         return () => {
             subscription.remove();
         };
-    }, [handleProcessFiles]);
+    }, [handleProcessFiles, validateFilesWrapper]);
 
     useEffect(() => {
         clearShareData();
         handleProcessFiles();
+        validateFilesWrapper();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
