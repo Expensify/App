@@ -198,7 +198,7 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
                     if (!destinationReservation) {
                         return '';
                     }
-                    return `${translate('travel.flightTo')} ${formatAirportInfo(destinationReservation?.reservation.end, true)}`;
+                    return `${translate('travel.flightTo')} ${formatAirportInfo(destinationReservation.reservation.end, true)}`;
                 }
                 case CONST.RESERVATION_TYPE.TRAIN:
                     if (reservations.length === 2 && firstReservation.start.shortName === lastReservation.end.shortName) {
