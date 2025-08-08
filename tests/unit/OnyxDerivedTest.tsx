@@ -17,6 +17,7 @@ import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const renderLocaleContextProvider = () => {
+    // @ts-expect-error TS2741: Property 'children' is missing
     render(<ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]} />);
 };
 

@@ -63,7 +63,8 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 type PersonalDetailsList = Record<string, PersonalDetails & OptionData>;
 
 const renderLocaleContextProvider = () => {
-    render(<ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]} />);
+    // @ts-expect-error TS2741: Property 'children' is missing
+    render(<ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}/>);
 };
 
 describe('OptionsListUtils', () => {
