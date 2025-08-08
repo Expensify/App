@@ -98,7 +98,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             }
         });
         return result;
-    }, [changedReports, reports]);
+    }, [changedReports, reports, prevReports]);
 
     /**
      * This effect is responsible for updating the options only for changed reports
