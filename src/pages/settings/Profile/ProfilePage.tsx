@@ -58,7 +58,7 @@ function ProfilePage() {
     const avatarURL = currentUserPersonalDetails?.avatar ?? '';
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList, session?.email ?? '');
+    const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList, session?.email);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();

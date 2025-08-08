@@ -34,7 +34,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const email = session?.email ?? '';
     const domain = email.split('@').at(1) ?? '';
 
-    const isValidated = isCurrentUserValidated(loginList, session?.email ?? '');
+    const isValidated = isCurrentUserValidated(loginList, session?.email);
 
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;

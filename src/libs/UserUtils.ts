@@ -46,14 +46,14 @@ function hasLoginListError(loginList: OnyxEntry<LoginList>): boolean {
  * an Info brick road status indicator. Currently this only applies if the user
  * has an unvalidated contact method.
  */
-function hasLoginListInfo(loginList: OnyxEntry<LoginList>, email: string): boolean {
+function hasLoginListInfo(loginList: OnyxEntry<LoginList>, email?: string): boolean {
     return Object.values(loginList ?? {}).some((login) => email !== login.partnerUserID && !login.validatedDate);
 }
 
 /**
  * Checks if the current user has a validated the primary contact method
  */
-function isCurrentUserValidated(loginList: OnyxEntry<LoginList>, email: string): boolean {
+function isCurrentUserValidated(loginList: OnyxEntry<LoginList>, email?: string): boolean {
     if (!loginList || !email) {
         return false;
     }
@@ -65,7 +65,7 @@ function isCurrentUserValidated(loginList: OnyxEntry<LoginList>, email: string):
  * Gets the appropriate brick road indicator status for a given loginList.
  * Error status is higher priority, so we check for that first.
  */
-function getLoginListBrickRoadIndicator(loginList: OnyxEntry<LoginList>, email: string): LoginListIndicator {
+function getLoginListBrickRoadIndicator(loginList: OnyxEntry<LoginList>, email?: string): LoginListIndicator {
     if (hasLoginListError(loginList)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }

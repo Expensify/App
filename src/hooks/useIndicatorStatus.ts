@@ -66,7 +66,7 @@ function useIndicatorStatus(): IndicatorStatusResult {
     };
 
     const infoChecking: Partial<Record<IndicatorStatus, boolean>> = {
-        [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO]: !!loginList && hasLoginListInfo(loginList, session?.email ?? ''),
+        [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO]: !!loginList && hasLoginListInfo(loginList, session?.email),
         [CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO]: hasSubscriptionGreenDotInfo(),
     };
 
