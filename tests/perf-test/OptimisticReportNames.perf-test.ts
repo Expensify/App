@@ -68,6 +68,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
         betas: ['authAutoReportTitle'],
         allReports: mockReports,
         allPolicies: mockPolicies,
+        allReportNameValuePairs: {},
     };
 
     beforeAll(() => {
@@ -218,6 +219,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                     }),
                     50,
                 ),
+                allReportNameValuePairs: {},
             };
 
             const updates = Array.from({length: 20}, (_, i) => ({
@@ -239,6 +241,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 betas: ['authAutoReportTitle'],
                 allReports: {},
                 allPolicies: {},
+                allReportNameValuePairs: {},
             };
 
             const updates = Array.from({length: 10}, (_, i) => ({

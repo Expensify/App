@@ -5,13 +5,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import Timing from './actions/Timing';
-import * as Formula from './Formula';
+import {compute, FORMULA_PART_TYPES, parse} from './Formula';
+import type {FormulaContext} from './Formula';
 import Log from './Log';
 import {getUpdateContextAsync} from './OptimisticReportNamesConnectionManager';
 import type {UpdateContext} from './OptimisticReportNamesConnectionManager';
 import Performance from './Performance';
 import Permissions from './Permissions';
-import * as ReportUtils from './ReportUtils';
+import {getTitleReportField, isArchivedReport} from './ReportUtils';
 
 /**
  * Get the object type from an Onyx key
@@ -46,6 +47,7 @@ function getPolicyIDFromKey(key: string): string {
 /**
  * Extract transaction ID from an Onyx key
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- this will be used in near futur
 function getTransactionIDFromKey(key: string): string {
     return key.replace(ONYXKEYS.COLLECTION.TRANSACTION, '');
 }
@@ -67,7 +69,7 @@ function getPolicyByID(policyID: string, allPolicies: Record<string, Policy>): P
 /**
  * Get all reports associated with a policy ID
  */
-function getReportsByPolicyID(policyID: string, allReports: Record<string, Report>): Report[] {
+function getReportsByPolicyID(policyID: string, allReports: Record<string, Report>, context: UpdateContext): Report[] {
     if (policyID === CONST.POLICY.ID_FAKE) {
         return [];
     }
@@ -88,7 +90,8 @@ function getReportsByPolicyID(policyID: string, allReports: Record<string, Repor
         }
 
         // Filter by isArchived - exclude archived reports
-        if (ReportUtils.isArchivedReport(ReportUtils.getReportNameValuePairs(report?.reportID))) {
+        const reportNameValuePairs = context.allReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
+        if (isArchivedReport(reportNameValuePairs)) {
             return false;
         }
 
@@ -99,7 +102,7 @@ function getReportsByPolicyID(policyID: string, allReports: Record<string, Repor
 /**
  * Get the report associated with a transaction ID
  */
-function getReportByTransactionID(transactionID: string, allReports: Record<string, Report>): Report | undefined {
+function getReportByTransactionID(): Report | undefined {
     // This is a simplified version - in reality, we'd need to look up the transaction
     // and get its reportID, but for now we'll return undefined
     // TODO: Implement proper transaction -> report lookup
@@ -128,7 +131,7 @@ function shouldComputeReportName(report: Report, policy: Policy | undefined): bo
     }
 
     // Check if the policy has a title field with a formula
-    const titleField = ReportUtils.getTitleReportField(policy.fieldList ?? {});
+    const titleField = getTitleReportField(policy.fieldList ?? {});
     if (!titleField?.defaultValue) {
         return false;
     }
@@ -166,14 +169,14 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
         return null;
     }
 
-    const policy = getPolicyByID(targetReport.policyID ?? '', allPolicies);
+    const policy = getPolicyByID(targetReport.policyID ?? String(CONST.DEFAULT_NUMBER_ID), allPolicies);
     if (!shouldComputeReportName(targetReport, policy)) {
         Performance.markEnd(CONST.TIMING.COMPUTE_REPORT_NAME);
         Timing.end(CONST.TIMING.COMPUTE_REPORT_NAME);
         return null;
     }
 
-    const titleField = ReportUtils.getTitleReportField(policy?.fieldList ?? {});
+    const titleField = getTitleReportField(policy?.fieldList ?? {});
     if (!titleField?.defaultValue) {
         Performance.markEnd(CONST.TIMING.COMPUTE_REPORT_NAME);
         Timing.end(CONST.TIMING.COMPUTE_REPORT_NAME);
@@ -183,17 +186,17 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
     // Quick check: see if the update might affect the report name
     const updateType = determineObjectTypeByKey(incomingUpdate.key);
     const formula = titleField.defaultValue;
-    const formulaParts = Formula.parse(formula);
+    const formulaParts = parse(formula);
 
     // Check if any formula part might be affected by this update
     const isAffected = formulaParts.some((part) => {
-        if (part.type === Formula.FORMULA_PART_TYPES.REPORT) {
+        if (part.type === FORMULA_PART_TYPES.REPORT) {
             // Checking if the formula part is affected in this manner works, but it could certainly be more precise.
             // For example, a policy update only affects the part if the formula in the policy changed, or if the report part references a field on the policy.
             // However, if we run into performance problems, this would be a good place to optimize.
             return updateType === 'report' || updateType === 'transaction' || updateType === 'policy';
         }
-        if (part.type === Formula.FORMULA_PART_TYPES.FIELD) {
+        if (part.type === FORMULA_PART_TYPES.FIELD) {
             return updateType === 'report';
         }
         return false;
@@ -206,17 +209,18 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
     }
 
     // Build context with the updated data
-    const updatedReport = updateType === 'report' && targetReport.reportID === getReportIDFromKey(incomingUpdate.key) ? {...targetReport, ...incomingUpdate.value} : targetReport;
+    const updatedReport =
+        updateType === 'report' && targetReport.reportID === getReportIDFromKey(incomingUpdate.key) ? {...targetReport, ...(incomingUpdate.value as Partial<Report>)} : targetReport;
 
-    const updatedPolicy = updateType === 'policy' && targetReport.policyID === getPolicyIDFromKey(incomingUpdate.key) ? {...policy, ...incomingUpdate.value} : policy;
+    const updatedPolicy = updateType === 'policy' && targetReport.policyID === getPolicyIDFromKey(incomingUpdate.key) ? {...(policy ?? {}), ...(incomingUpdate.value as Policy)} : policy;
 
     // Compute the new name
-    const formulaContext: Formula.FormulaContext = {
+    const formulaContext: FormulaContext = {
         report: updatedReport,
         policy: updatedPolicy,
     };
 
-    const newName = Formula.compute(formula, formulaContext);
+    const newName = compute(formula, formulaContext);
 
     // Only return an update if the name actually changed
     if (newName && newName !== targetReport.reportName) {
@@ -290,13 +294,12 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
 
             case 'policy': {
                 const policyID = getPolicyIDFromKey(update.key);
-                affectedReports = getReportsByPolicyID(policyID, allReports);
+                affectedReports = getReportsByPolicyID(policyID, allReports, context);
                 break;
             }
 
             case 'transaction': {
-                const transactionID = getTransactionIDFromKey(update.key);
-                const report = getReportByTransactionID(transactionID, allReports);
+                const report = getReportByTransactionID();
                 if (report) {
                     affectedReports = [report];
                 }

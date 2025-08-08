@@ -1,10 +1,8 @@
-import lodashHas from 'lodash/has';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
-import type Transaction from '@src/types/onyx/Transaction';
 import {getCurrencySymbol} from './CurrencyUtils';
 import {getAllReportActions} from './ReportActionsUtils';
 import {getReportTransactions} from './ReportUtils';
@@ -52,13 +50,13 @@ function extract(formula: string, opener = '{', closer = '}'): string[] {
 
     for (let i = 0; i < letters.length; i++) {
         // Found an escape character, skip the next character
-        if (letters[i] === '\\') {
+        if (letters.at(i) === '\\') {
             i++;
             continue;
         }
 
         // Found an opener, save the spot
-        if (letters[i] === opener) {
+        if (letters.at(i) === opener) {
             if (nesting === 0) {
                 start = i;
             }
@@ -66,7 +64,7 @@ function extract(formula: string, opener = '{', closer = '}'): string[] {
         }
 
         // Found a closer, decrement the nesting and possibly extract it
-        if (letters[i] === closer && nesting > 0) {
+        if (letters.at(i) === closer && nesting > 0) {
             nesting--;
             if (nesting === 0) {
                 sections.push(formula.substring(start, i + 1));
@@ -103,15 +101,14 @@ function parse(formula: string): FormulaPart[] {
     }
 
     // Process the formula by splitting on formula parts to preserve free text
-    let remainingFormula = formula;
     let lastIndex = 0;
 
     formulaParts.forEach((part) => {
-        const partIndex = remainingFormula.indexOf(part, lastIndex);
+        const partIndex = formula.indexOf(part, lastIndex);
 
         // Add any free text before this formula part
         if (partIndex > lastIndex) {
-            const freeText = remainingFormula.substring(lastIndex, partIndex);
+            const freeText = formula.substring(lastIndex, partIndex);
             if (freeText) {
                 parts.push({
                     definition: freeText,
@@ -128,8 +125,8 @@ function parse(formula: string): FormulaPart[] {
     });
 
     // Add any remaining free text after the last formula part
-    if (lastIndex < remainingFormula.length) {
-        const freeText = remainingFormula.substring(lastIndex);
+    if (lastIndex < formula.length) {
+        const freeText = formula.substring(lastIndex);
         if (freeText) {
             parts.push({
                 definition: freeText,
@@ -168,12 +165,12 @@ function parsePart(definition: string): FormulaPart {
 
     // Split on | to separate functions
     const segments = cleanDefinition.split('|');
-    const fieldSegment = segments[0];
+    const fieldSegment = segments.at(0);
     const functions = segments.slice(1);
 
     // Split the field segment on : to get the field path
-    const fieldPath = fieldSegment.split(':');
-    const type = fieldPath[0]?.toLowerCase();
+    const fieldPath = fieldSegment?.split(':');
+    const type = fieldPath?.at(0)?.toLowerCase();
 
     // Determine the formula part type
     if (type === 'report') {
@@ -185,7 +182,7 @@ function parsePart(definition: string): FormulaPart {
     }
 
     // Set field path (excluding the type)
-    part.fieldPath = fieldPath.slice(1);
+    part.fieldPath = fieldPath?.slice(1) ?? [];
     part.functions = functions;
 
     return part;
@@ -339,14 +336,14 @@ function getDomainName(value: string): string {
  * Get substring of a value
  */
 function getSubstring(value: string, args: string[]): string {
-    const start = parseInt(args[0], 10) || 0;
-    const length = args[1] ? parseInt(args[1], 10) : undefined;
+    const start = parseInt(args.at(0) ?? '', 10) || 0;
+    const length = args.at(1) ? parseInt(args.at(1) ?? '', 10) : undefined;
 
     if (length !== undefined) {
-        return value.substr(start, length);
+        return value.substring(start, start + length);
     }
 
-    return value.substr(start);
+    return value.substring(start);
 }
 
 /**
@@ -359,7 +356,7 @@ function formatDate(dateString: string | undefined, format = 'MM/dd/yyyy'): stri
 
     try {
         const date = new Date(dateString);
-        if (isNaN(date.getTime())) {
+        if (Number.isNaN(date.getTime())) {
             return '';
         }
 
@@ -373,15 +370,15 @@ function formatDate(dateString: string | undefined, format = 'MM/dd/yyyy'): stri
             case 'M/dd/yyyy':
                 return `${month}/${day.toString().padStart(2, '0')}/${year}`;
             case 'MMMM dd, yyyy':
-                return `${monthNames[month - 1]} ${day.toString().padStart(2, '0')}, ${year}`;
+                return `${monthNames.at(month - 1)} ${day.toString().padStart(2, '0')}, ${year}`;
             case 'dd MMM yyyy':
-                return `${day.toString().padStart(2, '0')} ${shortMonthNames[month - 1]} ${year}`;
+                return `${day.toString().padStart(2, '0')} ${shortMonthNames.at(month - 1)} ${year}`;
             case 'yyyy/MM/dd':
                 return `${year}/${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}`;
             case 'yyyy-MM-dd':
                 return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
             case 'MMMM, yyyy':
-                return `${monthNames[month - 1]}, ${year}`;
+                return `${monthNames.at(month - 1)}, ${year}`;
             case 'yy/MM/dd':
                 return `${year.toString().slice(-2)}/${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}`;
             case 'dd/MM/yy':
@@ -431,11 +428,13 @@ function getOldestReportActionDate(reportID: string): string | undefined {
     let oldestDate: string | undefined;
 
     Object.values(reportActions).forEach((action) => {
-        if (action?.created) {
-            if (!oldestDate || action.created < oldestDate) {
-                oldestDate = action.created;
-            }
+        if (!action?.created) {
+            return;
         }
+        if (!(!oldestDate || action.created < oldestDate)) {
+            return;
+        }
+        oldestDate = action.created;
     });
 
     return oldestDate;
@@ -502,6 +501,6 @@ function isFormula(str: string): boolean {
     return extract(str).length > 0;
 }
 
-export {extract, parse, compute, isFormula, FORMULA_PART_TYPES};
+export {FORMULA_PART_TYPES, compute, extract, isFormula, parse};
 
-export type {FormulaPart, FormulaContext};
+export type {FormulaContext, FormulaPart};

@@ -4,19 +4,22 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type Beta from '@src/types/onyx/Beta';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
+import type ReportNameValuePairs from '@src/types/onyx/ReportNameValuePairs';
 
 type UpdateContext = {
     betas: OnyxEntry<Beta[]>;
     allReports: Record<string, Report>;
     allPolicies: Record<string, Policy>;
+    allReportNameValuePairs: Record<string, ReportNameValuePairs>;
 };
 
 let betas: OnyxEntry<Beta[]>;
 let allReports: Record<string, Report>;
 let allPolicies: Record<string, Policy>;
+let allReportNameValuePairs: Record<string, ReportNameValuePairs>;
 let isInitialized = false;
 let connectionsInitializedCount = 0;
-const totalConnections = 3;
+const totalConnections = 4;
 let initializationPromise: Promise<void> | null = null;
 
 /**
@@ -76,6 +79,16 @@ function initialize(): Promise<void> {
                 checkAndMarkInitialized();
             },
         });
+
+        // Connect to all REPORT_NAME_VALUE_PAIRS
+        Onyx.connectWithoutView({
+            key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+            waitForCollectionCallback: true,
+            callback: (val) => {
+                allReportNameValuePairs = (val as Record<string, ReportNameValuePairs>) ?? {};
+                checkAndMarkInitialized();
+            },
+        });
     });
 
     return initializationPromise;
@@ -90,6 +103,7 @@ function getUpdateContextAsync(): Promise<UpdateContext> {
         betas,
         allReports: allReports ?? {},
         allPolicies: allPolicies ?? {},
+        allReportNameValuePairs: allReportNameValuePairs ?? {},
     }));
 }
 

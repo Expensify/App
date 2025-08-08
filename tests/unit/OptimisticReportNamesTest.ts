@@ -50,6 +50,12 @@ describe('OptimisticReportNames', () => {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             policy_policy1: mockPolicy,
         },
+        allReportNameValuePairs: {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            reportNameValuePairs_123: {
+                private_isArchived: '',
+            },
+        },
     };
 
     beforeEach(() => {
@@ -182,6 +188,14 @@ describe('OptimisticReportNames', () => {
                     report_456: {...mockReport, reportID: '456'},
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     report_789: {...mockReport, reportID: '789'},
+                },
+                allReportNameValuePairs: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    reportNameValuePairs_123: {private_isArchived: ''},
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    reportNameValuePairs_456: {private_isArchived: ''},
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    reportNameValuePairs_789: {private_isArchived: ''},
                 },
             };
 
