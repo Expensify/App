@@ -8,7 +8,6 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import DateUtils from '@libs/DateUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {translateLocal} from '@libs/Localize';
 import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
 import {
@@ -39,7 +38,6 @@ import {
     getApprovalChain,
     getChatByParticipants,
     getDefaultWorkspaceAvatar,
-    getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getGroupChatName,
     getIconsForParticipants,

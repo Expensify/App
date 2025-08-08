@@ -1,6 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
+import {formatPhoneNumber} from './LocalePhoneNumber';
 import {getDisplayNameForParticipant} from './ReportUtils';
 
 /**

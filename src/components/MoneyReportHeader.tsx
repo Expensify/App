@@ -241,8 +241,6 @@ function MoneyReportHeader({
         [allViolations, transactionIDs],
     );
 
-    const details = useReportAvatarDetails({report: chatReport, iouReport: moneyRequestReport, action: reportPreviewAction, policy, innerPolicies: policies, personalDetails});
-
     const messagePDF = useMemo(() => {
         if (!reportPDFFilename) {
             return translate('reportDetailsPage.waitForPDF');

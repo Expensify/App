@@ -5465,7 +5465,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigatio
         const personalDetails = ownerAccountID ? allPersonalDetails?.[ownerAccountID] : undefined;
         const login = personalDetails ? personalDetails.login : null;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const reportOwnerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true}) || login;
+        const reportOwnerDisplayName = getDisplayNameForParticipant({formatPhoneNumber: formatPhoneNumberPhoneUtils, accountID: ownerAccountID, shouldRemoveDomain: true}) || login;
 
         if (isExpenseReport(report)) {
             return {
