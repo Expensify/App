@@ -45,7 +45,7 @@ type NewContactMethodPageProps = PlatformStackScreenProps<SettingsNavigatorParam
 function NewContactMethodPage({route}: NewContactMethodPageProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const contactMethod = getContactMethod(account?.primaryLogin ?? '', session?.email ?? '');
+    const contactMethod = getContactMethod(account?.primaryLogin, session?.email);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const loginInputRef = useRef<AnimatedTextInputRef>(null);

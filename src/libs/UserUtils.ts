@@ -46,14 +46,14 @@ function hasLoginListError(loginList: OnyxEntry<LoginList>): boolean {
  * an Info brick road status indicator. Currently this only applies if the user
  * has an unvalidated contact method.
  */
-function hasLoginListInfo(loginList: OnyxEntry<LoginList>, email?: string): boolean {
+function hasLoginListInfo(loginList: OnyxEntry<LoginList>, email: string | undefined): boolean {
     return Object.values(loginList ?? {}).some((login) => email !== login.partnerUserID && !login.validatedDate);
 }
 
 /**
  * Checks if the current user has a validated the primary contact method
  */
-function isCurrentUserValidated(loginList: OnyxEntry<LoginList>, email?: string): boolean {
+function isCurrentUserValidated(loginList: OnyxEntry<LoginList>, email: string | undefined): boolean {
     if (!loginList || !email) {
         return false;
     }
@@ -65,7 +65,7 @@ function isCurrentUserValidated(loginList: OnyxEntry<LoginList>, email?: string)
  * Gets the appropriate brick road indicator status for a given loginList.
  * Error status is higher priority, so we check for that first.
  */
-function getLoginListBrickRoadIndicator(loginList: OnyxEntry<LoginList>, email?: string): LoginListIndicator {
+function getLoginListBrickRoadIndicator(loginList: OnyxEntry<LoginList>, email: string | undefined): LoginListIndicator {
     if (hasLoginListError(loginList)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
@@ -84,7 +84,7 @@ function getProfilePageBrickRoadIndicator(
     loginList: OnyxEntry<LoginList>,
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>,
     vacationDelegate: OnyxEntry<VacationDelegate>,
-    email?: string,
+    email: string | undefined,
 ): LoginListIndicator {
     const hasPhoneNumberError = !!privatePersonalDetails?.errorFields?.phoneNumber;
     if (hasLoginListError(loginList) || hasPhoneNumberError || !isEmptyObject(vacationDelegate?.errors)) {
@@ -245,7 +245,7 @@ function getSecondaryPhoneLogin(loginList: OnyxEntry<Login>): string | undefined
 /**
  * Gets the contact method
  */
-function getContactMethod(primaryLogin: string, email: string): string {
+function getContactMethod(primaryLogin: string | undefined, email: string | undefined): string {
     return primaryLogin ?? email ?? '';
 }
 
