@@ -1310,6 +1310,7 @@ function MoneyReportHeader({
                 isVisible={isPDFModalVisible}
                 type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
                 innerContainerStyle={styles.pv0}
+                shouldUseReanimatedModal
             >
                 <View style={[styles.m5]}>
                     <View>
