@@ -1,6 +1,5 @@
 import lodashDropRightWhile from 'lodash/dropRightWhile';
-import lodashMapKeys from 'lodash/mapKeys';
-import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
@@ -14,41 +13,8 @@ import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-let currentApprovalWorkflow: ApprovalWorkflowOnyx | undefined;
-Onyx.connect({
-    key: ONYXKEYS.APPROVAL_WORKFLOW,
-    callback: (approvalWorkflow) => {
-        currentApprovalWorkflow = approvalWorkflow;
-    },
-});
-
-let allPolicies: OnyxCollection<Policy>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
-});
-
-let authToken: string | undefined;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        authToken = value?.authToken;
-    },
-});
-
-let personalDetailsByEmail: PersonalDetailsList = {};
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (personalDetails) => {
-        personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
-    },
-});
-
-function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWorkflow) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-
-    if (!authToken || !policy) {
+function createApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>) {
+    if (!policy) {
         return;
     }
 
@@ -69,7 +35,7 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: updatedEmployees,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -80,7 +46,7 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: previousEmployeeList,
                 approvalMode: previousApprovalMode,
@@ -91,21 +57,19 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: Object.fromEntries(Object.keys(updatedEmployees).map((key) => [key, {pendingAction: null}])),
             },
         },
     ];
 
-    const parameters: CreateWorkspaceApprovalParams = {policyID, authToken, employees: JSON.stringify(Object.values(updatedEmployees))};
+    const parameters: CreateWorkspaceApprovalParams = {policyID: policy.id, employees: JSON.stringify(Object.values(updatedEmployees))};
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 }
 
-function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWorkflow, membersToRemove: Member[], approversToRemove: Approver[]) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-
-    if (!authToken || !policy) {
+function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRemove: Member[], approversToRemove: Approver[], policy: OnyxEntry<Policy>) {
+    if (!policy) {
         return;
     }
 
@@ -133,7 +97,7 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: updatedEmployees,
                 ...(newDefaultApprover ? {approver: newDefaultApprover} : {}),
@@ -144,7 +108,7 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: previousEmployeeList,
                 pendingFields: {employeeList: null},
@@ -156,7 +120,7 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: Object.fromEntries(Object.keys(updatedEmployees).map((key) => [key, {pendingAction: null, pendingFields: null}])),
             },
@@ -164,18 +128,15 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     ];
 
     const parameters: UpdateWorkspaceApprovalParams = {
-        policyID,
-        authToken,
+        policyID: policy.id,
         employees: JSON.stringify(Object.values(updatedEmployees)),
         defaultApprover: newDefaultApprover,
     };
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 }
 
-function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWorkflow) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-
-    if (!authToken || !policy) {
+function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>) {
+    if (!policy) {
         return;
     }
 
@@ -195,7 +156,7 @@ function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: updatedEmployees,
                 approvalMode: hasMoreThanOneWorkflow ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC,
@@ -206,7 +167,7 @@ function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: previousEmployeeList,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -217,14 +178,14 @@ function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: Object.fromEntries(Object.keys(updatedEmployees).map((key) => [key, {pendingAction: null}])),
             },
         },
     ];
 
-    const parameters: RemoveWorkspaceApprovalParams = {policyID, authToken, employees: JSON.stringify(Object.values(updatedEmployees))};
+    const parameters: RemoveWorkspaceApprovalParams = {policyID: policy.id, employees: JSON.stringify(Object.values(updatedEmployees))};
     API.write(WRITE_COMMANDS.REMOVE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 }
 
@@ -239,9 +200,13 @@ function setApprovalWorkflowMembers(members: Member[]) {
  * @param approverIndex - The index of the approver to set
  * @param policyID - The ID of the policy
  */
-function setApprovalWorkflowApprover(approver: Approver, approverIndex: number, policyID: string) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-
+function setApprovalWorkflowApprover(
+    approver: Approver,
+    approverIndex: number,
+    currentApprovalWorkflow: ApprovalWorkflowOnyx | undefined,
+    policy: OnyxEntry<Policy>,
+    personalDetailsByEmail: OnyxEntry<PersonalDetailsList>,
+) {
     if (!currentApprovalWorkflow || !policy?.employeeList) {
         return;
     }
@@ -281,7 +246,7 @@ function setApprovalWorkflowApprover(approver: Approver, approverIndex: number, 
 }
 
 /** Clear one approver at the specified index in the approval workflow that is currently edited */
-function clearApprovalWorkflowApprover(approverIndex: number) {
+function clearApprovalWorkflowApprover(approverIndex: number, currentApprovalWorkflow: ApprovalWorkflowOnyx | undefined) {
     if (!currentApprovalWorkflow) {
         return;
     }
