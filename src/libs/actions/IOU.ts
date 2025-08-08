@@ -70,7 +70,6 @@ import Permissions from '@libs/Permissions';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
-    getCorrectedAutoReportingFrequency,
     getDistanceRateCustomUnit,
     getMemberAccountIDsForWorkspace,
     getPerDiemCustomUnit,
@@ -193,7 +192,6 @@ import {
     getDistanceInMeters,
     getMerchant,
     getUpdatedTransaction,
-    hasAnyTransactionWithoutRTERViolation,
     hasDuplicateTransactions,
     isCustomUnitRateIDForP2P,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -12240,7 +12238,6 @@ export {
     getIOUReportActionToApproveOrPay,
     getNavigationUrlOnMoneyRequestDelete,
     getNavigationUrlAfterTrackExpenseDelete,
-    canSubmitReport,
     submitPerDiemExpense,
     calculateDiffAmount,
     computePerDiemExpenseAmount,
