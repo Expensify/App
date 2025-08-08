@@ -47,5 +47,4 @@ jobs:
           destination: simulator
           scheme: ${{ matrix.scheme }}
           configuration: ${{ matrix.configuration }}
-          github-token: ${{ github.token }}
           comment-bot: false

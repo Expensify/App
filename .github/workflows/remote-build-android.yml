@@ -43,6 +43,5 @@ jobs:
           IS_HYBRID_APP: ${{ matrix.is_hybrid_build }}
         with:
           variant: ${{ matrix.variant }}
-          github-token: ${{ github.token }}
           rnef-build-extra-params: '--extra-params -PreactNativeArchitectures=arm64-v8a,x86_64'
           comment-bot: false
