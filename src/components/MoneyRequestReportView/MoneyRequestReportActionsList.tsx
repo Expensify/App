@@ -26,6 +26,7 @@ import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 import DateUtils from '@libs/DateUtils';
 import {parseFSAttributes} from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -166,12 +167,39 @@ function MoneyRequestReportActionsList({
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
+    const beginExportWithTemplate = useCallback(
+        (templateName: string, templateType: string, transactionIDList: string[]) => {
+            if (!report) {
+                return;
+            }
+
+            setIsExportWithTemplateModalVisible(true);
+            queueExportSearchWithTemplate({
+                templateName,
+                templateType,
+                jsonQuery: '{}',
+                reportIDList: [report.reportID],
+                transactionIDList,
+                policyID: policy?.id,
+            });
+        },
+        [report, policy],
+    );
+
     const {
         options: selectedTransactionsOptions,
         handleDeleteTransactions,
         isDeleteModalVisible,
         hideDeleteModal,
-    } = useSelectedTransactionsActions({report, reportActions, allTransactionsLength: transactions.length, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
+    } = useSelectedTransactionsActions({
+        report,
+        reportActions,
+        allTransactionsLength: transactions.length,
+        session,
+        onExportFailed: () => setIsDownloadErrorModalVisible(true),
+        beginExportWithTemplate: (templateName, templateType, transactionIDList) => beginExportWithTemplate(templateName, templateType, transactionIDList),
+    });
 
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
     const visibleReportActions = useMemo(() => {
@@ -707,6 +735,14 @@ function MoneyRequestReportActionsList({
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={isDownloadErrorModalVisible}
                 onClose={() => setIsDownloadErrorModalVisible(false)}
+            />
+            <ConfirmModal
+                onConfirm={() => setIsExportWithTemplateModalVisible(false)}
+                isVisible={isExportWithTemplateModalVisible}
+                title={translate('export.exportInProgress')}
+                prompt={translate('export.conciergeWillSend')}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
             />
         </View>
     );

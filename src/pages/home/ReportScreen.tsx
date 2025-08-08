@@ -900,6 +900,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         isComposerFullSize={!!isComposerFullSize}
                                         lastReportAction={lastReportAction}
                                         reportTransactions={reportTransactions}
+                                        transactionThreadReportID={transactionThreadReportID}
                                     />
                                 )}
                             </View>
