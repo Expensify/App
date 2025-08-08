@@ -72,7 +72,7 @@ type ValuePickerProps = {
     shouldShowModal?: boolean;
 
     /** Reference to the outer element */
-    forwardedRef: ForwardedRef<View>;
+    forwardedRef?: ForwardedRef<View>;
 };
 
 export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps, ValueSelectionListProps};
