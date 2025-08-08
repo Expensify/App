@@ -226,7 +226,7 @@ Understanding the common terminology and abbreviations used in the travel indust
 | excursion fare | Round-trip fare with restrictions, such as minimum and maximum stays and the need to purchase well in advance. |
 | executive card | Types of privilege cards available to frequent users of airlines, hotel chains, car rental companies, etc. Most carry benefits and have their own brand names (e.g., British Airways Executive Blue, Executive Silver, Executive Gold and Premier). |
 | executive room | Higher grade than standard room and usually slightly larger, the executive room often has additional facilities for the business traveler such as trouser press, desk etc. and may be located on a separate Executive Club Floor. |
-| Expatriot (or expat) | An expatriate (in abbreviated form, expat) is a person temporarily or permanently residing in a country and culture other than that of the person’s upbringing or legal residence. |
+| Expatriate (or expat) | An expatriate (in abbreviated form, expat) is a person temporarily or permanently residing in a country and culture other than that of the person’s upbringing or legal residence. |
 | explant/ outplant/ offsite | Branch office dedicated to serving a single client that is not located on the client’s premises, but rather operates as a separate part of a BTC. |
 | familiarization tour | A complimentary or reduced-rate travel program for travel agents, airline or rail employees, which is designed to acquaint participants with specific destinations. Often known as “Fam-Trips”. |
 | family plan | A hotel rate that allows children to stay free with adults in the same room. |
