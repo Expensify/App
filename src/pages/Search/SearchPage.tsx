@@ -235,7 +235,7 @@ function SearchPage({route}: SearchPageProps) {
             if (selectedPolicyIDs.length === 1) {
                 const policyID = selectedPolicyIDs.at(0);
                 const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-                const templates = Object.entries({...(policy?.exportLayouts ?? {})}).map(([templateName, layout]) => ({
+                const templates = Object.entries(policy?.exportLayouts ?? {}).map(([templateName, layout]) => ({
                     ...layout,
                     templateName,
                 }));
@@ -253,7 +253,7 @@ function SearchPage({route}: SearchPageProps) {
             }
 
             // Collate a list of the account level in-app export templates for the
-            const accountInAppTemplates = Object.entries({...(csvExportLayouts ?? {})}).map(([templateName, layout]) => ({
+            const accountInAppTemplates = Object.entries(csvExportLayouts ?? {}).map(([templateName, layout]) => ({
                 ...layout,
                 templateName,
             }));
