@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {startTransition, useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -55,9 +55,9 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     // this is a performance fix, rendering popover menu takes a lot of time and we don't need this component initially, that's why we postpone rendering it until everything else is rendered
     const [delayPopoverMenuFirstRender, setDelayPopoverMenuFirstRender] = useState(true);
     useEffect(() => {
-        setTimeout(() => {
+        startTransition(() => {
             setDelayPopoverMenuFirstRender(false);
-        }, 100);
+        });
     }, []);
 
     const closeMenu = useCallback(() => {
