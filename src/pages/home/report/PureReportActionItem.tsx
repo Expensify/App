@@ -97,6 +97,7 @@ import {
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceTagUpdateMessage,
     getWorkspaceUpdateFieldMessage,
+    getDeclinedTransactionRemoveMessage,
     isActionableAddPaymentCard,
     isActionableJoinRequest,
     isActionableMentionWhisper,
@@ -1083,7 +1084,11 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED) {
             children = <ReportActionItemBasicMessage message={translate('iou.decline.reportActions.markedAsResolved')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.DECLINED_TRANSACTION) {
-            children = <ReportActionItemBasicMessage message={getReportActionText(action)} />;
+            children = (
+                <ReportActionItemBasicMessage>
+                    <RenderHTML html={`<comment><muted-text>${getDeclinedTransactionRemoveMessage(action)}</muted-text></comment>`} />
+                </ReportActionItemBasicMessage>
+            );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
             children = <ReportActionItemBasicMessage message={translate('iou.retracted')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {

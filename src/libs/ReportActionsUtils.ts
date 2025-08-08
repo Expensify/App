@@ -2966,6 +2966,18 @@ function getVacationer(action: OnyxEntry<ReportAction>): string | undefined {
     return getOriginalMessage(action)?.vacationer;
 }
 
+/**
+ * Get the declined transaction message text
+ */
+function getDeclinedTransactionRemoveMessage(action: OnyxInputOrEntry<ReportAction>): string {
+    const originalMessage = getOriginalMessage(action) as {amount?: string; merchant?: string; reportID?: string; currency?: string};
+    const amount = convertToDisplayString(Math.abs(Number(originalMessage?.amount) ?? 0), originalMessage?.currency ?? '');
+    const merchant = originalMessage?.merchant ?? '';
+    const messageReportID = originalMessage?.reportID ?? '';
+    const linkToReport = messageReportID ? `${environmentURL}/${ROUTES.SEARCH_REPORT.getRoute({reportID: messageReportID})}` : '';
+    return translateLocal('iou.decline.reportActions.removedFromReport', {amount, merchant, linkToReport});
+}
+
 function getSubmittedTo(action: OnyxEntry<ReportAction>): string | undefined {
     if (!isSubmittedAction(action)) {
         return;
@@ -3142,6 +3154,7 @@ export {
     getIntegrationSyncFailedMessage,
     getManagerOnVacation,
     getVacationer,
+    getDeclinedTransactionRemoveMessage,
     getSubmittedTo,
     getReceiptScanFailedMessage,
 };
