@@ -4,9 +4,9 @@ import {Platform} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import ImportedStateIndicator from '@components/ImportedStateIndicator';
-import {useKeyboardDismissibleFlatListContext} from '@components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
 import OfflineIndicator from '@components/OfflineIndicator';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useKeyboardDismissibleFlatListValues from '@hooks/useKeyboardDismissibleFlatListValues';
 import useNetwork from '@hooks/useNetwork';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -52,7 +52,7 @@ function ScreenWrapperOfflineIndicators({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
-    const {keyboardHeight} = useKeyboardDismissibleFlatListContext();
+    const {keyboardHeight} = useKeyboardDismissibleFlatListValues();
 
     const {insets, paddingBottom} = useSafeAreaPaddings(true);
     const navigationBarType = useMemo(() => StyleUtils.getNavigationBarType(insets), [StyleUtils, insets]);

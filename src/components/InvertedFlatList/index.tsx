@@ -3,7 +3,7 @@ import React, {forwardRef, useEffect, useRef} from 'react';
 import type {FlatList} from 'react-native';
 import {DeviceEventEmitter} from 'react-native';
 import {runOnJS, useAnimatedReaction} from 'react-native-reanimated';
-import {useKeyboardDismissibleFlatListContext} from '@components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
+import useKeyboardDismissibleFlatListValues from '@hooks/useKeyboardDismissibleFlatListValues';
 import CONST from '@src/CONST';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 import type {BaseInvertedFlatListProps} from './BaseInvertedFlatList';
@@ -15,7 +15,7 @@ function InvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwarded
     const lastScrollEvent = useRef<number | null>(null);
     const scrollEndTimeout = useRef<NodeJS.Timeout | null>(null);
     const updateInProgress = useRef<boolean>(false);
-    const {scrollY} = useKeyboardDismissibleFlatListContext();
+    const {scrollY} = useKeyboardDismissibleFlatListValues();
 
     useEffect(
         () => () => {

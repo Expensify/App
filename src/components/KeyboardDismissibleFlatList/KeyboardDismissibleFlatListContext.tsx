@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import type {PropsWithChildren} from 'react';
-import React, {useContext, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
 import {useAnimatedScrollHandler, useSharedValue} from 'react-native-reanimated';
 import type {ScrollHandlerProcessed, SharedValue} from 'react-native-reanimated';
@@ -144,12 +144,8 @@ function KeyboardDismissibleFlatListContextProvider(props: PropsWithChildren) {
     return <KeyboardDismissibleFlatListContext.Provider value={value}>{props.children}</KeyboardDismissibleFlatListContext.Provider>;
 }
 
-function useKeyboardDismissibleFlatListContext() {
-    return useContext(KeyboardDismissibleFlatListContext);
-}
-
 KeyboardDismissibleFlatListContextProvider.propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-export {KeyboardDismissibleFlatListContext, KeyboardDismissibleFlatListContextProvider, useKeyboardDismissibleFlatListContext};
+export {KeyboardDismissibleFlatListContext, KeyboardDismissibleFlatListContextProvider};
