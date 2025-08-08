@@ -61,7 +61,7 @@ function useIndicatorStatus(): IndicatorStatusResult {
         // Wallet term errors that are not caused by an IOU (we show the red brick indicator for those in the LHN instead)
         [CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS]: Object.keys(walletTerms?.errors ?? {}).length > 0 && !walletTerms?.chatReportID,
         [CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR]: hasBrokenFeedConnection,
-        [CONST.INDICATOR_STATUS.HAS_PHONE_NUMBER_ERROR]: !!privatePersonalDetails?.errorFields?.phoneNumber ?? undefined,
+        [CONST.INDICATOR_STATUS.HAS_PHONE_NUMBER_ERROR]: !!privatePersonalDetails?.errorFields?.phoneNumber,
     };
 
     const infoChecking: Partial<Record<IndicatorStatus, boolean>> = {
