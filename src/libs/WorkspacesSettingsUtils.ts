@@ -145,11 +145,5 @@ function getOwnershipChecksDisplayText(
     return {title, text, buttonText};
 }
 
-export {
-    getChatTabBrickRoadReport,
-    getBrickRoadForPolicy,
-    getChatTabBrickRoad,
-    getUnitTranslationKey,
-    getOwnershipChecksDisplayText,
-};
+export {getChatTabBrickRoadReport, getBrickRoadForPolicy, getChatTabBrickRoad, getUnitTranslationKey, getOwnershipChecksDisplayText};
 export type {BrickRoad};
