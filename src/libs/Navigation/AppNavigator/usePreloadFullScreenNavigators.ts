@@ -4,6 +4,7 @@ import {useCallback, useMemo, useRef} from 'react';
 import type {ValueOf} from 'type-fest';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
+import useOnyx from '@hooks/useOnyx';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -15,6 +16,7 @@ import type {AuthScreensParamList, FullScreenName, SearchFullscreenNavigatorPara
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import {getPreservedNavigatorState} from './createSplitNavigator/usePreserveNavigatorState';
 
@@ -116,6 +118,7 @@ function usePreloadFullScreenNavigators() {
     const subscriptionPlan = useSubscriptionPlan();
     const isAuthenticated = useIsAuthenticated();
     const hasPreloadedRef = useRef(false);
+    const [isSingleNewDotEntry = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: (hybridApp) => hybridApp?.isSingleNewDotEntry, canBeMissing: true});
 
     const hasSubscriptionPlanTurnedOff = useMemo(() => {
         return !subscriptionPlan && preloadedRoutes.some(isPreloadedRouteSubscriptionScreen);
@@ -133,7 +136,7 @@ function usePreloadFullScreenNavigators() {
 
     useFocusEffect(
         useCallback(() => {
-            if (isAnonymousUser() || !isAuthenticated || hasPreloadedRef.current) {
+            if (isAnonymousUser() || !isAuthenticated || hasPreloadedRef.current || isSingleNewDotEntry) {
                 return;
             }
             hasPreloadedRef.current = true;
@@ -148,7 +151,7 @@ function usePreloadFullScreenNavigators() {
                         preloadTab(tabName, navigation, subscriptionPlan);
                     });
             }, TIMING_TO_CALL_PRELOAD);
-        }, [isAuthenticated, preloadedRoutes, route.name, navigation, subscriptionPlan]),
+        }, [isAuthenticated, isSingleNewDotEntry, route.name, preloadedRoutes, navigation, subscriptionPlan]),
     );
 }
 
