@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -273,10 +272,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     return (
         <>
             <HeaderWithBackButton title={translate('workspace.common.duplicateWorkspace')} />
-            <ScrollView
-                contentContainerStyle={styles.flexGrow1}
-                keyboardShouldPersistTaps="always"
-            >
+            <>
                 <View style={[styles.ph5, styles.pv3]}>
                     <Text style={[styles.textHeadline]}>{translate('workspace.duplicateWorkspace.selectFeatures')}</Text>
                     <Text style={[styles.webViewStyles.baseFontStyle, styles.textSupporting]}>{translate('workspace.duplicateWorkspace.whichFeatures')}</Text>
@@ -288,12 +284,13 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                         ListItem={MultiSelectListItem}
                         onSelectRow={updateSelectedItems}
                         isAlternateTextMultilineSupported
+                        addBottomSafeAreaPadding
                         showConfirmButton
                         confirmButtonText={translate('common.next')}
                         onConfirm={() => setIsDuplicateModalOpen(true)}
                     />
                 </View>
-            </ScrollView>
+            </>
             <ConfirmModal
                 title={translate('workspace.common.duplicateWorkspace')}
                 isVisible={isDuplicateModalOpen}
