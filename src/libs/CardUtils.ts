@@ -38,7 +38,7 @@ function getMonthFromExpirationDateString(expirationDateString: string) {
 
 /**
  * @param card
- * @returns boolean
+ * @returns number
  */
 function getAssignedCardSortKey(card: Card): number {
     if (!isExpensifyCard(card)) {
@@ -47,6 +47,10 @@ function getAssignedCardSortKey(card: Card): number {
     return card?.nameValuePairs?.isVirtual ? 1 : 0;
 }
 
+/**
+ * @param card
+ * @returns boolean
+ */
 function isExpensifyCard(card?: Card) {
     if (!card) {
         return false;
