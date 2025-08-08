@@ -1,14 +1,10 @@
 package com.expensify.chat
 
-import android.app.Activity
 import com.facebook.react.common.assets.ReactFontManager
 
 import android.app.ActivityManager
-import android.app.ActivityManager.RunningAppProcessInfo
-import android.content.Context
 import android.content.res.Configuration
 import android.database.CursorWindow
-import android.os.Bundle
 import android.os.Process
 import androidx.multidex.MultiDexApplication
 import com.expensify.chat.bootsplash.BootSplashPackage

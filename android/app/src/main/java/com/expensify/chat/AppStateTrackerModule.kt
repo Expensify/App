@@ -7,7 +7,9 @@ import com.facebook.react.bridge.ReactMethod
 
 import com.expensify.chat.MainActivity
 
-
+/**
+ * Checks whether the app was relaunched from the app icon in app drawer, not from recent apps.
+ */
 class AppStateTrackerModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(
     reactContext
 ) {
