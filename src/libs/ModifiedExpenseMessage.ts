@@ -16,7 +16,6 @@ import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils'
 import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
 
-
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
