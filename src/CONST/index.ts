@@ -6289,7 +6289,7 @@ const CONST = {
             PER_DIEM: 'perDiem',
         },
         WITHDRAWAL_TYPE: {
-            EXPENSIFY_CARD: 'expensifyCard',
+            EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
         },
         SORT_ORDER: {
