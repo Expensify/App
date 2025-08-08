@@ -198,7 +198,7 @@ describe('SearchQueryUtils', () => {
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('sortBy:date sortOrder:desc type:expense withdrawal-type:expensify-card');
+            expect(result).toEqual('sortBy:date sortOrder:desc type:expense withdrawalType:expensify-card');
         });
 
         test('with withdrawn filter', () => {
