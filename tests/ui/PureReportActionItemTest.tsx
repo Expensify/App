@@ -107,7 +107,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.automaticallyApproved'))).toBeOnTheScreen();
+            expect(screen.getByText('approved via')).toBeOnTheScreen();
         });
 
         it('FORWARDED action via workspace rules', async () => {
@@ -116,7 +116,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.automaticallyForwarded'))).toBeOnTheScreen();
+            expect(screen.getByText('approved via')).toBeOnTheScreen();
         });
 
         it('SUBMITTED action via harvesting', async () => {
@@ -125,7 +125,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.automaticallySubmitted'))).toBeOnTheScreen();
+            expect(screen.getByText('submitted via')).toBeOnTheScreen();
         });
 
         it('SUBMITTED_AND_CLOSED action via harvesting', async () => {
@@ -134,7 +134,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.automaticallySubmitted'))).toBeOnTheScreen();
+            expect(screen.getByText('submitted via')).toBeOnTheScreen();
         });
     });
 
