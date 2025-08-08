@@ -244,7 +244,24 @@ function isExpiredSession(sessionCreationDate: number): boolean {
     return new Date().getTime() - sessionCreationDate >= CONST.SESSION_EXPIRATION_TIME_MS;
 }
 
-function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, shouldKillHybridApp = true, shouldForceUseStashedSession?: boolean) {
+type SignOutAndRedirectToSignInParams = {
+    shouldResetToHome?: boolean;
+    shouldStashSession?: boolean;
+    shouldSignOutFromOldDot?: boolean;
+    shouldKillHybridApp?: boolean;
+    shouldForceUseStashedSession?: boolean;
+    isOffline?: boolean;
+    shouldForceOffline?: boolean;
+};
+
+function signOutAndRedirectToSignIn({
+    shouldResetToHome,
+    shouldStashSession,
+    shouldKillHybridApp = true,
+    shouldForceUseStashedSession,
+    isOffline,
+    shouldForceOffline,
+}: SignOutAndRedirectToSignInParams = {}) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
 
@@ -331,7 +348,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
             if (response?.hasOldDotAuthCookies) {
                 Log.info('Redirecting to OldDot sign out');
                 asyncOpenURL(
-                    redirectToSignIn().then(() => {
+                    redirectToSignIn(undefined, isOffline, shouldForceOffline).then(() => {
                         Onyx.multiSet(onyxSetParams);
                     }),
                     `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`,
@@ -339,7 +356,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                     true,
                 );
             } else {
-                redirectToSignIn().then(() => {
+                redirectToSignIn(undefined, isOffline, shouldForceOffline).then(() => {
                     Onyx.multiSet(onyxSetParams);
 
                     if (hasSwitchedAccountInHybridMode) {
@@ -1483,3 +1500,5 @@ export {
     resetSMSDeliveryFailureStatus,
     clearDisableTwoFactorAuthErrors,
 };
+
+export type {SignOutAndRedirectToSignInParams};

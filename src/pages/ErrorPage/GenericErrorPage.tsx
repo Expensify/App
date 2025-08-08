@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePageRefresh from '@hooks/usePageRefresh';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -27,6 +28,7 @@ function GenericErrorPage({error}: {error?: Error}) {
     const {translate} = useLocalize();
     const isChunkLoadError = error?.name === CONST.CHUNK_LOAD_ERROR || /Loading chunk [\d]+ failed/.test(error?.message ?? '');
     const refreshPage = usePageRefresh();
+    const network = useNetwork();
 
     return (
         <SafeAreaConsumer>
@@ -69,7 +71,11 @@ function GenericErrorPage({error}: {error?: Error}) {
                                         <Button
                                             text={translate('initialSettingsPage.signOut')}
                                             onPress={() => {
-                                                signOutAndRedirectToSignIn();
+                                                signOutAndRedirectToSignIn({
+                                                    shouldSignOutFromOldDot: true,
+                                                    isOffline: network.isOffline,
+                                                    shouldForceOffline: network.shouldForceOffline,
+                                                });
                                                 refreshPage();
                                             }}
                                         />

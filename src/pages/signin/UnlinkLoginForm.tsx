@@ -19,7 +19,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 function UnlinkLoginForm() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
+    const {isOffline, shouldForceOffline} = useNetwork();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
 
@@ -65,7 +65,7 @@ function UnlinkLoginForm() {
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <PressableWithFeedback
                     accessibilityLabel={translate('common.back')}
-                    onPress={() => redirectToSignIn()}
+                    onPress={() => redirectToSignIn(undefined, isOffline, shouldForceOffline)}
                 >
                     <Text style={[styles.link]}>{translate('common.back')}</Text>
                 </PressableWithFeedback>
