@@ -11286,11 +11286,17 @@ function canDeclineReportAction(report: Report, policy?: Policy): boolean {
     const isReportBeingProcessed = isProcessingReport(report);
     const isApproved = isReportApproved({report});
     const isReportPayer = isPayer(getSession(), report, false, policy);
-
+    
     // If user is not a manager/approver and not a payer, they can't decline
-    if (!isCurrentUserManager && !isPayer) {
+    if (!isCurrentUserManager && !isReportPayer) {
         return false;
     }
+
+    // If the report is an IOU report, we can decline it
+    if (isIOUReport(report)) {
+        return true;
+    }
+
 
     // If user is a manager/approver, they can only decline when report is processing
     if (isCurrentUserManager && isReportApprover && isReportBeingProcessed) {
