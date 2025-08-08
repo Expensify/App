@@ -3506,6 +3506,7 @@ const translations = {
             viewTransactions: 'View transactions',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}'s expenses`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card transactions will automatically export to an "Expensify Card Liability Account" created with <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">our integration</a>.</muted-text-label>`,
+            cannotDeleteWorkspaceAnnualSubscriptionError: "You can't delete the workspace until the end of the annual subscription term.",
         },
         perDiem: {
             subtitle: 'Set per diem rates to control daily employee spend. ',

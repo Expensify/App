@@ -3522,6 +3522,7 @@ const translations = {
             viewTransactions: '取引を表示',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}の経費`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Cardの取引は、<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">弊社の統合</a>で作成された 「Expensify Card Liability Account 」に自動的にエクスポートされます。</muted-text-label>`,
+            cannotDeleteWorkspaceAnnualSubscriptionError: '年次サブスクリプション期間が終了するまで、ワークスペースを削除することはできません。',
         },
         perDiem: {
             subtitle: '日当料金を設定して、従業員の1日の支出を管理します。',

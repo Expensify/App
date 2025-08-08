@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
 import {
@@ -45,7 +46,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
-import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
+import {clearDeleteWorkspaceError, clearErrors, openPolicyInitialPage, removeWorkspace, setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen} from '@libs/actions/Policy/Policy';
 import {checkIfFeedConnectionIsBroken, flatAllCardsList, getCompanyFeeds} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -54,6 +55,7 @@ import {
     shouldShowPolicy as checkIfShouldShowPolicy,
     goBackFromInvalidPolicy,
     hasPolicyCategoriesError,
+    isDeleteWorkspaceAnnualSubscriptionError,
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
@@ -118,6 +120,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         .map((data) => data.domainID)
         .filter((domainID): domainID is number => !!domainID);
     const {login, accountID} = useCurrentUserPersonalDetails();
+    const {setIsLoaderVisible} = useFullScreenLoader();
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
@@ -408,16 +411,32 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const shouldShowPolicy = useMemo(() => checkIfShouldShowPolicy(policy, false, currentUserLogin), [policy, currentUserLogin]);
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
-    // We check isPendingDelete and prevIsPendingDelete to prevent the NotFound view from showing right after we delete the workspace
+    const hasDeleteWorkspaceAnnualSubscriptionError = isDeleteWorkspaceAnnualSubscriptionError(policy);
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = !shouldShowPolicy && (!isPendingDelete || prevIsPendingDelete);
+    const shouldShowNotFoundPage = !shouldShowPolicy && !isPendingDelete;
 
     useEffect(() => {
-        if (isEmptyObject(prevPolicy) || prevIsPendingDelete || !isPendingDelete) {
+        if (isEmptyObject(prevPolicy)) {
             return;
         }
-        goBackFromInvalidPolicy();
-    }, [isPendingDelete, policy, prevIsPendingDelete, prevPolicy]);
+        if (!prevIsPendingDelete && isPendingDelete) {
+            if (!isOffline) {
+                setIsLoaderVisible(true);
+                return;
+            }
+            goBackFromInvalidPolicy();
+            return;
+        }
+        if (prevIsPendingDelete && !isPendingDelete) {
+            setIsLoaderVisible(false);
+            if (hasDeleteWorkspaceAnnualSubscriptionError) {
+                clearDeleteWorkspaceError(policyID);
+                setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen(true);
+                return;
+            }
+            goBackFromInvalidPolicy();
+        }
+    }, [isPendingDelete, prevIsPendingDelete, prevPolicy, isOffline, hasDeleteWorkspaceAnnualSubscriptionError, policyID, setIsLoaderVisible]);
 
     // We are checking if the user can access the route.
     // If user can't access the route, we are dismissing any modals that are open when the NotFound view is shown
@@ -480,6 +499,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                         pendingAction={policy?.pendingAction}
                         onClose={() => dismissError(policyID, policy?.pendingAction)}
                         errors={policy?.errors}
+                        shouldShowErrorMessages={!hasDeleteWorkspaceAnnualSubscriptionError}
                         errorRowStyles={[styles.ph5, styles.pv2]}
                         shouldDisableStrikeThrough={false}
                         shouldHideOnDelete={false}

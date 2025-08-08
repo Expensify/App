@@ -5,6 +5,7 @@ import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import AnnualSubscriptionErrorConfirmModal from './components/AnnualSubscriptionErrorConfirmModal';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -105,6 +106,7 @@ function Expensify() {
     const [currentOnboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
+    const [isDeleteWorkspaceAnnualSubscriptionErrorModalOpen] = useOnyx(ONYXKEYS.IS_DELETE_WORKSPACE_ANNUAL_SUBSCRIPTION_ERROR_MODAL_OPEN, {canBeMissing: true});
 
     useDebugShortcut();
     usePriorityMode();
@@ -283,6 +285,7 @@ function Expensify() {
                     <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                     {/* We include the modal for showing a new update at the top level so the option is always present. */}
                     {updateAvailable && !updateRequired ? <UpdateAppModal /> : null}
+                    {isDeleteWorkspaceAnnualSubscriptionErrorModalOpen ? <AnnualSubscriptionErrorConfirmModal /> : null}
                     {screenShareRequest ? (
                         <ConfirmModal
                             title={translate('guides.screenShare')}
