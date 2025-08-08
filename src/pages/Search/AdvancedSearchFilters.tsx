@@ -358,7 +358,7 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
 
     const cardNames = Object.values(cards)
         .filter((card) => cardIdsFilter.includes(card.cardID.toString()) && !feedFilter.includes(createCardFeedKey(card.fundID, card.bank)))
-        .map((card) => getCardDescription(card.cardID, cards));
+        .map((card) => getCardDescription(card));
 
     const feedNames = Object.keys(cardFeedNamesWithType)
         .filter((workspaceCardFeedKey) => {
