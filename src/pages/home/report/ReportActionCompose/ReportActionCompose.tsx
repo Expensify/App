@@ -48,7 +48,6 @@ import {
     getReportRecipientAccountIDs,
     isReportApproved,
     isReportTransactionThread,
-    isSelfDM,
     isSettled,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
@@ -66,7 +65,7 @@ import {addAttachment as addAttachmentReportActions, setIsComposerFullSize} from
 import Timing from '@userActions/Timing';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
-import CONST, {IOUType} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -241,12 +240,12 @@ function ReportActionCompose({
 
     const hasReceipt = useMemo(() => hasReceiptTransactionUtils(transaction), [transaction]);
 
-    const scannableOption = getPreferredScannableIOUType(temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs), report);
+    const scannableOption = getPreferredScannableIOUType(temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, isReportArchived), report);
     const shouldDisplayDualDropZone = useMemo(() => {
         const parentReport = getParentReport(report);
         const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
-        return (shouldAddOrReplaceReceipt && !isSettledOrApproved) || !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, isReportArchived).length;
-    }, [shouldAddOrReplaceReceipt, report, policy, reportParticipantIDs, isReportArchived]);
+        return (shouldAddOrReplaceReceipt && !isSettledOrApproved) || !!scannableOption;
+    }, [shouldAddOrReplaceReceipt, report, scannableOption]);
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
@@ -519,12 +518,7 @@ function ReportActionCompose({
                 setMoneyRequestParticipantsFromReport(newTransactionID, report);
             });
             Navigation.navigate(
-                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                    CONST.IOU.ACTION.CREATE,
-                    isSelfDM(report) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT,
-                    CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                    reportID,
-                ),
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, scannableOption ?? CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID),
             );
         }
     };

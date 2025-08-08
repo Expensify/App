@@ -8807,7 +8807,7 @@ function temporary_getMoneyRequestOptions(
 }
 
 /**
- * Returns preffered scannable IOU option from a give IOU options
+ * Returns preferred scannable IOU option from a give IOU options
  */
 function getPreferredScannableIOUType(iouOptions: IOUType[], report: OnyxEntry<Report>): IOUType | undefined {
     const preferredOrder: IOUType[] = [CONST.IOU.TYPE.TRACK, CONST.IOU.TYPE.SUBMIT, CONST.IOU.TYPE.SPLIT];
