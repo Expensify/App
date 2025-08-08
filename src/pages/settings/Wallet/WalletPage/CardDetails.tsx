@@ -75,6 +75,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         title={getFormattedAddress(privatePersonalDetails || defaultPrivatePersonalDetails)}
                         interactive={false}
+                        copiable
                     />
                     <TextLink
                         style={[styles.link, styles.mh5, styles.mb3]}
