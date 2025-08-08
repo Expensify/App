@@ -21,7 +21,8 @@ import type {ConflictData} from '@src/types/onyx/Request';
 import {isOffline, onReconnection} from './NetworkStore';
 
 let shouldFailAllRequests: boolean;
-Onyx.connect({
+// Use connectWithoutView since this is for network data and don't affect to any UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
@@ -78,7 +79,8 @@ function flushOnyxUpdatesQueue() {
 
 let queueFlushedDataToStore: OnyxUpdate[] = [];
 
-Onyx.connect({
+// Use connectWithoutView since this is for network queue and don't affect to any UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.QUEUE_FLUSHED_DATA,
     callback: (val) => {
         if (!val) {
@@ -227,7 +229,8 @@ function flush(shouldResetPromise = true) {
     }
 
     // Ensure persistedRequests are read from storage before proceeding with the queue
-    const connection = Onyx.connect({
+    // Use connectWithoutView since this is for network queue and don't affect to any UI
+    const connection = Onyx.connectWithoutView({
         key: ONYXKEYS.PERSISTED_REQUESTS,
         // We exceptionally opt out of reusing the connection here to avoid extra callback calls due to
         // an existing connection already made in PersistedRequests.ts.

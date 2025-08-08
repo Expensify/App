@@ -63,6 +63,7 @@ function AttachmentModalContainer({contentProps, modalType, onShow, onClose, sho
             shouldHandleNavigationBack={shouldHandleNavigationBack}
             onClose={closeModal}
             shouldUseReanimatedModal
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <AttachmentModalBaseContent
                 // eslint-disable-next-line react/jsx-props-no-spreading
