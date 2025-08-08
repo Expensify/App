@@ -36,7 +36,6 @@ import {hasSynchronizationErrorMessage, isAuthenticationError} from './actions/c
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
-import localeCompare from './LocaleCompare';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
@@ -312,7 +311,7 @@ function isExpensifyTeam(email: string | undefined): boolean {
 /**
  * Checks if the user with login is an admin of the policy.
  */
-const isUserPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, login?: string) => !!(policy && policy.employeeList && login && policy.employeeList[login]?.role === CONST.POLICY.ROLE.ADMIN);
+const isUserPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, login?: string) => getPolicyRole(policy, login) === CONST.POLICY.ROLE.ADMIN;
 
 /**
  * Checks if the current user is of the role "user" on the policy.
@@ -1091,6 +1090,7 @@ function getNetSuiteImportCustomFieldLabel(
     policy: Policy | undefined,
     importField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>,
     translate: LocaleContextProps['translate'],
+    localeCompare: LocaleContextProps['localeCompare'],
 ): string | undefined {
     const fieldData = policy?.connections?.netsuite?.options?.config.syncOptions?.[importField] ?? [];
     if (fieldData.length === 0) {
@@ -1201,7 +1201,15 @@ function getSageIntacctCreditCards(policy?: Policy, selectedAccount?: string): S
  * @param workspace2 Details of the second workspace to be compared.
  * @param selectedWorkspaceID ID of the selected workspace which needs to be at the beginning.
  */
-const sortWorkspacesBySelected = (workspace1: WorkspaceDetails, workspace2: WorkspaceDetails, selectedWorkspaceIDs: string[] | undefined): number => {
+const sortWorkspacesBySelected = (
+    workspace1: WorkspaceDetails,
+    workspace2: WorkspaceDetails,
+    selectedWorkspaceIDs: string[] | undefined,
+    localeCompare: LocaleContextProps['localeCompare'],
+): number => {
+    if (workspace1.policyID && selectedWorkspaceIDs?.includes(workspace1?.policyID) && workspace2.policyID && selectedWorkspaceIDs?.includes(workspace2.policyID)) {
+        return localeCompare(workspace1.name?.toLowerCase() ?? '', workspace2.name?.toLowerCase() ?? '');
+    }
     if (workspace1.policyID && selectedWorkspaceIDs?.includes(workspace1?.policyID)) {
         return -1;
     }
