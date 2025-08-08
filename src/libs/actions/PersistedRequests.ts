@@ -7,7 +7,8 @@ import type {Request} from '@src/types/onyx';
 let persistedRequests: Request[] = [];
 let ongoingRequest: Request | null = null;
 
-Onyx.connect({
+// We have opted for connectWithoutView here as this module is strictly non-UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.PERSISTED_REQUESTS,
     callback: (val) => {
         Log.info('[PersistedRequests] hit Onyx connect callback', false, {isValNullish: val == null});
@@ -24,7 +25,8 @@ Onyx.connect({
         }
     },
 });
-Onyx.connect({
+// We have opted for connectWithoutView here as this module is strictly non-UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.PERSISTED_ONGOING_REQUESTS,
     callback: (val) => {
         ongoingRequest = val ?? null;

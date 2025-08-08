@@ -2499,6 +2499,39 @@ function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArc
 }
 
 /**
+ * Determines whether a money request report is eligible for merging transactions based on the user's role and permissions.
+ * Rules:
+ * - **Admins**: reports that are in "Open" or "Processing" status
+ * - **Submitters**: IOUs, unreported expenses, and expenses on Open or Processing reports at the first level of approval
+ * - **Managers**: Expenses on Open or Processing reports
+ *
+ * @param reportID - The ID of the money request report to check for merge eligibility
+ * @param isAdmin - Whether the current user is an admin of the policy associated with the target report
+ *
+ * @returns True if the report is eligible for merging transactions, false otherwise
+ */
+function isMoneyRequestReportEligibleForMerge(reportID: string, isAdmin: boolean): boolean {
+    const report = getReportOrDraftReport(reportID);
+
+    if (!isMoneyRequestReport(report)) {
+        return false;
+    }
+
+    const isManager = isReportManager(report);
+    const isSubmitter = isReportOwner(report);
+
+    if (isAdmin) {
+        return isOpenReport(report) || isProcessingReport(report);
+    }
+
+    if (isSubmitter) {
+        return isOpenReport(report) || (isIOUReport(report) && isProcessingReport(report)) || isAwaitingFirstLevelApproval(report);
+    }
+
+    return isManager && isExpenseReport(report) && isProcessingReport(report);
+}
+
+/**
  * Checks whether the card transaction support deleting based on liability type
  */
 function canDeleteCardTransactionByLiabilityType(transaction: OnyxEntry<Transaction>): boolean {
@@ -3321,6 +3354,7 @@ function getIcons(
 function getDisplayNamesWithTooltips(
     personalDetailsList: PersonalDetails[] | PersonalDetailsList | OptionData[],
     shouldUseShortForm: boolean,
+    localeCompare: LocaleContextProps['localeCompare'],
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
 ): DisplayNameWithTooltips {
@@ -3349,7 +3383,7 @@ function getDisplayNamesWithTooltips(
         })
         .sort((first, second) => {
             // First sort by displayName/login
-            const displayNameLoginOrder = localeCompareLibs(first.displayName, second.displayName);
+            const displayNameLoginOrder = localeCompare(first.displayName, second.displayName);
             if (displayNameLoginOrder !== 0) {
                 return displayNameLoginOrder;
             }
@@ -5043,6 +5077,7 @@ function getReportName(
     personalDetails?: Partial<PersonalDetailsList>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
+    transactions?: SearchTransaction[],
 ): string {
     // Check if we can use report name in derived values - only when we have report but no other params
     const canUseDerivedValue = report && policy === undefined && parentReportActionParam === undefined && personalDetails === undefined && invoiceReceiverPolicy === undefined;
@@ -5051,7 +5086,7 @@ function getReportName(
     if (canUseDerivedValue && derivedNameExists) {
         return attributes[report.reportID].reportName;
     }
-    return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy});
+    return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy, transactions});
 }
 
 function getSearchReportName(props: GetReportNameParams): string {
@@ -5154,6 +5189,10 @@ function getReportNameInternal({
         return getWorkspaceReportFieldDeleteMessage(parentReportAction);
     }
 
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
+        return translateLocal('iou.unreportedTransaction');
+    }
+
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
         return getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(parentReportAction);
     }
@@ -5172,7 +5211,7 @@ function getReportNameInternal({
     if (isMoneyRequestAction(parentReportAction)) {
         const originalMessage = getOriginalMessage(parentReportAction);
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        const last4Digits = reportPolicy?.achAccount?.accountNumber.slice(-4) ?? '';
+        const last4Digits = reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
 
         if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
@@ -6709,6 +6748,7 @@ function buildOptimisticReportPreview(
         actorAccountID: hasReceipt ? currentUserAccountID : reportActorAccountID,
         childReportID: childReportID ?? iouReport?.reportID,
         childMoneyRequestCount: 1,
+        isOptimisticAction: true,
         childLastActorAccountID: currentUserAccountID,
         childLastMoneyRequestComment: comment,
         childRecentReceiptTransactionIDs: hasReceipt && !isEmptyObject(transaction) && transaction?.transactionID ? {[transaction.transactionID]: created} : undefined,
@@ -9236,7 +9276,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
     let translationKey: TranslationPaths;
     if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        const last4Digits = reportPolicy?.achAccount?.accountNumber.slice(-4) ?? '';
+        const last4Digits = reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
 
         switch (originalMessage.paymentType) {
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
@@ -9815,10 +9855,6 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isRe
     }
 
     if (isPolicyExpenseChat(report) && !report?.isOwnPolicyExpenseChat && !isPolicyAdminPolicyUtils(policy)) {
-        return true;
-    }
-
-    if (isMoneyRequestReport(report) && currentUserAccountID !== report?.managerID && currentUserAccountID !== report?.ownerAccountID && !isPolicyAdminPolicyUtils(policy)) {
         return true;
     }
 
@@ -11276,10 +11312,6 @@ function getReportStatusTranslation(stateNum?: number, statusNum?: number): stri
     return '';
 }
 
-function reportAttributesSelector(reportAttributes: OnyxEntry<ReportAttributesDerivedValue>) {
-    return reportAttributes?.reports;
-}
-
 export {
     areAllRequestsBeingSmartScanned,
     buildOptimisticAddCommentReportAction,
@@ -11659,8 +11691,8 @@ export {
     getNextApproverAccountID,
     isWorkspaceTaskReport,
     isWorkspaceThread,
+    isMoneyRequestReportEligibleForMerge,
     getReportStatusTranslation,
-    reportAttributesSelector,
 };
 
 export type {
