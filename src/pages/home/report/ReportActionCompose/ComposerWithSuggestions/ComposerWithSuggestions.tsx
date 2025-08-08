@@ -25,7 +25,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {useSidePanelDisplayStatus} from '@hooks/useSidePanel';
+import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';

@@ -4,7 +4,7 @@ import React, {createContext, useCallback, useEffect, useMemo, useRef, useState}
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {useSidePanelDisplayStatus} from '@hooks/useSidePanel';
+import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import SidePanelActions from '@libs/actions/SidePanel';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
@@ -107,3 +107,4 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
 }
 
 export default SidePanelContextProvider;
+export {SidePanelContext};

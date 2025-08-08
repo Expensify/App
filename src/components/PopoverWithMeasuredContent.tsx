@@ -3,7 +3,7 @@ import React, {useContext, useEffect, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import usePrevious from '@hooks/usePrevious';
-import {useSidePanelDisplayStatus} from '@hooks/useSidePanel';
+import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
