@@ -462,7 +462,7 @@ type MoneyRequestInformationParams = {
     optimisticCreatedReportActionID?: string;
     optimisticIOUReportID?: string;
     optimisticReportPreviewActionID?: string;
-    shouldGenerateTransactionThreadReport: boolean;
+    shouldGenerateTransactionThreadReport?: boolean;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -501,7 +501,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     optimisticParams: MoneyRequestOptimisticParams;
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
     participant?: Participant;
-    shouldGenerateTransactionThreadReport: boolean;
+    shouldGenerateTransactionThreadReport?: boolean;
 };
 
 type DistanceRequestTransactionParams = BaseTransactionParams & {
@@ -1426,7 +1426,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         optimisticParams,
         retryParams,
         participant,
-        shouldGenerateTransactionThreadReport,
+        shouldGenerateTransactionThreadReport = true,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -3252,7 +3252,6 @@ function getSendInvoiceInformation(
             payeeEmail: receiver.login ?? '',
             participants: [receiver],
             transactionID: optimisticTransaction.transactionID,
-            shouldGenerateTransactionThreadReport: true,
         });
 
     // STEP 6: Build Onyx Data
@@ -3316,7 +3315,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         optimisticCreatedReportActionID,
         optimisticIOUReportID,
         optimisticReportPreviewActionID,
-        shouldGenerateTransactionThreadReport,
+        shouldGenerateTransactionThreadReport = true,
     } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
@@ -3704,7 +3703,6 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             payeeEmail,
             participants: [participant],
             transactionID: optimisticTransaction.transactionID,
-            shouldGenerateTransactionThreadReport: true,
         });
 
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
@@ -3742,7 +3740,6 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest({
         isNewChatReport,
         shouldCreateNewMoneyRequestReport,
-        shouldGenerateTransactionThreadReport: true,
         policyParams: {
             policy,
             policyCategories,
@@ -3946,7 +3943,6 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         isPersonalTrackingExpense: !shouldUseMoneyReport,
         existingTransactionThreadReportID: linkedTrackedExpenseReportAction?.childReportID,
         linkedTrackedExpenseReportAction,
-        shouldGenerateTransactionThreadReport: true,
     });
 
     let reportPreviewAction: OnyxInputValue<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = null;
@@ -5284,7 +5280,6 @@ function convertBulkTrackedExpensesToIOU(transactionIDs: string[], targetReportI
             moneyRequestReportID: targetReportID,
             existingTransactionID: transactionID,
             existingTransaction: transaction,
-            shouldGenerateTransactionThreadReport: true,
         });
 
         const convertParams: ConvertTrackedExpenseToRequestParams = {
@@ -6542,7 +6537,6 @@ function createSplitsAndOnyxData({
                 payeeEmail: currentUserEmailForIOUSplit,
                 participants: [participant],
                 transactionID: oneOnOneTransaction.transactionID,
-                shouldGenerateTransactionThreadReport: true,
             });
 
         // Add optimistic personal details for new participants
@@ -6583,7 +6577,6 @@ function createSplitsAndOnyxData({
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest({
             isNewChatReport: isNewOneOnOneChatReport,
             shouldCreateNewMoneyRequestReport: shouldCreateNewOneOnOneIOUReport,
-            shouldGenerateTransactionThreadReport: true,
             isOneOnOneSplit: true,
             optimisticParams: {
                 chat: {
@@ -7368,7 +7361,6 @@ function completeSplitBill(
                 payeeEmail: currentUserEmailForIOUSplit,
                 participants: [participant],
                 transactionID: oneOnOneTransaction.transactionID,
-                shouldGenerateTransactionThreadReport: true,
             });
 
         let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport?.reportID, oneOnOneIOUReport?.reportID);
@@ -7382,7 +7374,6 @@ function completeSplitBill(
             isNewChatReport: isNewOneOnOneChatReport,
             isOneOnOneSplit: true,
             shouldCreateNewMoneyRequestReport: shouldCreateNewOneOnOneIOUReport,
-            shouldGenerateTransactionThreadReport: true,
             optimisticParams: {
                 chat: {
                     report: oneOnOneChatReport,
@@ -7622,7 +7613,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 reimbursable,
                 attendees,
             },
-            shouldGenerateTransactionThreadReport: true,
         });
 
         onyxData = moneyRequestOnyxData;
@@ -8488,7 +8478,6 @@ function getSendMoneyParams(
             transactionID: optimisticTransaction.transactionID,
             paymentType: paymentMethodType,
             isSendMoneyFlow: true,
-            shouldGenerateTransactionThreadReport: true,
         });
 
     const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticIOUReport);
@@ -12119,7 +12108,6 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             existingTransaction: originalTransaction,
             existingTransactionID,
             isSplitExpense: true,
-            shouldGenerateTransactionThreadReport: true,
         });
 
         const split = splits.at(index);
