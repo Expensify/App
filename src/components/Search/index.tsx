@@ -1,9 +1,8 @@
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import type {ContentStyle} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import {View} from 'react-native';
-import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
@@ -29,7 +28,6 @@ import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMe
 import {canEditFieldOfMoneyRequest, generateReportID, isArchivedReport} from '@libs/ReportUtils';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
-    getColumnsToShow,
     getListItem,
     getSections,
     getSortedSections,
@@ -57,7 +55,6 @@ import SCREENS from '@src/SCREENS';
 import type {ReportAction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import arraysEqual from '@src/utils/arraysEqual';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
 import SearchScopeProvider from './SearchScopeProvider';
@@ -260,7 +257,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 .flatMap((filteredReportActions) => Object.values(filteredReportActions ?? {})),
         [reportActions],
     );
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
     const clearTransactionsAndSetHashAndKey = useCallback(() => {
@@ -362,8 +359,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (groupBy && (isChat || isTask)) {
             return [];
         }
-        return getSections(type, searchResults.data, searchResults.search, groupBy, exportReportActions, searchKey, archivedReportsIdSet);
-    }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet]);
+
+        return getSections(type, searchResults.data, searchResults.search, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet);
+    }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -580,39 +578,26 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         [hash, isMobileSelectionModeEnabled, toggleTransaction],
     );
 
-    const currentColumns = useMemo(() => {
-        if (!searchResults?.data) {
-            return [];
-        }
-        const columns = getColumnsToShow(searchResults?.data);
+    const onViewableItemsChanged = useCallback(
+        ({viewableItems}: {viewableItems: ViewToken[]}) => {
+            if (!isFocused) {
+                return;
+            }
 
-        return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
-    }, [searchResults?.data]);
+            const isFirstItemVisible = viewableItems.at(0)?.index === 1;
+            // If the user is still loading the search results, or if they are scrolling down, don't refresh the search results
+            if (shouldShowLoadingState || !isFirstItemVisible) {
+                return;
+            }
 
-    // Custom animation for fade effect
-    const opacity = useSharedValue(1);
-    const animatedStyle = useAnimatedStyle(() => ({
-        opacity: opacity.get(),
-    }));
-
-    const previousColumns = usePrevious(currentColumns);
-    const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>([]);
-
-    // If columns have changed, trigger an animation before settings columnsToShow to prevent
-    // new columns appearing before the fade out animation happens
-    useEffect(() => {
-        if ((previousColumns && currentColumns && arraysEqual(previousColumns, currentColumns)) || offset === 0 || isSmallScreenWidth) {
-            setColumnsToShow(currentColumns);
-            return;
-        }
-
-        opacity.set(
-            withTiming(0, {duration: CONST.SEARCH.ANIMATION.FADE_DURATION}, () => {
-                setColumnsToShow(currentColumns);
-                opacity.set(withTiming(1, {duration: CONST.SEARCH.ANIMATION.FADE_DURATION}));
-            }),
-        );
-    }, [previousColumns, currentColumns, setColumnsToShow, opacity, offset, isSmallScreenWidth]);
+            // This line makes sure the app refreshes the search results when the user scrolls to the top.
+            // The backend sends items in parts based on the offset, with a limit on the number of items sent (pagination).
+            // As a result, it skips some items, for example, if the offset is 100, it sends the next items without the first ones.
+            // Therefore, when the user scrolls to the top, we need to refresh the search results.
+            setOffset(0);
+        },
+        [shouldShowLoadingState, isFocused],
+    );
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
@@ -685,24 +670,14 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         );
     }, [clearSelectedTransactions, data, groupBy, reportActionsArray, selectedTransactions, setSelectedTransactions]);
 
-    const onLayoutWithScrollRestore = useCallback(() => {
-        handleSelectionListScroll(sortedSelectedData, searchListRef.current);
-        // Restore scroll position after layout if needed
-        // Removed scroll position restoration logic
-    }, [handleSelectionListScroll, sortedSelectedData]);
+    const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
 
     if (shouldShowLoadingState) {
         return (
-            <Animated.View
-                entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                style={[styles.flex1]}
-            >
-                <SearchRowSkeleton
-                    shouldAnimate
-                    containerStyle={shouldUseNarrowLayout && styles.searchListContentContainerStyles}
-                />
-            </Animated.View>
+            <SearchRowSkeleton
+                shouldAnimate
+                containerStyle={shouldUseNarrowLayout && styles.searchListContentContainerStyles}
+            />
         );
     }
 
@@ -750,56 +725,50 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     return (
         <SearchScopeProvider isOnSearch>
-            <Animated.View
-                entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                style={[styles.flex1, animatedStyle]}
-            >
-                <SearchList
-                    ref={searchListRef}
-                    data={sortedSelectedData}
-                    ListItem={ListItem}
-                    onSelectRow={openReport}
-                    onCheckboxPress={toggleTransaction}
-                    onAllCheckboxPress={toggleAllTransactions}
-                    canSelectMultiple={canSelectMultiple}
-                    shouldPreventLongPressRow={isChat || isTask}
-                    SearchTableHeader={
-                        !shouldShowTableHeader ? undefined : (
-                            <SearchTableHeader
-                                canSelectMultiple={canSelectMultiple}
-                                metadata={searchResults?.search}
-                                onSortPress={onSortPress}
-                                sortOrder={sortOrder}
-                                sortBy={sortBy}
-                                shouldShowYear={shouldShowYear}
-                                isAmountColumnWide={shouldShowAmountInWideColumn}
-                                isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
-                                shouldShowSorting={shouldShowSorting}
-                                columns={columnsToShow}
-                            />
-                        )
-                    }
-                    contentContainerStyle={{...contentContainerStyle, ...styles.pb3}}
-                    containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
-                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                    onScroll={onSearchListScroll}
-                    onEndReachedThreshold={0.75}
-                    onEndReached={fetchMoreResults}
-                    ListFooterComponent={
-                        shouldShowLoadingMoreItems ? (
-                            <SearchRowSkeleton
-                                shouldAnimate
-                                fixedNumItems={5}
-                            />
-                        ) : undefined
-                    }
-                    queryJSON={queryJSON}
-                    columns={columnsToShow}
-                    onLayout={onLayoutWithScrollRestore}
-                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                />
-            </Animated.View>
+            <SearchList
+                ref={searchListRef}
+                data={sortedSelectedData}
+                ListItem={ListItem}
+                onSelectRow={openReport}
+                onCheckboxPress={toggleTransaction}
+                onAllCheckboxPress={toggleAllTransactions}
+                canSelectMultiple={canSelectMultiple}
+                shouldPreventLongPressRow={isChat || isTask}
+                SearchTableHeader={
+                    !shouldShowTableHeader ? undefined : (
+                        <SearchTableHeader
+                            canSelectMultiple={canSelectMultiple}
+                            data={searchResults?.data}
+                            metadata={searchResults?.search}
+                            onSortPress={onSortPress}
+                            sortOrder={sortOrder}
+                            sortBy={sortBy}
+                            shouldShowYear={shouldShowYear}
+                            isAmountColumnWide={shouldShowAmountInWideColumn}
+                            isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
+                            shouldShowSorting={shouldShowSorting}
+                        />
+                    )
+                }
+                contentContainerStyle={{...contentContainerStyle, ...styles.pb3}}
+                containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
+                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                onScroll={onSearchListScroll}
+                onEndReachedThreshold={0.75}
+                onEndReached={fetchMoreResults}
+                ListFooterComponent={
+                    shouldShowLoadingMoreItems ? (
+                        <SearchRowSkeleton
+                            shouldAnimate
+                            fixedNumItems={5}
+                        />
+                    ) : undefined
+                }
+                queryJSON={queryJSON}
+                onViewableItemsChanged={onViewableItemsChanged}
+                onLayout={onLayout}
+                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+            />
         </SearchScopeProvider>
     );
 }

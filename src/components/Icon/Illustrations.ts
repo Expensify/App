@@ -96,6 +96,7 @@ import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustrat
 import CreditCardEyes from '@assets/images/simple-illustrations/simple-illustration__creditcardeyes.svg';
 import CreditCardsNewGreen from '@assets/images/simple-illustrations/simple-illustration__creditcards--green.svg';
 import EmailAddress from '@assets/images/simple-illustrations/simple-illustration__email-address.svg';
+import EmptyShelves from '@assets/images/simple-illustrations/simple-illustration__empty-shelves.svg';
 import EmptyState from '@assets/images/simple-illustrations/simple-illustration__empty-state.svg';
 import Encryption from '@assets/images/simple-illustrations/simple-illustration__encryption.svg';
 import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
@@ -326,4 +327,5 @@ export {
     ReceiptsStackedOnPin,
     PaperAirplane,
     CardReplacementSuccess,
+    EmptyShelves,
 };
