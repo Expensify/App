@@ -4,6 +4,7 @@ import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
+import SidePanelContextProvider from '@components/SidePanel/SidePanelContextProvider';
 import '../wdyr';
 import {ActionSheetAwareScrollViewProvider} from './components/ActionSheetAwareScrollView';
 import ActiveElementRoleProvider from './components/ActiveElementRoleProvider';
@@ -39,7 +40,6 @@ import CONFIG from './CONFIG';
 import Expensify from './Expensify';
 import {CurrentReportIDContextProvider} from './hooks/useCurrentReportID';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
-import {SidePanelProvider} from './hooks/useSidePanel';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import {AttachmentModalContextProvider} from './pages/media/AttachmentModalScreen/AttachmentModalContext';
@@ -101,7 +101,7 @@ function App() {
                                 InputBlurContextProvider,
                                 FullScreenBlockingViewContextProvider,
                                 FullScreenLoaderContextProvider,
-                                SidePanelProvider,
+                                SidePanelContextProvider,
                             ]}
                         >
                             <CustomStatusBarAndBackground />

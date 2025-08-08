@@ -1,19 +1,13 @@
-import type {PropsWithChildren, RefObject} from 'react';
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import type {RefObject} from 'react';
+import {createContext, useContext} from 'react';
 // Import Animated directly from 'react-native' as animations are used with navigation.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
-import SidePanelActions from '@libs/actions/SidePanel';
-import focusComposerWithDelay from '@libs/focusComposerWithDelay';
-import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import KeyboardUtils from '@src/utils/keyboard';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useResponsiveLayout from './useResponsiveLayout';
-import useWindowDimensions from './useWindowDimensions';
 
 /**
  * Hook to get the display status of the Side Panel
@@ -83,73 +77,7 @@ const SidePanelContext = createContext<SidePanelContextProps>({
 /**
  * Hook to get the animated position of the Side Panel and the margin of the navigator
  */
-function SidePanelProvider({children}: PropsWithChildren) {
-    const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const {windowWidth} = useWindowDimensions();
-    const sidePanelWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
-
-    const [isSidePanelTransitionEnded, setIsSidePanelTransitionEnded] = useState(true);
-    const {shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideHelpButton} = useSidePanelDisplayStatus();
-    const shouldHideToolTip = isExtraLargeScreenWidth ? !isSidePanelTransitionEnded : !shouldHideSidePanel;
-
-    const shouldApplySidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel;
-    const sidePanelOffset = useRef(new Animated.Value(shouldApplySidePanelOffset ? variables.sideBarWidth : 0));
-    const sidePanelTranslateX = useRef(new Animated.Value(shouldHideSidePanel ? sidePanelWidth : 0));
-
-    useEffect(() => {
-        setIsSidePanelTransitionEnded(false);
-        Animated.parallel([
-            Animated.timing(sidePanelOffset.current, {
-                toValue: shouldApplySidePanelOffset ? variables.sideBarWidth : 0,
-                duration: CONST.ANIMATED_TRANSITION,
-                useNativeDriver: true,
-            }),
-            Animated.timing(sidePanelTranslateX.current, {
-                toValue: shouldHideSidePanel ? sidePanelWidth : 0,
-                duration: CONST.ANIMATED_TRANSITION,
-                useNativeDriver: true,
-            }),
-        ]).start(() => setIsSidePanelTransitionEnded(true));
-
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- sidePanelWidth dependency caused the help panel content to slide in on window resize
-    }, [shouldHideSidePanel, shouldApplySidePanelOffset]);
-
-    const openSidePanel = useCallback(() => {
-        setIsSidePanelTransitionEnded(false);
-        KeyboardUtils.dismiss();
-        SidePanelActions.openSidePanel(!isExtraLargeScreenWidth);
-    }, [isExtraLargeScreenWidth]);
-
-    const closeSidePanel = useCallback(
-        (shouldUpdateNarrow = false) => {
-            setIsSidePanelTransitionEnded(false);
-            SidePanelActions.closeSidePanel(!isExtraLargeScreenWidth || shouldUpdateNarrow);
-
-            // Focus the composer after closing the Side Panel
-            focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
-        },
-        [isExtraLargeScreenWidth],
-    );
-
-    const value = useMemo(
-        () => ({
-            isSidePanelTransitionEnded,
-            shouldHideSidePanel,
-            shouldHideSidePanelBackdrop,
-            shouldHideHelpButton,
-            shouldHideToolTip,
-            sidePanelOffset,
-            sidePanelTranslateX,
-            openSidePanel,
-            closeSidePanel,
-        }),
-        [closeSidePanel, isSidePanelTransitionEnded, openSidePanel, shouldHideHelpButton, shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideToolTip],
-    );
-
-    return <SidePanelContext.Provider value={value}>{children}</SidePanelContext.Provider>;
-}
-
 const useSidePanel = () => useContext(SidePanelContext);
 
 export default useSidePanel;
-export {useSidePanelDisplayStatus, SidePanelProvider};
+export {useSidePanelDisplayStatus};
