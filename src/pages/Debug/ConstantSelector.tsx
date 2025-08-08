@@ -29,9 +29,7 @@ type ConstantSelectorProps = {
     policyID?: string;
 };
 
-function ConstantSelector(
-    {formType, policyID, errorText = '', name, value, onInputChange}: ConstantSelectorProps,
-) {
+function ConstantSelector({formType, policyID, errorText = '', name, value, onInputChange}: ConstantSelectorProps) {
     const fieldValue = (useRoute().params as Record<string, string> | undefined)?.[name];
 
     useEffect(() => {

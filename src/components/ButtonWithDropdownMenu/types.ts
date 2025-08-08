@@ -165,7 +165,7 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     shouldUseOptionIcon?: boolean;
 
     /** Reference to the outside element */
-    ref?: React.Ref<ButtonWithDropdownMenuRef>
+    ref?: React.Ref<ButtonWithDropdownMenuRef>;
 };
 
 export type {
@@ -178,5 +178,5 @@ export type {
     WorkspaceTaxRatesBulkActionType,
     ReportExportType,
     OnboardingHelpType,
-    ButtonWithDropdownMenuRef
+    ButtonWithDropdownMenuRef,
 };

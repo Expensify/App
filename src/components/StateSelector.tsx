@@ -40,9 +40,7 @@ type StateSelectorProps = {
     ref?: ForwardedRef<View>;
 };
 
-function StateSelector(
-    {errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, stateSelectorRoute = ROUTES.SETTINGS_ADDRESS_STATE, ref}: StateSelectorProps,
-) {
+function StateSelector({errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, stateSelectorRoute = ROUTES.SETTINGS_ADDRESS_STATE, ref}: StateSelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {state: stateFromUrl} = useGeographicalStateAndCountryFromRoute();

@@ -7,23 +7,21 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import type PressableWithSecondaryInteractionProps from './types';
 
 /** This is a special Pressable that calls onSecondaryInteraction when LongPressed, or right-clicked. */
-function PressableWithSecondaryInteraction(
-    {
-        children,
-        inline = false,
-        style,
-        wrapperStyle,
-        enableLongPressWithHover = false,
-        withoutFocusOnSecondaryInteraction = false,
-        needsOffscreenAlphaCompositing = false,
-        preventDefaultContextMenu = true,
-        onSecondaryInteraction,
-        activeOpacity = 1,
-        opacityAnimationDuration,
-        ref,
-        ...rest
-    }: PressableWithSecondaryInteractionProps,
-) {
+function PressableWithSecondaryInteraction({
+    children,
+    inline = false,
+    style,
+    wrapperStyle,
+    enableLongPressWithHover = false,
+    withoutFocusOnSecondaryInteraction = false,
+    needsOffscreenAlphaCompositing = false,
+    preventDefaultContextMenu = true,
+    onSecondaryInteraction,
+    activeOpacity = 1,
+    opacityAnimationDuration,
+    ref,
+    ...rest
+}: PressableWithSecondaryInteractionProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<HTMLDivElement | null>(null);

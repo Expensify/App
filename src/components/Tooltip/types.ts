@@ -1,9 +1,9 @@
+import type {BoundsObserver} from '@react-ng/bounds-observer';
 import type {ForwardedRef, ReactNode} from 'react';
 import type React from 'react';
 import type {GestureResponderEvent, LayoutRectangle, StyleProp, ViewStyle} from 'react-native';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type { BoundsObserver } from '@react-ng/bounds-observer';
 
 type SharedTooltipProps = {
     /** The text to display in the tooltip. If text is omitted, only children will be rendered. */

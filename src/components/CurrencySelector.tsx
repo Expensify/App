@@ -34,9 +34,7 @@ type CurrencySelectorProps = {
     ref?: ForwardedRef<View>;
 };
 
-function CurrencySelector(
-    {errorText = '', value: currency, onInputChange = () => {}, onBlur, currencySelectorRoute = ROUTES.SETTINGS_CHANGE_CURRENCY, ref}: CurrencySelectorProps,
-) {
+function CurrencySelector({errorText = '', value: currency, onInputChange = () => {}, onBlur, currencySelectorRoute = ROUTES.SETTINGS_CHANGE_CURRENCY, ref}: CurrencySelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 

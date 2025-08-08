@@ -6,21 +6,19 @@ import Text from '@components/Text';
 import type PressableWithSecondaryInteractionProps from './types';
 
 /** This is a special Pressable that calls onSecondaryInteraction when LongPressed. */
-function PressableWithSecondaryInteraction(
-    {
-        children,
-        onSecondaryInteraction,
-        inline = false,
-        needsOffscreenAlphaCompositing = false,
-        suppressHighlighting = false,
-        activeOpacity = 1,
-        preventDefaultContextMenu,
-        withoutFocusOnSecondaryInteraction,
-        enableLongPressWithHover,
-        ref,
-        ...rest
-    }: PressableWithSecondaryInteractionProps,
-) {
+function PressableWithSecondaryInteraction({
+    children,
+    onSecondaryInteraction,
+    inline = false,
+    needsOffscreenAlphaCompositing = false,
+    suppressHighlighting = false,
+    activeOpacity = 1,
+    preventDefaultContextMenu,
+    withoutFocusOnSecondaryInteraction,
+    enableLongPressWithHover,
+    ref,
+    ...rest
+}: PressableWithSecondaryInteractionProps) {
     const executeSecondaryInteraction = (event: GestureResponderEvent) => {
         event.preventDefault();
         onSecondaryInteraction?.(event);

@@ -109,31 +109,29 @@ function isTransactionGroupListItemArray(data: SearchListItem[]): data is Transa
     return typeof firstElement === 'object' && 'transactions' in firstElement;
 }
 
-function SearchList(
-    {
-        data,
-        ListItem,
-        SearchTableHeader,
-        onSelectRow,
-        onCheckboxPress,
-        canSelectMultiple,
-        onScroll = () => {},
-        onAllCheckboxPress,
-        contentContainerStyle,
-        onEndReachedThreshold,
-        onEndReached,
-        containerStyle,
-        ListFooterComponent,
-        shouldPreventDefaultFocusOnSelectRow,
-        shouldPreventLongPressRow,
-        queryJSON,
-        onViewableItemsChanged,
-        onLayout,
-        estimatedItemSize = ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD,
-        isMobileSelectionModeEnabled,
-        ref,
-    }: SearchListProps,
-) {
+function SearchList({
+    data,
+    ListItem,
+    SearchTableHeader,
+    onSelectRow,
+    onCheckboxPress,
+    canSelectMultiple,
+    onScroll = () => {},
+    onAllCheckboxPress,
+    contentContainerStyle,
+    onEndReachedThreshold,
+    onEndReached,
+    containerStyle,
+    ListFooterComponent,
+    shouldPreventDefaultFocusOnSelectRow,
+    shouldPreventLongPressRow,
+    queryJSON,
+    onViewableItemsChanged,
+    onLayout,
+    estimatedItemSize = ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD,
+    isMobileSelectionModeEnabled,
+    ref,
+}: SearchListProps) {
     const styles = useThemeStyles();
 
     const {initialHeight, initialWidth} = useInitialWindowDimensions();

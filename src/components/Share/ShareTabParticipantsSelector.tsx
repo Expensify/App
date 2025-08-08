@@ -8,7 +8,7 @@ import type ROUTES from '@src/ROUTES';
 
 type ShareTabParticipantsSelectorProps = {
     detailsPageRouteObject: typeof ROUTES.SHARE_SUBMIT_DETAILS | typeof ROUTES.SHARE_DETAILS;
-    ref?: React.Ref<InputFocusRef>
+    ref?: React.Ref<InputFocusRef>;
 };
 
 type InputFocusRef = {

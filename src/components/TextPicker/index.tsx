@@ -6,9 +6,20 @@ import CONST from '@src/CONST';
 import TextSelectorModal from './TextSelectorModal';
 import type {TextPickerProps} from './types';
 
-function TextPicker(
-    {value, description, placeholder = '', errorText = '', onInputChange, furtherDetails, rightLabel, disabled = false, interactive = true, required = false, ref, ...rest}: TextPickerProps,
-) {
+function TextPicker({
+    value,
+    description,
+    placeholder = '',
+    errorText = '',
+    onInputChange,
+    furtherDetails,
+    rightLabel,
+    disabled = false,
+    interactive = true,
+    required = false,
+    ref,
+    ...rest
+}: TextPickerProps) {
     const styles = useThemeStyles();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 

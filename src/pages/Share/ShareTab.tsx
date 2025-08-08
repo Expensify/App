@@ -31,9 +31,9 @@ type ShareTabRef = {
     focus?: () => void;
 };
 
-type ShareTabProps ={
+type ShareTabProps = {
     ref?: React.Ref<ShareTabRef>;
-}
+};
 
 function ShareTab({ref}: ShareTabProps) {
     const styles = useThemeStyles();
