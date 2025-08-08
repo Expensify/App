@@ -20,7 +20,7 @@ import {
     meetsMinimumAgeRequirement,
 } from '@src/libs/ValidationUtils';
 
-global.TextEncoder = TextEncoder;
+global.TextEncoder = TextEncoder as typeof global.TextEncoder;
 
 describe('ValidationUtils', () => {
     describe('isValidDate', () => {
