@@ -56,6 +56,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
 
+    const isDomainRestriction = route.params?.isDomainRestriction ?? false;
+
     const handleJoinWorkspace = useCallback(
         (policy: JoinablePolicy) => {
             if (policy.automaticJoiningEnabled) {
@@ -133,8 +135,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             shouldShowOfflineIndicator={isSmallScreenWidth}
         >
             <HeaderWithBackButton
-                shouldShowBackButton
-                progressBarPercentage={60}
+                shouldShowBackButton={!isDomainRestriction}
+                progressBarPercentage={isDomainRestriction ? 100 : 60}
                 onBackButtonPress={handleBackButtonPress}
             />
             <SelectionList
@@ -148,14 +150,16 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 headerContent={
                     <View style={[wrapperPadding, onboardingIsMediumOrLargerScreenWidth && styles.mt5, styles.mb5]}>
                         <Text style={styles.textHeadlineH1}>{translate('onboarding.joinAWorkspace')}</Text>
-                        <Text style={[styles.textSupporting, styles.mt3]}>{translate('onboarding.listOfWorkspaces')}</Text>
+                        <Text style={[styles.textSupporting, styles.mt3]}>
+                            {isDomainRestriction ? translate('onboarding.domainWorkspaceRestriction.subtitle') : translate('onboarding.listOfWorkspaces')}
+                        </Text>
                     </View>
                 }
                 footerContent={
                     <Button
                         success={false}
                         large
-                        text={translate('common.skip')}
+                        text={isDomainRestriction ? translate('onboarding.domainWorkspaceRestriction.skipForNow') : translate('common.skip')}
                         testID="onboardingWorkSpaceSkipButton"
                         onPress={() => {
                             if (isVsb) {
@@ -165,6 +169,19 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
                             if (isSmb) {
                                 Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
+                                return;
+                            }
+                            if (isDomainRestriction) {
+                                completeOnboarding({
+                                    engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                                    onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
+                                    firstName: onboardingPersonalDetails?.firstName ?? '',
+                                    lastName: onboardingPersonalDetails?.lastName ?? '',
+                                });
+                                setOnboardingAdminsChatReportID();
+                                setOnboardingPolicyID();
+
+                                navigateAfterOnboardingWithMicrotaskQueue(isSmallScreenWidth, lastAccessReport, undefined, undefined, false);
                                 return;
                             }
                             Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
