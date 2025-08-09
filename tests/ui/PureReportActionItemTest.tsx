@@ -163,7 +163,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
         });
 
         it('SUBMITTED_AND_CLOSED action', async () => {
@@ -172,7 +172,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
         });
     });
 });
