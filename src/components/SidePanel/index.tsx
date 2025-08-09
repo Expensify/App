@@ -1,9 +1,12 @@
 import React from 'react';
 import useSidePanel from '@hooks/useSidePanel';
 import Help from './HelpModal';
+import useSyncSidePanelWithHistory from './useSyncSidePanelWithHistory';
 
 function SidePanel() {
     const {isSidePanelTransitionEnded, shouldHideSidePanel, sidePanelTranslateX, shouldHideSidePanelBackdrop, closeSidePanel} = useSidePanel();
+
+    useSyncSidePanelWithHistory();
 
     if (isSidePanelTransitionEnded && shouldHideSidePanel) {
         return null;

@@ -3,9 +3,10 @@ import {StackActions} from '@react-navigation/native';
 import type {ParamListBase, Router} from '@react-navigation/routers';
 import SCREENS_WITH_NAVIGATION_TAB_BAR from '@components/Navigation/TopLevelNavigationTabBar/SCREENS_WITH_NAVIGATION_TAB_BAR';
 import Log from '@libs/Log';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import type {OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType} from './types';
+import type {OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, ToggleSidePanelWithHistoryActionType} from './types';
 
 const MODAL_ROUTES_TO_DISMISS: string[] = [
     NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
@@ -154,6 +155,26 @@ function handleNavigatingToModalFromModal(
     return stackRouter.getStateForAction(modifiedState, action, configOptions);
 }
 
+function handleToggleSidePanelWithHistoryAction(state: StackNavigationState<ParamListBase>, action: ToggleSidePanelWithHistoryActionType) {
+    // This shouldn't ever happen as the history should be always defined. It's for type safety.
+    if (!state?.history) {
+        return state;
+    }
+
+    // If it's set to true, we need to add the side panel history entry if it's not already there.
+    if (action.payload.isVisible && state.history.at(-1) !== CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL) {
+        return {...state, history: [...state.history, CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL]};
+    }
+
+    // If it's set to false, we need to remove the side panel history entry if it's there.
+    if (!action.payload.isVisible) {
+        return {...state, history: state.history.filter((entry) => entry !== CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL)};
+    }
+
+    // Else, do not change history.
+    return state;
+}
+
 export {
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
@@ -162,4 +183,5 @@ export {
     handleReplaceReportsSplitNavigatorAction,
     screensWithEnteringAnimation,
     workspaceSplitsWithoutEnteringAnimation,
+    handleToggleSidePanelWithHistoryAction,
 };
