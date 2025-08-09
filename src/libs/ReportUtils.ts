@@ -188,6 +188,7 @@ import {
     isMarkAsClosedAction,
     isModifiedExpenseAction,
     isMoneyRequestAction,
+    isMovedAction,
     isOldDotReportAction,
     isPendingRemove,
     isPolicyChangeLogAction,
@@ -5213,6 +5214,10 @@ function getReportNameInternal({
         return getPolicyChangeMessage(parentReportAction);
     }
 
+    if (isMovedAction(parentReportAction)) {
+        return getMovedActionMessage(parentReportAction);
+    }
+
     if (isMoneyRequestAction(parentReportAction)) {
         const originalMessage = getOriginalMessage(parentReportAction);
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
@@ -6210,6 +6215,26 @@ function getMovedTransactionMessage(report: OnyxEntry<Report>) {
         reportName,
     });
     return message;
+}
+
+function getMovedActionMessage(action: ReportAction) {
+    if (!isMovedAction(action)) {
+        return '';
+    }
+    const movedActionOriginalMessage = getOriginalMessage(action);
+
+    if (!movedActionOriginalMessage) {
+        return '';
+    }
+    const html = getReportActionHtml(action);
+    const {toPolicyID, newParentReportID, movedReportID} = movedActionOriginalMessage;
+    const toPolicyName = getPolicyNameByID(toPolicyID);
+    return translateLocal('iou.movedAction', {
+        isIouReport: html.startsWith('moved this report'),
+        movedReportUrl: `${environmentURL}/r/${movedReportID}`,
+        newParentReportUrl: `${environmentURL}/r/${newParentReportID}`,
+        toPolicyName,
+    });
 }
 
 function getPolicyChangeMessage(action: ReportAction) {
@@ -11727,6 +11752,7 @@ export {
     isWorkspaceThread,
     isMoneyRequestReportEligibleForMerge,
     getReportStatusTranslation,
+    getMovedActionMessage,
 };
 
 export type {

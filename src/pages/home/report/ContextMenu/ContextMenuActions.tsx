@@ -76,6 +76,7 @@ import {
     isMessageDeleted,
     isModifiedExpenseAction,
     isMoneyRequestAction,
+    isMovedAction,
     isOldDotReportAction,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
@@ -98,6 +99,7 @@ import {
     getDeletedTransactionMessage,
     getDowngradeWorkspaceMessage,
     getIOUReportActionDisplayMessage,
+    getMovedActionMessage,
     getOriginalReportID,
     getPolicyChangeMessage,
     getReimbursementDeQueuedOrCanceledActionMessage,
@@ -660,6 +662,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getUpdatedApprovalRuleMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
                     setClipboardMessage(getUpdatedManualApprovalThresholdMessage(reportAction));
+                } else if (isMovedAction(reportAction)) {
+                    setClipboardMessage(getMovedActionMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {
                     const displayMessage = getPolicyChangeMessage(reportAction);
                     Clipboard.setString(displayMessage);
