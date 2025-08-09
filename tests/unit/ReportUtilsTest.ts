@@ -6,7 +6,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
-import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
+
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
 import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
@@ -38,7 +38,6 @@ import {
     getAllAncestorReportActions,
     getApprovalChain,
     getChatByParticipants,
-    getCurrentUserAccountID,
     getDefaultWorkspaceAvatar,
     getDisplayNamesWithTooltips,
     getGroupChatName,
@@ -56,16 +55,12 @@ import {
     getWorkspaceNameUpdatedMessage,
     hasReceiptError,
     isAllowedToApproveExpenseReport,
-    isApprover,
     isArchivedNonExpenseReport,
     isArchivedReport,
     isChatUsedForOnboarding,
     isDeprecatedGroupDM,
     isMoneyRequestReportEligibleForMerge,
     isPayer,
-    isPolicyAdmin,
-    isProcessingReport,
-    isReportApproved,
     isReportOutstanding,
     isRootGroupChat,
     parseReportRouteParams,
@@ -87,9 +82,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {Participant} from '@src/types/onyx/Report';
+import * as NumberUtils from '@libs/NumberUtils';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {chatReportR14932 as mockedChatReport} from '../../__mocks__/reportData/reports';
-import * as NumberUtils from '../../src/libs/NumberUtils';
 import {convertedInvoiceChat} from '../data/Invoice';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction, {getRandomDate} from '../utils/collections/reportActions';
@@ -409,7 +404,7 @@ describe('ReportUtils', () => {
             );
 
             expect(title).toBeCalledWith(
-                expect.objectContaining<OnboardingTaskLinks>({
+                expect.objectContaining({
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     testDriveURL: expect.any(String),
                 }),
@@ -438,7 +433,7 @@ describe('ReportUtils', () => {
             );
 
             expect(description).toBeCalledWith(
-                expect.objectContaining<OnboardingTaskLinks>({
+                expect.objectContaining({
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     testDriveURL: expect.any(String),
                 }),
@@ -5318,9 +5313,7 @@ describe('ReportUtils', () => {
 
     describe('canDeclineReportAction', () => {
         const managerAccountID = 1;
-        const approverAccountID = 2;
         const adminAccountID = 3;
-        const payerAccountID = 4;
         const submitterAccountID = 5;
 
         beforeEach(async () => {
@@ -5333,7 +5326,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return true for policy admin on any IOU report', () => {
-            const policy: Policy = {
+            const testPolicy: Policy = {
                 ...createRandomPolicy(1),
                 role: CONST.POLICY.ROLE.ADMIN,
             };
@@ -5343,7 +5336,7 @@ describe('ReportUtils', () => {
                 managerID: managerAccountID,
             };
 
-            const result = canDeclineReportAction(report, policy);
+            const result = canDeclineReportAction(report, testPolicy);
             expect(result).toBe(true);
         });
 
@@ -5361,7 +5354,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return true for admin on IOU-type expense report', () => {
-            const policy: Policy = {
+            const adminPolicy: Policy = {
                 ...createRandomPolicy(1),
                 role: CONST.POLICY.ROLE.ADMIN,
             };
@@ -5371,14 +5364,14 @@ describe('ReportUtils', () => {
                 managerID: managerAccountID,
             };
 
-            const result = canDeclineReportAction(report, policy);
+            const result = canDeclineReportAction(report, adminPolicy);
             expect(result).toBe(true);
         });
 
         it('should return false for regular user who is not manager, approver, admin, or payer', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {accountID: submitterAccountID});
 
-            const policy: Policy = {
+            const userPolicy: Policy = {
                 ...createRandomPolicy(1),
                 role: CONST.POLICY.ROLE.USER,
             };
@@ -5388,7 +5381,7 @@ describe('ReportUtils', () => {
                 managerID: managerAccountID,
             };
 
-            const result = canDeclineReportAction(report, policy);
+            const result = canDeclineReportAction(report, userPolicy);
             expect(result).toBe(false);
         });
     });

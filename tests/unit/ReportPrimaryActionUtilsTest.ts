@@ -894,7 +894,6 @@ describe('getTransactionThreadPrimaryAction', () => {
 
     describe('isMarkAsResolvedAction', () => {
         const submitterAccountID = 1;
-        const adminAccountID = 2;
         const otherUserAccountID = 3;
 
         beforeEach(async () => {
@@ -1002,7 +1001,6 @@ describe('getTransactionThreadPrimaryAction', () => {
 
     describe('isMarkAsResolvedReportAction', () => {
         const submitterAccountID = 1;
-        const adminAccountID = 2;
         const otherUserAccountID = 3;
 
         beforeEach(async () => {
