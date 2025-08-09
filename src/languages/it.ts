@@ -6337,8 +6337,9 @@ const translations = {
         levelThreeResult: 'Messaggio rimosso dal canale più avviso anonimo e messaggio segnalato per revisione.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Invitali',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: 'Invita a inviare le spese',
+        inviteToChat: 'Invita solo a chattare',
+        nothing: 'Non fare nulla',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accetta',
