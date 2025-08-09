@@ -29,6 +29,7 @@ function SymbolButton({onSymbolButtonPress, symbol, isSymbolPressable = true, te
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
+
     return isSymbolPressable ? (
         <Tooltip text={translate('common.selectSymbolOrCurrency')}>
             <PressableWithoutFeedback
