@@ -1786,6 +1786,7 @@ const CONST = {
         ASCII_CAPABLE: 'ascii-capable',
         NUMBER_PAD: 'number-pad',
         DECIMAL_PAD: 'decimal-pad',
+        NUMBERS_AND_PUNCTUATION: 'numbers-and-punctuation',
     },
 
     INPUT_MODE: {
