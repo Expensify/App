@@ -11925,6 +11925,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                     total: movedToReport?.total ?? 0,
                 },
             });
+
         } else {
             movedToReportID = generateReportID();
         }
@@ -11983,7 +11984,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
             },
         });
 
-        urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(childReportID);
+        urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(movedToReportID ?? report.chatReportID);
     } else {
         // For reports with single expense
         optimisticData.push({
@@ -12015,7 +12016,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
             },
         });
 
-        urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(childReportID);
+        urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(report.chatReportID);
     }
 
     // Add rter transaction violation
@@ -12115,7 +12116,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         },
     });
 
-    const optimisticRemoveReportAction = buildOptimisticRemoveReportAction(transaction, childReportID ?? reportAction?.reportID ?? '');
+    const optimisticRemoveReportAction = buildOptimisticRemoveReportAction(transaction, childReportID ?? reportAction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
