@@ -126,6 +126,7 @@ key "key"
       / payer
       / exporter
       / expenseType
+      / withdrawalType
       / submitted
       / approved
       / paid
