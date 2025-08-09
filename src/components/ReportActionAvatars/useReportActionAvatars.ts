@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportAction, getSortedReportActions, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     getDisplayNameForParticipant,
     getIcons,
@@ -19,6 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
+import type {OriginalMessageChangePolicy} from '@src/types/onyx/OriginalMessage';
 import useReportPreviewSenderID from './useReportPreviewSenderID';
 
 function useReportActionAvatars({
@@ -59,6 +60,14 @@ function useReportActionAvatars({
         action = getReportAction(reportChatReport?.reportID, chatReport.parentReportActionID);
     }
 
+    const [latestChangePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`, {
+        canBeMissing: true,
+        selector: (reportActions) =>
+            getSortedReportActions(Object.values(reportActions ?? {}).filter((reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)).at(-1),
+    });
+
+    const isAReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
+
     const isReportArchived = useReportIsArchived(iouReport?.reportID);
 
     const reportPreviewSenderID = useReportPreviewSenderID({
@@ -67,11 +76,20 @@ function useReportActionAvatars({
         chatReport,
     });
 
-    const policyID = passedPolicyID ?? (chatReport?.policyID === CONST.POLICY.ID_FAKE || !chatReport?.policyID ? (iouReport?.policyID ?? chatReport?.policyID) : chatReport?.policyID);
+    const reportPolicyID = iouReport?.policyID ?? chatReport?.policyID;
+    const chatReportPolicyIDExists = chatReport?.policyID === CONST.POLICY.ID_FAKE || !chatReport?.policyID;
+    const latestChangePolicyOM = getOriginalMessage(latestChangePolicy as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY>) ?? {};
+    const {fromPolicy: policyIDBeforeChange, toPolicy: changedPolicyID} = latestChangePolicyOM as OriginalMessageChangePolicy;
+    const shouldUseChangedPolicyID = !!changedPolicyID;
+    const retrievedPolicyID = chatReportPolicyIDExists ? reportPolicyID : chatReport?.policyID;
+
+    const policyID = shouldUseChangedPolicyID ? changedPolicyID : (passedPolicyID ?? retrievedPolicyID);
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
     const {chatReportIDAdmins, chatReportIDAnnounce, workspaceAccountID} = policy ?? {};
-    const [policyChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportIDAnnounce ?? chatReportIDAdmins}`, {canBeMissing: true});
+
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [policyChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportIDAnnounce || chatReportIDAdmins}`, {canBeMissing: true});
 
     if (passedPolicyID) {
         const policyChatReportAvatar = {...getWorkspaceIcon(policyChatReport, policy), id: policyID, name: policy?.name};
@@ -99,7 +117,6 @@ function useReportActionAvatars({
     const isWorkspaceWithoutChatReportProp = !chatReport && isWorkspacePolicy;
     const isAWorkspaceChat = isPolicyExpenseChat(chatReport) || isWorkspaceWithoutChatReportProp;
     const isATripPreview = action?.actionName === CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW;
-    const isAReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
     const isReportPreviewOrNoAction = !action || isAReportPreviewAction;
     const isReportPreviewInTripRoom = isAReportPreviewAction && isATripRoom;
 
@@ -226,6 +243,17 @@ function useReportActionAvatars({
         avatars = getIconsWithDefaults(invoiceReport);
     } else if (shouldUseMappedAccountIDs) {
         avatars = avatarsForAccountIDs;
+    }
+
+    const isUserWithWorkspaceAvatar =
+        avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && avatars.at(0)?.type === CONST.ICON_TYPE_AVATAR && avatars.at(1)?.type === CONST.ICON_TYPE_WORKSPACE;
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const wasReportPreviewMovedToDifferentPolicy = chatReport?.policyID === policyIDBeforeChange && policyIDBeforeChange !== changedPolicyID && isAReportPreviewAction;
+
+    if (isUserWithWorkspaceAvatar && wasReportPreviewMovedToDifferentPolicy) {
+        const policyChatReportIcon = {...getWorkspaceIcon(policyChatReport, policy), id: policyID, name: policy?.name};
+        const [firstAvatar] = avatars;
+        avatars = [firstAvatar, policyChatReportIcon];
     }
 
     return {
