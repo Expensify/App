@@ -2,6 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import CONST from '@src/CONST';
 import type {MergeTransaction, Transaction} from '@src/types/onyx';
+import type {Receipt} from '@src/types/onyx/Transaction';
 import {getIOUActionForReportID} from './ReportActionsUtils';
 import {findSelfDMReportID} from './ReportUtils';
 import {getAmount, getBillable, getCategory, getCurrency, getDescription, getMerchant, getReimbursable, getTag, isCardTransaction} from './TransactionUtils';
@@ -51,6 +52,11 @@ const MERGE_FIELDS_UTILS = {
         getDataFn: getBillable,
     },
 };
+
+// Get the filename from the receipt
+function getReceiptFileName(receipt?: Receipt) {
+    return receipt?.source?.split('/')?.pop();
+}
 
 /**
  * Fills the receipt.source for a transaction if it's missing
@@ -248,7 +254,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         },
         reimbursable: mergeTransaction.reimbursable,
         billable: mergeTransaction.billable,
-        filename: mergeTransaction.receipt?.source?.split('/').pop(),
+        filename: getReceiptFileName(mergeTransaction.receipt),
         receipt: mergeTransaction.receipt,
     };
 }
@@ -286,6 +292,7 @@ export {
     isEmptyMergeValue,
     fillMissingReceiptSource,
     getTransactionThreadReportID,
+    getReceiptFileName,
 };
 
 export type {MergeFieldKey, MergeValueType, MergeValue};

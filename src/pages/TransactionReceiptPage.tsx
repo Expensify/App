@@ -3,6 +3,7 @@ import AttachmentModal from '@components/AttachmentModal';
 import useOnyx from '@hooks/useOnyx';
 import {navigateToStartStepIfScanFileCannotBeRead} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
+import {getReceiptFileName} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -32,6 +33,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
     const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, {canBeMissing: true});
     if (mergeTransactionID && mergeTransaction && transactionMain) {
         transactionMain.receipt = mergeTransaction.receipt;
+        transactionMain.filename = getReceiptFileName(mergeTransaction.receipt);
     }
 
     const isDraftTransaction = !!action;
