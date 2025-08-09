@@ -95,6 +95,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     ...modalStyle,
                     ...{
                         alignItems: 'center',
+                        justifyContent: 'center',
                     },
                 };
                 modalContainerStyle = {
