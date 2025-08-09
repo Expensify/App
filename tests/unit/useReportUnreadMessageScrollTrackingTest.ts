@@ -29,8 +29,9 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     currentVerticalScrollingOffsetRef: offsetRef,
                     readActionSkippedRef: readActionRefFalse,
                     floatingMessageVisibleInitialValue: false,
-                    hasUnreadMarkerReportAction: false,
                     onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
+                    hasUnreadMarkerReportAction: false,
                 }),
             );
 
@@ -49,6 +50,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     readActionSkippedRef: readActionRefFalse,
                     floatingMessageVisibleInitialValue: false,
                     hasUnreadMarkerReportAction: false,
+                    hasNewerActions: false,
                     onTrackScrolling: onTrackScrollingMockFn,
                 }),
             );
@@ -78,6 +80,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     readActionSkippedRef: readActionRefFalse,
                     floatingMessageVisibleInitialValue: false,
                     hasUnreadMarkerReportAction: true,
+                    hasNewerActions: false,
                     onTrackScrolling: onTrackScrollingMockFn,
                 }),
             );
@@ -104,6 +107,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     readActionSkippedRef: readActionRefFalse,
                     floatingMessageVisibleInitialValue: false,
                     hasUnreadMarkerReportAction: true,
+                    hasNewerActions: false,
                     onTrackScrolling: onTrackScrollingMockFn,
                 }),
             );
@@ -130,6 +134,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     readActionSkippedRef: {current: true},
                     floatingMessageVisibleInitialValue: false,
                     hasUnreadMarkerReportAction: true,
+                    hasNewerActions: false,
                     onTrackScrolling: onTrackScrollingMockFn,
                 }),
             );
