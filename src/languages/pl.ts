@@ -6756,9 +6756,7 @@ const translations = {
         },
         compareModal: {
             comparePlans: 'Porównaj plany',
-            unlockTheFeatures: 'Odblokuj potrzebne funkcje dzięki planowi, który jest dla Ciebie odpowiedni.',
-            viewOurPricing: 'Zobacz naszą stronę z cennikiem',
-            forACompleteFeatureBreakdown: 'aby uzyskać pełny podział funkcji każdego z naszych planów.',
+            subtitle: `<muted-text>Odblokuj potrzebne funkcje dzięki planowi, który najlepiej odpowiada Twoim potrzebom. <a href="${CONST.PRICING}">Zapoznaj się z naszą stroną z cennikiem</a> lub pełnym zestawieniem funkcji każdego z naszych planów.</muted-text>`,
         },
         details: {
             title: 'Szczegóły subskrypcji',
