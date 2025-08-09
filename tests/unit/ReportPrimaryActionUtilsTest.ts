@@ -1109,7 +1109,7 @@ describe('getTransactionThreadPrimaryAction', () => {
             ];
 
             const violations = {
-                '1': [
+                transactionViolation1: [
                     {
                         name: CONST.VIOLATIONS.MISSING_CATEGORY,
                         type: CONST.VIOLATION_TYPES.VIOLATION,
