@@ -620,7 +620,7 @@ describe('actions/Policy', () => {
 
             // When deleting a workspace fails
             mockFetch?.fail?.();
-            Policy.deleteWorkspace(fakePolicy.id, fakePolicy.name);
+            Policy.deleteWorkspace(fakePolicy.id, fakePolicy.name, undefined);
 
             await waitForBatchedUpdates();
 
@@ -700,7 +700,7 @@ describe('actions/Policy', () => {
                 {name: 'hold', type: CONST.VIOLATION_TYPES.WARNING},
             ]);
 
-            Policy.deleteWorkspace(policyID, 'test');
+            Policy.deleteWorkspace(policyID, 'test', undefined);
 
             await waitForBatchedUpdates();
 
@@ -725,7 +725,7 @@ describe('actions/Policy', () => {
 
             jest.spyOn(PolicyUtils, 'getPersonalPolicy').mockReturnValue(personalPolicy);
 
-            Policy.deleteWorkspace(teamPolicy.id, teamPolicy.name);
+            Policy.deleteWorkspace(teamPolicy.id, teamPolicy.name, undefined);
             await waitForBatchedUpdates();
 
             const activePolicyID: OnyxEntry<string> = await new Promise((resolve) => {

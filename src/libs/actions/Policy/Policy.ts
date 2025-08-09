@@ -337,7 +337,7 @@ function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>>
 /**
  * Delete the workspace
  */
-function deleteWorkspace(policyID: string, policyName: string, lastAccessedWorkspacePolicyID?: string, lastUsedPaymentMethods?: LastPaymentMethod) {
+function deleteWorkspace(policyID: string, policyName: string, lastAccessedWorkspacePolicyID: string | undefined, lastUsedPaymentMethods?: LastPaymentMethod) {
     if (!allPolicies) {
         return;
     }
