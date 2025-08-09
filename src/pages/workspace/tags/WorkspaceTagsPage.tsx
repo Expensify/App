@@ -102,6 +102,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [allTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`, {canBeMissing: true});
     const [policyTagLists, isMultiLevelTags, hasDependentTags, hasIndependentTags] = useMemo(
         () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags), hasIndependentTagsPolicyUtils(policy, policyTags)],
         [policy, policyTags],
@@ -157,16 +159,22 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const updateWorkspaceTagEnabled = useCallback(
         (value: boolean, tagName: string) => {
-            setWorkspaceTagEnabled(policyID, {[tagName]: {name: tagName, enabled: value}}, 0);
+            if (policy === undefined) {
+                return;
+            }
+            setWorkspaceTagEnabled(policy, {[tagName]: {name: tagName, enabled: value}}, 0);
         },
-        [policyID],
+        [policy],
     );
 
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean, orderWeight: number) => {
-            setPolicyTagsRequired(policyID, value, orderWeight);
+            if (policy === undefined) {
+                return;
+            }
+            setPolicyTagsRequired(policy, value, orderWeight, policyTags, policyCategories, allTransactionViolations);
         },
-        [policyID],
+        [allTransactionViolations, policy, policyCategories, policyTags],
     );
 
     const tagList = useMemo<TagListItem[]>(() => {
@@ -326,7 +334,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const deleteTags = () => {
-        deletePolicyTags(policyID, selectedTags);
+        if (policy !== undefined && selectedTags.length > 0) {
+            deletePolicyTags(policy, selectedTags, policyCategories, allTransactionViolations);
+        }
         setIsDeleteTagsConfirmModalVisible(false);
 
         InteractionManager.runAfterInteractions(() => {
@@ -475,7 +485,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         return;
                     }
                     setSelectedTags([]);
-                    setWorkspaceTagEnabled(policyID, tagsToDisable, 0);
+                    if (policy === undefined) {
+                        return;
+                    }
+                    // Disable the selected tags
+                    setWorkspaceTagEnabled(policy, tagsToDisable, 0);
                 },
             });
         }
@@ -487,7 +501,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
                     setSelectedTags([]);
-                    setWorkspaceTagEnabled(policyID, tagsToEnable, 0);
+                    if (policy === undefined) {
+                        return;
+                    }
+                    // Enable the selected tags
+                    setWorkspaceTagEnabled(policy, tagsToEnable, 0);
                 },
             });
         }
@@ -519,7 +537,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         return;
                     }
                     setSelectedTags([]);
-                    setWorkspaceTagRequired(policyID, tagListIndexesToMarkOptional, false, policyTags);
+                    if (policy === undefined) {
+                        return;
+                    }
+                    setWorkspaceTagRequired(policy, tagListIndexesToMarkOptional, false, policyTags, policyCategories, allTransactionViolations);
                 },
             });
         }
@@ -531,7 +552,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.NOT_REQUIRED,
                 onSelected: () => {
                     setSelectedTags([]);
-                    setWorkspaceTagRequired(policyID, tagListIndexesToMarkRequired, true, policyTags);
+                    if (policy === undefined) {
+                        return;
+                    }
+                    setWorkspaceTagRequired(policy, tagListIndexesToMarkRequired, true, policyTags, policyCategories, allTransactionViolations);
                 },
             });
         }
