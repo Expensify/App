@@ -3011,9 +3011,9 @@ const translations = {
         },
     },
     beneficialOwnerInfoStep: {
-        doYouOwn25percent: '您是否拥有25%或以上的',
-        doAnyIndividualOwn25percent: '是否有个人拥有25%或更多的股份',
-        areThereMoreIndividualsWhoOwn25percent: '是否有更多个人拥有25%或以上的股份',
+        doYouOwn25percent: ({companyName}: CompanyNameParams) => `您是否拥有${companyName}的25%或更多股份？`,
+        doAnyIndividualOwn25percent: ({companyName}: CompanyNameParams) => `是否有任何个人拥有${companyName}的25%或以上股份？`,
+        areThereMoreIndividualsWhoOwn25percent: ({companyName}: CompanyNameParams) => `还有其他个人持有${companyName} 25%或以上的股份吗？`,
         regulationRequiresUsToVerifyTheIdentity: '法规要求我们核实任何拥有超过25%业务的个人的身份。',
         companyOwner: '企业主',
         enterLegalFirstAndLastName: '所有者的法定姓名是什么？',
