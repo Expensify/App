@@ -100,6 +100,9 @@ type TransactionViolationData = {
 
     /** What prohibitive expense rule did they break? */
     prohibitedExpenseRule?: string;
+
+    /** Comment that triggered the violation */
+    comment?: string;
 };
 
 /** Model of a transaction violation */

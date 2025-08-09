@@ -459,7 +459,7 @@ const ViolationsUtils = {
             member,
             category,
             rejectedBy = '',
-            rejectReason = '',
+            comment = '',
             formattedLimit = '',
             surcharge = 0,
             invoiceMarkup = 0,
@@ -478,7 +478,7 @@ const ViolationsUtils = {
             case 'autoReportedRejectedExpense':
                 return translate('violations.autoReportedRejectedExpense', {
                     rejectedBy,
-                    rejectReason,
+                    comment,
                 });
             case 'billableExpense':
                 return translate('violations.billableExpense');

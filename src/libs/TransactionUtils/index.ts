@@ -1020,7 +1020,7 @@ function shouldShowViolation(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Pol
     const isReportOpen = isOpenExpenseReport(iouReport);
 
     if (violationName === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE) {
-        return isSubmitter;
+        return isSubmitter || isPolicyAdmin(policy);
     }
 
     if (violationName === CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT) {
@@ -1051,6 +1051,21 @@ function allHavePendingRTERViolation(transactions: OnyxEntry<Transaction[] | Sea
         return hasPendingRTERViolation(filteredTransactionViolations);
     });
     return transactionsWithRTERViolations.length > 0 && transactionsWithRTERViolations.every((value) => value === true);
+}
+
+function hasPendingAutoReportedRejectedExpenseViolation(
+    transactions: OnyxEntry<Transaction[] | SearchTransaction[]>,
+    transactionViolations: OnyxCollection<TransactionViolations> | undefined,
+): boolean {
+    if (!transactions) {
+        return false;
+    }
+
+    const transactionsWithAutoReportedRejectedExpenseViolations = transactions.map((transaction) => {
+        const filteredTransactionViolations = getTransactionViolations(transaction, transactionViolations);
+        return !!filteredTransactionViolations?.some((transactionViolation: TransactionViolation) => transactionViolation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+    });
+    return transactionsWithAutoReportedRejectedExpenseViolations.length > 0 && transactionsWithAutoReportedRejectedExpenseViolations.every((value) => value === true);
 }
 
 function checkIfShouldShowMarkAsCashButton(hasRTERPendingViolation: boolean, shouldDisplayBrokenConnectionViolation: boolean, report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
@@ -1974,6 +1989,7 @@ export {
     isDemoTransaction,
     shouldShowViolation,
     isUnreportedAndHasInvalidDistanceRateTransaction,
+    hasPendingAutoReportedRejectedExpenseViolation,
     getTransactionViolationsOfTransaction,
 };
 
