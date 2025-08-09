@@ -14,6 +14,8 @@ const globalIsNetworkInterceptorInstalledPromise = new Promise<void>((resolve, r
 });
 let networkCache: NetworkCacheMap | null = null;
 
+const originalFetch = global.fetch;
+
 /**
  * The headers of a fetch request can be passed as an array of tuples or as an object.
  * This function converts the headers to an object.
@@ -121,6 +123,14 @@ function waitForActiveRequestsToBeEmpty(): Promise<void> {
     });
 }
 
+function disableNetworkRequests(disable = true) {
+    if (!disable) {
+        return;
+    }
+
+    global.fetch = () => Promise.reject(new Error('Network requests are disabled'));
+}
+
 /**
  * Install a network interceptor by overwriting the global fetch function:
  * - Overwrites fetch globally with a custom implementation
@@ -135,7 +145,6 @@ export default function installNetworkInterceptor(
     shouldReturnRecordedResponse: boolean,
 ) {
     console.debug(LOG_TAG, 'installing with shouldReturnRecordedResponse:', shouldReturnRecordedResponse);
-    const originalFetch = global.fetch;
 
     if (networkCache == null && shouldReturnRecordedResponse) {
         console.debug(LOG_TAG, 'fetching network cache …');
@@ -209,4 +218,5 @@ export default function installNetworkInterceptor(
             });
     };
 }
-export {waitForActiveRequestsToBeEmpty};
+
+export {waitForActiveRequestsToBeEmpty, disableNetworkRequests, originalFetch};
