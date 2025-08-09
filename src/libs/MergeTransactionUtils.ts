@@ -2,6 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import CONST from '@src/CONST';
 import type {MergeTransaction, Transaction} from '@src/types/onyx';
+import type {Receipt} from '@src/types/onyx/Transaction';
 import {getIOUActionForReportID} from './ReportActionsUtils';
 import {findSelfDMReportID} from './ReportUtils';
 import {getAmount, getBillable, getCategory, getCurrency, getDescription, getMerchant, getReimbursable, getTag, isCardTransaction} from './TransactionUtils';
@@ -51,6 +52,11 @@ const MERGE_FIELDS_UTILS = {
         getDataFn: getBillable,
     },
 };
+
+// Get the filename from the receipt
+function getReceiptFileName(receipt?: Receipt) {
+    return receipt?.source?.split('/')?.pop();
+}
 
 /**
  * Fills the receipt.source for a transaction if it's missing
@@ -173,6 +179,14 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
         const isTargetValueEmpty = isEmptyMergeValue(targetValue);
         const isSourceValueEmpty = isEmptyMergeValue(sourceValue);
 
+        // If target transaction is a card transaction, always preserve the target transaction's amount and currency
+        // See https://github.com/Expensify/App/issues/68189#issuecomment-3167156907
+        if (field === 'amount' && isCardTransaction(targetTransaction)) {
+            mergeableData[field] = targetValue;
+            mergeableData.currency = targetTransaction?.currency;
+            return;
+        }
+
         if (isTargetValueEmpty || isSourceValueEmpty || targetValue === sourceValue) {
             if (field === 'amount' && getMergeFieldValue(targetTransaction, 'currency') !== getMergeFieldValue(sourceTransaction, 'currency')) {
                 conflictFields.push('amount');
@@ -240,7 +254,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         },
         reimbursable: mergeTransaction.reimbursable,
         billable: mergeTransaction.billable,
-        filename: mergeTransaction.receipt?.source?.split('/').pop(),
+        filename: getReceiptFileName(mergeTransaction.receipt),
         receipt: mergeTransaction.receipt,
     };
 }
@@ -278,6 +292,7 @@ export {
     isEmptyMergeValue,
     fillMissingReceiptSource,
     getTransactionThreadReportID,
+    getReceiptFileName,
 };
 
 export type {MergeFieldKey, MergeValueType, MergeValue};
