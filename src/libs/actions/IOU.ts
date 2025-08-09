@@ -11947,11 +11947,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         },
     });
 
-    const optimisticRemoveReportAction = buildOptimisticRemoveReportAction(
-        convertToDisplayString(Math.abs(transaction?.amount ?? 0), transaction?.currency ?? ''),
-        reportID,
-        transaction?.merchant ?? '',
-    );
+    const optimisticRemoveReportAction = buildOptimisticRemoveReportAction(transaction, childReportID ?? reportAction.reportID ?? '');
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,

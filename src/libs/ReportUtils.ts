@@ -11355,8 +11355,10 @@ function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Re
  * Returns the necessary reportAction onyx data to indicate that the transaction has been removed from the report
  * @param [created] - Action created time
  */
-function buildOptimisticRemoveReportAction(amount: string, reportID: string, merchant?: string, created = DateUtils.getDBTime()): OptimisticDeclineReportAction {
-    const linkToReport = `${environmentURL}/${ROUTES.SEARCH_REPORT.getRoute({reportID})}`;
+function buildOptimisticRemoveReportAction(transaction: Transaction, reportID: string, created = DateUtils.getDBTime()): OptimisticDeclineReportAction {
+    const amount = convertToDisplayString(Math.abs(transaction.amount ?? 0), transaction.currency ?? '');
+    const merchant = transaction.merchant ?? '';
+    const linkToReport = `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`;
     const htmlForComment = translateLocal('iou.decline.reportActions.removedFromReport', {
         amount,
         merchant,
@@ -11375,6 +11377,13 @@ function buildOptimisticRemoveReportAction(amount: string, reportID: string, mer
                 text: textForComment,
             },
         ],
+        originalMessage: {
+            amount: transaction.amount,
+            currency: transaction.currency,
+            transactionThreadReportID: reportID,
+            merchant,
+            transactionID: transaction.transactionID,
+        },
         person: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,

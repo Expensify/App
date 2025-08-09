@@ -484,6 +484,12 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Are all allEnabled report field options enabled */
     allEnabled?: string;
+
+    /** The amount of the transaction */
+    amount?: number;
+
+    /** The ID of the transaction thread report */
+    transactionThreadReportID?: string;
 };
 
 /** Model of `join policy` report action */
