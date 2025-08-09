@@ -1393,8 +1393,14 @@ function MoneyReportHeader({
                 </View>
             </Modal>
             <ConfirmModal
-                onConfirm={() => setIsExportWithTemplateModalVisible(false)}
-                onCancel={() => setIsExportWithTemplateModalVisible(false)}
+                onConfirm={() => {
+                    setIsExportWithTemplateModalVisible(false);
+                    clearSelectedTransactions(undefined, true);
+                }}
+                onCancel={() => {
+                    setIsExportWithTemplateModalVisible(false);
+                    clearSelectedTransactions(undefined, true);
+                }}
                 isVisible={isExportWithTemplateModalVisible}
                 title={translate('export.exportInProgress')}
                 prompt={translate('export.conciergeWillSend')}
