@@ -12035,12 +12035,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
             value: [...currentTransactionViolations, newViolation],
         });
 
-        // Add success data for transaction violations (keep the new violation)
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`,
-            value: [...currentTransactionViolations, newViolation],
-        });
+        // Success data doesn't need to set violations again - server response will handle final state
 
         // Add failure data to revert transaction violations
         failureData.push({
@@ -12129,15 +12124,12 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         },
     });
 
-    // Add successData for the remove action
+    // Add successData for the remove action - remove optimistic action to avoid duplicates with server response
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         value: {
-            [optimisticRemoveReportAction.reportActionID]: {
-                ...optimisticRemoveReportAction,
-                pendingAction: null,
-            },
+            [optimisticRemoveReportAction.reportActionID]: null,
         },
     });
 
