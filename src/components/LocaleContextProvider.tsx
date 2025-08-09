@@ -1,16 +1,23 @@
 import React, {createContext, useEffect, useMemo, useState} from 'react';
+import {importEmojiLocale} from '@assets/emojis';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import DateUtils from '@libs/DateUtils';
+import {buildEmojisTrie} from '@libs/EmojiTrie';
 import {fromLocaleDigit as fromLocaleDigitLocaleDigitUtils, toLocaleDigit as toLocaleDigitLocaleDigitUtils, toLocaleOrdinal as toLocaleOrdinalLocaleDigitUtils} from '@libs/LocaleDigitUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
-import {translate as translateLocalize} from '@libs/Localize';
+import {getDevicePreferredLocale, translate as translateLocalize} from '@libs/Localize';
+import localeEventCallback from '@libs/Localize/localeEventCallback';
 import {format} from '@libs/NumberFormatUtils';
+import {setLocale} from '@userActions/App';
+import CONST from '@src/CONST';
+import {isFullySupportedLocale, isSupportedLocale} from '@src/CONST/LOCALES';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type LocaleContextProviderProps = {
     /** Actual content wrapped by this component */
@@ -73,7 +80,34 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: false, canBeMissing: true});
     const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
+    const [nvpPreferredLocale, nvpPreferredLocaleMetadata] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     const [currentLocale, setCurrentLocale] = useState<Locale | undefined>(() => IntlStore.getCurrentLocale());
+
+    const localeToApply = useMemo(() => {
+        if (isLoadingOnyxValue(nvpPreferredLocaleMetadata)) {
+            return undefined;
+        }
+        if (nvpPreferredLocale && isSupportedLocale(nvpPreferredLocale)) {
+            return nvpPreferredLocale;
+        }
+        return getDevicePreferredLocale();
+    }, [nvpPreferredLocale, nvpPreferredLocaleMetadata]);
+
+    useEffect(() => {
+        if (!localeToApply) {
+            return;
+        }
+
+        setLocale(localeToApply, nvpPreferredLocale);
+        IntlStore.load(localeToApply);
+        localeEventCallback(localeToApply);
+
+        // For locales without emoji support, fallback on English
+        const normalizedLocale = isFullySupportedLocale(localeToApply) ? localeToApply : CONST.LOCALES.DEFAULT;
+        importEmojiLocale(normalizedLocale).then(() => {
+            buildEmojisTrie(normalizedLocale);
+        });
+    }, [localeToApply, nvpPreferredLocale]);
 
     useEffect(() => {
         if (areTranslationsLoading) {
