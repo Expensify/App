@@ -12028,24 +12028,18 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 comment: comment ?? '',
             },
         };
-        
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`,
-            value: [
-                ...currentTransactionViolations,
-                newViolation,
-            ],
+            value: [...currentTransactionViolations, newViolation],
         });
 
         // Add success data for transaction violations (keep the new violation)
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`,
-            value: [
-                ...currentTransactionViolations,
-                newViolation,
-            ],
+            value: [...currentTransactionViolations, newViolation],
         });
 
         // Add failure data to revert transaction violations
