@@ -211,11 +211,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 icon: Receipt,
                 action: singleExecution(
                     waitForNavigate(() => {
-                        // TODO: Navigate to Receipt Partners page when it's created
-                        // Navigation.navigate(ROUTES.POLICY_RECEIPT_PARTNERS.getRoute(policyID))
+                        Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
                     }),
                 ),
-                screenName: SCREENS.WORKSPACE.CATEGORIES, // Update to SCREENS.WORKSPACE.RECEIPT_PARTNERS when created
+                screenName: SCREENS.WORKSPACE.RECEIPT_PARTNERS,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
             });
         }
