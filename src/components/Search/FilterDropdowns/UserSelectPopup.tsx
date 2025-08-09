@@ -1,11 +1,12 @@
 import isEmpty from 'lodash/isEmpty';
-import React, {memo, useCallback, useMemo, useState} from 'react';
+import React, {memo, useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/Search/UserSelectionListItem';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -43,6 +44,7 @@ type UserSelectPopupProps = {
 };
 
 function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) {
+    const selectionListRef = useRef<SelectionListHandle | null>(null);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {options} = useOptionsList();
@@ -100,31 +102,38 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     }, [optionsList, cleanSearchTerm]);
 
     const listData = useMemo(() => {
-        const personalDetailList = filteredOptions.personalDetails
-            .map((participant) => ({
-                ...participant,
-                isSelected: selectedAccountIDs.has(participant.accountID),
-            }))
-            .sort((a, b) => {
-                // Put the current user at the top of the list
-                if (a.accountID === accountID) {
-                    return -1;
-                }
-                if (b.accountID === accountID) {
-                    return 1;
-                }
-                return 0;
-            });
+        const personalDetailList = filteredOptions.personalDetails.map((participant) => ({
+            ...participant,
+            isSelected: selectedAccountIDs.has(participant.accountID),
+        }));
 
-        const recentReportsList = filteredOptions.recentReports.map((report) => {
-            const isSelected = selectedOptions.some((selectedOption) => selectedOption.reportID === report.reportID);
-            return {
-                ...report,
-                isSelected,
-            };
+        const recentReportsList = filteredOptions.recentReports.map((report) => ({
+            ...report,
+            isSelected: selectedOptions.some((opt) => opt.reportID === report.reportID),
+        }));
+
+        const combined = [...personalDetailList, ...recentReportsList];
+
+        combined.sort((a, b) => {
+            // selected items first
+            if (a.isSelected && !b.isSelected) {
+                return -1;
+            }
+            if (!a.isSelected && b.isSelected) {
+                return 1;
+            }
+
+            // Put the current user at the top of the list
+            if (a.accountID === accountID) {
+                return -1;
+            }
+            if (b.accountID === accountID) {
+                return 1;
+            }
+            return 0;
         });
 
-        return [...personalDetailList, ...recentReportsList];
+        return combined;
     }, [filteredOptions, selectedOptions, accountID, selectedAccountIDs]);
 
     const {sections, headerMessage} = useMemo(() => {
@@ -150,6 +159,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             const isSelected = selectedOptions.some((selected) => optionsMatch(selected, option));
 
             setSelectedOptions((prev) => (isSelected ? prev.filter((selected) => !optionsMatch(selected, option)) : [...prev, getSelectedOptionData(option)]));
+            selectionListRef?.current?.scrollToIndex(0, true);
         },
         [selectedOptions],
     );
@@ -171,9 +181,9 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     return (
         <View style={[styles.getUserSelectionListPopoverHeight(dataLength || 1, windowHeight, shouldUseNarrowLayout)]}>
             <SelectionList
+                ref={selectionListRef}
                 canSelectMultiple
                 textInputAutoFocus={shouldFocusInputOnScreenFocus}
-                shouldClearInputOnSelect={false}
                 headerMessage={headerMessage}
                 sections={sections}
                 ListItem={UserSelectionListItem}
