@@ -123,6 +123,7 @@ function AttachmentView({
     reportID,
 }: AttachmentViewProps) {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
+    const [pdfsPaths] = useOnyx(ONYXKEYS.CACHED_PDF_PATHS, {canBeMissing: true});
     const {translate} = useLocalize();
     const {updateCurrentURLAndReportID} = usePlaybackContext();
 
@@ -212,7 +213,7 @@ function AttachmentView({
         const onPDFLoadComplete = (path: string) => {
             const id = (transaction && transaction.transactionID) ?? reportActionID;
             if (path && id) {
-                addCachedPDFPaths(id, path);
+                addCachedPDFPaths(id, path, pdfsPaths ?? {});
             }
             if (!loadComplete) {
                 setLoadComplete(true);
