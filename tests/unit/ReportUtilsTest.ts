@@ -8,7 +8,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
-import * as NumberUtils from '@libs/NumberUtils';
+import {rand64} from '@libs/NumberUtils';
 import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticChatReport,
@@ -1598,7 +1598,7 @@ describe('ReportUtils', () => {
                 currency: CONST.CURRENCY.USD,
                 comment: '',
                 participants: [{login: 'email1@test.com'}, {login: 'email2@test.com'}],
-                transactionID: NumberUtils.rand64(),
+                transactionID: rand64(),
             }) as ReportAction;
             expect(shouldDisableThread(reportAction, reportID, false)).toBeTruthy();
         });

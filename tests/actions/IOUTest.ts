@@ -7412,7 +7412,7 @@ describe('actions/IOU', () => {
 
         it('should decline a money request and return navigation route', async () => {
             // When: Decline the money request
-            const result = declineMoneyRequest(transaction?.transactionID ?? '', iouReport?.reportID ?? '', comment);
+            const result = declineMoneyRequest(transaction?.transactionID!, iouReport?.reportID!, comment);
 
             // Then: Should return navigation route to chat report
             expect(result).toBe(ROUTES.REPORT_WITH_ID.getRoute(chatReport?.reportID));
@@ -7432,7 +7432,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // When: Decline the money request
-            declineMoneyRequest(transaction?.transactionID ?? '', iouReport?.reportID ?? '', comment);
+            declineMoneyRequest(transaction?.transactionID!, iouReport?.reportID!, comment);
             await waitForBatchedUpdates();
 
             // Then: Verify violation is added
@@ -7478,7 +7478,7 @@ describe('actions/IOU', () => {
 
         it('should remove AUTO_REPORTED_REJECTED_EXPENSE violation', async () => {
             // When: Mark violation as resolved
-            markDeclineViolationAsResolved(transaction?.transactionID ?? '', iouReport?.reportID ?? '');
+            markDeclineViolationAsResolved(transaction?.transactionID!, iouReport?.reportID!);
             await waitForBatchedUpdates();
 
             // Then: Verify violation is removed
