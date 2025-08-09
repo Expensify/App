@@ -478,7 +478,6 @@ function AttachmentModalBaseContent({
                             title={translate('notFound.notHere')}
                             subtitle={translate('notFound.pageNotFound')}
                             linkKey="notFound.goBackHome"
-                            shouldShowLink
                             onLinkPress={onClose}
                         />
                     )}
