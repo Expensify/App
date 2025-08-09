@@ -1018,7 +1018,11 @@ describe('getTransactionThreadPrimaryAction', () => {
             const transactions = [
                 {
                     transactionID: '1',
-                    reportID: REPORT_ID,
+                    reportID: REPORT_ID.toString(),
+                    amount: 1000,
+                    created: '2023-01-01',
+                    currency: 'USD',
+                    merchant: 'Test Merchant',
                 } as Transaction,
             ];
 
@@ -1048,7 +1052,11 @@ describe('getTransactionThreadPrimaryAction', () => {
             const transactions = [
                 {
                     transactionID: '1',
-                    reportID: REPORT_ID,
+                    reportID: REPORT_ID.toString(),
+                    amount: 1000,
+                    created: '2023-01-01',
+                    currency: 'USD',
+                    merchant: 'Test Merchant',
                 } as Transaction,
             ];
 
@@ -1078,7 +1086,11 @@ describe('getTransactionThreadPrimaryAction', () => {
             const transactions = [
                 {
                     transactionID: '1',
-                    reportID: REPORT_ID,
+                    reportID: REPORT_ID.toString(),
+                    amount: 1000,
+                    created: '2023-01-01',
+                    currency: 'USD',
+                    merchant: 'Test Merchant',
                 } as Transaction,
             ];
 
@@ -1104,7 +1116,11 @@ describe('getTransactionThreadPrimaryAction', () => {
             const transactions = [
                 {
                     transactionID: '1',
-                    reportID: REPORT_ID,
+                    reportID: REPORT_ID.toString(),
+                    amount: 1000,
+                    created: '2023-01-01',
+                    currency: 'USD',
+                    merchant: 'Test Merchant',
                 } as Transaction,
             ];
 
