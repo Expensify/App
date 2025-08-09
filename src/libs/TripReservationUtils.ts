@@ -2,7 +2,7 @@ import type {ArrayValues} from 'type-fest';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
-import type {Reservation, ReservationType} from '@src/types/onyx/Transaction';
+import type {Reservation, ReservationTimeDetails, ReservationType} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {AirPnr, CarPnr, HotelPnr, Pnr, PnrData, PnrTraveler, RailPnr, TripData} from '@src/types/onyx/TripData';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -24,6 +24,12 @@ function getTripReservationIcon(reservationType?: ReservationType): IconAsset {
 }
 
 type ReservationData = {reservation: Reservation; transactionID: string; reportID: string | undefined; reservationIndex: number; sequenceIndex: number};
+type ReservationPNRData = {
+    pnrID: string;
+    totalFareAmount: number;
+    currency: string;
+    reservations: ReservationData[];
+};
 
 function getReservationsFromTripTransactions(transactions: Transaction[]): ReservationData[] {
     return transactions
@@ -198,6 +204,7 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservat
                     start,
                     end,
                     route,
+                    legId: legIdx,
                     confirmations,
                     arrivalGate: flightObject?.arrivalGate,
                     seatNumber: getSeatByLegAndFlight(travelerInfo, legIdx, flightIdx),
@@ -341,6 +348,7 @@ function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reserva
             reservationList.push({
                 reservationIndex: legIndex,
                 reservation: {
+                    legId: legIdx,
                     reservationID: pnr.pnrId,
                     start: {
                         date: leg.departAt.iso8601,
@@ -421,6 +429,50 @@ function getReservationsFromTripReport(tripReport?: Report, transactions?: Trans
     return [];
 }
 
+function formatAirportInfo(reservationTimeDetails: ReservationTimeDetails, hideAirportCode = false): string {
+    const longName = reservationTimeDetails?.longName ? `${reservationTimeDetails?.longName} ` : '';
+    let shortName = reservationTimeDetails?.shortName ? `${reservationTimeDetails?.shortName}` : '';
+
+    shortName = longName && shortName ? `(${shortName})` : shortName;
+
+    return !hideAirportCode ? `${longName}${shortName}` : longName;
+}
+
+function getPNRReservationDataFromTripReport(tripReport?: Report, transactions?: Transaction[]): ReservationPNRData[] {
+    const reservations = getReservationsFromTripReport(tripReport, transactions);
+    if (reservations.length === 0) {
+        return [];
+    }
+
+    const pnrMap = new Map<string, ReservationPNRData>();
+
+    reservations.forEach((reservation) => {
+        // eslint-disable-next-line rulesdir/no-default-id-values
+        const pnrID = reservation.reservation.reservationID ?? '';
+        if (!pnrMap.has(pnrID)) {
+            pnrMap.set(pnrID, {
+                pnrID,
+                totalFareAmount: 0,
+                currency: '',
+                reservations: [],
+            });
+        }
+        const reservationData = pnrMap.get(pnrID);
+        if (reservationData) {
+            reservationData.reservations.push(reservation);
+        }
+    });
+
+    return Array.from(pnrMap.values()).map((pnrData) => {
+        const pnrPayloadData = tripReport?.tripData?.payload?.pnrs?.find((pnr) => pnrData.pnrID === pnr.pnrId);
+        return {
+            ...pnrData,
+            totalFareAmount: ((pnrPayloadData?.data?.totalFareAmount?.base?.amount ?? 0) + (pnrPayloadData?.data?.totalFareAmount?.tax?.amount ?? 0)) * 100,
+            currency: pnrPayloadData?.data?.totalFareAmount?.base?.currencyCode ?? '',
+        };
+    });
+}
+
 function getTripTotal(tripReport: Report): {
     totalDisplaySpend: number;
     currency?: string;
@@ -451,5 +503,14 @@ function getReservationDetailsFromSequence(tripReservations: ReservationData[], 
     };
 }
 
-export {getTripReservationIcon, getTripEReceiptIcon, getTripReservationCode, getReservationsFromTripReport, getTripTotal, getReservationDetailsFromSequence};
+export {
+    getTripReservationIcon,
+    getTripEReceiptIcon,
+    getTripReservationCode,
+    getReservationsFromTripReport,
+    getTripTotal,
+    getReservationDetailsFromSequence,
+    formatAirportInfo,
+    getPNRReservationDataFromTripReport,
+};
 export type {ReservationData};

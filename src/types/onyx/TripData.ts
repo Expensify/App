@@ -230,6 +230,42 @@ type PnrData = {
 
     /** Reason for suspending the booking. */
     suspendReason: string;
+
+    /**
+     * Fare Amount details for the PNR.
+     */
+    totalFareAmount: {
+        /**
+         * Base fare details.
+         */
+        base: {
+            /**
+             *
+             */
+            amount: number;
+            /**
+             * Converted amount of the base fare.
+             */
+            convertedAmount: number;
+            /**
+             * Converted currency of the base fare.
+             */
+            convertedCurrency: string;
+            /**
+             * Currency code of the base fare.
+             */
+            currencyCode: string;
+        };
+        /**
+         * Extra taxes paid
+         */
+        tax: {
+            /**
+             *
+             */
+            amount: number;
+        };
+    };
 };
 
 /** Represents the structure of AirPnr. */
