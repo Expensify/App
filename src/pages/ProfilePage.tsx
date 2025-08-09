@@ -218,6 +218,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                         title={statusContent}
                                         description={translate('statusPage.status')}
                                         interactive={false}
+                                        copiable
                                     />
                                 </View>
                             )}
@@ -231,6 +232,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                         copyValue={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}
                                         description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
                                         interactive={false}
+                                        copiable
                                     />
                                 </View>
                             ) : null}
@@ -241,6 +243,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                         title={pronouns}
                                         description={translate('profilePage.preferredPronouns')}
                                         interactive={false}
+                                        copiable
                                     />
                                 </View>
                             ) : null}
