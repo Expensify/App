@@ -86,8 +86,8 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
         return false;
     }
 
-    const {isExpenseSplit, isBillSplit} = getOriginalTransactionWithSplitInfo(reportTransaction);
-    if (isExpenseSplit || isBillSplit) {
+    const {isBillSplit} = getOriginalTransactionWithSplitInfo(reportTransaction);
+    if (isBillSplit) {
         return false;
     }
 
@@ -95,7 +95,7 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
         return false;
     }
 
-    if (report.stateNum && report.stateNum >= CONST.REPORT.STATE_NUM.APPROVED) {
+    if (report.statusNum && report.statusNum >= CONST.REPORT.STATUS_NUM.CLOSED) {
         return false;
     }
 

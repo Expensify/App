@@ -37,6 +37,7 @@ import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getLengthOfTag, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction, isPayAction} from '@libs/ReportActionsUtils';
+import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
@@ -77,7 +78,7 @@ import {
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
-import {cleanUpMoneyRequest, updateMoneyRequestBillable} from '@userActions/IOU';
+import {cleanUpMoneyRequest, initSplitExpense, updateMoneyRequestBillable} from '@userActions/IOU';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {clearError, getLastModifiedExpense, revert} from '@userActions/Transaction';
@@ -229,9 +230,13 @@ function MoneyRequestView({
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
     const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report) && !readonly;
     const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived) && canUserPerformWriteAction;
+    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
+    const isSplitAvailable = moneyRequestReport && transaction && isSplitAction(moneyRequestReport, [transaction], policy);
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
-    const canEditAmount = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, isChatReportArchived);
+    const canEditAmount =
+        (canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, isChatReportArchived)) ||
+        (isExpenseSplit && isSplitAvailable);
     const canEditMerchant = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT, undefined, isChatReportArchived);
     const canEditDate = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE, undefined, isChatReportArchived);
     const canEditReceipt = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, undefined, isChatReportArchived);
@@ -330,9 +335,6 @@ function MoneyRequestView({
         if (!isDistanceRequest && !isPerDiemRequest) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.cash')}`;
         }
-        if (getOriginalTransactionWithSplitInfo(transaction).isExpenseSplit) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
-        }
         if (isCancelled) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         } else if (isApproved) {
@@ -340,6 +342,9 @@ function MoneyRequestView({
         } else if (isSettled) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.settledExpensify')}`;
         }
+    }
+    if (isExpenseSplit) {
+        amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
     }
 
     let receiptURIs;
@@ -706,6 +711,12 @@ function MoneyRequestView({
                             if (!transaction?.transactionID || !report?.reportID) {
                                 return;
                             }
+
+                            if (isExpenseSplit) {
+                                initSplitExpense(transaction);
+                                return;
+                            }
+
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, '', getReportRHPActiveRoute()),
                             );
