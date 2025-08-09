@@ -9,6 +9,7 @@ type SplitBillParams = {
     category: string;
     tag: string;
     billable: boolean;
+    reimbursable: boolean;
     transactionID: string;
     reportActionID: string;
     createdReportActionID?: string;
