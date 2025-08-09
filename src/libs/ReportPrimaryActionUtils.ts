@@ -432,6 +432,7 @@ export {
     isPrimaryPayAction,
     isExportAction,
     isMarkAsResolvedAction,
+    isMarkAsResolvedReportAction,
     getAllExpensesToHoldIfApplicable,
     isReviewDuplicatesAction,
 };

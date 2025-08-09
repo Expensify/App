@@ -1025,7 +1025,7 @@ describe('getTransactionThreadPrimaryAction', () => {
             ];
 
             const violations = {
-                '1': [
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1`]: [
                     {
                         name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
                         type: CONST.VIOLATION_TYPES.WARNING,
@@ -1055,7 +1055,7 @@ describe('getTransactionThreadPrimaryAction', () => {
             ];
 
             const violations = {
-                '1': [
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1`]: [
                     {
                         name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
                         type: CONST.VIOLATION_TYPES.WARNING,
@@ -1085,7 +1085,7 @@ describe('getTransactionThreadPrimaryAction', () => {
             ];
 
             const violations = {
-                '1': [
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1`]: [
                     {
                         name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
                         type: CONST.VIOLATION_TYPES.WARNING,
