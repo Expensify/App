@@ -194,7 +194,7 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
 
             switch (firstReservation?.type) {
                 case CONST.RESERVATION_TYPE.FLIGHT: {
-                    const destinationReservation = reservations.filter((reservation) => reservation.reservation.legId === 0).at(-1);
+                    const destinationReservation = reservations.filter((reservation) => reservation.reservation.legId === firstReservation.legId).at(-1);
                     if (!destinationReservation) {
                         return '';
                     }
