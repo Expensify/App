@@ -7010,6 +7010,10 @@ const translations = {
         },
         callScheduled: '通話が予定されました',
     },
+    signingOutPage: {
+        title: 'サインアウト中...',
+        subtitle: 'しばらくお待ちください。',
+    },
     autoSubmitModal: {
         title: 'すべてクリアし、送信しました！',
         description: 'すべての警告と違反がクリアされたので:',
