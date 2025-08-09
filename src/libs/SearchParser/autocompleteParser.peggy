@@ -80,6 +80,7 @@ autocompleteKey "key"
       / policyID
       / action
       / posted
+      / withdrawn
       / exported
     )
 
