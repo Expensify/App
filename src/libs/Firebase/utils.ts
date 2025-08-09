@@ -1,20 +1,60 @@
-import type {OnyxCollection} from 'react-native-onyx';
+// We have opted for `Onyx.connectWithoutView` here as this logic is strictly non-UI in nature.
 import Onyx from 'react-native-onyx';
-import {getAllTransactions, getAllTransactionViolationsLength} from '@libs/actions/Transaction';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import {getActivePolicy, getAllPoliciesLength} from '@libs/PolicyUtils';
-import {getReportActionsLength} from '@libs/ReportActionsUtils';
+import {getActivePolicy} from '@libs/PolicyUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
 import type {PerfAttributes} from './types';
 
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
+let reportsCount = 0;
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => {
-        allReports = value;
+        reportsCount = Object.keys(value ?? {}).length;
+    },
+});
+
+let reportActionsCount = 0;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        reportActionsCount = Object.keys(value ?? {}).length;
+    },
+});
+
+let transactionViolationsCount = 0;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        transactionViolationsCount = Object.keys(value ?? {}).length;
+    },
+});
+
+let transactionsCount = 0;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        transactionsCount = Object.keys(value ?? {}).length;
+    },
+});
+
+let policiesCount = 0;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        policiesCount = Object.keys(value ?? {}).length;
+    },
+});
+
+let personalDetailsCount = 0;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (value) => {
+        personalDetailsCount = Object.keys(value ?? {}).length;
     },
 });
 
@@ -24,12 +64,12 @@ function getAttributes<T extends keyof PerfAttributes>(attributes?: T[]): Pick<P
 
     const allAttributes: PerfAttributes = {
         accountId: session?.accountID?.toString() ?? 'N/A',
-        reportsLength: Object.keys(allReports ?? {}).length.toString(),
-        reportActionsLength: getReportActionsLength().toString(),
-        personalDetailsLength: PersonalDetailsUtils.getPersonalDetailsLength().toString(),
-        transactionViolationsLength: getAllTransactionViolationsLength().toString(),
-        policiesLength: getAllPoliciesLength().toString(),
-        transactionsLength: getAllTransactions().toString(),
+        reportsLength: reportsCount.toString(),
+        reportActionsLength: reportActionsCount.toString(),
+        personalDetailsLength: personalDetailsCount.toString(),
+        transactionViolationsLength: transactionViolationsCount.toString(),
+        policiesLength: policiesCount.toString(),
+        transactionsLength: transactionsCount.toString(),
         policyType: policy?.type ?? 'N/A',
         policyRole: policy?.role ?? 'N/A',
     };
