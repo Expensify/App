@@ -10,6 +10,7 @@ import {
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasIntegrationAutoSync,
+    isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPreferredExporter,
 } from './PolicyUtils';
 import {getAllReportActions, getOneTransactionThreadReportID, isMoneyRequestAction} from './ReportActionsUtils';
@@ -295,25 +296,27 @@ function isMarkAsCashAction(report: Report, reportTransactions: Transaction[], v
     return userControlsReport && shouldShowBrokenConnectionViolation;
 }
 
-function isMarkAsResolvedReportAction(report?: Report, reportTransactions?: Transaction[], violations?: OnyxCollection<TransactionViolation[]>) {
+function isMarkAsResolvedReportAction(report?: Report, reportTransactions?: Transaction[], violations?: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
     if (!report || !reportTransactions || !violations) {
         return false;
     }
 
     const isReportSubmitter = isCurrentUserSubmitter(report);
-    if (!isReportSubmitter) {
+    const isAdmin = isPolicyAdminPolicyUtils(policy);
+    if (!isReportSubmitter && !isAdmin) {
         return false;
     }
     return hasPendingAutoReportedRejectedExpenseViolation(reportTransactions, violations);
 }
 
-function isMarkAsResolvedAction(report?: Report, violations?: TransactionViolation[]) {
+function isMarkAsResolvedAction(report?: Report, violations?: TransactionViolation[], policy?: Policy) {
     if (!report || !violations) {
         return false;
     }
 
     const isReportSubmitter = isCurrentUserSubmitter(report);
-    if (!isReportSubmitter) {
+    const isAdmin = isPolicyAdminPolicyUtils(policy);
+    if (!isReportSubmitter && !isAdmin) {
         return false;
     }
 
@@ -333,7 +336,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
 
     const isPayActionWithAllExpensesHeld = isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived) && hasOnlyHeldExpenses(report?.reportID);
 
-    if (isMarkAsResolvedReportAction(report, reportTransactions, violations)) {
+    if (isMarkAsResolvedReportAction(report, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED;
     }
 
@@ -403,7 +406,7 @@ function getTransactionThreadPrimaryAction(
     violations: TransactionViolation[],
     policy?: Policy,
 ): ValueOf<typeof CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS> | '' {
-    if (isMarkAsResolvedAction(parentReport, violations)) {
+    if (isMarkAsResolvedAction(parentReport, violations, policy)) {
         return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_RESOLVED;
     }
 
