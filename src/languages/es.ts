@@ -6028,7 +6028,7 @@ const translations = {
             reimbursable: 'Reembolsable',
             groupBy: {
                 reports: 'Informe',
-                members: 'Miembro',
+                from: 'De',
                 cards: 'Tarjeta',
             },
             feed: 'Feed',

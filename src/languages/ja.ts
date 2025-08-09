@@ -6007,7 +6007,7 @@ const translations = {
             reimbursable: '払い戻し可能',
             groupBy: {
                 reports: '報告',
-                members: 'メンバー',
+                from: 'から',
                 cards: 'カード',
             },
             feed: 'フィード',

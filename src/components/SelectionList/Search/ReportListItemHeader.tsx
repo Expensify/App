@@ -5,18 +5,17 @@ import Checkbox from '@components/Checkbox';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem, TransactionReportGroupListItemType} from '@components/SelectionList/types';
-import TextWithTooltip from '@components/TextWithTooltip';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {handleActionButtonPress} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
 import ActionCell from './ActionCell';
+import TotalCell from './TotalCell';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
 type ReportListItemHeaderProps<TItem extends ListItem> = {
@@ -62,34 +61,6 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
     avatarBorderColor?: ColorValue;
 };
 
-type ReportCellProps = {
-    showTooltip: boolean;
-    isLargeScreenWidth: boolean;
-    reportItem: TransactionReportGroupListItemType;
-};
-
-function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProps) {
-    const styles = useThemeStyles();
-
-    let total = reportItem?.total ?? 0;
-
-    if (total) {
-        if (reportItem?.type === CONST.REPORT.TYPE.IOU) {
-            total = Math.abs(total ?? 0);
-        } else {
-            total *= reportItem?.type === CONST.REPORT.TYPE.EXPENSE || reportItem?.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
-        }
-    }
-
-    return (
-        <TextWithTooltip
-            shouldShowTooltip={showTooltip}
-            text={convertToDisplayString(total, reportItem?.currency)}
-            style={[styles.optionDisplayName, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? styles.textNormal : [styles.textBold, styles.textAlignRight]]}
-        />
-    );
-}
-
 function HeaderFirstRow<TItem extends ListItem>({
     report: reportItem,
     onCheckboxPress,
@@ -101,6 +72,22 @@ function HeaderFirstRow<TItem extends ListItem>({
 }: FirstRowReportHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+
+    const {total, currency} = useMemo(() => {
+        let total = reportItem.total ?? 0;
+
+        if (total) {
+            if (reportItem.type === CONST.REPORT.TYPE.IOU) {
+                total = Math.abs(total ?? 0);
+            } else {
+                total *= reportItem.type === CONST.REPORT.TYPE.EXPENSE || reportItem.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
+            }
+        }
+
+        const currency = reportItem.currency ?? CONST.CURRENCY.USD;
+
+        return {total, currency};
+    }, [reportItem.type, reportItem.total, reportItem?.currency]);
 
     return (
         <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, styles.pr3, styles.pl3]}>
@@ -127,9 +114,8 @@ function HeaderFirstRow<TItem extends ListItem>({
             </View>
             <View style={[styles.flexShrink0, shouldShowAction && styles.mr3]}>
                 <TotalCell
-                    showTooltip
-                    isLargeScreenWidth={false}
-                    reportItem={reportItem}
+                    total={total}
+                    currency={currency}
                 />
             </View>
             {shouldShowAction && (

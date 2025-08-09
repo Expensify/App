@@ -6291,7 +6291,7 @@ const CONST = {
         },
         GROUP_BY: {
             REPORTS: 'reports',
-            MEMBERS: 'members',
+            FROM: 'from',
             CARDS: 'cards',
         },
         BOOLEAN: {
@@ -6377,6 +6377,7 @@ const CONST = {
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expenseType',
             CURRENCY: 'currency',
+            GROUP_CURRENCY: 'groupCurrency',
             MERCHANT: 'merchant',
             DESCRIPTION: 'description',
             FROM: 'from',
@@ -6422,6 +6423,7 @@ const CONST = {
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expense-type',
             CURRENCY: 'currency',
+            GROUP_CURRENCY: 'group-currency',
             MERCHANT: 'merchant',
             DESCRIPTION: 'description',
             FROM: 'from',
@@ -6479,6 +6481,7 @@ const CONST = {
             UNAPPROVED_CASH: 'unapprovedCash',
             UNAPPROVED_CARD: 'unapprovedCard',
         },
+        GROUP_PREFIX: 'group_',
     },
 
     EXPENSE: {

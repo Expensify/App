@@ -6026,7 +6026,7 @@ const translations = {
             reimbursable: 'Podlegające zwrotowi',
             groupBy: {
                 reports: 'Raport',
-                members: 'Członek',
+                from: 'Od',
                 cards: 'Karta',
             },
             feed: 'Kanal',

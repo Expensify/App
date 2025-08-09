@@ -11,7 +11,6 @@ import ScrollView from '@components/ScrollView';
 import type {SearchDateFilterKeys, SearchFilterKey, SearchGroupBy} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -113,6 +112,11 @@ const baseFilterConfig = {
         getTitle: getFilterDisplayTitle,
         description: 'common.currency' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_CURRENCY,
+    },
+    groupCurrency: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.groupCurrency' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_GROUP_CURRENCY,
     },
     merchant: {
         getTitle: getFilterDisplayTitle,
@@ -220,6 +224,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
             CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY,
         ],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
@@ -284,6 +289,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
             CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY,
         ],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
@@ -552,7 +558,6 @@ function isFeatureEnabledInPolicies(policies: OnyxCollection<Policy>, featureNam
 function AdvancedSearchFilters() {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
-    const {isDevelopment} = useEnvironment();
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
@@ -615,9 +620,7 @@ function AdvancedSearchFilters() {
     const shouldDisplayCardFilter = shouldDisplayFilter(Object.keys(allCards).length, areCardsEnabled);
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length !== 0);
-
-    // s77rt remove DEV lock
-    const shouldDisplayGroupByFilter = isDevelopment;
+    const shouldDisplayGroupCurrencyFilter = !!groupBy;
 
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
     if (!Object.keys(typeFiltersKeys).includes(currentType)) {
@@ -717,7 +720,9 @@ function AdvancedSearchFilters() {
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, currentType, groupBy, translate);
                     } else if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
-                        if (!shouldDisplayGroupByFilter) {
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
+                    } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY) {
+                        if (!shouldDisplayGroupCurrencyFilter) {
                             return;
                         }
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);

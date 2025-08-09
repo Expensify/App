@@ -5930,7 +5930,7 @@ const translations = {
             reimbursable: '可报销的',
             groupBy: {
                 reports: '报告',
-                members: '成员',
+                from: '从',
                 cards: '卡片',
             },
             feed: '通道',

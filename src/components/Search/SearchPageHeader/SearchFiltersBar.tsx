@@ -19,7 +19,6 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchDateValues} from '@components/Search/SearchDatePresetFilterBase';
 import type {SearchDateFilterKeys, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -40,7 +39,7 @@ import {
     isFilterSupported,
     isSearchDatePreset,
 } from '@libs/SearchQueryUtils';
-import {getDatePresets, getFeedOptions, getGroupByOptions, getStatusOptions, getTypeOptions} from '@libs/SearchUIUtils';
+import {getDatePresets, getFeedOptions, getGroupByOptions, getGroupCurrencyOptions, getStatusOptions, getTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -66,7 +65,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isDevelopment} = useEnvironment();
 
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -88,6 +86,10 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
 
+    const filterFormValues = useMemo(() => {
+        return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
+    }, [allCards, currencyList, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
+
     const hasErrors = Object.keys(searchResultsErrors ?? {}).length > 0 && !isOffline;
     const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || isMobileSelectionModeEnabled);
 
@@ -103,6 +105,12 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         return [options, value];
     }, [unsafeGroupBy]);
 
+    const [groupCurrencyOptions, groupCurrency] = useMemo(() => {
+        const options = getGroupCurrencyOptions(currencyList);
+        const value = options.find((option) => option.value === filterFormValues.groupCurrency) ?? null;
+        return [options, value];
+    }, [filterFormValues.groupCurrency, currencyList]);
+
     const [feedOptions, feed] = useMemo(() => {
         const feedFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)?.filters?.map((filter) => filter.value);
         const options = getFeedOptions(allFeeds, allCards);
@@ -117,10 +125,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         ].flat();
         return [options, value];
     }, [unsafeStatus, type, groupBy]);
-
-    const filterFormValues = useMemo(() => {
-        return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
-    }, [allCards, currencyList, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
 
     const [date, displayDate] = useMemo(() => {
         const value: SearchDateValues = {
@@ -247,6 +251,23 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         [translate, groupByOptions, groupBy, updateFilterForm],
     );
 
+    const groupCurrencyComponent = useCallback(
+        ({closeOverlay}: PopoverComponentProps) => {
+            return (
+                <SingleSelectPopup
+                    label={translate('common.groupCurrency')}
+                    items={groupCurrencyOptions}
+                    value={groupCurrency}
+                    closeOverlay={closeOverlay}
+                    onChange={(item) => updateFilterForm({groupCurrency: item?.value})}
+                    searchable
+                    searchPlaceholder={translate('common.groupCurrency')}
+                />
+            );
+        },
+        [translate, groupCurrencyOptions, groupCurrency, updateFilterForm],
+    );
+
     const feedComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
             return (
@@ -362,8 +383,9 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     const filters = useMemo(() => {
         const fromValue = filterFormValues.from?.map((accountID) => personalDetails?.[accountID]?.displayName ?? accountID) ?? [];
 
-        // s77rt remove DEV lock
-        const shouldDisplayGroupByFilter = isDevelopment;
+        const shouldDisplayGroupByFilter = !!groupBy;
+        // s77rt update based on search results
+        const shouldDisplayGroupCurrencyFilter = !!groupBy;
         const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues.feed;
         const shouldDisplayPostedFilter = !!filterFormValues.feed && (!!filterFormValues.postedOn || !!filterFormValues.postedAfter || !!filterFormValues.postedBefore);
         const shouldDisplayWithdrawnFilter = !!filterFormValues.withdrawnOn || !!filterFormValues.withdrawnAfter || !!filterFormValues.withdrawnBefore;
@@ -382,6 +404,16 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                           PopoverComponent: groupByComponent,
                           value: groupBy?.text ?? null,
                           filterKey: FILTER_KEYS.GROUP_BY,
+                      },
+                  ]
+                : []),
+            ...(shouldDisplayGroupCurrencyFilter
+                ? [
+                      {
+                          label: translate('common.groupCurrency'),
+                          PopoverComponent: groupCurrencyComponent,
+                          value: groupCurrency?.value ?? null,
+                          filterKey: FILTER_KEYS.GROUP_CURRENCY,
                       },
                   ]
                 : []),
@@ -439,6 +471,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     }, [
         type,
         groupBy,
+        groupCurrency,
         displayDate,
         displayPosted,
         displayWithdrawn,
@@ -453,6 +486,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         translate,
         typeComponent,
         groupByComponent,
+        groupCurrencyComponent,
         statusComponent,
         datePickerComponent,
         userPickerComponent,
@@ -460,7 +494,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         withdrawnPickerComponent,
         status,
         personalDetails,
-        isDevelopment,
         feed,
         feedComponent,
         feedOptions.length,

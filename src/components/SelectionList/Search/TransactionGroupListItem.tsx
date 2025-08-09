@@ -95,8 +95,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
         COLUMNS.TYPE,
         COLUMNS.DATE,
         COLUMNS.MERCHANT,
-        COLUMNS.FROM,
-        COLUMNS.TO,
+        ...(sampleTransaction?.shouldShowFrom ? [COLUMNS.FROM] : []),
+        ...(sampleTransaction?.shouldShowTo ? [COLUMNS.TO] : []),
         ...(sampleTransaction?.shouldShowCategory ? [COLUMNS.CATEGORY] : []),
         ...(sampleTransaction?.shouldShowTag ? [COLUMNS.TAG] : []),
         ...(sampleTransaction?.shouldShowTax ? [COLUMNS.TAX] : []),
@@ -116,7 +116,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     canSelectMultiple={canSelectMultiple}
                 />
             ),
-            [CONST.SEARCH.GROUP_BY.MEMBERS]: (
+            [CONST.SEARCH.GROUP_BY.FROM]: (
                 <MemberListItemHeader
                     member={groupItem as TransactionMemberGroupListItemType}
                     onCheckboxPress={onCheckboxPress}

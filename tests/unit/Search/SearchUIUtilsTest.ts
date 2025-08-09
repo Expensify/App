@@ -431,6 +431,8 @@ const searchResults: OnyxTypes.SearchResults = {
             shouldShowCategoryColumn: true,
             shouldShowTagColumn: false,
             shouldShowTaxColumn: false,
+            shouldShowFromColumn: true,
+            shouldShowToColumn: true,
         },
         hasMoreResults: false,
         hasResults: true,
@@ -517,6 +519,8 @@ const transactionsListItems = [
         shouldShowTag: false,
         shouldShowTax: false,
         shouldShowYear: true,
+        shouldShowFrom: true,
+        shouldShowTo: true,
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         tag: '',
@@ -581,6 +585,8 @@ const transactionsListItems = [
         shouldShowTag: false,
         shouldShowTax: false,
         shouldShowYear: true,
+        shouldShowFrom: true,
+        shouldShowTo: true,
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         tag: '',
@@ -659,6 +665,8 @@ const transactionsListItems = [
         shouldShowCategory: true,
         shouldShowTag: false,
         shouldShowTax: false,
+        shouldShowFrom: true,
+        shouldShowTo: true,
         keyForList: '3',
         shouldShowYear: true,
         isAmountColumnWide: false,
@@ -724,6 +732,8 @@ const transactionsListItems = [
         shouldShowCategory: true,
         shouldShowTag: false,
         shouldShowTax: false,
+        shouldShowFrom: true,
+        shouldShowTo: true,
         keyForList: '3',
         shouldShowYear: true,
         isAmountColumnWide: false,
@@ -1286,15 +1296,15 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return TransactionGroupListItem when type is EXPENSE and groupBy is member', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.MEMBERS)).toStrictEqual(TransactionGroupListItem);
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.FROM)).toStrictEqual(TransactionGroupListItem);
         });
 
         it('should return TransactionGroupListItem when type is TRIP and groupBy is member', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.MEMBERS)).toStrictEqual(TransactionGroupListItem);
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.FROM)).toStrictEqual(TransactionGroupListItem);
         });
 
         it('should return TransactionGroupListItem when type is INVOICE and groupBy is member', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.MEMBERS)).toStrictEqual(TransactionGroupListItem);
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.FROM)).toStrictEqual(TransactionGroupListItem);
         });
     });
 
@@ -1327,19 +1337,19 @@ describe('SearchUIUtils', () => {
 
         it('should return getMemberSections result when type is EXPENSE and groupBy is member', () => {
             expect(
-                SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, searchResults.search, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.MEMBERS),
+                SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, searchResults.search, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.FROM),
             ).toStrictEqual([]); // s77rt update test
         });
 
         it('should return getMemberSections result when type is TRIP and groupBy is member', () => {
-            expect(
-                SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.TRIP, searchResults.data, searchResults.search, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.MEMBERS),
-            ).toStrictEqual([]); // s77rt update test
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.TRIP, searchResults.data, searchResults.search, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.FROM)).toStrictEqual(
+                [],
+            ); // s77rt update test
         });
 
         it('should return getMemberSections result when type is INVOICE and groupBy is member', () => {
             expect(
-                SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.INVOICE, searchResults.data, searchResults.search, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.MEMBERS),
+                SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.INVOICE, searchResults.data, searchResults.search, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.FROM),
             ).toStrictEqual([]); // s77rt update test
         });
 
@@ -1406,19 +1416,19 @@ describe('SearchUIUtils', () => {
 
         it('should return getSortedMemberData result when type is EXPENSE and groupBy is member', () => {
             expect(
-                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.MEMBERS),
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.FROM),
             ).toStrictEqual([]); // s77rt update test
         });
 
         it('should return getSortedMemberData result when type is TRIP and groupBy is member', () => {
             expect(
-                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.MEMBERS),
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.FROM),
             ).toStrictEqual([]); // s77rt update test
         });
 
         it('should return getSortedMemberData result when type is INVOICE and groupBy is member', () => {
             expect(
-                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.INVOICE, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.MEMBERS),
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.INVOICE, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.FROM),
             ).toStrictEqual([]); // s77rt update test
         });
 
@@ -1596,6 +1606,8 @@ describe('SearchUIUtils', () => {
                     shouldShowCategoryColumn: true,
                     shouldShowTagColumn: true,
                     shouldShowTaxColumn: true,
+                    shouldShowFromColumn: true,
+                    shouldShowToColumn: true,
                 },
             },
         };

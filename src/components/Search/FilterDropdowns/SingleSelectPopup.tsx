@@ -1,10 +1,11 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,29 +30,81 @@ type SingleSelectPopupProps<T> = {
 
     /** Function to call when changes are applied */
     onChange: (item: SingleSelectItem<T> | null) => void;
+
+    /** Whether the search input should be displayed */
+    searchable?: boolean;
+
+    /** Search input place holder */
+    searchPlaceholder?: string;
 };
 
-function SingleSelectPopup<T extends string>({label, value, items, closeOverlay, onChange}: SingleSelectPopupProps<T>) {
+function SingleSelectPopup<T extends string>({label, value, items, closeOverlay, onChange, searchable, searchPlaceholder}: SingleSelectPopupProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const selectionListRef = useRef<SelectionListHandle>(null);
     const [selectedItem, setSelectedItem] = useState(value);
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
-    const listData: ListItem[] = useMemo(() => {
-        return items.map((item) => ({
-            text: item.text,
-            keyForList: item.value,
-            isSelected: item.value === selectedItem?.value,
-        }));
-    }, [items, selectedItem]);
+    const {sections, noResultsFound} = useMemo(() => {
+        // If the selection is searchable, we push the selected item into its own section and display it at the top
+        if (searchable) {
+            const selectedItemSection = selectedItem?.text.toLowerCase().includes(debouncedSearchTerm?.toLowerCase())
+                ? [{text: selectedItem.text, keyForList: selectedItem.value, isSelected: true}]
+                : [];
+            const remainingItemsSection = items
+                .filter((item) => item?.value !== selectedItem?.value && item?.text?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
+                .map((item) => ({
+                    text: item.text,
+                    keyForList: item.value,
+                    isSelected: false,
+                }));
+            const isEmpty = !selectedItemSection.length && !remainingItemsSection.length;
+            return {
+                sections: isEmpty
+                    ? []
+                    : [
+                          {
+                              data: selectedItemSection,
+                              shouldShow: selectedItemSection.length > 0,
+                              indexOffset: 0,
+                          },
+                          {
+                              data: remainingItemsSection,
+                              shouldShow: remainingItemsSection.length > 0,
+                              indexOffset: selectedItemSection.length,
+                          },
+                      ],
+                noResultsFound: isEmpty,
+            };
+        }
+
+        return {
+            sections: [
+                {
+                    data: items.map((item) => ({
+                        text: item.text,
+                        keyForList: item.value,
+                        isSelected: item.value === selectedItem?.value,
+                    })),
+                },
+            ],
+            noResultsFound: false,
+        };
+    }, [searchable, items, selectedItem, debouncedSearchTerm]);
 
     const updateSelectedItem = useCallback(
         (item: ListItem) => {
             const newItem = items.find((i) => i.value === item.keyForList) ?? null;
             setSelectedItem(newItem);
+
+            // Only searchable selection put focus on the selected item
+            if (searchable) {
+                selectionListRef?.current?.updateAndScrollToFocusedIndex(0);
+            }
         },
-        [items],
+        [items, searchable],
     );
 
     const applyChanges = useCallback(() => {
@@ -70,10 +123,19 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
 
             <View style={[styles.getSelectionListPopoverHeight(items.length)]}>
                 <SelectionList
+                    ref={selectionListRef}
                     shouldSingleExecuteRowSelect
-                    sections={[{data: listData}]}
+                    sections={sections}
                     ListItem={SingleSelectListItem}
                     onSelectRow={updateSelectedItem}
+                    textInputValue={searchTerm}
+                    onChangeText={setSearchTerm}
+                    textInputLabel={searchable ? (searchPlaceholder ?? translate('common.search')) : undefined}
+                    shouldDebounceScrolling={searchable}
+                    shouldUpdateFocusedIndex={searchable}
+                    initiallyFocusedOptionKey={searchable ? value?.value : undefined}
+                    headerMessage={noResultsFound ? translate('common.noResultsFound') : undefined}
+                    showLoadingPlaceholder={!noResultsFound}
                 />
             </View>
             <View style={[styles.flexRow, styles.gap2, styles.ph5]}>
