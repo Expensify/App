@@ -6769,9 +6769,7 @@ const translations = {
         },
         compareModal: {
             comparePlans: 'Pläne vergleichen',
-            unlockTheFeatures: 'Schalten Sie die Funktionen frei, die Sie benötigen, mit dem Plan, der für Sie richtig ist.',
-            viewOurPricing: 'Sehen Sie sich unsere Preisseite an',
-            forACompleteFeatureBreakdown: 'für eine vollständige Funktionsübersicht unserer Pläne.',
+            subtitle: `<muted-text>Schalten Sie die Funktionen frei, die Sie benötigen, und wählen Sie den für Sie passenden Tarif. <a href="${CONST.PRICING}">Sehen Sie sich unsere Preisseite</a> oder eine vollständige Aufschlüsselung der Funktionen jedes unserer Tarife an.</muted-text>`,
         },
         details: {
             title: 'Abonnementdetails',

@@ -6733,9 +6733,7 @@ const translations = {
         },
         compareModal: {
             comparePlans: 'Compare Plans',
-            unlockTheFeatures: 'Unlock the features you need with the plan that’s right for you. ',
-            viewOurPricing: 'View our pricing page',
-            forACompleteFeatureBreakdown: ' for a complete feature breakdown of each of our plans.',
+            subtitle: `<muted-text>Unlock the features you need with the plan that’s right for you. <a href="${CONST.PRICING}">View our pricing page</a> or a complete feature breakdown of each of our plans.</muted-text>`,
         },
         details: {
             title: 'Subscription details',

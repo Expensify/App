@@ -6733,9 +6733,7 @@ const translations = {
         },
         compareModal: {
             comparePlans: 'プランを比較',
-            unlockTheFeatures: 'あなたに合ったプランで必要な機能をアンロックしましょう。',
-            viewOurPricing: '料金ページをご覧ください',
-            forACompleteFeatureBreakdown: '各プランの機能の詳細な内訳については、こちらをご覧ください。',
+            subtitle: `<muted-text>必要な機能を解放しましょう。あなたに最適なプランを選択してください。<a href="${CONST.PRICING}">料金ページをご覧いただくか</a>、各プランの機能詳細をご確認ください。</muted-text>`,
         },
         details: {
             title: 'サブスクリプションの詳細',

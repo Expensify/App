@@ -6639,9 +6639,7 @@ const translations = {
         },
         compareModal: {
             comparePlans: '比较计划',
-            unlockTheFeatures: '选择适合您的计划，解锁您所需的功能。',
-            viewOurPricing: '查看我们的定价页面',
-            forACompleteFeatureBreakdown: '查看我们每个计划的完整功能细分。',
+            subtitle: `<muted-text>使用适合您的计划，释放您所需的功能。<a href="${CONST.PRICING}">查看我们的定价页面</a>或每个计划的完整功能明细。</muted-text>`,
         },
         details: {
             title: '订阅详情',
