@@ -19,6 +19,10 @@ export default {
         display: 'none',
     },
 
+    dInlineBlock: {
+        display: 'inline-block',
+    },
+
     /**
      * Web-only style.
      */
