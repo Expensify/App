@@ -4,6 +4,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
@@ -16,7 +17,7 @@ const FAKE_POLICY_ID = '1';
 const FAKE_TRANSACTION_ID = '1';
 const FAKE_EMAIL = 'fake@gmail.com';
 const FAKE_ACCOUNT_ID = 1;
-const FAKE_OWNER_ACCOUNT_ID = 2;
+const FAKE_SECOND_ACCOUNT_ID = 2;
 
 /**
  * Mock the OptionListContextProvider to provide test data for the component.
@@ -63,6 +64,8 @@ describe('IOURequestEditReportCommon', () => {
                     [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL},
                 },
             });
+            initOnyxDerivedValues();
+            return waitForBatchedUpdates();
         });
 
         beforeEach(() => {
@@ -71,7 +74,7 @@ describe('IOURequestEditReportCommon', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: {
                     reportID: FAKE_REPORT_ID,
                     reportName: 'Expense Report',
-                    ownerAccountID: FAKE_OWNER_ACCOUNT_ID,
+                    ownerAccountID: FAKE_ACCOUNT_ID,
                     policyID: FAKE_POLICY_ID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                     stateNum: CONST.REPORT.STATE_NUM.OPEN,
@@ -93,7 +96,7 @@ describe('IOURequestEditReportCommon', () => {
                 {
                     reportID: FAKE_TRANSACTION_ID,
                     reportName: 'Transaction Report',
-                    ownerAccountID: FAKE_OWNER_ACCOUNT_ID,
+                    ownerAccountID: FAKE_ACCOUNT_ID,
                     policyID: FAKE_POLICY_ID,
                 } as Report,
             ];
@@ -109,6 +112,66 @@ describe('IOURequestEditReportCommon', () => {
             // Then do not show RBR
             const dotIndicators = screen.queryAllByTestId(CONST.DOT_INDICATOR_TEST_ID);
             expect(dotIndicators).toHaveLength(0);
+        });
+    });
+
+    describe('NotFound', () => {
+        beforeAll(() => {
+            // Initialize Onyx with test configuration
+            Onyx.init({
+                keys: ONYXKEYS,
+                initialKeyStates: {
+                    [ONYXKEYS.SESSION]: {accountID: FAKE_SECOND_ACCOUNT_ID, email: FAKE_EMAIL},
+                },
+            });
+        });
+
+        beforeEach(() => {
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: {
+                    ...createRandomPolicy(Number(FAKE_POLICY_ID)),
+                    role: CONST.POLICY.ROLE.USER,
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: {
+                    reportID: FAKE_REPORT_ID,
+                    reportName: 'Expense Report',
+                    ownerAccountID: FAKE_ACCOUNT_ID,
+                    policyID: FAKE_POLICY_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                },
+            });
+            return waitForBatchedUpdates();
+        });
+
+        afterEach(() => {
+            Onyx.clear();
+            jest.clearAllMocks();
+            return waitForBatchedUpdates();
+        });
+
+        it('should display not found page when the report is Open and the user is not the owner or admin', async () => {
+            // Given a transaction report
+            const mockTransactionsReports: Report[] = [
+                {
+                    reportID: FAKE_TRANSACTION_ID,
+                    reportName: 'Transaction Report',
+                    ownerAccountID: FAKE_ACCOUNT_ID,
+                    policyID: FAKE_POLICY_ID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                } as Report,
+            ];
+
+            // When the component is rendered with the transaction reports
+            renderIOURequestEditReportCommon({transactionsReports: mockTransactionsReports});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the not found page should be displayed
+            // eslint-disable-next-line rulesdir/no-negated-variables
+            const fullPageNotFoundView = screen.getByTestId('FullPageNotFoundView');
+            expect(fullPageNotFoundView).toBeVisible();
         });
     });
 });
