@@ -40,7 +40,7 @@ type OriginalMessageIOU = {
     expenseReportID?: string;
 
     /** How much was transaction */
-    amount: number;
+    amount?: number;
 
     /** Was the action created automatically, not by a human */
     automaticAction?: boolean;
@@ -49,7 +49,7 @@ type OriginalMessageIOU = {
     comment?: string;
 
     /** Currency of the transaction money */
-    currency: string;
+    currency?: string;
 
     /** When was the `IOU` last modified */
     lastModified?: string;
