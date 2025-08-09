@@ -445,6 +445,17 @@ const getPhoneNumber = (details: OnyxEntry<PersonalDetails>): string | undefined
     return login ? Str.removeSMSDomain(login) : '';
 };
 
+function isMissingPrivatePersonalDetails(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>) {
+    return (
+        !privatePersonalDetails?.legalFirstName ||
+        !privatePersonalDetails?.legalLastName ||
+        !privatePersonalDetails?.dob ||
+        !privatePersonalDetails?.phoneNumber ||
+        isEmptyObject(privatePersonalDetails?.addresses) ||
+        privatePersonalDetails.addresses.length === 0
+    );
+}
+
 export {
     isPersonalDetailsEmpty,
     getDisplayNameOrDefault,
@@ -467,4 +478,5 @@ export {
     getDefaultCountry,
     getLoginByAccountID,
     getPhoneNumber,
+    isMissingPrivatePersonalDetails,
 };
