@@ -15,10 +15,12 @@ import {
     canUnapproveIOU,
     completeSplitBill,
     createDistanceRequest,
+    declineMoneyRequest,
     deleteMoneyRequest,
     getIOUReportActionToApproveOrPay,
     initMoneyRequest,
     initSplitExpense,
+    markDeclineViolationAsResolved,
     mergeDuplicates,
     payMoneyRequest,
     putOnHold,
@@ -7347,6 +7349,147 @@ describe('actions/IOU', () => {
 
             // Then: Verify API was called
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.RESOLVE_DUPLICATES, expect.objectContaining({}), expect.objectContaining({}));
+        });
+    });
+
+    describe('declineMoneyRequest', () => {
+        const amount = 10000;
+        const comment = 'This expense is declined';
+        let chatReport: OnyxEntry<Report>;
+        let iouReport: OnyxEntry<Report>;
+        let transaction: OnyxEntry<Transaction>;
+        let policy: OnyxEntry<Policy>;
+        const TEST_USER_ACCOUNT_ID = 1;
+        const MANAGER_ACCOUNT_ID = 2;
+        const ADMIN_ACCOUNT_ID = 3;
+
+        beforeEach(async () => {
+            // Set up test data
+            policy = createRandomPolicy(1);
+            policy.role = CONST.POLICY.ROLE.ADMIN;
+
+            chatReport = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: policy?.id,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            iouReport = {
+                ...createRandomReport(2),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: TEST_USER_ACCOUNT_ID,
+                managerID: MANAGER_ACCOUNT_ID,
+                total: amount,
+                currency: CONST.CURRENCY.USD,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                policyID: policy?.id,
+                chatReportID: chatReport?.reportID,
+            };
+
+            transaction = {
+                ...createRandomTransaction(1),
+                reportID: iouReport?.reportID,
+                amount,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'Test Merchant',
+                transactionID: '1',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`, chatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`, iouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, transaction);
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: ADMIN_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+            jest.clearAllMocks();
+        });
+
+        it('should decline a money request and return navigation route', async () => {
+            // When: Decline the money request
+            const result = declineMoneyRequest(transaction?.transactionID ?? '', iouReport?.reportID ?? '', comment);
+
+            // Then: Should return navigation route to chat report
+            expect(result).toBe(ROUTES.REPORT_WITH_ID.getRoute(chatReport?.reportID));
+
+            await waitForBatchedUpdates();
+
+            // Then: Verify report state is updated to open
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`);
+            expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+        });
+
+        it('should add AUTO_REPORTED_REJECTED_EXPENSE violation for expense reports', async () => {
+            // Given: An expense report (not IOU)
+            const expenseReport = {...iouReport, type: CONST.REPORT.TYPE.EXPENSE};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`, expenseReport);
+            await waitForBatchedUpdates();
+
+            // When: Decline the money request
+            declineMoneyRequest(transaction?.transactionID ?? '', iouReport?.reportID ?? '', comment);
+            await waitForBatchedUpdates();
+
+            // Then: Verify violation is added
+            const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`);
+            expect(violations).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                        type: CONST.VIOLATION_TYPES.WARNING,
+                        data: expect.objectContaining({
+                            comment,
+                        }),
+                    }),
+                ]),
+            );
+        });
+    });
+
+    describe('markDeclineViolationAsResolved', () => {
+        let transaction: OnyxEntry<Transaction>;
+        let iouReport: OnyxEntry<Report>;
+
+        beforeEach(async () => {
+            transaction = createRandomTransaction(1);
+            iouReport = createRandomReport(1);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`, iouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`, [
+                {
+                    name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    data: {comment: 'Test decline reason'},
+                },
+            ]);
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+            jest.clearAllMocks();
+        });
+
+        it('should remove AUTO_REPORTED_REJECTED_EXPENSE violation', async () => {
+            // When: Mark violation as resolved
+            markDeclineViolationAsResolved(transaction?.transactionID ?? '', iouReport?.reportID ?? '');
+            await waitForBatchedUpdates();
+
+            // Then: Verify violation is removed
+            const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`);
+            expect(violations).not.toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                    }),
+                ]),
+            );
         });
     });
 });

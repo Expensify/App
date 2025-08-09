@@ -11925,7 +11925,6 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                     total: movedToReport?.total ?? 0,
                 },
             });
-
         } else {
             movedToReportID = generateReportID();
         }

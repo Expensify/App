@@ -20,6 +20,7 @@ import {
     buildReportNameFromParticipantNames,
     buildTransactionThread,
     canAddTransaction,
+    canDeclineReportAction,
     canDeleteReportAction,
     canDeleteTransaction,
     canEditFieldOfMoneyRequest,
@@ -37,6 +38,7 @@ import {
     getAllAncestorReportActions,
     getApprovalChain,
     getChatByParticipants,
+    getCurrentUserAccountID,
     getDefaultWorkspaceAvatar,
     getDisplayNamesWithTooltips,
     getGroupChatName,
@@ -54,12 +56,16 @@ import {
     getWorkspaceNameUpdatedMessage,
     hasReceiptError,
     isAllowedToApproveExpenseReport,
+    isApprover,
     isArchivedNonExpenseReport,
     isArchivedReport,
     isChatUsedForOnboarding,
     isDeprecatedGroupDM,
     isMoneyRequestReportEligibleForMerge,
     isPayer,
+    isPolicyAdmin,
+    isProcessingReport,
+    isReportApproved,
     isReportOutstanding,
     isRootGroupChat,
     parseReportRouteParams,
@@ -5307,6 +5313,83 @@ describe('ReportUtils', () => {
             Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
                 expect(canSeeDefaultRoom(report, betas, false)).toBe(true);
             });
+        });
+    });
+
+    describe('canDeclineReportAction', () => {
+        const managerAccountID = 1;
+        const approverAccountID = 2;
+        const adminAccountID = 3;
+        const payerAccountID = 4;
+        const submitterAccountID = 5;
+
+        beforeEach(async () => {
+            // Set up session with default admin user
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: adminAccountID});
+        });
+
+        afterEach(() => {
+            jest.clearAllMocks();
+        });
+
+        it('should return true for policy admin on any IOU report', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.IOU,
+                managerID: managerAccountID,
+            };
+
+            const result = canDeclineReportAction(report, policy);
+            expect(result).toBe(true);
+        });
+
+        it('should return true for report manager on IOU report', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: managerAccountID});
+
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.IOU,
+                managerID: managerAccountID,
+            };
+
+            const result = canDeclineReportAction(report);
+            expect(result).toBe(true);
+        });
+
+        it('should return true for admin on IOU-type expense report', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.IOU, // Admins can always decline IOU reports
+                managerID: managerAccountID,
+            };
+
+            const result = canDeclineReportAction(report, policy);
+            expect(result).toBe(true);
+        });
+
+        it('should return false for regular user who is not manager, approver, admin, or payer', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: submitterAccountID});
+
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                role: CONST.POLICY.ROLE.USER,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: managerAccountID,
+            };
+
+            const result = canDeclineReportAction(report, policy);
+            expect(result).toBe(false);
         });
     });
 });
