@@ -13,9 +13,14 @@ import type SCREENS from '@src/SCREENS';
 type WorkspaceAvatarProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.WORKSPACE_AVATAR>;
 
 function WorkspaceAvatar({route}: WorkspaceAvatarProps) {
-    const policy = usePolicy(route?.params?.policyID);
+    const {policyID, letter: fallbackLetter} = route?.params ?? {};
+    const policy = usePolicy(policyID);
     const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true, initWithStoredValues: false});
-    const avatarURL = (policy?.avatarURL ?? '') ? (policy?.avatarURL ?? '') : getDefaultWorkspaceAvatar(policy?.name ?? '');
+    const policyAvatarURL = policy?.avatarURL;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const avatarURL = policyAvatarURL || getDefaultWorkspaceAvatar(policy?.name ?? fallbackLetter);
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = !Object.keys(policy ?? {}).length && !isLoadingApp && (!policyID || !fallbackLetter);
 
     return (
         <AttachmentModal
@@ -24,8 +29,8 @@ function WorkspaceAvatar({route}: WorkspaceAvatarProps) {
             source={getFullSizeAvatar(avatarURL, 0)}
             onModalClose={Navigation.goBack}
             isWorkspaceAvatar
-            originalFileName={policy?.originalFileName ?? policy?.id}
-            shouldShowNotFoundPage={!Object.keys(policy ?? {}).length && !isLoadingApp}
+            originalFileName={policy?.originalFileName ?? policy?.id ?? policyID}
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
             isLoading={!Object.keys(policy ?? {}).length && !!isLoadingApp}
             maybeIcon
         />
