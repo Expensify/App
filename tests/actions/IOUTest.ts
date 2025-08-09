@@ -664,6 +664,7 @@ describe('actions/IOU', () => {
                     merchant,
                     comment,
                 },
+                shouldGenerateTransactionThreadReport: true,
             });
             return waitForBatchedUpdates()
                 .then(
@@ -894,6 +895,7 @@ describe('actions/IOU', () => {
                             merchant: '',
                             comment,
                         },
+                        shouldGenerateTransactionThreadReport: true,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -1113,6 +1115,7 @@ describe('actions/IOU', () => {
                                 merchant: '',
                                 comment,
                             },
+                            shouldGenerateTransactionThreadReport: true,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1266,6 +1269,7 @@ describe('actions/IOU', () => {
                     merchant: '',
                     comment,
                 },
+                shouldGenerateTransactionThreadReport: true,
             });
             return (
                 waitForBatchedUpdates()
@@ -1596,6 +1600,7 @@ describe('actions/IOU', () => {
                     merchant: '',
                     comment: '',
                 },
+                shouldGenerateTransactionThreadReport: true,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -1616,6 +1621,7 @@ describe('actions/IOU', () => {
                     merchant: '',
                     comment: '',
                 },
+                shouldGenerateTransactionThreadReport: true,
             });
             expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
         });
@@ -2518,6 +2524,7 @@ describe('actions/IOU', () => {
                     merchant: '',
                     comment,
                 },
+                shouldGenerateTransactionThreadReport: true,
             });
             return waitForBatchedUpdates()
                 .then(
@@ -2755,6 +2762,7 @@ describe('actions/IOU', () => {
                                 merchant,
                                 comment,
                             },
+                            shouldGenerateTransactionThreadReport: true,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -2887,6 +2895,7 @@ describe('actions/IOU', () => {
                                 merchant,
                                 comment,
                             },
+                            shouldGenerateTransactionThreadReport: true,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -3111,6 +3120,7 @@ describe('actions/IOU', () => {
                                 merchant,
                                 comment,
                             },
+                            shouldGenerateTransactionThreadReport: true,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -3210,6 +3220,7 @@ describe('actions/IOU', () => {
                     merchant: '',
                     comment,
                 },
+                shouldGenerateTransactionThreadReport: true,
             });
             await waitForBatchedUpdates();
 
@@ -3430,6 +3441,7 @@ describe('actions/IOU', () => {
                     merchant: '',
                     comment,
                 },
+                shouldGenerateTransactionThreadReport: true,
             });
 
             await waitForBatchedUpdates();
@@ -3953,6 +3965,7 @@ describe('actions/IOU', () => {
                         merchant: '',
                         comment: comment2,
                     },
+                    shouldGenerateTransactionThreadReport: true,
                 });
             }
 
@@ -4011,6 +4024,7 @@ describe('actions/IOU', () => {
                     merchant: '',
                     comment,
                 },
+                shouldGenerateTransactionThreadReport: true,
             });
             await waitForBatchedUpdates();
 
@@ -4160,6 +4174,7 @@ describe('actions/IOU', () => {
                                 merchant,
                                 comment,
                             },
+                            shouldGenerateTransactionThreadReport: true,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -4274,6 +4289,7 @@ describe('actions/IOU', () => {
                                 merchant,
                                 comment,
                             },
+                            shouldGenerateTransactionThreadReport: true,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -4445,6 +4461,7 @@ describe('actions/IOU', () => {
                                 merchant,
                                 comment,
                             },
+                            shouldGenerateTransactionThreadReport: true,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -5324,6 +5341,7 @@ describe('actions/IOU', () => {
                     actionableWhisperReportActionID: '1',
                     linkedTrackedExpenseReportID: '1',
                 },
+                shouldGenerateTransactionThreadReport: true,
             });
 
             await waitForBatchedUpdates();
@@ -6037,6 +6055,7 @@ describe('actions/IOU', () => {
                         merchant,
                         comment,
                     },
+                    shouldGenerateTransactionThreadReport: true,
                 });
             }
             await waitForBatchedUpdates();
@@ -6121,6 +6140,7 @@ describe('actions/IOU', () => {
                         merchant,
                         comment,
                     },
+                    shouldGenerateTransactionThreadReport: true,
                 });
             }
             await waitForBatchedUpdates();
@@ -6596,6 +6616,7 @@ describe('actions/IOU', () => {
                         merchant: 'NASDAQ',
                         comment: '*hey* `hey`',
                     },
+                    shouldGenerateTransactionThreadReport: true,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
