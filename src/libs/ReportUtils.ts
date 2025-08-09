@@ -11300,12 +11300,13 @@ function canDeclineReportAction(report: Report, policy?: Policy): boolean {
     const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const isCurrentUserManager = managerID === currentUserAccountID;
     const isReportApprover = isApproverUtils(policy, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
+    const isAdmin = isPolicyAdminPolicyUtils(policy);
     const isReportBeingProcessed = isProcessingReport(report);
     const isApproved = isReportApproved({report});
     const isReportPayer = isPayer(getSession(), report, false, policy);
 
-    // If user is not a manager/approver and not a payer, they can't decline
-    if (!isCurrentUserManager && !isReportPayer) {
+    // User must be an approver, policy admin, manager, or payer to decline
+    if (!isCurrentUserManager && !isReportApprover && !isAdmin && !isReportPayer) {
         return false;
     }
 
@@ -11314,12 +11315,12 @@ function canDeclineReportAction(report: Report, policy?: Policy): boolean {
         return true;
     }
 
-    // If user is a manager/approver, they can only decline when report is processing
-    if (isCurrentUserManager && isReportApprover && isReportBeingProcessed) {
+    // If user is a manager/approver/admin, they can decline when report is processing
+    if ((isCurrentUserManager || isReportApprover || isAdmin) && isReportBeingProcessed) {
         return true;
     }
 
-    // If user is a payer, they can only decline when report is approved
+    // If user is a payer, they can decline when report is approved
     if (isReportPayer && isApproved) {
         return true;
     }
