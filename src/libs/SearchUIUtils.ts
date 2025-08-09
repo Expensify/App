@@ -245,7 +245,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             icon: Expensicons.Receipt,
             searchQuery: buildCannedSearchQuery(),
             get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery) as SearchQueryJSON;
+                return buildSearchQueryJSON(this.searchQuery)!;
             },
             get hash() {
                 return this.searchQueryJSON.hash;
@@ -261,7 +261,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             icon: Expensicons.Document,
             searchQuery: buildCannedSearchQuery({groupBy: CONST.SEARCH.GROUP_BY.REPORTS}),
             get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery) as SearchQueryJSON;
+                return buildSearchQueryJSON(this.searchQuery)!;
             },
             get hash() {
                 return this.searchQueryJSON.hash;
@@ -277,7 +277,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             icon: Expensicons.ChatBubbles,
             searchQuery: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT}),
             get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery) as SearchQueryJSON;
+                return buildSearchQueryJSON(this.searchQuery)!;
             },
             get hash() {
                 return this.searchQueryJSON.hash;
@@ -293,7 +293,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             icon: Expensicons.Pencil,
             searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_KEYS.SUBMIT, accountID),
             get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery) as SearchQueryJSON;
+                return buildSearchQueryJSON(this.searchQuery)!;
             },
             get hash() {
                 return this.searchQueryJSON.hash;
@@ -309,7 +309,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             icon: Expensicons.ThumbsUp,
             searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_KEYS.APPROVE, accountID),
             get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery) as SearchQueryJSON;
+                return buildSearchQueryJSON(this.searchQuery)!;
             },
             get hash() {
                 return this.searchQueryJSON.hash;
@@ -325,7 +325,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             icon: Expensicons.MoneyBag,
             searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_KEYS.PAY, accountID),
             get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery) as SearchQueryJSON;
+                return buildSearchQueryJSON(this.searchQuery)!;
             },
             get hash() {
                 return this.searchQueryJSON.hash;
@@ -341,7 +341,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             icon: Expensicons.CheckCircle,
             searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_KEYS.EXPORT, accountID),
             get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery) as SearchQueryJSON;
+                return buildSearchQueryJSON(this.searchQuery)!;
             },
             get hash() {
                 return this.searchQueryJSON.hash;
@@ -361,7 +361,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 postedOn: CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT,
             }),
             get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery) as SearchQueryJSON;
+                return buildSearchQueryJSON(this.searchQuery)!;
             },
             get hash() {
                 return this.searchQueryJSON.hash;
@@ -381,7 +381,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 reimbursable: CONST.SEARCH.BOOLEAN.YES,
             }),
             get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery) as SearchQueryJSON;
+                return buildSearchQueryJSON(this.searchQuery)!;
             },
             get hash() {
                 return this.searchQueryJSON.hash;
@@ -401,7 +401,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
             }),
             get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery) as SearchQueryJSON;
+                return buildSearchQueryJSON(this.searchQuery)!;
             },
             get hash() {
                 return this.searchQueryJSON.hash;

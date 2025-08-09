@@ -294,7 +294,7 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${query.groupBy}`;
 
     // Certain filters shouldn't affect whether two searchers are similar or not
-    const similarSearchIgnoredFilters: Set<SearchFilterKey> = new Set([CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY]);
+    const similarSearchIgnoredFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY]);
     let similarSearchHashInput = orderedQuery;
 
     query.flatFilters
