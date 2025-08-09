@@ -161,12 +161,12 @@ const getMockForStatus = (status: string, isAdmin = true) =>
         },
         [`${ONYXKEYS.CARD_LIST}`]: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            'card123': {
+            card123: {
                 bank: 'OTHER_BANK',
                 lastScrapeResult: status === CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR ? 500 : 200,
             },
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            'card456': {
+            card456: {
                 bank: 'ANOTHER_BANK',
                 lastScrapeResult: status === CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR ? 500 : 200,
             },
@@ -540,4 +540,4 @@ describe('useIndicatorStatus', () => {
             expect(policyIDWithErrors).toBeUndefined();
         });
     });
-}); 
+});

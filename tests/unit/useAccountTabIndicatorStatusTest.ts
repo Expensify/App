@@ -1,7 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
@@ -85,12 +84,12 @@ const getMockForStatus = (status: string) =>
         },
         [`${ONYXKEYS.CARD_LIST}`]: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            'card123': {
+            card123: {
                 bank: 'OTHER_BANK',
                 lastScrapeResult: status === CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR ? 500 : 200,
             },
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            'card456': {
+            card456: {
                 bank: 'ANOTHER_BANK',
                 lastScrapeResult: status === CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR ? 500 : 200,
             },
@@ -336,4 +335,4 @@ describe('useAccountTabIndicatorStatus', () => {
             expect(indicatorColor).toBe(defaultTheme.success);
         });
     });
-}); 
+});
