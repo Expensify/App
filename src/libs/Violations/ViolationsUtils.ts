@@ -294,6 +294,14 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
         }
 
+        if (updatedTransaction?.comment?.customUnit?.customUnitRateID && !getDistanceRateCustomUnitRate(policy, updatedTransaction.comment.customUnit.customUnitRateID)) {
+            newTransactionViolations.push({
+                name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
+            });
+        }
+
         const isControlPolicy = policy.type === CONST.POLICY.TYPE.CORPORATE;
         const inputDate = new Date(updatedTransaction.modifiedCreated ?? updatedTransaction.created);
         const shouldDisplayFutureDateViolation = !isInvoiceTransaction && DateUtils.isFutureDay(inputDate) && isControlPolicy;
