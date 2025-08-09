@@ -11801,14 +11801,62 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     if (isPolicyInstantSubmit) {
         if (hasMultipleExpenses) {
             // For reports with multiple expenses: Update report total
-            optimisticData.push({
+            optimisticData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        total: (report?.total ?? 0) - (transaction?.amount ?? 0),
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {
+                        reportID: null,
+                    },
+                },
+            );
+
+            // Add success data for report total update
+            successData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
-                    total: (report?.total ?? 0) - (transaction?.amount ?? 0),
+                    pendingFields: null,
+                    errorFields: null,
                 },
             });
-            urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(childReportID);
+
+            // Add success data for transaction update
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                value: {
+                    pendingAction: null,
+                    errorFields: null,
+                },
+            });
+
+            // Add failure data for report total revert
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    total: report?.total ?? 0,
+                },
+            });
+
+            // Add failure data for transaction revert
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                value: {
+                    reportID: transaction?.reportID ?? reportID,
+                },
+            });
+
+            urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(transaction.reportID);
         } else {
             // For reports with single expense: Delete the report
             optimisticData.push({
@@ -11816,7 +11864,22 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: null,
             });
-            urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(childReportID);
+
+            // Add success data for report deletion (no action needed, report is already deleted)
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: null,
+            });
+
+            // Add failure data to restore the report
+            failureData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: report,
+            });
+
+            urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(report.chatReportID);
         }
     } else if (hasMultipleExpenses) {
         // For reports with multiple expenses:
@@ -11843,6 +11906,25 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                     total: (movedToReport?.total ?? 0) + (transaction?.amount ?? 0),
                 },
             });
+
+            // Add success data for existing report update
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReport?.reportID}`,
+                value: {
+                    pendingFields: null,
+                    errorFields: null,
+                },
+            });
+
+            // Add failure data to revert existing report total
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReport?.reportID}`,
+                value: {
+                    total: movedToReport?.total ?? 0,
+                },
+            });
         } else {
             movedToReportID = generateReportID();
         }
@@ -11863,6 +11945,44 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
             },
         );
 
+        // Add success data for original report total update
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: null,
+                errorFields: null,
+            },
+        });
+
+        // Add success data for transaction update
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                pendingAction: null,
+                errorFields: null,
+            },
+        });
+
+        // Add failure data to revert original report total
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                total: report?.total ?? 0,
+            },
+        });
+
+        // Add failure data to revert transaction reportID
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                reportID: transaction?.reportID ?? reportID,
+            },
+        });
+
         urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(childReportID);
     } else {
         // For reports with single expense
@@ -11874,25 +11994,65 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             },
         });
+
+        // Add success data for report state update
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: null,
+                errorFields: null,
+            },
+        });
+
+        // Add failure data to revert report state
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                stateNum: report?.stateNum,
+                statusNum: report?.statusNum,
+            },
+        });
+
         urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(childReportID);
     }
 
     // Add rter transaction violation
     if (!isIOUReport(report)) {
         const currentTransactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`] ?? [];
+        const newViolation = {
+            name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+            type: CONST.VIOLATION_TYPES.WARNING,
+            data: {
+                comment: comment ?? '',
+            },
+        };
+        
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`,
             value: [
                 ...currentTransactionViolations,
-                {
-                    name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
-                    type: CONST.VIOLATION_TYPES.WARNING,
-                    data: {
-                        comment: comment ?? '',
-                    },
-                },
+                newViolation,
             ],
+        });
+
+        // Add success data for transaction violations (keep the new violation)
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`,
+            value: [
+                ...currentTransactionViolations,
+                newViolation,
+            ],
+        });
+
+        // Add failure data to revert transaction violations
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`,
+            value: currentTransactionViolations,
         });
     }
 
@@ -11947,7 +12107,26 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         },
     });
 
-    const optimisticRemoveReportAction = buildOptimisticRemoveReportAction(transaction, childReportID ?? reportAction.reportID ?? '');
+    // Add success data for lastReadTime update
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            pendingFields: null,
+            errorFields: null,
+        },
+    });
+
+    // Add failure data to revert lastReadTime
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            lastReadTime: report?.lastReadTime,
+        },
+    });
+
+    const optimisticRemoveReportAction = buildOptimisticRemoveReportAction(transaction, childReportID ?? reportAction?.reportID ?? '');
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
