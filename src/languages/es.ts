@@ -3099,21 +3099,6 @@ const translations = {
         enable2FAText: 'Tu seguridad es importante para nosotros. Por favor, configura ahora la autenticación de dos factores para añadir una capa adicional de protección a tu cuenta.',
         secureYourAccount: 'Asegura tu cuenta',
     },
-    beneficialOwnersStep: {
-        additionalInformation: 'Información adicional',
-        checkAllThatApply: 'Marca todos los que apliquen, en caso de que ninguno aplique dejar en blanco.',
-        iOwnMoreThan25Percent: 'Soy dueño de mas de 25% de ',
-        someoneOwnsMoreThan25Percent: 'Otra persona es dueña de mas de 25% de ',
-        additionalOwner: 'Beneficiario efectivo adicional',
-        removeOwner: 'Eliminar este beneficiario efectivo',
-        addAnotherIndividual: 'Añadir otra persona que es dueña de mas de 25% de ',
-        agreement: 'Acuerdo:',
-        termsAndConditions: 'Términos y condiciones',
-        certifyTrueAndAccurate: 'Certifico que la información dada es correcta',
-        error: {
-            certify: 'Debe certificar que la información es verdadera y precisa',
-        },
-    },
     completeVerificationStep: {
         completeVerification: 'Completar la verificación',
         confirmAgreements: 'Por favor, confirma los acuerdos siguientes.',

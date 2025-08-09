@@ -3111,21 +3111,6 @@ const translations = {
         enable2FAText: 'We take your security seriously. Please set up 2FA now to add an extra layer of protection to your account.',
         secureYourAccount: 'Secure your account',
     },
-    beneficialOwnersStep: {
-        additionalInformation: 'Additional information',
-        checkAllThatApply: 'Check all that apply, otherwise leave blank.',
-        iOwnMoreThan25Percent: 'I own more than 25% of ',
-        someoneOwnsMoreThan25Percent: 'Somebody else owns more than 25% of ',
-        additionalOwner: 'Additional beneficial owner',
-        removeOwner: 'Remove this beneficial owner',
-        addAnotherIndividual: 'Add another individual who owns more than 25% of ',
-        agreement: 'Agreement:',
-        termsAndConditions: 'terms and conditions',
-        certifyTrueAndAccurate: 'I certify that the information provided is true and accurate',
-        error: {
-            certify: 'Must certify information is true and accurate',
-        },
-    },
     completeVerificationStep: {
         completeVerification: 'Complete verification',
         confirmAgreements: 'Please confirm the agreements below.',

@@ -3130,21 +3130,6 @@ const translations = {
         enable2FAText: '私たちはあなたのセキュリティを真剣に考えています。アカウントに追加の保護層を加えるために、今すぐ2FAを設定してください。',
         secureYourAccount: 'アカウントを保護する',
     },
-    beneficialOwnersStep: {
-        additionalInformation: '追加情報',
-        checkAllThatApply: '該当するものにすべてチェックを入れ、それ以外は空白のままにしてください。',
-        iOwnMoreThan25Percent: '私は25%以上を所有しています',
-        someoneOwnsMoreThan25Percent: '他の誰かが25%以上を所有しています',
-        additionalOwner: '追加の実質的支配者',
-        removeOwner: 'この実質的支配者を削除する',
-        addAnotherIndividual: '25%以上を所有している別の個人を追加',
-        agreement: '同意:',
-        termsAndConditions: '利用規約',
-        certifyTrueAndAccurate: '私は提供された情報が真実で正確であることを証明します。',
-        error: {
-            certify: '情報が真実で正確であることを証明する必要があります。',
-        },
-    },
     completeVerificationStep: {
         completeVerification: '認証を完了する',
         confirmAgreements: '以下の合意を確認してください。',

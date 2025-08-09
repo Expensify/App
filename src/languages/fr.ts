@@ -3119,21 +3119,6 @@ const translations = {
             "Nous prenons votre sécurité au sérieux. Veuillez configurer l'authentification à deux facteurs (2FA) maintenant pour ajouter une couche de protection supplémentaire à votre compte.",
         secureYourAccount: 'Sécurisez votre compte',
     },
-    beneficialOwnersStep: {
-        additionalInformation: 'Informations supplémentaires',
-        checkAllThatApply: "Cochez tout ce qui s'applique, sinon laissez vide.",
-        iOwnMoreThan25Percent: 'Je possède plus de 25 % de',
-        someoneOwnsMoreThan25Percent: "Quelqu'un d'autre possède plus de 25 % de",
-        additionalOwner: 'Bénéficiaire effectif supplémentaire',
-        removeOwner: 'Supprimer ce bénéficiaire effectif',
-        addAnotherIndividual: 'Ajouter une autre personne qui possède plus de 25 % de',
-        agreement: 'Accord :',
-        termsAndConditions: 'termes et conditions',
-        certifyTrueAndAccurate: 'Je certifie que les informations fournies sont vraies et exactes.',
-        error: {
-            certify: 'Doit certifier que les informations sont vraies et exactes',
-        },
-    },
     completeVerificationStep: {
         completeVerification: 'Terminer la vérification',
         confirmAgreements: 'Veuillez confirmer les accords ci-dessous.',

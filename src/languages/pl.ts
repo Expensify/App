@@ -3127,21 +3127,6 @@ const translations = {
         enable2FAText: 'Poważnie podchodzimy do Twojego bezpieczeństwa. Proszę skonfigurować 2FA, aby dodać dodatkową warstwę ochrony do swojego konta.',
         secureYourAccount: 'Zabezpiecz swoje konto',
     },
-    beneficialOwnersStep: {
-        additionalInformation: 'Dodatkowe informacje',
-        checkAllThatApply: 'Zaznacz wszystkie, które mają zastosowanie, w przeciwnym razie pozostaw puste.',
-        iOwnMoreThan25Percent: 'Posiadam więcej niż 25% z',
-        someoneOwnsMoreThan25Percent: 'Ktoś inny posiada więcej niż 25% z',
-        additionalOwner: 'Dodatkowy beneficjent rzeczywisty',
-        removeOwner: 'Usuń tego beneficjenta rzeczywistego',
-        addAnotherIndividual: 'Dodaj kolejną osobę, która posiada więcej niż 25% z',
-        agreement: 'Umowa:',
-        termsAndConditions: 'warunki i zasady',
-        certifyTrueAndAccurate: 'Oświadczam, że podane informacje są prawdziwe i dokładne',
-        error: {
-            certify: 'Musi poświadczyć, że informacje są prawdziwe i dokładne',
-        },
-    },
     completeVerificationStep: {
         completeVerification: 'Zakończ weryfikację',
         confirmAgreements: 'Proszę potwierdzić poniższe umowy.',

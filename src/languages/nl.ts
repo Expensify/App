@@ -3133,21 +3133,6 @@ const translations = {
         enable2FAText: 'We nemen uw beveiliging serieus. Stel nu 2FA in om een extra beveiligingslaag aan uw account toe te voegen.',
         secureYourAccount: 'Beveilig uw account',
     },
-    beneficialOwnersStep: {
-        additionalInformation: 'Aanvullende informatie',
-        checkAllThatApply: 'Controleer alles wat van toepassing is, laat anders leeg.',
-        iOwnMoreThan25Percent: 'Ik bezit meer dan 25% van',
-        someoneOwnsMoreThan25Percent: 'Iemand anders bezit meer dan 25% van',
-        additionalOwner: 'Extra begunstigde eigenaar',
-        removeOwner: 'Verwijder deze uiteindelijke belanghebbende',
-        addAnotherIndividual: 'Voeg een andere persoon toe die meer dan 25% van de  bezit.',
-        agreement: 'Agreement:',
-        termsAndConditions: 'algemene voorwaarden',
-        certifyTrueAndAccurate: 'Ik verklaar dat de verstrekte informatie waarheidsgetrouw en nauwkeurig is.',
-        error: {
-            certify: 'Moet bevestigen dat de informatie waar en nauwkeurig is',
-        },
-    },
     completeVerificationStep: {
         completeVerification: 'Voltooi verificatie',
         confirmAgreements: 'Bevestig alstublieft de onderstaande overeenkomsten.',

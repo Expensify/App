@@ -3113,21 +3113,6 @@ const translations = {
         enable2FAText: 'Wir nehmen Ihre Sicherheit ernst. Bitte richten Sie jetzt die Zwei-Faktor-Authentifizierung (2FA) ein, um Ihrem Konto eine zusätzliche Schutzschicht hinzuzufügen.',
         secureYourAccount: 'Sichern Sie Ihr Konto',
     },
-    beneficialOwnersStep: {
-        additionalInformation: 'Zusätzliche Informationen',
-        checkAllThatApply: 'Überprüfen Sie alle zutreffenden Optionen, andernfalls leer lassen.',
-        iOwnMoreThan25Percent: 'Ich besitze mehr als 25% von',
-        someoneOwnsMoreThan25Percent: 'Jemand anderes besitzt mehr als 25% von',
-        additionalOwner: 'Zusätzlicher wirtschaftlich Berechtigter',
-        removeOwner: 'Diesen wirtschaftlich Berechtigten entfernen',
-        addAnotherIndividual: 'Fügen Sie eine weitere Person hinzu, die mehr als 25% von besitzt.',
-        agreement: 'Vereinbarung:',
-        termsAndConditions: 'Allgemeine Geschäftsbedingungen',
-        certifyTrueAndAccurate: 'Ich bestätige, dass die angegebenen Informationen wahr und korrekt sind.',
-        error: {
-            certify: 'Muss bestätigen, dass die Informationen wahr und korrekt sind.',
-        },
-    },
     completeVerificationStep: {
         completeVerification: 'Überprüfung abschließen',
         confirmAgreements: 'Bitte bestätigen Sie die untenstehenden Vereinbarungen.',

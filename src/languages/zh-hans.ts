@@ -3094,21 +3094,6 @@ const translations = {
         enable2FAText: '我们非常重视您的安全。请立即设置双重身份验证（2FA），为您的账户增加一层额外的保护。',
         secureYourAccount: '保护您的账户',
     },
-    beneficialOwnersStep: {
-        additionalInformation: '附加信息',
-        checkAllThatApply: '检查所有适用项，否则留空。',
-        iOwnMoreThan25Percent: '我拥有超过25%的',
-        someoneOwnsMoreThan25Percent: '其他人拥有超过25%的股份',
-        additionalOwner: '额外的受益所有人',
-        removeOwner: '移除此受益所有人',
-        addAnotherIndividual: '添加另一位拥有超过25%股份的个人',
-        agreement: '协议：',
-        termsAndConditions: '条款和条件',
-        certifyTrueAndAccurate: '我保证所提供的信息真实准确。',
-        error: {
-            certify: '必须确认信息真实准确',
-        },
-    },
     completeVerificationStep: {
         completeVerification: '完成验证',
         confirmAgreements: '请确认以下协议。',
