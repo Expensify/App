@@ -62,6 +62,7 @@ type StagingDeployCashData = {
     number: number;
     labels: OctokitIssueItem['labels'];
     PRList: StagingDeployCashPR[];
+    PRListMobileExpensify: StagingDeployCashPR[];
     deployBlockers: StagingDeployCashBlocker[];
     internalQAPRList: StagingDeployCashBlocker[];
     isFirebaseChecked: boolean;
@@ -208,6 +209,7 @@ class GithubUtils {
                 number: this.getIssueOrPullRequestNumberFromURL(issue.url),
                 labels: issue.labels,
                 PRList: this.getStagingDeployCashPRList(issue),
+                PRListMobileExpensify: this.getStagingDeployCashPRListMobileExpensify(issue),
                 deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
                 internalQAPRList: this.getStagingDeployCashInternalQA(issue),
                 isFirebaseChecked: issue.body ? /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body) : false,
@@ -241,6 +243,22 @@ class GithubUtils {
         }));
 
         return PRList.sort((a, b) => a.number - b.number);
+    }
+
+    static getStagingDeployCashPRListMobileExpensify(issue: OctokitIssueItem): StagingDeployCashPR[] {
+        let mobileExpensifySection: RegExpMatchArray | string | null = issue.body?.match(/Mobile-Expensify PRs:\*\*\r?\n((?:-.*\r?\n)+)/) ?? null;
+        if (mobileExpensifySection?.length !== 2) {
+            return [];
+        }
+
+        mobileExpensifySection = mobileExpensifySection[1];
+        const mobileExpensifyPRs = [...mobileExpensifySection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST.ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
+            url: match[2],
+            number: Number.parseInt(match[3], 10),
+            isVerified: match[1] === 'x',
+        }));
+
+        return mobileExpensifyPRs.sort((a, b) => a.number - b.number);
     }
 
     /**
@@ -290,7 +308,9 @@ class GithubUtils {
     static generateStagingDeployCashBodyAndAssignees(
         tag: string,
         PRList: string[],
+        PRListMobileExpensify: string[],
         verifiedPRList: string[] = [],
+        verifiedPRListMobileExpensify: string[] = [],
         deployBlockers: string[] = [],
         resolvedDeployBlockers: string[] = [],
         resolvedInternalQAPRs: string[] = [],
@@ -314,9 +334,12 @@ class GithubUtils {
 
                     const noQAPRs = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
                     console.log('Found the following NO QA PRs:', noQAPRs);
-                    const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...noQAPRs])];
+                    const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs])];
 
                     const sortedPRList = [...new Set(arrayDifference(PRList, Object.keys(internalQAPRMap)))].sort(
+                        (a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b),
+                    );
+                    const sortedPRListMobileExpensify = [...new Set(PRListMobileExpensify)].sort(
                         (a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b),
                     );
                     const sortedDeployBlockers = [...new Set(deployBlockers)].sort(
@@ -325,7 +348,14 @@ class GithubUtils {
 
                     // Tag version and comparison URL
                     // eslint-disable-next-line max-len
-                    let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n`;
+                    let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n`;
+
+                    // Add Mobile-Expensify compare link if there are Mobile-Expensify PRs
+                    if (sortedPRListMobileExpensify.length > 0) {
+                        issueBody += `**Mobile-Expensify Changes:** https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/compare/production...staging\r\n`;
+                    }
+
+                    issueBody += '\r\n';
 
                     // Warn deployers about potential bugs with the new process
                     issueBody +=
@@ -335,6 +365,16 @@ class GithubUtils {
                     if (sortedPRList.length > 0) {
                         issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
                         sortedPRList.forEach((URL) => {
+                            issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
+                            issueBody += ` ${URL}\r\n`;
+                        });
+                        issueBody += '\r\n\r\n';
+                    }
+
+                    // Mobile-Expensify PR list
+                    if (sortedPRListMobileExpensify.length > 0) {
+                        issueBody += '**Mobile-Expensify PRs:**\r\n';
+                        sortedPRListMobileExpensify.forEach((URL) => {
                             issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
                             issueBody += ` ${URL}\r\n`;
                         });
@@ -410,7 +450,7 @@ class GithubUtils {
                 return data;
             },
         )
-            .then((prList) => prList.filter((pr) => pullRequestNumbers.includes(pr.number)))
+            .then((prList) => prList?.filter((pr) => pullRequestNumbers.includes(pr.number)) ?? [])
             .catch((err) => console.error('Failed to get PR list', err));
     }
 
@@ -534,8 +574,8 @@ class GithubUtils {
     /**
      * Generate the URL of an New Expensify pull request given the PR number.
      */
-    static getPullRequestURLFromNumber(value: number): string {
-        return `${CONST.APP_REPO_URL}/pull/${value}`;
+    static getPullRequestURLFromNumber(value: number, repositoryURL: string): string {
+        return `${repositoryURL}/pull/${value}`;
     }
 
     /**
@@ -641,7 +681,7 @@ class GithubUtils {
     /**
      * Get commits between two tags via the GitHub API
      */
-    static async getCommitHistoryBetweenTags(fromTag: string, toTag: string): Promise<CommitType[]> {
+    static async getCommitHistoryBetweenTags(fromTag: string, toTag: string, repositoryName: string): Promise<CommitType[]> {
         console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
         core.startGroup('Fetching paginated commits:');
 
@@ -656,7 +696,7 @@ class GithubUtils {
 
                 const response = await this.octokit.repos.compareCommits({
                     owner: CONST.GITHUB_OWNER,
-                    repo: CONST.APP_REPO,
+                    repo: repositoryName,
                     base: fromTag,
                     head: toTag,
                     per_page: perPage,
@@ -687,6 +727,7 @@ class GithubUtils {
 
             core.info(`🎉 Successfully fetched ${allCommits.length} total commits`);
             core.endGroup();
+            console.log('');
             return allCommits.map(
                 (commit): CommitType => ({
                     commit: commit.sha,
@@ -696,11 +737,12 @@ class GithubUtils {
             );
         } catch (error) {
             if (error instanceof RequestError && error.status === 404) {
-                console.error(
+                core.error(
                     `❓❓ Failed to get commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them.`,
                 );
             }
             core.endGroup();
+            console.log('');
             throw error;
         }
     }
