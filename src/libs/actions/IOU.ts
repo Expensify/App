@@ -11926,8 +11926,10 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                     total: movedToReport?.total ?? 0,
                 },
             });
+            urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(movedToReportID ?? report.chatReportID);
         } else {
             movedToReportID = generateReportID();
+            urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(report.chatReportID);
         }
         optimisticData.push(
             {
@@ -11983,8 +11985,6 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 reportID: transaction?.reportID ?? reportID,
             },
         });
-
-        urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(movedToReportID ?? report.chatReportID);
     } else {
         // For reports with single expense
         optimisticData.push({
