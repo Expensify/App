@@ -849,6 +849,11 @@ type MergeFailureDescriptionGenericParams = {
     email: string;
 };
 
+type UpgradeSuccessMessageParams = {
+    policyName: string;
+    subscriptionLink: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     ContactMethodParams,
@@ -1138,4 +1143,5 @@ export type {
     MergeSuccessDescriptionParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
+    UpgradeSuccessMessageParams,
 };
