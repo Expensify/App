@@ -289,6 +289,7 @@ import type {
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
+    WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
@@ -3477,11 +3478,8 @@ const translations = {
             appliedOnExport: 'Nie zaimportowane do Expensify, zastosowane przy eksporcie',
             shareNote: {
                 header: 'Udostępnij swoje miejsce pracy innym członkom',
-                content: {
-                    firstPart:
-                        'Udostępnij ten kod QR lub skopiuj poniższy link, aby ułatwić członkom żądanie dostępu do Twojego miejsca pracy. Wszystkie prośby o dołączenie do miejsca pracy pojawią się w',
-                    secondPart: 'pokój do Twojej recenzji.',
-                },
+                content: ({adminsRoomLink}: WorkspaceShareNoteParams) =>
+                    `Udostępnij ten kod QR lub skopiuj poniższy link, aby ułatwić członkom uzyskanie dostępu do Twojej przestrzeni roboczej. Wszystkie prośby o dołączenie do przestrzeni roboczej będą wyświetlane w pokoju <a href="${adminsRoomLink}">${CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}</a>, gdzie będziesz mógł je przejrzeć.`,
             },
             connectTo: ({connectionName}: ConnectionNameParams) => `Połącz z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             createNewConnection: 'Utwórz nowe połączenie',
