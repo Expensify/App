@@ -13,6 +13,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAdvancedFilters} from '@libs/actions/Search';
@@ -98,6 +99,7 @@ function SearchAutocompleteInput(
 ) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -233,25 +235,23 @@ function SearchAutocompleteInput(
                             focusedSharedValue.set(false);
                             onBlur?.();
                         }}
-                        ref={ref}
                         isLoading={isSearchingForReports}
+                        ref={ref}
                         type="markdown"
                         multiline={false}
                         parser={parser}
                         selection={selection}
                     />
                 </View>
-                {!!value && (
-                    <Animated.View
-                        style={styles.pr3}
-                        layout={SearchFiltersButtonTransition}
-                    >
-                        <TextInputClearButton
-                            onPressButton={clearFilters}
-                            style={styles.mt0}
-                        />
-                    </Animated.View>
-                )}
+                <Animated.View
+                    style={[styles.pr3, StyleUtils.getOpacityStyle(value ? 1 : 0), !value && styles.pointerEventsNone]}
+                    layout={SearchFiltersButtonTransition}
+                >
+                    <TextInputClearButton
+                        onPressButton={clearFilters}
+                        style={styles.mt0}
+                    />
+                </Animated.View>
             </Animated.View>
             <FormHelpMessage
                 style={styles.ph3}
