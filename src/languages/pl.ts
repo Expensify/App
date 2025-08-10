@@ -4351,8 +4351,8 @@ const translations = {
             chooseCard: 'Wybierz kartę',
             chooseCardFor: ({assignee, feed}: AssignCardParams) => `Wybierz kartę dla ${assignee} z kanału kart ${feed}.`,
             noActiveCards: 'Brak aktywnych kart w tym kanale',
-            somethingMightBeBroken: 'Albo coś może być zepsute. Tak czy inaczej, jeśli masz jakieś pytania, po prostu',
-            contactConcierge: 'skontaktuj się z Concierge',
+            somethingMightBeBroken:
+                '<muted-text><centered-text>Albo coś może być zepsute. W każdym razie, jeśli masz jakieś pytania, <concierge-link>skontaktuj się z Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Wybierz datę rozpoczęcia transakcji',
             startDateDescription: 'Zaimportujemy wszystkie transakcje od tej daty. Jeśli nie określono daty, sięgniemy tak daleko wstecz, jak pozwala na to Twój bank.',
             fromTheBeginning: 'Od początku',
