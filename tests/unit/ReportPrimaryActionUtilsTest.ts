@@ -1013,6 +1013,7 @@ describe('getTransactionThreadPrimaryAction', () => {
             const report = {
                 reportID: REPORT_ID,
                 ownerAccountID: submitterAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
             } as unknown as Report;
 
             const transactions = [
@@ -1035,7 +1036,22 @@ describe('getTransactionThreadPrimaryAction', () => {
                 ],
             };
 
-            const result = isMarkAsResolvedReportAction(report, transactions, violations);
+            const reportActions = [
+                {
+                    reportActionID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: CURRENT_USER_ACCOUNT_ID,
+                    created: '2023-01-01',
+                    message: [{type: 'COMMENT', text: 'Test message'}],
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: '1',
+                    },
+                    childReportID: '1',
+                } as ReportAction,
+            ];
+
+            const result = isMarkAsResolvedReportAction(report, chatReport, transactions, violations, undefined, reportActions);
             expect(result).toBe(true);
         });
 
@@ -1047,6 +1063,7 @@ describe('getTransactionThreadPrimaryAction', () => {
             const report = {
                 reportID: REPORT_ID,
                 ownerAccountID: otherUserAccountID, // Different from current user
+                type: CONST.REPORT.TYPE.EXPENSE,
             } as unknown as Report;
 
             const transactions = [
@@ -1069,7 +1086,22 @@ describe('getTransactionThreadPrimaryAction', () => {
                 ],
             };
 
-            const result = isMarkAsResolvedReportAction(report, transactions, violations, policy);
+            const reportActions = [
+                {
+                    reportActionID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: CURRENT_USER_ACCOUNT_ID,
+                    created: '2023-01-01',
+                    message: [{type: 'COMMENT', text: 'Test message'}],
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: '1',
+                    },
+                    childReportID: '1',
+                } as ReportAction,
+            ];
+
+            const result = isMarkAsResolvedReportAction(report, chatReport, transactions, violations, policy, reportActions);
             expect(result).toBe(true);
         });
 
@@ -1103,7 +1135,21 @@ describe('getTransactionThreadPrimaryAction', () => {
                 ],
             };
 
-            const result = isMarkAsResolvedReportAction(report, transactions, violations, policy);
+            const reportActions = [
+                {
+                    reportActionID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: CURRENT_USER_ACCOUNT_ID,
+                    created: '2023-01-01',
+                    message: [{type: 'COMMENT', text: 'Test message'}],
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: '1',
+                    },
+                } as ReportAction,
+            ];
+
+            const result = isMarkAsResolvedReportAction(report, chatReport, transactions, violations, policy, reportActions);
             expect(result).toBe(false);
         });
 
@@ -1133,14 +1179,42 @@ describe('getTransactionThreadPrimaryAction', () => {
                 ],
             };
 
-            const result = isMarkAsResolvedReportAction(report, transactions, violations);
+            const reportActions = [
+                {
+                    reportActionID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: CURRENT_USER_ACCOUNT_ID,
+                    created: '2023-01-01',
+                    message: [{type: 'COMMENT', text: 'Test message'}],
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: '1',
+                    },
+                } as ReportAction,
+            ];
+
+            const result = isMarkAsResolvedReportAction(report, chatReport, transactions, violations, undefined, reportActions);
             expect(result).toBe(false);
         });
 
         it('should return false when report, transactions, or violations are undefined', () => {
-            const result1 = isMarkAsResolvedReportAction(undefined, [], {});
-            const result2 = isMarkAsResolvedReportAction({} as Report, undefined, {});
-            const result3 = isMarkAsResolvedReportAction({} as Report, [], undefined);
+            const reportActions = [
+                {
+                    reportActionID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: CURRENT_USER_ACCOUNT_ID,
+                    created: '2023-01-01',
+                    message: [{type: 'COMMENT', text: 'Test message'}],
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: '1',
+                    },
+                } as ReportAction,
+            ];
+
+            const result1 = isMarkAsResolvedReportAction(undefined, chatReport, [], {}, undefined, reportActions);
+            const result2 = isMarkAsResolvedReportAction({} as Report, chatReport, undefined, {}, undefined, reportActions);
+            const result3 = isMarkAsResolvedReportAction({} as Report, chatReport, [], undefined, undefined, reportActions);
 
             expect(result1).toBe(false);
             expect(result2).toBe(false);
