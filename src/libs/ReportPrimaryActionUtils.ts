@@ -296,8 +296,23 @@ function isMarkAsCashAction(report: Report, reportTransactions: Transaction[], v
     return userControlsReport && shouldShowBrokenConnectionViolation;
 }
 
-function isMarkAsResolvedReportAction(report?: Report, reportTransactions?: Transaction[], violations?: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
+function isMarkAsResolvedReportAction(
+    report: Report,
+    chatReport: OnyxEntry<Report>,
+    reportTransactions?: Transaction[],
+    violations?: OnyxCollection<TransactionViolation[]>,
+    policy?: Policy,
+    reportActions?: ReportAction[]
+) {
     if (!report || !reportTransactions || !violations) {
+        return false;
+    }
+
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions);
+    const isOneExpenseReport = reportTransactions.length === 1;
+    const transaction = reportTransactions.at(0);
+
+    if ((!!reportActions && !transactionThreadReportID) || !isOneExpenseReport || !transaction) {
         return false;
     }
 
@@ -336,7 +351,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
 
     const isPayActionWithAllExpensesHeld = isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived) && hasOnlyHeldExpenses(report?.reportID);
 
-    if (isMarkAsResolvedReportAction(report, reportTransactions, violations, policy)) {
+    if (isMarkAsResolvedReportAction(report, chatReport, reportTransactions, violations, policy, reportActions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED;
     }
 
