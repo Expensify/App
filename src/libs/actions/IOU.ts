@@ -12206,7 +12206,7 @@ function markDeclineViolationAsResolved(transactionID: string, reportID?: string
 
     const parameters: MarkTransactionViolationAsResolvedParams = {
         transactionID,
-        markedAsResolvedReportActionID: NumberUtils.rand64(),
+        markedAsResolvedReportActionID: optimisticMarkedAsResolvedReportAction.reportActionID,
     };
 
     // Make API call
