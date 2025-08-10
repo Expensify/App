@@ -12105,7 +12105,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     });
 
     const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(optimisticDeclineReportActionComment.created, 1);
-    
+
     // Collect all reports that need lastReadTime and lastVisibleActionCreated updates
     const reportsToUpdate: Array<{reportID: string; lastVisibleActionCreated: string}> = [
         // Main report (where remove action is added)
@@ -12191,6 +12191,10 @@ function markDeclineViolationAsResolved(transactionID: string, reportID?: string
     const updatedViolations = currentViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
     const optimisticMarkedAsResolvedReportAction = buildOptimisticMarkedAsResolvedReportAction();
 
+    const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(optimisticMarkedAsResolvedReportAction.created, 1);
+
+    const report =  allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
     // Build optimistic data
     const optimisticData: OnyxUpdate[] = [
         {
@@ -12203,6 +12207,14 @@ function markDeclineViolationAsResolved(transactionID: string, reportID?: string
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [optimisticMarkedAsResolvedReportAction.reportActionID]: optimisticMarkedAsResolvedReportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                lastReadTime,
+                lastVisibleActionCreated: optimisticMarkedAsResolvedReportAction.created,
             },
         },
     ];
@@ -12220,6 +12232,14 @@ function markDeclineViolationAsResolved(transactionID: string, reportID?: string
                 [optimisticMarkedAsResolvedReportAction.reportActionID]: null,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: null,
+                errorFields: null,
+            },
+        },
     ];
 
     const failureData: OnyxUpdate[] = [
@@ -12233,6 +12253,14 @@ function markDeclineViolationAsResolved(transactionID: string, reportID?: string
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [optimisticMarkedAsResolvedReportAction.reportActionID]: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                lastReadTime: report?.lastReadTime,
+                lastVisibleActionCreated: report?.lastVisibleActionCreated,
             },
         },
     ];

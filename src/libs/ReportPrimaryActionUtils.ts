@@ -302,7 +302,7 @@ function isMarkAsResolvedReportAction(
     reportTransactions?: Transaction[],
     violations?: OnyxCollection<TransactionViolation[]>,
     policy?: Policy,
-    reportActions?: ReportAction[]
+    reportActions?: ReportAction[],
 ) {
     if (!report || !reportTransactions || !violations) {
         return false;
