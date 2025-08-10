@@ -12110,10 +12110,11 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         value: {
             lastReadTime,
+            lastVisibleActionCreated: optimisticDeclineReportActionComment.created,
         },
     });
 
-    // Add success data for lastReadTime update
+    // Add success data for lastReadTime and lastVisibleActionCreated update
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -12123,12 +12124,13 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         },
     });
 
-    // Add failure data to revert lastReadTime
+    // Add failure data to revert lastReadTime and lastVisibleActionCreated
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         value: {
             lastReadTime: report?.lastReadTime,
+            lastVisibleActionCreated: report?.lastVisibleActionCreated,
         },
     });
 
