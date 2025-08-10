@@ -784,8 +784,6 @@
         "src/CONST/index.ts",
         "src/libs/SearchParser/*"
     ],
-    "ignoreRegExpList": [
-        "@assets/.*"
-    ],
+    "ignoreRegExpList": ["@assets/.*"],
     "useGitignore": true
 }
