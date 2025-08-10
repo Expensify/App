@@ -5342,13 +5342,19 @@ describe('ReportUtils', () => {
         it('should return true for report manager on IOU report', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {accountID: managerAccountID});
 
+            const testPolicy: Policy = {
+                ...createRandomPolicy(1),
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.USER,
+            };
+
             const report: Report = {
                 ...createRandomReport(1),
                 type: CONST.REPORT.TYPE.IOU,
                 managerID: managerAccountID,
             };
 
-            const result = canDeclineReportAction(report);
+            const result = canDeclineReportAction(report, testPolicy);
             expect(result).toBe(true);
         });
 

@@ -11311,8 +11311,8 @@ function canDeclineReportAction(report: Report, policy?: Policy): boolean {
         return false;
     }
 
-    // If the report is an IOU report, we can decline it
-    if (isIOU && isReportPayer) {
+    // If the report is an IOU report, we can decline it if user is payer, admin, or manager
+    if (isIOU && (isReportPayer || isAdmin || isCurrentUserManager)) {
         return true;
     }
 
