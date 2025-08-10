@@ -91,6 +91,7 @@ import type {
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
     DidSplitAmountMessageParams,
+    DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
     EarlyDiscountTitleParams,
@@ -3362,11 +3363,9 @@ const translations = {
         },
         domainPermissionInfo: {
             title: 'Domein',
-            restrictionPrefix: `Je hebt geen toestemming om Expensify Travel voor het domein in te schakelen.`,
-            restrictionSuffix: `Je zult iemand uit dat domein moeten vragen om in plaats daarvan reizen in te schakelen.`,
-            accountantInvitationPrefix: `Als je een accountant bent, overweeg dan lid te worden van de`,
-            accountantInvitationLink: `ExpensifyApproved! accountants programma`,
-            accountantInvitationSuffix: `om reizen voor dit domein in te schakelen.`,
+            restriction: ({domain}: DomainPermissionInfoRestrictionParams) =>
+                `Je hebt geen toestemming om Expensify Travel in te schakelen voor het domein <strong>${domain}</strong>. Je moet iemand van dat domein vragen om Travel in te schakelen.`,
+            accountantInvitation: `Als u accountant bent, overweeg dan om lid te worden van het <a href="${CONST.OLD_DOT_PUBLIC_URLS.EXPENSIFY_APPROVED_PROGRAM_URL}">ExpensifyApproved! accountantsprogramma</a> om reizen voor dit domein mogelijk te maken.`,
         },
         publicDomainError: {
             title: 'Aan de slag met Expensify Travel',

@@ -91,6 +91,7 @@ import type {
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
     DidSplitAmountMessageParams,
+    DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
     EarlyDiscountTitleParams,
@@ -3362,11 +3363,9 @@ const translations = {
         },
         domainPermissionInfo: {
             title: 'Domínio',
-            restrictionPrefix: `Você não tem permissão para habilitar o Expensify Travel para o domínio`,
-            restrictionSuffix: `Você precisará pedir a alguém desse domínio para habilitar a viagem.`,
-            accountantInvitationPrefix: `Se você é contador, considere se juntar ao`,
-            accountantInvitationLink: `Programa de contadores ExpensifyApproved!`,
-            accountantInvitationSuffix: `para habilitar viagens para este domínio.`,
+            restriction: ({domain}: DomainPermissionInfoRestrictionParams) =>
+                `Você não tem permissão para ativar o Expensify Travel para o domínio <strong>${domain}</strong>. Você precisará pedir a alguém desse domínio para ativar o Travel.`,
+            accountantInvitation: `Se você é contador, considere participar do <a href="${CONST.OLD_DOT_PUBLIC_URLS.EXPENSIFY_APPROVED_PROGRAM_URL}">programa ExpensifyApproved! para contadores</a> para habilitar viagens para esse domínio.`,
         },
         publicDomainError: {
             title: 'Comece com o Expensify Travel',

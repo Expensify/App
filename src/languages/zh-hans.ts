@@ -91,6 +91,7 @@ import type {
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
     DidSplitAmountMessageParams,
+    DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
     EarlyDiscountTitleParams,
@@ -3319,11 +3320,8 @@ const translations = {
         },
         domainPermissionInfo: {
             title: '域名',
-            restrictionPrefix: `您没有权限为该域启用Expensify Travel`,
-            restrictionSuffix: `您需要请该领域的某人来启用旅行功能。`,
-            accountantInvitationPrefix: `如果您是一名会计师，请考虑加入`,
-            accountantInvitationLink: `ExpensifyApproved! 会计师计划`,
-            accountantInvitationSuffix: `为此域启用旅行功能。`,
+            restriction: ({domain}: DomainPermissionInfoRestrictionParams) => `您没有为域名 <strong>${domain}</strong> 启用 Expensify 旅行的权限。您需要让该域的其他人代替您启用旅行功能。`,
+            accountantInvitation: `如果您是会计师，建议您加入<a href="${CONST.OLD_DOT_PUBLIC_URLS.EXPENSIFY_APPROVED_PROGRAM_URL}">ExpensifyApproved!会计师计划</a>，以便为该领域启用差旅功能。`,
         },
         publicDomainError: {
             title: '开始使用 Expensify Travel',

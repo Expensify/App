@@ -849,6 +849,10 @@ type MergeFailureDescriptionGenericParams = {
     email: string;
 };
 
+type DomainPermissionInfoRestrictionParams = {
+    domain: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     ContactMethodParams,
@@ -1138,4 +1142,5 @@ export type {
     MergeSuccessDescriptionParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
+    DomainPermissionInfoRestrictionParams,
 };
