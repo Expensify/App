@@ -36,9 +36,10 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {BaseOnboardingInterestedFeaturesProps, Feature, SectionObject} from './types';
 
-function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardingInterestedFeaturesProps) {
+function BaseOnboardingInterestedFeatures({shouldUseNativeStyles, route}: BaseOnboardingInterestedFeaturesProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {onboardingMessages} = useOnboardingMessages();
@@ -54,6 +55,8 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
     const [userReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
 
     const {isBetaEnabled} = usePermissions();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
@@ -345,7 +348,12 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             <HeaderWithBackButton
                 shouldShowBackButton
                 progressBarPercentage={90}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => {
+                    const nextRoute = isPrivateDomainAndHasAccessiblePolicies
+                        ? ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo)
+                        : ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo);
+                    Navigation.goBack(nextRoute);
+                }}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                 <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('onboarding.interestedFeatures.title')}</Text>
