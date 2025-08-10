@@ -11779,8 +11779,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
 
     const reportAction = getIOUActionForReportID(reportID, transactionID);
     const childReportID = reportAction?.childReportID;
-
-    const autoAddedActionReportActionID = NumberUtils.rand64();
+    
     let movedToReport;
     let movedToReportID;
     let urlToNavigateBack;
@@ -12148,7 +12147,6 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         reportID,
         comment,
         movedToReportID,
-        autoAddedActionReportActionID,
         removedFromReportActionID: optimisticRemoveReportAction.reportActionID,
         declinedActionReportActionID: optimisticDeclineReportAction.reportActionID,
         declinedCommentReportActionID: optimisticDeclineReportActionComment.reportActionID,
