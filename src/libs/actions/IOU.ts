@@ -11792,8 +11792,10 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     const optimisticData: OnyxUpdate[] = [];
 
     // Create system messages in both expense report and expense thread
-    const optimisticDeclineReportAction = buildOptimisticDeclineReportAction();
-    const optimisticDeclineReportActionComment = buildOptimisticDeclinedReportActionComment(comment);
+    // The "declined this expense" action should come before the decline comment
+    const baseTimestamp = DateUtils.getDBTime();
+    const optimisticDeclineReportAction = buildOptimisticDeclineReportAction(baseTimestamp);
+    const optimisticDeclineReportActionComment = buildOptimisticDeclinedReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1));
 
     // Build successData and failureData to prevent duplication
     const successData: OnyxUpdate[] = [];
