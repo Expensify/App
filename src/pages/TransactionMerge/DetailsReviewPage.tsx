@@ -170,7 +170,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                             }
 
                             if (field === 'amount') {
-                                return convertToDisplayString(Math.abs(Number(value)), currency);
+                                return convertToDisplayString(Number(value), currency);
                             }
 
                             return String(value);
