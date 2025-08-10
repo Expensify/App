@@ -12130,7 +12130,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         });
     }
 
-    const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(optimisticDeclineReportActionComment.created, 1);
+    const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(optimisticDeclineReportAction.created, 1);
     // Add optimistic data for all reports
     reportsToUpdate.forEach(({reportID: targetReportID, lastVisibleActionCreated}) => {
         optimisticData.push({
