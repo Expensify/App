@@ -5316,8 +5316,7 @@ const translations = {
             updateToUSD: 'Atualizar para USD',
             updateWorkspaceCurrency: 'Atualizar moeda do espaço de trabalho',
             workspaceCurrencyNotSupported: 'Moeda do espaço de trabalho não suportada',
-            yourWorkspace: 'Seu espaço de trabalho está configurado para uma moeda não suportada. Veja o/a',
-            listOfSupportedCurrencies: 'lista de moedas suportadas',
+            yourWorkspace: `Seu espaço de trabalho está configurado para uma moeda não suportada. Veja a <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">lista de moedas suportadas</a>.`,
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transferir proprietário',

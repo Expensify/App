@@ -5318,8 +5318,7 @@ const translations = {
             updateToUSD: 'Bijwerken naar USD',
             updateWorkspaceCurrency: 'Werkruimte valuta bijwerken',
             workspaceCurrencyNotSupported: 'Werkruimtevaluta niet ondersteund',
-            yourWorkspace: 'Je werkruimte is ingesteld op een niet-ondersteunde valuta. Bekijk de',
-            listOfSupportedCurrencies: "lijst van ondersteunde valuta's",
+            yourWorkspace: `Uw werkruimte is ingesteld op een niet-ondersteunde valuta. Bekijk de <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">lijst met ondersteunde valuta's</a>.`,
         },
         changeOwner: {
             changeOwnerPageTitle: 'Eigenaar overdragen',
