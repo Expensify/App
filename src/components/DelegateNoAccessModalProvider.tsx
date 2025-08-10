@@ -1,14 +1,14 @@
 import React, {createContext, useMemo, useState} from 'react';
 import type {PropsWithChildren} from 'react';
+import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ConfirmModal from './ConfirmModal';
-import Text from './Text';
-import TextLink from './TextLink';
+import RenderHTML from './RenderHTML';
 
 type DelegateNoAccessContextType = {
     /** Whether the current user is acting as delegate */
@@ -29,6 +29,7 @@ const DelegateNoAccessContext = createContext<DelegateNoAccessContextType>({
 
 function DelegateNoAccessModalProvider({children}: PropsWithChildren) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const delegatorEmail = currentUserDetails?.login ?? '';
@@ -37,11 +38,9 @@ function DelegateNoAccessModalProvider({children}: PropsWithChildren) {
     const isDelegateAccessRestricted = isActingAsDelegate && AccountUtils.isDelegateOnlySubmitter(account);
 
     const delegateNoAccessPrompt = (
-        <Text>
-            {translate('delegate.notAllowedMessageStart')}
-            <TextLink href={CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}>{translate('delegate.notAllowedMessageHyperLinked')}</TextLink>
-            {translate('delegate.notAllowedMessageEnd', {accountOwnerEmail: delegatorEmail})}
-        </Text>
+        <View style={[styles.renderHTML, styles.flexRow]}>
+            <RenderHTML html={translate('delegate.notAllowedMessage', {accountOwnerEmail: delegatorEmail})} />
+        </View>
     );
     const contextValue = useMemo(
         () => ({
