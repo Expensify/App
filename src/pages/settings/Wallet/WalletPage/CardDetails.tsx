@@ -39,7 +39,7 @@ type CardDetailsProps = {
 function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
 
     return (
         <>

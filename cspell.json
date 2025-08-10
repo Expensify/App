@@ -732,7 +732,8 @@
         "POLICYCHANGELOG_ADD_EMPLOYEE",
         "xcshareddata",
         "xcuserdata",
-        "inputmethod"
+        "inputmethod",
+        "copiable"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
