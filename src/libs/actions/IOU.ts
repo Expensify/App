@@ -11779,7 +11779,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
 
     const reportAction = getIOUActionForReportID(reportID, transactionID);
     const childReportID = reportAction?.childReportID;
-    
+
     let movedToReport;
     let movedToReportID;
     let urlToNavigateBack;
@@ -12054,15 +12054,6 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         },
     });
 
-    // Add optimistic comment action to the child report (already created above)
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
-        value: {
-            [optimisticDeclineReportActionComment.reportActionID]: optimisticDeclineReportActionComment,
-        },
-    });
-
     // Add successData to clear pending actions when the server confirms
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -12083,6 +12074,33 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         value: {
             [optimisticDeclineReportAction.reportActionID]: null, // Remove optimistic decline action
             [optimisticDeclineReportActionComment.reportActionID]: null,
+        },
+    });
+
+    const optimisticRemoveReportAction = buildOptimisticRemoveReportAction(transaction, childReportID ?? reportAction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: {
+            [optimisticRemoveReportAction.reportActionID]: optimisticRemoveReportAction,
+        },
+    });
+
+    // Add successData for the remove action - remove optimistic action to avoid duplicates with server response
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: {
+            [optimisticRemoveReportAction.reportActionID]: null,
+        },
+    });
+
+    // Add failureData for the remove action
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: {
+            [optimisticRemoveReportAction.reportActionID]: null,
         },
     });
 
@@ -12111,33 +12129,6 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         value: {
             lastReadTime: report?.lastReadTime,
-        },
-    });
-
-    const optimisticRemoveReportAction = buildOptimisticRemoveReportAction(transaction, childReportID ?? reportAction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        value: {
-            [optimisticRemoveReportAction.reportActionID]: optimisticRemoveReportAction,
-        },
-    });
-
-    // Add successData for the remove action - remove optimistic action to avoid duplicates with server response
-    successData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        value: {
-            [optimisticRemoveReportAction.reportActionID]: null,
-        },
-    });
-
-    // Add failureData for the remove action
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        value: {
-            [optimisticRemoveReportAction.reportActionID]: null,
         },
     });
 
