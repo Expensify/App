@@ -11772,6 +11772,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const isPolicyInstantSubmit = policy ? isInstantSubmitEnabled(policy) : false;
+    const isIOU = isIOUReport(report);
 
     if (!report || !transaction) {
         return undefined;
@@ -11783,6 +11784,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     let movedToReport;
     let movedToReportID;
     let urlToNavigateBack;
+    let optimisticRemoveReportAction;
 
     const hasMultipleExpenses = getReportTransactions(reportID).length > 1;
 
@@ -11797,7 +11799,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
-    if (isPolicyInstantSubmit) {
+    if (isPolicyInstantSubmit || isIOU) {
         if (hasMultipleExpenses) {
             // For reports with multiple expenses: Update report total
             optimisticData.push(
@@ -12017,33 +12019,6 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(report.chatReportID);
     }
 
-    // Add rter transaction violation
-    if (!isIOUReport(report)) {
-        const currentTransactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`] ?? [];
-        const newViolation = {
-            name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
-            type: CONST.VIOLATION_TYPES.WARNING,
-            data: {
-                comment: comment ?? '',
-            },
-        };
-
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`,
-            value: [...currentTransactionViolations, newViolation],
-        });
-
-        // Success data doesn't need to set violations again - server response will handle final state
-
-        // Add failure data to revert transaction violations
-        failureData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`,
-            value: currentTransactionViolations,
-        });
-    }
-
     // Add optimistic decline actions to the child report
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -12077,40 +12052,65 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         },
     });
 
-    const optimisticRemoveReportAction = buildOptimisticRemoveReportAction(transaction, childReportID ?? reportAction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        value: {
-            [optimisticRemoveReportAction.reportActionID]: optimisticRemoveReportAction,
-        },
-    });
-
-    // Add successData for the remove action - remove optimistic action to avoid duplicates with server response
-    successData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        value: {
-            [optimisticRemoveReportAction.reportActionID]: null,
-        },
-    });
-
-    // Add failureData for the remove action
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        value: {
-            [optimisticRemoveReportAction.reportActionID]: null,
-        },
-    });
-
-    const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(optimisticDeclineReportActionComment.created, 1);
-    
     // Collect all reports that need lastReadTime and lastVisibleActionCreated updates
-    const reportsToUpdate: Array<{reportID: string; lastVisibleActionCreated: string}> = [
-        // Main report (where remove action is added)
-        {reportID, lastVisibleActionCreated: optimisticRemoveReportAction.created},
-    ];
+    const reportsToUpdate: Array<{reportID: string; lastVisibleActionCreated: string}> = [];
+
+    // Add rter transaction violation
+    if (!isIOU) {
+        const currentTransactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`] ?? [];
+        const newViolation = {
+            name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+            type: CONST.VIOLATION_TYPES.WARNING,
+            data: {
+                comment: comment ?? '',
+            },
+        };
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`,
+            value: [...currentTransactionViolations, newViolation],
+        });
+
+        // Add failure data to revert transaction violations
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`,
+            value: currentTransactionViolations,
+        });
+
+        optimisticRemoveReportAction = buildOptimisticRemoveReportAction(transaction, childReportID ?? reportAction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticRemoveReportAction.reportActionID]: optimisticRemoveReportAction,
+            },
+        });
+
+        // Add successData for the remove action - remove optimistic action to avoid duplicates with server response
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticRemoveReportAction.reportActionID]: null,
+            },
+        });
+
+        // Add failureData for the remove action
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticRemoveReportAction.reportActionID]: null,
+            },
+        });
+
+        reportsToUpdate.push({
+            reportID,
+            lastVisibleActionCreated: optimisticRemoveReportAction.created,
+        });
+    }
 
     // Child report (where decline actions are added)
     if (childReportID) {
@@ -12128,6 +12128,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         });
     }
 
+    const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(optimisticDeclineReportActionComment.created, 1);
     // Add optimistic data for all reports
     reportsToUpdate.forEach(({reportID: targetReportID, lastVisibleActionCreated}) => {
         optimisticData.push({
@@ -12171,7 +12172,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         reportID,
         comment,
         movedToReportID,
-        removedFromReportActionID: optimisticRemoveReportAction.reportActionID,
+        removedFromReportActionID: optimisticRemoveReportAction?.reportActionID,
         declinedActionReportActionID: optimisticDeclineReportAction.reportActionID,
         declinedCommentReportActionID: optimisticDeclineReportActionComment.reportActionID,
     };
