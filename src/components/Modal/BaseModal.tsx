@@ -31,15 +31,32 @@ import ModalContext from './ModalContext';
 import ReanimatedModal from './ReanimatedModal';
 import type ReanimatedModalProps from './ReanimatedModal/types';
 import type BaseModalProps from './types';
+import type {FocusTrapOptions} from './types';
 
 const REANIMATED_MODAL_TYPES: Array<ValueOf<typeof CONST.MODAL.MODAL_TYPE>> = [CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED, CONST.MODAL.MODAL_TYPE.FULLSCREEN];
 
 type ModalComponentProps = (ReactNativeModalProps | ReanimatedModalProps) & {
     type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
     shouldUseReanimatedModal?: boolean;
+    shouldPreventScrollOnFocus?: boolean;
+    initialFocus?: FocusTrapOptions['initialFocus'];
+    isVisible: boolean;
+    isKeyboardActive: boolean;
+    saveFocusState: () => void;
 };
 
-function ModalComponent({type, shouldUseReanimatedModal, ...props}: ModalComponentProps) {
+function ModalComponent({
+    type,
+    shouldUseReanimatedModal,
+    isVisible,
+    shouldPreventScrollOnFocus,
+    initialFocus,
+    children,
+    saveFocusState,
+    onDismiss = () => {},
+    isKeyboardActive,
+    ...props
+}: ModalComponentProps) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if ((type && REANIMATED_MODAL_TYPES.includes(type)) || shouldUseReanimatedModal) {
         return (
@@ -47,12 +64,44 @@ function ModalComponent({type, shouldUseReanimatedModal, ...props}: ModalCompone
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(props as ReanimatedModalProps)}
                 type={type}
-            />
+                isVisible={isVisible}
+                shouldPreventScrollOnFocus={shouldPreventScrollOnFocus}
+                initialFocus={initialFocus}
+                onDismiss={onDismiss}
+            >
+                <ModalContent
+                    onModalWillShow={saveFocusState}
+                    onDismiss={onDismiss}
+                >
+                    {children}
+                </ModalContent>
+                {!isKeyboardActive && <NavigationBar />}
+            </ReanimatedModal>
         );
     }
 
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    return <ReactNativeModal {...(props as ReactNativeModalProps)} />;
+    return (
+        <ReactNativeModal
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...(props as ReactNativeModalProps)}
+            isVisible={isVisible}
+            onDismiss={onDismiss}
+        >
+            <ModalContent
+                onModalWillShow={saveFocusState}
+                onDismiss={onDismiss}
+            >
+                <FocusTrapForModal
+                    active={isVisible}
+                    initialFocus={initialFocus}
+                    shouldPreventScroll={shouldPreventScrollOnFocus}
+                >
+                    {children}
+                </FocusTrapForModal>
+            </ModalContent>
+            {!isKeyboardActive && <NavigationBar />}
+        </ReactNativeModal>
+    );
 }
 
 function BaseModal(
@@ -379,6 +428,8 @@ function BaseModal(
                         onDismiss={handleDismissModal}
                         onSwipeComplete={onClose}
                         swipeDirection={swipeDirection}
+                        shouldPreventScrollOnFocus={shouldPreventScrollOnFocus}
+                        initialFocus={initialFocus}
                         swipeThreshold={swipeThreshold}
                         isVisible={isVisible}
                         backdropColor={theme.overlay}
@@ -403,26 +454,16 @@ function BaseModal(
                         customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                         type={type}
                         shouldUseReanimatedModal={shouldUseReanimatedModal}
+                        isKeyboardActive={keyboardStateContextValue?.isKeyboardActive}
+                        saveFocusState={saveFocusState}
                     >
-                        <ModalContent
-                            onModalWillShow={saveFocusState}
-                            onDismiss={handleDismissModal}
+                        <Animated.View
+                            onLayout={onViewLayout}
+                            style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone, sidePanelReanimatedStyle]}
+                            ref={ref}
                         >
-                            <FocusTrapForModal
-                                active={isVisible}
-                                initialFocus={initialFocus}
-                                shouldPreventScroll={shouldPreventScrollOnFocus}
-                            >
-                                <Animated.View
-                                    onLayout={onViewLayout}
-                                    style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone, sidePanelReanimatedStyle]}
-                                    ref={ref}
-                                >
-                                    <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
-                                </Animated.View>
-                            </FocusTrapForModal>
-                        </ModalContent>
-                        {!keyboardStateContextValue?.isKeyboardActive && <NavigationBar />}
+                            <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
+                        </Animated.View>
                     </ModalComponent>
                 </View>
             </ScreenWrapperOfflineIndicatorContext.Provider>
