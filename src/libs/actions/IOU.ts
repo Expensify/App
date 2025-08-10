@@ -12105,33 +12105,64 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     });
 
     const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(optimisticDeclineReportActionComment.created, 1);
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        value: {
-            lastReadTime,
+    
+    // Collect all reports that need lastReadTime and lastVisibleActionCreated updates
+    const reportsToUpdate: Array<{reportID: string; lastVisibleActionCreated: string}> = [
+        // Main report (where remove action is added)
+        {reportID, lastVisibleActionCreated: optimisticRemoveReportAction.created},
+    ];
+
+    // Child report (where decline actions are added)
+    if (childReportID) {
+        reportsToUpdate.push({
+            reportID: childReportID,
             lastVisibleActionCreated: optimisticDeclineReportActionComment.created,
-        },
+        });
+    }
+
+    // Moved to report (if transaction is moved to another report)
+    if (movedToReportID && movedToReportID !== reportID) {
+        reportsToUpdate.push({
+            reportID: movedToReportID,
+            lastVisibleActionCreated: optimisticDeclineReportActionComment.created,
+        });
+    }
+
+    // Add optimistic data for all reports
+    reportsToUpdate.forEach(({reportID: targetReportID, lastVisibleActionCreated}) => {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`,
+            value: {
+                lastReadTime,
+                lastVisibleActionCreated,
+            },
+        });
     });
 
-    // Add success data for lastReadTime and lastVisibleActionCreated update
-    successData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        value: {
-            pendingFields: null,
-            errorFields: null,
-        },
+    // Add success data for all reports
+    reportsToUpdate.forEach(({reportID: targetReportID}) => {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`,
+            value: {
+                pendingFields: null,
+                errorFields: null,
+            },
+        });
     });
 
-    // Add failure data to revert lastReadTime and lastVisibleActionCreated
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        value: {
-            lastReadTime: report?.lastReadTime,
-            lastVisibleActionCreated: report?.lastVisibleActionCreated,
-        },
+    // Add failure data to revert all reports
+    reportsToUpdate.forEach(({reportID: targetReportID}) => {
+        const targetReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`];
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`,
+            value: {
+                lastReadTime: targetReport?.lastReadTime,
+                lastVisibleActionCreated: targetReport?.lastVisibleActionCreated,
+            },
+        });
     });
 
     // Build API parameters
