@@ -1044,11 +1044,19 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should return `Submit` action for transaction on policy with delayed submission and no violations', () => {
+<<<<<<< HEAD
             let action = SearchUIUtils.getAction(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
 
             action = SearchUIUtils.getAction(searchResults.data, {}, `transactions_${transactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+=======
+            let action = SearchUIUtils.getAction(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+
+            action = SearchUIUtils.getAction(searchResults.data, {}, `transactions_${transactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+>>>>>>> 54e5acb72211b49bf57aada4838247b50706fd3d
         });
 
         test('Should return `View` action for transaction on policy with delayed submission and with violations when current user is submitter and the expense was submitted', async () => {

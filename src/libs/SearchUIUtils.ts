@@ -1,6 +1,5 @@
 import type {TextStyle, ViewStyle} from 'react-native';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx'
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import DotLottieAnimations from '@components/LottieAnimations';
@@ -30,8 +29,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import {ErrorFields, Errors, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
-import {InvoiceReceiver, Note, Participants, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {
@@ -80,7 +77,6 @@ import {
     hasInvoiceReports,
     hasOnlyHeldExpenses,
     hasReportBeenReopened,
-    hasViolations,
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
     isArchivedReport,
     isClosedReport,
@@ -93,9 +89,7 @@ import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearc
 import StringUtils from './StringUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
-    getCategory,
-    getDescription,
-    getTag,
+    allHavePendingRTERViolation,
     getTaxAmount,
     getAmount as getTransactionAmount,
     getCreated as getTransactionCreatedDate,
@@ -1065,7 +1059,7 @@ function canSubmitReportInSearch(
         !hasAllPendingRTERViolations &&
         hasTransactionWithoutRTERViolation &&
         !isReportArchived;
-    const hasBeenReopened = hasReportBeenReopened(reportActions);
+    const hasBeenReopened = hasReportBeenReopened(report, reportActions);
     if (baseCanSubmit && hasBeenReopened) {
         return true;
     }
