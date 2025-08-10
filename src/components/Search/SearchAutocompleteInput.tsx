@@ -233,8 +233,8 @@ function SearchAutocompleteInput(
                             focusedSharedValue.set(false);
                             onBlur?.();
                         }}
-                        isLoading={!!isSearchingForReports}
                         ref={ref}
+                        isLoading={isSearchingForReports}
                         type="markdown"
                         multiline={false}
                         parser={parser}
