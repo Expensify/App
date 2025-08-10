@@ -189,6 +189,7 @@ import type {
     RoleNamesParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    RulesEnableWorkflowsParams,
     SecondaryLoginParams,
     SetTheDistanceMerchantParams,
     SetTheRequestParams,
@@ -5607,8 +5608,8 @@ const translations = {
                     always: 'Sempre exigir recibos',
                 },
                 defaultTaxRate: 'Taxa de imposto padrão',
-                goTo: 'Ir para',
-                andEnableWorkflows: 'e habilite fluxos de trabalho, depois adicione aprovações para desbloquear este recurso.',
+                enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
+                    `Vá para [Mais recursos](${moreFeaturesLink}) e habilite os fluxos de trabalho, depois adicione aprovações para desbloquear esse recurso.`,
             },
             customRules: {
                 title: 'Regras personalizadas',

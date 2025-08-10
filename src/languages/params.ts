@@ -849,6 +849,10 @@ type MergeFailureDescriptionGenericParams = {
     email: string;
 };
 
+type RulesEnableWorkflowsParams = {
+    moreFeaturesLink: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     ContactMethodParams,
@@ -1138,4 +1142,5 @@ export type {
     MergeSuccessDescriptionParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
+    RulesEnableWorkflowsParams,
 };
