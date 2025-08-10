@@ -7411,6 +7411,11 @@ describe('actions/IOU', () => {
         });
 
         it('should decline a money request and return navigation route', async () => {
+            // Given: An expense report (not IOU) for testing state update
+            const expenseReport = {...iouReport, type: CONST.REPORT.TYPE.EXPENSE};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`, expenseReport);
+            await waitForBatchedUpdates();
+
             // When: Decline the money request
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
