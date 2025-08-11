@@ -6,7 +6,6 @@ import type {Policy, Report} from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
 import getIconForAction from './getIconForAction';
-import {shouldShowPolicy} from './PolicyUtils';
 import {canCreateRequest} from './ReportUtils';
 
 const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
@@ -85,23 +84,31 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
             return 'quickAction.paySomeone';
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             return 'quickAction.assignTask';
-        case CONST.QUICK_ACTIONS.CREATE_REPORT:
-            return 'quickAction.createReport';
         default:
             return '' as TranslationPaths;
     }
+};
+const isManagerMcTestQuickActionReport = (report: Report | undefined) => {
+    return !!report?.participants?.[CONST.ACCOUNT_ID.MANAGER_MCTEST];
 };
 
 const isQuickActionAllowed = (quickAction: QuickAction, quickActionReport: Report | undefined, quickActionPolicy: Policy | undefined, isReportArchived = false) => {
     const iouType = getIOUType(quickAction?.action);
     if (iouType) {
+        // We're disabling QAB for Manager McTest reports to prevent confusion when submitting real data for Manager McTest
+        const isReportHasManagerMCTest = isManagerMcTestQuickActionReport(quickActionReport);
+        if (isReportHasManagerMCTest) {
+            return false;
+        }
         return canCreateRequest(quickActionReport, quickActionPolicy, iouType, isReportArchived);
     }
     if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM) {
         return !!quickActionPolicy?.arePerDiemRatesEnabled;
     }
+    // We don't want to show this QAB since this is already available in the FloatingActionButtonAndPopover
+    // In the future, we will remove this when the BE no longer returns this action
     if (quickAction?.action === CONST.QUICK_ACTIONS.CREATE_REPORT) {
-        return shouldShowPolicy(quickActionPolicy, false, undefined) && !!quickActionPolicy?.isPolicyExpenseChatEnabled;
+        return false;
     }
     return true;
 };
