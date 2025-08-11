@@ -781,8 +781,7 @@
         "tests/unit/currencyList.json",
         "tests/unit/ValidationUtilsTest.ts",
         "src/CONST/index.ts",
-        "src/libs/SearchParser/*",
-        "codecov.yml"
+        "src/libs/SearchParser/*"
     ],
     "ignoreRegExpList": ["@assets/.*"],
     "useGitignore": true
