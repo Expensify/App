@@ -129,15 +129,6 @@ const expenseStatusActionMapping = {
     [CONST.SEARCH.STATUS.EXPENSE.ALL]: () => true,
 };
 
-const expenseStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
-    {translation: 'common.unreported', value: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED},
-    {translation: 'common.drafts', value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
-    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
-    {translation: 'iou.approved', value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
-    {translation: 'iou.settledExpensify', value: CONST.SEARCH.STATUS.EXPENSE.PAID},
-    {translation: 'iou.done', value: CONST.SEARCH.STATUS.EXPENSE.DONE},
-];
-
 function getExpenseStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>> {
     return [
         {text: translateLocal('common.unreported'), value: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED},
