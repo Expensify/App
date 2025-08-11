@@ -9,14 +9,17 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+// we need to delay the first render of the SearchAutocompleteInput on native because initialization takes especially long, web doesn't have this issue
+let isAutocompleteInputInitialized = false;
 function SearchInputSelectionWrapper(props: SearchAutocompleteInputProps, ref: ForwardedRef<BaseTextInputRef>) {
-    const [delayFirstRender, setDelayFirstRender] = useState(true);
+    const [delayFirstRender, setDelayFirstRender] = useState(!isAutocompleteInputInitialized);
     const theme = useTheme();
     const styles = useThemeStyles();
 
     useEffect(() => {
         setTimeout(() => {
             setDelayFirstRender(false);
+            isAutocompleteInputInitialized = true;
         }, 100);
     }, []);
 
@@ -24,17 +27,15 @@ function SearchInputSelectionWrapper(props: SearchAutocompleteInputProps, ref: F
         return (
             <View style={[{flex: 1}, styles.searchRouterTextInputContainer, styles.searchAutocompleteInputResults, styles.br2, styles.justifyContentCenter]}>
                 <ContentLoader
-                    height={15}
+                    height={8}
                     backgroundColor={theme.skeletonLHNIn}
                     foregroundColor={theme.skeletonLHNOut}
                 >
                     <Rect
-                        x="0"
+                        x="5"
                         y="0"
-                        rx="4"
-                        ry="4"
                         width="145"
-                        height="15"
+                        height="8"
                     />
                 </ContentLoader>
             </View>
