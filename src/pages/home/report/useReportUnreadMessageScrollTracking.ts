@@ -60,7 +60,7 @@ export default function useReportUnreadMessageScrollTracking({
         const isScrolledToEnd = currentVerticalScrollingOffsetRef.current <= CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD;
 
         // When we have an unread message, display floating button if we're scrolled more than the offset
-        if (!isScrolledToEnd && !hasUnreadMarkerReportAction &&  !isFloatingMessageCounterVisible) {
+        if (!isScrolledToEnd && !hasUnreadMarkerReportAction && !isFloatingMessageCounterVisible) {
             setIsFloatingMessageCounterVisible(true);
         }
 
