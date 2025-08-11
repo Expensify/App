@@ -482,6 +482,7 @@ const translations = {
         message: 'Nachricht',
         leaveThread: 'Thread verlassen',
         you: 'Du',
+        me: 'mich',
         youAfterPreposition: 'du',
         your: 'Ihr',
         conciergeHelp: 'Bitte wenden Sie sich an Concierge, um Hilfe zu erhalten.',
@@ -882,6 +883,7 @@ const translations = {
         hereAlternateText: 'Benachrichtige alle in diesem Gespräch',
     },
     newMessages: 'Neue Nachrichten',
+    latestMessages: 'Neueste Nachrichten',
     youHaveBeenBanned: 'Hinweis: Du wurdest von der Teilnahme an diesem Kanal ausgeschlossen.',
     reportTypingIndicator: {
         isTyping: 'tippt...',
@@ -6038,6 +6040,10 @@ const translations = {
                 cards: 'Karte',
             },
             feed: 'Feed',
+            withdrawalType: {
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Erstattung',
+            },
         },
         groupBy: 'Gruppe nach',
         moneyRequestReport: {
@@ -6047,6 +6053,7 @@ const translations = {
         noCategory: 'Keine Kategorie',
         noTag: 'Kein Tag',
         expenseType: 'Ausgabentyp',
+        withdrawalType: 'Auszahlungsart',
         recentSearches: 'Letzte Suchanfragen',
         recentChats: 'Letzte Chats',
         searchIn: 'Suche in',
