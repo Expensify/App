@@ -103,7 +103,9 @@ function useReportActionAvatars({
     };
 
     if (passedPolicyID) {
-        const policyChatReportAvatar = policy ? {...getWorkspaceIcon(policyChatReport, policy), id: policyID, name: policy?.name} : fallbackWorkspaceAvatar;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const workspaceAvatar = policyChatReport ? getWorkspaceIcon(policyChatReport, policy) : {source: policy?.avatarURL || getDefaultWorkspaceAvatar(policy?.name)};
+        const policyChatReportAvatar = policy ? {...workspaceAvatar, id: policyID, name: policy.name, type: CONST.ICON_TYPE_WORKSPACE} : fallbackWorkspaceAvatar;
         const firstAccountAvatar = avatarsForAccountIDs.at(0);
 
         return {
