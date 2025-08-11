@@ -9,10 +9,12 @@ import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
+    getManagerAccountEmail,
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasIntegrationAutoSync,
     isInstantSubmitEnabled,
+    isMemberPolicyAdmin,
     isPolicyAdmin,
     isPolicyMember,
     isPreferredExporter,
@@ -668,7 +670,8 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
 
-    if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && isPolicyAdmin(policy)) {
+    // When report manager is not the policy admin and current user is policy admin, allow changing the approver
+    if (!isMemberPolicyAdmin(policy, getManagerAccountEmail(policy, report)) && isExpenseReportUtils(report) && isProcessingReportUtils(report) && isPolicyAdmin(policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
     }
 

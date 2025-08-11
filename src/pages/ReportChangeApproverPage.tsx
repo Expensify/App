@@ -12,7 +12,7 @@ import {changeReportApprover} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
-import {getManagerAccountEmail, isPolicyAdmin, isUserPolicyAdmin} from '@libs/PolicyUtils';
+import {getManagerAccountEmail, isMemberPolicyAdmin, isPolicyAdmin} from '@libs/PolicyUtils';
 import {isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -47,7 +47,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
     const sections = useMemo(() => {
         const data = [];
 
-        if (!isUserPolicyAdmin(policy, getManagerAccountEmail(policy, report))) {
+        if (!isMemberPolicyAdmin(policy, getManagerAccountEmail(policy, report))) {
             data.push({
                 text: translate('iou.changeApprover.actions.bypassApprovers'),
                 keyForList: 'bypassApprover',
