@@ -166,6 +166,16 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
         });
 
+        it('SUBMITTED action with memo', async () => {
+            const memo = 'memo message';
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {harvesting: false, message: memo});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted', {memo}))).toBeOnTheScreen();
+        });
+
         it('SUBMITTED_AND_CLOSED action', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, {harvesting: false});
             renderItemWithAction(action);
