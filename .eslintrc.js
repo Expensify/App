@@ -239,6 +239,9 @@ module.exports = {
         'react/prop-types': 'off',
         'react/jsx-key': 'error',
         'react/jsx-no-constructed-context-values': 'error',
+        // Allow spreading on custom components (common for wrappers/HOCs),
+        // but still enforce on HTML/native tags for clarity.
+        'react/jsx-props-no-spreading': ['error', {html: 'enforce', custom: 'ignore'}],
         'react-native-a11y/has-valid-accessibility-descriptors': [
             'error',
             {
@@ -326,6 +329,8 @@ module.exports = {
                 },
             },
         ],
+
+        // no eslint-comments enforcement to avoid widespread changes in existing code
     },
 
     overrides: [
