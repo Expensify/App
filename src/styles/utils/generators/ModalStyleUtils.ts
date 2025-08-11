@@ -93,9 +93,9 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 // and can be dismissed by clicking outside of the modal.
                 modalStyle = {
                     ...modalStyle,
-                    ...{
-                        alignItems: 'center',
-                    },
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '100%',
                 };
                 modalContainerStyle = {
                     boxShadow: theme.shadow,
@@ -117,9 +117,8 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 // viewed on a smaller device (e.g. mobile or mobile web).
                 modalStyle = {
                     ...modalStyle,
-                    ...{
-                        alignItems: 'center',
-                    },
+                    alignItems: 'center',
+                    height: '100%',
                 };
                 modalContainerStyle = {
                     boxShadow: theme.shadow,
@@ -147,9 +146,8 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 // viewed on a smaller device (e.g. mobile or mobile web).
                 modalStyle = {
                     ...modalStyle,
-                    ...{
-                        alignItems: 'center',
-                    },
+                    alignItems: 'center',
+                    height: '100%',
                 };
                 modalContainerStyle = {
                     boxShadow: theme.shadow,
@@ -174,10 +172,9 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 // A centered modal that cannot be dismissed with a swipe.
                 modalStyle = {
                     ...modalStyle,
-                    ...{
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                    },
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '100%',
                 };
                 modalContainerStyle = {
                     boxShadow: theme.shadow,
@@ -200,9 +197,8 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 // A centered modal that takes up the minimum possible screen space on all devices
                 modalStyle = {
                     ...modalStyle,
-                    ...{
-                        alignItems: 'center',
-                    },
+                    alignItems: 'center',
+                    height: '100%',
                 };
                 modalContainerStyle = {
                     boxShadow: theme.shadow,
@@ -224,10 +220,9 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
             case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
                 modalStyle = {
                     ...modalStyle,
-                    ...{
-                        alignItems: 'center',
-                        justifyContent: 'flex-end',
-                    },
+                    alignItems: 'center',
+                    justifyContent: 'flex-end',
+                    height: '100%',
                 };
                 modalContainerStyle = {
                     width: '100%',
@@ -257,11 +252,9 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 modalStyle = {
                     ...modalStyle,
                     ...popoverAnchorPosition,
-                    ...{
-                        position: 'absolute',
-                        alignItems: 'center',
-                        justifyContent: 'flex-end',
-                    },
+                    position: 'absolute',
+                    alignItems: 'center',
+                    justifyContent: 'flex-end',
                 };
                 modalContainerStyle = {
                     borderRadius: variables.componentBorderRadiusLarge,
@@ -280,12 +273,11 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
             case CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED:
                 modalStyle = {
                     ...modalStyle,
-                    ...{
-                        marginLeft: isSmallScreenWidth ? 0 : windowWidth - variables.sideBarWidth,
-                        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-                        flexDirection: 'row',
-                        justifyContent: 'flex-end',
-                    },
+                    marginLeft: isSmallScreenWidth ? 0 : windowWidth - variables.sideBarWidth,
+                    width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+                    flexDirection: 'row',
+                    justifyContent: 'flex-end',
+                    height: '100%',
                 };
                 modalContainerStyle = {
                     width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
@@ -320,7 +312,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 shouldAddTopSafeAreaPadding = true;
                 break;
             default:
-                modalStyle = {};
+                modalStyle = {height: '100%'};
                 modalContainerStyle = {};
                 swipeDirection = 'down';
                 animationIn = 'slideInUp';
