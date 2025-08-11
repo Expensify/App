@@ -304,4 +304,27 @@ describe('SearchQueryUtils', () => {
             expect(sortedOptions).toEqual(['A', 'B', 'C']);
         });
     });
+
+    describe('similarSearchHash', () => {
+        it('should return same similarSearchHash for two queries that are the same but use different sorting', () => {
+            const queryJSONA = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense category:none,Uncategorized,Maintenance');
+            const queryJSONB = buildSearchQueryJSON('sortBy:date sortOrder:asc type:expense category:none,Uncategorized,Maintenance');
+
+            expect(queryJSONA?.similarSearchHash).toEqual(queryJSONB?.similarSearchHash);
+        });
+
+        it('should return same similarSearchHash for two queries that have same filters but different values', () => {
+            const queryJSONA = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense feed:"oauth.americanexpressfdx.com 1001" posted:last-statement');
+            const queryJSONB = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense feed:"1234_stripe" posted:last-month');
+
+            expect(queryJSONA?.similarSearchHash).toEqual(queryJSONB?.similarSearchHash);
+        });
+
+        it('should return different similarSearchHash for two queries that have different types', () => {
+            const queryJSONA = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense feed:"oauth.americanexpressfdx.com 1001"');
+            const queryJSONB = buildSearchQueryJSON('sortBy:date sortOrder:desc type:trip feed:"oauth.americanexpressfdx.com 1001"');
+
+            expect(queryJSONA?.similarSearchHash).not.toEqual(queryJSONB?.similarSearchHash);
+        });
+    });
 });
