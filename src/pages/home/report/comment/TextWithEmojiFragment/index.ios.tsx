@@ -19,6 +19,7 @@ function TextWithEmojiFragment({message = '', style, alignCustomEmoji = false}: 
                     if (alignCustomEmoji && containsOnlyCustomEmoji(text)) {
                         return (
                             <Text
+                                // eslint-disable-next-line react/no-array-index-key
                                 key={index}
                                 style={[styles.emojisWithTextFontSizeAligned, styles.customEmojiFontAlignment]}
                             >
