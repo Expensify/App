@@ -11633,18 +11633,32 @@ function generateCoverageData(coverage, changedFiles, baseCoverage) {
         // If not found, try to find by matching the end of the path
         if (!fileCoverage) {
             const coverageKeys = Object.keys(coverage).filter((key) => key !== 'total');
-            const matchingKey = coverageKeys.find((key) => key.endsWith(file) || key.endsWith(file.replace(/^src\//, '')));
+            // Try multiple matching strategies
+            const normalizedFile = file.startsWith('src/') ? file : `src/${file}`;
+            const matchingKey = coverageKeys.find((key) => {
+                const normalizedKey = key.replace(/\\/g, '/'); // Handle Windows paths
+                return normalizedKey === normalizedFile || normalizedKey === file || (normalizedKey.includes(file) && normalizedKey.split('/').pop() === file.split('/').pop());
+            });
             if (matchingKey) {
                 fileCoverage = coverage[matchingKey];
             }
         }
+        // For files without coverage data, still include them with 0% coverage if they should have coverage
+        const shouldHaveCoverage = !file.endsWith('.d.ts') && !file.includes('/types.ts') && !file.match(/\.(stories|spec|test)\.(ts|tsx|js|jsx)$/);
+        const noCoverageFiles = shouldHaveCoverage
+            ? {
+                file,
+                coverage: 0,
+                lines: '0/0',
+            }
+            : null;
         return fileCoverage
             ? {
                 file,
                 coverage: fileCoverage.lines.pct,
                 lines: `${fileCoverage.lines.covered}/${fileCoverage.lines.total}`,
             }
-            : null;
+            : noCoverageFiles;
     })
         .filter((item) => item !== null)
         .sort((a, b) => b.coverage - a.coverage);
@@ -11702,7 +11716,7 @@ function getNestedValue(obj, nestPath) {
  */
 function getCoverageStatus(current, baseline) {
     const diff = current - (baseline ?? 0);
-    if (!baseline || Math.abs(diff) < 0.01) {
+    if (baseline === undefined || baseline === null || Math.abs(diff) < 0.01) {
         return { emoji: '', status: '', diff: 0 };
     }
     if (diff > 0) {
@@ -11715,7 +11729,7 @@ function getCoverageStatus(current, baseline) {
  */
 function calculateChange(current, baseline) {
     const diff = current - baseline;
-    if (!baseline || Math.abs(diff) < 0.01) {
+    if (baseline === undefined || baseline === null || Math.abs(diff) < 0.01) {
         return '0.0%';
     }
     // Negative sign is already handled by the diff calculation
@@ -11752,7 +11766,8 @@ function generateCoverageSection(coverageData, artifactUrl, workflowRunId) {
 {{#hasChangedFiles}}
 | File | Coverage | Lines |
 |------|----------|-------|
-{{#changedFiles}}| \`{{displayFile}}\` | {{coverage}}% | {{lines}} |{{/changedFiles}}
+{{#changedFiles}}| \`{{displayFile}}\` | {{coverage}}% | {{lines}} |
+{{/changedFiles}}
 {{/hasChangedFiles}}
 {{^hasChangedFiles}}*No coverage changed files found.*{{/hasChangedFiles}}
 **🔄 Overall Coverage Summary**
@@ -11884,7 +11899,7 @@ async function run() {
     try {
         const osBotifyToken = core.getInput('OS_BOTIFY_TOKEN', { required: true });
         GithubUtils_1.default.initOctokitWithToken(osBotifyToken);
-        const prNumber = parseInt(core.getInput('PR_NUMBER', { required: true }), 10);
+        const prNumber = Number(core.getInput('PR_NUMBER', { required: true }));
         const baseCoveragePath = core.getInput('BASE_COVERAGE_PATH', { required: false });
         const coverageUrl = core.getInput('COVERAGE_URL', { required: false });
         console.log(`Processing test coverage for PR #${prNumber}`);
@@ -11918,7 +11933,7 @@ async function run() {
             .addRaw(coverageSection.replace(COVERAGE_SECTION_HEADER, ''))
             .addSeparator()
             .addRaw('💡 This summary is also available at the end of the PR description.')
-            .write();
+            .write({ overwrite: true });
         // Set outputs
         core.setOutput('coverage-summary', JSON.stringify(coverageData.overall));
         core.setOutput('coverage-changed', changedFiles.length > 0);
@@ -11975,6 +11990,21 @@ const CONST = {
     EVENTS: {
         ISSUE_COMMENT: 'issue_comment',
     },
+    RUN_EVENT: {
+        PULL_REQUEST: 'pull_request',
+        PULL_REQUEST_TARGET: 'pull_request_target',
+        PUSH: 'push',
+    },
+    RUN_STATUS: {
+        COMPLETED: 'completed',
+        IN_PROGRESS: 'in_progress',
+        QUEUED: 'queued',
+    },
+    RUN_STATUS_CONCLUSION: {
+        SUCCESS: 'success',
+    },
+    TEST_WORKFLOW_NAME: 'Jest Unit Tests',
+    TEST_WORKFLOW_PATH: '.github/workflows/test.yml',
     PROPOSAL_KEYWORD: 'Proposal',
     DATE_FORMAT_STRING: 'yyyy-MM-dd',
     PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
