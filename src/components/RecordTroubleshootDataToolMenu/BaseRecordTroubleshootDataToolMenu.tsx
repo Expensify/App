@@ -103,7 +103,7 @@ function BaseRecordTroubleshootDataToolMenu({
         } else {
             Performance.disableMonitoring();
         }
-        toggleProfileTool();
+        toggleProfileTool(isProfilingInProgress);
         return () => {
             Performance.disableMonitoring();
         };
