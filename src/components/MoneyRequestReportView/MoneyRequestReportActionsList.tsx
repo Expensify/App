@@ -743,10 +743,6 @@ function MoneyRequestReportActionsList({
                     setIsExportWithTemplateModalVisible(false);
                     clearSelectedTransactions(undefined, true);
                 }}
-                onCancel={() => {
-                    setIsExportWithTemplateModalVisible(false);
-                    clearSelectedTransactions(undefined, true);
-                }}
                 isVisible={isExportWithTemplateModalVisible}
                 title={translate('export.exportInProgress')}
                 prompt={translate('export.conciergeWillSend')}

@@ -712,15 +712,10 @@ function SearchPage({route}: SearchPageProps) {
                                 setIsExportWithTemplateModalVisible(false);
                                 clearSelectedTransactions(undefined, true);
                             }}
-                            onCancel={() => {
-                                setIsExportWithTemplateModalVisible(false);
-                                clearSelectedTransactions(undefined, true);
-                            }}
                             title={translate('export.exportInProgress')}
                             prompt={translate('export.conciergeWillSend')}
                             confirmText={translate('common.buttonConfirm')}
                             shouldShowCancelButton={false}
-                            shouldHandleNavigationBack
                         />
                     </View>
                 )}
@@ -808,10 +803,6 @@ function SearchPage({route}: SearchPageProps) {
                 <ConfirmModal
                     isVisible={isExportWithTemplateModalVisible}
                     onConfirm={() => {
-                        setIsExportWithTemplateModalVisible(false);
-                        clearSelectedTransactions(undefined, true);
-                    }}
-                    onCancel={() => {
                         setIsExportWithTemplateModalVisible(false);
                         clearSelectedTransactions(undefined, true);
                     }}
