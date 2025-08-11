@@ -482,6 +482,7 @@ const translations = {
         message: 'Messaggio',
         leaveThread: 'Abbandona discussione',
         you: 'Tu',
+        me: 'me',
         youAfterPreposition: 'tu/voi (depending on the context)',
         your: 'tuo/tuoi/tuoi/tuo (depending on context and gender/number)',
         conciergeHelp: 'Si prega di contattare Concierge per assistenza.',
@@ -881,6 +882,7 @@ const translations = {
         hereAlternateText: 'Notifica tutti in questa conversazione',
     },
     newMessages: 'Nuovi messaggi',
+    latestMessages: 'Ultimi messaggi',
     youHaveBeenBanned: 'Nota: Sei stato bannato dalla chat in questo canale.',
     reportTypingIndicator: {
         isTyping: 'sta scrivendo...',

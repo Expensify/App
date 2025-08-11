@@ -4,6 +4,7 @@
  * Refer to ./contributingGuides/philosophies/ROUTING.md for information on how to construct routes.
  */
 import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {SearchQueryString} from './components/Search/types';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
@@ -715,7 +716,7 @@ const ROUTES = {
             if (!reportID) {
                 Log.warn('Invalid reportID while building route MONEY_REQUEST_EDIT_REPORT');
             }
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${reportID}/edit${shouldTurnOffSelectionMode ? `?shouldTurnOffSelectionMode=true` : ``}`, backTo);
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${reportID}/edit${shouldTurnOffSelectionMode ? '?shouldTurnOffSelectionMode=true' : ''}`, backTo);
         },
     },
     SETTINGS_TAGS_ROOT: {
@@ -1261,7 +1262,7 @@ const ROUTES = {
     },
     WORKSPACE_AVATAR: {
         route: 'workspaces/:policyID/avatar',
-        getRoute: (policyID: string) => `workspaces/${policyID}/avatar` as const,
+        getRoute: (policyID: string, fallbackLetter?: UpperCaseCharacters) => `workspaces/${policyID}/avatar${fallbackLetter ? `?letter=${fallbackLetter}` : ''}` as const,
     },
     WORKSPACE_JOIN_USER: {
         route: 'workspaces/:policyID/join',
