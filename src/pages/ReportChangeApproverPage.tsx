@@ -8,7 +8,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {changeReportApprover} from '@libs/actions/Report';
+import {assignCurrentUserAsApprover, changeReportApprover} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
@@ -40,9 +40,9 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
         if (!isPolicyAdmin(policy) || !policy || !session?.accountID) {
             return;
         }
-        changeReportApprover(reportID, policy.id, session.accountID);
+        assignCurrentUserAsApprover(report);
         Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-    }, [selectedApproverType, policy, reportID, session?.accountID]);
+    }, [selectedApproverType, reportPolicy, session?.accountID, report, reportID]);
 
     const sections = useMemo(() => {
         const data = [];

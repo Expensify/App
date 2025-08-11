@@ -725,6 +725,12 @@ type OptimisticIOUReport = Pick<
     | 'fieldList'
     | 'parentReportActionID'
 >;
+
+type OptimisticChangedApproverReportAction = Pick<
+    ReportAction,
+    'actionName' | 'actorAccountID' | 'avatar' | 'created' | 'message' | 'originalMessage' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction'
+>;
+
 type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>>;
 
 type CustomIcon = {
@@ -7553,6 +7559,32 @@ function buildOptimisticResolvedDuplicatesReportAction(): OptimisticDismissedVio
     };
 }
 
+function buildOptimisticChangeApproverReportAction(managerID: number): OptimisticChangedApproverReportAction {
+    return {
+        actionName: managerID === currentUserAccountID ? CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL : CONST.REPORT.ACTIONS.TYPE.ACTION_REROUTE,
+        actorAccountID: currentUserAccountID,
+        avatar: getCurrentUserAvatar(),
+        created: DateUtils.getDBTime(),
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                text: `changed the approver to ${getDisplayNameForParticipant({accountID: managerID})}`,
+                html: `changed the approver to <mention-user accountID="${managerID}"/>`,
+            },
+        ],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+            },
+        ],
+        shouldShow: false,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        reportActionID: rand64(),
+    };
+}
+
 function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[]): OptimisticAnnounceChat {
     const announceReport = getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -11385,6 +11417,7 @@ export {
     buildOptimisticDetachReceipt,
     buildParticipantsFromAccountIDs,
     buildReportNameFromParticipantNames,
+    buildOptimisticChangeApproverReportAction,
     buildTransactionThread,
     canAccessReport,
     isReportNotFound,
