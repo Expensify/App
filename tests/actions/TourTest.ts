@@ -47,7 +47,7 @@ describe('actions/Tour', () => {
                 expect(Navigation.navigate).toBeCalledWith(ROUTES.TEST_DRIVE_DEMO_ROOT);
             });
 
-            it('should show the Test Drive demo if user doesnt have the nudge flag but is member of a paid policy', async () => {
+            it("should show the Test Drive demo if user doesn't have the nudge flag but is member of a paid policy", async () => {
                 startTestDrive(undefined, false, false, true);
                 await waitForBatchedUpdates();
 
