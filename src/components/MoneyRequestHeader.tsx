@@ -12,6 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {deleteMoneyRequest, deleteTrackExpense, initSplitExpense} from '@libs/actions/IOU';
+import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportActions, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
@@ -290,12 +291,25 @@ function MoneyRequestHeader({report, parentReportAction, policy, backTo, onBackB
                     initSplitExpense(transaction);
                 },
             },
+            [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE]: {
+                text: translate('common.merge'),
+                icon: Expensicons.ArrowCollapse,
+                value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE,
+                onSelected: () => {
+                    if (!transaction) {
+                        return;
+                    }
+
+                    setupMergeTransactionData(transaction.transactionID, {targetTransactionID: transaction.transactionID});
+                    Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID, Navigation.getActiveRoute()));
+                },
+            },
             [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS]: {
                 value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
                 text: translate('iou.viewDetails'),
                 icon: Expensicons.Info,
                 onSelected: () => {
-                    navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute());
+                    navigateToDetailsPage(report, Navigation.getActiveRoute());
                 },
             },
             [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE]: {
@@ -327,7 +341,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, backTo, onBackB
                           }
                         : undefined
                 }
-                policy={policy}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter={!isReportInRHP}
                 shouldDisplayHelpButton={!isReportInRHP}

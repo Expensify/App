@@ -27,6 +27,7 @@ import useFilesValidation from '@hooks/useFilesValidation';
 import useIOUUtils from '@hooks/useIOUUtils';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -91,6 +92,7 @@ function IOURequestStepScan({
 }: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
     const {isLoaderVisible, setIsLoaderVisible} = useFullScreenLoader();
     const device = useCameraDevice('back', {
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
@@ -119,6 +121,7 @@ function IOURequestStepScan({
     const [shouldShowMultiScanEducationalPopup, setShouldShowMultiScanEducationalPopup] = useState(false);
     const [cameraKey, setCameraKey] = useState(0);
     const {shouldStartLocationPermissionFlow} = useIOUUtils();
+    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
 
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
@@ -341,11 +344,12 @@ function IOURequestStepScan({
                         },
                         shouldHandleNavigation: index === files.length - 1,
                         backToReport,
+                        shouldGenerateTransactionThreadReport,
                     });
                 }
             });
         },
-        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transactions],
+        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transactions, shouldGenerateTransactionThreadReport],
     );
 
     const navigateToConfirmationStep = useCallback(

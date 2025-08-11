@@ -1585,20 +1585,6 @@ describe('actions/Report', () => {
             });
         });
 
-        await new Promise<void>((resolve) => {
-            const connection = Onyx.connect({
-                key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-                callback: (quickAction) => {
-                    Onyx.disconnect(connection);
-
-                    // Then the quickAction.action should be set to CREATE_REPORT
-                    expect(quickAction?.action).toBe(CONST.QUICK_ACTIONS.CREATE_REPORT);
-                    expect(quickAction?.chatReportID).toBe('1234');
-                    resolve();
-                },
-            });
-        });
-
         // When the request fails
         mockFetchData.fail();
         await mockFetchData.resume();

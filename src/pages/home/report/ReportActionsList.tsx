@@ -115,8 +115,6 @@ type ReportActionsListProps = {
     shouldEnableAutoScrollToTopThreshold?: boolean;
 };
 
-const IS_CLOSE_TO_NEWEST_THRESHOLD = 15;
-
 // In the component we are subscribing to the arrival of new actions.
 // As there is the possibility that there are multiple instances of a ReportScreen
 // for the same report, we only ever want one subscription to be active, as
@@ -261,7 +259,7 @@ function ReportActionsList({
     /**
      * The reportActionID the unread marker should display above
      */
-    const unreadMarkerReportActionID = useMemo(() => {
+    const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = useMemo(() => {
         // If there are message that were received while offline,
         // we can skip checking all messages later than the earliest received offline message.
         const startIndex = earliestReceivedOfflineMessageIndex ?? 0;
@@ -286,12 +284,12 @@ function ReportActionsList({
                     prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
                 });
             if (shouldDisplayNewMarker) {
-                return reportAction.reportActionID;
+                return [reportAction.reportActionID, index];
             }
         }
 
-        return null;
-    }, [earliestReceivedOfflineMessageIndex, sortedVisibleReportActions, accountID, prevSortedVisibleReportActionsObjects, unreadMarkerTime]);
+        return [null, -1];
+    }, [accountID, sortedVisibleReportActions, accountID, earliestReceivedOfflineMessageIndex, prevSortedVisibleReportActionsObjects, sortedVisibleReportActions, unreadMarkerTime]);
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
     /**
@@ -344,15 +342,13 @@ function ReportActionsList({
 
     // Display the new message indicator when comment linking and not close to the newest message.
     const reportActionID = route?.params?.reportActionID;
-    const indexOfLinkedAction = reportActionID ? sortedVisibleReportActions.findIndex((action) => action.reportActionID === reportActionID) : -1;
-    const isLinkedActionCloseToNewest = indexOfLinkedAction < IS_CLOSE_TO_NEWEST_THRESHOLD;
 
-    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling} = useReportUnreadMessageScrollTracking({
+    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
         reportID: report.reportID,
         currentVerticalScrollingOffsetRef: scrollingVerticalOffset,
-        floatingMessageVisibleInitialValue: !isLinkedActionCloseToNewest,
         readActionSkippedRef: readActionSkipped,
-        hasUnreadMarkerReportAction: !!unreadMarkerReportActionID,
+        unreadMarkerReportActionIndex,
+        isInverted: true,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             // Calculate distance from bottom (where new messages appear)
             const nativeEvent = event.nativeEvent;
@@ -370,13 +366,6 @@ function ReportActionsList({
             reportScrollManager.scrollToBottom();
         }
     }, [parentReportAction, reportScrollManager]);
-
-    useEffect(() => {
-        if (isLinkedActionCloseToNewest) {
-            return;
-        }
-        setIsFloatingMessageCounterVisible(true);
-    }, [isLinkedActionCloseToNewest, route, setIsFloatingMessageCounterVisible]);
 
     useEffect(() => {
         if (
@@ -433,7 +422,8 @@ function ReportActionsList({
             return;
         }
 
-        const shouldScrollToEnd = (isExpenseReport(report) || isTransactionThread(parentReportAction)) && isSearchTopmostFullScreenRoute();
+        const shouldScrollToEnd =
+            (isExpenseReport(report) || isTransactionThread(parentReportAction)) && isSearchTopmostFullScreenRoute() && hasNewestReportAction && !unreadMarkerReportActionID;
 
         if (shouldScrollToEnd) {
             setShouldScrollToEndAfterLayout(true);
@@ -829,6 +819,7 @@ function ReportActionsList({
     return (
         <>
             <FloatingMessageCounter
+                hasNewMessages={!!unreadMarkerReportActionID}
                 isActive={isFloatingMessageCounterVisible}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
@@ -858,6 +849,7 @@ function ReportActionsList({
                     keyboardShouldPersistTaps="handled"
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
+                    onViewableItemsChanged={onViewableItemsChanged}
                     onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
                     key={listID}
