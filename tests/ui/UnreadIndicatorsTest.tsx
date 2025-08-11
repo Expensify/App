@@ -162,6 +162,9 @@ function signInAndGetAppWithUnreadChat(): Promise<void> {
                 lastActorAccountID: USER_B_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.CHAT,
             });
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${REPORT_ID}`, '-1');
+
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
                 [createdReportActionID]: createdReportAction,
                 1: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '1'),
