@@ -45,8 +45,8 @@ use(Pagination);
 use(SaveResponseInOnyx);
 
 // Initialize OptimisticReportNames context on module load
-initializeOptimisticReportNamesContext().catch((error) => {
-    Log.error('Failed to initialize OptimisticReportNames context', error);
+initializeOptimisticReportNamesContext().catch(() => {
+    Log.warn('Failed to initialize OptimisticReportNames context');
 });
 
 let requestIndex = 0;

@@ -100,10 +100,9 @@ function initialize(): Promise<void> {
  */
 function getUpdateContext(): UpdateContext {
     if (!isInitialized) {
-        console.log('morwa OptimisticReportNamesConnectionManager: getUpdateContext called before initialization');
         throw new Error('OptimisticReportNamesConnectionManager not initialized. Call initialize() first.');
     }
-    
+
     return {
         betas,
         allReports: allReports ?? {},
