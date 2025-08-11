@@ -1,7 +1,8 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import lodashDebounce from 'lodash/debounce';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import type {ForwardedRef} from 'react';
+import React, { useCallback, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -167,7 +168,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
                             debouncedSavePrivateNote(text);
                             setPrivateNote(text);
                         }}
-                        ref={(el: AnimatedTextInputRef) => {
+                        ref={((el: AnimatedTextInputRef) => {
                             if (!el) {
                                 return;
                             }
@@ -175,7 +176,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
                                 updateMultilineInputRange(el);
                             }
                             privateNotesInput.current = el;
-                        }}
+                        }) as ForwardedRef<AnimatedTextInputRef>}
                         type="markdown"
                     />
                 </OfflineWithFeedback>

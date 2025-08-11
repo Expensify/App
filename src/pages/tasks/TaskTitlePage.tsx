@@ -1,5 +1,6 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useRef} from 'react';
+import type {ForwardedRef} from 'react';
+import React, { useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
@@ -114,7 +115,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                                 label={translate('task.title')}
                                 accessibilityLabel={translate('task.title')}
                                 defaultValue={Parser.htmlToMarkdown(report?.reportName ?? '', {})}
-                                ref={(element: AnimatedTextInputRef) => {
+                                ref={((element: AnimatedTextInputRef) => {
                                     if (!element) {
                                         return;
                                     }
@@ -122,7 +123,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                                         updateMultilineInputRange(inputRef.current);
                                     }
                                     inputRef.current = element;
-                                }}
+                                }) as ForwardedRef<AnimatedTextInputRef>}
                                 autoGrowHeight
                                 maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                                 shouldSubmitForm={false}
