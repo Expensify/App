@@ -50,6 +50,10 @@ function UserListItem<TItem extends ListItem>({
         }
     }, [item, onCheckboxPress, onSelectRow]);
 
+    const isThereOnlyWorkspaceIcon = item.icons?.length === 1 && item.icons?.at(0)?.type === CONST.ICON_TYPE_WORKSPACE;
+    const shouldUseIconPolicyID = !item.reportID && !item.accountID && !item.policyID;
+    const policyID = isThereOnlyWorkspaceIcon && shouldUseIconPolicyID ? String(item.icons?.at(0)?.id) : item.policyID;
+
     return (
         <BaseListItem
             item={item}
@@ -99,7 +103,7 @@ function UserListItem<TItem extends ListItem>({
                             </View>
                         </PressableWithFeedback>
                     )}
-                    {(!!item.reportID || !!item.accountID || !!item.policyID) && (
+                    {(!!item.reportID || !!item.accountID || !!policyID) && (
                         <ReportActionAvatars
                             subscriptAvatarBorderColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                             shouldShowTooltip={showTooltip}
@@ -110,7 +114,7 @@ function UserListItem<TItem extends ListItem>({
                             ]}
                             reportID={item.reportID}
                             accountIDs={[Number(item.accountID)]}
-                            policyID={!item.reportID && !item.accountID ? item.policyID : undefined}
+                            policyID={!item.reportID && !item.accountID ? policyID : undefined}
                             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
                             fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
                         />
