@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, { useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 import FormProvider from '@components/Form/FormProvider';
@@ -231,15 +231,17 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                             onChangeText={(text: string) => {
                                 setWelcomeNote(text);
                             }}
-                            ref={((element: AnimatedTextInputRef) => {
-                                if (!element) {
-                                    return;
-                                }
-                                if (!inputRef.current) {
-                                    updateMultilineInputRange(element);
-                                }
-                                inputCallbackRef(element);
-                            }) as ForwardedRef<AnimatedTextInputRef>}
+                            ref={
+                                ((element: AnimatedTextInputRef) => {
+                                    if (!element) {
+                                        return;
+                                    }
+                                    if (!inputRef.current) {
+                                        updateMultilineInputRange(element);
+                                    }
+                                    inputCallbackRef(element);
+                                }) as ForwardedRef<AnimatedTextInputRef>
+                            }
                             shouldSaveDraft
                         />
                     </View>
