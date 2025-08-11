@@ -218,6 +218,8 @@ function SearchPage({route}: SearchPageProps) {
                             // Custom IS templates are not policy specific, so we don't need to pass a policyID
                             beginExportWithTemplate(template.name, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
                         },
+                        shouldCloseModalOnSelect: true,
+                        shouldCallAfterModalHide: true,
                     });
                 }
             }
@@ -248,6 +250,8 @@ function SearchPage({route}: SearchPageProps) {
                         onSelected: () => {
                             beginExportWithTemplate(template.templateName, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, policyID);
                         },
+                        shouldCloseModalOnSelect: true,
+                        shouldCallAfterModalHide: true,
                     });
                 }
             }
@@ -267,6 +271,8 @@ function SearchPage({route}: SearchPageProps) {
                             // Account level in-app export templates are not policy specific, so we don't need to pass a policyID
                             beginExportWithTemplate(template.templateName, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, undefined);
                         },
+                        shouldCloseModalOnSelect: true,
+                        shouldCallAfterModalHide: true,
                     });
                 }
             }
