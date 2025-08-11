@@ -71,8 +71,6 @@ function prepareRequest<TCommand extends ApiCommand>(
 ): OnyxRequest {
     Log.info('[API] Preparing request', false, {command, type});
 
-    console.log('morwa {command, type}', {command, type});
-
     let shouldApplyOptimisticData = true;
     if (conflictResolver?.checkAndFixConflictingRequest) {
         const requests = getAll();
