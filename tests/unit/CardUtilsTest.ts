@@ -1,3 +1,4 @@
+import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection} from 'react-native-onyx';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import type * as Illustrations from '@src/components/Icon/Illustrations';
@@ -9,6 +10,7 @@ import {
     flatAllCardsList,
     formatCardExpiration,
     getAllCardsForWorkspace,
+    getAssignedCardSortKey,
     getBankCardDetailsImage,
     getBankName,
     getCardDescription,
@@ -1198,6 +1200,29 @@ describe('CardUtils', () => {
         it('should return the correct description for an Expensify card', () => {
             const description = getCompanyCardDescription('Test', 21570657, cardList);
             expect(description).toBe('Test');
+        });
+    });
+
+    describe('Expensify card sort comparator', () => {
+        it('should not change the order of non-Expensify cards', () => {
+            const cardList = {
+                10: {cardID: 10, bank: 'chase'}, // non-Expensify
+                11: {cardID: 11, bank: 'chase'}, // non-Expensify
+            } as unknown as CardList;
+
+            const sorted = lodashSortBy(Object.values(cardList), getAssignedCardSortKey);
+            expect(sorted.map((r: Card) => r.cardID)).toEqual([10, 11]);
+        });
+
+        it('places physical Expensify card before its virtual sibling', () => {
+            const cardList = {
+                10: {cardID: 10, bank: CONST.EXPENSIFY_CARD.BANK, nameValuePairs: {isVirtual: true}}, // Expensify virtual
+                11: {cardID: 11, bank: CONST.EXPENSIFY_CARD.BANK}, // Expensify physical
+                99: {cardID: 99, bank: 'chase'}, // non-Expensify
+            } as unknown as CardList;
+
+            const sorted = lodashSortBy(Object.values(cardList), getAssignedCardSortKey);
+            expect(sorted.map((r: Card) => r.cardID)).toEqual([11, 10, 99]);
         });
     });
 });
