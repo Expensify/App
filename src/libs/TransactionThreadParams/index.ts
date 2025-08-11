@@ -1,3 +1,4 @@
+import Log from '@libs/Log';
 import CONST from '@src/CONST';
 
 type TransactionThreadParams = {
@@ -12,7 +13,7 @@ function setParams(params: TransactionThreadParams): void {
     try {
         sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.TRANSACTION_THREAD_PARAMS, JSON.stringify(params));
     } catch (error) {
-        console.warn('Failed to set transaction thread params in sessionStorage:', error);
+        Log.warn('Failed to set transaction thread params in sessionStorage:');
     }
 }
 
@@ -28,7 +29,7 @@ function getParams(): TransactionThreadParams {
         return JSON.parse(storedParams) as TransactionThreadParams;
     } catch (error) {
         // Return empty object if parsing fails or sessionStorage is not available
-        console.warn('Failed to get transaction thread params from sessionStorage:', error);
+        Log.warn('Failed to get transaction thread params from sessionStorage:');
         return {};
     }
 }
