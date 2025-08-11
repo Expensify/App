@@ -43,8 +43,8 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     getCombinedReportActions,
     getFilteredReportActionsForReportView,
+    getLinkedTransactionID,
     getOneTransactionThreadReportID,
-    getOriginalMessage,
     isCreatedAction,
     isDeletedParentAction,
     isMoneyRequestAction,
@@ -372,9 +372,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     if (isTransactionThreadView) {
         // Extract transaction ID from parent report action to get specific violations
-        const transactionID = isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
-        const transactionViolations =
-            transactionID && allReportViolations ? ((allReportViolations as Record<string, unknown>)[transactionID] as OnyxTypes.TransactionViolation[] | undefined) : undefined;
+        const transactionID = getLinkedTransactionID(parentReportAction);
+        const transactionViolations = transactionID && allReportViolations ? (allReportViolations as Record<string, OnyxTypes.TransactionViolations>)[transactionID] : undefined;
 
         headerView = (
             <MoneyRequestHeader
