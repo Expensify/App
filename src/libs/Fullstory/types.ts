@@ -39,7 +39,7 @@ type Fullstory = {
     init: (userMetadata: OnyxEntry<UserMetadata>) => void;
 
     /**
-     * Executes a function when the Fulltory library is ready, either by initialization or by observing the start event.
+     * Executes a function when the Fullstory library is ready, either by initialization or by observing the start event.
      */
     onReady: () => Promise<unknown>;
 
