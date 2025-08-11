@@ -38,7 +38,7 @@ type AssigneeStepProps = {
 };
 
 function AssigneeStep({policy, feed}: AssigneeStepProps) {
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
@@ -137,10 +137,10 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             });
         });
 
-        membersList = sortAlphabetically(membersList, 'text');
+        membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList, selectedMember, formatPhoneNumber]);
+    }, [isOffline, policy?.employeeList, selectedMember, formatPhoneNumber, localeCompare]);
 
     const sections = useMemo(() => {
         if (!debouncedSearchTerm) {

@@ -19,9 +19,9 @@ import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -129,6 +129,8 @@ function IOURequestStepConfirmation({
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${draftPolicyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${realPolicyID}`, {canBeMissing: true});
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${realPolicyID}`, {canBeMissing: true});
 
     /*
      * We want to use a report from the transaction if it exists
@@ -136,7 +138,7 @@ function IOURequestStepConfirmation({
      */
     const transactionReport = getReportOrDraftReport(transaction?.reportID);
     const shouldUseTransactionReport =
-        transactionReport && !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id);
+        transactionReport && !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id, undefined, false);
     const report = shouldUseTransactionReport ? transactionReport : (reportReal ?? reportDraft);
     const policy = policyReal ?? policyDraft;
     const isDraftPolicy = policy === policyDraft;
@@ -145,7 +147,7 @@ function IOURequestStepConfirmation({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
+    const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [selectedParticipantList, setSelectedParticipantList] = useState<Participant[]>([]);
@@ -188,10 +190,6 @@ function IOURequestStepConfirmation({
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false);
 
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: false});
-    const viewTourReportID = introSelected?.viewTour;
-    const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
-
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
             return translate('iou.categorize');
@@ -211,11 +209,12 @@ function IOURequestStepConfirmation({
                 if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                     return participant;
                 }
-                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant);
+                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
             }) ?? [],
-        [transaction?.participants, personalDetails, iouType],
+        [transaction?.participants, iouType, personalDetails, reportAttributesDerived],
     );
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
+    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const formHasBeenSubmitted = useRef(false);
 
     useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
@@ -367,16 +366,12 @@ function IOURequestStepConfirmation({
         backTo,
     ]);
 
-    const navigateToAddReceipt = useCallback(() => {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(action, iouType, initialTransactionID, reportID, Navigation.getActiveRouteWithoutParams()));
-    }, [iouType, initialTransactionID, reportID, action]);
-
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
     useEffect(() => {
-        let newReceiptFiles = {};
+        let newReceiptFiles: Record<string, Receipt> = {};
         let isScanFilesCanBeRead = true;
 
         Promise.all(
@@ -387,7 +382,9 @@ function IOURequestStepConfirmation({
                 const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
 
                 if (!isLocalFile) {
-                    newReceiptFiles = {...newReceiptFiles, [item.transactionID]: item.receipt};
+                    if (item.receipt) {
+                        newReceiptFiles = {...newReceiptFiles, [item.transactionID]: item.receipt};
+                    }
                     return;
                 }
 
@@ -450,7 +447,7 @@ function IOURequestStepConfirmation({
                 const isTestDriveReceipt = receipt?.isTestDriveReceipt ?? false;
 
                 if (isTestDriveReceipt) {
-                    completeTestDriveTask(viewTourReport, viewTourReportID);
+                    completeTestDriveTask();
                 }
 
                 requestMoneyIOUActions({
@@ -494,6 +491,7 @@ function IOURequestStepConfirmation({
                         source: item.comment?.source,
                     },
                     shouldHandleNavigation: index === transactions.length - 1,
+                    shouldGenerateTransactionThreadReport,
                     backToReport,
                 });
             });
@@ -512,8 +510,7 @@ function IOURequestStepConfirmation({
             transactionTaxAmount,
             customUnitRateID,
             backToReport,
-            viewTourReport,
-            viewTourReportID,
+            shouldGenerateTransactionThreadReport,
         ],
     );
 
@@ -539,6 +536,9 @@ function IOURequestStepConfirmation({
                     policyTagList: policyTags,
                     policyCategories,
                 },
+                recentlyUsedParams: {
+                    destinations: recentlyUsedDestinations,
+                },
                 transactionParams: {
                     currency: transaction.currency,
                     created: transaction.created,
@@ -551,7 +551,7 @@ function IOURequestStepConfirmation({
                 },
             });
         },
-        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories],
+        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories, recentlyUsedDestinations],
     );
 
     const trackExpense = useCallback(
@@ -974,7 +974,7 @@ function IOURequestStepConfirmation({
         const file = e?.dataTransfer?.files[0];
         if (file) {
             file.uri = URL.createObjectURL(file);
-            validateFiles([file]);
+            validateFiles([file], Array.from(e.dataTransfer?.items));
         }
     };
 
@@ -1009,9 +1009,6 @@ function IOURequestStepConfirmation({
         showPreviousTransaction();
     };
 
-    const shouldShowThreeDotsButton =
-        requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isMovingTransactionFromTrackExpense;
-
     const shouldShowSmartScanFields =
         !!transaction?.receipt?.isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
 
@@ -1021,24 +1018,12 @@ function IOURequestStepConfirmation({
             testID={IOURequestStepConfirmation.displayName}
             headerGapStyles={isDraggingOver ? [styles.dropWrapper] : []}
         >
-            <DragAndDropProvider
-                setIsDraggingOver={setIsDraggingOver}
-                isDisabled={!shouldShowThreeDotsButton}
-            >
+            <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}
                         subtitle={hasMultipleTransactions ? `${currentTransactionIndex + 1} ${translate('common.of')} ${transactions.length}` : undefined}
                         onBackButtonPress={navigateBack}
-                        shouldShowThreeDotsButton={shouldShowThreeDotsButton}
-                        threeDotsAnchorPosition={threeDotsAnchorPosition}
-                        threeDotsMenuItems={[
-                            {
-                                icon: Expensicons.Receipt,
-                                text: translate('receipt.addReceipt'),
-                                onSelected: navigateToAddReceipt,
-                            },
-                        ]}
                         shouldDisplayHelpButton={!hasMultipleTransactions}
                     >
                         {hasMultipleTransactions ? (

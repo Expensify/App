@@ -15,7 +15,7 @@ type AppStateTrackerModule = {
 };
 
 type RNTextInputResetModule = {
-    resetKeyboardInput: (nodeHandle: number | null) => void;
+    resetKeyboardInput: (nativeId: string) => void;
 };
 
 type RNNavBarManagerModule = {

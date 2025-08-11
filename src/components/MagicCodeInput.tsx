@@ -1,6 +1,6 @@
 import type {ForwardedRef, KeyboardEvent} from 'react';
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
+import type {NativeSyntheticEvent, TextInput as RNTextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
@@ -16,6 +16,44 @@ import TextInput from './TextInput';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
 const TEXT_INPUT_EMPTY_STATE = '';
+
+/**
+ * Trims whitespace from pasted magic codes
+ */
+const useMagicCodePaste = (inputRef: React.RefObject<BaseTextInputRef | null>, onChangeText: (value: string) => void) => {
+    useEffect(() => {
+        if (typeof document === 'undefined') {
+            return;
+        }
+
+        const handlePaste = (event: ClipboardEvent) => {
+            if (!inputRef.current) {
+                return;
+            }
+
+            const isFocused = (inputRef.current as RNTextInput)?.isFocused?.() ?? false;
+            if (!isFocused) {
+                return;
+            }
+
+            event.preventDefault();
+
+            const plainText = event.clipboardData?.getData('text/plain');
+            if (plainText) {
+                const trimmedText = plainText.trim();
+                if (trimmedText && isNumeric(trimmedText)) {
+                    onChangeText(trimmedText);
+                }
+            }
+        };
+
+        document.addEventListener('paste', handlePaste, true);
+
+        return () => {
+            document.removeEventListener('paste', handlePaste, true);
+        };
+    }, [inputRef, onChangeText]);
+};
 
 type AutoCompleteVariant = 'sms-otp' | 'one-time-code' | 'off';
 
@@ -113,7 +151,7 @@ function MagicCodeInput(
     const StyleUtils = useStyleUtils();
     const inputRef = useRef<BaseTextInputRef | null>(null);
     const [input, setInput] = useState(TEXT_INPUT_EMPTY_STATE);
-    const [focusedIndex, setFocusedIndex] = useState<number | undefined>(0);
+    const [focusedIndex, setFocusedIndex] = useState<number | undefined>(autoFocus ? 0 : undefined);
     const editIndex = useRef(0);
     const [wasSubmitted, setWasSubmitted] = useState(false);
     const shouldFocusLast = useRef(false);
@@ -121,6 +159,8 @@ function MagicCodeInput(
     const lastFocusedIndex = useRef(0);
     const lastValue = useRef<string | number>(TEXT_INPUT_EMPTY_STATE);
     const valueRef = useRef(value);
+
+    useMagicCodePaste(inputRef, onChangeTextProp);
 
     useEffect(() => {
         lastValue.current = input.length;
@@ -132,6 +172,14 @@ function MagicCodeInput(
         // to not have outdated values.
         valueRef.current = value;
     }, [value]);
+
+    useEffect(() => {
+        // Reset wasSubmitted when code becomes incomplete to allow retry attempts and fix issue where wasSubmitted didn't update on Android
+        if (value.length >= maxLength) {
+            return;
+        }
+        setWasSubmitted(false);
+    }, [value, maxLength]);
 
     const blurMagicCodeInput = () => {
         inputRef.current?.blur();
@@ -157,6 +205,7 @@ function MagicCodeInput(
         },
         focusLastSelected() {
             inputRef.current?.focus();
+            setFocusedIndex(lastFocusedIndex.current);
         },
         resetFocus() {
             setInput(TEXT_INPUT_EMPTY_STATE);

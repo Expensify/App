@@ -7,6 +7,7 @@ import TestReceipt from '@assets/images/fake-test-drive-employee-receipt.jpg';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
+import useOnyx from '@hooks/useOnyx';
 import {
     initMoneyRequest,
     setMoneyRequestAmount,
@@ -18,18 +19,23 @@ import {
 } from '@libs/actions/IOU';
 import {verifyTestDriveRecipient} from '@libs/actions/Onboarding';
 import setTestReceipt from '@libs/actions/setTestReceipt';
+import type AccountExistsError from '@libs/Errors/AccountExistsError';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TestDriveModalNavigatorParamList} from '@libs/Navigation/types';
 import {generateReportID} from '@libs/ReportUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import BaseTestDriveModal from './BaseTestDriveModal';
 
 function EmployeeTestDriveModal() {
     const {translate} = useLocalize();
+    const reportID = generateReportID();
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const route = useRoute<PlatformStackRouteProp<TestDriveModalNavigatorParamList, typeof SCREENS.TEST_DRIVE_MODAL.ROOT>>();
     const [bossEmail, setBossEmail] = useState(route.params?.bossEmail ?? '');
     const [formError, setFormError] = useState<string | undefined>();
@@ -57,11 +63,13 @@ function EmployeeTestDriveModal() {
                     'jpg',
                     (source, _, filename) => {
                         const transactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-                        const reportID = generateReportID();
+
                         initMoneyRequest({
                             reportID,
                             isFromGlobalCreate: false,
                             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                            report,
+                            parentReport,
                         });
 
                         setMoneyRequestReceipt(transactionID, source, filename, true, CONST.TEST_RECEIPT.FILE_TYPE, false, true);
@@ -86,13 +94,13 @@ function EmployeeTestDriveModal() {
                     },
                     () => {
                         setIsLoading(false);
-                        setFormError(translate('testDrive.modal.employee.error'));
+                        setFormError(translate('common.genericErrorMessage'));
                     },
                 );
             })
-            .catch(() => {
+            .catch((e: AccountExistsError) => {
                 setIsLoading(false);
-                setFormError(translate('testDrive.modal.employee.error'));
+                setFormError(e.translationKey ? translate(e.translationKey) : 'common.genericErrorMessage');
             });
     };
 

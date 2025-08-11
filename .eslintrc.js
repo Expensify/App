@@ -237,6 +237,7 @@ module.exports = {
         'react-native-a11y/has-accessibility-hint': ['off'],
         'react/require-default-props': 'off',
         'react/prop-types': 'off',
+        'react/jsx-key': 'error',
         'react/jsx-no-constructed-context-values': 'error',
         'react-native-a11y/has-valid-accessibility-descriptors': [
             'error',
