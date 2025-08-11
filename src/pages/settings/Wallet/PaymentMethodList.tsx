@@ -33,7 +33,6 @@ import type {AccountData, BankAccount, BankAccountList, Card, CardList, CompanyC
 import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
-import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -77,9 +76,6 @@ type PaymentMethodListProps = {
     /** List item style */
     listItemStyle?: StyleProp<ViewStyle>;
 
-    /** Type to filter the payment Method list */
-    filterType?: FilterMethodPaymentType;
-
     /** Whether the add bank account button should be shown on the list */
     shouldShowAddBankAccount?: boolean;
 
@@ -100,6 +96,9 @@ type PaymentMethodListProps = {
 
     /** Whether the bank accounts should be displayed in private and business sections */
     shouldShowBankAccountSections?: boolean;
+
+    /** Function to be called when the user presses the add bank account button */
+    onAddBankAccountPress?: () => void;
 };
 
 type PaymentMethodItem = PaymentMethod & {
@@ -173,7 +172,6 @@ function PaymentMethodList({
     actionPaymentMethodType = '',
     activePaymentMethodID = '',
     buttonRef = () => {},
-    filterType = '',
     listHeaderComponent,
     onPress,
     shouldShowSelectedState = false,
@@ -187,6 +185,7 @@ function PaymentMethodList({
     shouldShowRightIcon = true,
     invoiceTransferBankAccountID,
     shouldShowBankAccountSections = false,
+    onAddBankAccountPress = () => {},
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -313,10 +312,6 @@ function PaymentMethodList({
         const filteredCardList = {};
         let combinedPaymentMethods = formatPaymentMethods(isLoadingBankAccountList ? {} : (bankAccountList ?? {}), filteredCardList, styles);
 
-        if (filterType !== '') {
-            combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => paymentMethod.accountType === filterType);
-        }
-
         if (!isOffline) {
             combinedPaymentMethods = combinedPaymentMethods.filter(
                 (paymentMethod) => paymentMethod.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(paymentMethod.errors),
@@ -355,7 +350,6 @@ function PaymentMethodList({
         shouldShowAssignedCards,
         bankAccountList,
         styles,
-        filterType,
         isOffline,
         cardList,
         actionPaymentMethodType,
@@ -374,8 +368,8 @@ function PaymentMethodList({
             Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route));
             return;
         }
-        onPress();
-    }, [isUserValidated, onPress]);
+        onAddBankAccountPress();
+    }, [isUserValidated, onAddBankAccountPress]);
 
     const renderListFooterComponent = useCallback(
         () =>
@@ -386,7 +380,7 @@ function PaymentMethodList({
                     text={translate('bankAccount.addBankAccount')}
                     large
                     success
-                    onPress={onPress}
+                    onPress={onAddBankAccountPress}
                 />
             ) : (
                 <MenuItem
@@ -398,7 +392,7 @@ function PaymentMethodList({
                 />
             ),
 
-        [shouldShowAddBankAccountButton, onPressItem, translate, onPress, buttonRef, styles.paymentMethod, listItemStyle],
+        [shouldShowAddBankAccountButton, onPressItem, translate, onPress, buttonRef, styles.paymentMethod, listItemStyle, onAddBankAccountPress],
     );
 
     const itemsToRender = useMemo(() => {

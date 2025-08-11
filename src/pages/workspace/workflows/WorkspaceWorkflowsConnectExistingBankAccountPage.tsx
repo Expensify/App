@@ -31,6 +31,10 @@ function WorkspaceWorkflowsConnectExistingBankAccountPage({route}: WorkspaceWork
         navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
     };
 
+    const handleItemPress = () => {
+
+    }
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -44,9 +48,8 @@ function WorkspaceWorkflowsConnectExistingBankAccountPage({route}: WorkspaceWork
             <ScrollView style={[styles.w100, shouldUseNarrowLayout ? [styles.pt3, styles.ph5, styles.pb5] : [styles.pt5, styles.ph8, styles.pb8]]}>
                 <Text>{translate('workspace.bankAccount.chooseAnExisting')}</Text>
                 <PaymentMethodList
-                    onPress={handleAddBankAccountPress}
-                    actionPaymentMethodType=""
-                    activePaymentMethodID=""
+                    onPress={handleItemPress}
+                    onAddBankAccountPress={handleAddBankAccountPress}
                     style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                 />
