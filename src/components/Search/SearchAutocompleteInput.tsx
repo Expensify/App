@@ -1,10 +1,11 @@
 /* eslint-disable rulesdir/no-acc-spread-in-reduce */
 import type {ForwardedRef, RefObject} from 'react';
-import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo} from 'react';
+import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useRef} from 'react';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import FormHelpMessage from '@components/FormHelpMessage';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -94,12 +95,13 @@ function SearchAutocompleteInput(
         selection,
         substitutionMap,
     }: SearchAutocompleteInputProps,
-    ref: ForwardedRef<BaseTextInputRef>,
+    forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const textInput = useRef<BaseTextInputRef | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
@@ -208,7 +210,6 @@ function SearchAutocompleteInput(
                         onChangeText={onSearchQueryChange}
                         autoFocus={autoFocus}
                         caretHidden={caretHidden}
-                        loadingSpinnerStyle={[styles.mt0, styles.mr0, styles.justifyContentCenter]}
                         role={CONST.ROLE.PRESENTATION}
                         placeholder={translate('search.searchPlaceholder')}
                         autoCapitalize="none"
@@ -231,17 +232,25 @@ function SearchAutocompleteInput(
                         onBlur={() => {
                             autocompleteListRef?.current?.updateExternalTextInputFocus(false);
                             focusedSharedValue.set(false);
+
                             onBlur?.();
                         }}
-                        isLoading={isSearchingForReports}
-                        ref={ref}
+                        ref={(ref: BaseTextInputRef) => {
+                            if (typeof forwardedRef === 'function') {
+                                forwardedRef(ref);
+                            } else if (forwardedRef && 'current' in forwardedRef) {
+                                // eslint-disable-next-line no-param-reassign
+                                forwardedRef.current = ref;
+                            }
+                            textInput.current = ref;
+                        }}
                         type="markdown"
                         multiline={false}
                         parser={parser}
                         selection={selection}
                     />
                 </View>
-                {!!value && (
+                {value && !isSearchingForReports ? (
                     <Animated.View
                         style={styles.pr3}
                         layout={SearchFiltersButtonTransition}
@@ -251,6 +260,20 @@ function SearchAutocompleteInput(
                             style={styles.mt0}
                         />
                     </Animated.View>
+                ) : (
+                    <PressableWithoutFeedback
+                        accessibilityRole={CONST.ROLE.BUTTON}
+                        accessibilityLabel={CONST.ROLE.BUTTON}
+                        style={[styles.pr3, !isSearchingForReports && [styles.opacity0, styles.cursorText], styles.justifyContentCenter, styles.alignSelfStretch, styles.cursorAuto]}
+                        onPress={() => {
+                            textInput?.current?.focus();
+                        }}
+                    >
+                        <ActivityIndicator
+                            size="small"
+                            color={theme.iconSuccessFill}
+                        />
+                    </PressableWithoutFeedback>
                 )}
             </Animated.View>
             <FormHelpMessage
