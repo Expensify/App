@@ -45,7 +45,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     groupBy,
-    shouldAnimateInHighlight,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
@@ -68,7 +67,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
-        shouldHighlight: shouldAnimateInHighlight ?? false,
+        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
     });
