@@ -94,6 +94,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                         wrapperStyle: [styles.sectionMenuItemTopDescription],
                         shouldShowRightComponent: true,
                         title: integrationData?.title,
+                        titleContainerStyle: [styles.pr2],
                         description: integrationData?.description,
                         rightComponent: (
                             <Button
@@ -110,7 +111,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         }
 
         return [];
-    }, [isOffline, policyID, receiptPartnerIntegrations, startIntegrationFlow, styles.justifyContentCenter, styles.sectionMenuItemTopDescription, translate]);
+    }, [isOffline, policyID, receiptPartnerIntegrations, startIntegrationFlow, styles.justifyContentCenter, styles.pr2, styles.sectionMenuItemTopDescription, translate]);
 
     return (
         <AccessOrNotFoundWrapper
