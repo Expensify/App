@@ -82,7 +82,7 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
         });
 
         Navigation.goBack();
-    }, [currentReceipt, receipts]);
+    }, [currentReceipt, receipts, secondTransactionID, transaction, transactionDraft]);
 
     const handleCloseConfirmModal = () => {
         setIsDeleteReceiptConfirmModalVisible(false);
