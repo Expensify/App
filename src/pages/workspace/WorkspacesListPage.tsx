@@ -173,7 +173,6 @@ function WorkspacesListPage() {
      */
     const getMenuItem = useCallback(
         ({item, index}: GetMenuItem) => {
-            const isAdmin = isPolicyAdmin(item as unknown as PolicyType, session?.email);
             const isOwner = item.ownerAccountID === session?.accountID;
             const isDefault = activePolicyID === item.policyID;
             const threeDotsMenuItems: PopoverMenuItem[] = [
@@ -216,7 +215,7 @@ function WorkspacesListPage() {
                 });
             }
 
-            if (!(isAdmin || isOwner)) {
+            if (!isOwner) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Exit,
                     text: translate('common.leave'),
@@ -280,7 +279,6 @@ function WorkspacesListPage() {
             translate,
             styles.offlineFeedback.deleted,
             session?.accountID,
-            session?.email,
             activePolicyID,
             isSupportalAction,
             setIsDeletingPaidWorkspace,
