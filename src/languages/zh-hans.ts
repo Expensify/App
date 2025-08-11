@@ -290,6 +290,7 @@ import type {
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
     WorkspacesListRouteParams,
+    WorkspaceUpgradeNoteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -5353,11 +5354,8 @@ const translations = {
                 perActiveMember: '每位活跃成员每月。',
                 perMember: '每位成员每月。',
             },
-            note: {
-                upgradeWorkspace: '升级您的工作区以访问此功能，或',
-                learnMore: '了解更多',
-                aboutOurPlans: '关于我们的计划和定价。',
-            },
+            note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+                `<muted-text>升级您的工作区即可使用该功能，或<a href="${subscriptionLink}">进一步了解</a>我们的计划和定价。</muted-text>`,
             upgradeToUnlock: '解锁此功能',
             completed: {
                 headline: `您的工作区已升级！`,

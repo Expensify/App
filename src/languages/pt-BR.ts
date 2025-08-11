@@ -290,6 +290,7 @@ import type {
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
     WorkspacesListRouteParams,
+    WorkspaceUpgradeNoteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -5446,11 +5447,8 @@ const translations = {
                 perActiveMember: 'por membro ativo por mês.',
                 perMember: 'por membro por mês.',
             },
-            note: {
-                upgradeWorkspace: 'Atualize seu espaço de trabalho para acessar este recurso, ou',
-                learnMore: 'saiba mais',
-                aboutOurPlans: 'sobre nossos planos e preços.',
-            },
+            note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+                `<muted-text>Atualize seu espaço de trabalho para acessar esse recurso ou <a href="${subscriptionLink}">saiba mais</a> sobre nossos planos e preços.</muted-text>`,
             upgradeToUnlock: 'Desbloquear este recurso',
             completed: {
                 headline: `Você atualizou seu espaço de trabalho!`,
