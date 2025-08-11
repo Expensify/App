@@ -133,7 +133,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 requiresUpdate: true,
             },
         ];
-    }, [translate]);
+    }, [translate, userReportedIntegration]);
 
     const [selectedFeatures, setSelectedFeatures] = useState<string[]>(() => features.filter((feature) => feature.enabledByDefault).map((feature) => feature.id));
 
