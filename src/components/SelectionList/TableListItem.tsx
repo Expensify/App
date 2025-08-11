@@ -28,7 +28,6 @@ function TableListItem<TItem extends ListItem>({
     shouldSyncFocus,
     titleContainerStyles,
     shouldUseDefaultRightHandSideCheckmark,
-    shouldAnimateInHighlight,
 }: TableListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -36,7 +35,7 @@ function TableListItem<TItem extends ListItem>({
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: styles.selectionListPressableItemWrapper.borderRadius,
-        shouldHighlight: !!shouldAnimateInHighlight,
+        shouldHighlight: !!item.shouldAnimateInHighlight,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
     });
@@ -60,7 +59,7 @@ function TableListItem<TItem extends ListItem>({
                     styles.selectionListPressableItemWrapper,
                     styles.mh0,
                     // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
-                    shouldAnimateInHighlight ? styles.bgTransparent : undefined,
+                    item.shouldAnimateInHighlight ? styles.bgTransparent : undefined,
                     item.isSelected && styles.activeComponentBG,
                     item.cursorStyle,
                 ],

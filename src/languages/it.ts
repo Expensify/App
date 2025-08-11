@@ -531,6 +531,7 @@ const translations = {
         pm: 'PM',
         tbd: 'TBD',
         selectCurrency: 'Seleziona una valuta',
+        selectSymbolOrCurrency: 'Seleziona un simbolo o una valuta',
         card: 'Carta',
         whyDoWeAskForThis: 'Perché lo chiediamo?',
         required: 'Richiesto',
@@ -633,6 +634,7 @@ const translations = {
         getTheApp: "Scarica l'app",
         scanReceiptsOnTheGo: 'Scansiona le ricevute dal tuo telefono',
         headsUp: 'Attenzione!',
+        merge: 'Unisci',
         unstableInternetConnection: 'Connessione Internet instabile. Controlla la tua rete e riprova.',
     },
     supportalNoAccess: {
@@ -1352,6 +1354,31 @@ const translations = {
         rates: 'Tariffe',
         submitsTo: ({name}: SubmitsToParams) => `Invia a ${name}`,
         moveExpenses: () => ({one: 'Sposta spesa', other: 'Sposta spese'}),
+    },
+    transactionMerge: {
+        listPage: {
+            header: 'Unisci spese',
+            noEligibleExpenseFound: 'Nessuna spesa idonea trovata',
+            noEligibleExpenseFoundSubtitle: `Non hai spese che possono essere unite a questa. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Scopri di più</a> sulle spese idonee.`,
+            selectTransactionToMerge: ({reportName}: {reportName: string}) =>
+                `Seleziona una <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">spesa idonea</a> da unire <strong>${reportName}</strong>.`,
+        },
+        receiptPage: {
+            header: 'Seleziona ricevuta',
+            pageTitle: 'Seleziona la ricevuta da conservare:',
+        },
+        detailsPage: {
+            header: 'Seleziona dettagli',
+            pageTitle: 'Seleziona i dettagli da conservare:',
+            noDifferences: 'Nessuna differenza trovata tra le transazioni',
+            pleaseSelectError: ({field}: {field: string}) => `Seleziona un/a ${field}`,
+            selectAllDetailsError: 'Seleziona tutti i dettagli prima di continuare.',
+        },
+        confirmationPage: {
+            header: 'Conferma i dettagli',
+            pageTitle: 'Conferma i dettagli che vuoi conservare. Quelli non mantenuti saranno eliminati.',
+            confirmButton: 'Unisci spese',
+        },
     },
     share: {
         shareToExpensify: 'Condividi su Expensify',
@@ -3404,6 +3431,7 @@ const translations = {
             travel: 'Viaggio',
             members: 'Membri',
             accounting: 'Contabilità',
+            receiptPartners: 'Partner ricevute',
             rules: 'Regole',
             displayedAs: 'Visualizzato come',
             plan: 'Piano',
@@ -4618,11 +4646,20 @@ const translations = {
                 title: 'Contabilità',
                 subtitle: 'Sincronizza il tuo piano dei conti e altro ancora.',
             },
+            receiptPartners: {
+                title: 'Partner ricevute',
+                subtitle: 'Importa automaticamente le ricevute.',
+            },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Non così in fretta...',
                 featureEnabledText: 'Per abilitare o disabilitare questa funzione, dovrai modificare le impostazioni di importazione contabile.',
                 disconnectText: 'Per disabilitare la contabilità, dovrai disconnettere la tua connessione contabile dal tuo spazio di lavoro.',
                 manageSettings: 'Gestisci impostazioni',
+            },
+            receiptPartnersWarningModal: {
+                featureEnabledTitle: 'Disconnetti Uber',
+                disconnectText: "Per disabilitare questa funzionalità, disconnetti prima l'integrazione Uber for Business.",
+                confirmText: 'Capito',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Non così in fretta...',
@@ -4634,6 +4671,20 @@ const translations = {
                 title: 'Regole',
                 subtitle: 'Richiedi ricevute, segnala spese elevate e altro ancora.',
             },
+        },
+        reports: {
+            reportsCustomTitleExamples: 'Esempi:',
+            customReportNamesSubtitle: 'Personalizza i titoli dei report utilizzando il nostro',
+            customNameTitle: 'Titolo predefinito del report',
+            customNameDescription: 'Scegli un nome personalizzato per i report di spesa utilizzando il nostro',
+            customNameDescriptionLink: 'formule estese',
+            customNameInputLabel: 'Nome',
+            customNameEmailPhoneExample: 'Email o telefono del membro: {report:submit:from}',
+            customNameStartDateExample: 'Data di inizio del report: {report:startdate}',
+            customNameWorkspaceNameExample: "Nome dell'area di lavoro: {report:workspacename}",
+            customNameReportIDExample: 'Report ID: {report:id}',
+            customNameTotalExample: 'Totale: {report:total}.',
+            preventMembersFromChangingCustomNamesTitle: 'Impedisci ai membri di modificare i nomi dei report personalizzati',
         },
         reportFields: {
             addField: 'Aggiungi campo',
@@ -5493,17 +5544,6 @@ const translations = {
                     one: '1 giorno',
                     other: (count: number) => `${count} giorni`,
                 }),
-                cashExpenseDefault: 'Spesa in contanti predefinita',
-                cashExpenseDefaultDescription:
-                    'Scegli come devono essere create le spese in contanti. Una spesa è considerata in contanti se non è una transazione su carta aziendale importata. Ciò include spese create manualmente, ricevute, diarie, chilometraggi e spese di tempo.',
-                reimbursableDefault: 'Rimborsabile',
-                reimbursableDefaultDescription: 'Le spese sono solitamente rimborsate ai dipendenti',
-                nonReimbursableDefault: 'Non rimborsabile',
-                nonReimbursableDefaultDescription: 'Le spese sono occasionalmente rimborsate ai dipendenti',
-                alwaysReimbursable: 'Sempre rimborsabile',
-                alwaysReimbursableDescription: 'Le spese sono sempre rimborsate ai dipendenti',
-                alwaysNonReimbursable: 'Mai rimborsabile',
-                alwaysNonReimbursableDescription: 'Le spese non sono mai rimborsate ai dipendenti',
                 billableDefault: 'Predefinito fatturabile',
                 billableDefaultDescription:
                     'Scegli se le spese in contanti e con carta di credito devono essere fatturabili per impostazione predefinita. Le spese fatturabili sono abilitate o disabilitate in',
@@ -5526,20 +5566,8 @@ const translations = {
                 adultEntertainment: 'Intrattenimento per adulti',
             },
             expenseReportRules: {
-                examples: 'Esempi:',
                 title: 'Report di spesa',
                 subtitle: 'Automatizza la conformità, le approvazioni e il pagamento dei report di spesa.',
-                customReportNamesSubtitle: 'Personalizza i titoli dei report utilizzando il nostro',
-                customNameTitle: 'Titolo predefinito del report',
-                customNameDescription: 'Scegli un nome personalizzato per i report di spesa utilizzando il nostro',
-                customNameDescriptionLink: 'formule estese',
-                customNameInputLabel: 'Nome',
-                customNameEmailPhoneExample: 'Email o telefono del membro: {report:submit:from}',
-                customNameStartDateExample: 'Data di inizio del report: {report:startdate}',
-                customNameWorkspaceNameExample: "Nome dell'area di lavoro: {report:workspacename}",
-                customNameReportIDExample: 'Report ID: {report:id}',
-                customNameTotalExample: 'Totale: {report:total}.',
-                preventMembersFromChangingCustomNamesTitle: 'Impedisci ai membri di modificare i nomi dei report personalizzati',
                 preventSelfApprovalsTitle: 'Impedisci auto-approvazioni',
                 preventSelfApprovalsSubtitle: 'Impedisci ai membri del workspace di approvare i propri report di spesa.',
                 autoApproveCompliantReportsTitle: 'Approva automaticamente i rapporti conformi',
@@ -5807,8 +5835,6 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `aggiornato "Riaddebita le spese ai clienti" a "${newValue}" (precedentemente "${oldValue}")`,
-        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `aggiornato "Spesa in contanti predefinita" a "${newValue}" (precedentemente "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `trasformato "Imponi titoli di report predefiniti" ${value ? 'su' : 'spento'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) =>
             `ha aggiornato il nome di questo spazio di lavoro in "${newName}" (precedentemente "${oldName}")`,
@@ -6018,6 +6044,7 @@ const translations = {
             paid: 'Data di pagamento',
             exported: 'Data esportata',
             posted: 'Data di pubblicazione',
+            withdrawn: 'Data di ritiro',
             billable: 'Fatturabile',
             reimbursable: 'Rimborsabile',
             groupBy: {
@@ -6310,9 +6337,8 @@ const translations = {
         levelThreeResult: 'Messaggio rimosso dal canale più avviso anonimo e messaggio segnalato per revisione.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Invita a inviare le spese',
-        inviteToChat: 'Invita solo a chattare',
-        nothing: 'Non fare nulla',
+        invite: 'Invitali',
+        nothing: 'Do nothing',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accetta',

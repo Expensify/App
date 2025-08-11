@@ -531,6 +531,7 @@ const translations = {
         pm: 'PM',
         tbd: 'TBD',
         selectCurrency: 'Sélectionnez une devise',
+        selectSymbolOrCurrency: 'Sélectionnez un symbole ou une devise',
         card: 'Carte',
         whyDoWeAskForThis: 'Pourquoi demandons-nous cela ?',
         required: 'Requis',
@@ -633,6 +634,7 @@ const translations = {
         getTheApp: "Obtenez l'application",
         scanReceiptsOnTheGo: 'Numérisez les reçus depuis votre téléphone',
         headsUp: 'Attention !',
+        merge: 'Fusionner',
         unstableInternetConnection: 'Connexion Internet instable. Veuillez vérifier votre réseau et réessayer.',
     },
     supportalNoAccess: {
@@ -1359,6 +1361,31 @@ const translations = {
         rates: 'Tarifs',
         submitsTo: ({name}: SubmitsToParams) => `Soumet à ${name}`,
         moveExpenses: () => ({one: 'Déplacer la dépense', other: 'Déplacer les dépenses'}),
+    },
+    transactionMerge: {
+        listPage: {
+            header: 'Fusionner les dépenses',
+            noEligibleExpenseFound: 'Aucune dépense éligible trouvée',
+            noEligibleExpenseFoundSubtitle: `Vous n’avez aucune dépense pouvant être fusionnée avec celle-ci. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">En savoir plus</a> sur les dépenses éligibles.`,
+            selectTransactionToMerge: ({reportName}: {reportName: string}) =>
+                `Sélectionnez une <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">dépense éligible</a> à fusionner <strong>${reportName}</strong>.`,
+        },
+        receiptPage: {
+            header: 'Sélectionner le reçu',
+            pageTitle: 'Sélectionnez le reçu à conserver :',
+        },
+        detailsPage: {
+            header: 'Sélectionner les détails',
+            pageTitle: 'Sélectionnez les détails à conserver :',
+            noDifferences: 'Aucune différence trouvée entre les transactions',
+            pleaseSelectError: ({field}: {field: string}) => `Veuillez sélectionner un/une ${field}`,
+            selectAllDetailsError: 'Sélectionnez tous les détails avant de continuer.',
+        },
+        confirmationPage: {
+            header: 'Confirmer les détails',
+            pageTitle: 'Confirmez les détails que vous gardez. Les autres seront supprimés.',
+            confirmButton: 'Fusionner les dépenses',
+        },
     },
     share: {
         shareToExpensify: 'Partager sur Expensify',
@@ -3399,6 +3426,7 @@ const translations = {
             travel: 'Voyage',
             members: 'Membres',
             accounting: 'Comptabilité',
+            receiptPartners: 'Partenaires de reçus',
             rules: 'Règles',
             displayedAs: 'Affiché comme',
             plan: 'Planification',
@@ -4619,11 +4647,20 @@ const translations = {
                 title: 'Comptabilité',
                 subtitle: 'Synchronisez votre plan comptable et plus encore.',
             },
+            receiptPartners: {
+                title: 'Partenaires de reçus',
+                subtitle: 'Importer automatiquement les reçus.',
+            },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Pas si vite...',
                 featureEnabledText: "Pour activer ou désactiver cette fonctionnalité, vous devrez modifier vos paramètres d'importation comptable.",
                 disconnectText: 'Pour désactiver la comptabilité, vous devrez déconnecter votre connexion comptable de votre espace de travail.',
                 manageSettings: 'Gérer les paramètres',
+            },
+            receiptPartnersWarningModal: {
+                featureEnabledTitle: 'Déconnecter Uber',
+                disconnectText: "Pour désactiver cette fonctionnalité, veuillez d'abord déconnecter l'intégration Uber for Business.",
+                confirmText: 'Compris',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Pas si vite...',
@@ -4635,6 +4672,20 @@ const translations = {
                 title: 'Règles',
                 subtitle: 'Exiger des reçus, signaler les dépenses élevées, et plus encore.',
             },
+        },
+        reports: {
+            reportsCustomTitleExamples: 'Exemples :',
+            customReportNamesSubtitle: 'Personnalisez les titres des rapports en utilisant notre',
+            customNameTitle: 'Titre de rapport par défaut',
+            customNameDescription: 'Choisissez un nom personnalisé pour les rapports de dépenses en utilisant notre',
+            customNameDescriptionLink: 'formules étendues',
+            customNameInputLabel: 'Nom',
+            customNameEmailPhoneExample: 'E-mail ou téléphone du membre : {report:submit:from}',
+            customNameStartDateExample: 'Date de début du rapport : {report:startdate}',
+            customNameWorkspaceNameExample: "Nom de l'espace de travail : {report:workspacename}",
+            customNameReportIDExample: 'Report ID : {report:id}',
+            customNameTotalExample: 'Total : {report:total}.',
+            preventMembersFromChangingCustomNamesTitle: 'Empêcher les membres de modifier les noms des rapports personnalisés',
         },
         reportFields: {
             addField: 'Ajouter un champ',
@@ -5493,17 +5544,6 @@ const translations = {
                     one: '1 jour',
                     other: (count: number) => `${count} jours`,
                 }),
-                cashExpenseDefault: 'Dépense en espèces par défaut',
-                cashExpenseDefaultDescription:
-                    'Choisissez comment les dépenses en espèces doivent être créées. Une dépense est considérée comme en espèces si elle n’est pas une transaction par carte d’entreprise importée. Cela inclut les dépenses créées manuellement, les reçus, les indemnités journalières, les frais kilométriques et les frais de temps.',
-                reimbursableDefault: 'Remboursable',
-                reimbursableDefaultDescription: 'Les dépenses sont généralement remboursées aux employés',
-                nonReimbursableDefault: 'Non remboursable',
-                nonReimbursableDefaultDescription: 'Les dépenses sont parfois remboursées aux employés',
-                alwaysReimbursable: 'Toujours remboursable',
-                alwaysReimbursableDescription: 'Les dépenses sont toujours remboursées aux employés',
-                alwaysNonReimbursable: 'Jamais remboursable',
-                alwaysNonReimbursableDescription: 'Les dépenses ne sont jamais remboursées aux employés',
                 billableDefault: 'Par défaut facturable',
                 billableDefaultDescription:
                     'Choisissez si les dépenses en espèces et par carte de crédit doivent être facturables par défaut. Les dépenses facturables sont activées ou désactivées dans',
@@ -5526,20 +5566,8 @@ const translations = {
                 adultEntertainment: 'Divertissement pour adultes',
             },
             expenseReportRules: {
-                examples: 'Exemples :',
                 title: 'Rapports de dépenses',
                 subtitle: 'Automatisez la conformité des rapports de dépenses, les approbations et le paiement.',
-                customReportNamesSubtitle: 'Personnalisez les titres des rapports en utilisant notre',
-                customNameTitle: 'Titre de rapport par défaut',
-                customNameDescription: 'Choisissez un nom personnalisé pour les rapports de dépenses en utilisant notre',
-                customNameDescriptionLink: 'formules étendues',
-                customNameInputLabel: 'Nom',
-                customNameEmailPhoneExample: 'E-mail ou téléphone du membre : {report:submit:from}',
-                customNameStartDateExample: 'Date de début du rapport : {report:startdate}',
-                customNameWorkspaceNameExample: "Nom de l'espace de travail : {report:workspacename}",
-                customNameReportIDExample: 'Report ID : {report:id}',
-                customNameTotalExample: 'Total : {report:total}.',
-                preventMembersFromChangingCustomNamesTitle: 'Empêcher les membres de modifier les noms des rapports personnalisés',
                 preventSelfApprovalsTitle: 'Empêcher les auto-approbations',
                 preventSelfApprovalsSubtitle: "Empêcher les membres de l'espace de travail d'approuver leurs propres rapports de dépenses.",
                 autoApproveCompliantReportsTitle: 'Approuver automatiquement les rapports conformes',
@@ -5806,8 +5834,6 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `mis à jour "Refacturer les dépenses aux clients" à "${newValue}" (précédemment "${oldValue}")`,
-        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `mis à jour "Dépense en espèces par défaut" en "${newValue}" (anciennement "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `"Appliquer les titres de rapport par défaut" ${value ? 'sur' : 'désactivé'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `a mis à jour le nom de cet espace de travail en "${newName}" (précédemment "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -6016,6 +6042,7 @@ const translations = {
             paid: 'Date de paiement',
             exported: 'Date exportée',
             posted: 'Date de publication',
+            withdrawn: 'Date de retrait',
             billable: 'Facturable',
             reimbursable: 'Remboursable',
             groupBy: {
@@ -6308,8 +6335,7 @@ const translations = {
         levelThreeResult: 'Message supprimé du canal avec un avertissement anonyme et le message est signalé pour examen.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Inviter à soumettre des dépenses',
-        inviteToChat: 'Inviter uniquement à discuter',
+        invite: 'Invitez-les',
         nothing: 'Ne rien faire',
     },
     actionableMentionJoinWorkspaceOptions: {

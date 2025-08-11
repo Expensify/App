@@ -45,7 +45,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     groupBy,
-    shouldAnimateInHighlight,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
@@ -53,7 +52,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const {translate} = useLocalize();
     const isEmpty = groupItem.transactions.length === 0;
     const isDisabledOrEmpty = isEmpty || isDisabled;
-    const {isLargeScreenWidth} = useResponsiveLayout();
+    const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
         const isAmountColumnWide = groupItem.transactions.some((transaction) => transaction.isAmountColumnWide);
@@ -68,7 +67,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
-        shouldHighlight: shouldAnimateInHighlight ?? false,
+        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
     });
@@ -206,7 +205,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 onButtonPress={() => {
                                     openReportInRHP(transaction);
                                 }}
-                                columnWrapperStyles={[styles.ph3, styles.pv1Half]}
+                                style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half]]}
                                 isReportItemChild
                                 isInSingleTransactionReport={groupItem.transactions.length === 1}
                             />
