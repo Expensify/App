@@ -1,0 +1,20 @@
+name: 'Post Test Coverage Comment'
+description: 'Updates PR body with test coverage information and links to coverage artifacts'
+inputs:
+  OS_BOTIFY_TOKEN:
+    description: 'OS_BOTIFY_TOKEN for GitHub API access with pull request write permissions'
+    required: true
+  PR_NUMBER:
+    description: 'Pull request number'
+    required: false
+  BASE_COVERAGE_PATH:
+    description: 'Path to base coverage summary for comparison'
+    required: false
+    default: ''
+  COVERAGE_URL:
+    description: 'Direct URL to hosted coverage HTML report'
+    required: false
+    default: ''
+runs:
+  using: 'node20'
+  main: './index.js'

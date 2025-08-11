@@ -32,6 +32,7 @@ import {
     clearPendingContactActionErrors,
     clearUnvalidatedNewContactMethodAction,
     requestValidateCodeAction,
+    resetValidateActionCodeSent,
 } from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -61,6 +62,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
         const phoneLogin = getPhoneLogin(values.phoneOrEmail);
         const validateIfNumber = validateNumber(phoneLogin);
         const submitDetail = (validateIfNumber || values.phoneOrEmail).trim().toLowerCase();
+        resetValidateActionCodeSent();
         addPendingContactMethod(submitDetail);
         setIsValidateCodeActionModalVisible(true);
     }, []);
@@ -76,7 +78,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
     useEffect(() => {
-        if (!pendingContactAction?.actionVerified) {
+        if (!pendingContactAction?.actionVerified || !prevPendingContactAction?.contactMethod) {
             return;
         }
 
