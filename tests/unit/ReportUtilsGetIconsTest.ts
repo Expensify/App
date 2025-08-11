@@ -148,7 +148,7 @@ describe('getIcons', () => {
     it('should return the correct icons for archived non expense request/report', () => {
         const report: Report = {
             ...LHNTestUtils.getFakeReport([1], 0, true),
-            type: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            type: CONST.REPORT.CHAT_TYPE.INVOICE,
         };
         const policy = LHNTestUtils.getFakePolicy('1');
 

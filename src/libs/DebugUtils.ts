@@ -444,6 +444,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'hasParentAccess':
         case 'isDeletedParentAction':
         case 'isWaitingOnBankAccount':
+        case 'hasReportBeenRetracted':
         case 'isCancelledIOU':
         case 'hasReportBeenReopened':
         case 'isExportedToIntegration':
@@ -599,6 +600,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 unheldNonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isWaitingOnBankAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isCancelledIOU: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                hasReportBeenRetracted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasReportBeenReopened: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isExportedToIntegration: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasExportError: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -916,6 +918,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'bank':
         case 'cardName':
         case 'cardNumber':
+        case 'taxValue':
             return validateString(value);
         case 'created':
         case 'modifiedCreated':
@@ -1053,6 +1056,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     accountant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitExpenses: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isDemoTransaction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    taxValue: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
