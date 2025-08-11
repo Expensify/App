@@ -8,6 +8,7 @@ import type {ModalProps} from 'react-native-modal';
 import type {SvgProps} from 'react-native-svg';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -178,7 +179,16 @@ function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
     return menuItems.findIndex((option) => option.isSelected);
 }
 
-function PopoverMenu({
+function PopoverMenu(props: PopoverMenuProps) {
+    const wasVisible = usePrevious(props.isVisible);
+    // Do not render the PopoverMenu before it gets opened. Until then both values are false
+    if (!wasVisible && !props.isVisible) {
+        return null;
+    }
+    return <BasePopoverMenu {...props} />;
+}
+
+function BasePopoverMenu({
     menuItems,
     onItemSelected,
     isVisible,
