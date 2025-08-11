@@ -59,7 +59,7 @@ import VerifiedBankAccountFlowEntryPoint from './VerifiedBankAccountFlowEntryPoi
 type ReimbursementAccountPageProps = WithPolicyOnyxProps & PlatformStackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
-function ReimbursementAccountPage({route, policy, isLoadingPolicy}: ReimbursementAccountPageProps) {
+function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: ReimbursementAccountPageProps) {
     const {environmentURL} = useEnvironment();
     const session = useSession();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
@@ -157,7 +157,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     function fetchData() {
         // We can specify a step to navigate to by using route params when the component mounts.
         // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
-        const stepToOpen = getStepToOpenFromRouteParams(route);
+        const stepToOpen = getStepToOpenFromRouteParams(route, hasConfirmedUSDCurrency);
         const subStep = isPreviousPolicy ? (achData?.subStep ?? '') : '';
         const localCurrentStep = isPreviousPolicy ? (achData?.currentStep ?? '') : '';
 
@@ -179,7 +179,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         clearReimbursementAccountDraft();
 
         // If the step to open is empty, we want to clear the sub step, so the connect option view is shown to the user
-        const isStepToOpenEmpty = getStepToOpenFromRouteParams(route) === '';
+        const isStepToOpenEmpty = getStepToOpenFromRouteParams(route, hasConfirmedUSDCurrency) === '';
         if (isStepToOpenEmpty) {
             setBankAccountSubStep(null);
             setPlaidEvent(null);
@@ -223,7 +223,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 return;
             }
 
-            const currentStepRouteParam = getStepToOpenFromRouteParams(route);
+            const currentStepRouteParam = getStepToOpenFromRouteParams(route, hasConfirmedUSDCurrency);
             if (currentStepRouteParam === currentStep) {
                 // If the user is connecting online with plaid, reset any bank account errors so we don't persist old data from a potential previous connection
                 if (currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && achData?.subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
@@ -247,7 +247,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 hideBankAccountErrors();
             }
 
-            Navigation.setParams({stepToOpen: getRouteForCurrentStep(currentStep)});
+            navigation.setParams({stepToOpen: getRouteForCurrentStep(currentStep)});
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [isOffline, reimbursementAccount, hasACHDataBeenLoaded, shouldShowContinueSetupButton, currentStep],
