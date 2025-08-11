@@ -253,6 +253,8 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         case 'workspacename':
             return policy?.name ?? '';
         case 'created':
+            // Backend will always return at least one report action (of type created) and its date is equal to report's creation date
+            // We can make it slightly more efficient in the future by ensuring report.created is always present in backend's responses
             return formatDate(getOldestReportActionDate(report.reportID), format);
         default:
             return part.definition;
@@ -431,7 +433,8 @@ function getOldestReportActionDate(reportID: string): string | undefined {
         if (!action?.created) {
             return;
         }
-        if (!(!oldestDate || action.created < oldestDate)) {
+
+        if (oldestDate && action.created > oldestDate) {
             return;
         }
         oldestDate = action.created;
@@ -494,13 +497,6 @@ function getOldestTransactionDate(reportID: string): string | undefined {
     return oldestDate;
 }
 
-/**
- * Check if a string contains formula parts
- */
-function isFormula(str: string): boolean {
-    return extract(str).length > 0;
-}
-
-export {FORMULA_PART_TYPES, compute, extract, isFormula, parse};
+export {FORMULA_PART_TYPES, compute, extract, parse};
 
 export type {FormulaContext, FormulaPart};

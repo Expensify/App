@@ -63,7 +63,10 @@ function getReportByID(reportID: string, allReports: Record<string, Report>): Re
 /**
  * Get policy by ID from the policies collection
  */
-function getPolicyByID(policyID: string, allPolicies: Record<string, Policy>): Policy | undefined {
+function getPolicyByID(policyID: string | undefined, allPolicies: Record<string, Policy>): Policy | undefined {
+    if (!policyID) {
+        return;
+    }
     return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 }
 
@@ -170,7 +173,8 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
         return null;
     }
 
-    const policy = getPolicyByID(targetReport.policyID ?? String(CONST.DEFAULT_NUMBER_ID), allPolicies);
+    const policy = getPolicyByID(targetReport.policyID, allPolicies);
+
     if (!shouldComputeReportName(targetReport, policy)) {
         Performance.markEnd(CONST.TIMING.COMPUTE_REPORT_NAME);
         Timing.end(CONST.TIMING.COMPUTE_REPORT_NAME);

@@ -4,7 +4,7 @@ import {computeReportNameIfNeeded, shouldComputeReportName, updateOptimisticRepo
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
 import * as ReportUtils from '@libs/ReportUtils';
 import type {OnyxKey} from '@src/ONYXKEYS';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
 
 // Mock dependencies
 jest.mock('@libs/ReportUtils', () => ({
@@ -198,6 +198,7 @@ describe('OptimisticReportNames', () => {
                     reportNameValuePairs_789: {private_isArchived: ''},
                 },
             };
+            mockReportUtils.getTitleReportField.mockReturnValue({defaultValue: 'Policy: {report:policyname}'} as unknown as PolicyReportField);
 
             const updates = [
                 {
@@ -208,7 +209,15 @@ describe('OptimisticReportNames', () => {
             ];
 
             const result = updateOptimisticReportNamesFromUpdates(updates, contextWithMultipleReports);
-            expect(result.length).toBeGreaterThan(1);
+
+            expect(result.length).toEqual(4);
+            result.forEach((update) => {
+                if (!update.key.startsWith('report_')) {
+                    return;
+                }
+
+                expect((update.value as {reportName?: string})?.reportName).toEqual('Policy: Updated Policy Name');
+            });
         });
 
         test('should handle unknown object types gracefully', () => {

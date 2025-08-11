@@ -1,8 +1,8 @@
-// eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
+// eslint-disable-next-line no-restricted-syntax -- disabled because we need CurrencyUtils to mock
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {FormulaContext} from '@libs/Formula';
-import {compute, extract, isFormula, parse} from '@libs/Formula';
-// eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
+import {compute, extract, parse} from '@libs/Formula';
+// eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportActionsUtils to mock
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
 import * as ReportUtils from '@libs/ReportUtils';
@@ -231,19 +231,6 @@ describe('CustomFormula', () => {
         test('should preserve exact spacing around formula parts', () => {
             const result = compute('Report with type after 4 spaces   {report:type}-and no space after computed part', mockContext);
             expect(result).toBe('Report with type after 4 spaces   Expense Report-and no space after computed part');
-        });
-    });
-
-    describe('isFormula()', () => {
-        test('should detect formulas', () => {
-            expect(isFormula('{report:type}')).toBe(true);
-            expect(isFormula('Text with {report:type} formula')).toBe(true);
-        });
-
-        test('should detect non-formulas', () => {
-            expect(isFormula('plain text')).toBe(false);
-            expect(isFormula('\\{escaped}')).toBe(false);
-            expect(isFormula('')).toBe(false);
         });
     });
 
