@@ -254,11 +254,13 @@ function ComposerWithSuggestions(
         return draftReportComment ?? '';
     });
 
+    const commentRef = useRef(value);
+
     useEffect(() => {
         setValue(draftReportComment ?? '');
-    }, [draftReportComment]);
-
-    const commentRef = useRef(value);
+        setIsCommentEmpty(!draftReportComment || !!draftReportComment.match(CONST.REGEX.EMPTY_COMMENT));
+        commentRef.current = draftReportComment ?? '';
+    }, [draftReportComment, setIsCommentEmpty]);
 
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: getPreferredSkinToneIndex, canBeMissing: true});
