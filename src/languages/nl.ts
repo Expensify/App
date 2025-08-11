@@ -262,7 +262,6 @@ import type {
     UserIsAlreadyMemberParams,
     UserSplitParams,
     VacationDelegateParams,
-
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
     ViolationsCustomRulesParams,
@@ -1376,7 +1375,6 @@ const translations = {
                     `verwijderd <a href="${linkToReport}">${amount}${merchant ? ` van ${merchant}` : ''}</a>`,
                 declinedExpense: 'deze uitgave afgewezen',
                 markedAsResolved: 'de afwijzingsreden als opgelost gemarkeerd',
-                autoAddedToReport: ({amount, merchant}: {amount: string; merchant?: string}) => `${amount} toegevoegd ${merchant ? `van ${merchant}` : ''}`,
             },
         },
     },

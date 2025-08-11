@@ -1357,7 +1357,6 @@ const translations = {
                     `eliminado <a href="${linkToReport}">${amount}${merchant ? ` de ${merchant}` : ''}</a>`,
                 declinedExpense: `rechazó este gasto`,
                 markedAsResolved: `marcó el motivo del rechazo como resuelto`,
-                autoAddedToReport: ({amount, merchant}: {amount: string; merchant?: string}) => `se agregaron ${amount} ${merchant ? `de ${merchant}` : ``}`,
             },
         },
         moveExpenses: () => ({one: 'Mover gasto', other: 'Mover gastos'}),

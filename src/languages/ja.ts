@@ -1374,7 +1374,6 @@ const translations = {
                     `削除 <a href="${linkToReport}">${amount}${merchant ? ` ${merchant}から` : ''}</a>`,
                 declinedExpense: 'この経費を却下しました',
                 markedAsResolved: '却下理由を解決済みとしてマークしました',
-                autoAddedToReport: ({amount, merchant}: {amount: string; merchant?: string}) => `追加 ${amount} ${merchant ? `${merchant}から` : ''}`,
             },
         },
     },

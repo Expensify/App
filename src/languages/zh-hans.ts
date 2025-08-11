@@ -1359,7 +1359,6 @@ const translations = {
                     `已删除 <a href="${linkToReport}">${amount}${merchant ? ` 来自 ${merchant}` : ''}</a>`,
                 declinedExpense: '拒绝了此费用',
                 markedAsResolved: '将拒绝原因标记为已解决',
-                autoAddedToReport: ({amount, merchant}: {amount: string; merchant?: string}) => `已添加 ${amount} ${merchant ? `来自 ${merchant}` : ''}`,
             },
         },
     },
