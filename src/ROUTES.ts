@@ -509,7 +509,7 @@ const ROUTES = {
     },
     REPORT_CHANGE_APPROVER: {
         route: 'r/:reportID/change-approver',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/change-approver'` as const, backTo),
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/change-approver` as const, backTo),
     },
     REPORT_CHANGE_APPROVER_ADD_APPROVER: {
         route: 'r/:reportID/change-approver/add',
