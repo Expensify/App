@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import Banner from '@components/Banner';
@@ -73,6 +73,9 @@ type ReportFooterProps = {
 
     /** A method to call when the input is blur */
     onComposerBlur?: () => void;
+
+    /** All report name value pairs collection */
+    allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
 };
 
 function ReportFooter({
@@ -86,6 +89,7 @@ function ReportFooter({
     onComposerBlur,
     onComposerFocus,
     reportTransactions,
+    allReportNameValuePairs,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -119,7 +123,7 @@ function ReportFooter({
 
     // If a user just signed in and is viewing a public report, optimistically show the composer while loading the report, since they will have write access when the response comes back.
     const shouldShowComposerOptimistically = !isAnonymousUser && isPublicRoom(report) && !!reportMetadata?.isLoadingInitialReportActions;
-    const canPerformWriteAction = canUserPerformWriteAction(report) ?? shouldShowComposerOptimistically;
+    const canPerformWriteAction = canUserPerformWriteAction(report, allReportNameValuePairs) ?? shouldShowComposerOptimistically;
     const shouldHideComposer = !canPerformWriteAction || isBlockedFromChat;
     const canWriteInReport = canWriteInReportUtil(report);
     const isSystemChat = isSystemChatUtil(report);

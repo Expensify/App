@@ -66,6 +66,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
         const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`, {canBeMissing: true});
         const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
         const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID}`, {canBeMissing: true});
+        const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
         const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE)
             .filter((type) => shouldIncludeDeprecatedIOUType || (type !== CONST.IOU.TYPE.REQUEST && type !== CONST.IOU.TYPE.SEND))
@@ -84,7 +85,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
             return <FullScreenLoadingIndicator />;
         }
 
-        if (iouTypeParamIsInvalid || !canUserPerformWriteAction(report ?? {reportID: ''})) {
+        if (iouTypeParamIsInvalid || !canUserPerformWriteAction(report ?? {reportID: ''}, allReportNameValuePairs)) {
             return <FullPageNotFoundView shouldShow />;
         }
 

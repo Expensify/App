@@ -35,6 +35,7 @@ function OptionRowLHNData({
     transactionViolations,
     lastMessageTextFromReport,
     localeCompare,
+    allReportNameValuePairs,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
@@ -48,7 +49,7 @@ function OptionRowLHNData({
             return undefined;
         }
 
-        const canUserPerformWriteAction = canUserPerformWriteActionUtil(fullReport);
+        const canUserPerformWriteAction = canUserPerformWriteActionUtil(fullReport, allReportNameValuePairs);
         const actionsArray = getSortedReportActions(Object.values(reportActions));
 
         const reportActionsForDisplay = actionsArray.filter(

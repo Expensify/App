@@ -156,8 +156,9 @@ function MoneyRequestReportActionsList({
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.accountID});
+    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
-    const canPerformWriteAction = canUserPerformWriteAction(report);
+    const canPerformWriteAction = canUserPerformWriteAction(report, allReportNameValuePairs);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -536,6 +537,7 @@ function MoneyRequestReportActionsList({
                     personalDetails={personalDetails}
                     userBillingFundID={userBillingFundID}
                     emojiReactions={actionEmojiReactions}
+                    allReportNameValuePairs={allReportNameValuePairs}
                     draftMessage={matchingDraftMessageString}
                 />
             );

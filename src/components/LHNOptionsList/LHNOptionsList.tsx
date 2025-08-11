@@ -59,6 +59,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY, {canBeMissing: true});
+    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -191,7 +192,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             const hasDraftComment = isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
 
-            const canUserPerformWrite = canUserPerformWriteAction(item);
+            const canUserPerformWrite = canUserPerformWriteAction(item, allReportNameValuePairs);
             const sortedReportActions = getSortedReportActionsForDisplay(itemReportActions, canUserPerformWrite);
             const lastReportAction = sortedReportActions.at(0);
 
@@ -247,6 +248,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     isReportsSplitNavigatorLast={isReportsSplitNavigatorLast}
                     isScreenFocused={isScreenFocused}
                     localeCompare={localeCompare}
+                    allReportNameValuePairs={allReportNameValuePairs}
                 />
             );
         },

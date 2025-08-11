@@ -3,7 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, ReportActionsDrafts, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, ReportActionsDrafts, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
@@ -92,6 +92,9 @@ type ReportActionsListItemRendererProps = {
 
     /** All emoji reactions collection */
     allEmojiReactions?: OnyxCollection<ReportActionReactions>;
+
+    /** All report name value pairs collection */
+    allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
 };
 
 function ReportActionsListItemRenderer({
@@ -123,6 +126,7 @@ function ReportActionsListItemRenderer({
     personalDetails,
     allDraftMessages,
     allEmojiReactions,
+    allReportNameValuePairs,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -219,6 +223,7 @@ function ReportActionsListItemRenderer({
                 allEmojiReactions={allEmojiReactions}
                 linkedTransactionRouteError={linkedTransactionRouteError}
                 userBillingFundID={userBillingFundID}
+                allReportNameValuePairs={allReportNameValuePairs}
             />
         );
     }

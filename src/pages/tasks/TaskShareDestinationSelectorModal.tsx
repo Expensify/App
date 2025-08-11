@@ -1,5 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -20,7 +21,7 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportNameValuePairs} from '@src/types/onyx';
 
 const selectReportHandler = (option: unknown) => {
     HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
@@ -34,10 +35,10 @@ const selectReportHandler = (option: unknown) => {
     Navigation.goBack(ROUTES.NEW_TASK.getRoute());
 };
 
-const reportFilter = (reportOptions: Array<OptionsListUtils.SearchOption<Report>>) =>
+const reportFilter = (reportOptions: Array<OptionsListUtils.SearchOption<Report>>, allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>) =>
     (reportOptions ?? []).reduce((filtered: Array<OptionsListUtils.SearchOption<Report>>, option) => {
         const report = option.item;
-        if (ReportUtils.canUserPerformWriteAction(report) && ReportUtils.canCreateTaskInReport(report) && !ReportUtils.isCanceledTaskReport(report)) {
+        if (ReportUtils.canUserPerformWriteAction(report, allReportNameValuePairs) && ReportUtils.canCreateTaskInReport(report) && !ReportUtils.isCanceledTaskReport(report)) {
             filtered.push(option);
         }
         return filtered;
@@ -50,6 +51,7 @@ function TaskShareDestinationSelectorModal() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const {options: optionList, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -66,7 +68,7 @@ function TaskShareDestinationSelectorModal() {
                 header: '',
             };
         }
-        const filteredReports = reportFilter(optionList.reports);
+        const filteredReports = reportFilter(optionList.reports, allReportNameValuePairs);
         const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, optionList.personalDetails, [], [], {}, true);
         const header = OptionsListUtils.getHeaderMessage(recentReports && recentReports.length !== 0, false, '');
         return {
