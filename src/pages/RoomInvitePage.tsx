@@ -122,29 +122,9 @@ function RoomInvitePage({
             return [];
         }
 
-        // Filter all options that is a part of the search term or in the personal details
-        let filterSelectedOptions = selectedOptions;
-        if (debouncedSearchTerm !== '') {
-            filterSelectedOptions = selectedOptions.filter((option) => {
-                const accountID = option?.accountID;
-                const isOptionInPersonalDetails = personalDetails ? personalDetails.some((personalDetail) => accountID && personalDetail?.accountID === accountID) : false;
-                const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(debouncedSearchTerm)));
-                const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number ? parsedPhoneNumber.number.e164 : debouncedSearchTerm.toLowerCase();
-                const isPartOfSearchTerm = (option.text?.toLowerCase() ?? '').includes(searchValue) || (option.login?.toLowerCase() ?? '').includes(searchValue);
-                return isPartOfSearchTerm || isOptionInPersonalDetails;
-            });
-        }
-        const filterSelectedOptionsFormatted = filterSelectedOptions.map((selectedOption) => formatMemberForList(selectedOption));
-
-        sectionsArr.push({
-            title: undefined,
-            data: filterSelectedOptionsFormatted,
-        });
-
-        // Filtering out selected users from the search results
         const selectedLogins = selectedOptions.map(({login}) => login);
-        const personalDetailsWithoutSelected = personalDetails ? personalDetails.filter(({login}) => !selectedLogins.includes(login)) : [];
-        const personalDetailsFormatted = personalDetailsWithoutSelected.map((personalDetail) => formatMemberForList(personalDetail));
+        const personalDetailsModified = Object.values(personalDetails).map((item) => selectedLogins.some((selectedLogin)=> item.login === selectedLogin) ? {...item, isSelected  : true} : item);
+        const personalDetailsFormatted = personalDetailsModified.map((personalDetail) => formatMemberForList(personalDetail));
         const hasUnselectedUserToInvite = userToInvite && !selectedLogins.includes(userToInvite.login);
 
         sectionsArr.push({
