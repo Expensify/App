@@ -481,6 +481,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         filterFormValues.postedOn,
         filterFormValues.postedAfter,
         filterFormValues.postedBefore,
+        filterFormValues.withdrawalType,
         filterFormValues.withdrawnOn,
         filterFormValues.withdrawnAfter,
         filterFormValues.withdrawnBefore,
