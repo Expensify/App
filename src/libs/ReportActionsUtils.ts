@@ -1097,7 +1097,7 @@ function getLatestReportActionFromOnyxData(onyxData: OnyxUpdate[] | null): NonNu
  */
 function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportAction> | undefined, reportID?: string): string | undefined {
     let reportAction: OnyxEntry<ReportAction> | undefined;
-    
+
     if (typeof reportActionOrID === 'string') {
         if (!allReportActions) {
             return undefined;
@@ -1106,7 +1106,7 @@ function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportActio
     } else {
         reportAction = reportActionOrID;
     }
-    
+
     if (!reportAction || !isMoneyRequestAction(reportAction)) {
         return undefined;
     }
