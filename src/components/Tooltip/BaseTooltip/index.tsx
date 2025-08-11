@@ -1,4 +1,5 @@
 import {BoundsObserver} from '@react-ng/bounds-observer';
+import type {HTMLAttributes} from 'react';
 import React, {memo, useCallback, useRef} from 'react';
 import type {LayoutRectangle} from 'react-native';
 import Hoverable from '@components/Hoverable';
@@ -115,7 +116,7 @@ function Tooltip({children, shouldHandleScroll = false, isFocused = true, ref, .
                             onHoverOut={hideTooltip}
                             shouldHandleScroll={shouldHandleScroll}
                         >
-                            {React.cloneElement(children, {
+                            {React.cloneElement(children as React.ReactElement<HTMLAttributes<HTMLElement>>, {
                                 onMouseEnter: updateTargetPositionOnMouseEnter,
                             } as React.HTMLAttributes<HTMLElement>)}
                         </Hoverable>
