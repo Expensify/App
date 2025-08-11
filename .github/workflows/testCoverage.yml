@@ -28,7 +28,7 @@ jobs:
           fetch-depth: 0  # Get full history
           ref: ${{ github.event.inputs.pr_number && format('refs/pull/{0}/merge', github.event.inputs.pr_number) || github.ref }}
 
-      - name: Set up Node
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: "18"
@@ -84,7 +84,7 @@ jobs:
         # v1
         uses: 1password/install-cli-action@143a85f84a90555d121cde2ff5872e393a47ab9f
 
-      - name: Load Codecov token from 1Password
+      - name: Load Codecov Token from 1Password
         id: load-credentials
         # v2
         uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
