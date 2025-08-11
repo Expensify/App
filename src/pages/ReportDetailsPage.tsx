@@ -879,11 +879,13 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                                 title={base62ReportID}
                                 description={translate('common.reportID')}
                                 interactive={false}
+                                shouldBlockSelection
                             />
                             <MenuItemWithTopDescription
                                 title={report.reportID}
                                 description={translate('common.longID')}
                                 interactive={false}
+                                shouldBlockSelection
                             />
                         </>
                     )}
