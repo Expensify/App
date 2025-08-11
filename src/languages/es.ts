@@ -249,7 +249,6 @@ import type {
     UserIsAlreadyMemberParams,
     UserSplitParams,
     VacationDelegateParams,
-    ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
     ViolationsCustomRulesParams,
@@ -1343,7 +1342,7 @@ const translations = {
 
         decline: {
             educationalTitle: '¿Deberías Retener o Rechazar?',
-            educationalText: 'Si no está listo para aprobar o pagar un gasto, puede retenerlo o rechazarlo.',
+            educationalText: 'Si no estás listo para aprobar o pagar un gasto, puedes retenerlo o rechazarlo:',
             holdExpenseTitle: 'Retener un gasto para pedir más detalles antes de aprobarlo o pagarlo.',
             heldExpenseLeftBehindTitle: 'Los gastos retenidos se dejan atrás cuando apruebas un informe completo.',
             declineExpenseTitle: 'Rechazar un gasto que no piensas aprobar o pagar.',
