@@ -9,8 +9,8 @@ import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import type { PressableRef } from './Pressable/GenericPressable/types';
 
 type CheckboxProps = Partial<ChildrenProps> & {
     /** Whether checkbox is checked */
@@ -59,30 +59,28 @@ type CheckboxProps = Partial<ChildrenProps> & {
     wrapperStyle?: StyleProp<ViewStyle>;
 
     /** Reference to the outer element */
-    ref?: ForwardedRef<View>,
+    ref?: ForwardedRef<View>;
 };
 
-function Checkbox(
-    {
-        isChecked = false,
-        isIndeterminate = false,
-        hasError = false,
-        disabled = false,
-        style,
-        containerStyle,
-        children = null,
-        onMouseDown,
-        containerSize = 20,
-        containerBorderRadius = 4,
-        caretSize = 14,
-        onPress,
-        accessibilityLabel,
-        shouldStopMouseDownPropagation,
-        shouldSelectOnPressEnter,
-        wrapperStyle,
-        ref,
-    }: CheckboxProps,
-) {
+function Checkbox({
+    isChecked = false,
+    isIndeterminate = false,
+    hasError = false,
+    disabled = false,
+    style,
+    containerStyle,
+    children = null,
+    onMouseDown,
+    containerSize = 20,
+    containerBorderRadius = 4,
+    caretSize = 14,
+    onPress,
+    accessibilityLabel,
+    shouldStopMouseDownPropagation,
+    shouldSelectOnPressEnter,
+    wrapperStyle,
+    ref,
+}: CheckboxProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

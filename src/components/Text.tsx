@@ -35,9 +35,7 @@ type TextProps = RNTextProps &
         ref?: ForwardedRef<RNText>;
     };
 
-function Text(
-    {color, fontSize = variables.fontSizeNormal, textAlign = 'left', children, family = 'EXP_NEUE', style = {}, shouldUseDefaultLineHeight = true, ref, ...props}: TextProps,
-) {
+function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', children, family = 'EXP_NEUE', style = {}, shouldUseDefaultLineHeight = true, ref, ...props}: TextProps) {
     const theme = useTheme();
     const customStyle = useContext(CustomStylesForChildrenContext);
 

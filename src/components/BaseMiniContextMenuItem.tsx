@@ -9,9 +9,9 @@ import getButtonState from '@libs/getButtonState';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip/PopoverAnchorTooltip';
-import type { PressableRef } from './Pressable/GenericPressable/types';
 
 type BaseMiniContextMenuItemProps = {
     /**
@@ -48,9 +48,7 @@ type BaseMiniContextMenuItemProps = {
  * Component that renders a mini context menu item with a
  * pressable. Also renders a tooltip when hovering the item.
  */
-function BaseMiniContextMenuItem(
-    {tooltipText, onPress, children, isDelayButtonStateComplete = true, shouldPreventDefaultFocusOnPress = true, ref}: BaseMiniContextMenuItemProps,
-) {
+function BaseMiniContextMenuItem({tooltipText, onPress, children, isDelayButtonStateComplete = true, shouldPreventDefaultFocusOnPress = true, ref}: BaseMiniContextMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     return (

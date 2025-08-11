@@ -57,23 +57,21 @@ type PressableWithDelayToggleProps = PressableProps & {
     ref?: PressableRef;
 };
 
-function PressableWithDelayToggle(
-    {
-        iconChecked = Expensicons.Checkmark,
-        inline = true,
-        onPress,
-        text,
-        textChecked,
-        tooltipText,
-        tooltipTextChecked,
-        styles: pressableStyle,
-        textStyles,
-        iconStyles,
-        icon,
-        accessibilityRole,
-        ref,
-    }: PressableWithDelayToggleProps,
-) {
+function PressableWithDelayToggle({
+    iconChecked = Expensicons.Checkmark,
+    inline = true,
+    onPress,
+    text,
+    textChecked,
+    tooltipText,
+    tooltipTextChecked,
+    styles: pressableStyle,
+    textStyles,
+    iconStyles,
+    icon,
+    accessibilityRole,
+    ref,
+}: PressableWithDelayToggleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isActive, temporarilyDisableInteractions] = useThrottledButtonState();

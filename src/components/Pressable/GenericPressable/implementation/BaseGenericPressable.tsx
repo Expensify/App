@@ -12,35 +12,33 @@ import HapticFeedback from '@libs/HapticFeedback';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import CONST from '@src/CONST';
 
-function GenericPressable(
-    {
-        children,
-        onPress = () => {},
-        onLongPress,
-        onKeyDown,
-        disabled,
-        style,
-        disabledStyle = {},
-        hoverStyle = {},
-        focusStyle = {},
-        pressStyle = {},
-        screenReaderActiveStyle = {},
-        shouldUseHapticsOnLongPress = true,
-        shouldUseHapticsOnPress = false,
-        nextFocusRef,
-        keyboardShortcut,
-        shouldUseAutoHitSlop = false,
-        enableInScreenReaderStates = CONST.SCREEN_READER_STATES.ALL,
-        onPressIn,
-        onPressOut,
-        accessible = true,
-        fullDisabled = false,
-        interactive = true,
-        isNested = false,
-        ref,
-        ...rest
-    }: PressableProps,
-) {
+function GenericPressable({
+    children,
+    onPress = () => {},
+    onLongPress,
+    onKeyDown,
+    disabled,
+    style,
+    disabledStyle = {},
+    hoverStyle = {},
+    focusStyle = {},
+    pressStyle = {},
+    screenReaderActiveStyle = {},
+    shouldUseHapticsOnLongPress = true,
+    shouldUseHapticsOnPress = false,
+    nextFocusRef,
+    keyboardShortcut,
+    shouldUseAutoHitSlop = false,
+    enableInScreenReaderStates = CONST.SCREEN_READER_STATES.ALL,
+    onPressIn,
+    onPressOut,
+    accessible = true,
+    fullDisabled = false,
+    interactive = true,
+    isNested = false,
+    ref,
+    ...rest
+}: PressableProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isExecuting, singleExecution} = useSingleExecution();

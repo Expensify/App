@@ -1,7 +1,7 @@
-import type {ReactElement, Ref, HTMLAttributes} from 'react';
+import type {HTMLAttributes, ReactElement, Ref} from 'react';
 
 type HoverableChildProps = HTMLAttributes<HTMLElement> & {
-  ref?: Ref<HTMLElement>;
+    ref?: Ref<HTMLElement>;
 };
 
 type HoverableChild = ReactElement<HoverableChildProps>;

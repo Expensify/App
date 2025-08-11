@@ -116,9 +116,12 @@ function Tooltip({children, shouldHandleScroll = false, isFocused = true, ref, .
                             onHoverOut={hideTooltip}
                             shouldHandleScroll={shouldHandleScroll}
                         >
-                            {React.cloneElement(children as React.ReactElement<HTMLAttributes<HTMLElement>>, {
-                                onMouseEnter: updateTargetPositionOnMouseEnter,
-                            } as React.HTMLAttributes<HTMLElement>)}
+                            {React.cloneElement(
+                                children as React.ReactElement<HTMLAttributes<HTMLElement>>,
+                                {
+                                    onMouseEnter: updateTargetPositionOnMouseEnter,
+                                } as React.HTMLAttributes<HTMLElement>,
+                            )}
                         </Hoverable>
                     </BoundsObserver>
                 ) : (

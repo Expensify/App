@@ -44,19 +44,17 @@ type PressableWithFeedbackProps = PressableProps & {
     shouldBlendOpacity?: boolean;
 };
 
-function PressableWithFeedback(
-    {
-        children,
-        wrapperStyle = [],
-        needsOffscreenAlphaCompositing = false,
-        pressDimmingValue = variables.pressDimValue,
-        hoverDimmingValue = variables.hoverDimValue,
-        dimAnimationDuration,
-        shouldBlendOpacity,
-        ref,
-        ...rest
-    }: PressableWithFeedbackProps,
-) {
+function PressableWithFeedback({
+    children,
+    wrapperStyle = [],
+    needsOffscreenAlphaCompositing = false,
+    pressDimmingValue = variables.pressDimValue,
+    hoverDimmingValue = variables.hoverDimValue,
+    dimAnimationDuration,
+    shouldBlendOpacity,
+    ref,
+    ...rest
+}: PressableWithFeedbackProps) {
     const [isPressed, setIsPressed] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
 
