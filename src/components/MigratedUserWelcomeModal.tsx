@@ -64,14 +64,14 @@ function OnboardingWelcomeVideo() {
         }
         const {hasBeenAddedToNudgeMigration} = tryNewDot ?? {};
 
-        Log.info(`[MigratedUserWelcomeModal] useEffect triggered - hasBeenAddedToNudgeMigration: ${hasBeenAddedToNudgeMigration}, hasDismissedTraining: ${!!dismissedProductTraining?.migratedUserWelcomeModal}, shouldOpenSearch: ${shouldOpenSearch}, currentModalDisabled: ${isModalDisabled}`);
+                Log.hmmm(`[MigratedUserWelcomeModal] useEffect triggered - hasBeenAddedToNudgeMigration: ${hasBeenAddedToNudgeMigration}, hasDismissedTraining: ${!!dismissedProductTraining?.migratedUserWelcomeModal}, shouldOpenSearch: ${shouldOpenSearch}`);
 
         if (!!(hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal) || !shouldOpenSearch) {
-            Log.info('[MigratedUserWelcomeModal] Conditions not met, keeping modal disabled');
+            Log.hmmm('[MigratedUserWelcomeModal] Conditions not met, keeping modal disabled');
             return;
         }
 
-        Log.info('[MigratedUserWelcomeModal] Enabling modal and navigating to search');
+        Log.hmmm('[MigratedUserWelcomeModal] Enabling modal and navigating to search');
         setIsModalDisabled(false);
         const defaultCannedQuery = buildCannedSearchQuery();
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultCannedQuery}));
@@ -94,7 +94,7 @@ function OnboardingWelcomeVideo() {
             confirmText={translate('migratedUserWelcomeModal.confirmText')}
             animation={LottieAnimations.WorkspacePlanet}
             onClose={() => {
-                Log.info('[MigratedUserWelcomeModal] onClose called, dismissing product training');
+                Log.hmmm('[MigratedUserWelcomeModal] onClose called, dismissing product training');
                 dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
             }}
             animationStyle={[styles.emptyWorkspaceIllustrationStyle]}

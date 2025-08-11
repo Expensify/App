@@ -337,46 +337,46 @@ function FeatureTrainingModal({
     const toggleWillShowAgain = useCallback(() => setWillShowAgain((prevWillShowAgain) => !prevWillShowAgain), []);
 
     const closeModal = useCallback(() => {
-        Log.info(`[FeatureTrainingModal] closeModal called - willShowAgain: ${willShowAgain}, shouldGoBack: ${shouldGoBack}, hasOnClose: ${!!onClose}`);
+        Log.hmmm(`[FeatureTrainingModal] closeModal called - willShowAgain: ${willShowAgain}, shouldGoBack: ${shouldGoBack}, hasOnClose: ${!!onClose}`);
 
         if (!willShowAgain) {
-            Log.info('[FeatureTrainingModal] Dismissing track training modal');
+            Log.hmmm('[FeatureTrainingModal] Dismissing track training modal');
             dismissTrackTrainingModal();
         }
 
-        Log.info('[FeatureTrainingModal] Setting modal invisible');
+        Log.hmmm('[FeatureTrainingModal] Setting modal invisible');
         setIsModalVisible(false);
 
         InteractionManager.runAfterInteractions(() => {
-            Log.info(`[FeatureTrainingModal] Running after interactions - shouldGoBack: ${shouldGoBack}, hasOnClose: ${!!onClose}`);
+            Log.hmmm(`[FeatureTrainingModal] Running after interactions - shouldGoBack: ${shouldGoBack}, hasOnClose: ${!!onClose}`);
 
             if (shouldGoBack) {
-                Log.info('[FeatureTrainingModal] Navigating back');
+                Log.hmmm('[FeatureTrainingModal] Navigating back');
                 Navigation.goBack();
             }
 
             if (onClose) {
-                Log.info('[FeatureTrainingModal] Calling onClose callback');
+                Log.hmmm('[FeatureTrainingModal] Calling onClose callback');
                 onClose();
             } else {
-                Log.info('[FeatureTrainingModal] No onClose callback provided');
+                Log.hmmm('[FeatureTrainingModal] No onClose callback provided');
             }
         });
     }, [onClose, shouldGoBack, willShowAgain]);
 
     const closeAndConfirmModal = useCallback(() => {
-        Log.info(`[FeatureTrainingModal] Button pressed - shouldCloseOnConfirm: ${shouldCloseOnConfirm}, hasOnConfirm: ${!!onConfirm}, willShowAgain: ${willShowAgain}`);
+        Log.hmmm(`[FeatureTrainingModal] Button pressed - shouldCloseOnConfirm: ${shouldCloseOnConfirm}, hasOnConfirm: ${!!onConfirm}, willShowAgain: ${willShowAgain}`);
 
         if (shouldCloseOnConfirm) {
-            Log.info('[FeatureTrainingModal] Calling closeModal');
+            Log.hmmm('[FeatureTrainingModal] Calling closeModal');
             closeModal();
         }
 
         if (onConfirm) {
-            Log.info('[FeatureTrainingModal] Calling onConfirm callback');
+            Log.hmmm('[FeatureTrainingModal] Calling onConfirm callback');
             onConfirm(willShowAgain);
         } else {
-            Log.info('[FeatureTrainingModal] No onConfirm callback provided');
+            Log.hmmm('[FeatureTrainingModal] No onConfirm callback provided');
         }
     }, [shouldCloseOnConfirm, onConfirm, closeModal, willShowAgain]);
 
