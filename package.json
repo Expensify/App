@@ -142,6 +142,7 @@
     "howler": "^2.2.4",
     "htmlparser2": "^7.2.0",
     "idb-keyval": "^6.2.1",
+    "jest-junit": "^16.0.0",
     "jszip": "^3.10.1",
     "lodash-es": "4.17.21",
     "lottie-react-native": "6.5.1",
