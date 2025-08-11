@@ -177,17 +177,17 @@ describe('CustomFormula', () => {
 
         test('should compute startdate formula using transactions', () => {
             const result = compute('{report:startdate}', mockContext);
-            expect(result).toBe('01/08/2025'); // Should use oldest transaction date (2025-01-08)
+            expect(result).toBe('2025-01-08'); // Should use oldest transaction date (2025-01-08)
         });
 
         test('should compute created formula using report actions', () => {
             const result = compute('{report:created}', mockContext);
-            expect(result).toBe('01/10/2025'); // Should use oldest report action date (2025-01-10)
+            expect(result).toBe('2025-01-10'); // Should use oldest report action date (2025-01-10)
         });
 
         test('should compute startdate with custom format', () => {
-            const result = compute('{report:startdate:yyyy-MM-dd}', mockContext);
-            expect(result).toBe('2025-01-08'); // Should use oldest transaction date with yyyy-MM-dd format
+            const result = compute('{report:startdate:MM/dd/yyyy}', mockContext);
+            expect(result).toBe('01/08/2025'); // Should use oldest transaction date with yyyy-MM-dd format
         });
 
         test('should compute created with custom format', () => {
@@ -266,11 +266,8 @@ describe('CustomFormula', () => {
                 report: {reportID: '123'} as Report,
                 policy: null as unknown as Policy,
             };
-            const expected = new Date().toLocaleDateString('en-US', {
-                month: '2-digit',
-                day: '2-digit',
-                year: 'numeric',
-            });
+            const today = new Date();
+            const expected = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
             const result = compute('{report:startdate}', context);
             expect(result).toBe(expected);
         });
@@ -324,7 +321,7 @@ describe('CustomFormula', () => {
             };
 
             const result = compute('{report:startdate}', context);
-            expect(result).toBe('01/12/2025');
+            expect(result).toBe('2025-01-12');
         });
 
         test('should skip partial transactions (zero amount)', () => {
@@ -357,7 +354,7 @@ describe('CustomFormula', () => {
             };
 
             const result = compute('{report:startdate}', context);
-            expect(result).toBe('01/12/2025');
+            expect(result).toBe('2025-01-12');
         });
     });
 });
