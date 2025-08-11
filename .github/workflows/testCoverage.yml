@@ -29,10 +29,7 @@ jobs:
           ref: ${{ github.event.inputs.pr_number && format('refs/pull/{0}/merge', github.event.inputs.pr_number) || github.ref }}
 
       - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "18"
-          cache: "npm"
+        uses: ./.github/actions/composite/setupNode
 
       - name: Install Dependencies
         run: npm install
@@ -62,11 +59,8 @@ jobs:
         with:
           fetch-depth: 0  # Get full history
           ref: ${{ github.event.inputs.pr_number && format('refs/pull/{0}/merge', github.event.inputs.pr_number) || github.ref }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "18"
-          cache: "npm"
-      - run: npm install
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
 
       - name: Run Jest Shard ${{ matrix.shard }}
         run: npm test -- --coverage --silent --passWithNoTests --shard=${{ matrix.shard }}/${{ strategy.job-total }} --max-workers ${{ needs.setup.outputs.cpu_cores }}
