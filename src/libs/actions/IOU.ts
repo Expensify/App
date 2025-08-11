@@ -11811,6 +11811,9 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
                         total: (report?.total ?? 0) - (transaction?.amount ?? 0),
+                        pendingFields: {
+                            total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
                     },
                 },
                 {
@@ -11827,18 +11830,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
-                    pendingFields: null,
-                    errorFields: null,
-                },
-            });
-
-            // Add success data for transaction update
-            successData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                value: {
-                    pendingAction: null,
-                    errorFields: null,
+                    pendingFields: {total: null},
                 },
             });
 
@@ -11848,6 +11840,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     total: report?.total ?? 0,
+                    pendingFields: { total: null}
                 },
             });
 
@@ -11915,10 +11908,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
             successData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReport?.reportID}`,
-                value: {
-                    pendingFields: null,
-                    errorFields: null,
-                },
+                value: { pendingFields: {total: null}, },
             });
 
             // Add failure data to revert existing report total
@@ -11927,6 +11917,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReport?.reportID}`,
                 value: {
                     total: movedToReport?.total ?? 0,
+                    pendingFields: {total: null},
                 },
             });
             urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(movedToReportID ?? report.chatReportID);
@@ -12004,8 +11995,10 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                pendingFields: null,
-                errorFields: null,
+                pendingFields: {
+                    stateNum: null,
+                    statusNum: null,
+                },
             },
         });
 
