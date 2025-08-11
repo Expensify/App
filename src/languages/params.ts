@@ -282,8 +282,6 @@ type FormattedMaxLengthParams = {formattedMaxLength: string};
 
 type WalletProgramParams = {walletProgram: string};
 
-
-
 type ViolationsCashExpenseWithNoReceiptParams = {formattedLimit?: string} | undefined;
 
 type ViolationsConversionSurchargeParams = {surcharge: number};
