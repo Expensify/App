@@ -264,7 +264,14 @@ function SearchAutocompleteInput(
                     <PressableWithoutFeedback
                         accessibilityRole={CONST.ROLE.BUTTON}
                         accessibilityLabel={CONST.ROLE.BUTTON}
-                        style={[styles.pr3, !isSearchingForReports && [styles.opacity0, styles.cursorText], styles.justifyContentCenter, styles.alignSelfStretch, styles.cursorAuto]}
+                        style={[
+                            styles.pr3,
+                            styles.cursorAuto,
+                            styles.justifyContentCenter,
+                            styles.alignSelfStretch,
+                            !isSearchingForReports && styles.opacity0,
+                            !isSearchingForReports && styles.cursorText,
+                        ]}
                         onPress={() => {
                             textInput?.current?.focus();
                         }}
