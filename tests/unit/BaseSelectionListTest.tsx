@@ -87,6 +87,7 @@ describe('BaseSelectionList', () => {
         fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`));
         expect(onSelectRowMock).toHaveBeenCalledWith({
             ...mockSections.at(1),
+            shouldAnimateInHighlight: false,
         });
     });
 
