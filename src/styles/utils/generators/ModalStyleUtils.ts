@@ -93,6 +93,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 // and can be dismissed by clicking outside of the modal.
                 modalStyle = {
                     ...modalStyle,
+                    justifyContent: 'center',
                     alignItems: 'center',
                     height: '100%',
                 };
