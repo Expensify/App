@@ -205,6 +205,7 @@ function SearchAutocompleteList(
     }, [autocompleteQueryValue]);
 
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
+    const withdrawalTypes = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
     const booleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
 
     const cardAutocompleteList = useMemo(() => Object.values(allCards), [allCards]);
@@ -374,6 +375,16 @@ function SearchAutocompleteList(
                     text: expenseType,
                 }));
             }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE: {
+                const filteredWithdrawalTypes = withdrawalTypes
+                    .filter((withdrawalType) => withdrawalType.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(withdrawalType))
+                    .sort();
+
+                return filteredWithdrawalTypes.map((withdrawalType) => ({
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.WITHDRAWAL_TYPE,
+                    text: withdrawalType,
+                }));
+            }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED: {
                 const filteredFeeds = feedAutoCompleteList
                     .filter((feed) => feed.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(feed.name.toLowerCase()))
@@ -392,14 +403,14 @@ function SearchAutocompleteList(
                     .filter(
                         (card) =>
                             (card.bank.toLowerCase().includes(autocompleteValue.toLowerCase()) || card.lastFourPAN?.includes(autocompleteValue)) &&
-                            !alreadyAutocompletedKeys.includes(getCardDescription(card.cardID).toLowerCase()),
+                            !alreadyAutocompletedKeys.includes(getCardDescription(card).toLowerCase()),
                     )
                     .sort()
                     .slice(0, 10);
 
                 return filteredCards.map((card) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CARD_ID,
-                    text: getCardDescription(card.cardID, allCards),
+                    text: getCardDescription(card),
                     autocompleteID: card.cardID.toString(),
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
                 }));
@@ -432,6 +443,7 @@ function SearchAutocompleteList(
                     text: status,
                 }));
             }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED: {
                 const filteredDatePresets = (getDatePresets(autocompleteKey, true) ?? [])
@@ -459,9 +471,9 @@ function SearchAutocompleteList(
         groupByAutocompleteList,
         statusAutocompleteList,
         expenseTypes,
+        withdrawalTypes,
         feedAutoCompleteList,
         cardAutocompleteList,
-        allCards,
         booleanTypes,
         workspaceList,
     ]);

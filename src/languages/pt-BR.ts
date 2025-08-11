@@ -482,6 +482,7 @@ const translations = {
         message: 'Mensagem',
         leaveThread: 'Sair do tópico',
         you: 'Você',
+        me: 'mim',
         youAfterPreposition: 'você',
         your: 'seu/sua/seus/suas (dependendo do contexto)',
         conciergeHelp: 'Por favor, entre em contato com o Concierge para obter ajuda.',
@@ -531,6 +532,7 @@ const translations = {
         pm: 'PM',
         tbd: 'TBD',
         selectCurrency: 'Selecione uma moeda',
+        selectSymbolOrCurrency: 'Selecione um símbolo ou moeda',
         card: 'Cartão',
         whyDoWeAskForThis: 'Por que pedimos isso?',
         required: 'Obrigatório',
@@ -633,6 +635,7 @@ const translations = {
         getTheApp: 'Obtenha o aplicativo',
         scanReceiptsOnTheGo: 'Digitalize recibos com seu celular',
         headsUp: 'Atenção!',
+        merge: 'Mesclar',
         unstableInternetConnection: 'Conexão de internet instável. Verifique sua rede e tente novamente.',
     },
     supportalNoAccess: {
@@ -880,6 +883,7 @@ const translations = {
         hereAlternateText: 'Notificar todos nesta conversa',
     },
     newMessages: 'Novas mensagens',
+    latestMessages: 'Mensagens recentes',
     youHaveBeenBanned: 'Nota: Você foi banido de conversar neste canal.',
     reportTypingIndicator: {
         isTyping: 'está digitando...',
@@ -1352,6 +1356,31 @@ const translations = {
         rates: 'Taxas',
         submitsTo: ({name}: SubmitsToParams) => `Envia para ${name}`,
         moveExpenses: () => ({one: 'Mover despesa', other: 'Mover despesas'}),
+    },
+    transactionMerge: {
+        listPage: {
+            header: 'Mesclar despesas',
+            noEligibleExpenseFound: 'Nenhuma despesa elegível encontrada',
+            noEligibleExpenseFoundSubtitle: `Você não tem despesas que possam ser mescladas com esta. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Saiba mais</a> sobre despesas elegíveis.`,
+            selectTransactionToMerge: ({reportName}: {reportName: string}) =>
+                `Selecione uma <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">despesa elegível</a> para mesclar <strong>${reportName}</strong>.`,
+        },
+        receiptPage: {
+            header: 'Selecionar recibo',
+            pageTitle: 'Selecione o recibo que deseja manter:',
+        },
+        detailsPage: {
+            header: 'Selecionar detalhes',
+            pageTitle: 'Selecione os detalhes que deseja manter:',
+            noDifferences: 'Nenhuma diferença encontrada entre as transações',
+            pleaseSelectError: ({field}: {field: string}) => `Por favor selecione um(a) ${field}`,
+            selectAllDetailsError: 'Selecione todos os detalhes antes de continuar.',
+        },
+        confirmationPage: {
+            header: 'Confirmar detalhes',
+            pageTitle: 'Confirme os detalhes que deseja manter. Os demais serão excluídos.',
+            confirmButton: 'Mesclar despesas',
+        },
     },
     share: {
         shareToExpensify: 'Compartilhar no Expensify',
@@ -3409,6 +3438,7 @@ const translations = {
             travel: 'Viagem',
             members: 'Membros',
             accounting: 'Contabilidade',
+            receiptPartners: 'Parceiros de recibos',
             rules: 'Regras',
             displayedAs: 'Exibido como',
             plan: 'Plano',
@@ -4615,11 +4645,20 @@ const translations = {
                 title: 'Contabilidade',
                 subtitle: 'Sincronize seu plano de contas e mais.',
             },
+            receiptPartners: {
+                title: 'Parceiros de recibos',
+                subtitle: 'Importar recibos automaticamente.',
+            },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Não tão rápido...',
                 featureEnabledText: 'Para ativar ou desativar este recurso, você precisará alterar suas configurações de importação de contabilidade.',
                 disconnectText: 'Para desativar a contabilidade, você precisará desconectar sua conexão contábil do seu espaço de trabalho.',
                 manageSettings: 'Gerenciar configurações',
+            },
+            receiptPartnersWarningModal: {
+                featureEnabledTitle: 'Desconectar Uber',
+                disconnectText: 'Para desativar este recurso, desconecte primeiro a integração do Uber for Business.',
+                confirmText: 'Entendi',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Não tão rápido...',
@@ -4631,6 +4670,20 @@ const translations = {
                 title: 'Regras',
                 subtitle: 'Exigir recibos, sinalizar gastos altos e mais.',
             },
+        },
+        reports: {
+            reportsCustomTitleExamples: 'Exemplos:',
+            customReportNamesSubtitle: 'Personalize os títulos dos relatórios usando nosso',
+            customNameTitle: 'Título padrão do relatório',
+            customNameDescription: 'Escolha um nome personalizado para relatórios de despesas usando nosso',
+            customNameDescriptionLink: 'fórmulas extensivas',
+            customNameInputLabel: 'Nome',
+            customNameEmailPhoneExample: 'Email ou telefone do membro: {report:submit:from}',
+            customNameStartDateExample: 'Data de início do relatório: {report:startdate}',
+            customNameWorkspaceNameExample: 'Nome do espaço de trabalho: {report:workspacename}',
+            customNameReportIDExample: 'ID do Relatório: {report:id}',
+            customNameTotalExample: 'Total: {report:total}.',
+            preventMembersFromChangingCustomNamesTitle: 'Impedir que os membros alterem os nomes dos relatórios personalizados',
         },
         reportFields: {
             addField: 'Adicionar campo',
@@ -5489,17 +5542,6 @@ const translations = {
                     one: '1 dia',
                     other: (count: number) => `${count} dias`,
                 }),
-                cashExpenseDefault: 'Despesa em dinheiro padrão',
-                cashExpenseDefaultDescription:
-                    'Escolha como as despesas em dinheiro devem ser criadas. Uma despesa é considerada em dinheiro se não for uma transação de cartão corporativo importada. Isso inclui despesas criadas manualmente, recibos, diárias, distância e despesas de tempo.',
-                reimbursableDefault: 'Reembolsável',
-                reimbursableDefaultDescription: 'Despesas geralmente são reembolsadas aos funcionários',
-                nonReimbursableDefault: 'Não reembolsável',
-                nonReimbursableDefaultDescription: 'Despesas às vezes são reembolsadas aos funcionários',
-                alwaysReimbursable: 'Sempre reembolsável',
-                alwaysReimbursableDescription: 'Despesas são sempre reembolsadas aos funcionários',
-                alwaysNonReimbursable: 'Nunca reembolsável',
-                alwaysNonReimbursableDescription: 'Despesas nunca são reembolsadas aos funcionários',
                 billableDefault: 'Padrão faturável',
                 billableDefaultDescription: 'Escolha se as despesas em dinheiro e cartão de crédito devem ser faturáveis por padrão. Despesas faturáveis são ativadas ou desativadas em',
                 billable: 'Faturável',
@@ -5521,20 +5563,8 @@ const translations = {
                 adultEntertainment: 'Entretenimento adulto',
             },
             expenseReportRules: {
-                examples: 'Exemplos:',
                 title: 'Relatórios de despesas',
                 subtitle: 'Automatize a conformidade, aprovações e pagamentos de relatórios de despesas.',
-                customReportNamesSubtitle: 'Personalize os títulos dos relatórios usando nosso',
-                customNameTitle: 'Título padrão do relatório',
-                customNameDescription: 'Escolha um nome personalizado para relatórios de despesas usando nosso',
-                customNameDescriptionLink: 'fórmulas extensivas',
-                customNameInputLabel: 'Nome',
-                customNameEmailPhoneExample: 'Email ou telefone do membro: {report:submit:from}',
-                customNameStartDateExample: 'Data de início do relatório: {report:startdate}',
-                customNameWorkspaceNameExample: 'Nome do espaço de trabalho: {report:workspacename}',
-                customNameReportIDExample: 'ID do Relatório: {report:id}',
-                customNameTotalExample: 'Total: {report:total}.',
-                preventMembersFromChangingCustomNamesTitle: 'Impedir que os membros alterem os nomes dos relatórios personalizados',
                 preventSelfApprovalsTitle: 'Prevenir autoaprovações',
                 preventSelfApprovalsSubtitle: 'Impedir que os membros do espaço de trabalho aprovem seus próprios relatórios de despesas.',
                 autoApproveCompliantReportsTitle: 'Aprovar automaticamente relatórios em conformidade',
@@ -5799,8 +5829,6 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `atualizou "Refaturar despesas para clientes" para "${newValue}" (anteriormente "${oldValue}")`,
-        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `atualizou "Despesa em dinheiro padrão" para "${newValue}" (anteriormente "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `transformado "Aplicar títulos padrão de relatórios" ${value ? 'em' : 'desligado'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `atualizou o nome deste espaço de trabalho para "${newName}" (anteriormente "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -6009,6 +6037,7 @@ const translations = {
             paid: 'Data de pagamento',
             exported: 'Data exportada',
             posted: 'Data de postagem',
+            withdrawn: 'Data de retirada',
             billable: 'Faturável',
             reimbursable: 'Reembolsável',
             groupBy: {
@@ -6017,6 +6046,10 @@ const translations = {
                 cards: 'Cartão',
             },
             feed: 'Feed',
+            withdrawalType: {
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reembolso',
+            },
         },
         groupBy: 'Agrupar por',
         moneyRequestReport: {
@@ -6026,6 +6059,7 @@ const translations = {
         noCategory: 'Sem categoria',
         noTag: 'Sem etiqueta',
         expenseType: 'Tipo de despesa',
+        withdrawalType: 'Tipo de retirada',
         recentSearches: 'Pesquisas recentes',
         recentChats: 'Chats recentes',
         searchIn: 'Pesquisar em',
@@ -6301,8 +6335,7 @@ const translations = {
         levelThreeResult: 'Mensagem removida do canal, além de um aviso anônimo, e a mensagem foi relatada para revisão.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Convidar para enviar despesas',
-        inviteToChat: 'Convidar apenas para conversar',
+        invite: 'Convide-os',
         nothing: 'Não faça nada',
     },
     actionableMentionJoinWorkspaceOptions: {
