@@ -5267,7 +5267,7 @@ const translations = {
             successTitle: '哇哦！一切就绪。',
             successDescription: '您现在是此工作区的所有者。',
             errorTitle: '哎呀！别这么快...',
-            errorDescription: `<muted-text><centered-text>该工作区所有权的转移出现问题。请重试，或<a href="mailto:${CONST.EMAIL.CONCIERGE}">联系 Concierge </a>寻求帮助。</centered-text></muted-text>`,
+            errorDescription: `<muted-text><centered-text>该工作区所有权的转移出现问题。请重试，或<concierge-link>联系 Concierge </concierge-link>寻求帮助。</centered-text></muted-text>`,
         },
         exportAgainModal: {
             title: '小心！',

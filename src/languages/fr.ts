@@ -5362,7 +5362,7 @@ const translations = {
             successTitle: 'Youpi ! Tout est prêt.',
             successDescription: 'Vous êtes maintenant le propriétaire de cet espace de travail.',
             errorTitle: 'Oups ! Pas si vite...',
-            errorDescription: `<muted-text><centered-text>Un problème est survenu lors du transfert de propriété de cet espace de travail. Veuillez réessayer ou <a href="mailto:${CONST.EMAIL.CONCIERGE}">contacter le Concierge</a> pour obtenir de l'aide.</centered-text></muted-text>`,
+            errorDescription: `<muted-text><centered-text>Un problème est survenu lors du transfert de propriété de cet espace de travail. Veuillez réessayer ou <concierge-link>contacter le Concierge</concierge-link> pour obtenir de l'aide.</centered-text></muted-text>`,
         },
         exportAgainModal: {
             title: 'Attention !',

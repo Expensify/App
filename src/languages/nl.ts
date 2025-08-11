@@ -5360,7 +5360,7 @@ const translations = {
             successTitle: 'Woohoo! Alles klaar.',
             successDescription: 'Je bent nu de eigenaar van deze werkruimte.',
             errorTitle: 'Oeps! Niet zo snel...',
-            errorDescription: `<muted-text><centered-text>Er is een probleem opgetreden bij het overdragen van het eigendom van deze werkruimte. Probeer het opnieuw of <a href="mailto:${CONST.EMAIL.CONCIERGE}">neem contact op met Concierge</a> voor hulp.</centered-text></muted-text>`,
+            errorDescription: `<muted-text><centered-text>Er is een probleem opgetreden bij het overdragen van het eigendom van deze werkruimte. Probeer het opnieuw of <concierge-link>neem contact op met Concierge</concierge-link> voor hulp.</centered-text></muted-text>`,
         },
         exportAgainModal: {
             title: 'Voorzichtig!',
