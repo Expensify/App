@@ -54,6 +54,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         <IOURequestEditReportCommon
             backTo={backTo}
             transactionsReports={transactionReport ? [transactionReport] : []}
+            transactionIds={selectedTransactionIDs}
             selectReport={selectReport}
             removeFromReport={removeFromReport}
             isEditing={action === CONST.IOU.ACTION.EDIT}

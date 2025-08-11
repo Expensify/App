@@ -54,6 +54,7 @@ function SearchTransactionsChangeReport() {
         <IOURequestEditReportCommon
             backTo={undefined}
             transactionsReports={transactionsReports}
+            transactionIds={selectedTransactionsKeys}
             selectReport={selectReport}
             removeFromReport={removeFromReport}
             isEditing

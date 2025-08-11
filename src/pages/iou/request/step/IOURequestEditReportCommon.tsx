@@ -43,6 +43,7 @@ const reportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
 type Props = {
     backTo: Route | undefined;
     transactionsReports: Report[];
+    transactionIds?: string[];
     policyID?: string;
     selectReport: (item: TransactionGroupListItem) => void;
     removeFromReport?: () => void;
@@ -54,6 +55,7 @@ type Props = {
 function IOURequestEditReportCommon({
     backTo,
     transactionsReports,
+    transactionIds,
     selectReport,
     policyID: policyIDFromProps,
     removeFromReport,
@@ -74,12 +76,14 @@ function IOURequestEditReportCommon({
     const isOwner = onlyReport ? onlyReport.ownerAccountID === currentUserPersonalDetails.accountID : false;
     const isReportIOU = onlyReport ? isIOUReport(onlyReport) : false;
     const isCardTransaction = useMemo(() => {
-        if (!onlyReport) {
+        if (!transactionIds || !onlyReport) {
             return false;
         }
         const transactions = getReportTransactions(onlyReport.reportID) ?? [];
-        return transactions.some((transaction) => transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT);
-    }, [onlyReport]);
+        return transactions
+            .filter((transaction) => transactionIds.includes(transaction.transactionID))
+            .some((transaction) => transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT);
+    }, [transactionIds, onlyReport]);
 
     const shouldShowRemoveFromReport = isEditing && isOwner && !isReportIOU && !isUnreported && !isCardTransaction;
 
