@@ -4,6 +4,7 @@ import {sub as dateSubtract} from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
+import type {SearchFilterKey} from '@components/Search/types';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import BankAccount from '@libs/models/BankAccount';
@@ -995,10 +996,8 @@ const CONST = {
         ADMIN_TOUR_MOBILE: 'https://app.storylane.io/demo/b6faqcdsxgww?embed=inline',
         TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/mqzy3huvtrhx?embed=inline',
         TRACK_WORKSPACE_TOUR_MOBILE: 'https://app.storylane.io/share/wq4hiwsqvoho?embed=inline',
-
-        // At the moment we are using Navattic links, but it will be changed to Storylane in the future.
-        EMPLOYEE_TOUR: 'https://expensify.navattic.com/35609gb',
-        EMPLOYEE_TOUR_MOBILE: 'https://expensify.navattic.com/35609gb',
+        EMPLOYEE_TOUR: 'https://app.storylane.io/share/izmryscwurdd?embed=inline',
+        EMPLOYEE_TOUR_MOBILE: 'https://app.storylane.io/share/wckqdetaacgy?embed=inline',
     },
     OLD_DOT_PUBLIC_URLS: {
         TERMS_URL: `${EXPENSIFY_URL}/terms`,
@@ -1287,8 +1286,7 @@ const CONST = {
                 },
             },
             THREAD_DISABLED: ['CREATED'],
-            // Used when displaying reportActions list to handle unread messages icon/button
-            SCROLL_VERTICAL_OFFSET_THRESHOLD: 200,
+            LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD: 2000,
             ACTION_VISIBLE_THRESHOLD: 250,
             MAX_GROUPING_TIME: 300000,
         },
@@ -6287,6 +6285,10 @@ const CONST = {
             DISTANCE: 'distance',
             PER_DIEM: 'perDiem',
         },
+        WITHDRAWAL_TYPE: {
+            EXPENSIFY_CARD: 'expensify-card',
+            REIMBURSEMENT: 'reimbursement',
+        },
         SORT_ORDER: {
             ASC: 'asc',
             DESC: 'desc',
@@ -6398,6 +6400,7 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            WITHDRAWAL_TYPE: 'withdrawalType',
             WITHDRAWN: 'withdrawn',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
@@ -6443,6 +6446,7 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            WITHDRAWAL_TYPE: 'withdrawal-type',
             WITHDRAWN: 'withdrawn',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
@@ -6976,6 +6980,14 @@ const CONST = {
     },
 } as const;
 
+const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
+] as SearchFilterKey[];
+
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
@@ -6988,5 +7000,7 @@ type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
 type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
 export type {Country, IOUAction, IOUType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInvite, OnboardingAccounting, IOUActionParams};
+
+export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS};
 
 export default CONST;

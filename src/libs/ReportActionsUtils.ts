@@ -372,6 +372,10 @@ function isReopenedAction(reportAction: OnyxEntry<ReportAction>): reportAction i
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REOPENED);
 }
 
+function isRetractedAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RETRACTED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.RETRACTED);
+}
+
 function isRoomChangeLogAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>> {
     return reportAction?.actionName ? ROOM_CHANGE_LOG_ARRAY.has(reportAction.actionName) : false;
 }
@@ -1368,17 +1372,6 @@ function isReportActionAttachment(reportAction: OnyxInputOrEntry<ReportAction>):
     }
 
     return false;
-}
-
-// eslint-disable-next-line rulesdir/no-negated-variables
-function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
-    if (!reportAction) {
-        return false;
-    }
-
-    const actions: ReportActionName[] = [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE];
-
-    return actions.includes(reportAction.actionName);
 }
 
 // We pass getReportName as a param to avoid cyclic dependency.
@@ -2891,10 +2884,6 @@ function getCardIssuedMessage({
     }
 }
 
-function getReportActionsLength() {
-    return Object.keys(allReportActions ?? {}).length;
-}
-
 function getReportActions(report: Report) {
     return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
 }
@@ -3051,7 +3040,6 @@ export {
     isModifiedExpenseAction,
     isMovedTransactionAction,
     isMoneyRequestAction,
-    isNotifiableReportAction,
     isOldDotReportAction,
     isPayAction,
     isPendingRemove,
@@ -3105,7 +3093,6 @@ export {
     getCardIssuedMessage,
     getRemovedConnectionMessage,
     getActionableJoinRequestPendingReportAction,
-    getReportActionsLength,
     getFilteredReportActionsForReportView,
     wasMessageReceivedWhileOffline,
     shouldShowAddMissingDetails,
@@ -3139,6 +3126,7 @@ export {
     getRetractedMessage,
     getReportActionFromExpensifyCard,
     isReopenedAction,
+    isRetractedAction,
     getIntegrationSyncFailedMessage,
     getManagerOnVacation,
     getVacationer,
