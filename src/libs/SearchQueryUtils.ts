@@ -293,16 +293,11 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${Array.isArray(query.status) ? query.status.join(',') : query.status}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${query.groupBy}`;
 
-    // Certain filters shouldn't affect whether two searchers are similar or not
-    // s77rt add group-currency filter
-    const similarSearchIgnoredFilters = new Set<SearchFilterKey>([]);
     let similarSearchHashInput = orderedQuery;
 
     query.flatFilters
         .map((filter) => {
-            if (!similarSearchIgnoredFilters.has(filter.key)) {
-                similarSearchHashInput += filter.key;
-            }
+            similarSearchHashInput += filter.key;
 
             const filters = cloneDeep(filter.filters);
             filters.sort((a, b) => customCollator.compare(a.value.toString(), b.value.toString()));
