@@ -156,12 +156,12 @@ function getForReportAction({
     reportOrID,
     reportAction,
     searchReports,
-    policyTags = {},
+    policyTags,
 }: {
     reportOrID: string | SearchReport | undefined;
     reportAction: OnyxEntry<ReportAction>;
     searchReports?: SearchReport[];
-    policyTags?: PolicyTagLists;
+    policyTags: PolicyTagLists;
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';

@@ -358,6 +358,9 @@ type PureReportActionItemProps = {
 
     /** Whether to highlight the action for a few seconds */
     shouldHighlight?: boolean;
+
+    /** Policy tags for the current report's policy */
+    policyTags?: OnyxTypes.PolicyTagLists;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -640,6 +643,7 @@ function PureReportActionItem({
                         setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
                     },
                     disabledOptions: disabledActions,
+                    policyTags,
                 });
             });
         },
