@@ -1,5 +1,6 @@
 import React, {useContext, useEffect} from 'react';
 import type {ViewProps} from 'react-native';
+import {DeviceEventEmitter} from 'react-native';
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
 import Reanimated, {useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
@@ -77,12 +78,22 @@ function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
     const syncLocalWorkletState = useSharedValue(KeyboardState.UNKNOWN);
     const {windowHeight} = useWindowDimensions();
     const {currentActionSheetState, transitionActionSheetStateWorklet: transition, resetStateMachine} = useContext(ActionSheetAwareScrollViewContext);
+    const additionalOffset = useSharedValue(0);
 
-    // Reset state machine when component unmounts
-    // eslint-disable-next-line arrow-body-style
+    // Reset state machine when component unmounts and listen for additional offset updates
     useEffect(() => {
-        return () => resetStateMachine();
-    }, [resetStateMachine]);
+        // Listen for additional offset updates (e.g., inverted list header height).
+        // We use it for MoneyRequestReportActionsList since there messages stick to the top of the screen and we need count that in the offset.
+        const subscription = DeviceEventEmitter.addListener('invertedListHeaderHeight', (height: number) => {
+            additionalOffset.value = height;
+        });
+
+        // eslint-disable-next-line arrow-body-style
+        return () => {
+            subscription.remove();
+            resetStateMachine();
+        };
+    }, [resetStateMachine, additionalOffset]);
 
     useAnimatedReaction(
         () => keyboard.state.get(),
@@ -154,8 +165,9 @@ function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
             case States.POPOVER_OPEN: {
                 if (popoverHeight) {
                     if (previousElementOffset !== 0 || elementOffset > previousElementOffset) {
-                        const returnValue = elementOffset < 0 ? 0 : elementOffset;
-                        return withSpring(returnValue, SPRING_CONFIG);
+                        // Add any additional offset (e.g., from inverted list header) to the calculation
+                        const adjustedOffset = elementOffset < 0 ? 0 : elementOffset + additionalOffset.get();
+                        return withSpring(adjustedOffset, SPRING_CONFIG);
                     }
 
                     const returnValue = Math.max(previousElementOffset, 0);
