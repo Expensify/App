@@ -23,7 +23,7 @@ import {isValidDraftComment} from '@libs/DraftCommentUtils';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
-import {getLinkedTransactionID, getOneTransactionThreadReportID, getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
+import {getOneTransactionThreadReportID, getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
@@ -185,7 +185,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const itemIouReportReportActions = iouReportIDOfLastAction ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`] : undefined;
 
             const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${item?.policyID}`];
-            const transactionID = getLinkedTransactionID(itemParentReportAction) ?? CONST.DEFAULT_NUMBER_ID;
+            const transactionID = isMoneyRequestAction(itemParentReportAction)
+                ? (getOriginalMessage(itemParentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
+                : CONST.DEFAULT_NUMBER_ID;
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             const hasDraftComment = isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
 
@@ -194,7 +196,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const lastReportAction = sortedReportActions.at(0);
 
             // Get the transaction for the last report action
-            const lastReportActionTransactionID = getLinkedTransactionID(lastReportAction) ?? CONST.DEFAULT_NUMBER_ID;
+            const lastReportActionTransactionID = isMoneyRequestAction(lastReportAction)
+                ? (getOriginalMessage(lastReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
+                : CONST.DEFAULT_NUMBER_ID;
             const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`];
 
             // SidebarUtils.getOptionData in OptionRowLHNData does not get re-evaluated when the linked task report changes, so we have the lastMessageTextFromReport evaluation logic here

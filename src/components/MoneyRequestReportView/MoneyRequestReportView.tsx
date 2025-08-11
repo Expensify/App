@@ -19,7 +19,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {getFilteredReportActionsForReportView, getLinkedTransactionID, getOneTransactionThreadReportID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
@@ -136,7 +136,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const reportHeaderView = useMemo(() => {
         if (isTransactionThreadView) {
             // Extract transaction ID from parent report action to get specific violations
-            const transactionID = getLinkedTransactionID(parentReportAction);
+            const transactionID = isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
             const transactionViolations = transactionID && reportViolations ? (reportViolations as Record<string, OnyxTypes.TransactionViolations>)[transactionID] : undefined;
 
             return (

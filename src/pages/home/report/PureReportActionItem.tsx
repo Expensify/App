@@ -65,7 +65,6 @@ import {
     getIntegrationSyncFailedMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
-    getLinkedTransactionID,
     getOriginalMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogDefaultBillableMessage,
@@ -477,7 +476,7 @@ function PureReportActionItem({
     const {isOnSearch, currentSearchHash} = useSearchContext();
     const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
     const dismissError = useCallback(() => {
-        const transactionID = getLinkedTransactionID(action);
+        const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         if (transactionID) {
             clearError(transactionID);
         }
@@ -1373,7 +1372,7 @@ function PureReportActionItem({
         return <ReportActionItemGrouped wrapperStyle={isWhisper ? styles.pt1 : {}}>{content}</ReportActionItemGrouped>;
     };
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-        const transactionID = getLinkedTransactionID(parentReportActionForTransactionThread);
+        const transactionID = isMoneyRequestAction(parentReportActionForTransactionThread) ? getOriginalMessage(parentReportActionForTransactionThread)?.IOUTransactionID : undefined;
 
         return (
             <ReportActionItemContentCreated
