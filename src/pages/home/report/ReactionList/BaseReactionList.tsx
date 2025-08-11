@@ -65,7 +65,6 @@ function BaseReactionList({hasUserReacted = false, users, isVisible = false, emo
                 });
             }}
             option={{
-                reportID: '',
                 accountID: item.accountID,
                 text: Str.removeSMSDomain(item.displayName ?? ''),
                 alternateText: Str.removeSMSDomain(item.login ?? ''),
