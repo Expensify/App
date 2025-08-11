@@ -87,6 +87,7 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
     paid: 'paid',
     exported: 'exported',
     posted: 'posted',
+    withdrawn: 'withdrawn',
     groupBy: 'group-by',
     title: 'title',
     assignee: 'assignee',

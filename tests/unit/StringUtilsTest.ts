@@ -102,4 +102,31 @@ second
             expect(StringUtils.decodeUnicode('')).toBe('');
         });
     });
+
+    describe('startsWithVowel', () => {
+        it('returns true for strings starting with lowercase vowels', () => {
+            expect(StringUtils.startsWithVowel('apple')).toBe(true);
+            expect(StringUtils.startsWithVowel('elephant')).toBe(true);
+            expect(StringUtils.startsWithVowel('igloo')).toBe(true);
+            expect(StringUtils.startsWithVowel('orange')).toBe(true);
+            expect(StringUtils.startsWithVowel('umbrella')).toBe(true);
+        });
+
+        it('returns true for strings starting with uppercase vowels', () => {
+            expect(StringUtils.startsWithVowel('Apple')).toBe(true);
+            expect(StringUtils.startsWithVowel('Elephant')).toBe(true);
+            expect(StringUtils.startsWithVowel('Igloo')).toBe(true);
+            expect(StringUtils.startsWithVowel('Orange')).toBe(true);
+            expect(StringUtils.startsWithVowel('Umbrella')).toBe(true);
+        });
+
+        it('returns false for strings starting with other letters', () => {
+            expect(StringUtils.startsWithVowel('banana')).toBe(false);
+            expect(StringUtils.startsWithVowel('cat')).toBe(false);
+            expect(StringUtils.startsWithVowel('dog')).toBe(false);
+            expect(StringUtils.startsWithVowel('zebra')).toBe(false);
+            expect(StringUtils.startsWithVowel('123')).toBe(false);
+            expect(StringUtils.startsWithVowel('@example')).toBe(false);
+        });
+    });
 });

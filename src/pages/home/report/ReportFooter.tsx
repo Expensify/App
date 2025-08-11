@@ -53,6 +53,9 @@ type ReportFooterProps = {
     /** Report transactions */
     reportTransactions?: OnyxEntry<OnyxTypes.Transaction[]>;
 
+    /** The ID of the transaction thread report if there is a single transaction */
+    transactionThreadReportID?: string;
+
     /** The policy of the report */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -86,6 +89,7 @@ function ReportFooter({
     onComposerBlur,
     onComposerFocus,
     reportTransactions,
+    transactionThreadReportID,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -175,10 +179,14 @@ function ReportFooter({
             if (isTaskCreated) {
                 return;
             }
-            addComment(report.reportID, text, true);
+
+            // If we are adding an action on an expense report that only has a single transaction thread child report, we need to add the action to the transaction thread instead.
+            // This is because we need it to be associated with the transaction thread and not the expense report in order for conversational corrections to work as expected.
+            const targetReportID = transactionThreadReportID ?? report.reportID;
+            addComment(targetReportID, text, true);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [report.reportID, handleCreateTask],
+        [report.reportID, handleCreateTask, transactionThreadReportID],
     );
 
     const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInput);
