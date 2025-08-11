@@ -51,6 +51,7 @@ import type {
     SetWorkspaceAutoReportingMonthlyOffsetParams,
     SetWorkspacePayerParams,
     SetWorkspaceReimbursementParams,
+    ToggleReceiptPartnersParams,
     UpdateInvoiceCompanyNameParams,
     UpdateInvoiceCompanyWebsiteParams,
     UpdatePolicyAddressParams,
@@ -91,6 +92,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     IntroSelected,
     InvitedEmailsToAccountIDs,
+    LastPaymentMethod,
+    LastPaymentMethodType,
     PersonalDetailsList,
     Policy,
     PolicyCategory,
@@ -107,6 +110,7 @@ import type {
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, ProhibitedExpenses, Rate, TaxRate} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
+import type {NotificationPreference} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {buildOptimisticMccGroup, buildOptimisticPolicyCategories} from './Category';
@@ -152,6 +156,8 @@ type BuildPolicyDataOptions = {
     shouldAddOnboardingTasks?: boolean;
     companySize?: OnboardingCompanySize;
     userReportedIntegration?: OnboardingAccounting;
+    featuresMap?: Feature[];
+    lastUsedPaymentMethod?: LastPaymentMethodType;
 };
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -168,19 +174,17 @@ Onyx.connect({
             const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
             const policyReports = ReportUtils.getAllPolicyReports(policyID);
             const cleanUpMergeQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, NullishDeep<Report>> = {};
-            const cleanUpDrafts: Record<string, null> = {};
-            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
+            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}` | `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
             policyReports.forEach((policyReport) => {
                 if (!policyReport) {
                     return;
                 }
                 const {reportID} = policyReport;
-                cleanUpDrafts[reportID] = null;
+                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
                 cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
             });
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, cleanUpMergeQueries);
             Onyx.multiSet(cleanUpSetQueries);
-            Onyx.merge(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, cleanUpDrafts);
             delete allPolicies[key];
             return;
         }
@@ -341,7 +345,7 @@ function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>>
 /**
  * Delete the workspace
  */
-function deleteWorkspace(policyID: string, policyName: string) {
+function deleteWorkspace(policyID: string, policyName: string, lastUsedPaymentMethods?: LastPaymentMethod) {
     if (!allPolicies) {
         return;
     }
@@ -499,6 +503,46 @@ function deleteWorkspace(policyID: string, policyName: string) {
                     value: violations,
                 });
             }
+        }
+    });
+
+    Object.keys(lastUsedPaymentMethods ?? {})?.forEach((paymentMethodKey) => {
+        const lastUsedPaymentMethod = lastUsedPaymentMethods?.[paymentMethodKey];
+
+        if (typeof lastUsedPaymentMethod === 'string' || !lastUsedPaymentMethod) {
+            return;
+        }
+
+        if (lastUsedPaymentMethod?.iou?.name === policyID) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+                value: {
+                    [paymentMethodKey]: {
+                        iou: {
+                            name: policyID !== lastUsedPaymentMethod?.lastUsed?.name ? lastUsedPaymentMethod?.lastUsed?.name : '',
+                        },
+                        lastUsed: {
+                            name: policyID !== lastUsedPaymentMethod?.lastUsed?.name ? lastUsedPaymentMethod?.lastUsed?.name : '',
+                        },
+                    },
+                },
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+                value: {
+                    [paymentMethodKey]: {
+                        iou: {
+                            name: lastUsedPaymentMethod?.iou?.name,
+                        },
+                        lastUsed: {
+                            name: lastUsedPaymentMethod?.iou?.name,
+                        },
+                    },
+                },
+            });
         }
     });
 
@@ -1116,7 +1160,12 @@ function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string) {
  *
  * @returns - object with onyxSuccessData, onyxOptimisticData, and optimisticReportIDs (map login to reportID)
  */
-function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs, hasOutstandingChildRequest = false): WorkspaceMembersChats {
+function createPolicyExpenseChats(
+    policyID: string,
+    invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
+    hasOutstandingChildRequest = false,
+    notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+): WorkspaceMembersChats {
     const workspaceMembersChats: WorkspaceMembersChats = {
         onyxSuccessData: [],
         onyxOptimisticData: [],
@@ -1179,7 +1228,7 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             policyID,
             ownerAccountID: cleanAccountID,
-            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            notificationPreference,
         });
 
         // Set correct notification preferences: visible for the submitter, hidden for others until there's activity
@@ -1890,6 +1939,8 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         shouldAddOnboardingTasks = true,
         companySize,
         userReportedIntegration,
+        featuresMap,
+        lastUsedPaymentMethod,
     } = options;
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
@@ -1918,9 +1969,10 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
     const shouldSetCreatedWorkspaceAsActivePolicy = !!activePolicyID && allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
 
-    // Determine workspace type based on user reported integration
-    const workspaceType =
-        userReportedIntegration && (CONST.POLICY.CONNECTIONS.CORPORATE as readonly string[]).includes(userReportedIntegration) ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
+    // Determine workspace type based on selected features or user reported integration
+    const isCorporateFeature = featuresMap?.some((feature) => !feature.enabledByDefault && feature.enabled && feature.requiresUpdate) ?? false;
+    const isCorporateIntegration = userReportedIntegration && (CONST.POLICY.CONNECTIONS.CORPORATE as readonly string[]).includes(userReportedIntegration);
+    const workspaceType = isCorporateFeature || isCorporateIntegration ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
     const optimisticData: OnyxUpdate[] = [
@@ -2193,6 +2245,32 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         successData.push(...optimisticCategoriesData.successData);
     }
 
+    if (getAdminPolicies().length === 0 && lastUsedPaymentMethod) {
+        Object.values(allReports ?? {})
+            .filter((iouReport) => iouReport?.type === CONST.REPORT.TYPE.IOU)
+            .forEach((iouReport) => {
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                if (lastUsedPaymentMethod?.iou?.name || !iouReport?.policyID) {
+                    return;
+                }
+
+                successData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+                    value: {
+                        [iouReport?.policyID]: {
+                            iou: {
+                                name: policyID,
+                            },
+                            lastUsed: {
+                                name: policyID,
+                            },
+                        },
+                    },
+                });
+            });
+    }
+
     // We need to clone the file to prevent non-indexable errors.
     const clonedFile = file ? (createFile(file) as File) : undefined;
 
@@ -2253,30 +2331,14 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     return {successData, optimisticData, failureData, params};
 }
 
-function createWorkspace(
-    policyOwnerEmail = '',
-    makeMeAdmin = false,
-    policyName = '',
-    policyID = generatePolicyID(),
-    engagementChoice: OnboardingPurpose = CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
-    currency = '',
-    file?: File,
-    shouldAddOnboardingTasks = true,
-    companySize?: OnboardingCompanySize,
-    userReportedIntegration?: OnboardingAccounting,
-): CreateWorkspaceParams {
-    const {optimisticData, failureData, successData, params} = buildPolicyData({
-        policyOwnerEmail,
-        makeMeAdmin,
-        policyName,
-        policyID,
-        engagementChoice,
-        currency,
-        file,
-        shouldAddOnboardingTasks,
-        companySize,
-        userReportedIntegration,
-    });
+function createWorkspace(options: BuildPolicyDataOptions = {}): CreateWorkspaceParams {
+    // Set default engagement choice if not provided
+    const optionsWithDefaults = {
+        engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+        ...options,
+    };
+
+    const {optimisticData, failureData, successData, params} = buildPolicyData(optionsWithDefaults);
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
 
@@ -3150,6 +3212,54 @@ function enablePolicyConnections(policyID: string, enabled: boolean) {
     const parameters: EnablePolicyConnectionsParams = {policyID, enabled};
 
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS, parameters, onyxData);
+
+    if (enabled && getIsNarrowLayout()) {
+        goBackWhenEnableFeature(policyID);
+    }
+}
+
+function enablePolicyReceiptPartners(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areReceiptPartnersEnabled: enabled,
+                    pendingFields: {
+                        areReceiptPartnersEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        areReceiptPartnersEnabled: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areReceiptPartnersEnabled: !enabled,
+                    pendingFields: {
+                        areReceiptPartnersEnabled: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: ToggleReceiptPartnersParams = {policyID, enabled};
+
+    API.write(WRITE_COMMANDS.TOGGLE_RECEIPT_PARTNERS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
         goBackWhenEnableFeature(policyID);
@@ -5468,7 +5578,7 @@ function updateFeature(
     API.writeWithNoDuplicatesEnableFeatureConflicts(request.endpoint, request.parameters);
 }
 
-function updateInterestedFeatures(features: Feature[], policyID: string) {
+function updateInterestedFeatures(features: Feature[], policyID: string, type: string | undefined) {
     let shouldUpgradeToCorporate = false;
 
     const requests: Array<{
@@ -5477,8 +5587,8 @@ function updateInterestedFeatures(features: Feature[], policyID: string) {
     }> = [];
 
     features.forEach((feature) => {
-        // If the feature is not enabled by default and it's programmatically enabled, we need to enable it
-        if (!feature.enabledByDefault && feature.programmaticallyEnabled) {
+        // If the feature is not enabled by default but it's enabled now, we need to enable it
+        if (!feature.enabledByDefault && feature.enabled) {
             if (feature.requiresUpdate && !shouldUpgradeToCorporate) {
                 shouldUpgradeToCorporate = true;
             }
@@ -5490,8 +5600,8 @@ function updateInterestedFeatures(features: Feature[], policyID: string) {
                 },
             });
         }
-        // If the feature is enabled by default and it's programmatically disabled, we need to disable it
-        if (feature.enabledByDefault && !feature.programmaticallyEnabled) {
+        // If the feature is enabled by default but it's not enabled now, we need to disable it
+        if (feature.enabledByDefault && !feature.enabled) {
             requests.push({
                 endpoint: feature.apiEndpoint,
                 parameters: {
@@ -5502,7 +5612,8 @@ function updateInterestedFeatures(features: Feature[], policyID: string) {
         }
     });
 
-    if (shouldUpgradeToCorporate) {
+    const isCorporate = type === CONST.POLICY.TYPE.CORPORATE;
+    if (shouldUpgradeToCorporate && !isCorporate) {
         API.write(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, {policyID});
     }
 
@@ -5562,6 +5673,7 @@ export {
     openPolicyWorkflowsPage,
     enableCompanyCards,
     enablePolicyConnections,
+    enablePolicyReceiptPartners,
     enablePolicyReportFields,
     enablePolicyTaxes,
     enablePolicyWorkflows,

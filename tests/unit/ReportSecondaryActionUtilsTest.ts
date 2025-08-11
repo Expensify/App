@@ -1088,11 +1088,11 @@ describe('getSecondaryExportReportActions', () => {
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
     });
 
-    it('should always return default option', () => {
+    it('should always return default options', () => {
         const report = {} as unknown as Report;
         const policy = {} as unknown as Policy;
 
-        const result = [CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV];
+        const result = [CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV, CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT];
         expect(getSecondaryExportReportActions(report, policy)).toEqual(result);
     });
 
@@ -1247,7 +1247,7 @@ describe('getSecondaryExportReportActions', () => {
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
     });
 
-    it('includes REMOVE HOLD option for admin', () => {
+    it('includes REMOVE HOLD option for admin if he is not the holder', () => {
         const report = {} as unknown as Report;
         const policy = {
             role: CONST.POLICY.ROLE.ADMIN,
@@ -1310,8 +1310,9 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
 
-    it('includes REMOVE HOLD option for admin', () => {
+    it('includes REMOVE HOLD option for transaction thread report admin if he is not the holder', () => {
         const report = {} as unknown as Report;
+        const transactionThreadReport = {} as unknown as Report;
         const policy = {
             role: CONST.POLICY.ROLE.ADMIN,
         } as unknown as Policy;
@@ -1321,8 +1322,14 @@ describe('getSecondaryTransactionThreadActions', () => {
             },
         } as unknown as Transaction;
 
-        const result = getSecondaryTransactionThreadActions(report, transaction, [], policy);
-        expect(result).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD);
+        jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(false);
+        const result = getSecondaryTransactionThreadActions(report, transaction, [], policy, transactionThreadReport);
+        expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
+
+        // Do not show if admin is the holder
+        jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(true);
+        const result2 = getSecondaryTransactionThreadActions(report, transaction, [], policy, transactionThreadReport);
+        expect(result2).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
 
     it('includes DELETE option for expense report submitter', async () => {
@@ -1379,5 +1386,115 @@ describe('getSecondaryTransactionThreadActions', () => {
 
         const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy, policies, reportActions});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(false);
+    });
+
+    it('includes the SPLIT option if the current user belongs to the workspace', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        } as unknown as Report;
+
+        const transaction = {
+            transactionID: 'TRANSACTION_ID',
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        const policy = {
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.TEAM,
+            isPolicyExpenseChatEnabled: true,
+            employeeList: {
+                [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
+                [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
+            },
+            role: CONST.POLICY.ROLE.ADMIN,
+        } as unknown as Policy;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryTransactionThreadActions(report, transaction, [actionR14932], policy);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
+    });
+
+    it('does not include the SPLIT option if the current user belongs to the workspace', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        } as unknown as Report;
+
+        const transaction = {
+            transactionID: 'TRANSACTION_ID',
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        const policy = {
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.TEAM,
+            isPolicyExpenseChatEnabled: true,
+            employeeList: {
+                [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
+            },
+            role: CONST.POLICY.ROLE.ADMIN,
+        } as unknown as Policy;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryTransactionThreadActions(report, transaction, [actionR14932], policy);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
+    });
+
+    it('does not include the SPLIT option if the policy is not expense chat enabled', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        } as unknown as Report;
+
+        const transaction = {
+            transactionID: 'TRANSACTION_ID',
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        const policy = {
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.TEAM,
+            isPolicyExpenseChatEnabled: false,
+            employeeList: {
+                [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
+                [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
+            },
+            role: CONST.POLICY.ROLE.ADMIN,
+        } as unknown as Policy;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryTransactionThreadActions(report, transaction, [actionR14932], policy);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
 });

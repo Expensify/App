@@ -63,7 +63,7 @@ type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<Wo
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -85,8 +85,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 employees: policy?.employeeList ?? {},
                 defaultApprover: policyApproverEmail ?? policy?.owner ?? '',
                 personalDetails: personalDetails ?? {},
+                localeCompare,
             }),
-        [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail],
+        [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail, localeCompare],
     );
     const {isBetaEnabled} = usePermissions();
 

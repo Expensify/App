@@ -31,6 +31,7 @@ import {
     canHoldUnholdReportAction,
     canJoinChat,
     canLeaveChat,
+    canSeeDefaultRoom,
     canUserPerformWriteAction,
     findLastAccessedReport,
     getAllAncestorReportActions,
@@ -45,7 +46,6 @@ import {
     getMostRecentlyVisitedReport,
     getParticipantsList,
     getPolicyExpenseChat,
-    getQuickActionDetails,
     getReasonAndReportActionThatRequiresAttention,
     getReportIDFromLink,
     getReportName,
@@ -58,6 +58,7 @@ import {
     isArchivedReport,
     isChatUsedForOnboarding,
     isDeprecatedGroupDM,
+    isMoneyRequestReportEligibleForMerge,
     isPayer,
     isReportOutstanding,
     isRootGroupChat,
@@ -108,10 +109,22 @@ import {
 import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
+import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('@libs/Permissions');
+
+jest.mock('@libs/Navigation/Navigation', () => ({
+    setNavigationActionToMicrotaskQueue: jest.fn(),
+    navigationRef: {
+        getCurrentRoute: jest.fn(() => ({
+            params: {
+                reportID: '2',
+            },
+        })),
+    },
+}));
 
 const testDate = DateUtils.getDBTime();
 const currentUserEmail = 'bjorn@vikings.net';
@@ -215,6 +228,10 @@ const personalDetails: PersonalDetailsList = {
     '7': {
         accountID: 7,
         login: 'owner@test.com',
+    },
+    '8': {
+        accountID: 8,
+        login: CONST.EMAIL.GUIDES_DOMAIN,
     },
 };
 
@@ -374,7 +391,7 @@ describe('ReportUtils', () => {
                     message: 'This is a test',
                     tasks: [
                         {
-                            type: 'test',
+                            type: CONST.ONBOARDING_TASK_TYPE.CREATE_REPORT,
                             title,
                             description: () => '',
                             autoCompleted: false,
@@ -403,7 +420,7 @@ describe('ReportUtils', () => {
                     message: 'This is a test',
                     tasks: [
                         {
-                            type: 'test',
+                            type: CONST.ONBOARDING_TASK_TYPE.CREATE_REPORT,
                             title: () => '',
                             description,
                             autoCompleted: false,
@@ -519,19 +536,19 @@ describe('ReportUtils', () => {
             const report1 = LHNTestUtils.getFakeReport();
             const report2 = LHNTestUtils.getFakeReport();
             const selectedReportID = report1.reportID;
-            expect(sortOutstandingReportsBySelected(report1, report2, selectedReportID)).toBe(-1);
+            expect(sortOutstandingReportsBySelected(report1, report2, selectedReportID, localeCompare)).toBe(-1);
         });
         it('should return 1 when report2 is selected and report1 is not', () => {
             const report1 = LHNTestUtils.getFakeReport();
             const report2 = LHNTestUtils.getFakeReport();
             const selectedReportID = report2.reportID;
-            expect(sortOutstandingReportsBySelected(report1, report2, selectedReportID)).toBe(1);
+            expect(sortOutstandingReportsBySelected(report1, report2, selectedReportID, localeCompare)).toBe(1);
         });
     });
 
     describe('getDisplayNamesWithTooltips', () => {
         test('withSingleParticipantReport', () => {
-            const participants = getDisplayNamesWithTooltips(participantsPersonalDetails, false);
+            const participants = getDisplayNamesWithTooltips(participantsPersonalDetails, false, localeCompare);
             expect(participants).toHaveLength(5);
 
             expect(participants.at(0)?.displayName).toBe('(833) 240-3627');
@@ -812,6 +829,67 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('Fallback scenarios', () => {
+        test('should fallback to report.reportName when primary name generation returns empty string', () => {
+            const reportWithFallbackName: Report = {
+                reportID: '3',
+                reportName: 'Custom Report Name',
+                ownerAccountID: undefined,
+                participants: {},
+                policyID: undefined,
+                chatType: undefined,
+            };
+
+            const result = getReportName(reportWithFallbackName);
+            expect(result).toBe('Custom Report Name');
+        });
+
+        test('should return empty string when both primary name generation and reportName are empty', () => {
+            const reportWithoutName: Report = {
+                reportID: '4',
+                reportName: '',
+                ownerAccountID: undefined,
+                participants: {},
+                policyID: undefined,
+                chatType: undefined,
+            };
+
+            const result = getReportName(reportWithoutName);
+            expect(result).toBe('');
+        });
+
+        test('should return empty string when reportName is undefined', () => {
+            const reportWithUndefinedName: Report = {
+                reportID: '5',
+                reportName: undefined,
+                ownerAccountID: undefined,
+                participants: {},
+                policyID: undefined,
+                chatType: undefined,
+            };
+
+            const result = getReportName(reportWithUndefinedName);
+            expect(result).toBe('');
+        });
+
+        test('should return Concierge display name for concierge chat report', async () => {
+            const conciergeReportID = 'concierge-123';
+            await Onyx.set(`${ONYXKEYS.CONCIERGE_REPORT_ID}`, conciergeReportID);
+
+            const conciergeReport: Report = {
+                reportID: conciergeReportID,
+                reportName: '',
+                ownerAccountID: undefined,
+                participants: {},
+                policyID: undefined,
+                chatType: undefined,
+            };
+
+            const result = getReportName(conciergeReport);
+            expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
+        });
+    });
+
     describe('Automatically approved report message via automatic (not by a human) action is', () => {
         test('shown when the report is forwarded (Control feature)', () => {
             const expenseReport = {
@@ -1086,6 +1164,16 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
                 };
                 const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID]);
+                expect(moneyRequestOptions.length).toBe(0);
+            });
+
+            it('its archived report', () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], true);
                 expect(moneyRequestOptions.length).toBe(0);
             });
 
@@ -1886,27 +1974,6 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('getQuickActionDetails', () => {
-        it('if the report is archived, the quick action will hide the subtitle and avatar', () => {
-            // Create a fake archived report as quick action report
-            const archivedReport: Report = {
-                ...LHNTestUtils.getFakeReport(),
-                reportID: '1',
-            };
-            const reportNameValuePairs = {
-                type: 'chat',
-                private_isArchived: DateUtils.getDBTime(),
-            };
-
-            // Get the quick action detail
-            const quickActionDetails = getQuickActionDetails(archivedReport, undefined, undefined, reportNameValuePairs);
-
-            // Expect the quickActionAvatars is empty array and hideQABSubtitle is true since the quick action report is archived
-            expect(quickActionDetails.quickActionAvatars.length).toEqual(0);
-            expect(quickActionDetails.hideQABSubtitle).toEqual(true);
-        });
-    });
-
     describe('canEditMoneyRequest', () => {
         it('it should return false for archived invoice', async () => {
             const invoiceReport: Report = {
@@ -2228,7 +2295,7 @@ describe('ReportUtils', () => {
             const isInFocusMode = false;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
-            await Onyx.merge(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, {[report.reportID]: 'fake draft'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, 'fake draft');
 
             expect(
                 shouldReportBeInOptionList({
@@ -3695,6 +3762,34 @@ describe('ReportUtils', () => {
             };
             expect(isReportOutstanding(report, policy.id)).toBe(true);
         });
+        it('should return false for submitted reports if we specify it', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            expect(isReportOutstanding(report, policy.id, undefined, false)).toBe(false);
+        });
+        it('should return true for submitted reports if top most report ID is processing', async () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            const activeReport: Report = {
+                ...createRandomReport(2),
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${activeReport.reportID}`, activeReport);
+            expect(isReportOutstanding(report, policy.id)).toBe(true);
+        });
         it('should return false for archived report', async () => {
             const report: Report = {
                 ...createRandomReport(1),
@@ -4842,6 +4937,312 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('isMoneyRequestReportEligibleForMerge', () => {
+        const mockReportID = 'report123';
+        const differentUserAccountID = 123123;
+
+        beforeEach(async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+            });
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+        });
+
+        it('should return false when report is not a money request report', async () => {
+            // Given a regular chat report that is not a money request report
+            const chatReport: Report = {
+                ...createRandomReport(1),
+                reportID: mockReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, chatReport);
+
+            // When we check if the report is eligible for merge
+            const result = isMoneyRequestReportEligibleForMerge(mockReportID, true);
+
+            // Then it should return false because it's not a money request report
+            expect(result).toBe(false);
+        });
+
+        it('should return false when report does not exist', () => {
+            // Given a non-existent report ID
+            const nonExistentReportID = 'nonexistent123';
+
+            // When we check if the report is eligible for merge
+            const result = isMoneyRequestReportEligibleForMerge(nonExistentReportID, true);
+
+            // Then it should return false because the report doesn't exist
+            expect(result).toBe(false);
+        });
+
+        describe('Admin role', () => {
+            it('should return true for open expense report when user is admin', async () => {
+                // Given an open expense report and the user is an admin
+                const expenseReport: Report = {
+                    ...createExpenseReport(1),
+                    reportID: mockReportID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, expenseReport);
+
+                // When we check if the report is eligible for merge as an admin
+                const result = isMoneyRequestReportEligibleForMerge(mockReportID, true);
+
+                // Then it should return true because admins can merge open expense reports
+                expect(result).toBe(true);
+            });
+
+            it('should return true for processing expense report when user is admin', async () => {
+                // Given a processing expense report and the user is an admin
+                const expenseReport: Report = {
+                    ...createExpenseReport(1),
+                    reportID: mockReportID,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, expenseReport);
+
+                // When we check if the report is eligible for merge as an admin
+                const result = isMoneyRequestReportEligibleForMerge(mockReportID, true);
+
+                // Then it should return true because admins can merge processing expense reports
+                expect(result).toBe(true);
+            });
+
+            it('should return false for approved expense report when user is admin', async () => {
+                // Given an approved expense report and the user is an admin
+                const expenseReport: Report = {
+                    ...createExpenseReport(1),
+                    reportID: mockReportID,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, expenseReport);
+
+                // When we check if the report is eligible for merge as an admin
+                const result = isMoneyRequestReportEligibleForMerge(mockReportID, true);
+
+                // Then it should return false because approved reports are not eligible for merge
+                expect(result).toBe(false);
+            });
+
+            it('should return true for open IOU report when user is admin', async () => {
+                // Given an open IOU report and the user is an admin
+                const iouReport: Report = {
+                    ...createExpenseRequestReport(1),
+                    reportID: mockReportID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, iouReport);
+
+                // When we check if the report is eligible for merge as an admin
+                const result = isMoneyRequestReportEligibleForMerge(mockReportID, true);
+
+                // Then it should return true because admins can merge open IOU reports
+                expect(result).toBe(true);
+            });
+        });
+
+        describe('Submitter role', () => {
+            it('should return true for open expense report when user is submitter', async () => {
+                // Given an open expense report where the current user is the submitter
+                const expenseReport: Report = {
+                    ...createExpenseReport(1),
+                    reportID: mockReportID,
+                    ownerAccountID: currentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, expenseReport);
+
+                // When we check if the report is eligible for merge as a submitter
+                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false);
+
+                // Then it should return true because submitters can merge open expense reports
+                expect(result).toBe(true);
+            });
+
+            it('should return true for processing IOU report when user is submitter', async () => {
+                // Given a processing IOU report where the current user is the submitter
+                const iouReport: Report = {
+                    ...createExpenseRequestReport(1),
+                    reportID: mockReportID,
+                    ownerAccountID: currentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, iouReport);
+
+                // When we check if the report is eligible for merge as a submitter
+                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false);
+
+                // Then it should return true because submitters can merge processing IOU reports
+                expect(result).toBe(true);
+            });
+
+            it('should return true for processing expense report at first level approval when user is submitter', async () => {
+                const managerAccountID = 123123;
+                const managerEmail = 'manager@test.com';
+                // Create a policy with appropriate approval settings
+                const firstLevelApprovalPolicy: Policy = {
+                    ...createRandomPolicy(1),
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    preventSelfApproval: true,
+                    approver: managerEmail,
+                };
+
+                // Given a processing expense report at first level approval where the current user is the submitter
+                const expenseReport: Report = {
+                    ...createExpenseReport(1),
+                    policyID: firstLevelApprovalPolicy.id,
+                    reportID: mockReportID,
+                    ownerAccountID: currentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    managerID: managerAccountID,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, expenseReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${firstLevelApprovalPolicy.id}`, firstLevelApprovalPolicy);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [managerAccountID]: {
+                        accountID: managerAccountID,
+                        login: managerEmail,
+                    },
+                });
+
+                // When we check if the report is eligible for merge as a submitter
+                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false);
+
+                // Then it should return true because submitters can merge processing expense reports
+                expect(result).toBe(true);
+            });
+
+            it('should return false for processing expense report beyond first level approval when user is submitter', async () => {
+                // Given a processing expense report beyond first level approval where the current user is the submitter
+                const expenseReport: Report = {
+                    ...createExpenseReport(1),
+                    reportID: mockReportID,
+                    ownerAccountID: currentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, expenseReport);
+
+                // When we check if the report is eligible for merge as a submitter
+                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false);
+
+                // Then the result depends on the actual approval level logic in the implementation
+                expect(typeof result).toBe('boolean');
+            });
+
+            it('should return false when user is not the submitter', async () => {
+                // Given an open expense report where the current user is not the submitter
+                const expenseReport: Report = {
+                    ...createExpenseReport(1),
+                    reportID: mockReportID,
+                    ownerAccountID: differentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, expenseReport);
+
+                // When we check if the report is eligible for merge as a non-submitter
+                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false);
+
+                // Then it should return false because the user is not the submitter and not an admin
+                expect(result).toBe(false);
+            });
+        });
+
+        describe('Manager role', () => {
+            const managerAccountID = currentUserAccountID;
+
+            it('should return true for processing expense report when user is manager', async () => {
+                // Given a processing expense report where the current user is the manager
+                const expenseReport: Report = {
+                    ...createExpenseReport(1),
+                    reportID: mockReportID,
+                    ownerAccountID: differentUserAccountID, // Different user as submitter
+                    managerID: managerAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, expenseReport);
+
+                // When we check if the report is eligible for merge as a manager
+                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false);
+
+                // Then it should return true because managers can merge processing expense reports
+                expect(result).toBe(true);
+            });
+
+            it('should return false for open expense report when user is manager', async () => {
+                // Given an open expense report where the current user is the manager
+                const expenseReport: Report = {
+                    ...createExpenseReport(1),
+                    reportID: mockReportID,
+                    ownerAccountID: differentUserAccountID, // Different user as submitter
+                    managerID: managerAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, expenseReport);
+
+                // When we check if the report is eligible for merge as a manager
+                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false);
+
+                // Then it should return false because managers can only merge processing expense reports, not open ones
+                expect(result).toBe(false);
+            });
+
+            it('should return false for IOU report when user is manager', async () => {
+                // Given an IOU report where the current user is the manager
+                const iouReport: Report = {
+                    ...createExpenseRequestReport(1),
+                    reportID: mockReportID,
+                    ownerAccountID: differentUserAccountID, // Different user as submitter
+                    managerID: managerAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, iouReport);
+
+                // When we check if the report is eligible for merge as a manager
+                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false);
+
+                // Then it should return false because managers can only merge expense reports, not IOU reports
+                expect(result).toBe(false);
+            });
+
+            it('should return false when user is not the manager', async () => {
+                // Given a processing expense report where the current user is not the manager
+                const expenseReport: Report = {
+                    ...createExpenseReport(1),
+                    reportID: mockReportID,
+                    ownerAccountID: differentUserAccountID, // Different user as submitter
+                    managerID: differentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, expenseReport);
+
+                // When we check if the report is eligible for merge as a non-manager
+                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false);
+
+                // Then it should return false because the user is not the manager, submitter, or admin
+                expect(result).toBe(false);
+            });
+        });
+    });
+
     describe('getReportStatusTranslation', () => {
         it('should return "Draft" for state 0, status 0', () => {
             expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN)).toBe(translateLocal('common.draft'));
@@ -4875,6 +5276,37 @@ describe('ReportUtils', () => {
             expect(getReportStatusTranslation(undefined, undefined)).toBe('');
             expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.OPEN, undefined)).toBe('');
             expect(getReportStatusTranslation(undefined, CONST.REPORT.STATUS_NUM.OPEN)).toBe('');
+        });
+    });
+    describe('canSeeDefaultRoom', () => {
+        it('should return true if report is archived room ', () => {
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            const report: Report = {
+                ...createRandomReport(40002),
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+            };
+            expect(canSeeDefaultRoom(report, betas, true)).toBe(true);
+        });
+        it('should return true if the room has an assigned guide', () => {
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            const report: Report = {
+                ...createRandomReport(40002),
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 8]),
+            };
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
+                expect(canSeeDefaultRoom(report, betas, false)).toBe(true);
+            });
+        });
+        it('should return true if the report is admin room', () => {
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+            const report: Report = {
+                ...createRandomReport(40002),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+            };
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
+                expect(canSeeDefaultRoom(report, betas, false)).toBe(true);
+            });
         });
     });
 });

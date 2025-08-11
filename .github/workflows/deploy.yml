@@ -233,8 +233,9 @@ jobs:
       - name: Upload Android build to Applause
         if: ${{ fromJSON(env.IS_APP_REPO) && (github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK)) }}
         run: |
+          APPLAUSE_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')
           curl -F "file=@Expensify.apk" \
-            "https://api.applause.com/v2/builds?name=Expensify_${{ needs.prep.outputs.TAG }}&productId=36008" \
+            "https://api.applause.com/v2/builds?name=Expensify_$APPLAUSE_VERSION&productId=36008" \
             -H "X-Api-Key: ${{ steps.load-credentials.outputs.APPLAUSE_API_KEY }}"
 
       - name: Upload Android APK build artifact
@@ -467,8 +468,9 @@ jobs:
       - name: Upload iOS build to Applause
         if: ${{ fromJSON(env.IS_APP_REPO) && fromJSON(env.SHOULD_BUILD_APP) }}
         run: |
+          APPLAUSE_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')
           curl -F "file=@${{ env.ipaPath }}" \
-            "https://api.applause.com/v2/builds?name=Expensify_${{ needs.prep.outputs.TAG }}&productId=36005" \
+            "https://api.applause.com/v2/builds?name=Expensify_$APPLAUSE_VERSION&productId=36005" \
             -H "X-Api-Key: ${{ steps.load-credentials.outputs.APPLAUSE_API_KEY }}"
 
       - name: Upload iOS build artifact
