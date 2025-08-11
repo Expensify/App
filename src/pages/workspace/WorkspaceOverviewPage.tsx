@@ -272,7 +272,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
         const isCurrentUserAdmin = policy?.employeeList?.[currentUserPersonalDetails?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
         const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
-        console.log('shouldRenderTransferOwnerButton()', shouldRenderTransferOwnerButton());
         if (isCurrentUserAdmin && !isCurrentUserOwner && shouldRenderTransferOwnerButton()) {
             secondaryActions.push({
                 value: 'transferOwner',
