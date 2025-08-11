@@ -93,6 +93,7 @@ function mockOpenReport(messageCount: number, initialID: string) {
                     : [],
             hasOlderActions: !comments['1'],
             hasNewerActions: !!reportActionID,
+            oldestUnreadReportActionID: null,
         };
     });
 }
@@ -170,6 +171,8 @@ async function signInAndGetApp(): Promise<void> {
             type: CONST.REPORT.TYPE.CHAT,
         });
 
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${REPORT_ID}`, '-1');
+
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
             [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
         });
@@ -184,6 +187,8 @@ async function signInAndGetApp(): Promise<void> {
             lastActorAccountID: USER_A_ACCOUNT_ID,
             type: CONST.REPORT.TYPE.CHAT,
         });
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${COMMENT_LINKING_REPORT_ID}`, '-1');
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${COMMENT_LINKING_REPORT_ID}`, {
             '100': buildCreatedAction('100', format(TEN_MINUTES_AGO, CONST.DATE.FNS_DB_FORMAT_STRING)),
