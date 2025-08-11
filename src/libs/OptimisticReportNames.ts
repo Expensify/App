@@ -18,15 +18,12 @@ import {getTitleReportField, isArchivedReport} from './ReportUtils';
 /**
  * Get the object type from an Onyx key
  */
-function determineObjectTypeByKey(key: string): 'report' | 'policy' | 'transaction' | 'unknown' {
+function determineObjectTypeByKey(key: string): 'report' | 'policy' | 'unknown' {
     if (key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
         return 'report';
     }
     if (key.startsWith(ONYXKEYS.COLLECTION.POLICY)) {
         return 'policy';
-    }
-    if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
-        return 'transaction';
     }
     return 'unknown';
 }
@@ -101,16 +98,6 @@ function getReportsByPolicyID(policyID: string, allReports: Record<string, Repor
 
         return true;
     });
-}
-
-/**
- * Get the report associated with a transaction ID
- */
-function getReportByTransactionID(): Report | undefined {
-    // This is a simplified version - in reality, we'd need to look up the transaction
-    // and get its reportID, but for now we'll return undefined
-    // TODO: Implement proper transaction -> report lookup
-    return undefined;
 }
 
 /**
@@ -199,7 +186,7 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
             // Checking if the formula part is affected in this manner works, but it could certainly be more precise.
             // For example, a policy update only affects the part if the formula in the policy changed, or if the report part references a field on the policy.
             // However, if we run into performance problems, this would be a good place to optimize.
-            return updateType === 'report' || updateType === 'transaction' || updateType === 'policy';
+            return updateType === 'report' || updateType === 'policy';
         }
         if (part.type === FORMULA_PART_TYPES.FIELD) {
             return updateType === 'report';
@@ -300,14 +287,6 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
             case 'policy': {
                 const policyID = getPolicyIDFromKey(update.key);
                 affectedReports = getReportsByPolicyID(policyID, allReports, context);
-                break;
-            }
-
-            case 'transaction': {
-                const report = getReportByTransactionID();
-                if (report) {
-                    affectedReports = [report];
-                }
                 break;
             }
 
