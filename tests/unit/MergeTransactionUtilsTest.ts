@@ -303,6 +303,7 @@ describe('MergeTransactionUtils', () => {
                 comment: {comment: 'Different description 1'},
                 reimbursable: true,
                 billable: false,
+                managedCard: false,
             };
             const sourceTransaction = {
                 ...createRandomTransaction(1),
@@ -315,6 +316,7 @@ describe('MergeTransactionUtils', () => {
                 comment: {comment: 'Different description 2'}, // Different
                 reimbursable: false, // Different
                 billable: undefined, // Undefined value
+                managedCard: false,
             };
 
             const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
@@ -348,6 +350,29 @@ describe('MergeTransactionUtils', () => {
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
                 amount: -1000,
+            });
+        });
+
+        it('should merge amount field when target transaction is card transaction', () => {
+            const targetTransaction = {
+                ...createRandomTransaction(1),
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                managedCard: true,
+            };
+            const sourceTransaction = {
+                ...createRandomTransaction(2),
+                amount: 1000,
+                currency: CONST.CURRENCY.AUD,
+                managedCard: false,
+            };
+
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
+
+            expect(result.conflictFields).not.toContain('amount');
+            expect(result.mergeableData).toMatchObject({
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
             });
         });
     });
