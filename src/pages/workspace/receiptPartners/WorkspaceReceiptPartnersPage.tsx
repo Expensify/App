@@ -94,6 +94,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                         wrapperStyle: [styles.sectionMenuItemTopDescription],
                         shouldShowRightComponent: true,
                         title: integrationData?.title,
+                        numberOfLinesDescription: 5,
                         titleContainerStyle: [styles.pr2],
                         description: integrationData?.description,
                         rightComponent: (
