@@ -722,7 +722,7 @@ function getFilterDisplayValue(
         if (Number.isNaN(cardID)) {
             return filterValue;
         }
-        return getCardDescription(cardID, cardList) || filterValue;
+        return getCardDescription(cardList?.[cardID]) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]) || filterValue;
@@ -822,7 +822,7 @@ function buildUserReadableQueryString(
                     if (Number.isNaN(cardID)) {
                         acc.push({operator: filter.operator, value: cardID});
                     } else {
-                        acc.push({operator: filter.operator, value: getCardDescription(cardID, cardList) || cardID});
+                        acc.push({operator: filter.operator, value: getCardDescription(cardList?.[cardID]) || cardID});
                     }
                 }
                 return acc;

@@ -4,6 +4,7 @@
  * Refer to ./contributingGuides/philosophies/ROUTING.md for information on how to construct routes.
  */
 import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {SearchQueryString} from './components/Search/types';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
@@ -715,7 +716,7 @@ const ROUTES = {
             if (!reportID) {
                 Log.warn('Invalid reportID while building route MONEY_REQUEST_EDIT_REPORT');
             }
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${reportID}/edit${shouldTurnOffSelectionMode ? `?shouldTurnOffSelectionMode=true` : ``}`, backTo);
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${reportID}/edit${shouldTurnOffSelectionMode ? '?shouldTurnOffSelectionMode=true' : ''}`, backTo);
         },
     },
     SETTINGS_TAGS_ROOT: {
@@ -1261,7 +1262,7 @@ const ROUTES = {
     },
     WORKSPACE_AVATAR: {
         route: 'workspaces/:policyID/avatar',
-        getRoute: (policyID: string) => `workspaces/${policyID}/avatar` as const,
+        getRoute: (policyID: string, fallbackLetter?: UpperCaseCharacters) => `workspaces/${policyID}/avatar${fallbackLetter ? `?letter=${fallbackLetter}` : ''}` as const,
     },
     WORKSPACE_JOIN_USER: {
         route: 'workspaces/:policyID/join',
@@ -2073,7 +2074,15 @@ const ROUTES = {
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt/:action?/:iouType?',
-        getRoute: (reportID: string | undefined, transactionID: string | undefined, readonly = false, isFromReviewDuplicates = false, action?: IOUAction, iouType?: IOUType) => {
+        getRoute: (
+            reportID: string | undefined,
+            transactionID: string | undefined,
+            readonly = false,
+            isFromReviewDuplicates = false,
+            action?: IOUAction,
+            iouType?: IOUType,
+            mergeTransactionID?: string,
+        ) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the TRANSACTION_RECEIPT route');
             }
@@ -2082,7 +2091,7 @@ const ROUTES = {
             }
             return `r/${reportID}/transaction/${transactionID}/receipt${action ? `/${action}` : ''}${iouType ? `/${iouType}` : ''}?readonly=${readonly}${
                 isFromReviewDuplicates ? '&isFromReviewDuplicates=true' : ''
-            }` as const;
+            }${mergeTransactionID ? `&mergeTransactionID=${mergeTransactionID}` : ''}` as const;
         },
     },
 
@@ -2121,6 +2130,22 @@ const ROUTES = {
     TRANSACTION_DUPLICATE_CONFIRMATION_PAGE: {
         route: 'r/:threadReportID/duplicates/confirm',
         getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/confirm` as const, backTo),
+    },
+    MERGE_TRANSACTION_LIST_PAGE: {
+        route: 'r/:transactionID/merge',
+        getRoute: (transactionID: string | undefined, backTo?: string) => getUrlWithBackToParam(`r/${transactionID}/merge` as const, backTo),
+    },
+    MERGE_TRANSACTION_RECEIPT_PAGE: {
+        route: 'r/:transactionID/merge/receipt',
+        getRoute: (transactionID: string, backTo?: string) => getUrlWithBackToParam(`r/${transactionID}/merge/receipt` as const, backTo),
+    },
+    MERGE_TRANSACTION_DETAILS_PAGE: {
+        route: 'r/:transactionID/merge/details',
+        getRoute: (transactionID: string, backTo?: string) => getUrlWithBackToParam(`r/${transactionID}/merge/details` as const, backTo),
+    },
+    MERGE_TRANSACTION_CONFIRMATION_PAGE: {
+        route: 'r/:transactionID/merge/confirmation',
+        getRoute: (transactionID: string, backTo?: string) => getUrlWithBackToParam(`r/${transactionID}/merge/confirmation` as const, backTo),
     },
     POLICY_ACCOUNTING_XERO_IMPORT: {
         route: 'workspaces/:policyID/accounting/xero/import',

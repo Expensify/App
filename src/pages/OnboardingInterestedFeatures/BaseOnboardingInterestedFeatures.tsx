@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
@@ -63,7 +63,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const {isOffline} = useNetwork();
     const isLoading = onboarding?.isLoading;
     const prevIsLoading = usePrevious(isLoading);
-    const didOpenOldDotLink = useRef(false);
 
     const features: Feature[] = useMemo(() => {
         return [
@@ -148,7 +147,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     }, [paidGroupPolicy, onboardingPolicyID]);
 
     useEffect(() => {
-        if (!!isLoading || !prevIsLoading || didOpenOldDotLink.current) {
+        if (!!isLoading || !prevIsLoading) {
             return;
         }
 
@@ -158,7 +157,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             return;
         }
         waitForIdle().then(() => {
-            didOpenOldDotLink.current = true;
             openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
         });
     }, [isLoading, prevIsLoading, setRootStatusBarEnabled]);
@@ -214,12 +212,10 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         });
 
         if (shouldOnboardingRedirectToOldDot(onboardingCompanySize, newUserReportedIntegration)) {
-            if (CONFIG.IS_HYBRID_APP || didOpenOldDotLink.current) {
+            if (CONFIG.IS_HYBRID_APP) {
                 return;
             }
-            didOpenOldDotLink.current = true;
             openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
-            return;
         }
 
         // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
