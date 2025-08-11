@@ -77,7 +77,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 id: 'accounting',
                 title: translate('workspace.moreFeatures.connections.title'),
                 icon: Illustrations.Accounting,
-                enabledByDefault: true,
+                enabledByDefault: !!userReportedIntegration,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS,
             },
             {
