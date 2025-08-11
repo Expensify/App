@@ -353,7 +353,6 @@ function AttachmentPickerWithMenuItems({
                         disabled: shouldDisableAttachmentItem,
                     },
                 ];
-                console.log(reportID, moneyRequestOptions, createReportOption, taskOption);
                 return (
                     <>
                         <View style={outerContainerStyles}>
