@@ -72,7 +72,9 @@ function getDisplayNameOrDefault(
     youAfterTranslation = youTranslation,
 ): string {
     let displayName = passedPersonalDetails?.displayName ?? '';
+
     let login = passedPersonalDetails?.login ?? '';
+    
     // If the displayName starts with the merged account prefix, remove it.
     if (regexMergedAccount.test(displayName)) {
         // Remove the merged account prefix from the displayName.
