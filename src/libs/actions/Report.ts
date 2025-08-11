@@ -197,7 +197,7 @@ import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
-import {OnyxData} from '@src/types/onyx/Request';
+import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearByKey} from './CachedPDFPaths';
 import {setDownload} from './Download';
@@ -5830,59 +5830,6 @@ function resolveConciergeCategoryOptions(reportID: string | undefined, actionRep
     } as Partial<ReportActions>);
 }
 
-/**
- * Changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat.
- */
-function changeReportApprover(report: OnyxEntry<Report>, memberAccountID: number) {
-    if (!report?.reportID) {
-        return;
-    }
-
-    const takeControlReportAction = buildOptimisticChangeApproverReportAction(memberAccountID);
-    const onyxData: OnyxData = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-                value: {
-                    managerID: currentUserAccountID,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-                value: {
-                    [takeControlReportAction.reportActionID]: takeControlReportAction,
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-                value: {
-                    managerID: report.managerID,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-                value: {
-                    [takeControlReportAction.reportActionID]: null,
-                },
-            },
-        ],
-    };
-
-    const memberPersonalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs({accountIDs: [memberAccountID], currentUserAccountID});
-    const params = {
-        reportID: report.reportID,
-        newApproverEmail: memberPersonalDetails?.at(0)?.login ?? '',
-    };
-
-    API.write(WRITE_COMMANDS.REROUTE_REPORT, params, onyxData);
-}
-
 function assignCurrentUserAsApprover(report: OnyxEntry<Report>) {
     if (!report?.reportID) {
         return;
@@ -5903,6 +5850,15 @@ function assignCurrentUserAsApprover(report: OnyxEntry<Report>) {
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
                 value: {
                     [takeControlReportAction.reportActionID]: takeControlReportAction,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+                value: {
+                    [takeControlReportAction.reportActionID]: null,
                 },
             },
         ],
@@ -6043,6 +5999,5 @@ export {
     changeReportPolicyAndInviteSubmitter,
     removeFailedReport,
     openUnreportedExpense,
-    changeReportApprover,
     assignCurrentUserAsApprover,
 };

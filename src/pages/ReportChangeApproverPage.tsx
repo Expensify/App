@@ -42,7 +42,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
         }
         assignCurrentUserAsApprover(report);
         Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-    }, [selectedApproverType, reportPolicy, session?.accountID, report, reportID]);
+    }, [selectedApproverType, policy, session?.accountID, report, reportID]);
 
     const sections = useMemo(() => {
         const data = [];
