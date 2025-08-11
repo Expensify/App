@@ -271,12 +271,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email, canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
 
-    const [oldestUnreadReportActionID, setOldestUnreadReportActionID] = useState<string>();
     const [oldestUnreadReportActionIDValueFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${reportID}`, {canBeMissing: true});
+    const [oldestUnreadReportActionID, setOldestUnreadReportActionID] = useState<string | undefined>(oldestUnreadReportActionIDValueFromOnyx);
 
     // Set the oldestUnreadReportActionID in state once loaded from Onyx, and clear Onyx state to prevent stale data.
     useEffect(() => {
-        if (!!oldestUnreadReportActionID || !oldestUnreadReportActionIDValueFromOnyx) {
+        if (!oldestUnreadReportActionIDValueFromOnyx || (oldestUnreadReportActionIDValueFromOnyx && !!oldestUnreadReportActionID)) {
             return;
         }
 
