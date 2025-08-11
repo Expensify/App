@@ -696,7 +696,7 @@ function PureReportActionItem({
         return {reportID, type: CONST.ATTACHMENT_TYPE.REPORT};
     }, [reportID, isOnSearch, currentSearchHash]);
 
-    const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID, exactlyMatch: true}), [report?.reportID]);
+    const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID, exactlyMatch: true}), [report]);
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
         if (isActionableAddPaymentCard(action) && userBillingFundID === undefined && shouldRenderAddPaymentCard()) {
             return [
