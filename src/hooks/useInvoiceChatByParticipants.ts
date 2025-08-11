@@ -22,13 +22,13 @@ function useInvoiceChatByParticipants(receiverID: string | number | undefined, r
 
     const invoiceReport = useMemo(() => {
         return Object.values(allReports ?? {}).find((report) => {
-            if (!report) {
+            if (!report || !isInvoiceRoom(report)) {
                 return false;
             }
             const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
             const isReportArchived = isArchivedReport(reportNameValuePairs);
 
-            if (!isInvoiceRoom(report) || isArchivedNonExpenseReport(report, isReportArchived)) {
+            if (isArchivedNonExpenseReport(report, isReportArchived)) {
                 return false;
             }
 
