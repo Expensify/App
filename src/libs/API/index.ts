@@ -17,7 +17,7 @@ import type OnyxRequest from '@src/types/onyx/Request';
 import type {PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type {ApiCommand, ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
-import {READ_COMMANDS} from './types';
+import {READ_COMMANDS, WRITE_COMMANDS} from './types';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
 // Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Save the Response in Onyx. Errors thrown in one middleware will bubble to the next.
@@ -71,6 +71,8 @@ function prepareRequest<TCommand extends ApiCommand>(
 ): OnyxRequest {
     Log.info('[API] Preparing request', false, {command, type});
 
+    console.log('morwa {command, type}', {command, type});
+
     let shouldApplyOptimisticData = true;
     if (conflictResolver?.checkAndFixConflictingRequest) {
         const requests = getAll();
@@ -83,14 +85,19 @@ function prepareRequest<TCommand extends ApiCommand>(
         Log.info('[API] Applying optimistic data', false, {command, type});
 
         // Process optimistic data through report name middleware
-        try {
-            const context = getUpdateContext();
-            const processedOptimisticData = OptimisticReportNames.updateOptimisticReportNamesFromUpdates(optimisticData, context);
-            Onyx.update(processedOptimisticData);
-        } catch (error) {
-            Log.warn('[API] Failed to process optimistic report names', {error});
-            // Fallback to original optimistic data if processing fails
+        // Skip for OpenReport command to avoid unnecessary processing
+        if (command === WRITE_COMMANDS.OPEN_REPORT) {
             Onyx.update(optimisticData);
+        } else {
+            try {
+                const context = getUpdateContext();
+                const processedOptimisticData = OptimisticReportNames.updateOptimisticReportNamesFromUpdates(optimisticData, context);
+                Onyx.update(processedOptimisticData);
+            } catch (error) {
+                Log.warn('[API] Failed to process optimistic report names', {error});
+                // Fallback to original optimistic data if processing fails
+                Onyx.update(optimisticData);
+            }
         }
     }
 
