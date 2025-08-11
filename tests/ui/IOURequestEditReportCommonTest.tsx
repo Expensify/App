@@ -13,7 +13,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 const FAKE_REPORT_ID = '1';
 const FAKE_POLICY_ID = '1';
-const FAKE_TRANSACTION_ID = '1';
+const FAKE_TRANSACTION_ID = '2';
 const FAKE_EMAIL = 'fake@gmail.com';
 const FAKE_ACCOUNT_ID = 1;
 const FAKE_OWNER_ACCOUNT_ID = 2;
