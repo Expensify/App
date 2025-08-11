@@ -2,9 +2,9 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {IntegrationServerExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
-import {getCurrentUserAccountID} from './actions/Report';
+import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getConnectedIntegration,
@@ -14,6 +14,7 @@ import {
     hasIntegrationAutoSync,
     isInstantSubmitEnabled,
     isPolicyAdmin,
+    isPolicyMember,
     isPreferredExporter,
 } from './PolicyUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
@@ -25,14 +26,17 @@ import {
     getTransactionDetails,
     hasOnlyHeldExpenses,
     hasReportBeenReopened as hasReportBeenReopenedUtils,
+    hasReportBeenRetracted as hasReportBeenRetractedUtils,
     isArchivedReport,
     isAwaitingFirstLevelApproval,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtils,
     isExported as isExportedUtils,
+    isHoldCreator,
     isInvoiceReport as isInvoiceReportUtils,
     isIOUReport as isIOUReportUtils,
+    isMoneyRequestReportEligibleForMerge,
     isOpenReport as isOpenReportUtils,
     isPayer as isPayerUtils,
     isProcessingReport as isProcessingReportUtils,
@@ -99,6 +103,18 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
     const isSubmitter = isCurrentUserSubmitter(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = (report.managerID ?? CONST.DEFAULT_NUMBER_ID) === getCurrentUserAccountID();
+    const isOpenReport = isOpenReportUtils(report);
+    const isPolicyExpenseChat = !!policy?.isPolicyExpenseChatEnabled;
+    const currentUserEmail = getCurrentUserEmail();
+    const userIsPolicyMember = isPolicyMember(currentUserEmail, report.policyID);
+
+    if (!(userIsPolicyMember && isPolicyExpenseChat)) {
+        return false;
+    }
+
+    if (isOpenReport) {
+        return isSubmitter || isAdmin;
+    }
 
     return isSubmitter || isAdmin || isManager;
 }
@@ -150,8 +166,8 @@ function isSubmitAction(
         return false;
     }
 
-    const hasReportBeenReopened = hasReportBeenReopenedUtils(reportActions);
-    if (hasReportBeenReopened && isReportSubmitter) {
+    const hasReportBeenRetracted = hasReportBeenReopenedUtils(report, reportActions) || hasReportBeenRetractedUtils(report, reportActions);
+    if (hasReportBeenRetracted && isReportSubmitter) {
         return false;
     }
 
@@ -511,6 +527,56 @@ function isReopenAction(report: Report, policy?: Policy): boolean {
     return true;
 }
 
+/**
+ * Checks whether the supplied report supports merging transactions from it.
+ */
+function isMergeAction(parentReport: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
+    // Do not show merge action if there are multiple transactions
+    if (reportTransactions.length !== 1) {
+        return false;
+    }
+
+    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
+
+    if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
+    if (isSelfDMReportUtils(parentReport)) {
+        return true;
+    }
+
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+
+    return isMoneyRequestReportEligibleForMerge(parentReport.reportID, isAdmin);
+}
+
+function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, reportTransactions: Transaction[], reportActions?: ReportAction[], policy?: Policy): boolean {
+    const isReportOnHold = reportTransactions.some(isOnHoldTransactionUtils);
+
+    if (!isReportOnHold) {
+        return false;
+    }
+
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions);
+
+    if (!transactionThreadReportID) {
+        return false;
+    }
+
+    const isHolder = reportTransactions.some((transaction) => isHoldCreator(transaction, transactionThreadReportID));
+
+    if (isHolder) {
+        return false;
+    }
+
+    return policy?.role === CONST.POLICY.ROLE.ADMIN;
+}
+
+function isRemoveHoldActionForTransaction(report: Report, reportTransaction: Transaction, policy?: Policy): boolean {
+    return isOnHoldTransactionUtils(reportTransaction) && policy?.role === CONST.POLICY.ROLE.ADMIN && !isHoldCreator(reportTransaction, report.reportID);
+}
+
 function getSecondaryReportActions({
     report,
     chatReport,
@@ -570,14 +636,6 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
     }
 
-    if (isExportAction(report, policy, reportActions)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING);
-    }
-
-    if (isMarkAsExportedAction(report, policy)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED);
-    }
-
     if (isRetractAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.RETRACT);
     }
@@ -590,11 +648,19 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.HOLD);
     }
 
+    if (isRemoveHoldAction(report, chatReport, reportTransactions, reportActions, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
+    }
+
     if (isSplitAction(report, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
 
-    options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_CSV);
+    if (isMergeAction(report, reportTransactions, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.MERGE);
+    }
+
+    options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
 
@@ -615,11 +681,38 @@ function getSecondaryReportActions({
     return options;
 }
 
+function getSecondaryExportReportActions(
+    report: Report,
+    policy?: Policy,
+    reportActions?: ReportAction[],
+    integrationsExportTemplates?: IntegrationServerExportTemplate[],
+): Array<ValueOf<string>> {
+    const options: Array<ValueOf<string>> = [];
+    if (isExportAction(report, policy, reportActions)) {
+        options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
+    }
+
+    if (isMarkAsExportedAction(report, policy)) {
+        options.push(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
+    }
+
+    options.push(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV, CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT);
+
+    if (integrationsExportTemplates && integrationsExportTemplates.length > 0) {
+        for (const template of integrationsExportTemplates) {
+            options.push(template.name);
+        }
+    }
+
+    return options;
+}
+
 function getSecondaryTransactionThreadActions(
     parentReport: Report,
     reportTransaction: Transaction,
     reportActions: ReportAction[],
     policy: OnyxEntry<Policy>,
+    transactionThreadReport?: OnyxEntry<Report>,
 ): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
@@ -627,8 +720,16 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
     }
 
+    if (transactionThreadReport && isRemoveHoldActionForTransaction(transactionThreadReport, reportTransaction, policy)) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD);
+    }
+
     if (isSplitAction(parentReport, [reportTransaction], policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
+    }
+
+    if (isMergeAction(parentReport, [reportTransaction], policy)) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE);
     }
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
@@ -639,4 +740,4 @@ function getSecondaryTransactionThreadActions(
 
     return options;
 }
-export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isDeleteAction};
+export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isDeleteAction, isMergeAction, getSecondaryExportReportActions, isSplitAction};

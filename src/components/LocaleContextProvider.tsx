@@ -3,7 +3,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useOnyx from '@hooks/useOnyx';
 import DateUtils from '@libs/DateUtils';
 import {fromLocaleDigit as fromLocaleDigitLocaleDigitUtils, toLocaleDigit as toLocaleDigitLocaleDigitUtils, toLocaleOrdinal as toLocaleOrdinalLocaleDigitUtils} from '@libs/LocaleDigitUtils';
-import {formatPhoneNumber as formatPhoneNumberLocalePhoneNumber} from '@libs/LocalePhoneNumber';
+import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translate as translateLocalize} from '@libs/Localize';
 import {format} from '@libs/NumberFormatUtils';
 import IntlStore from '@src/languages/IntlStore';
@@ -72,6 +72,7 @@ const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'var
 function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: false, canBeMissing: true});
+    const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
     const [currentLocale, setCurrentLocale] = useState<Locale | undefined>(() => IntlStore.getCurrentLocale());
 
     useEffect(() => {
@@ -114,7 +115,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         [currentLocale, selectedTimezone],
     );
 
-    const formatPhoneNumber = useMemo<LocaleContextProps['formatPhoneNumber']>(() => (phoneNumber) => formatPhoneNumberLocalePhoneNumber(phoneNumber), []);
+    const formatPhoneNumber = useMemo<LocaleContextProps['formatPhoneNumber']>(() => (phoneNumber) => formatPhoneNumberWithCountryCode(phoneNumber, countryCodeByIP), [countryCodeByIP]);
 
     const toLocaleDigit = useMemo<LocaleContextProps['toLocaleDigit']>(() => (digit) => toLocaleDigitLocaleDigitUtils(currentLocale, digit), [currentLocale]);
 

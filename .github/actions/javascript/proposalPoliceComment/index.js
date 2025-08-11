@@ -11639,6 +11639,7 @@ async function run() {
         console.log('commentsResponse', commentsResponse);
         core.endGroup();
         let didFindDuplicate = false;
+        let originalProposal;
         for (const previousProposal of commentsResponse) {
             const isProposal = !!previousProposal.body?.includes(CONST_1.default.PROPOSAL_KEYWORD);
             const previousProposalCreatedAt = new Date(previousProposal.created_at).getTime();
@@ -11664,13 +11665,14 @@ async function run() {
                 if (similarityPercentage >= 90) {
                     console.log(`Found duplicate with ${similarityPercentage}% similarity.`);
                     didFindDuplicate = true;
+                    originalProposal = previousProposal;
                     break;
                 }
             }
         }
         if (didFindDuplicate) {
             const duplicateCheckWithdrawMessage = proposalPolice_1.default.getDuplicateCheckWithdrawMessage();
-            const duplicateCheckNoticeMessage = proposalPolice_1.default.getDuplicateCheckNoticeMessage(newProposalAuthor);
+            const duplicateCheckNoticeMessage = proposalPolice_1.default.getDuplicateCheckNoticeMessage(newProposalAuthor, originalProposal?.html_url);
             // If a duplicate proposal is detected, update the comment to withdraw it
             console.log('ProposalPolice™ withdrawing duplicated proposal...');
             await GithubUtils_1.default.octokit.issues.updateComment({
@@ -11850,6 +11852,21 @@ const CONST = {
     EVENTS: {
         ISSUE_COMMENT: 'issue_comment',
     },
+    RUN_EVENT: {
+        PULL_REQUEST: 'pull_request',
+        PULL_REQUEST_TARGET: 'pull_request_target',
+        PUSH: 'push',
+    },
+    RUN_STATUS: {
+        COMPLETED: 'completed',
+        IN_PROGRESS: 'in_progress',
+        QUEUED: 'queued',
+    },
+    RUN_STATUS_CONCLUSION: {
+        SUCCESS: 'success',
+    },
+    TEST_WORKFLOW_NAME: 'Jest Unit Tests',
+    TEST_WORKFLOW_PATH: '.github/workflows/test.yml',
     PROPOSAL_KEYWORD: 'Proposal',
     DATE_FORMAT_STRING: 'yyyy-MM-dd',
     PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
@@ -12118,7 +12135,10 @@ class GithubUtils {
                 const sortedDeployBlockers = [...new Set(deployBlockers)].sort((a, b) => GithubUtils.getIssueOrPullRequestNumberFromURL(a) - GithubUtils.getIssueOrPullRequestNumberFromURL(b));
                 // Tag version and comparison URL
                 // eslint-disable-next-line max-len
-                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n`;
+                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n`;
+                // Warn deployers about potential bugs with the new process
+                issueBody +=
+                    '> 💡 **Deployer FYI:** This checklist was generated using a new process. PR list from original method and detail logging can be found in the most recent [deploy workflow](https://github.com/Expensify/App/actions/workflows/deploy.yml) labeled `staging`, in the `createChecklist` action. Please tag @Julesssss with any issues.\r\n\r\n';
                 // PR list
                 if (sortedPRList.length > 0) {
                     issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
@@ -12255,6 +12275,17 @@ class GithubUtils {
             workflow_id: workflow,
         })
             .then((response) => response.data.workflow_runs.at(0)?.id ?? -1);
+    }
+    /**
+     * List workflow runs for the repository.
+     */
+    static async listWorkflowRunsForRepo(options = {}) {
+        return this.octokit.actions.listWorkflowRunsForRepo({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            per_page: options.per_page ?? 50,
+            ...(options.status && { status: options.status }),
+        });
     }
     /**
      * Generate the URL of an New Expensify pull request given the PR number.
@@ -12528,8 +12559,9 @@ const PROPOSAL_POLICE_TEMPLATES = {
     getDuplicateCheckWithdrawMessage: () => {
         return '#### 🚫 Duplicated proposal withdrawn by 🤖 ProposalPolice.';
     },
-    getDuplicateCheckNoticeMessage: (proposalAuthor) => {
-        return `⚠️ @${proposalAuthor} Your proposal is a duplicate of an already existing proposal and has been automatically withdrawn to prevent spam. Please review the existing proposals before submitting a new one.`;
+    getDuplicateCheckNoticeMessage: (proposalAuthor, originalProposalURL) => {
+        const existingProposalWithURL = originalProposalURL ? `[existing proposal](${originalProposalURL})` : 'existing proposal';
+        return `⚠️ @${proposalAuthor} Your proposal is a duplicate of an already ${existingProposalWithURL} and has been automatically withdrawn to prevent spam. Please review the existing proposals before submitting a new one.`;
     },
 };
 exports["default"] = PROPOSAL_POLICE_TEMPLATES;

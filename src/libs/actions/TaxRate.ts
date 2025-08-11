@@ -1,6 +1,7 @@
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {
     CreatePolicyTaxParams,
@@ -11,7 +12,6 @@ import type {
     UpdatePolicyTaxValueParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import localeCompare from '@libs/LocaleCompare';
 import {translateLocal} from '@libs/Localize';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import {getFieldRequiredErrors, isExistingTaxCode, isExistingTaxName, isValidPercentage} from '@libs/ValidationUtils';
@@ -296,7 +296,7 @@ type TaxRateDeleteMap = Record<
     | null
 >;
 
-function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[]) {
+function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], localeCompare: LocaleContextProps['localeCompare']) {
     const policyTaxRates = policy?.taxRates?.taxes;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const firstTaxID = Object.keys(policyTaxRates ?? {})

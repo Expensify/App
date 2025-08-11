@@ -148,7 +148,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const currentReportIDValue = useCurrentReportID();
 
-    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: false});
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {canBeMissing: true});
     const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {canBeMissing: true});
     const [accountManagerReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(accountManagerReportID)}`, {canBeMissing: true});
@@ -279,9 +278,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const wasReportAccessibleRef = useRef(false);
 
-    const [isComposerFocus, setIsComposerFocus] = useState(false);
-    const shouldAdjustScrollView = useMemo(() => isComposerFocus && !modal?.willAlertModalBecomeVisible, [isComposerFocus, modal]);
-    const viewportOffsetTop = useViewportOffsetTop(shouldAdjustScrollView);
+    const viewportOffsetTop = useViewportOffsetTop();
 
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
@@ -307,6 +304,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         [reportTransactions, isOffline],
     );
     const reportTransactionIDs = useMemo(() => visibleTransactions?.map((transaction) => transaction.transactionID), [visibleTransactions]);
+
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const [transactionThreadReportActions = getEmptyObject<OnyxTypes.ReportActions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {
         canBeMissing: true,
@@ -470,7 +468,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 
     const fetchReport = useCallback(() => {
-        if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT) {
+        if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && !isPolicyExpenseChat(report)) {
             return;
         }
 
@@ -490,8 +488,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         openReport(reportIDFromRoute, reportActionIDFromRoute);
     }, [
         reportMetadata.isOptimisticReport,
-        report?.type,
-        report?.errorFields?.notFound,
+        report,
         isOffline,
         route.params?.moneyRequestReportActionID,
         route.params?.transactionID,
@@ -499,6 +496,15 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         reportIDFromRoute,
         reportActionIDFromRoute,
     ]);
+
+    const prevTransactionThreadReportID = usePrevious(transactionThreadReportID);
+    useEffect(() => {
+        if (!!prevTransactionThreadReportID || !transactionThreadReportID) {
+            return;
+        }
+
+        fetchReport();
+    }, [fetchReport, prevTransactionThreadReportID, transactionThreadReportID]);
 
     useEffect(() => {
         if (!reportID || !isFocused) {
@@ -759,9 +765,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const lastRoute = usePrevious(route);
 
-    const onComposerFocus = useCallback(() => setIsComposerFocus(true), []);
-    const onComposerBlur = useCallback(() => setIsComposerFocus(false), []);
-
     // wrapping into useMemo to stabilize children re-renders as reportMetadata is changed frequently
     const showReportActionsLoadingState = useMemo(
         () => reportMetadata?.isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions,
@@ -850,8 +853,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                 ) : null}
                                 {isCurrentReportLoadedFromOnyx ? (
                                     <ReportFooter
-                                        onComposerFocus={onComposerFocus}
-                                        onComposerBlur={onComposerBlur}
                                         report={report}
                                         reportMetadata={reportMetadata}
                                         policy={policy}

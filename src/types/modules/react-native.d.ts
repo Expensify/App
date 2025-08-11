@@ -15,12 +15,19 @@ type AppStateTrackerModule = {
 };
 
 type RNTextInputResetModule = {
-    resetKeyboardInput: (nodeHandle: number | null) => void;
+    resetKeyboardInput: (nativeId: string) => void;
 };
 
 type RNNavBarManagerModule = {
     setButtonStyle: (style: NavBarButtonStyle) => void;
     getType(): NavigationBarType;
+};
+
+type TestToolsBridge = {
+    /**
+     * "Soft" kills the app so that it can still run in the background
+     */
+    softKillApp: () => void;
 };
 
 type PushNotificationBridge = {
@@ -59,6 +66,7 @@ declare module 'react-native' {
         EnvironmentChecker: EnvironmentCheckerModule;
         ShortcutManager: ShortcutManagerModule;
         ShareActionHandler: ShareActionHandlerModule;
+        TestToolsBridge: TestToolsBridge;
         PushNotificationBridge: PushNotificationBridge;
     }
 
