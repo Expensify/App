@@ -221,6 +221,7 @@ function SearchAutocompleteInput(
                         maxLength={CONST.SEARCH_QUERY_LIMIT}
                         onSubmitEditing={onSubmit}
                         shouldUseDisabledStyles={false}
+                        textInputContainerStyles={[styles.borderNone, styles.pb0, styles.pl3]}
                         inputStyle={[inputWidth, styles.lineHeightUndefined]}
                         placeholderTextColor={theme.textSupporting}
                         onFocus={() => {
