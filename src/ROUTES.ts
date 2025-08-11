@@ -1854,7 +1854,7 @@ const ROUTES = {
         },
     },
     WORKSPACE_RECEIPT_PARTNERS: {
-        route: 'workspaces/:policyID/receipt–partners',
+        route: 'workspaces/:policyID/receipt-partners',
         getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_RECEIPT_PARTNERS route');
