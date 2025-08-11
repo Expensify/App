@@ -95,18 +95,7 @@ export default {
     GOOGLE_SIGN_IN: {
         // cspell:disable-next-line
         WEB_CLIENT_ID: '921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com',
-        // cspell:disable-next-line
         IOS_CLIENT_ID: '921154746561-s3uqn2oe4m85tufi6mqflbfbuajrm2i3.apps.googleusercontent.com',
-        HYBRID_APP: {
-            // cspell:disable-next-line
-            IOS_CLIENT_ID: '1008697809946-sh04nqq0hea396s1qdqqbj6ia649odb2.apps.googleusercontent.com',
-            WEB_CLIENT_ID: {
-                // cspell:disable-next-line
-                IOS: '1008697809946-5e095eqem3o6ugtpc2rjf7v880tcp28p.apps.googleusercontent.com',
-                // cspell:disable-next-line
-                ANDROID: '240677659774-86pov3adub93cv4b8uj13g7varolmk2l.apps.googleusercontent.com',
-            },
-        },
     },
     GCP_GEOLOCATION_API_KEY: googleGeolocationAPIKey,
     FIREBASE_WEB_CONFIG: {
