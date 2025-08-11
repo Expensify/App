@@ -1,6 +1,6 @@
 import type {RefObject} from 'react';
-import {useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import {useCallback, useEffect, useRef, useState} from 'react';
+import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import {readNewestAction} from '@userActions/Report';
 import CONST from '@src/CONST';
 
@@ -8,17 +8,17 @@ type Args = {
     /** The report ID */
     reportID: string;
 
+    /** Whether the FlatList is inverted, we need it to determine if the current unread message is visible. */
+    isInverted: boolean;
+
     /** The current offset of scrolling from either top or bottom of chat list */
     currentVerticalScrollingOffsetRef: RefObject<number>;
 
     /** Ref for whether read action was skipped */
     readActionSkippedRef: RefObject<boolean>;
 
-    /** The initial value for visibility of floating message button */
-    floatingMessageVisibleInitialValue: boolean;
-
-    /** Whether the unread marker is displayed for any report action */
-    hasUnreadMarkerReportAction: boolean;
+    /** The index of the unread report action */
+    unreadMarkerReportActionIndex: number;
 
     /** Whether the report has newer actions to load */
     hasNewerActions: boolean;
@@ -30,17 +30,24 @@ type Args = {
 export default function useReportUnreadMessageScrollTracking({
     reportID,
     currentVerticalScrollingOffsetRef,
-    floatingMessageVisibleInitialValue,
-    hasUnreadMarkerReportAction,
     hasNewerActions,
     readActionSkippedRef,
     onTrackScrolling,
+    unreadMarkerReportActionIndex,
+    isInverted,
 }: Args) {
-    const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(floatingMessageVisibleInitialValue);
+    const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
+    const ref = useRef<{previousViewableItems: ViewToken[]; reportID: string; unreadMarkerReportActionIndex: number}>({reportID, unreadMarkerReportActionIndex, previousViewableItems: []});
+    // We want to save the updated value on ref to use it in onViewableItemsChanged
+    // because FlatList requires the callback to be stable and we cannot add a dependency on the useCallback.
+    useEffect(() => {
+        ref.current.reportID = reportID;
+        ref.current.previousViewableItems = [];
+    }, [reportID]);
 
     /**
      * On every scroll event we want to:
-     * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
+     * Show/hide the latest message pill when user is scrolling back/forth in the history of messages.
      * Call any other callback that the component might need
      */
     const trackVerticalScrolling = (event: NativeSyntheticEvent<NativeScrollEvent> | undefined) => {
@@ -48,15 +55,17 @@ export default function useReportUnreadMessageScrollTracking({
             onTrackScrolling(event);
         }
 
-        const isScrolledToEnd = currentVerticalScrollingOffsetRef.current <= CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD;
+        const hasUnreadMarkerReportAction = unreadMarkerReportActionIndex !== -1;
+
+        const isScrolledToEnd = currentVerticalScrollingOffsetRef.current <= CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD;
 
         // When we have an unread message, display floating button if we're scrolled more than the offset
-        if (hasUnreadMarkerReportAction && !isScrolledToEnd && !isFloatingMessageCounterVisible) {
+        if (!hasUnreadMarkerReportAction && !isScrolledToEnd && !isFloatingMessageCounterVisible) {
             setIsFloatingMessageCounterVisible(true);
         }
 
-        // hide floating button if we're scrolled closer than the offset and mark message as read
-        if (isScrolledToEnd && !hasNewerActions && isFloatingMessageCounterVisible) {
+        // Hide floating button if we're scrolled closer than the offset and mark message as read
+        if (isScrolledToEnd && !hasUnreadMarkerReportAction && isFloatingMessageCounterVisible && !hasNewerActions) {
             if (readActionSkippedRef.current) {
                 // eslint-disable-next-line react-compiler/react-compiler,no-param-reassign
                 readActionSkippedRef.current = false;
@@ -67,9 +76,51 @@ export default function useReportUnreadMessageScrollTracking({
         }
     };
 
+    const onViewableItemsChanged = useCallback(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
+        ref.current.previousViewableItems = viewableItems;
+        const viewableIndexes = viewableItems.map((viewableItem) => viewableItem.index).filter((value) => typeof value === 'number') as number[];
+        const maxIndex = Math.max(...viewableIndexes);
+        const minIndex = Math.min(...viewableIndexes);
+        const unreadActionIndex = ref.current.unreadMarkerReportActionIndex;
+        const hasUnreadMarkerReportAction = unreadActionIndex !== -1;
+        const unreadActionVisible = isInverted ? unreadActionIndex >= minIndex : unreadActionIndex <= maxIndex;
+
+        // display floating button if the unread report action is out of view
+        if (!unreadActionVisible && hasUnreadMarkerReportAction) {
+            setIsFloatingMessageCounterVisible(true);
+        }
+        // hide floating button if the unread report action becomes visible
+        if (unreadActionVisible && hasUnreadMarkerReportAction) {
+            setIsFloatingMessageCounterVisible(false);
+        }
+
+        // if we're scrolled closer than the offset and read action has been skipped then mark message as read
+        if (unreadActionVisible && readActionSkippedRef.current) {
+            // eslint-disable-next-line react-compiler/react-compiler,no-param-reassign
+            readActionSkippedRef.current = false;
+            readNewestAction(ref.current.reportID);
+        }
+
+        // FlatList requires a stable onViewableItemsChanged callback for optimal performance.
+        // Therefore, we use a ref to store values instead of adding them as dependencies.
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // When unreadMarkerReportActionIndex changes we will manually call onViewableItemsChanged with previousViewableItems to recalculate
+    // the state of floating button because onViewableItemsChanged on  FlatList will only be called when viewable items change.
+    useEffect(() => {
+        ref.current.unreadMarkerReportActionIndex = unreadMarkerReportActionIndex;
+
+        if (ref.current.previousViewableItems.length) {
+            onViewableItemsChanged({viewableItems: ref.current.previousViewableItems, changed: []});
+        }
+    }, [onViewableItemsChanged, unreadMarkerReportActionIndex]);
+
     return {
         isFloatingMessageCounterVisible,
         setIsFloatingMessageCounterVisible,
         trackVerticalScrolling,
+        onViewableItemsChanged,
     };
 }

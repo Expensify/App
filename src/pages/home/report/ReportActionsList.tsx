@@ -120,8 +120,6 @@ type ReportActionsListProps = {
     shouldEnableAutoScrollToTopThreshold?: boolean;
 };
 
-const IS_CLOSE_TO_NEWEST_THRESHOLD = 15;
-
 // In the component we are subscribing to the arrival of new actions.
 // As there is the possibility that there are multiple instances of a ReportScreen
 // for the same report, we only ever want one subscription to be active, as
@@ -255,7 +253,7 @@ function ReportActionsList({
     /**
      * The reportActionID the unread marker should display above
      */
-    const unreadMarkerReportActionID = useMemo(() => {
+    const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = useMemo(() => {
         // If there are message that were received while offline,
         // we can skip checking all messages later than the earliest received offline message.
         const startIndex = earliestReceivedOfflineMessageIndex ?? 0;
@@ -280,11 +278,11 @@ function ReportActionsList({
                     prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
                 });
             if (shouldDisplayNewMarker) {
-                return reportAction.reportActionID;
+                return [reportAction.reportActionID, index];
             }
         }
 
-        return null;
+        return [null, -1];
     }, [accountID, earliestReceivedOfflineMessageIndex, prevSortedVisibleReportActionsObjects, sortedVisibleReportActions, unreadMarkerTime]);
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
@@ -336,34 +334,20 @@ function ReportActionsList({
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
 
-    // Display the new message indicator when comment linking and not close to the newest message.
-    const reportActionID = route?.params?.reportActionID;
-    const indexOfLinkedAction = reportActionID ? sortedVisibleReportActions.findIndex((action) => action.reportActionID === reportActionID) : -1;
-    const isLinkedActionCloseToNewest = indexOfLinkedAction < IS_CLOSE_TO_NEWEST_THRESHOLD;
-
     const trackScrolling = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
         onScroll?.(event);
-
-        scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
     };
 
-    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling} = useReportUnreadMessageScrollTracking({
+    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
         reportID: report.reportID,
         currentVerticalScrollingOffsetRef: scrollingVerticalOffset,
-        floatingMessageVisibleInitialValue: !isLinkedActionCloseToNewest,
         readActionSkippedRef: readActionSkipped,
-        hasUnreadMarkerReportAction: !!unreadMarkerReportActionID,
-        onTrackScrolling: trackScrolling,
         hasNewerActions,
+        unreadMarkerReportActionIndex,
+        isInverted: true,
+        onTrackScrolling: trackScrolling,
     });
-
-    useEffect(() => {
-        if (isLinkedActionCloseToNewest) {
-            return;
-        }
-        setIsFloatingMessageCounterVisible(true);
-    }, [isLinkedActionCloseToNewest, route, setIsFloatingMessageCounterVisible]);
 
     useEffect(() => {
         if (
@@ -428,7 +412,7 @@ function ReportActionsList({
         // Currently, there's no programmatic way to dismiss the notification center panel.
         // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
         const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
-        const isScrolledToEnd = scrollingVerticalOffset.current <= CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD;
+        const isScrolledToEnd = scrollingVerticalOffset.current <= CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD;
 
         if ((isVisible || isFromNotification) && !hasNewerActions && isScrolledToEnd) {
             readNewestAction(report.reportID);
@@ -828,6 +812,7 @@ function ReportActionsList({
     return (
         <>
             <FloatingMessageCounter
+                hasNewMessages={!!unreadMarkerReportActionID}
                 isActive={isFloatingMessageCounterVisible}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
@@ -858,6 +843,7 @@ function ReportActionsList({
                     onInitiallyLoaded={handleListInitiallyLoaded}
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
+                    onViewableItemsChanged={onViewableItemsChanged}
                     onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
                     key={listID}
