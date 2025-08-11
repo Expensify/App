@@ -36,7 +36,7 @@ function MergeFieldReview({field, values, selectedValue, onValueSelected, errorT
                         hoverStyle={styles.hoveredComponentBG}
                         style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv5, styles.ph5]}
                     >
-                        <Text style={[styles.mr1, styles.textBold]}>{displayValue}</Text>
+                        <Text style={[styles.flex1, styles.mr1, styles.textBold]}>{displayValue}</Text>
                         <RadioButton
                             isChecked={isSelected}
                             onPress={() => onValueSelected(mergeValue)}
