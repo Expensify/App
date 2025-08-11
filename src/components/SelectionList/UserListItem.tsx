@@ -99,7 +99,7 @@ function UserListItem<TItem extends ListItem>({
                             </View>
                         </PressableWithFeedback>
                     )}
-                    {!!item.icons && (
+                    {(!!item.reportID || !!item.accountID || !!item.policyID) && (
                         <ReportActionAvatars
                             subscriptAvatarBorderColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                             shouldShowTooltip={showTooltip}
@@ -110,7 +110,9 @@ function UserListItem<TItem extends ListItem>({
                             ]}
                             reportID={item.reportID}
                             accountIDs={[Number(item.accountID)]}
+                            policyID={!item.reportID && !item.accountID ? item.policyID : undefined}
                             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
+                            fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
                         />
                     )}
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>

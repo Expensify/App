@@ -3089,10 +3089,6 @@ const styles = (theme: ThemeColors) =>
             transform: `rotate(180deg)`,
         },
 
-        mirror: {
-            transform: `scaleX(-1)`,
-        },
-
         navigationScreenCardStyle: {
             backgroundColor: theme.appBG,
             height: '100%',
@@ -3175,6 +3171,17 @@ const styles = (theme: ThemeColors) =>
             width: 28,
             borderColor: theme.border,
             borderWidth: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+
+        newRadioButtonContainer: {
+            backgroundColor: theme.componentBG,
+            borderRadius: variables.componentBorderRadiusRounded,
+            height: variables.iconSizeNormal,
+            width: variables.iconSizeNormal,
+            borderColor: theme.border,
+            borderWidth: 2,
             justifyContent: 'center',
             alignItems: 'center',
         },
@@ -4760,6 +4767,16 @@ const styles = (theme: ThemeColors) =>
             height: 'auto',
         },
 
+        mergeTransactionReceiptImage: {
+            overflow: 'hidden',
+            borderWidth: 1,
+            borderColor: theme.border,
+            borderRadius: variables.componentBorderRadiusNormal,
+            aspectRatio: 16 / 9,
+            height: 180,
+            maxWidth: '100%',
+        },
+
         pdfErrorPlaceholder: {
             overflow: 'hidden',
             borderWidth: 2,
@@ -4791,6 +4808,12 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.highlightBG,
             borderWidth: 2,
             borderRadius: '50%',
+        },
+
+        mergeTransactionReceiptThumbnail: {
+            backgroundColor: theme.highlightBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+            padding: 20,
         },
 
         mapViewContainer: {
@@ -5687,32 +5710,6 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             paddingHorizontal: 0,
             aspectRatio: 1.7,
-        },
-
-        receiptPreview: {
-            position: 'absolute',
-            left: 60,
-            top: 60,
-            width: 380,
-            maxHeight: 'calc(100vh - 120px)',
-            borderRadius: variables.componentBorderRadiusLarge,
-            borderWidth: 1,
-            borderColor: theme.border,
-            overflow: 'hidden',
-            boxShadow: theme.shadow,
-            backgroundColor: theme.appBG,
-        },
-
-        receiptPreviewEReceiptsContainer: {
-            ...sizing.w100,
-            ...sizing.h100,
-            backgroundColor: colors.green800,
-        },
-
-        receiptPreviewEReceipt: {
-            ...flex.flexColumn,
-            ...flex.justifyContentCenter,
-            ...flex.alignItemsCenter,
         },
 
         topBarWrapper: {
