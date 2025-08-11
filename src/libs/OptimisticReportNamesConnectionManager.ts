@@ -95,17 +95,30 @@ function initialize(): Promise<void> {
 }
 
 /**
- * Get the current update context as a promise for backward compatibility
- * Initializes connections lazily on first use
+ * Get the current update context synchronously
+ * Must be called after initialize() has completed
  */
-function getUpdateContextAsync(): Promise<UpdateContext> {
-    return initialize().then(() => ({
+function getUpdateContext(): UpdateContext {
+    if (!isInitialized) {
+        console.log('morwa OptimisticReportNamesConnectionManager: getUpdateContext called before initialization');
+        throw new Error('OptimisticReportNamesConnectionManager not initialized. Call initialize() first.');
+    }
+    
+    return {
         betas,
         allReports: allReports ?? {},
         allPolicies: allPolicies ?? {},
         allReportNameValuePairs: allReportNameValuePairs ?? {},
-    }));
+    };
 }
 
-export {getUpdateContextAsync};
+/**
+ * Get the current update context as a promise for backward compatibility
+ * Initializes connections lazily on first use
+ */
+function getUpdateContextAsync(): Promise<UpdateContext> {
+    return initialize().then(() => getUpdateContext());
+}
+
+export {initialize, getUpdateContext, getUpdateContextAsync};
 export type {UpdateContext};

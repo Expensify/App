@@ -8,6 +8,7 @@ import {handleDeletedAccount, HandleUnusedOptimisticID, Logging, Pagination, Rea
 import {isOffline} from '@libs/Network/NetworkStore';
 import {push as pushToSequentialQueue, waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
 import * as OptimisticReportNames from '@libs/OptimisticReportNames';
+import {getUpdateContext, initialize as initializeOptimisticReportNamesContext} from '@libs/OptimisticReportNamesConnectionManager';
 import Pusher from '@libs/Pusher';
 import {processWithMiddleware, use} from '@libs/Request';
 import {getAll, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
@@ -43,6 +44,11 @@ use(Pagination);
 // middlewares after this, because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
 use(SaveResponseInOnyx);
 
+// Initialize OptimisticReportNames context on module load
+initializeOptimisticReportNamesContext().catch((error) => {
+    Log.error('Failed to initialize OptimisticReportNames context', error);
+});
+
 let requestIndex = 0;
 
 type OnyxData = {
@@ -77,16 +83,15 @@ function prepareRequest<TCommand extends ApiCommand>(
         Log.info('[API] Applying optimistic data', false, {command, type});
 
         // Process optimistic data through report name middleware
-        OptimisticReportNames.createUpdateContext()
-            .then((context) => {
-                const processedOptimisticData = OptimisticReportNames.updateOptimisticReportNamesFromUpdates(optimisticData, context);
-                Onyx.update(processedOptimisticData);
-            })
-            .catch((error) => {
-                Log.warn('[API] Failed to process optimistic report names', {error});
-                // Fallback to original optimistic data if processing fails
-                Onyx.update(optimisticData);
-            });
+        try {
+            const context = getUpdateContext();
+            const processedOptimisticData = OptimisticReportNames.updateOptimisticReportNamesFromUpdates(optimisticData, context);
+            Onyx.update(processedOptimisticData);
+        } catch (error) {
+            Log.warn('[API] Failed to process optimistic report names', {error});
+            // Fallback to original optimistic data if processing fails
+            Onyx.update(optimisticData);
+        }
     }
 
     const isWriteRequest = type === CONST.API_REQUEST_TYPE.WRITE;
