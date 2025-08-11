@@ -82,7 +82,7 @@ import {
     getSubmitToAccountID,
     hasDependentTags,
     isControlPolicy,
-    isInstantSubmitEnabled,
+    isDelayedSubmissionEnabled,
     isPaidGroupPolicy,
     isPolicyAdmin,
     isSubmitAndClose,
@@ -11772,7 +11772,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-    const isPolicyInstantSubmit = policy ? isInstantSubmitEnabled(policy) : false;
+    const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
     const isIOU = isIOUReport(report);
 
     if (!report || !transaction) {
@@ -11802,7 +11802,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
-    if (isPolicyInstantSubmit || isIOU) {
+    if (!isPolicyDelayedSubmissionEnabled || isIOU) {
         if (hasMultipleExpenses) {
             // For reports with multiple expenses: Update report total
             optimisticData.push(
