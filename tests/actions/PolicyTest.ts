@@ -740,6 +740,56 @@ describe('actions/Policy', () => {
 
             expect(activePolicyID).toBe(personalPolicy.id);
         });
+
+        it('should reset lastAccessedWorkspacePolicyID when deleting the last accessed workspace', async () => {
+            const policyToDelete = createRandomPolicy(0, CONST.POLICY.TYPE.TEAM);
+            const lastAccessedWorkspacePolicyID = policyToDelete.id;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyToDelete.id}`, policyToDelete);
+            await Onyx.merge(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, lastAccessedWorkspacePolicyID);
+            await waitForBatchedUpdates();
+
+            Policy.deleteWorkspace(policyToDelete.id, policyToDelete.name, lastAccessedWorkspacePolicyID);
+            await waitForBatchedUpdates();
+
+            const lastAccessedWorkspacePolicyIDAfterDelete: OnyxEntry<string> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
+                    callback: (policyID) => {
+                        Onyx.disconnect(connection);
+                        resolve(policyID);
+                    },
+                });
+            });
+
+            expect(lastAccessedWorkspacePolicyIDAfterDelete).toBeUndefined();
+        });
+
+        it('should not reset lastAccessedWorkspacePolicyID when deleting a different workspace', async () => {
+            const policyToDelete = createRandomPolicy(0, CONST.POLICY.TYPE.TEAM);
+            const differentPolicy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
+            const lastAccessedWorkspacePolicyID = differentPolicy.id;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyToDelete.id}`, policyToDelete);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${differentPolicy.id}`, differentPolicy);
+            await Onyx.merge(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, lastAccessedWorkspacePolicyID);
+            await waitForBatchedUpdates();
+
+            Policy.deleteWorkspace(policyToDelete.id, policyToDelete.name, lastAccessedWorkspacePolicyID);
+            await waitForBatchedUpdates();
+
+            const lastAccessedWorkspacePolicyIDAfterDelete: OnyxEntry<string> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
+                    callback: (policyID) => {
+                        Onyx.disconnect(connection);
+                        resolve(policyID);
+                    },
+                });
+            });
+
+            expect(lastAccessedWorkspacePolicyIDAfterDelete).toBe(lastAccessedWorkspacePolicyID);
+        });
     });
 
     const TEST_EMAIL = 'esh@gmail.com';
