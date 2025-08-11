@@ -1859,7 +1859,7 @@ const ROUTES = {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_RECEIPT_PARTNERS route');
             }
-            return getUrlWithBackToParam(`workspaces/${policyID}/receipt–partners`, backTo);
+            return getUrlWithBackToParam(`workspaces/${policyID}/receipt-partners`, backTo);
         },
     },
     WORKSPACE_PER_DIEM_IMPORT: {
