@@ -93,12 +93,12 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const headerContent = useMemo(
         () => (
             <View style={[styles.ph5, styles.pb5]}>
-                <Text style={[styles.textLabel, styles.minHeight5]}>
+                <Text style={[styles.textLabel, styles.minHeight5, styles.breakWord, styles.flex1]}>
                     <RenderHTML html={translate('transactionMerge.listPage.selectTransactionToMerge', {reportName: getReportName(report)})} />
                 </Text>
             </View>
         ),
-        [report, translate, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5],
+        [report, translate, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.breakWord, styles.flex1],
     );
 
     const subTitleContent = useMemo(() => {
