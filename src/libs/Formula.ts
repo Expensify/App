@@ -351,7 +351,7 @@ function getSubstring(value: string, args: string[]): string {
 /**
  * Format a date value with support for multiple date formats
  */
-function formatDate(dateString: string | undefined, format = 'MM/dd/yyyy'): string {
+function formatDate(dateString: string | undefined, format = 'yyyy-MM-dd'): string {
     if (!dateString) {
         return '';
     }
