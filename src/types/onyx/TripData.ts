@@ -240,7 +240,7 @@ type PnrData = {
          */
         base: {
             /**
-             *
+             * Base fare amount.
              */
             amount: number;
             /**
@@ -261,7 +261,7 @@ type PnrData = {
          */
         tax: {
             /**
-             *
+             * Tax amount.
              */
             amount: number;
         };
