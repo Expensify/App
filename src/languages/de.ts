@@ -5349,9 +5349,7 @@ const translations = {
             successTitle: 'Woohoo! Alles bereit.',
             successDescription: 'Sie sind jetzt der Besitzer dieses Arbeitsbereichs.',
             errorTitle: 'Hoppla! Nicht so schnell...',
-            errorDescriptionPartOne: 'Es gab ein Problem beim Übertragen der Inhaberschaft dieses Arbeitsbereichs. Versuchen Sie es erneut, oder',
-            errorDescriptionPartTwo: 'Wenden Sie sich an Concierge.',
-            errorDescriptionPartThree: 'für Hilfe.',
+            errorDescription: `<muted-text><centered-text>TBei der Übertragung des Eigentums an diesem Arbeitsbereich ist ein Problem aufgetreten. Versuchen Sie es erneut, oder <a href="mailto:${CONST.EMAIL.CONCIERGE}">wenden Sie sich an Concierge</a>.</centered-text></muted-text>`,
         },
         exportAgainModal: {
             title: 'Vorsicht!',

@@ -5358,9 +5358,7 @@ const translations = {
             successTitle: 'Uhu! Tudo pronto.',
             successDescription: 'Você agora é o proprietário deste espaço de trabalho.',
             errorTitle: 'Ops! Não tão rápido...',
-            errorDescriptionPartOne: 'Houve um problema ao transferir a propriedade deste espaço de trabalho. Tente novamente, ou',
-            errorDescriptionPartTwo: 'entre em contato com o Concierge',
-            errorDescriptionPartThree: 'para ajuda.',
+            errorDescription: `<muted-text><centered-text>Ocorreu um problema ao transferir a propriedade deste espaço de trabalho. Tente novamente ou entre em <a href="mailto:${CONST.EMAIL.CONCIERGE}">contato com o Concierge</a> para obter ajuda.</centered-text></muted-text>`,
         },
         exportAgainModal: {
             title: 'Cuidado!',

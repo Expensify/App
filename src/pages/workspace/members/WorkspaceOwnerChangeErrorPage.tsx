@@ -5,9 +5,9 @@ import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -56,11 +56,9 @@ function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageP
                         additionalStyles={styles.mb3}
                     />
                     <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2]}>{translate('workspace.changeOwner.errorTitle')}</Text>
-                    <Text style={[styles.textAlignCenter, styles.textSupporting]}>
-                        {translate('workspace.changeOwner.errorDescriptionPartOne')}{' '}
-                        <TextLink href={`mailto:${CONST.EMAIL.CONCIERGE}`}>{translate('workspace.changeOwner.errorDescriptionPartTwo')}</TextLink>{' '}
-                        {translate('workspace.changeOwner.errorDescriptionPartThree')}
-                    </Text>
+                    <View style={[styles.renderHTML, styles.flexRow]}>
+                        <RenderHTML html={translate('workspace.changeOwner.errorDescription')} />
+                    </View>
                 </View>
                 <FixedFooter addBottomSafeAreaPadding>
                     <Button
