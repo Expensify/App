@@ -377,8 +377,6 @@ function formatDate(dateString: string | undefined, format = 'MM/dd/yyyy'): stri
                 return `${day.toString().padStart(2, '0')} ${shortMonthNames.at(month - 1)} ${year}`;
             case 'yyyy/MM/dd':
                 return `${year}/${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}`;
-            case 'yyyy-MM-dd':
-                return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
             case 'MMMM, yyyy':
                 return `${monthNames.at(month - 1)}, ${year}`;
             case 'yy/MM/dd':
@@ -388,8 +386,10 @@ function formatDate(dateString: string | undefined, format = 'MM/dd/yyyy'): stri
             case 'yyyy':
                 return year.toString();
             case 'MM/dd/yyyy':
-            default:
                 return `${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}/${year}`;
+            case 'yyyy-MM-dd':
+            default:
+                return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
         }
     } catch {
         return '';
