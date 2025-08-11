@@ -38,7 +38,7 @@ function getMonthFromExpirationDateString(expirationDateString: string) {
 
 /**
  * Sorting logic for assigned cards.
- * 
+ *
  * Ensure to sort physical Expensify cards first, no matter what their cardIDs are.
  * This way ensures the Expensify Combo Card detail is rendered correctly,
  * because we will always use the cardID of the physical card from the combo card duo.
