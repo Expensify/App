@@ -456,11 +456,6 @@ function getReasonAndReportActionThatHasRedBrickRoad(
         };
     }
 
-    if (hasViolations) {
-        return {
-            reason: CONST.RBR_REASONS.HAS_VIOLATIONS,
-        };
-    }
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? []);
     if (transactionThreadReportID) {
@@ -477,6 +472,12 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     if (isTransactionThread(parentReportAction) && hasReceiptError(transaction)) {
         return {
             reason: CONST.RBR_REASONS.HAS_ERRORS,
+        };
+    }
+
+    if (hasViolations) {
+        return {
+            reason: CONST.RBR_REASONS.HAS_VIOLATIONS,
         };
     }
 
