@@ -3,7 +3,7 @@ import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/Vir
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
@@ -624,8 +624,22 @@ function MoneyRequestReportActionsList({
         ),
         [report, policy, transactions, newTransactions, reportActions, reportHasComments, showReportActionsLoadingState, scrollToNewTransaction],
     );
+    const handleSelectionHeaderLayout = useCallback((event: LayoutChangeEvent) => {
+        const headerHeight = event.nativeEvent.layout.height;
+        if (headerHeight > 0) {
+            DeviceEventEmitter.emit('invertedListHeaderHeight', headerHeight);
+        }
+    }, []);
 
-    const listHeaderComponent = useMemo(() => <View style={styles.flex1} />, [styles.flex1]);
+    const listHeaderComponent = useMemo(
+        () => (
+            <View
+                onLayout={handleSelectionHeaderLayout}
+                style={styles.flex1}
+            />
+        ),
+        [styles.flex1, handleSelectionHeaderLayout],
+    );
 
     const listFooterComponentStyle = useMemo(() => [isEmpty(visibleReportActions) ? styles.flex1 : undefined], [visibleReportActions.length, styles.flex1]);
     const listHeaderComponentStyle = useMemo(() => [isEmpty(visibleReportActions) ? undefined : styles.flex1], [visibleReportActions.length, styles.flex1]);
