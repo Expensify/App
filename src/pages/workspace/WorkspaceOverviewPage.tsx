@@ -228,7 +228,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         const policyID = policy?.id;
         clearWorkspaceOwnerChangeFlow(policyID);
         requestWorkspaceOwnerChange(policyID);
-        Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, currentUserAccountID, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
+        Navigation.navigate(
+            ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, currentUserAccountID, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>, Navigation.getActiveRoute()),
+        );
     }, [currentUserAccountID, policy?.id]);
 
     const getHeaderButtons = () => {
@@ -270,6 +272,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
         const isCurrentUserAdmin = policy?.employeeList?.[currentUserPersonalDetails?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
         const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
+        console.log('shouldRenderTransferOwnerButton()', shouldRenderTransferOwnerButton());
         if (isCurrentUserAdmin && !isCurrentUserOwner && shouldRenderTransferOwnerButton()) {
             secondaryActions.push({
                 value: 'transferOwner',

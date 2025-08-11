@@ -179,7 +179,12 @@ function WorkspacesListPage() {
             clearWorkspaceOwnerChangeFlow(policyID);
             requestWorkspaceOwnerChange(policyID);
             Navigation.navigate(
-                ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>),
+                ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(
+                    policyID,
+                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>,
+                    Navigation.getActiveRoute(),
+                ),
             );
         },
         [session?.accountID],

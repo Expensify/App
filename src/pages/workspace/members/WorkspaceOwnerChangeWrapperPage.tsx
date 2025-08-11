@@ -30,6 +30,7 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
     const policyID = route.params.policyID;
     const accountID = route.params.accountID;
     const error = route.params.error;
+    const backTo = route.params.backTo;
     const isAuthRequired = privateStripeCustomerID?.status === CONST.STRIPE_SCA_AUTH_STATUSES.CARD_AUTHENTICATION_REQUIRED;
     const shouldShowPaymentCardForm = error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD || isAuthRequired;
 
@@ -41,14 +42,14 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
         if (!policy.errorFields && policy.isChangeOwnerFailed) {
             // there are some errors but not related to change owner flow - show an error page
             Navigation.goBack();
-            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.getRoute(policyID, accountID));
+            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.getRoute(policyID, accountID, backTo));
             return;
         }
 
         if (!policy?.errorFields?.changeOwner && policy?.isChangeOwnerSuccessful) {
             // no errors - show a success page
             Navigation.goBack();
-            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.getRoute(policyID, accountID));
+            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.getRoute(policyID, accountID, backTo));
             return;
         }
 
@@ -57,7 +58,7 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
         if (changeOwnerErrors && changeOwnerErrors.length > 0) {
             Navigation.setParams({error: changeOwnerErrors.at(0)});
         }
-    }, [accountID, policy, policy?.errorFields?.changeOwner, policyID]);
+    }, [accountID, backTo, policy, policy?.errorFields?.changeOwner, policyID]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -69,8 +70,12 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
                     title={translate('workspace.changeOwner.changeOwnerPageTitle')}
                     onBackButtonPress={() => {
                         clearWorkspaceOwnerChangeFlow(policyID);
-                        Navigation.goBack();
-                        Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+                        if (backTo) {
+                            Navigation.goBack(backTo);
+                        } else {
+                            Navigation.goBack();
+                            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+                        }
                     }}
                 />
                 <View style={[styles.containerWithSpaceBetween, error !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD ? styles.ph5 : styles.ph0, styles.pb0]}>
