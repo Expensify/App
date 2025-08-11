@@ -1,7 +1,7 @@
+import type {VideoPlayer} from 'expo-video';
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
@@ -18,12 +18,16 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState<PlaybackSpeed>(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[3]);
     const {isOffline} = useNetwork();
     const isLocalFile = source && CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix));
-    const videoPopoverMenuPlayerRef = useRef<VideoWithOnFullScreenUpdate | null>(null);
+    const videoPopoverMenuPlayerRef = useRef<VideoPlayer>(null);
+    const videoPopoverMenuSource = useRef<string | null>(null);
 
     const updatePlaybackSpeed = useCallback(
         (speed: PlaybackSpeed) => {
             setCurrentPlaybackSpeed(speed);
-            videoPopoverMenuPlayerRef.current?.setStatusAsync?.({rate: speed});
+            if (!videoPopoverMenuPlayerRef.current) {
+                return;
+            }
+            videoPopoverMenuPlayerRef.current.playbackRate = speed;
         },
         [videoPopoverMenuPlayerRef],
     );
@@ -66,8 +70,8 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
     }, [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
 
     const contextValue = useMemo(
-        () => ({menuItems, videoPopoverMenuPlayerRef, currentPlaybackSpeed, updatePlaybackSpeed, setCurrentPlaybackSpeed, setSource}),
-        [menuItems, videoPopoverMenuPlayerRef, currentPlaybackSpeed, updatePlaybackSpeed, setCurrentPlaybackSpeed, setSource],
+        () => ({menuItems, videoPopoverMenuPlayerRef, videoPopoverMenuSource, currentPlaybackSpeed, updatePlaybackSpeed, setCurrentPlaybackSpeed, setSource}),
+        [menuItems, videoPopoverMenuPlayerRef, videoPopoverMenuSource, currentPlaybackSpeed, updatePlaybackSpeed, setCurrentPlaybackSpeed, setSource],
     );
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
