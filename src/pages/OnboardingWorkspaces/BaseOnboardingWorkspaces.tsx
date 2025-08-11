@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -56,7 +56,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
 
-    const isDomainRestriction = route.params?.isDomainRestriction ?? false;
+    const isDomainRestriction = !!route.params?.isDomainRestriction;
 
     const handleJoinWorkspace = useCallback(
         (policy: JoinablePolicy) => {
@@ -181,7 +181,10 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                                 setOnboardingAdminsChatReportID();
                                 setOnboardingPolicyID();
 
-                                navigateAfterOnboardingWithMicrotaskQueue(isSmallScreenWidth, lastAccessReport, undefined, undefined, false);
+                                InteractionManager.runAfterInteractions(() => {
+                                    Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
+                                });
+
                                 return;
                             }
                             Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
