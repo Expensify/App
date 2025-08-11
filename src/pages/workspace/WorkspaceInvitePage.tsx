@@ -170,30 +170,9 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             return [];
         }
 
-        // Filter all options that is a part of the search term or in the personal details
-        let filterSelectedOptions = selectedOptions;
-        if (debouncedSearchTerm !== '') {
-            filterSelectedOptions = selectedOptions.filter((option) => {
-                const accountID = option.accountID;
-                const isOptionInPersonalDetails = Object.values(personalDetails).some((personalDetail) => personalDetail.accountID === accountID);
-
-                const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm);
-
-                const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
-                return isPartOfSearchTerm || isOptionInPersonalDetails;
-            });
-        }
-
-        sectionsArr.push({
-            title: undefined,
-            data: filterSelectedOptions,
-            shouldShow: true,
-        });
-
-        // Filtering out selected users from the search results
         const selectedLogins = selectedOptions.map(({login}) => login);
-        const personalDetailsWithoutSelected = Object.values(personalDetails).filter(({login}) => !selectedLogins.some((selectedLogin) => selectedLogin === login));
-        const personalDetailsFormatted = personalDetailsWithoutSelected.map((item) => formatMemberForList(item));
+        const personalDetailsModified = Object.values(personalDetails).map((item) => selectedLogins.some((selectedLogin)=> item.login === selectedLogin) ? {...item, isSelected  : true} : item);
+        const personalDetailsFormatted = personalDetailsModified.map((item) => formatMemberForList(item));
 
         sectionsArr.push({
             title: translate('common.contacts'),
@@ -341,3 +320,4 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
 WorkspaceInvitePage.displayName = 'WorkspaceInvitePage';
 
 export default withNavigationTransitionEnd(withPolicyAndFullscreenLoading(WorkspaceInvitePage));
+
