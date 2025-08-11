@@ -24,6 +24,7 @@ import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
+import TransactionThreadParams from '@libs/TransactionThreadParams';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
@@ -179,9 +180,11 @@ function MoneyRequestReportTransactionList({
             // to display prev/next arrows in RHP for navigation
             const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedTransactions);
             setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs).then(() => {
-                Navigation.navigate(
-                    ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo, parentReportID: activeTransaction.reportID, parentReportActionID: iouAction?.reportActionID}),
-                );
+                TransactionThreadParams.setParams({
+                    parentReportID: activeTransaction.reportID,
+                    parentReportActionID: iouAction?.reportActionID,
+                });
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo}));
             });
         },
         [reportActions, sortedTransactions],

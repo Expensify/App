@@ -3,6 +3,7 @@ import React, {useEffect, useMemo} from 'react';
 import PrevNextButtons from '@components/PrevNextButtons';
 import useOnyx from '@hooks/useOnyx';
 import {clearActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
+import TransactionThreadParams from '@libs/TransactionThreadParams';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,21 +69,23 @@ function MoneyRequestReportTransactionsNavigation({currentReportID, parentReport
             isNextButtonDisabled={!nextReportID}
             onNext={(e) => {
                 e?.preventDefault();
-                Navigation.navigate(
-                    ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, parentReportActionID: nextParentReportActionID, parentReportID, backTo: backTo ?? Navigation.getActiveRoute()}),
-                    {
-                        forceReplace: true,
-                    },
-                );
+                TransactionThreadParams.setParams({
+                    parentReportID,
+                    parentReportActionID: nextParentReportActionID,
+                });
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, backTo: backTo ?? Navigation.getActiveRoute()}), {
+                    forceReplace: true,
+                });
             }}
             onPrevious={(e) => {
                 e?.preventDefault();
-                Navigation.navigate(
-                    ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, parentReportActionID: prevParentReportActionID, parentReportID, backTo: backTo ?? Navigation.getActiveRoute()}),
-                    {
-                        forceReplace: true,
-                    },
-                );
+                TransactionThreadParams.setParams({
+                    parentReportID,
+                    parentReportActionID: prevParentReportActionID,
+                });
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, backTo: backTo ?? Navigation.getActiveRoute()}), {
+                    forceReplace: true,
+                });
             }}
         />
     );

@@ -69,6 +69,7 @@ import {
     isTaskReport,
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
+import TransactionThreadParams from '@libs/TransactionThreadParams';
 import {isNumeric} from '@libs/ValidationUtils';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import {setShouldShowComposeInput} from '@userActions/Composer';
@@ -136,7 +137,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
-    const {reportActionID: reportActionIDFromRoute, parentReportID: parentReportIDFromRoute, parentReportActionID: parentReportActionIDFromRoute} = route.params;
+    const {reportActionID: reportActionIDFromRoute} = route.params;
+
+    // Get parent report parameters from sessionStorage instead of route params
+    const {parentReportID: parentReportIDFromRoute, parentReportActionID: parentReportActionIDFromRoute} = TransactionThreadParams.getParams();
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const firstRenderRef = useRef(true);
