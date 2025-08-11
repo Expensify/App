@@ -265,6 +265,7 @@ function OptionRow({
                                         ]}
                                         onAmountChange={option.amountInputProps.onAmountChange}
                                         maxLength={option.amountInputProps.maxLength}
+                                        shouldWrapInputInContainer={false}
                                     />
                                 ) : null}
                                 {!isSelected && option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
