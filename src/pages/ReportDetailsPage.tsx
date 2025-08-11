@@ -878,12 +878,14 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             <MenuItemWithTopDescription
                                 title={base62ReportID}
                                 description={translate('common.reportID')}
+                                copyValue={base62ReportID}
                                 interactive={false}
                                 shouldBlockSelection
                             />
                             <MenuItemWithTopDescription
                                 title={report.reportID}
                                 description={translate('common.longID')}
+                                copyValue={report.reportID}
                                 interactive={false}
                                 shouldBlockSelection
                             />
