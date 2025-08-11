@@ -24,7 +24,6 @@ import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import TextWithCopy from '@components/TextWithCopy';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
-import useLastAccessedReport from '@hooks/useLastAccessedReport';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -148,8 +147,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const {isBetaEnabled} = usePermissions();
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
-
-    const {lastAccessReportID} = useLastAccessedReport(false, false, undefined, report.reportID);
 
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`, {canBeMissing: true});
@@ -307,13 +304,13 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         Navigation.dismissModal();
         Navigation.isNavigationReady().then(() => {
             if (isRootGroupChat) {
-                leaveGroupChat(report.reportID, lastAccessReportID);
+                leaveGroupChat(report.reportID);
                 return;
             }
             const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
-            leaveRoom(report.reportID, lastAccessReportID, isWorkspaceMemberLeavingWorkspaceRoom);
+            leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
         });
-    }, [isPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility, lastAccessReportID]);
+    }, [isPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility]);
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, session?.email) && !policy?.isJoinRequestPending;
@@ -771,7 +768,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const deleteTransaction = useCallback(() => {
         if (caseID === CASES.DEFAULT) {
-            deleteTask(report, lastAccessReportID);
+            deleteTask(report);
             return;
         }
 
@@ -788,16 +785,15 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             removeTransaction(iouTransactionID);
         }
     }, [
-        caseID,
-        requestParentReportAction,
-        report,
-        lastAccessReportID,
-        moneyRequestReport?.reportID,
-        iouTransactionID,
         duplicateTransactions,
         duplicateTransactionViolations,
+        caseID,
+        iouTransactionID,
         isSingleTransactionView,
+        moneyRequestReport?.reportID,
         removeTransaction,
+        report,
+        requestParentReportAction,
     ]);
 
     // A flag to indicate whether the user chose to delete the transaction or not
