@@ -1225,7 +1225,7 @@ function isReportSelected(reportOption: OptionData, selectedOptions: Array<Parti
 }
 
 function processReport(
-    report: OnyxEntry<Report>,
+    report: OnyxEntry<Report> | null,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     transactions?: SearchTransaction[],
