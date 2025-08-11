@@ -25,7 +25,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0  # Get full history
           ref: ${{ github.event.inputs.pr_number && format('refs/pull/{0}/merge', github.event.inputs.pr_number) || github.ref }}
 
       - name: Set up Node
@@ -60,7 +60,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0  # Get full history
           ref: ${{ github.event.inputs.pr_number && format('refs/pull/{0}/merge', github.event.inputs.pr_number) || github.ref }}
       - uses: actions/setup-node@v4
         with:
@@ -80,11 +80,25 @@ jobs:
             echo "hasCoverage=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Install 1Password CLI
+        # v1
+        uses: 1password/install-cli-action@143a85f84a90555d121cde2ff5872e393a47ab9f
+
+      - name: Load Codecov token from 1Password
+        id: load-credentials
+        # v2
+        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          CODECOV_TOKEN: op://${{ vars.OP_VAULT }}//CodeCov-API/key
+
       - name: Upload Coverage to Codecov
         if: success() && steps.check-coverage.outputs.hasCoverage == 'true'
         uses: codecov/codecov-action@v5
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ steps.load-credentials.outputs.CODECOV_TOKEN }}
           flags: shard-${{ matrix.shard }}
           override_pr: ${{ github.event.inputs.pr_number || '' }}
           override_commit: ${{ needs.setup.outputs.pr_sha || github.sha }}
@@ -104,7 +118,7 @@ jobs:
         if: ${{ steps.check-results.outputs.hasResults == 'true' }}
         uses: codecov/test-results-action@v1
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ steps.load-credentials.outputs.CODECOV_TOKEN }}
           flags: shard-${{ matrix.shard }}
           override_pr: ${{ github.event.inputs.pr_number || '' }}
           override_commit: ${{ needs.setup.outputs.pr_sha || github.sha }}
