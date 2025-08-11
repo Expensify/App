@@ -4,8 +4,9 @@ import useOnyx from '@hooks/useOnyx';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isMoneyRequestAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
 import {isDM} from '@libs/ReportUtils';
+import {getCurrentUserAccountID} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, Transaction} from '@src/types/onyx';
@@ -47,6 +48,10 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
         canBeMissing: true,
     });
 
+    if (action?.isOptimisticAction && action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+        return getCurrentUserAccountID();
+    }
+
     // 1. If all amounts have the same sign - either all amounts are positive or all amounts are negative.
     // We have to do it this way because there can be a case when actions are not available
     // See: https://github.com/Expensify/App/pull/64802#issuecomment-3008944401
@@ -66,8 +71,15 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
     const isThereOnlyOneAttendee = new Set(attendeesIDs).size <= 1;
 
     // If the action is a 'Send Money' flow, it will only have one transaction, but the person who sent the money is the child manager account, not the child owner account.
-    const isSendMoneyFlow = action?.childMoneyRequestCount === 0 && transactions?.length === 1 && (chatReport ? isDM(chatReport) : policy?.type === CONST.POLICY.TYPE.PERSONAL);
-    const singleAvatarAccountID = isSendMoneyFlow ? action.childManagerAccountID : action?.childOwnerAccountID;
+    const isSendMoneyFlowBasedOnActions = !!iouActions && iouActions.every(isSentMoneyReportAction);
+    // This is used only if there are no IOU actions in the Onyx
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const isSendMoneyFlowBasedOnTransactions =
+        !!action && action.childMoneyRequestCount === 0 && transactions?.length === 1 && (chatReport ? isDM(chatReport) : policy?.type === CONST.POLICY.TYPE.PERSONAL);
+
+    const isSendMoneyFlow = !!iouActions && iouActions?.length > 0 ? isSendMoneyFlowBasedOnActions : isSendMoneyFlowBasedOnTransactions;
+
+    const singleAvatarAccountID = isSendMoneyFlow ? action?.childManagerAccountID : action?.childOwnerAccountID;
 
     return areAmountsSignsTheSame && isThereOnlyOneAttendee ? singleAvatarAccountID : undefined;
 }
