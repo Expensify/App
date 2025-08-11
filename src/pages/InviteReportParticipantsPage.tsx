@@ -114,30 +114,11 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
             return [];
         }
 
-        // Filter all options that is a part of the search term or in the personal details
-        let filterSelectedOptions = selectedOptions;
-        if (debouncedSearchTerm !== '') {
-            const processedSearchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm);
-            filterSelectedOptions = tokenizedSearch(selectedOptions, processedSearchValue, (option) => [option.text ?? '', option.login ?? '']).filter((option) => {
-                const accountID = option?.accountID;
-                const isOptionInPersonalDetails = inviteOptions.personalDetails.some((personalDetail) => accountID && personalDetail?.accountID === accountID);
-                const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(processedSearchValue) || !!option.login?.toLowerCase().includes(processedSearchValue);
-                return isPartOfSearchTerm || isOptionInPersonalDetails;
-            });
-        }
-        const filterSelectedOptionsFormatted = filterSelectedOptions.map((selectedOption) => formatMemberForList(selectedOption));
-
-        sectionsArr.push({
-            title: undefined,
-            data: filterSelectedOptionsFormatted,
-        });
-
-        // Filtering out selected users from the search results
         const selectedLogins = selectedOptions.map(({login}) => login);
-        const recentReportsWithoutSelected = inviteOptions.recentReports.filter(({login}) => !selectedLogins.includes(login));
-        const recentReportsFormatted = recentReportsWithoutSelected.map((reportOption) => formatMemberForList(reportOption));
-        const personalDetailsWithoutSelected = inviteOptions.personalDetails.filter(({login}) => !selectedLogins.includes(login));
-        const personalDetailsFormatted = personalDetailsWithoutSelected.map((personalDetail) => formatMemberForList(personalDetail));
+        const recentReportsModified = inviteOptions.recentReports.map((item) => (selectedLogins.includes(item.login) ? {...item, isSelected: true} : item));
+        const recentReportsFormatted = recentReportsModified.map((reportOption) => formatMemberForList(reportOption));
+        const personalDetailsModified = inviteOptions.personalDetails.map((item) => (selectedLogins.includes(item.login) ? {...item, isSelected: true} : item));
+        const personalDetailsFormatted = personalDetailsModified.map((personalDetail) => formatMemberForList(personalDetail));
         const hasUnselectedUserToInvite = inviteOptions.userToInvite && !selectedLogins.includes(inviteOptions.userToInvite.login);
 
         sectionsArr.push({
