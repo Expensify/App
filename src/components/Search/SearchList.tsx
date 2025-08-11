@@ -17,14 +17,7 @@ import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import type TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {
-    ExtendedTargetedEvent,
-    ReportActionListItemType,
-    SortableColumnName,
-    TaskListItemType,
-    TransactionGroupListItemType,
-    TransactionListItemType,
-} from '@components/SelectionList/types';
+import type {ExtendedTargetedEvent, ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useInitialWindowDimensions from '@hooks/useInitialWindowDimensions';
@@ -92,9 +85,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** The search query */
     queryJSON: SearchQueryJSON;
 
-    /** Columns to show */
-    columns: SortableColumnName[];
-
     /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
     onViewableItemsChanged?: (info: {changed: ViewToken[]; viewableItems: ViewToken[]}) => void;
 
@@ -139,7 +129,6 @@ function SearchList(
         shouldPreventDefaultFocusOnSelectRow,
         shouldPreventLongPressRow,
         queryJSON,
-        columns,
         onViewableItemsChanged,
         onLayout,
         shouldAnimate,
@@ -335,7 +324,7 @@ function SearchList(
                     exiting={shouldAnimate ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
                     entering={undefined}
                     style={styles.overflowHidden}
-                    layout={shouldAnimate && hasItemsBeingRemoved ? LinearTransition.easing(easing).duration(CONST.SEARCH.LAYOUT_ANIMATION_DURATION) : undefined}
+                    layout={shouldAnimate && hasItemsBeingRemoved ? LinearTransition.easing(easing).duration(CONST.SEARCH.EXITING_ANIMATION_DURATION) : undefined}
                 >
                     <ListItem
                         showTooltip
@@ -364,7 +353,6 @@ function SearchList(
                         }}
                         shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                         queryJSONHash={hash}
-                        columns={columns}
                         policies={policies}
                         isDisabled={isDisabled}
                         allReports={allReports}
@@ -390,7 +378,6 @@ function SearchList(
             canSelectMultiple,
             shouldPreventDefaultFocusOnSelectRow,
             hash,
-            columns,
             policies,
             allReports,
             groupBy,
@@ -491,7 +478,7 @@ function SearchList(
                 onScroll={onScroll}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
-                extraData={[focusedIndex, isFocused, columns]}
+                extraData={[focusedIndex, isFocused]}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}
