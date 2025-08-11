@@ -14,6 +14,7 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFSAttributes} from '@libs/Fullstory';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {dismissTrackTrainingModal} from '@userActions/User';
@@ -336,23 +337,47 @@ function FeatureTrainingModal({
     const toggleWillShowAgain = useCallback(() => setWillShowAgain((prevWillShowAgain) => !prevWillShowAgain), []);
 
     const closeModal = useCallback(() => {
+        Log.info(`[FeatureTrainingModal] closeModal called - willShowAgain: ${willShowAgain}, shouldGoBack: ${shouldGoBack}, hasOnClose: ${!!onClose}`);
+
         if (!willShowAgain) {
+            Log.info('[FeatureTrainingModal] Dismissing track training modal');
             dismissTrackTrainingModal();
         }
+
+        Log.info('[FeatureTrainingModal] Setting modal invisible');
         setIsModalVisible(false);
+
         InteractionManager.runAfterInteractions(() => {
+            Log.info(`[FeatureTrainingModal] Running after interactions - shouldGoBack: ${shouldGoBack}, hasOnClose: ${!!onClose}`);
+
             if (shouldGoBack) {
+                Log.info('[FeatureTrainingModal] Navigating back');
                 Navigation.goBack();
             }
-            onClose?.();
+
+            if (onClose) {
+                Log.info('[FeatureTrainingModal] Calling onClose callback');
+                onClose();
+            } else {
+                Log.info('[FeatureTrainingModal] No onClose callback provided');
+            }
         });
     }, [onClose, shouldGoBack, willShowAgain]);
 
     const closeAndConfirmModal = useCallback(() => {
+        Log.info(`[FeatureTrainingModal] Button pressed - shouldCloseOnConfirm: ${shouldCloseOnConfirm}, hasOnConfirm: ${!!onConfirm}, willShowAgain: ${willShowAgain}`);
+
         if (shouldCloseOnConfirm) {
+            Log.info('[FeatureTrainingModal] Calling closeModal');
             closeModal();
         }
-        onConfirm?.(willShowAgain);
+
+        if (onConfirm) {
+            Log.info('[FeatureTrainingModal] Calling onConfirm callback');
+            onConfirm(willShowAgain);
+        } else {
+            Log.info('[FeatureTrainingModal] No onConfirm callback provided');
+        }
     }, [shouldCloseOnConfirm, onConfirm, closeModal, willShowAgain]);
 
     /**
