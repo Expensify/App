@@ -184,8 +184,6 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
         >
             <PaymentMethodList
                 shouldShowAddBankAccountButton={!hasBankAccount}
-                shouldShowAddPaymentMethodButton={false}
-                shouldShowEmptyListMessage={false}
                 onPress={paymentMethodPressed}
                 invoiceTransferBankAccountID={transferBankAccountID}
                 activePaymentMethodID={transferBankAccountID}

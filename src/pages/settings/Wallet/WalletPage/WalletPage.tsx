@@ -442,8 +442,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 illustrationBackgroundColor="#411103"
                             >
                                 <PaymentMethodList
-                                    shouldShowAddPaymentMethodButton={false}
-                                    shouldShowEmptyListMessage={false}
                                     onPress={paymentMethodPressed}
                                     actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
                                     activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
@@ -465,9 +463,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 >
                                     <PaymentMethodList
                                         shouldShowAddBankAccount={false}
-                                        shouldShowAddPaymentMethodButton={false}
                                         shouldShowAssignedCards
-                                        shouldShowEmptyListMessage={false}
                                         onPress={assignedCardPressed}
                                         style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                         listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}

@@ -8,7 +8,6 @@ import type {SvgProps} from 'react-native-svg/lib/typescript/ReactNativeSVG';
 import type {ValueOf} from 'type-fest';
 import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSuggestions/types';
 import Button from '@components/Button';
-import FormAlertWrapper from '@components/FormAlertWrapper';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -84,17 +83,11 @@ type PaymentMethodListProps = {
     /** Whether the add bank account button should be shown on the list */
     shouldShowAddBankAccount?: boolean;
 
-    /** Whether the add Payment button be shown on the list */
-    shouldShowAddPaymentMethodButton?: boolean;
-
     /** Whether the add Bank account button be shown on the list */
     shouldShowAddBankAccountButton?: boolean;
 
     /** Whether the assigned cards should be shown on the list */
     shouldShowAssignedCards?: boolean;
-
-    /** Whether the empty list message should be shown when the list is empty */
-    shouldShowEmptyListMessage?: boolean;
 
     /** Whether the right icon should be shown in PaymentMethodItem */
     shouldShowRightIcon?: boolean;
@@ -184,10 +177,8 @@ function PaymentMethodList({
     listHeaderComponent,
     onPress,
     shouldShowSelectedState = false,
-    shouldShowAddPaymentMethodButton = true,
     shouldShowAddBankAccountButton = false,
     shouldShowAddBankAccount = true,
-    shouldShowEmptyListMessage = true,
     shouldShowAssignedCards = false,
     selectedMethodID = '',
     onListContentSizeChange = () => {},
@@ -211,8 +202,6 @@ function PaymentMethodList({
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
     // Temporarily disabled because P2P debit cards are disabled.
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
-    const [isLoadingPaymentMethods = true, isLoadingPaymentMethodsResult] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {canBeMissing: true});
-    const isLoadingPaymentMethodsOnyx = isLoadingOnyxValue(isLoadingPaymentMethodsResult);
 
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
@@ -380,11 +369,6 @@ function PaymentMethodList({
         translate,
     ]);
 
-    /**
-     * Render placeholder when there are no payments methods
-     */
-    const renderListEmptyComponent = () => <Text style={styles.popoverMenuItem}>{translate('paymentMethodList.addFirstPaymentMethod')}</Text>;
-
     const onPressItem = useCallback(() => {
         if (!isUserValidated) {
             Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route));
@@ -508,39 +492,17 @@ function PaymentMethodList({
     );
 
     return (
-        <>
-            <View style={[style, {minHeight: (filteredPaymentMethods.length + (shouldShowAddBankAccount ? 1 : 0)) * variables.optionRowHeight}]}>
-                <FlashList<PaymentMethod | string>
-                    estimatedItemSize={variables.optionRowHeight}
-                    data={itemsToRender}
-                    renderItem={renderItem}
-                    keyExtractor={keyExtractor}
-                    ListEmptyComponent={shouldShowEmptyListMessage ? renderListEmptyComponent : null}
-                    ListHeaderComponent={listHeaderComponent}
-                    onContentSizeChange={onListContentSizeChange}
-                />
-                {shouldShowAddBankAccount && renderListFooterComponent()}
-            </View>
-            {shouldShowAddPaymentMethodButton && (
-                <FormAlertWrapper>
-                    {(isFormOffline) => (
-                        <Button
-                            text={translate('paymentMethodList.addPaymentMethod')}
-                            icon={Expensicons.CreditCard}
-                            onPress={onPress}
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            isDisabled={isLoadingPaymentMethods || isFormOffline || isLoadingPaymentMethodsOnyx}
-                            style={[styles.mh4, styles.buttonCTA]}
-                            key="addPaymentMethodButton"
-                            success
-                            shouldShowRightIcon
-                            large
-                            ref={buttonRef}
-                        />
-                    )}
-                </FormAlertWrapper>
-            )}
-        </>
+        <View style={[style, {minHeight: (itemsToRender.length + (shouldShowAddBankAccount ? 1 : 0)) * variables.optionRowHeight}]}>
+            <FlashList<PaymentMethod | string>
+                estimatedItemSize={variables.optionRowHeight}
+                data={itemsToRender}
+                renderItem={renderItem}
+                keyExtractor={keyExtractor}
+                ListHeaderComponent={listHeaderComponent}
+                onContentSizeChange={onListContentSizeChange}
+            />
+            {shouldShowAddBankAccount && renderListFooterComponent()}
+        </View>
     );
 }
 

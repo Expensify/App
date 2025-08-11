@@ -44,8 +44,6 @@ function WorkspaceWorkflowsConnectExistingBankAccountPage({route}: WorkspaceWork
             <ScrollView style={[styles.w100, shouldUseNarrowLayout ? [styles.pt3, styles.ph5, styles.pb5] : [styles.pt5, styles.ph8, styles.pb8]]}>
                 <Text>{translate('workspace.bankAccount.chooseAnExisting')}</Text>
                 <PaymentMethodList
-                    shouldShowAddPaymentMethodButton={false}
-                    shouldShowEmptyListMessage={false}
                     onPress={handleAddBankAccountPress}
                     actionPaymentMethodType=""
                     activePaymentMethodID=""
