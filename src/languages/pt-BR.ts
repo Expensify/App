@@ -482,6 +482,7 @@ const translations = {
         message: 'Mensagem',
         leaveThread: 'Sair do tópico',
         you: 'Você',
+        me: 'mim',
         youAfterPreposition: 'você',
         your: 'seu/sua/seus/suas (dependendo do contexto)',
         conciergeHelp: 'Por favor, entre em contato com o Concierge para obter ajuda.',
@@ -882,6 +883,7 @@ const translations = {
         hereAlternateText: 'Notificar todos nesta conversa',
     },
     newMessages: 'Novas mensagens',
+    latestMessages: 'Mensagens recentes',
     youHaveBeenBanned: 'Nota: Você foi banido de conversar neste canal.',
     reportTypingIndicator: {
         isTyping: 'está digitando...',
