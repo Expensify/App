@@ -11840,7 +11840,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     total: report?.total ?? 0,
-                    pendingFields: { total: null}
+                    pendingFields: {total: null},
                 },
             });
 
@@ -11908,7 +11908,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
             successData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReport?.reportID}`,
-                value: { pendingFields: {total: null}, },
+                value: {pendingFields: {total: null}},
             });
 
             // Add failure data to revert existing report total
