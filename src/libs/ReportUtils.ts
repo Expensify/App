@@ -4250,6 +4250,10 @@ function canEditFieldOfMoneyRequest(
         return false;
     }
 
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REIMBURSABLE && isClosedReport(moneyRequestReport)) {
+        return false;
+    }
+
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(moneyRequestReport?.policyID);
