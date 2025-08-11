@@ -881,6 +881,7 @@ const translations = {
         hereAlternateText: 'Notifica tutti in questa conversazione',
     },
     newMessages: 'Nuovi messaggi',
+    latestMessages: 'Ultimi messaggi',
     youHaveBeenBanned: 'Nota: Sei stato bannato dalla chat in questo canale.',
     reportTypingIndicator: {
         isTyping: 'sta scrivendo...',
