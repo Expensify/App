@@ -5227,6 +5227,7 @@ const translations = {
             workspaceCurrencyNotSupported: '工作区货币不支持',
             yourWorkspace: '您的工作区设置为不支持的货币。查看',
             listOfSupportedCurrencies: '支持的货币列表',
+            chooseAnExisting: '选择现有银行账户支付费用或添加新账户。',
         },
         changeOwner: {
             changeOwnerPageTitle: '转移所有者',

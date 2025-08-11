@@ -5320,6 +5320,7 @@ const translations = {
             workspaceCurrencyNotSupported: 'Werkruimtevaluta niet ondersteund',
             yourWorkspace: 'Je werkruimte is ingesteld op een niet-ondersteunde valuta. Bekijk de',
             listOfSupportedCurrencies: "lijst van ondersteunde valuta's",
+            chooseAnExisting: 'Kies een bestaande bankrekening om uitgaven te betalen of voeg een nieuwe toe.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Eigenaar overdragen',

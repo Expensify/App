@@ -5292,6 +5292,7 @@ const translations = {
             workspaceCurrencyNotSupported: 'ワークスペース通貨はサポートされていません',
             yourWorkspace: 'ワークスペースがサポートされていない通貨に設定されています。こちらをご覧ください',
             listOfSupportedCurrencies: 'サポートされている通貨のリスト',
+            chooseAnExisting: '既存の銀行口座を選択して経費を支払うか、新しい口座を追加してください。',
         },
         changeOwner: {
             changeOwnerPageTitle: 'オーナーを移行',
