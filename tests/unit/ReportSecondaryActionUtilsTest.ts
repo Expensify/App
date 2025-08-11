@@ -1088,11 +1088,11 @@ describe('getSecondaryExportReportActions', () => {
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
     });
 
-    it('should always return default option', () => {
+    it('should always return default options', () => {
         const report = {} as unknown as Report;
         const policy = {} as unknown as Policy;
 
-        const result = [CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV];
+        const result = [CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV, CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT];
         expect(getSecondaryExportReportActions(report, policy)).toEqual(result);
     });
 

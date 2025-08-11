@@ -30,7 +30,7 @@ type OfflineWithFeedbackProps = ChildrenProps & {
     shouldHideOnDelete?: boolean;
 
     /** The errors to display  */
-    errors?: OnyxCommon.Errors | ReceiptErrors | null;
+    errors?: OnyxCommon.Errors | OnyxCommon.TranslationKeyErrors | ReceiptErrors | null;
 
     /** Whether we should show the error messages */
     shouldShowErrorMessages?: boolean;
