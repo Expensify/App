@@ -62,9 +62,6 @@ type ReportActionsViewProps = {
 
     /** If the report has older actions to load */
     hasOlderActions: boolean;
-
-    /** If this report is a transaction thread report */
-    isReportTransactionThread?: boolean;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -77,7 +74,6 @@ function ReportActionsView({
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
-    isReportTransactionThread,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -135,12 +131,6 @@ function ReportActionsView({
     // to display at least one expense action to match the total data.
     const reportActionsToDisplay = useMemo(() => {
         if (!isMoneyRequestReport(report) || !allReportActions?.length) {
-            if (!allReportActions?.length && isReportTransactionThread) {
-                const optimisticCreatedReportAction = buildOptimisticCreatedReportAction(CONST.REPORT.OWNER_EMAIL_FAKE);
-                optimisticCreatedReportAction.pendingAction = null;
-                return [optimisticCreatedReportAction];
-            }
-
             return allReportActions;
         }
 
@@ -187,9 +177,7 @@ function ReportActionsView({
         }
 
         return [...actions, createdAction];
-        // We don't need to listen for changes in whole report and threadTransactionReport objects
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [allReportActions, report.reportID, reportPreviewAction?.childMoneyRequestCount, isReportTransactionThread]);
+    }, [allReportActions, report, transactionThreadReport, reportPreviewAction]);
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
@@ -288,7 +276,13 @@ function ReportActionsView({
         };
     }, [isTheFirstReportActionIsLinked]);
 
-    if ((isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline) ?? isLoadingApp) {
+    // Show skeleton while loading initial report actions when data is incomplete/missing and online
+    const shouldShowSkeletonForInitialLoad = isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline;
+
+    // Show skeleton while the app is loading and we're online
+    const shouldShowSkeletonForAppLoad = isLoadingApp && !isOffline;
+
+    if (shouldShowSkeletonForInitialLoad ?? shouldShowSkeletonForAppLoad) {
         return <ReportActionsSkeletonView />;
     }
 

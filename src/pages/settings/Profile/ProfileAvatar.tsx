@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import AttachmentModal from '@components/AttachmentModal';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -24,7 +24,7 @@ function ProfileAvatar({route}: ProfileAvatarProps) {
     const accountID = Number(route.params.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const isLoading = personalDetailsMetadata?.[accountID]?.isLoading ?? (isLoadingApp && !Object.keys(personalDetail ?? {}).length);
     const displayName = getDisplayNameOrDefault(personalDetail);
-
+    const {formatPhoneNumber} = useLocalize();
     useEffect(() => {
         if (!isValidAccountRoute(Number(accountID)) ?? !!avatarURL) {
             return;

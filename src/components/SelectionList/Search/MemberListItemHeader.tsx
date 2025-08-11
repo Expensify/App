@@ -7,7 +7,6 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 
@@ -27,9 +26,12 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
 
 function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onCheckboxPress, isDisabled, canSelectMultiple}: MemberListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
 
-    const [formattedDisplayName, formattedLogin] = useMemo(() => [formatPhoneNumber(getDisplayNameOrDefault(memberItem)), formatPhoneNumber(memberItem.login ?? '')], [memberItem]);
+    const [formattedDisplayName, formattedLogin] = useMemo(
+        () => [formatPhoneNumber(getDisplayNameOrDefault(memberItem)), formatPhoneNumber(memberItem.login ?? '')],
+        [memberItem, formatPhoneNumber],
+    );
 
     // s77rt add total cell, action cell and collapse/expand button
 

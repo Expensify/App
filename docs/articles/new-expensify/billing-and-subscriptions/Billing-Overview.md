@@ -34,7 +34,7 @@ For a full breakdown, visit the [Expensify pricing page](https://www.expensify.c
 
 ## 🌍 Localized pricing
 
-- Pricing available in **GBP**, **AUD**, and **NZD**
+- Pricing available in **EUR**, **GBP**, **AUD**, and **NZD**
 
 ## 🔄 Flexible scaling
 
@@ -62,7 +62,7 @@ For a full breakdown, visit the [Expensify pricing page](https://www.expensify.c
   - 2% if monthly spend reaches **$250,000+**
 - Cash back is applied to your Expensify bill first, then to your bank account
 
-👉 Use the [savings calculator](https://use.expensify.com/resource-center/tools/savings-calculator) to estimate your monthly savings.
+👉 Use the [savings calculator](https://use.expensify.com/savings-calculator) to estimate your monthly savings.
 
 ## 📅 Annual Subscription
 
@@ -101,11 +101,13 @@ For a full breakdown, visit the [Expensify pricing page](https://www.expensify.c
 
 To transfer billing ownership of a workspace:
 
-1. Make sure the new billing owner is a **Workspace Admin**
-2. Use the **left-hand navigation bar (LHB)** to go to: **Workspaces > [Workspace Name] > Members**
+1. Ensure the new billing owner is a **Workspace Admin**
+2. Have them log in and go to:  
+   **Workspaces > [Workspace Name] > Members**
 3. Click the current billing owner’s name
 4. Select **Transfer Ownership**
-5. The new owner will need to add a payment card and will be billed starting on the 1st of the next month
+5. The new owner adds a payment card
+6. Billing transfers automatically on the **1st of the next month**
 
 ---
 

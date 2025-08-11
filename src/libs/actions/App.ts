@@ -4,7 +4,6 @@ import type {AppStateStatus} from 'react-native';
 import {AppState} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {importEmojiLocale} from '@assets/emojis';
 import * as API from '@libs/API';
 import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, OpenOldDotLinkParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
@@ -73,19 +72,6 @@ Onyx.connect({
         importEmojiLocale(normalizedLocale).then(() => {
             buildEmojisTrie(normalizedLocale);
         });
-    },
-});
-
-let priorityMode: ValueOf<typeof CONST.PRIORITY_MODE> | undefined;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIORITY_MODE,
-    callback: (nextPriorityMode) => {
-        // When someone switches their priority mode we need to fetch all their chats because only #focus mode works with a subset of a user's chats. This is only possible via the OpenApp command.
-        if (nextPriorityMode === CONST.PRIORITY_MODE.DEFAULT && priorityMode === CONST.PRIORITY_MODE.GSD) {
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            openApp();
-        }
-        priorityMode = nextPriorityMode;
     },
 });
 
@@ -259,7 +245,12 @@ function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrRecon
 /**
  * Returns the Onyx data that is used for both the OpenApp and ReconnectApp API commands.
  */
-function getOnyxDataForOpenOrReconnect(isOpenApp = false, isFullReconnect = false, shouldKeepPublicRooms = false): OnyxData {
+function getOnyxDataForOpenOrReconnect(
+    isOpenApp = false,
+    isFullReconnect = false,
+    shouldKeepPublicRooms = false,
+    allReportsWithDraftComments?: Record<string, string | undefined>,
+): OnyxData {
     const result: OnyxData = {
         optimisticData: [
             {
@@ -320,16 +311,33 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false, isFullReconnect = fals
         });
     }
 
+    // Find all reports that have a non-null draft comment and map them to their corresponding report objects from allReports
+    // This ensures that any report with a draft comment is preserved in Onyx even if it doesn’t contain chat history
+    const reportsWithDraftComments = Object.entries(allReportsWithDraftComments ?? {})
+        .filter(([, value]) => value !== null)
+        .map(([key]) => key.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, ''))
+        .map((reportID) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
+
+    reportsWithDraftComments?.forEach((report) => {
+        result.successData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+            value: {
+                ...report,
+            },
+        });
+    });
+
     return result;
 }
 
 /**
  * Fetches data needed for app initialization
  */
-function openApp(shouldKeepPublicRooms = false) {
+function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Record<string, string | undefined>) {
     return getPolicyParamsForOpenOrReconnect().then((policyParams: PolicyParamsForOpenOrReconnect) => {
         const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
-        return API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.OPEN_APP, params, getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms));
+        return API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.OPEN_APP, params, getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments));
     });
 }
 
@@ -438,6 +446,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
     currency?: string,
     file?: File,
     routeToNavigateAfterCreate?: Route,
+    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
 ) {
     const policyIDWithDefault = policyID || generatePolicyID();
     createDraftInitialWorkspace(policyOwnerEmail, policyName, policyIDWithDefault, makeMeAdmin, currency, file);
@@ -448,7 +457,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
                 Navigation.goBack();
             }
             const routeToNavigate = routeToNavigateAfterCreate ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithDefault, backTo);
-            savePolicyDraftByNewWorkspace(policyIDWithDefault, policyName, policyOwnerEmail, makeMeAdmin, currency, file);
+            savePolicyDraftByNewWorkspace(policyIDWithDefault, policyName, policyOwnerEmail, makeMeAdmin, currency, file, lastUsedPaymentMethod);
             Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
         })
         .then(endSignOnTransition);
@@ -464,8 +473,25 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
  * @param [currency] Optional, selected currency for the workspace
  * @param [file] Optional, avatar file for workspace
  */
-function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, policyOwnerEmail = '', makeMeAdmin = false, currency = '', file?: File) {
-    createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID, CONST.ONBOARDING_CHOICES.MANAGE_TEAM, currency, file);
+function savePolicyDraftByNewWorkspace(
+    policyID?: string,
+    policyName?: string,
+    policyOwnerEmail = '',
+    makeMeAdmin = false,
+    currency = '',
+    file?: File,
+    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
+) {
+    createWorkspace({
+        policyOwnerEmail,
+        makeMeAdmin,
+        policyName,
+        policyID,
+        engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+        currency,
+        file,
+        lastUsedPaymentMethod,
+    });
 }
 
 /**

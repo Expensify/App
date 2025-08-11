@@ -32,7 +32,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -119,7 +118,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [selectedPerDiem, setSelectedPerDiem] = useState<SubRateData[]>([]);
     const [deletePerDiemConfirmModalVisible, setDeletePerDiemConfirmModalVisible] = useState(false);
@@ -196,7 +195,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase());
         return rateText.includes(normalizedSearchInput);
     }, []);
-    const sortRates = useCallback((rates: PolicyOption[]) => rates.sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')), []);
+    const sortRates = useCallback((rates: PolicyOption[]) => rates.sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')), [localeCompare]);
     const [inputValue, setInputValue, filteredSubRatesList] = useSearchResults(subRatesList, filterRate, sortRates);
 
     const toggleSubRate = (subRate: PolicyOption) => {

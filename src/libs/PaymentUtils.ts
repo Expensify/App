@@ -164,7 +164,7 @@ const isSecondaryActionAPaymentOption = (item: PopoverMenuItem): item is Payment
         return false;
     }
     const payment = item.value as SecondaryActionOption['value'] | PaymentOrApproveOption['value'];
-    const isPaymentInArray = Object.values({...CONST.IOU.PAYMENT_TYPE, ...CONST.PAYMENT_METHODS}).filter((type) => type === payment);
+    const isPaymentInArray = Object.values(CONST.IOU.PAYMENT_TYPE).filter((type) => type === payment);
     return isPaymentInArray.length > 0;
 };
 

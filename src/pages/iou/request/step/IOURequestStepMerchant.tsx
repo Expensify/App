@@ -1,5 +1,5 @@
 import React, {useCallback, useRef} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -41,7 +41,7 @@ function IOURequestStepMerchant({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef, inputRef} = useAutoFocusInput();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
 
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
@@ -100,26 +100,10 @@ function IOURequestStepMerchant({
             navigateBack();
             return;
         }
-
-        // Check if merchant was intentionally cleared by user
-        const existingMerchantValue = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? '' : merchant;
-        const wasMerchantCleared = newMerchant === '' && existingMerchantValue !== '';
-
-        // Determine the merchant value to save
-        let merchantValue: string;
-        if (wasMerchantCleared) {
-            if (isMerchantRequired) {
-                return;
-            }
-            merchantValue = '';
-        } else {
-            // Fallback to PARTIAL_TRANSACTION_MERCHANT only if merchant is null or undefined
-            merchantValue = newMerchant ?? CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-        }
-
-        setMoneyRequestMerchant(transactionID, merchantValue, !isEditing);
+        // When creating/editing an expense, newMerchant can be blank so we fall back on PARTIAL_TRANSACTION_MERCHANT
+        setMoneyRequestMerchant(transactionID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, !isEditing);
         if (isEditing) {
-            updateMoneyRequestMerchant(transactionID, reportID, merchantValue, policy, policyTags, policyCategories, wasMerchantCleared && !isMerchantRequired);
+            updateMoneyRequestMerchant(transactionID, reportID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, policy, policyTags, policyCategories);
         }
         navigateBack();
     };
@@ -157,6 +141,11 @@ function IOURequestStepMerchant({
                 </View>
             </FormProvider>
             <DiscardChangesConfirmation
+                onCancel={() => {
+                    InteractionManager.runAfterInteractions(() => {
+                        inputRef.current?.focus();
+                    });
+                }}
                 getHasUnsavedChanges={() => {
                     if (isSavedRef.current) {
                         return false;

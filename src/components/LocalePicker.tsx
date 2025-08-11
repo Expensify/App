@@ -20,7 +20,7 @@ function LocalePicker({size = 'normal'}: LocalePickerProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     const locales = useMemo(() => {
         const sortedLocales = SORTED_LOCALES;

@@ -50,6 +50,10 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         errors: unknown;
         isWaitingOnBankAccount: unknown;
         isCancelledIOU: unknown;
+        hasReportBeenRetracted: unknown;
+        hasReportBeenReopened: unknown;
+        isExportedToIntegration: unknown;
+        hasExportError: unknown;
         iouReportID: unknown;
         preexistingReportID: unknown;
         nonReimbursableTotal: unknown;

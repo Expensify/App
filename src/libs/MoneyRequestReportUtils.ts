@@ -154,24 +154,6 @@ const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, poli
     return convertToDisplayString(totalDisplaySpend, report?.currency);
 };
 
-/**
- * Filters all available transactions and returns the ones that belong to a specific report (by `reportID`).
- * It is used as an onyx selector, to make sure that report related views do not process all transactions in onyx.
- */
-function selectAllTransactionsForReport(transactions: OnyxCollection<Transaction>, reportID: string | undefined, reportActions: ReportAction[]) {
-    if (!reportID) {
-        return [];
-    }
-
-    return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
-        if (!transaction) {
-            return false;
-        }
-        const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-        return transaction.reportID === reportID && !isDeletedParentAction(action);
-    });
-}
-
 export {
     isActionVisibleOnMoneyRequestReport,
     getThreadReportIDsForTransactions,
@@ -181,5 +163,4 @@ export {
     isSingleTransactionReport,
     shouldDisplayReportTableView,
     shouldWaitForTransactions,
-    selectAllTransactionsForReport,
 };
