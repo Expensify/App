@@ -85,7 +85,7 @@ function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
         // Listen for additional offset updates (e.g., inverted list header height).
         // We use it for MoneyRequestReportActionsList since there messages stick to the top of the screen and we need count that in the offset.
         const subscription = DeviceEventEmitter.addListener('invertedListHeaderHeight', (height: number) => {
-            additionalOffset.value = height;
+            additionalOffset.set(height);
         });
 
         // eslint-disable-next-line arrow-body-style
