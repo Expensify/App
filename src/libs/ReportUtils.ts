@@ -9009,7 +9009,7 @@ function canUserPerformWriteAction(report: OnyxEntry<Report>, allReportNameValue
     // This will get removed as part of https://github.com/Expensify/App/issues/59961
     // eslint-disable-next-line deprecation/deprecation
     let reportNameValuePairs = getReportNameValuePairs(report?.reportID);
-    if (!!allReportNameValuePairs) {
+    if (allReportNameValuePairs) {
         reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
     }
     return (
