@@ -1,5 +1,5 @@
 import type {ForwardedRef, MouseEventHandler, KeyboardEvent as ReactKeyboardEvent} from 'react';
-import React, {forwardRef} from 'react';
+import React from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -10,6 +10,7 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import type { PressableRef } from './Pressable/GenericPressable/types';
 
 type CheckboxProps = Partial<ChildrenProps> & {
     /** Whether checkbox is checked */
@@ -56,6 +57,9 @@ type CheckboxProps = Partial<ChildrenProps> & {
 
     /** Additional styles to add to checkbox wrapper */
     wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<View>,
 };
 
 function Checkbox(
@@ -76,8 +80,8 @@ function Checkbox(
         shouldStopMouseDownPropagation,
         shouldSelectOnPressEnter,
         wrapperStyle,
+        ref,
     }: CheckboxProps,
-    ref: ForwardedRef<View>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -117,7 +121,7 @@ function Checkbox(
                 }
                 onMouseDown?.(e);
             }}
-            ref={ref}
+            ref={ref as PressableRef}
             style={[StyleUtils.getCheckboxPressableStyle(containerBorderRadius + 2), style]} // to align outline on focus, border-radius of pressable should be 2px more than Checkbox
             onKeyDown={handleSpaceOrEnterKey}
             role={CONST.ROLE.CHECKBOX}
@@ -157,6 +161,6 @@ function Checkbox(
 
 Checkbox.displayName = 'Checkbox';
 
-export default forwardRef(Checkbox);
+export default Checkbox;
 
 export type {CheckboxProps};
