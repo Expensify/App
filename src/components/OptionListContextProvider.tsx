@@ -267,7 +267,6 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const {shouldInitialize = true} = options ?? {};
     const {initializeOptions, options: optionsList, areOptionsInitialized, resetOptions} = useOptionsListContext();
     const [internalOptions, setInternalOptions] = useState<OptionList>(optionsList);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const prevOptions = useRef<OptionList>(null);
     const [areInternalOptionsInitialized, setAreInternalOptionsInitialized] = useState(false);
 
@@ -292,12 +291,12 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     }, [optionsList, areOptionsInitialized]);
 
     useEffect(() => {
-        if (!shouldInitialize || areOptionsInitialized || isLoadingApp) {
+        if (!shouldInitialize || areOptionsInitialized) {
             return;
         }
 
         initializeOptions();
-    }, [shouldInitialize, initializeOptions, areOptionsInitialized, isLoadingApp]);
+    }, [shouldInitialize, initializeOptions, areOptionsInitialized]);
 
     const resetInternalOptions = useCallback(() => {
         setAreInternalOptionsInitialized(false);
