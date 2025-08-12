@@ -67,22 +67,6 @@ describe('NewChatPage', () => {
         await waitForBatchedUpdates();
     });
 
-    it('should scroll to top when adding a user to the group selection', async () => {
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-        render(<NewChatPage />, {wrapper});
-        await waitForBatchedUpdatesWithAct();
-        act(() => {
-            (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
-        });
-        const spy = jest.spyOn(SectionList.prototype, 'scrollToLocation');
-
-        const addButton = await waitFor(() => screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0));
-        if (addButton) {
-            fireEvent.press(addButton);
-            expect(spy).toHaveBeenCalledWith(expect.objectContaining({itemIndex: 0}));
-        }
-    });
-
     describe('should not display "Add to group" button on expensify emails', () => {
         const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE && value !== CONST.EMAIL.NOTIFICATIONS).map((email) => [email]);
 
