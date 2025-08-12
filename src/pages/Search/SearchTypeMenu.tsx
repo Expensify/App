@@ -277,6 +277,9 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                     <View>
                         <Text style={styles.sectionTitle}>{translate('search.savedSearchesMenuItemTitle')}</Text>
                         {renderSavedSearchesSection(savedSearchesMenuItems)}
+                        {/* DeleteConfirmModal is a stable JSX element returned by the hook.
+                Returning the element directly keeps the component identity across re-renders so React
+                can play its exit animation instead of removing it instantly. */}
                         {DeleteConfirmModal}
                     </View>
                 )}
