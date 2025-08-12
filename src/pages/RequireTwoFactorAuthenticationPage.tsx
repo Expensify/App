@@ -34,7 +34,11 @@ function RequireTwoFactorAuthenticationPage() {
                         large
                         success
                         pressOnEnter
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH))}
+                        onPress={() =>
+                            Navigation.navigate(
+                                ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH, ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH)),
+                            )
+                        }
                         text={translate('twoFactorAuth.enableTwoFactorAuth')}
                     />
                 </View>

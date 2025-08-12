@@ -1130,6 +1130,10 @@ type SettingsNavigatorParamList = {
 } & ReimbursementAccountNavigatorParamList;
 
 type TwoFactorAuthNavigatorParamList = {
+    [SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT]: {
+        backTo?: Routes;
+        forwardTo?: string;
+    };
     [SCREENS.TWO_FACTOR_AUTH.ROOT]: {
         backTo?: Routes;
         forwardTo?: string;
