@@ -150,7 +150,7 @@ type MovedTransactionParams = {
 };
 
 type MovedActionParams = {
-    isIouReport: boolean;
+    shouldHideMovedReportUrl: boolean;
     movedReportUrl: string;
     newParentReportUrl: string;
     toPolicyName: string;
