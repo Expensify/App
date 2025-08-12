@@ -14,9 +14,6 @@ type FloatingMessageCounterProps = {
     /** Whether the New Messages indicator is active */
     isActive?: boolean;
 
-    /** Whether there are new messages */
-    hasNewMessages: boolean;
-
     /** Callback to be called when user clicks the New Messages indicator */
     onClick?: () => void;
 };
@@ -24,7 +21,7 @@ type FloatingMessageCounterProps = {
 const MARKER_INACTIVE_TRANSLATE_Y = -40;
 const MARKER_ACTIVE_TRANSLATE_Y = 10;
 
-function FloatingMessageCounter({isActive = false, onClick = () => {}, hasNewMessages}: FloatingMessageCounterProps) {
+function FloatingMessageCounter({isActive = false, onClick = () => {}}: FloatingMessageCounterProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -63,7 +60,7 @@ function FloatingMessageCounter({isActive = false, onClick = () => {}, hasNewMes
             <View style={styles.floatingMessageCounter}>
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                     <Button
-                        success={hasNewMessages}
+                        success
                         small
                         onPress={onClick}
                     >
@@ -71,14 +68,14 @@ function FloatingMessageCounter({isActive = false, onClick = () => {}, hasNewMes
                             <Icon
                                 small
                                 src={Expensicons.DownArrow}
-                                fill={hasNewMessages ? theme.textLight : theme.icon}
+                                fill={theme.textLight}
                             />
 
                             <Text
-                                style={[styles.ml2, styles.buttonSmallText, hasNewMessages && styles.textWhite, styles.userSelectNone]}
+                                style={[styles.ml2, styles.buttonSmallText, styles.textWhite, styles.userSelectNone]}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             >
-                                {hasNewMessages ? translate('newMessages') : translate('latestMessages')}
+                                {translate('newMessages')}
                             </Text>
                         </View>
                     </Button>

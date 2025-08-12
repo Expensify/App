@@ -357,7 +357,7 @@ function MoneyRequestReportActionsList({
     /**
      * The reportActionID the unread marker should display above
      */
-    const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = useMemo(() => {
+    const unreadMarkerReportActionID = useMemo(() => {
         // If there are message that were received while offline,
         // we can skip checking all messages later than the earliest received offline message.
         const startIndex = visibleReportActions.length - 1;
@@ -384,20 +384,20 @@ function MoneyRequestReportActionsList({
 
             // eslint-disable-next-line react-compiler/react-compiler
             if (shouldDisplayNewMarker) {
-                return [reportAction.reportActionID, index];
+                return reportAction.reportActionID;
             }
         }
 
-        return [null, -1];
+        return null;
     }, [currentUserAccountID, earliestReceivedOfflineMessageIndex, prevVisibleActionsMap, visibleReportActions, unreadMarkerTime]);
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
-    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
+    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling} = useReportUnreadMessageScrollTracking({
         reportID: report.reportID,
         currentVerticalScrollingOffsetRef: scrollingVerticalBottomOffset,
+        floatingMessageVisibleInitialValue: false,
         readActionSkippedRef: readActionSkipped,
-        unreadMarkerReportActionIndex,
-        isInverted: false,
+        hasUnreadMarkerReportAction: !!unreadMarkerReportActionID,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             const {layoutMeasurement, contentSize, contentOffset} = event.nativeEvent;
             const fullContentHeight = contentSize.height;
@@ -675,7 +675,6 @@ function MoneyRequestReportActionsList({
             )}
             <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
                 <FloatingMessageCounter
-                    hasNewMessages={!!unreadMarkerReportActionID}
                     isActive={isFloatingMessageCounterVisible}
                     onClick={scrollToBottomAndMarkReportAsRead}
                 />
@@ -695,7 +694,6 @@ function MoneyRequestReportActionsList({
                         style={styles.overscrollBehaviorContain}
                         data={visibleReportActions}
                         renderItem={renderItem}
-                        onViewableItemsChanged={onViewableItemsChanged}
                         keyExtractor={keyExtractor}
                         onLayout={recordTimeToMeasureItemLayout}
                         onEndReached={onEndReached}
