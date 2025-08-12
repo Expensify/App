@@ -128,6 +128,7 @@ function WorkspacesListRow({
     const {translate} = useLocalize();
     const threeDotsMenuContainerRef = useRef<View>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
 
     const ownerDetails = ownerAccountID && getPersonalDetailsByIDs({accountIDs: [ownerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
@@ -165,7 +166,6 @@ function WorkspacesListRow({
     }
 
     const isWide = layoutWidth === CONST.LAYOUT_WIDTH.WIDE;
-    const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
 
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
 
@@ -237,7 +237,7 @@ function WorkspacesListRow({
                             style={[styles.flex1, styles.flexGrow1, styles.textStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
                         />
                     </View>
-                    {shouldUseNarrowLayout && ThreeDotMenuOrPendingIcon}
+                    {isNarrow && ThreeDotMenuOrPendingIcon}
                 </View>
                 <View style={[styles.flexRow, isWide && styles.flex1, isWide && styles.workspaceOwnerSectionMinWidth, styles.gap2, styles.alignItemsCenter]}>
                     {!!ownerDetails && (
@@ -290,7 +290,7 @@ function WorkspacesListRow({
                 </View>
             </View>
 
-            {!shouldUseNarrowLayout && ThreeDotMenuOrPendingIcon}
+            {!isNarrow && ThreeDotMenuOrPendingIcon}
         </View>
     );
 }
