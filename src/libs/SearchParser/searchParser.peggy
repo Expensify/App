@@ -126,11 +126,13 @@ key "key"
       / payer
       / exporter
       / expenseType
+      / withdrawalType
       / submitted
       / approved
       / paid
       / exported
       / posted
+      / withdrawn
       / feed
       / title
       / assignee
