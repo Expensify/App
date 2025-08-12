@@ -293,7 +293,7 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
 }
 
-function isExportAction(report: Report, policy?: Policy, reportActions?: ReportAction[]): boolean {
+function isExportAction(report: Report, policy?: Policy): boolean {
     if (!policy) {
         return false;
     }
@@ -682,7 +682,7 @@ function getSecondaryExportReportActions(
     integrationsExportTemplates?: IntegrationServerExportTemplate[],
 ): Array<ValueOf<string>> {
     const options: Array<ValueOf<string>> = [];
-    if (isExportAction(report, policy, reportActions)) {
+    if (isExportAction(report, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
     }
 
