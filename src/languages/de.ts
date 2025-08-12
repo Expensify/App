@@ -5310,7 +5310,6 @@ const translations = {
             yourWorkspace: 'Ihr Arbeitsbereich ist auf eine nicht unterstützte Währung eingestellt. Sehen Sie sich die',
             listOfSupportedCurrencies: 'Liste der unterstützten Währungen',
             chooseAnExisting: 'Wählen Sie ein vorhandenes Bankkonto zur Zahlung von Ausgaben oder fügen Sie ein neues hinzu.',
-
         },
         changeOwner: {
             changeOwnerPageTitle: 'Besitzer übertragen',
