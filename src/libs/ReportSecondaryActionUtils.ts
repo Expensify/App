@@ -25,6 +25,7 @@ import {
     getTransactionDetails,
     hasOnlyHeldExpenses,
     hasReportBeenReopened as hasReportBeenReopenedUtils,
+    hasReportBeenRetracted as hasReportBeenRetractedUtils,
     isArchivedReport,
     isAwaitingFirstLevelApproval,
     isClosedReport as isClosedReportUtils,
@@ -164,8 +165,8 @@ function isSubmitAction(
         return false;
     }
 
-    const hasReportBeenReopened = hasReportBeenReopenedUtils(reportActions);
-    if (hasReportBeenReopened && isReportSubmitter) {
+    const hasReportBeenRetracted = hasReportBeenReopenedUtils(report, reportActions) || hasReportBeenRetractedUtils(report, reportActions);
+    if (hasReportBeenRetracted && isReportSubmitter) {
         return false;
     }
 
@@ -529,6 +530,9 @@ function isReopenAction(report: Report, policy?: Policy): boolean {
  * Checks whether the supplied report supports merging transactions from it.
  */
 function isMergeAction(parentReport: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
+    // Temporary hide merge action
+    return false;
+
     // Do not show merge action if there are multiple transactions
     if (reportTransactions.length !== 1) {
         return false;

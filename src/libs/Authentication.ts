@@ -9,7 +9,14 @@ import redirectToSignIn from './actions/SignInRedirect';
 import {getAuthenticateErrorMessage} from './ErrorUtils';
 import Log from './Log';
 import {post} from './Network';
-import {getCredentials, hasReadRequiredDataFromStorage, hasReadShouldUseNewPartnerNameFromStorage, getShouldUseNewPartnerName, setAuthToken, setIsAuthenticating} from './Network/NetworkStore';
+import {
+    getCredentials,
+    getShouldUseNewPartnerName,
+    hasReadRequiredDataFromStorage,
+    hasReadShouldUseNewPartnerNameFromStorage,
+    setAuthToken,
+    setIsAuthenticating,
+} from './Network/NetworkStore';
 import requireParameters from './requireParameters';
 
 type Parameters = {
