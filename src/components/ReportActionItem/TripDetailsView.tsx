@@ -33,11 +33,11 @@ type ReservationViewProps = {
     transactionID: string;
     tripRoomReportID: string;
     sequenceIndex: number;
-    shouldShouldArrowIcon?: boolean;
+    shouldShowArrowIcon?: boolean;
     shouldCenterIcon?: boolean;
 };
 
-function ReservationView({reservation, transactionID, tripRoomReportID, sequenceIndex, shouldShouldArrowIcon = true, shouldCenterIcon = false}: ReservationViewProps) {
+function ReservationView({reservation, transactionID, tripRoomReportID, sequenceIndex, shouldShowArrowIcon = true, shouldCenterIcon = false}: ReservationViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -85,7 +85,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
             return (
                 <View style={styles.gap1}>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                        {shouldShouldArrowIcon ? (
+                        {shouldShowArrowIcon ? (
                             <>
                                 <Text style={[styles.textStrong, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatAirportInfo(reservation.start)}</Text>
                                 <Icon
@@ -263,7 +263,7 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
                                         transactionID={transactionID}
                                         tripRoomReportID={tripRoomReport.reportID}
                                         sequenceIndex={sequenceIndex}
-                                        shouldShouldArrowIcon={false}
+                                        shouldShowArrowIcon={false}
                                         shouldCenterIcon
                                     />
                                 </OfflineWithFeedback>
