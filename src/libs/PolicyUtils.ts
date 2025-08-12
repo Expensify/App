@@ -1513,6 +1513,11 @@ function isUserInvitedToWorkspace(): boolean {
     );
 }
 
+function isMemberPolicyAdmin(policy: OnyxEntry<Policy>, memberEmail: string): boolean {
+    const admins = getAdminEmployees(policy);
+    return admins.some((admin) => admin.email === memberEmail);
+}
+
 export {
     canEditTaxRate,
     escapeTagName,
@@ -1664,6 +1669,7 @@ export {
     hasIndependentTags,
     getLengthOfTag,
     getPolicyEmployeeAccountIDs,
+    isMemberPolicyAdmin,
 };
 
 export type {MemberEmailsToAccountIDs};
