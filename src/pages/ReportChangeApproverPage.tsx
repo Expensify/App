@@ -48,7 +48,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
                 );
                 return;
             }
-            Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID));
+            Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID, Navigation.getActiveRoute()));
             return;
         }
         assignCurrentUserAsApprover(report);

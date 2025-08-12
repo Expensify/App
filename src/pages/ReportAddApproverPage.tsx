@@ -37,7 +37,7 @@ type ReportAddApproverPageProps = WithReportOrNotFoundProps & PlatformStackScree
 
 function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddApproverPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -87,7 +87,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
         const filteredApprovers =
             debouncedSearchTerm !== '' ? tokenizedSearch(approvers, getSearchValueForPhoneOrEmail(debouncedSearchTerm), (option) => [option.text ?? '', option.login ?? '']) : approvers;
 
-        const data = sortAlphabetically(filteredApprovers, 'text');
+        const data = sortAlphabetically(filteredApprovers, 'text', localeCompare);
         return [
             {
                 title: undefined,
@@ -95,7 +95,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 shouldShow: true,
             },
         ];
-    }, [employeeList, debouncedSearchTerm, policy, report, personalDetails, selectedApproverEmail, translate]);
+    }, [employeeList, debouncedSearchTerm, localeCompare, policy, report, personalDetails, selectedApproverEmail, translate]);
 
     const shouldShowListEmptyContent = !debouncedSearchTerm && !sections.at(0)?.data.length;
 
