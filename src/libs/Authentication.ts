@@ -110,7 +110,7 @@ function reauthenticate(command = ''): Promise<boolean> {
             const partnerName = shouldUseNewPartnerName ? CONFIG.EXPENSIFY.PARTNER_NAME : CONFIG.EXPENSIFY.LEGACY_PARTNER_NAME;
             const partnerPassword = shouldUseNewPartnerName ? CONFIG.EXPENSIFY.PARTNER_PASSWORD : CONFIG.EXPENSIFY.LEGACY_PARTNER_PASSWORD;
 
-            Log.info(`Reauthenticate - reauthenticating with ${shouldUseNewPartnerName ? 'new' : 'old'} partner name`);
+            Log.info(`Reauthenticate - re-authenticating with ${shouldUseNewPartnerName ? 'new' : 'old'} partner name`);
 
             Log.hmmm('Reauthenticate - Starting authentication process', {
                 command,
