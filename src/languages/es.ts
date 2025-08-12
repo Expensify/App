@@ -44,6 +44,7 @@ import type {
     CardInfoParams,
     CardNextPaymentParams,
     CategoryNameParams,
+    ChangedApproverMessageParams,
     ChangeFieldParams,
     ChangeOwnerDuplicateSubscriptionParams,
     ChangeOwnerHasFailedSettlementsParams,
@@ -273,6 +274,7 @@ import type {
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
+    WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
@@ -1342,18 +1344,19 @@ const translations = {
         submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
         moveExpenses: () => ({one: 'Mover gasto', other: 'Mover gastos'}),
         changeApprover: {
-            title: 'Change approver',
-            subtitle: 'Choose an option to change the approver for this report.',
-            description: 'You can also change the approver permanently for all reports in your ',
-            workflowSettings: 'workflow settings',
+            title: 'Cambiar aprobador',
+            subtitle: 'Elige una opción para cambiar el aprobador de este informe.',
+            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `También puedes cambiar el aprobador de forma permanente para todos los informes en tu <a href="${workflowSettingLink}">configuración de flujo de trabajo</a>.`,
+            changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `cambió el aprobador a <mention-user accountID="${managerID}"/>`,
             actions: {
-                addApprover: 'Add approver',
-                addApproverSubtitle: 'Add an additional approver to the existing workflow.',
-                bypassApprovers: 'Bypass approvers',
-                bypassApproversSubtitle: 'Assign yourself as final approver and skip any remaining approvers.',
+                addApprover: 'Añadir aprobador',
+                addApproverSubtitle: 'Añade un aprobador adicional al flujo de trabajo existente.',
+                bypassApprovers: 'Omitir aprobadores',
+                bypassApproversSubtitle: 'Asígnate como aprobador final y omite a los aprobadores restantes.',
             },
             addApprover: {
-                subtitle: 'Choose an additional approver for this report before we route through the rest of the approval workflow',
+                subtitle: 'Elige un aprobador adicional para este informe antes de que lo enviemos por el resto del flujo de aprobación.',
             },
         },
     },
@@ -5462,9 +5465,10 @@ const translations = {
                 onlyAvailableOnPlan: 'Las etiquetas multinivel solo están disponibles en el plan Control, a partir de ',
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
-                title: 'Multiple approval levels',
-                description: 'Multiple aproval levels is a workflow tool for companies that require more than one person to approve a report before it can be reimbursed.',
-                onlyAvailableOnPlan: 'Multiple aproval levels are only available on the Control plan, starting at ',
+                title: 'Múltiples niveles de aprobación',
+                description:
+                    'Los múltiples niveles de aprobación son una herramienta de flujo de trabajo para empresas que requieren que más de una persona apruebe un informe antes de que pueda ser reembolsado.',
+                onlyAvailableOnPlan: 'Los múltiples niveles de aprobación solo están disponibles en el plan Controlar, a partir de ',
             },
             note: {
                 upgradeWorkspace: 'Mejore su espacio de trabajo para acceder a esta función, o',

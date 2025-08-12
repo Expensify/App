@@ -275,6 +275,7 @@ import type {
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
+    WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
@@ -1348,8 +1349,8 @@ const translations = {
         changeApprover: {
             title: 'Change approver',
             subtitle: 'Choose an option to change the approver for this report.',
-            description: 'You can also change the approver permanently for all reports in your ',
-            workflowSettings: 'workflow settings',
+            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `You can also change the approver permanently for all reports in your <a href="${workflowSettingLink}">workflow settings</a>.`,
             changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `changed the approver to <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: 'Add approver',

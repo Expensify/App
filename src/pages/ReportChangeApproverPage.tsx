@@ -1,14 +1,16 @@
 import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {assignCurrentUserAsApprover, changeReportApprover} from '@libs/actions/Report';
+import {assignCurrentUserAsApprover} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
@@ -28,6 +30,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
     const reportID = report?.reportID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {environmentURL} = useEnvironment();
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [selectedApproverType, setSelectedApproverType] = useState<string>();
@@ -88,10 +91,9 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
                 customListHeader={
                     <>
                         <Text style={[styles.ph5, styles.mb5]}>{translate('iou.changeApprover.subtitle')}</Text>
-                        <Text style={[styles.ph5, styles.mb5]}>
-                            {translate('iou.changeApprover.description')}
-                            <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy?.id))}>{translate('iou.changeApprover.workflowSettings')}</TextLink>.
-                        </Text>
+                        <View style={[styles.ph5, styles.mb5]}>
+                            <RenderHTML html={translate('iou.changeApprover.description', {workflowSettingLink: `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy?.id)}`})} />
+                        </View>
                     </>
                 }
             />
