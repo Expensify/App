@@ -255,7 +255,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     }
 
                     const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
-                    setWorkspaceReimbursement(route.params.policyID, newReimbursementChoice, newReimburserEmail ?? '');
+                    setWorkspaceReimbursement({
+                        policyID: route.params.policyID,
+                        reimbursementChoice: newReimbursementChoice,
+                        reimburserEmail: newReimburserEmail ?? '',
+                    });
                 },
                 subMenuItems:
                     !isOffline && policy?.isLoadingWorkspaceReimbursement === true ? (

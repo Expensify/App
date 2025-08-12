@@ -1,10 +1,9 @@
 import {FlashList} from '@shopify/flash-list';
 import lodashSortBy from 'lodash/sortBy';
-import type {ReactElement, Ref} from 'react';
+import type {ReactElement} from 'react';
 import React, {useCallback, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import type {SvgProps} from 'react-native-svg/lib/typescript/ReactNativeSVG';
 import type {ValueOf} from 'type-fest';
 import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSuggestions/types';
 import Button from '@components/Button';
@@ -34,6 +33,7 @@ import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type PaymentMethodPressHandler = (
@@ -67,9 +67,6 @@ type PaymentMethodListProps = {
     /** Should menu items be selectable with a checkbox */
     shouldShowSelectedState?: boolean;
 
-    /** React ref being forwarded to the PaymentMethodList Button */
-    buttonRef?: Ref<View>;
-
     /** List container style */
     style?: StyleProp<ViewStyle>;
 
@@ -99,6 +96,9 @@ type PaymentMethodListProps = {
 
     /** Function to be called when the user presses the add bank account button */
     onAddBankAccountPress?: () => void;
+
+    /** The icon to be displayed in the right side of the payment method item */
+    itemIconRight?: IconAsset;
 };
 
 type PaymentMethodItem = PaymentMethod & {
@@ -113,7 +113,7 @@ type PaymentMethodItem = PaymentMethod & {
     interactive?: boolean;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     errors?: Errors;
-    iconRight?: React.FC<SvgProps>;
+    iconRight?: IconAsset;
     isMethodActive?: boolean;
     cardID?: number;
     plaidUrl?: string;
@@ -171,7 +171,6 @@ function keyExtractor(item: PaymentMethod | string) {
 function PaymentMethodList({
     actionPaymentMethodType = '',
     activePaymentMethodID = '',
-    buttonRef = () => {},
     listHeaderComponent,
     onPress,
     shouldShowSelectedState = false,
@@ -186,6 +185,7 @@ function PaymentMethodList({
     invoiceTransferBankAccountID,
     shouldShowBankAccountSections = false,
     onAddBankAccountPress = () => {},
+    itemIconRight,
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -193,7 +193,10 @@ function PaymentMethodList({
     const {isOffline} = useNetwork();
     const illustrations = useThemeIllustrations();
 
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: (account) => account?.validated,
+        canBeMissing: true,
+    });
     const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
@@ -239,7 +242,7 @@ function PaymentMethodList({
                         iconStyles: [styles.cardIcon],
                         iconWidth: variables.cardIconWidth,
                         iconHeight: variables.cardIconHeight,
-                        iconRight: Expensicons.ThreeDots,
+                        iconRight: itemIconRight ?? Expensicons.ThreeDots,
                         isMethodActive: activePaymentMethodID === card.cardID,
                         onPress: (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                             pressHandler(
@@ -341,27 +344,12 @@ function PaymentMethodList({
                 wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isMethodActive,
-                iconRight: Expensicons.ThreeDots,
+                iconRight: itemIconRight ?? Expensicons.ThreeDots,
                 shouldShowRightIcon,
             };
         });
         return combinedPaymentMethods;
-    }, [
-        shouldShowAssignedCards,
-        bankAccountList,
-        styles,
-        isOffline,
-        cardList,
-        actionPaymentMethodType,
-        activePaymentMethodID,
-        StyleUtils,
-        shouldShowRightIcon,
-        onPress,
-        isLoadingBankAccountList,
-        isLoadingCardList,
-        illustrations,
-        translate,
-    ]);
+    }, [shouldShowAssignedCards, isLoadingBankAccountList, bankAccountList, styles, isOffline, isLoadingCardList, cardList, illustrations, translate, onPress, shouldShowRightIcon, itemIconRight, activePaymentMethodID, actionPaymentMethodType, StyleUtils]);
 
     const onPressItem = useCallback(() => {
         if (!isUserValidated) {
@@ -375,7 +363,6 @@ function PaymentMethodList({
         () =>
             shouldShowAddBankAccountButton ? (
                 <Button
-                    ref={buttonRef}
                     key="addBankAccountButton"
                     text={translate('bankAccount.addBankAccount')}
                     large
@@ -388,11 +375,10 @@ function PaymentMethodList({
                     title={translate('bankAccount.addBankAccount')}
                     icon={Expensicons.Plus}
                     wrapperStyle={[styles.paymentMethod, listItemStyle]}
-                    ref={buttonRef}
                 />
             ),
 
-        [shouldShowAddBankAccountButton, onPressItem, translate, onPress, buttonRef, styles.paymentMethod, listItemStyle, onAddBankAccountPress],
+        [shouldShowAddBankAccountButton, onPressItem, translate, styles.paymentMethod, listItemStyle, onAddBankAccountPress],
     );
 
     const itemsToRender = useMemo(() => {
