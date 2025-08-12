@@ -182,6 +182,8 @@ variables referenced here get updated since your local `.env` file is ignored.
 - `E2E_TESTING` (optional) - This needs to be set to `true` when running the e2e tests for performance regression testing.
    This happens usually automatically, read [this](tests/e2e/README.md) for more information
 
+> If your changes to .env aren't having an effect, try `rm -rf .rnef`, then re-run `npm run ios` or `npm run android`
+
 ----
 
 # Testing on browsers in simulators and emulators
