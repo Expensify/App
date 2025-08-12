@@ -2561,6 +2561,9 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 0,
             borderBottomWidth: 0,
         },
+        borderTransparent: {
+            borderColor: 'transparent',
+        },
 
         borderRight: {
             borderRightWidth: 1,
@@ -2686,8 +2689,6 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.componentBG,
             borderColor: theme.transparent,
         },
-
-        modalContainer: {height: '100%'},
 
         modalAnimatedContainer: {width: '100%'},
 

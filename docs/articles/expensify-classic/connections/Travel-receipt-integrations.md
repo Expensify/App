@@ -62,6 +62,14 @@ Expensify offers pre-built integrations with **Bolt Work, SpotHero, Grab, and KA
 
 ---
 
+## Delta for Business
+
+1. Log in to your [Delta Business](https://businessmanagement.delta.com/agentlogin.html) Admin account.
+2. Go to Settings > Expense Providers, select Expensify, and follow the instructions listed on page.
+3. Once the connection is established, the status for Expensify on the Expense Providers page will change from Pending to Connected, and all incoming data from Delta Business will be routed to Expensify.  
+
+---
+
 # KAYAK for Business
 
 ## Admin Setup  
