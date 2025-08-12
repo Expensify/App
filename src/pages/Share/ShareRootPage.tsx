@@ -37,24 +37,28 @@ function showErrorAlert(title: string, message: string) {
 
 function ShareRootPage() {
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
-    const [validatedFile] = useOnyx(ONYXKEYS.SHARE_FILE_OBJECT, {canBeMissing: true});
+    // const [validatedFile] = useOnyx(ONYXKEYS.SHARE_FILE_OBJECT, {canBeMissing: true});
 
     const {validateFiles} = useFilesValidation(addValidatedShareFile);
     const isTextShared = currentAttachment?.mimeType === 'txt';
 
-    const validateFilesWrapper = useCallback(() => {
-        if (!currentAttachment || isTextShared || validatedFile?.length !== 0) {
+    const validateFilesWrapper = (file: ShareTempFile) => {
+        console.log('___________________________________');
+        console.log('nowe foto', currentAttachment);
+        console.log('___________________________________');
+
+        if (!file || isTextShared) {
             return;
         }
 
         validateFiles([
             {
-                name: currentAttachment.id,
-                uri: currentAttachment.content,
-                type: currentAttachment.mimeType,
+                name: file.id,
+                uri: file.content,
+                type: file.mimeType,
             },
         ]);
-    }, [currentAttachment, isTextShared, validatedFile, validateFiles]);
+    };
 
     const appState = useRef(AppState.currentState);
     const [isFileReady, setIsFileReady] = useState(false);
@@ -122,6 +126,7 @@ function ShareRootPage() {
                 }
 
                 addTempShareFile(tempFile);
+                validateFilesWrapper(tempFile);
             }
         });
     }, [receiptFileFormats, shareFileMimeTypes, translate, errorTitle]);
@@ -130,7 +135,6 @@ function ShareRootPage() {
         const subscription = AppState.addEventListener('change', (nextAppState) => {
             if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
                 handleProcessFiles();
-                validateFilesWrapper();
             }
 
             appState.current = nextAppState;
@@ -139,12 +143,11 @@ function ShareRootPage() {
         return () => {
             subscription.remove();
         };
-    }, [handleProcessFiles, validateFilesWrapper]);
+    }, [handleProcessFiles]);
 
     useEffect(() => {
         clearShareData();
         handleProcessFiles();
-        validateFilesWrapper();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
