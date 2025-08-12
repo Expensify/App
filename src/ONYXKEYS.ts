@@ -1,6 +1,5 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {FileObject} from './components/AttachmentModal';
 import type CONST from './CONST';
 import type {OnboardingAccounting} from './CONST';
 import type {OnboardingCompanySize} from './libs/actions/Welcome/OnboardingFlow';
