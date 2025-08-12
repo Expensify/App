@@ -171,7 +171,9 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         }
 
         const selectedLogins = selectedOptions.map(({login}) => login);
-        const personalDetailsModified = Object.values(personalDetails).map((item) => selectedLogins.some((selectedLogin)=> item.login === selectedLogin) ? {...item, isSelected  : true} : item);
+        const personalDetailsModified = Object.values(personalDetails).map((item) =>
+            selectedLogins.some((selectedLogin) => item.login === selectedLogin) ? {...item, isSelected: true} : item,
+        );
         const personalDetailsFormatted = personalDetailsModified.map((item) => formatMemberForList(item));
 
         sectionsArr.push({
@@ -320,4 +322,3 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
 WorkspaceInvitePage.displayName = 'WorkspaceInvitePage';
 
 export default withNavigationTransitionEnd(withPolicyAndFullscreenLoading(WorkspaceInvitePage));
-

@@ -123,7 +123,9 @@ function RoomInvitePage({
         }
 
         const selectedLogins = selectedOptions.map(({login}) => login);
-        const personalDetailsModified = Object.values(personalDetails).map((item) => selectedLogins.some((selectedLogin)=> item.login === selectedLogin) ? {...item, isSelected  : true} : item);
+        const personalDetailsModified = Object.values(personalDetails).map((item) =>
+            selectedLogins.some((selectedLogin) => item.login === selectedLogin) ? {...item, isSelected: true} : item,
+        );
         const personalDetailsFormatted = personalDetailsModified.map((personalDetail) => formatMemberForList(personalDetail));
         const hasUnselectedUserToInvite = userToInvite && !selectedLogins.includes(userToInvite.login);
 
