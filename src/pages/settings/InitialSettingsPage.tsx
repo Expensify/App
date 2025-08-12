@@ -29,6 +29,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import '@libs/actions/Delegate';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {checkIfFeedConnectionIsBroken} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -40,7 +41,7 @@ import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_T
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import {confirmReadyToOpenApp} from '@userActions/App';
-import closeReactNativeApp from '@userActions/HybridApp';
+import {closeReactNativeApp} from '@userActions/HybridApp';
 import {openExternalLink} from '@userActions/Link';
 import {hasPaymentMethodError} from '@userActions/PaymentMethods';
 import {isSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
@@ -136,8 +137,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const signOut = useCallback(
         (shouldForceSignout = false) => {
             if (!network.isOffline || shouldForceSignout) {
-                signOutAndRedirectToSignIn();
-                return;
+                return signOutAndRedirectToSignIn();
             }
 
             // When offline, warn the user that any actions they took while offline will be lost if they sign out
@@ -251,7 +251,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     icon: Expensicons.ExpensifyLogoNew,
                     ...(CONFIG.IS_HYBRID_APP
                         ? {
-                              action: () => closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true}),
+                              action: () => closeReactNativeApp({shouldSetNVP: true}),
                           }
                         : {
                               action() {
@@ -286,9 +286,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 {
                     translationKey: signOutTranslationKey,
                     icon: Expensicons.Exit,
-                    action: () => {
-                        signOut(false);
-                    },
+                    action: () => signOut(false),
                 },
             ],
         };
@@ -340,9 +338,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                 icon={item.icon}
                                 iconType={item.iconType}
                                 disabled={isExecuting}
-                                onPress={singleExecution(() => {
-                                    item.action();
-                                })}
+                                onPress={singleExecution(item.action)}
                                 iconStyles={item.iconStyles}
                                 badgeText={item.badgeText}
                                 badgeStyle={item.badgeStyle}
