@@ -1257,6 +1257,7 @@ describe('SidebarUtils', () => {
                     ],
                     originalMessage: {
                         whisperedTo: [],
+                        toPolicyID: '12345',
                     },
                     actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
                     created: DateUtils.getDBTime(),
@@ -1267,6 +1268,9 @@ describe('SidebarUtils', () => {
                 const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}12345`, {
+                    name: "Three's Workspace",
+                });
                 const result = SidebarUtils.getOptionData({
                     report,
                     reportAttributes: undefined,
@@ -1279,7 +1283,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                 });
 
-                expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
+                expect(result?.alternateText).toBe(`You: moved this report to the Three's Workspace workspace`);
             });
 
             it('returns the last action message as an alternate text if the expense report is the one expense report', async () => {
