@@ -482,6 +482,7 @@ const translations = {
         message: '消息',
         leaveThread: '离开线程',
         you: '你',
+        me: '我',
         youAfterPreposition: '你',
         your: '你的',
         conciergeHelp: '请联系Concierge寻求帮助。',
@@ -880,6 +881,7 @@ const translations = {
         hereAlternateText: '通知此对话中的所有人',
     },
     newMessages: '新消息',
+    latestMessages: '最新消息',
     youHaveBeenBanned: '注意：您已被禁止在此频道聊天。',
     reportTypingIndicator: {
         isTyping: '正在输入...',
@@ -3481,6 +3483,11 @@ const translations = {
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}的费用`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify 卡交易将自动导出到与<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">我们集成</a>创建的 “Expensify 卡责任账户”。</muted-text-label>`,
         },
+        receiptPartners: {
+            uber: {
+                subtitle: '自动化整个组织的差旅和送餐费用。',
+            },
+        },
         perDiem: {
             subtitle: '设置每日津贴标准以控制员工的日常支出。',
             amount: '金额',
@@ -5934,6 +5941,10 @@ const translations = {
                 cards: '卡片',
             },
             feed: '通道',
+            withdrawalType: {
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '报销',
+            },
         },
         groupBy: '组别',
         moneyRequestReport: {
@@ -5943,6 +5954,7 @@ const translations = {
         noCategory: '无类别',
         noTag: '无标签',
         expenseType: '费用类型',
+        withdrawalType: '提款类型',
         recentSearches: '最近的搜索',
         recentChats: '最近的聊天记录',
         searchIn: '搜索在',
