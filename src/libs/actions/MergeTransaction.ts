@@ -27,7 +27,7 @@ function setMergeTransactionKey(transactionID: string, values: Partial<MergeTran
 /**
  * Fetches eligible transactions for merging
  */
-function getTransactionsForMerging(transactionID: string) {
+function getTransactionsForMergingFromAPI(transactionID: string) {
     const parameters: GetTransactionsForMergingParams = {
         transactionID,
     };
@@ -45,50 +45,69 @@ function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2
  * This is FE version of READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING API call
  */
 
-function getTransactionsForMergingLocally(
-    targetTransactionID: string,
-    transactions: OnyxCollection<Transaction>,
-    policy: OnyxEntry<Policy>,
-    report: OnyxEntry<Report>,
-    currentUserLogin: string | undefined,
-) {
+function getTransactionsForMergingLocally(transactionID: string, targetTransaction: Transaction, transactions: OnyxCollection<Transaction>) {
     const transactionsArray = Object.values(transactions ?? {});
-    const targetTransaction = transactionsArray.find((transaction) => transaction?.transactionID === targetTransactionID);
+
+    const eligibleTransactions = transactionsArray.filter((transaction): transaction is Transaction => {
+        if (!transaction || transaction.transactionID === targetTransaction.transactionID) {
+            return false;
+        }
+
+        const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        return (
+            areTransactionsEligibleForMerge(targetTransaction, transaction) &&
+            (isUnreportedExpense || (!!transaction.reportID && isMoneyRequestReportEligibleForMerge(transaction.reportID, false)))
+        );
+    });
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {
+        eligibleTransactions,
+    });
+}
+
+function getTransactionsForMerging({
+    isOffline,
+    targetTransaction,
+    transactions,
+    policy,
+    report,
+    currentUserLogin,
+}: {
+    isOffline: boolean;
+    targetTransaction: Transaction;
+    transactions: OnyxCollection<Transaction>;
+    policy: OnyxEntry<Policy>;
+    report: OnyxEntry<Report>;
+    currentUserLogin: string | undefined;
+}) {
+    const transactionID = targetTransaction.transactionID;
+
+    // In phase 1:
+    // For managers and admins: we have decided to only return transactions from the money report of target transaction;
     const isAdmin = isPolicyAdmin(policy, currentUserLogin);
     const isManager = isReportManager(report);
 
-    let eligibleTransactions: Transaction[] = [];
-
-    // In phase 1:
-    // for managers and admins: we have decided to only return transaction from the target transaction report;
-    // for submitter: can see all transactions that you're also a submitter
-    if (!targetTransaction) {
-        eligibleTransactions = [];
-    } else if (isAdmin || isManager) {
+    if (isAdmin || isManager) {
         const reportTransactions = getReportTransactions(report?.reportID);
-        eligibleTransactions = reportTransactions.filter((transaction): transaction is Transaction => {
-            if (!transaction || transaction.transactionID === targetTransactionID) {
+        const eligibleTransactions = reportTransactions.filter((transaction): transaction is Transaction => {
+            if (!transaction || transaction.transactionID === transactionID) {
                 return false;
             }
+
             return areTransactionsEligibleForMerge(targetTransaction, transaction);
         });
-    } else {
-        eligibleTransactions = transactionsArray.filter((transaction): transaction is Transaction => {
-            if (!transaction || transaction.transactionID === targetTransactionID) {
-                return false;
-            }
 
-            const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-            return (
-                areTransactionsEligibleForMerge(targetTransaction, transaction) &&
-                (isUnreportedExpense || (!!transaction.reportID && isMoneyRequestReportEligibleForMerge(transaction.reportID, false)))
-            );
+        Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {
+            eligibleTransactions,
         });
+        return;
     }
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransactionID}`, {
-        eligibleTransactions,
-    });
+    if (isOffline) {
+        getTransactionsForMergingLocally(transactionID, targetTransaction, transactions);
+    } else {
+        getTransactionsForMergingFromAPI(transactionID);
+    }
 }
 
 /**
@@ -219,4 +238,4 @@ function mergeTransactionRequest(mergeTransactionID: string, mergeTransaction: M
     API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData});
 }
 
-export {setupMergeTransactionData, setMergeTransactionKey, getTransactionsForMerging, getTransactionsForMergingLocally, mergeTransactionRequest};
+export {setupMergeTransactionData, setMergeTransactionKey, getTransactionsForMerging, mergeTransactionRequest};

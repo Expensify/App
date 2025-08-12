@@ -12,12 +12,11 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getTransactionsForMerging, getTransactionsForMergingLocally, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
+import {getTransactionsForMerging, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {
     fillMissingReceiptSource,
     getMergeableDataAndConflictFields,
     getSourceTransactionFromMergeTransaction,
-    getTransactionThreadReportID,
     selectTargetAndSourceTransactionIDsForMerge,
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
@@ -46,23 +45,19 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const {isOffline} = useNetwork();
     const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getTransactionThreadReportID(targetTransaction)}`, {canBeMissing: false});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: false});
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
     const currentUserLogin = session?.email;
 
     useEffect(() => {
         // If the eligible transactions are already loaded, don't fetch them again
-        if (Array.isArray(mergeTransaction?.eligibleTransactions)) {
+        if (Array.isArray(mergeTransaction?.eligibleTransactions) || !targetTransaction) {
             return;
         }
 
-        if (isOffline) {
-            getTransactionsForMergingLocally(transactionID, transactions, policy, report, currentUserLogin);
-        } else {
-            getTransactionsForMerging(transactionID);
-        }
-    }, [transactionID, transactions, isOffline, mergeTransaction, policy, report, currentUserLogin]);
+        getTransactionsForMerging({isOffline, targetTransaction, transactions, policy, report, currentUserLogin});
+    }, [transactions, isOffline, mergeTransaction, policy, report, currentUserLogin, targetTransaction]);
 
     const sections = useMemo(() => {
         return [
