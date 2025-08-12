@@ -7,10 +7,8 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createPolicyTax, getNextTaxCode, getTaxValueWithPercentage, validateTaxName, validateTaxValue} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
@@ -37,7 +35,6 @@ function WorkspaceCreateTaxPage({
 }: WorkspaceCreateTaxPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
 
     const submitForm = useCallback(
         ({value, ...values}: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM>) => {
@@ -90,7 +87,6 @@ function WorkspaceCreateTaxPage({
                             submitButtonText={translate('common.save')}
                             enabledWhenOffline
                             shouldValidateOnBlur={false}
-                            disablePressOnEnter={!!modal?.isVisible}
                             addBottomSafeAreaPadding
                         >
                             <View style={styles.mhn5}>
@@ -112,15 +108,16 @@ function WorkspaceCreateTaxPage({
                                     title={(v) => (v ? getTaxValueWithPercentage(v) : '')}
                                     description={translate('workspace.taxes.value')}
                                     rightLabel={translate('common.required')}
-                                    hideCurrencySymbol
-                                    // The default currency uses 2 decimal places, so we subtract it
-                                    extraDecimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES - 2}
-                                    // We increase the amount max length to support the extra decimals.
-                                    amountMaxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
-                                    extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
+                                    decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
+                                    maxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
+                                    isSymbolPressable={false}
+                                    symbol="%"
+                                    symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX}
                                     autoGrowExtraSpace={variables.w80}
                                     autoGrowMarginSide="left"
                                     style={[styles.iouAmountTextInput, styles.textAlignRight]}
+                                    containerStyle={styles.iouAmountTextInputContainer}
+                                    touchableInputWrapperStyle={styles.heightUndefined}
                                 />
                             </View>
                         </FormProvider>

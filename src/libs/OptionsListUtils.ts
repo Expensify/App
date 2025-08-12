@@ -7,6 +7,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -33,12 +34,12 @@ import type {
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageMovedTransaction} from '@src/types/onyx/OriginalMessage';
+import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Timing from './actions/Timing';
 import {getEnabledCategoriesCount} from './CategoryUtils';
 import filterArrayByMatch from './filterArrayByMatch';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
-import localeCompare from './LocaleCompare';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
@@ -516,36 +517,6 @@ Onyx.connect({
     callback: (value) => (nvpDismissedProductTraining = value),
 });
 
-let reportAttributesDerivedValue: ReportAttributesDerivedValue['reports'] | undefined;
-Onyx.connect({
-    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
-    callback: (value) => (reportAttributesDerivedValue = value?.reports),
-});
-
-/**
- * @param defaultValues {login: accountID} In workspace invite page, when new user is added we pass available data to opt in
- * @returns Returns avatar data for a list of user accountIDs
- */
-function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: OnyxEntry<PersonalDetailsList>, defaultValues: Record<string, number> = {}): Icon[] {
-    const reversedDefaultValues: Record<number, string> = {};
-
-    Object.entries(defaultValues).forEach((item) => {
-        reversedDefaultValues[item[1]] = item[0];
-    });
-
-    return accountIDs.map((accountID) => {
-        const login = reversedDefaultValues[accountID] ?? '';
-        const userPersonalDetail = personalDetails?.[accountID] ?? {login, accountID};
-
-        return {
-            id: accountID,
-            source: userPersonalDetail.avatar ?? FallbackAvatar,
-            type: CONST.ICON_TYPE_AVATAR,
-            name: userPersonalDetail.login ?? '',
-        };
-    });
-}
-
 /**
  * Returns the personal details for an array of accountIDs
  * @returns keys of the object are emails, values are PersonalDetails objects.
@@ -957,7 +928,14 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
 /**
  * Creates a report list option - optimized for SearchOption context
  */
-function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<PersonalDetailsList>, report: OnyxInputOrEntry<Report>, config?: PreviewConfig): SearchOptionData {
+function createOption(
+    accountIDs: number[],
+    personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
+    report: OnyxInputOrEntry<Report>,
+    config?: PreviewConfig,
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+    transactions?: SearchTransaction[],
+): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
 
     // Initialize only the properties that are actually used in SearchOption context
@@ -1036,7 +1014,9 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
         // If displaying chat preview line is needed, let's overwrite the default alternate text
         result.alternateText = showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview});
 
-        reportName = showPersonalDetails ? (getDisplayNameForParticipant({accountID: accountIDs.at(0)}) ?? formatPhoneNumber(personalDetail?.login ?? '')) : getReportName(report);
+        reportName = showPersonalDetails
+            ? getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '')
+            : getReportName(report, undefined, undefined, undefined, undefined, undefined, transactions);
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         reportName = getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '');
@@ -1047,7 +1027,7 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
 
     // Set core display properties that are used in SearchOption context
     result.text = reportName;
-    result.icons = getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, null);
+    result.icons = getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, null, undefined, !!result?.private_isArchived);
     result.subtitle = subtitle;
 
     // Set login and accountID only for single participant cases (used in SearchOption context)
@@ -1062,14 +1042,20 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
 /**
  * Get the option for a given report.
  */
-function getReportOption(participant: Participant): OptionData {
+function getReportOption(participant: Participant, reportAttributesDerived?: ReportAttributesDerivedValue['reports']): OptionData {
     const report = getReportOrDraftReport(participant.reportID);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
-    const option = createOption(visibleParticipantAccountIDs, allPersonalDetails ?? {}, !isEmptyObject(report) ? report : undefined, {
-        showChatPreviewLine: false,
-        forcePolicyNamePreview: false,
-    });
+    const option = createOption(
+        visibleParticipantAccountIDs,
+        allPersonalDetails ?? {},
+        !isEmptyObject(report) ? report : undefined,
+        {
+            showChatPreviewLine: false,
+            forcePolicyNamePreview: false,
+        },
+        reportAttributesDerived,
+    );
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     if (option.isSelfDM) {
@@ -1102,13 +1088,19 @@ function getReportOption(participant: Participant): OptionData {
 /**
  * Get the display option for a given report.
  */
-function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: OnyxEntry<Participant>): OptionData {
+function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: OnyxEntry<Participant>, reportAttributesDerived?: ReportAttributesDerivedValue['reports']): OptionData {
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
-    const option = createOption(visibleParticipantAccountIDs, allPersonalDetails ?? {}, !isEmptyObject(report) ? report : undefined, {
-        showChatPreviewLine: false,
-        forcePolicyNamePreview: false,
-    });
+    const option = createOption(
+        visibleParticipantAccountIDs,
+        allPersonalDetails ?? {},
+        !isEmptyObject(report) ? report : undefined,
+        {
+            showChatPreviewLine: false,
+            forcePolicyNamePreview: false,
+        },
+        reportAttributesDerived,
+    );
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     if (option.isSelfDM) {
@@ -1133,17 +1125,23 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
 /**
  * Get the option for a policy expense report.
  */
-function getPolicyExpenseReportOption(participant: Participant | SearchOptionData): SearchOptionData {
+function getPolicyExpenseReportOption(participant: Participant | SearchOptionData, reportAttributesDerived?: ReportAttributesDerivedValue['reports']): SearchOptionData {
     const expenseReport = reportUtilsIsPolicyExpenseChat(participant) ? getReportOrDraftReport(participant.reportID) : null;
 
     const visibleParticipantAccountIDs = Object.entries(expenseReport?.participants ?? {})
         .filter(([, reportParticipant]) => reportParticipant && !isHiddenForCurrentUser(reportParticipant.notificationPreference))
         .map(([accountID]) => Number(accountID));
 
-    const option = createOption(visibleParticipantAccountIDs, allPersonalDetails ?? {}, !isEmptyObject(expenseReport) ? expenseReport : null, {
-        showChatPreviewLine: false,
-        forcePolicyNamePreview: false,
-    });
+    const option = createOption(
+        visibleParticipantAccountIDs,
+        allPersonalDetails ?? {},
+        !isEmptyObject(expenseReport) ? expenseReport : null,
+        {
+            showChatPreviewLine: false,
+            forcePolicyNamePreview: false,
+        },
+        reportAttributesDerived,
+    );
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     option.text = getPolicyName({report: expenseReport});
@@ -1247,8 +1245,10 @@ function isReportSelected(reportOption: SearchOptionData, selectedOptions: Array
 }
 
 function processReport(
-    report: OnyxEntry<Report>,
+    report: OnyxEntry<Report> | null,
     personalDetails: OnyxEntry<PersonalDetailsList>,
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+    transactions?: SearchTransaction[],
 ): {
     reportMapEntry?: [number, Report]; // The entry to add to reportMapForAccountIDs if applicable
     reportOption: SearchOption<Report> | null; // The report option to add to allReportOptions if applicable
@@ -1272,18 +1272,18 @@ function processReport(
         reportMapEntry,
         reportOption: {
             item: report,
-            ...createOption(accountIDs, personalDetails, report),
+            ...createOption(accountIDs, personalDetails, report, undefined, reportAttributesDerived, transactions),
         },
     };
 }
 
-function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, reports?: OnyxCollection<Report>) {
+function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, reports?: OnyxCollection<Report>, reportAttributesDerived?: ReportAttributesDerivedValue['reports']) {
     const reportMapForAccountIDs: Record<number, Report> = {};
     const allReportOptions: Array<SearchOption<Report>> = [];
 
     if (reports) {
         Object.values(reports).forEach((report) => {
-            const {reportMapEntry, reportOption} = processReport(report, personalDetails);
+            const {reportMapEntry, reportOption} = processReport(report, personalDetails, reportAttributesDerived);
 
             if (reportMapEntry) {
                 const [accountID, reportValue] = reportMapEntry;
@@ -1298,9 +1298,15 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
 
     const allPersonalDetailsOptions = Object.values(personalDetails ?? {}).map((personalDetail) => ({
         item: personalDetail,
-        ...createOption([personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID], personalDetails, reportMapForAccountIDs[personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID], {
-            showPersonalDetails: true,
-        }),
+        ...createOption(
+            [personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
+            personalDetails,
+            reportMapForAccountIDs[personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
+            {
+                showPersonalDetails: true,
+            },
+            reportAttributesDerived,
+        ),
     }));
 
     return {
@@ -1309,12 +1315,12 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
     };
 }
 
-function createOptionFromReport(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>) {
+function createOptionFromReport(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>, reportAttributesDerived?: ReportAttributesDerivedValue['reports']) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
     return {
         item: report,
-        ...createOption(accountIDs, personalDetails, report),
+        ...createOption(accountIDs, personalDetails, report, undefined, reportAttributesDerived),
     };
 }
 
@@ -1620,6 +1626,9 @@ function getUserToInviteContactOption({
     const userToInvite = {
         item: userDetails,
         text: displayName,
+        displayName,
+        firstName,
+        lastName,
         alternateText: displayName !== effectiveSearchValue ? effectiveSearchValue : undefined,
         brickRoadIndicator: null,
         icons: [
@@ -1656,7 +1665,7 @@ function getUserToInviteContactOption({
     return userToInvite;
 }
 
-function isValidReport(reportOption: SearchOption<Report>, config: GetValidReportsConfig): boolean {
+function isValidReport(option: SearchOption<Report>, config: GetValidReportsConfig): boolean {
     const {
         betas = [],
         includeMultipleParticipantReports = false,
@@ -1676,14 +1685,11 @@ function isValidReport(reportOption: SearchOption<Report>, config: GetValidRepor
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
 
-    // eslint-disable-next-line rulesdir/prefer-at
-    const option = reportOption;
-    const report = reportOption.item;
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${option.item.chatReportID}`];
-    const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
+    const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(option.item, transactionViolations);
 
     const shouldBeInOptionList = shouldReportBeInOptionList({
-        report,
+        report: option.item,
         chatReport,
         currentReportId: topmostReportId,
         betas,
@@ -1706,13 +1712,13 @@ function isValidReport(reportOption: SearchOption<Report>, config: GetValidRepor
     const isMoneyRequestReport = option.isMoneyRequestReport;
     const isSelfDM = option.isSelfDM;
     const isChatRoom = option.isChatRoom;
-    const accountIDs = getParticipantsAccountIDsForDisplay(report);
+    const accountIDs = getParticipantsAccountIDsForDisplay(option.item);
 
     if (excludeNonAdminWorkspaces && !isPolicyAdmin(option.policyID, policies)) {
         return false;
     }
 
-    if (isPolicyExpenseChat && report?.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
+    if (isPolicyExpenseChat && option.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
         return false;
     }
     // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to expense chats only.
@@ -1736,12 +1742,12 @@ function isValidReport(reportOption: SearchOption<Report>, config: GetValidRepor
         return false;
     }
 
-    if (!canUserPerformWriteAction(report) && !includeReadOnly) {
+    if (!canUserPerformWriteAction(option.item) && !includeReadOnly) {
         return false;
     }
 
     // In case user needs to add credit bank account, don't allow them to submit an expense from the workspace.
-    if (includeOwnedWorkspaceChats && hasIOUWaitingOnCurrentUserBankAccount(report)) {
+    if (includeOwnedWorkspaceChats && hasIOUWaitingOnCurrentUserBankAccount(option.item)) {
         return false;
     }
 
@@ -1756,7 +1762,7 @@ function isValidReport(reportOption: SearchOption<Report>, config: GetValidRepor
         option.isPolicyExpenseChat && option.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !option.private_isArchived;
 
     const shouldShowInvoiceRoom =
-        includeInvoiceRooms && isInvoiceRoom(report) && isPolicyAdmin(option.policyID, policies) && !option.private_isArchived && canSendInvoiceFromWorkspace(report.policyID);
+        includeInvoiceRooms && isInvoiceRoom(option.item) && isPolicyAdmin(option.policyID, policies) && !option.private_isArchived && canSendInvoiceFromWorkspace(option.policyID);
 
     /*
     Exclude the report option if it doesn't meet any of the following conditions:
@@ -1964,7 +1970,7 @@ function getValidOptions(
                 searchText += `${report.subtitle ?? ''}${report.item.policyName ?? ''}`;
             }
             searchText = deburr(searchText.toLocaleLowerCase());
-            const searchTermsFound = doSearchTermsMatch(searchTerms, searchText);
+            const searchTermsFound = searchTerms.every((term) => searchText.includes(term));
 
             if (!searchTermsFound) {
                 return false;
@@ -2041,7 +2047,7 @@ function getValidOptions(
             }
             const searchText = deburr(`${personalDetail.text ?? ''} ${personalDetail.login ?? ''}`.toLocaleLowerCase());
 
-            return doSearchTermsMatch(searchTerms, searchText);
+            return searchTerms.every((term) => searchText.includes(term));
         };
 
         personalDetailsOptions = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxElements, filteringFunction, true);
@@ -2355,6 +2361,7 @@ function formatSectionsFromSearchTerm(
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: SearchOptionData[] = [],
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
 ): SectionForSearchTerm {
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
@@ -2366,7 +2373,7 @@ function formatSectionsFromSearchTerm(
                 data: shouldGetOptionDetails
                     ? selectedOptions.map((participant) => {
                           const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                          return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                          return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                       })
                     : selectedOptions,
                 shouldShow: selectedOptions.length > 0,
@@ -2392,7 +2399,7 @@ function formatSectionsFromSearchTerm(
             data: shouldGetOptionDetails
                 ? selectedParticipantsWithoutDetails.map((participant) => {
                       const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                      return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                      return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                   })
                 : selectedParticipantsWithoutDetails,
             shouldShow: selectedParticipantsWithoutDetails.length > 0,
@@ -2414,11 +2421,14 @@ function getFirstKeyForList(data?: Option[] | null) {
 }
 
 function getPersonalDetailSearchTerms(item: Partial<SearchOptionData>) {
+    if (item.accountID === currentUserAccountID) {
+        return getCurrentUserSearchTerms(item);
+    }
     return [item.participantsList?.[0]?.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
 }
 
-function getCurrentUserSearchTerms(item: SearchOptionData) {
-    return [item.text ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
+function getCurrentUserSearchTerms(item: Partial<SearchOptionData>) {
+    return [item.text ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? '', translateLocal('common.you'), translateLocal('common.me')];
 }
 
 /**
@@ -2659,7 +2669,22 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, confi
     };
 }
 
-function sortAlphabetically<T extends Partial<Record<TKey, string | undefined>>, TKey extends keyof T>(items: T[], key: TKey): T[] {
+/**
+ * Filter out selected options from personal details and recent reports
+ * @param options - The options to filter
+ * @param selectedOptions - The selected options to filter out.
+ * @returns The filtered options
+ */
+function filterSelectedOptions(options: Options, selectedOptions: Set<number | undefined>): Options {
+    const filteredOptions = {
+        ...options,
+        personalDetails: options.personalDetails.filter(({accountID}) => !selectedOptions.has(accountID)),
+        recentReports: options.recentReports.filter(({accountID}) => !selectedOptions.has(accountID)),
+    };
+    return filteredOptions;
+}
+
+function sortAlphabetically<T extends Partial<Record<TKey, string | undefined>>, TKey extends keyof T>(items: T[], key: TKey, localeCompare: LocaleContextProps['localeCompare']): T[] {
     return items.sort((a, b) => localeCompare(a[key]?.toLowerCase() ?? '', b[key]?.toLowerCase() ?? ''));
 }
 
@@ -2692,7 +2717,9 @@ function shallowOptionsListCompare(a: OptionList, b: OptionList): boolean {
         return false;
     }
     for (let i = 0; i < a.reports.length; i++) {
-        if (a.reports.at(i)?.reportID !== b.reports.at(i)?.reportID) {
+        const aReport = a.reports.at(i);
+        const bReport = b.reports.at(i);
+        if (aReport?.reportID !== bReport?.reportID || aReport?.text !== bReport?.text) {
             return false;
         }
     }
@@ -2716,16 +2743,6 @@ function processSearchString(searchString: string | undefined): string[] {
         .filter((term) => term.length > 0);
 }
 
-/**
- * Check if all search terms are found in the given search text
- * @param searchTerms - Array of normalized search terms
- * @param searchText - The text to search within
- * @returns True if all search terms are found in the search text
- */
-function doSearchTermsMatch(searchTerms: string[], searchText: string): boolean {
-    return searchTerms.length > 0 ? searchTerms.every((term) => searchText.includes(term)) : true;
-}
-
 export {
     canCreateOptimisticPersonalDetailOption,
     combineOrderingOfReportsAndPersonalDetails,
@@ -2734,6 +2751,7 @@ export {
     filterAndOrderOptions,
     filterOptions,
     filterReports,
+    filterSelectedOptions,
     filterSelfDMChat,
     filterUserToInvite,
     filterWorkspaceChats,
@@ -2742,7 +2760,6 @@ export {
     formatSectionsFromSearchTerm,
     getAlternateText,
     getAttendeeOptions,
-    getAvatarsForAccountIDs,
     getCurrentUserSearchTerms,
     getEmptyOptions,
     getFirstKeyForList,

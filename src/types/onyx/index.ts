@@ -34,6 +34,7 @@ import type {FundList} from './Fund';
 import type Fund from './Fund';
 import type HybridApp from './HybridApp';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
+import type IntegrationServerExportTemplate from './IntegrationServerExportTemplate';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -45,6 +46,7 @@ import type LockAccountDetails from './LockAccountDetails';
 import type {LoginList} from './Login';
 import type Login from './Login';
 import type MapboxAccessToken from './MapboxAccessToken';
+import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
 import type Network from './Network';
 import type NewGroupChatDraft from './NewGroupChatDraft';
@@ -111,6 +113,7 @@ import type TryNewDot from './TryNewDot';
 import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
+import type VacationDelegate from './VacationDelegate';
 import type ValidateMagicCodeAction from './ValidateMagicCodeAction';
 import type ValidateUserAndGetAccessiblePolicies from './ValidateUserAndGetAccessiblePolicies';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
@@ -209,6 +212,7 @@ export type {
     TaxRates,
     TaxRatesWithDefault,
     Transaction,
+    MergeTransaction,
     TransactionViolation,
     TransactionViolations,
     TravelSettings,
@@ -262,6 +266,8 @@ export type {
     ReportTransactionsAndViolationsDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
+    VacationDelegate,
     BillingReceiptDetails,
+    IntegrationServerExportTemplate,
     HybridApp,
 };
