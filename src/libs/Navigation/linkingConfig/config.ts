@@ -960,6 +960,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
                             path: ROUTES.RULES_BILLABLE_DEFAULT.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_REIMBURSABLE_DEFAULT]: {
+                            path: ROUTES.RULES_REIMBURSABLE_DEFAULT.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_CUSTOM]: {
                             path: ROUTES.RULES_CUSTOM.route,
                         },
@@ -1671,6 +1674,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.WORKSPACE.PER_DIEM]: {
                     path: ROUTES.WORKSPACE_PER_DIEM.route,
+                },
+                [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
+                    path: ROUTES.WORKSPACE_RECEIPT_PARTNERS.route,
                 },
                 [SCREENS.WORKSPACE.WORKFLOWS]: {
                     path: ROUTES.WORKSPACE_WORKFLOWS.route,
