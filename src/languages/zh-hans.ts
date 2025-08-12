@@ -482,6 +482,7 @@ const translations = {
         message: '消息',
         leaveThread: '离开线程',
         you: '你',
+        me: '我',
         youAfterPreposition: '你',
         your: '你的',
         conciergeHelp: '请联系Concierge寻求帮助。',
@@ -592,6 +593,7 @@ const translations = {
         unread: '未读',
         sent: '已发送',
         links: 'Links',
+        day: '天',
         days: '天',
         rename: '重命名',
         address: '地址',
@@ -3361,6 +3363,11 @@ const translations = {
             railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `您从${origin}到${destination}的火车票已在${startDate}更新。`,
             defaultUpdate: ({type}: TravelTypeParams) => `您的${type}预订已更新。`,
         },
+        flightTo: '飞往',
+        trainTo: '火车前往',
+        carRental: '汽车租赁',
+        nightIn: '晚住宿',
+        nightsIn: '晚住宿',
     },
     workspace: {
         common: {
@@ -3481,6 +3488,11 @@ const translations = {
             viewTransactions: '查看交易记录',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}的费用`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify 卡交易将自动导出到与<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">我们集成</a>创建的 “Expensify 卡责任账户”。</muted-text-label>`,
+        },
+        receiptPartners: {
+            uber: {
+                subtitle: '自动化整个组织的差旅和送餐费用。',
+            },
         },
         perDiem: {
             subtitle: '设置每日津贴标准以控制员工的日常支出。',
@@ -5935,6 +5947,10 @@ const translations = {
                 cards: '卡片',
             },
             feed: '通道',
+            withdrawalType: {
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '报销',
+            },
         },
         groupBy: '组别',
         moneyRequestReport: {
@@ -5944,6 +5960,7 @@ const translations = {
         noCategory: '无类别',
         noTag: '无标签',
         expenseType: '费用类型',
+        withdrawalType: '提款类型',
         recentSearches: '最近的搜索',
         recentChats: '最近的聊天记录',
         searchIn: '搜索在',

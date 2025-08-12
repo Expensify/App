@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/no-acc-spread-in-reduce */
 import type {ForwardedRef, RefObject} from 'react';
-import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useRef} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
@@ -17,7 +17,6 @@ import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAdvancedFilters} from '@libs/actions/Search';
-import {parseFSAttributes} from '@libs/Fullstory';
 import Navigation from '@libs/Navigation/Navigation';
 import runOnLiveMarkdownRuntime from '@libs/runOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
@@ -193,16 +192,12 @@ function SearchAutocompleteInput(
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
 
-    // Parse Fullstory attributes on initial render
-    useLayoutEffect(parseFSAttributes, []);
-
     return (
         <View style={[outerWrapperStyle]}>
             <Animated.View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle]}>
                 <View
                     style={styles.flex1}
-                    fsClass={CONST.FULL_STORY.UNMASK}
-                    testID={CONST.FULL_STORY.UNMASK}
+                    fsClass={CONST.FULLSTORY.CLASS.UNMASK}
                 >
                     <TextInput
                         testID="search-autocomplete-text-input"
