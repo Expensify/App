@@ -27,14 +27,7 @@ import Log from '@libs/Log';
 import memoize from '@libs/memoize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {Option, Section} from '@libs/OptionsListUtils';
-import {
-    filterAndOrderOptions,
-    getFirstKeyForList,
-    getHeaderMessage,
-    getPersonalDetailSearchTerms,
-    getUserToInviteOption,
-    getValidOptions,
-} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, getFirstKeyForList, getHeaderMessage, getPersonalDetailSearchTerms, getUserToInviteOption, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -82,9 +75,13 @@ function useOptions() {
 
     const defaultOptionsModified = {
         ...defaultOptions,
-        recentReports: defaultOptions.recentReports.map((item) => selectedOptions.some((selectedOption) => selectedOption.accountID === item.accountID) ? {...item, isSelected: true}:item),
-        personalDetails: defaultOptions.personalDetails.map((item) => selectedOptions.some((selectedOption) => selectedOption.accountID === item.accountID) ? {...item, isSelected: true}:item),
-    }
+        recentReports: defaultOptions.recentReports.map((item) =>
+            selectedOptions.some((selectedOption) => selectedOption.accountID === item.accountID) ? {...item, isSelected: true} : item,
+        ),
+        personalDetails: defaultOptions.personalDetails.map((item) =>
+            selectedOptions.some((selectedOption) => selectedOption.accountID === item.accountID) ? {...item, isSelected: true} : item,
+        ),
+    };
 
     const options = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(defaultOptionsModified, debouncedSearchTerm, {
