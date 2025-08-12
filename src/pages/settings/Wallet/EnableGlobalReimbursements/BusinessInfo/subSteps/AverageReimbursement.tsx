@@ -1,25 +1,22 @@
 import React, {useMemo} from 'react';
 import PushRowFieldsStep from '@components/SubStepForms/PushRowFieldsStep';
+import useEnableGlobalReimbursementsStepFormSubmit from '@hooks/useEnableGlobalReimbursementsStepFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import getListOptionsFromCorpayPicklist from '@pages/ReimbursementAccount/NonUSD/utils/getListOptionsFromCorpayPicklist';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
 
-type AverageReimbursementProps = SubStepProps;
+type AverageReimbursementsProps = SubStepProps & {policyCurrency: string};
 
-const {TRADE_VOLUME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const {TRADE_VOLUME} = INPUT_IDS;
 const STEP_FIELDS = [TRADE_VOLUME];
 
-function AverageReimbursement({onNext, onMove, isEditing}: AverageReimbursementProps) {
+function AverageReimbursements({onNext, onMove, isEditing, policyCurrency}: AverageReimbursementsProps) {
     const {translate} = useLocalize();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS, {canBeMissing: false});
-    const policyID = reimbursementAccount?.achData?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
-    const currency = policy?.outputCurrency ?? '';
+    const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT, {canBeMissing: true});
+    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS, {canBeMissing: true});
 
     const tradeVolumeRangeListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.TradeVolumeRange), [corpayOnboardingFields]);
 
@@ -27,17 +24,17 @@ function AverageReimbursement({onNext, onMove, isEditing}: AverageReimbursementP
         () => [
             {
                 inputID: TRADE_VOLUME,
-                defaultValue: reimbursementAccount?.achData?.corpay?.[TRADE_VOLUME] ?? '',
+                defaultValue: enableGlobalReimbursementsDraft?.[TRADE_VOLUME] ?? '',
                 options: tradeVolumeRangeListOptions,
-                description: translate('businessInfoStep.averageReimbursementAmountInCurrency', {currencyCode: currency}),
+                description: translate('businessInfoStep.averageReimbursementAmountInCurrency', {currencyCode: policyCurrency}),
                 modalHeaderTitle: translate('businessInfoStep.selectAverageReimbursement'),
                 searchInputTitle: translate('businessInfoStep.findAverageReimbursement'),
             },
         ],
-        [reimbursementAccount, currency, tradeVolumeRangeListOptions, translate],
+        [enableGlobalReimbursementsDraft, policyCurrency, tradeVolumeRangeListOptions, translate],
     );
 
-    const handleSubmit = useReimbursementAccountStepFormSubmit({
+    const handleSubmit = useEnableGlobalReimbursementsStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
         shouldSaveDraft: isEditing,
@@ -52,7 +49,7 @@ function AverageReimbursement({onNext, onMove, isEditing}: AverageReimbursementP
             isEditing={isEditing}
             onNext={onNext}
             onMove={onMove}
-            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+            formID={ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS}
             formTitle={translate('businessInfoStep.whatsYourExpectedAverageReimbursements')}
             onSubmit={handleSubmit}
             pushRowFields={pushRowFields}
@@ -60,6 +57,6 @@ function AverageReimbursement({onNext, onMove, isEditing}: AverageReimbursementP
     );
 }
 
-AverageReimbursement.displayName = 'AverageReimbursement';
+AverageReimbursements.displayName = 'AverageReimbursements';
 
-export default AverageReimbursement;
+export default AverageReimbursements;

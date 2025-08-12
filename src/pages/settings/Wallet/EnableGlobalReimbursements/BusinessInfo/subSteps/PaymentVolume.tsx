@@ -1,45 +1,40 @@
 import React, {useMemo} from 'react';
 import PushRowFieldsStep from '@components/SubStepForms/PushRowFieldsStep';
+import useEnableGlobalReimbursementsStepFormSubmit from '@hooks/useEnableGlobalReimbursementsStepFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import getListOptionsFromCorpayPicklist from '@pages/ReimbursementAccount/NonUSD/utils/getListOptionsFromCorpayPicklist';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
 
-type PaymentVolumeProps = SubStepProps;
+type PaymentVolumeProps = SubStepProps & {policyCurrency: string};
 
-const {ANNUAL_VOLUME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const {ANNUAL_VOLUME} = INPUT_IDS;
 const STEP_FIELDS = [ANNUAL_VOLUME];
 
-function PaymentVolume({onNext, onMove, isEditing}: PaymentVolumeProps) {
+function PaymentVolume({onNext, onMove, isEditing, policyCurrency}: PaymentVolumeProps) {
     const {translate} = useLocalize();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS, {canBeMissing: false});
-    const policyID = reimbursementAccount?.achData?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
-    const currency = policy?.outputCurrency ?? '';
+    const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT, {canBeMissing: true});
+    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS, {canBeMissing: true});
 
     const annualVolumeRangeListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.AnnualVolumeRange), [corpayOnboardingFields]);
-
-    const annualVolumeDefaultValue = reimbursementAccount?.achData?.corpay?.[ANNUAL_VOLUME] ?? '';
 
     const pushRowFields = useMemo(
         () => [
             {
                 inputID: ANNUAL_VOLUME,
-                defaultValue: annualVolumeDefaultValue,
+                defaultValue: enableGlobalReimbursementsDraft?.[ANNUAL_VOLUME] ?? '',
                 options: annualVolumeRangeListOptions,
-                description: translate('businessInfoStep.annualPaymentVolumeInCurrency', {currencyCode: currency}),
+                description: translate('businessInfoStep.annualPaymentVolumeInCurrency', {currencyCode: policyCurrency}),
                 modalHeaderTitle: translate('businessInfoStep.selectAnnualPaymentVolume'),
                 searchInputTitle: translate('businessInfoStep.findAnnualPaymentVolume'),
             },
         ],
-        [annualVolumeDefaultValue, annualVolumeRangeListOptions, translate, currency],
+        [enableGlobalReimbursementsDraft, policyCurrency, annualVolumeRangeListOptions, translate],
     );
 
-    const handleSubmit = useReimbursementAccountStepFormSubmit({
+    const handleSubmit = useEnableGlobalReimbursementsStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
         shouldSaveDraft: isEditing,
@@ -54,7 +49,7 @@ function PaymentVolume({onNext, onMove, isEditing}: PaymentVolumeProps) {
             isEditing={isEditing}
             onNext={onNext}
             onMove={onMove}
-            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+            formID={ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS}
             formTitle={translate('businessInfoStep.whatsTheBusinessAnnualPayment')}
             onSubmit={handleSubmit}
             pushRowFields={pushRowFields}

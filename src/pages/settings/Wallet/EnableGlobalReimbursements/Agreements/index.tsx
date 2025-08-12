@@ -40,7 +40,7 @@ function Agreements({onBackButtonPress, onSubmit, policyCurrency}: AgreementsPro
             onBackButtonPress={onBackButtonPress}
             onSubmit={onSubmit}
             policyCurrency={policyCurrency}
-            startStepIndex={0}
+            startStepIndex={1}
             stepNames={CONST.ENABLE_GLOBAL_REIMBURSEMENTS.STEP_NAMES}
         />
     );

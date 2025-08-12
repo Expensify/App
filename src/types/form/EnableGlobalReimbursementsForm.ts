@@ -3,6 +3,11 @@ import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type Form from './Form';
 
 const INPUT_IDS = {
+    BUSINESS_REGISTRATION_INCORPORATION_NUMBER: 'businessRegistrationIncorporationNumber',
+    BUSINESS_CATEGORY: 'natureOfBusiness',
+    APPLICANT_TYPE_ID: 'applicantTypeId',
+    TRADE_VOLUME: 'tradeVolume',
+    ANNUAL_VOLUME: 'annualVolume',
     PROVIDE_TRUTHFUL_INFORMATION: 'provideTruthfulInformation',
     AGREE_TO_TERMS_AND_CONDITIONS: 'agreeToTermsAndConditions',
     CONSENT_TO_PRIVACY_NOTICE: 'consentToPrivacyNotice',
@@ -15,6 +20,11 @@ type InputID = ValueOf<typeof INPUT_IDS>;
 type EnableGlobalReimbursementsForm = Form<
     InputID,
     {
+        [INPUT_IDS.BUSINESS_REGISTRATION_INCORPORATION_NUMBER]: string;
+        [INPUT_IDS.BUSINESS_CATEGORY]: string;
+        [INPUT_IDS.APPLICANT_TYPE_ID]: string;
+        [INPUT_IDS.TRADE_VOLUME]: string;
+        [INPUT_IDS.ANNUAL_VOLUME]: string;
         [INPUT_IDS.PROVIDE_TRUTHFUL_INFORMATION]: boolean;
         [INPUT_IDS.AGREE_TO_TERMS_AND_CONDITIONS]: boolean;
         [INPUT_IDS.CONSENT_TO_PRIVACY_NOTICE]: boolean;

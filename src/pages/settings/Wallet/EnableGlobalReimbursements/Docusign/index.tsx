@@ -30,7 +30,7 @@ function Docusign({onBackButtonPress, onSubmit, policyCurrency}: DocusignProps) 
             onBackButtonPress={onBackButtonPress}
             onSubmit={onSubmit}
             policyCurrency={policyCurrency}
-            startStepIndex={1}
+            startStepIndex={2}
             stepNames={CONST.ENABLE_GLOBAL_REIMBURSEMENTS.STEP_NAMES}
         />
     );
