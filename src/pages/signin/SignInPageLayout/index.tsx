@@ -25,19 +25,17 @@ import SignInPageHero from './SignInPageHero';
 import scrollViewContentContainerStyles from './signInPageStyles';
 import type {SignInPageLayoutProps} from './types';
 
-function SignInPageLayout(
-    {
-        customHeadline,
-        customHeroBody,
-        shouldShowWelcomeHeader = false,
-        welcomeHeader,
-        welcomeText = '',
-        shouldShowWelcomeText = false,
-        navigateFocus = () => {},
-        children,
-        ref,
-    }: SignInPageLayoutProps,
-) {
+function SignInPageLayout({
+    customHeadline,
+    customHeroBody,
+    shouldShowWelcomeHeader = false,
+    welcomeHeader,
+    welcomeText = '',
+    shouldShowWelcomeText = false,
+    navigateFocus = () => {},
+    children,
+    ref,
+}: SignInPageLayoutProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

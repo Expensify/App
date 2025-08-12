@@ -7,7 +7,7 @@ import mergeRefs from '@libs/mergeRefs';
 
 type FormElementProps = ViewProps & {
     ref?: ForwardedRef<View>;
-}
+};
 
 const preventFormDefault = (event: SubmitEvent) => {
     // When Enter is pressed, the form is submitted to the action URL (POST /).

@@ -1,4 +1,4 @@
-import type { ForwardedRef } from "react";
+import type {ForwardedRef} from 'react';
 
 type LoginFormProps = {
     /** Function used to scroll to the top of the page */
@@ -11,7 +11,7 @@ type LoginFormProps = {
     isVisible: boolean;
 
     /** Reference to the outer element */
-    ref?: ForwardedRef<InputHandle>
+    ref?: ForwardedRef<InputHandle>;
 };
 
 type InputHandle = {

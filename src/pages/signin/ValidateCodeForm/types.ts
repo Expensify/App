@@ -1,5 +1,5 @@
-import type { ForwardedRef } from "react";
-import type { BaseValidateCodeFormRef } from "./BaseValidateCodeForm";
+import type {ForwardedRef} from 'react';
+import type {BaseValidateCodeFormRef} from './BaseValidateCodeForm';
 
 type ValidateCodeFormProps = {
     /** Determines if user is switched to using recovery code instead of 2fa code */
@@ -11,7 +11,7 @@ type ValidateCodeFormProps = {
     isVisible: boolean;
 
     /** Reference to the outer element */
-    ref: ForwardedRef<BaseValidateCodeFormRef>
+    ref: ForwardedRef<BaseValidateCodeFormRef>;
 };
 
 export default ValidateCodeFormProps;

@@ -18,29 +18,27 @@ import type {BasePickerProps} from './types';
 
 type IconToRender = () => ReactElement;
 
-function BasePicker<TPickerValue>(
-    {
-        items,
-        backgroundColor,
-        inputID,
-        value,
-        onInputChange,
-        icon,
-        label = '',
-        isDisabled = false,
-        errorText = '',
-        hintText = '',
-        containerStyles,
-        placeholder = {},
-        size = 'normal',
-        shouldAllowDisabledStyle = true,
-        shouldFocusPicker = false,
-        shouldShowOnlyTextWhenDisabled = true,
-        onBlur = () => {},
-        additionalPickerEvents = () => {},
-        ref,
-    }: BasePickerProps<TPickerValue>,
-) {
+function BasePicker<TPickerValue>({
+    items,
+    backgroundColor,
+    inputID,
+    value,
+    onInputChange,
+    icon,
+    label = '',
+    isDisabled = false,
+    errorText = '',
+    hintText = '',
+    containerStyles,
+    placeholder = {},
+    size = 'normal',
+    shouldAllowDisabledStyle = true,
+    shouldFocusPicker = false,
+    shouldShowOnlyTextWhenDisabled = true,
+    onBlur = () => {},
+    additionalPickerEvents = () => {},
+    ref,
+}: BasePickerProps<TPickerValue>) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
