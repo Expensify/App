@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {createPolicyTax, deletePolicyTaxes, renamePolicyTax, setPolicyTaxesEnabled, updatePolicyTaxValue} from '@libs/actions/TaxRate';
+import {createPolicyTax, deletePolicyTaxes, renamePolicyTax, setPolicyTaxCode, setPolicyTaxesEnabled, updatePolicyTaxValue} from '@libs/actions/TaxRate';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy/Policy';
@@ -829,6 +829,45 @@ describe('actions/PolicyTax', () => {
                             });
                         }),
                 );
+        });
+    });
+    describe('SetPolicyTaxCode', () => {
+        const taxID = 'id_TAX_RATE_1';
+        const newTaxCode = 'id_TAX_RATE_2';
+        it('Set policy`s tax code', () => {
+            mockFetch?.pause?.();
+            const distanceRateCustomUnit = fakePolicy?.customUnits?.[CONST.CUSTOM_UNITS.NAME_DISTANCE];
+
+            
+            setPolicyTaxCode(
+                fakePolicy.id,
+                taxID,
+                newTaxCode,
+                // @ts-expect-error - we can send undefined tax rate here for testing
+                fakePolicy?.taxRates?.taxes[taxID],
+                fakePolicy?.taxRates?.foreignTaxDefault,
+                fakePolicy?.taxRates?.defaultExternalID,
+                distanceRateCustomUnit,
+            );
+
+            return waitForBatchedUpdates().then(
+                () =>
+                    new Promise<void>((resolve) => {
+                        const connection = Onyx.connect({
+                            key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                            waitForCollectionCallback: false,
+                            callback: (policy) => {
+                                Onyx.disconnect(connection);
+                                const taxRates = policy?.taxRates;
+                                const updatedTaxRate = taxRates?.taxes?.[newTaxCode];
+                                // We expected to have a new tax rate with the new tax code
+                                expect(updatedTaxRate).toBeDefined();
+                                expect(updatedTaxRate?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                                resolve();
+                            },
+                        });
+                    }),
+            );
         });
     });
 });
