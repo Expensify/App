@@ -1972,6 +1972,10 @@ function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, reportM
     return lodashMaxBy(filteredReports, (a) => [reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? '', a?.lastReadTime ?? '']);
 }
 
+/**
+ * This function is used to find the last accessed report and we don't need to subscribe the data in the UI.
+ * So please use `Onyx.connectWithoutView()` to get the necessary data when we remove the `Onyx.connect()`
+ */
 function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = false, policyID?: string, excludeReportID?: string): OnyxEntry<Report> {
     // If it's the user's first time using New Expensify, then they could either have:
     //   - just a Concierge report, if so we'll return that
@@ -2021,10 +2025,7 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
     // and it prompts the user to use the Concierge chat instead.
     reportsValues =
         reportsValues.filter((report) => {
-            // This will get removed as part of https://github.com/Expensify/App/issues/59961
-            // eslint-disable-next-line deprecation/deprecation
-            const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
-
+            const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
             return !isSystemChat(report) && !isArchivedReport(reportNameValuePairs);
         }) ?? [];
 
