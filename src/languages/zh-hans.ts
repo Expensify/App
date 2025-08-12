@@ -168,7 +168,6 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
-    ReadTheTermsAndPrivacyRouteParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -1579,8 +1578,7 @@ const translations = {
         restoreStashed: '恢复暂存的登录信息',
         signOutConfirmationText: '如果您退出登录，任何离线更改都将丢失。',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: ({termsURL, privacyURL}: ReadTheTermsAndPrivacyRouteParams) =>
-            `<comment><muted-micro-text issmall>阅读该内容 <a href="${termsURL}">服务条款</a> 和 <a href="${privacyURL}">隐私</a>.</muted-micro-text></comment>`,
+        readTheTermsAndPrivacy: `<muted-micro-text>阅读该内容 <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">服务条款</a> 和 <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">隐私</a>.</muted-micro-text>`,
         help: '帮助',
         whatIsNew: '新内容',
         accountSettings: '账户设置',

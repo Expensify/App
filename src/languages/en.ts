@@ -157,7 +157,6 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
-    ReadTheTermsAndPrivacyRouteParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -1586,8 +1585,7 @@ const translations = {
         restoreStashed: 'Restore stashed login',
         signOutConfirmationText: "You'll lose any offline changes if you sign out.",
         versionLetter: 'v',
-        readTheTermsAndPrivacy: ({termsURL, privacyURL}: ReadTheTermsAndPrivacyRouteParams) =>
-            `<comment><muted-micro-text issmall>Read the <a href="${termsURL}">Terms of Service</a> and <a href="${privacyURL}">Privacy</a>.</muted-micro-text></comment>`,
+        readTheTermsAndPrivacy: `<muted-micro-text>Read the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>.</muted-micro-text>`,
         help: 'Help',
         whatIsNew: "What's new",
         accountSettings: 'Account settings',

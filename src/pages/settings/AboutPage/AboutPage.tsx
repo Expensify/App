@@ -54,8 +54,6 @@ function AboutPage() {
     const popoverAnchor = useRef<View>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const termsURL = CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL;
-    const privacyURL = CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL;
 
     const menuItems = useMemo(() => {
         const baseMenuItems: MenuItem[] = [
@@ -172,7 +170,7 @@ function AboutPage() {
                         style={[styles.chatItemMessageHeaderTimestamp]}
                         numberOfLines={1}
                     >
-                        <RenderHTML html={translate('initialSettingsPage.readTheTermsAndPrivacy', {termsURL, privacyURL})} />
+                        <RenderHTML html={translate('initialSettingsPage.readTheTermsAndPrivacy')} />
                     </Text>
                 </View>
             </ScrollView>

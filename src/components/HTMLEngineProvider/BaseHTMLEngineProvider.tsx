@@ -60,12 +60,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             }),
             'muted-micro-text': HTMLElementModel.fromCustomModel({
                 tagName: 'muted-micro-text',
-                getMixedUAStyles: (tnode) => {
-                    if (tnode.attributes.issmall === undefined) {
-                        return {...styles.mutedNormalTextLabel, ...styles.mb0};
-                    }
-                    return {...styles.mutedNormalTextLabel, ...styles.mb0, ...styles.textMicro, textDecorationLine: 'none'};
-                },
+                mixedUAStyles: {...styles.textMicroSupporting, ...styles.mb0},
                 contentModel: HTMLContentModel.block,
             }),
             'muted-link': HTMLElementModel.fromCustomModel({
