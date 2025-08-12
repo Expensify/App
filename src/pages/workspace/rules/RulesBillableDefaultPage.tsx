@@ -90,7 +90,6 @@ function RulesBillableDefaultPage({
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     shouldSingleExecuteRowSelect
-                    containerStyle={[styles.pt3]}
                     initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                     addBottomSafeAreaPadding
                 />
