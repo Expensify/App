@@ -4,6 +4,7 @@ import {sub as dateSubtract} from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
+import type {SearchFilterKey} from '@components/Search/types';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import BankAccount from '@libs/models/BankAccount';
@@ -1785,6 +1786,7 @@ const CONST = {
         ASCII_CAPABLE: 'ascii-capable',
         NUMBER_PAD: 'number-pad',
         DECIMAL_PAD: 'decimal-pad',
+        NUMBERS_AND_PUNCTUATION: 'numbers-and-punctuation',
     },
 
     INPUT_MODE: {
@@ -6284,6 +6286,10 @@ const CONST = {
             DISTANCE: 'distance',
             PER_DIEM: 'perDiem',
         },
+        WITHDRAWAL_TYPE: {
+            EXPENSIFY_CARD: 'expensify-card',
+            REIMBURSEMENT: 'reimbursement',
+        },
         SORT_ORDER: {
             ASC: 'asc',
             DESC: 'desc',
@@ -6395,6 +6401,7 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            WITHDRAWAL_TYPE: 'withdrawalType',
             WITHDRAWN: 'withdrawn',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
@@ -6440,6 +6447,7 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            WITHDRAWAL_TYPE: 'withdrawal-type',
             WITHDRAWN: 'withdrawn',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
@@ -6973,6 +6981,14 @@ const CONST = {
     },
 } as const;
 
+const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
+] as SearchFilterKey[];
+
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
@@ -6985,5 +7001,7 @@ type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
 type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
 export type {Country, IOUAction, IOUType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInvite, OnboardingAccounting, IOUActionParams};
+
+export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS};
 
 export default CONST;
