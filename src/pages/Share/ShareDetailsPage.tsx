@@ -51,6 +51,7 @@ function ShareDetailsPage({
 
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const isTextShared = currentAttachment?.mimeType === 'txt';
+    const shouldUsePreValidatedFile = currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.HEIC;
     const [message, setMessage] = useState(isTextShared ? (currentAttachment?.content ?? '') : '');
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
@@ -106,9 +107,14 @@ function ShareDetailsPage({
         }
 
         const validatedFile = validFilesToUpload?.at(0);
+
+        const fileUri = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : currentAttachment.content;
+        const fileNamed = shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? 'shared_image.png') : getFileName(currentAttachment.content);
+        const fileType = shouldUsePreValidatedFile ? (validatedFile?.type ?? 'image/jpeg') : currentAttachment.mimeType;
+
         readFileAsync(
-            validatedFile?.uri ?? '',
-            getFileName(validatedFile?.uri ?? 'shared_image.png'),
+            fileUri,
+            fileNamed,
             (file) => {
                 if (isDraft) {
                     openReport(
@@ -129,7 +135,7 @@ function ShareDetailsPage({
                 Navigation.navigate(routeToNavigate, {forceReplace: true});
             },
             () => {},
-            validatedFile?.type ?? 'image/jpeg',
+            fileType,
         );
     };
 

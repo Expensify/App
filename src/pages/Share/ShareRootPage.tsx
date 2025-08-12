@@ -37,16 +37,11 @@ function showErrorAlert(title: string, message: string) {
 
 function ShareRootPage() {
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
-    // const [validatedFile] = useOnyx(ONYXKEYS.SHARE_FILE_OBJECT, {canBeMissing: true});
 
     const {validateFiles} = useFilesValidation(addValidatedShareFile);
     const isTextShared = currentAttachment?.mimeType === 'txt';
 
     const validateFilesWrapper = (file: ShareTempFile) => {
-        console.log('___________________________________');
-        console.log('nowe foto', currentAttachment);
-        console.log('___________________________________');
-
         if (!file || isTextShared) {
             return;
         }
