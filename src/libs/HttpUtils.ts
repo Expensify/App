@@ -22,7 +22,7 @@ const ABORT_COMMANDS = {
 
 type AbortCommand = keyof typeof ABORT_COMMANDS;
 
-// We have used `connectWithoutView` here because OnyxUpdates is not connected to any UI
+// We have used `connectWithoutView` here because HttpUtils is not connected to any UI component
 Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
