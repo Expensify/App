@@ -1,4 +1,3 @@
-import type {ForwardedRef} from 'react';
 import React from 'react';
 import type {PressableStateCallbackType} from 'react-native';
 import {View} from 'react-native';
@@ -41,7 +40,7 @@ type BaseMiniContextMenuItemProps = {
     /**
      * Reference to the outer element
      */
-    ref?: ForwardedRef<View>;
+    ref?: PressableRef;
 };
 
 /**
@@ -57,7 +56,7 @@ function BaseMiniContextMenuItem({tooltipText, onPress, children, isDelayButtonS
             shouldRender
         >
             <PressableWithoutFeedback
-                ref={ref as PressableRef}
+                ref={ref}
                 onPress={onPress}
                 onMouseDown={(event) => {
                     if (!ReportActionComposeFocusManager.isFocused() && !ReportActionComposeFocusManager.isEditFocused()) {
