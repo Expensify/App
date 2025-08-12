@@ -210,13 +210,32 @@ describe('OptimisticReportNames', () => {
 
             const result = updateOptimisticReportNamesFromUpdates(updates, contextWithMultipleReports);
 
-            expect(result.length).toEqual(4);
-            result.forEach((update) => {
-                if (!update.key.startsWith('report_')) {
-                    return;
-                }
+            expect(result).toHaveLength(4);
 
-                expect((update.value as {reportName?: string})?.reportName).toEqual('Policy: Updated Policy Name');
+            // Assert the original policy update
+            expect(result.at(0)).toEqual({
+                key: 'policy_policy1',
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {name: 'Updated Policy Name'},
+            });
+
+            // Assert individual report name updates
+            expect(result.at(1)).toEqual({
+                key: 'report_123',
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {reportName: 'Policy: Updated Policy Name'},
+            });
+
+            expect(result.at(2)).toEqual({
+                key: 'report_456',
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {reportName: 'Policy: Updated Policy Name'},
+            });
+
+            expect(result.at(3)).toEqual({
+                key: 'report_789',
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {reportName: 'Policy: Updated Policy Name'},
             });
         });
 

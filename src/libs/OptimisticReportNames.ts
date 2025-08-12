@@ -243,12 +243,6 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
     Performance.markStart(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
     Timing.start(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
 
-    Log.info('[OptimisticReportNames] Processing optimistic updates for report names', false, {
-        updatesCount: updates.length,
-        hasReports: Object.keys(context.allReports).length > 0,
-        hasPolicies: Object.keys(context.allPolicies).length > 0,
-    });
-
     const {betas, allReports} = context;
 
     // Check if the feature is enabled
@@ -257,6 +251,10 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
         Timing.end(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
         return updates;
     }
+
+    Log.info('[OptimisticReportNames] Processing optimistic updates for report names', false, {
+        updatesCount: updates.length,
+    });
 
     const additionalUpdates: OnyxUpdate[] = [];
 
