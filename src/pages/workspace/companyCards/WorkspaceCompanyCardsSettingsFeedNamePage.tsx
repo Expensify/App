@@ -55,10 +55,10 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
 
             if (!isRequiredFulfilled(value)) {
                 errors.name = translate('workspace.moreFeatures.companyCards.error.feedNameRequired');
-            } else if (value.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+            } else if (value.length > CONST.NAME.MAX_LENGTH) {
                 errors.name = translate('common.error.characterLimitExceedCounter', {
                     length: value.length,
-                    limit: CONST.DISPLAY_NAME.MAX_LENGTH,
+                    limit: CONST.NAME.MAX_LENGTH,
                 });
             }
 
