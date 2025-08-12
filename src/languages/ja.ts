@@ -593,6 +593,7 @@ const translations = {
         unread: '未読',
         sent: '送信済み',
         links: 'リンク',
+        day: '日',
         days: '日',
         rename: '名前を変更',
         address: '住所',
@@ -3403,6 +3404,11 @@ const translations = {
             railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `${origin} → ${destination} の ${startDate} の鉄道チケットが更新されました。`,
             defaultUpdate: ({type}: TravelTypeParams) => `あなたの${type}予約が更新されました。`,
         },
+        flightTo: 'フライト',
+        trainTo: '電車',
+        carRental: '間のレンタカー',
+        nightIn: '泊',
+        nightsIn: '泊',
     },
     workspace: {
         common: {

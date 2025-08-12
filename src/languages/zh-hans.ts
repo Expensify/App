@@ -593,6 +593,7 @@ const translations = {
         unread: '未读',
         sent: '已发送',
         links: 'Links',
+        day: '天',
         days: '天',
         rename: '重命名',
         address: '地址',
@@ -3362,6 +3363,11 @@ const translations = {
             railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `您从${origin}到${destination}的火车票已在${startDate}更新。`,
             defaultUpdate: ({type}: TravelTypeParams) => `您的${type}预订已更新。`,
         },
+        flightTo: '飞往',
+        trainTo: '火车前往',
+        carRental: '汽车租赁',
+        nightIn: '晚住宿',
+        nightsIn: '晚住宿',
     },
     workspace: {
         common: {

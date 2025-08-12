@@ -593,6 +593,7 @@ const translations = {
         unread: 'Ungelesen',
         sent: 'Gesendet',
         links: 'Links',
+        day: 'Tag',
         days: 'Tage',
         rename: 'Umbenennen',
         address: 'Adresse',
@@ -3390,6 +3391,11 @@ const translations = {
             railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `Ihr Zugticket für ${origin} → ${destination} am ${startDate} wurde aktualisiert.`,
             defaultUpdate: ({type}: TravelTypeParams) => `Ihre ${type} Reservierung wurde aktualisiert.`,
         },
+        flightTo: 'Flug nach',
+        trainTo: 'Zug nach',
+        carRental: ' Mietwagen',
+        nightIn: 'Nacht in',
+        nightsIn: 'Nächte in',
     },
     workspace: {
         common: {
