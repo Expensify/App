@@ -14,7 +14,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import type {FormattedSelectedPaymentMethodIcon} from '@hooks/usePaymentMethodState/types';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,29 +23,22 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
+import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {AccountData, BankAccount, BankAccountList, Card, CardList, CompanyCardFeed} from '@src/types/onyx';
+import type {BankAccount, BankAccountList, CardList, CompanyCardFeed} from '@src/types/onyx';
 import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
-import IconAsset from '@src/types/utils/IconAsset';
+import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type PaymentMethodPressHandler = (
-    event?: GestureResponderEvent | KeyboardEvent,
-    accountType?: string,
-    accountData?: AccountData,
-    icon?: FormattedSelectedPaymentMethodIcon,
-    isDefault?: boolean,
-    methodID?: number,
-    description?: string,
-) => void;
+type PaymentMethodPressHandler = ({event, accountType, accountData, methodID, icon, description, isDefault}: PaymentMethodPressHandlerParams) => void;
 
-type CardPressHandler = (event?: GestureResponderEvent | KeyboardEvent, cardData?: Card, icon?: FormattedSelectedPaymentMethodIcon, cardID?: number) => void;
+type CardPressHandler = ({event, cardID, cardData, icon}: CardPressHandlerParams) => void;
 
 type PaymentMethodListProps = {
     /** Type of active/highlighted payment method */
@@ -245,17 +237,17 @@ function PaymentMethodList({
                         iconRight: itemIconRight ?? Expensicons.ThreeDots,
                         isMethodActive: activePaymentMethodID === card.cardID,
                         onPress: (e: GestureResponderEvent | KeyboardEvent | undefined) =>
-                            pressHandler(
-                                e,
-                                card,
-                                {
+                            pressHandler({
+                                event: e,
+                                cardData: card,
+                                icon: {
                                     icon,
                                     iconStyles: [styles.cardIcon],
                                     iconWidth: variables.cardIconWidth,
                                     iconHeight: variables.cardIconHeight,
                                 },
-                                card.cardID,
-                            ),
+                                cardID: card.cardID,
+                            }),
                     });
                     return;
                 }
@@ -326,21 +318,21 @@ function PaymentMethodList({
             return {
                 ...paymentMethod,
                 onPress: (e: GestureResponderEvent) =>
-                    pressHandler(
-                        e,
-                        paymentMethod.accountType,
-                        paymentMethod.accountData,
-                        {
+                    pressHandler({
+                        event: e,
+                        accountType: paymentMethod.accountType,
+                        accountData: paymentMethod.accountData,
+                        icon: {
                             icon: paymentMethod.icon,
                             iconHeight: paymentMethod?.iconHeight,
                             iconWidth: paymentMethod?.iconWidth,
                             iconStyles: paymentMethod?.iconStyles,
                             iconSize: paymentMethod?.iconSize,
                         },
-                        paymentMethod.isDefault,
-                        paymentMethod.methodID,
-                        paymentMethod.description,
-                    ),
+                        isDefault: paymentMethod.isDefault,
+                        methodID: paymentMethod.methodID,
+                        description: paymentMethod.description,
+                    }),
                 wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isMethodActive,
@@ -349,7 +341,23 @@ function PaymentMethodList({
             };
         });
         return combinedPaymentMethods;
-    }, [shouldShowAssignedCards, isLoadingBankAccountList, bankAccountList, styles, isOffline, isLoadingCardList, cardList, illustrations, translate, onPress, shouldShowRightIcon, itemIconRight, activePaymentMethodID, actionPaymentMethodType, StyleUtils]);
+    }, [
+        shouldShowAssignedCards,
+        isLoadingBankAccountList,
+        bankAccountList,
+        styles,
+        isOffline,
+        isLoadingCardList,
+        cardList,
+        illustrations,
+        translate,
+        onPress,
+        shouldShowRightIcon,
+        itemIconRight,
+        activePaymentMethodID,
+        actionPaymentMethodType,
+        StyleUtils,
+    ]);
 
     const onPressItem = useCallback(() => {
         if (!isUserValidated) {

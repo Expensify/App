@@ -27,7 +27,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
-import type {FormattedSelectedPaymentMethod, FormattedSelectedPaymentMethodIcon} from '@hooks/usePaymentMethodState/types';
+import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,6 +40,7 @@ import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUt
 import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
+import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
 import variables from '@styles/variables';
 import {deletePaymentBankAccount, openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {close as closeModal} from '@userActions/Modal';
@@ -136,20 +137,12 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     /**
      * Display the delete/default menu, or the add payment method menu
      */
-    const paymentMethodPressed = (
-        nativeEvent?: GestureResponderEvent | KeyboardEvent,
-        accountType?: string,
-        account?: OnyxTypes.AccountData,
-        icon?: FormattedSelectedPaymentMethodIcon,
-        isDefault?: boolean,
-        methodID?: string | number,
-        description?: string,
-    ) => {
+    const paymentMethodPressed = ({event, accountData, accountType, methodID, isDefault, icon, description}: PaymentMethodPressHandlerParams) => {
         if (shouldShowDefaultDeleteMenu) {
             setShouldShowDefaultDeleteMenu(false);
             return;
         }
-        paymentMethodButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
+        paymentMethodButtonRef.current = event?.currentTarget as HTMLDivElement;
 
         // The delete/default menu
         if (accountType) {
@@ -158,22 +151,22 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             };
             if (accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
                 formattedSelectedPaymentMethod = {
-                    title: account?.addressName ?? '',
+                    title: accountData?.addressName ?? '',
                     icon,
-                    description: description ?? getPaymentMethodDescription(accountType, account),
+                    description: description ?? getPaymentMethodDescription(accountType, accountData),
                     type: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                 };
             } else if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
                 formattedSelectedPaymentMethod = {
-                    title: account?.addressName ?? '',
+                    title: accountData?.addressName ?? '',
                     icon,
-                    description: description ?? getPaymentMethodDescription(accountType, account),
+                    description: description ?? getPaymentMethodDescription(accountType, accountData),
                     type: CONST.PAYMENT_METHODS.DEBIT_CARD,
                 };
             }
             setPaymentMethod({
                 isSelectedPaymentMethodDefault: !!isDefault,
-                selectedPaymentMethod: account ?? {},
+                selectedPaymentMethod: accountData ?? {},
                 selectedPaymentMethodType: accountType,
                 formattedSelectedPaymentMethod,
                 methodID: methodID ?? CONST.DEFAULT_NUMBER_ID,
@@ -183,7 +176,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         }
     };
 
-    const assignedCardPressed = (nativeEvent?: GestureResponderEvent | KeyboardEvent, cardData?: OnyxTypes.Card, icon?: FormattedSelectedPaymentMethodIcon, cardID?: number) => {
+    const assignedCardPressed = ({event, cardData, icon, cardID}: CardPressHandlerParams) => {
         if (shouldShowDefaultDeleteMenu) {
             setShouldShowDefaultDeleteMenu(false);
             return;
@@ -193,7 +186,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             setShouldShowCardMenu(false);
             return;
         }
-        paymentMethodButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
+        paymentMethodButtonRef.current = event?.currentTarget as HTMLDivElement;
         setPaymentMethod({
             isSelectedPaymentMethodDefault: false,
             selectedPaymentMethod: {},
