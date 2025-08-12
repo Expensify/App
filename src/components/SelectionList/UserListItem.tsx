@@ -127,7 +127,7 @@ function UserListItem<TItem extends ListItem>({
                             reportID={reportExists ? item.reportID : undefined}
                             /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
                             accountIDs={!reportExists && !!itemAccountID ? [itemAccountID] : []}
-                            policyID={!reportExists && !itemAccountID ? policyID : undefined}
+                            policyID={!reportExists && !!policyID ? policyID : undefined}
                             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
                             fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
                         />
