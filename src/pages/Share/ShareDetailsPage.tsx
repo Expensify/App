@@ -48,6 +48,7 @@ function ShareDetailsPage({
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, {canBeMissing: true});
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
     const [validFilesToUpload] = useOnyx(ONYXKEYS.SHARE_FILE_OBJECT, {canBeMissing: true});
+    const validatedFile = validFilesToUpload?.at(0);
 
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const isTextShared = currentAttachment?.mimeType === 'txt';
@@ -58,6 +59,10 @@ function ShareDetailsPage({
 
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
     const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails, reportAttributesDerived), [report, unknownUserDetails, reportAttributesDerived]);
+
+    const fileUri = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');
+    const validateFileName = shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? 'shared_image.png') : getFileName(currentAttachment?.content ?? '');
+    const fileType = shouldUsePreValidatedFile ? (validatedFile?.type ?? 'image/jpeg') : (currentAttachment?.mimeType ?? '');
 
     useEffect(() => {
         if (!currentAttachment?.content || errorTitle) {
@@ -106,15 +111,9 @@ function ShareDetailsPage({
             return;
         }
 
-        const validatedFile = validFilesToUpload?.at(0);
-
-        const fileUri = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : currentAttachment.content;
-        const fileNamed = shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? 'shared_image.png') : getFileName(currentAttachment.content);
-        const fileType = shouldUsePreValidatedFile ? (validatedFile?.type ?? 'image/jpeg') : currentAttachment.mimeType;
-
         readFileAsync(
             fileUri,
-            fileNamed,
+            validateFileName,
             (file) => {
                 if (isDraft) {
                     openReport(
@@ -206,13 +205,13 @@ function ShareDetailsPage({
                                 <SafeAreaView>
                                     <AttachmentModal
                                         headerTitle={fileName}
-                                        source={validFilesToUpload?.at(0)?.uri}
+                                        source={fileUri}
                                         originalFileName={fileName}
                                         fallbackSource={FallbackAvatar}
                                     >
                                         {({show}) => (
                                             <AttachmentPreview
-                                                source={validFilesToUpload?.at(0)?.uri ?? ''}
+                                                source={fileUri ?? ''}
                                                 aspectRatio={currentAttachment?.aspectRatio}
                                                 onPress={show}
                                                 onLoadError={() => {

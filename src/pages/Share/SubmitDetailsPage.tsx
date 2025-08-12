@@ -53,6 +53,7 @@ function SubmitDetailsPage({
     const [validFilesToUpload] = useOnyx(ONYXKEYS.SHARE_FILE_OBJECT, {canBeMissing: true});
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
     const shouldUsePreValidatedFile = currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.HEIC;
+    const validatedFile = validFilesToUpload?.at(0);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -62,6 +63,10 @@ function SubmitDetailsPage({
 
     const {isBetaEnabled} = usePermissions();
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
+
+    const fileUri = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');
+    const fileName = shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? 'shared_image.png') : getFileName(currentAttachment?.content ?? '');
+    const fileType = shouldUsePreValidatedFile ? (validatedFile?.type ?? 'image/jpeg') : (currentAttachment?.mimeType ?? '');
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
@@ -195,15 +200,9 @@ function SubmitDetailsPage({
             return;
         }
 
-        const validatedFile = validFilesToUpload?.at(0);
-
-        const fileUri = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : currentAttachment.content;
-        const fileNamed = shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? 'shared_image.png') : getFileName(currentAttachment.content);
-        const fileType = shouldUsePreValidatedFile ? (validatedFile?.type ?? 'image/jpeg') : currentAttachment.mimeType;
-
         readFileAsync(
             fileUri,
-            fileNamed,
+            fileName,
             (file) => onSuccess(file, shouldStartLocationPermissionFlow),
             () => {},
             fileType,
@@ -237,8 +236,8 @@ function SubmitDetailsPage({
                         iouComment={trimmedComment}
                         iouCategory={transaction?.category}
                         onConfirm={() => onConfirm(true)}
-                        receiptPath={validFilesToUpload?.at(0)?.uri}
-                        receiptFilename={getFileName(validFilesToUpload?.at(0)?.name ?? '')}
+                        receiptPath={fileUri}
+                        receiptFilename={getFileName(fileName)}
                         reportID={reportOrAccountID}
                         shouldShowSmartScanFields={false}
                         isDistanceRequest={false}
