@@ -5858,7 +5858,9 @@ function assignCurrentUserAsApprover(report: OnyxEntry<Report>) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
                 value: {
-                    [takeControlReportAction.reportActionID]: null,
+                    [takeControlReportAction.reportActionID]: {
+                        pendingAction: null,
+                    },
                 },
             },
         ],
@@ -5874,7 +5876,9 @@ function assignCurrentUserAsApprover(report: OnyxEntry<Report>) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
                 value: {
-                    [takeControlReportAction.reportActionID]: null,
+                    [takeControlReportAction.reportActionID]: {
+                        pendingAction: null,
+                    },
                 },
             },
         ],

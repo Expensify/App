@@ -25,6 +25,7 @@ import {
     getAddedApprovalRuleMessage,
     getAddedConnectionMessage,
     getCardIssuedMessage,
+    getChangedApproverActionMessage,
     getDeletedApprovalRuleMessage,
     getIntegrationSyncFailedMessage,
     getLastVisibleMessage,
@@ -784,6 +785,8 @@ function getOptionData({
             result.alternateText = getReopenedMessage();
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
             result.alternateText = getTravelUpdateMessage(lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
+            result.alternateText = getChangedApproverActionMessage(lastAction);
         } else {
             result.alternateText =
                 lastMessageTextFromReport.length > 0

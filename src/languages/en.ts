@@ -46,6 +46,7 @@ import type {
     CardInfoParams,
     CardNextPaymentParams,
     CategoryNameParams,
+    ChangedApproverMessageParams,
     ChangeFieldParams,
     ChangeOwnerDuplicateSubscriptionParams,
     ChangeOwnerHasFailedSettlementsParams,
@@ -1349,6 +1350,7 @@ const translations = {
             subtitle: 'Choose an option to change the approver for this report.',
             description: 'You can also change the approver permanently for all reports in your ',
             workflowSettings: 'workflow settings',
+            changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `changed the approver to <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: 'Add approver',
                 addApproverSubtitle: 'Add an additional approver to the existing workflow.',

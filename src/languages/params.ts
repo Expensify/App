@@ -849,6 +849,8 @@ type MergeFailureDescriptionGenericParams = {
     email: string;
 };
 
+type ChangedApproverMessageParams = {managerID: number};
+
 export type {
     ContactMethodsRouteParams,
     ContactMethodParams,
@@ -1138,4 +1140,5 @@ export type {
     MergeSuccessDescriptionParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
+    ChangedApproverMessageParams,
 };

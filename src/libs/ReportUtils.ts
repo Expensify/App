@@ -140,6 +140,7 @@ import {
     getActionableJoinRequestPendingReportAction,
     getAllReportActions,
     getCardIssuedMessage,
+    getChangedApproverActionMessage,
     getDismissedViolationMessageText,
     getExportIntegrationLastMessageText,
     getIntegrationSyncFailedMessage,
@@ -5217,6 +5218,10 @@ function getReportNameInternal({
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
         return getPolicyChangeMessage(parentReportAction);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
+        return getChangedApproverActionMessage(parentReportAction);
     }
 
     if (isMoneyRequestAction(parentReportAction)) {
