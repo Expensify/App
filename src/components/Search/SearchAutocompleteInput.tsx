@@ -263,9 +263,9 @@ function SearchAutocompleteInput(
                     </Animated.View>
                 ) : (
                     <PressableWithoutFeedback
-                        accessibilityRole={CONST.ROLE.BUTTON}
-                        accessibilityLabel={CONST.ROLE.BUTTON}
-                        style={[styles.cursorAuto, styles.justifyContentCenter, styles.alignSelfStretch, !isSearchingForReports && styles.cursorText]}
+                        role={CONST.ROLE.PRESENTATION}
+                        accessibilityLabel={CONST.ROLE.PRESENTATION}
+                        style={[styles.justifyContentCenter, styles.alignSelfStretch, styles.pr3, isSearchingForReports && styles.cursorAuto]}
                         onPress={() => {
                             textInput?.current?.focus();
                         }}
