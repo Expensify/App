@@ -120,7 +120,7 @@ function Tooltip({children, shouldHandleScroll = false, isFocused = true, ref, .
                                 children as React.ReactElement<HTMLAttributes<HTMLElement>>,
                                 {
                                     onMouseEnter: updateTargetPositionOnMouseEnter,
-                                } as React.HTMLAttributes<HTMLElement>,
+                                } as HTMLAttributes<HTMLElement>,
                             )}
                         </Hoverable>
                     </BoundsObserver>
