@@ -21,14 +21,7 @@ import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
-import {
-    filterAndOrderOptions,
-    formatMemberForList,
-    getEmptyOptions,
-    getHeaderMessage,
-    getMemberInviteOptions,
-    isPersonalDetailsReady,
-} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, formatMemberForList, getEmptyOptions, getHeaderMessage, getMemberInviteOptions, isPersonalDetailsReady} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
