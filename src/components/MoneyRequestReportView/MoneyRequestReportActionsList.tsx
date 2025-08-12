@@ -12,6 +12,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import FlatList from '@components/FlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
@@ -25,6 +26,7 @@ import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 import DateUtils from '@libs/DateUtils';
 import {parseFSAttributes} from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -44,7 +46,7 @@ import {
     shouldReportActionBeVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated, isUnread} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isUnread} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/Telemetry/markOpenReportEnd';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Visibility from '@libs/Visibility';
@@ -141,6 +143,13 @@ function MoneyRequestReportActionsList({
         selector: (parentReportActions) => getParentReportAction(parentReportActions, report?.parentReportActionID),
     });
 
+    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: (wallet) => wallet?.tierName, canBeMissing: false});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
+    const personalDetails = usePersonalDetails();
+    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}`, {canBeMissing: true});
+    const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}`, {canBeMissing: true});
+
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], false, reportTransactionIDs);
@@ -158,12 +167,39 @@ function MoneyRequestReportActionsList({
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
+    const beginExportWithTemplate = useCallback(
+        (templateName: string, templateType: string, transactionIDList: string[]) => {
+            if (!report) {
+                return;
+            }
+
+            setIsExportWithTemplateModalVisible(true);
+            queueExportSearchWithTemplate({
+                templateName,
+                templateType,
+                jsonQuery: '{}',
+                reportIDList: [report.reportID],
+                transactionIDList,
+                policyID: policy?.id,
+            });
+        },
+        [report, policy],
+    );
+
     const {
         options: selectedTransactionsOptions,
         handleDeleteTransactions,
         isDeleteModalVisible,
         hideDeleteModal,
-    } = useSelectedTransactionsActions({report, reportActions, allTransactionsLength: transactions.length, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
+    } = useSelectedTransactionsActions({
+        report,
+        reportActions,
+        allTransactionsLength: transactions.length,
+        session,
+        onExportFailed: () => setIsDownloadErrorModalVisible(true),
+        beginExportWithTemplate: (templateName, templateType, transactionIDList) => beginExportWithTemplate(templateName, templateType, transactionIDList),
+    });
 
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
     const visibleReportActions = useMemo(() => {
@@ -321,7 +357,7 @@ function MoneyRequestReportActionsList({
     /**
      * The reportActionID the unread marker should display above
      */
-    const unreadMarkerReportActionID = useMemo(() => {
+    const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = useMemo(() => {
         // If there are message that were received while offline,
         // we can skip checking all messages later than the earliest received offline message.
         const startIndex = visibleReportActions.length - 1;
@@ -348,20 +384,20 @@ function MoneyRequestReportActionsList({
 
             // eslint-disable-next-line react-compiler/react-compiler
             if (shouldDisplayNewMarker) {
-                return reportAction.reportActionID;
+                return [reportAction.reportActionID, index];
             }
         }
 
-        return null;
+        return [null, -1];
     }, [currentUserAccountID, earliestReceivedOfflineMessageIndex, prevVisibleActionsMap, visibleReportActions, unreadMarkerTime]);
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
-    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling} = useReportUnreadMessageScrollTracking({
+    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
         reportID: report.reportID,
         currentVerticalScrollingOffsetRef: scrollingVerticalBottomOffset,
-        floatingMessageVisibleInitialValue: false,
         readActionSkippedRef: readActionSkipped,
-        hasUnreadMarkerReportAction: !!unreadMarkerReportActionID,
+        unreadMarkerReportActionIndex,
+        isInverted: false,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             const {layoutMeasurement, contentSize, contentOffset} = event.nativeEvent;
             const fullContentHeight = contentSize.height;
@@ -471,6 +507,12 @@ function MoneyRequestReportActionsList({
                 !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
                 hasNextActionMadeBySameActor(visibleReportActions, index);
 
+            const actionEmojiReactions = emojiReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportAction.reportActionID}`];
+            const originalReportID = getOriginalReportID(report.reportID, reportAction);
+            const reportDraftMessages = draftMessage?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`];
+            const matchingDraftMessage = reportDraftMessages?.[reportAction.reportActionID];
+            const matchingDraftMessageString = typeof matchingDraftMessage === 'string' ? matchingDraftMessage : matchingDraftMessage?.message;
+
             return (
                 <ReportActionsListItemRenderer
                     allReports={allReports}
@@ -489,6 +531,12 @@ function MoneyRequestReportActionsList({
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldHideThreadDividerLine
                     linkedReportActionID={linkedReportActionID}
+                    userWalletTierName={userWalletTierName}
+                    isUserValidated={isUserValidated}
+                    personalDetails={personalDetails}
+                    userBillingFundID={userBillingFundID}
+                    emojiReactions={actionEmojiReactions}
+                    draftMessage={matchingDraftMessageString}
                 />
             );
         },
@@ -504,6 +552,12 @@ function MoneyRequestReportActionsList({
             linkedReportActionID,
             allReports,
             policies,
+            userWalletTierName,
+            isUserValidated,
+            personalDetails,
+            userBillingFundID,
+            emojiReactions,
+            draftMessage,
         ],
     );
 
@@ -621,6 +675,7 @@ function MoneyRequestReportActionsList({
             )}
             <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
                 <FloatingMessageCounter
+                    hasNewMessages={!!unreadMarkerReportActionID}
                     isActive={isFloatingMessageCounterVisible}
                     onClick={scrollToBottomAndMarkReportAsRead}
                 />
@@ -640,6 +695,7 @@ function MoneyRequestReportActionsList({
                         style={styles.overscrollBehaviorContain}
                         data={visibleReportActions}
                         renderItem={renderItem}
+                        onViewableItemsChanged={onViewableItemsChanged}
                         keyExtractor={keyExtractor}
                         onLayout={recordTimeToMeasureItemLayout}
                         onEndReached={onEndReached}
@@ -680,6 +736,14 @@ function MoneyRequestReportActionsList({
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={isDownloadErrorModalVisible}
                 onClose={() => setIsDownloadErrorModalVisible(false)}
+            />
+            <ConfirmModal
+                onConfirm={() => setIsExportWithTemplateModalVisible(false)}
+                isVisible={isExportWithTemplateModalVisible}
+                title={translate('export.exportInProgress')}
+                prompt={translate('export.conciergeWillSend')}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
             />
         </View>
     );

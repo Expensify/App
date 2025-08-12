@@ -181,4 +181,5 @@ function cancelPendingRequests(command: AbortCommand = ABORT_COMMANDS.All) {
 export default {
     xhr,
     cancelPendingRequests,
+    processHTTPRequest,
 };
