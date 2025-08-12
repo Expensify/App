@@ -25,10 +25,10 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
@@ -49,7 +49,6 @@ import {
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import type {AnchorPosition} from '@styles/index';
 import {openOldDotLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -66,6 +65,11 @@ type RouteParams = {
     shouldDisconnectIntegrationBeforeConnecting?: boolean;
 };
 
+const anchorAlignment = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+};
+
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
@@ -74,7 +78,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const {translate, datetimeToRelative: getDatetimeToRelative, getLocalDateFromDatetime} = useLocalize();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
-    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
@@ -178,19 +181,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         setDateTimeToRelative('');
     }, [getDatetimeToRelative, successfulDate]);
 
-    const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
-        if (shouldUseNarrowLayout) {
-            return Promise.resolve({horizontal: 0, vertical: 0});
-        }
-        return new Promise<AnchorPosition>((resolve) => {
-            threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
-                resolve({
-                    horizontal: x + width,
-                    vertical: y + height,
-                });
-            });
-        });
-    }, [shouldUseNarrowLayout]);
+    const {calculatePopoverPosition} = usePopoverPosition();
 
     const integrationSpecificMenuItems = useMemo(() => {
         const sageIntacctEntityList = policy?.connections?.intacct?.data?.entities ?? [];
@@ -401,12 +392,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 ) : (
                     <View ref={threeDotsMenuContainerRef}>
                         <ThreeDotsMenu
-                            getAnchorPosition={calculateAndSetThreeDotsMenuPosition}
+                            getAnchorPosition={() => calculatePopoverPosition(threeDotsMenuContainerRef, anchorAlignment)}
                             menuItems={overflowMenu}
-                            anchorAlignment={{
-                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                            }}
+                            anchorAlignment={anchorAlignment}
                         />
                     </View>
                 ),
@@ -417,28 +405,28 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     }, [
         policy,
         isSyncInProgress,
-        connectedIntegration,
-        synchronizationError,
-        shouldShowSynchronizationError,
         policyID,
+        connectedIntegration,
         translate,
+        isBetaEnabled,
+        connectionSyncProgress?.stageInProgress,
         styles.sectionMenuItemTopDescription,
         styles.pb0,
         styles.mt5,
         styles.popoverMenuIcon,
         styles.justifyContentCenter,
-        connectionSyncProgress?.stageInProgress,
-        datetimeToRelative,
+        shouldShowCardReconciliationOption,
+        shouldShowSynchronizationError,
+        synchronizationError,
         theme.spinner,
+        calculatePopoverPosition,
         overflowMenu,
-        calculateAndSetThreeDotsMenuPosition,
         integrationSpecificMenuItems,
         accountingIntegrations,
         isOffline,
         startIntegrationFlow,
         popoverAnchorRefs,
-        isBetaEnabled,
-        shouldShowCardReconciliationOption,
+        datetimeToRelative,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
@@ -531,7 +519,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     icon={Illustrations.Accounting}
                     shouldUseHeadlineHeader
-                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                     onBackButtonPress={Navigation.popToSidebar}
                 />
                 <ScrollView

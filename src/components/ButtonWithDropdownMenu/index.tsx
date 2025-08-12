@@ -7,12 +7,12 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import mergeRefs from '@libs/mergeRefs';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -40,7 +40,6 @@ function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuPr
             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
         },
-        popoverHorizontalOffsetType,
         buttonRef,
         onPress,
         options,
@@ -51,7 +50,6 @@ function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuPr
         enterKeyEventListenerPriority = 0,
         wrapperStyle,
         useKeyboardShortcuts = false,
-        shouldUseStyleUtilityForAnchorPosition = false,
         defaultSelectedIndex = 0,
         shouldShowSelectedItemCheck = false,
         testID,
@@ -72,7 +70,6 @@ function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuPr
     // In tests, skip the popover anchor position calculation. The default values are needed for popover menu to be rendered in tests.
     const defaultPopoverAnchorPosition = process.env.NODE_ENV === 'test' ? {horizontal: 100, vertical: 100} : null;
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(defaultPopoverAnchorPosition);
-    const {windowWidth, windowHeight} = useWindowDimensions();
     const dropdownAnchor = useRef<View | null>(null);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -93,33 +90,15 @@ function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuPr
 
     const {paddingBottom} = useSafeAreaPaddings(true);
 
+    const {calculatePopoverPosition} = usePopoverPosition();
+
     useEffect(() => {
-        if (!dropdownAnchor.current) {
+        if (!dropdownAnchor.current || !isMenuVisible) {
             return;
         }
-        if (!isMenuVisible) {
-            return;
-        }
-        if ('measureInWindow' in dropdownAnchor.current) {
-            dropdownAnchor.current.measureInWindow((x, y, w, h) => {
-                let horizontalPosition = x + w;
 
-                if (popoverHorizontalOffsetType === 'left') {
-                    horizontalPosition = x;
-                } else if (popoverHorizontalOffsetType === 'center') {
-                    horizontalPosition = x + w / 2;
-                }
-
-                setPopoverAnchorPosition({
-                    horizontal: horizontalPosition,
-                    vertical:
-                        anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP
-                            ? y + h + CONST.MODAL.POPOVER_MENU_PADDING // if vertical anchorAlignment is TOP, menu will open below the button and we need to add the height of button and padding
-                            : y - CONST.MODAL.POPOVER_MENU_PADDING, // if it is BOTTOM, menu will open above the button so NO need to add height but DO subtract padding
-                });
-            });
-        }
-    }, [windowWidth, windowHeight, isMenuVisible, anchorAlignment.vertical, popoverHorizontalOffsetType]);
+        calculatePopoverPosition(dropdownAnchor, anchorAlignment).then(setPopoverAnchorPosition);
+    }, [isMenuVisible, calculatePopoverPosition, anchorAlignment]);
 
     const handleSingleOptionPress = useCallback(
         (event: GestureResponderEvent | KeyboardEvent | undefined) => {
@@ -282,7 +261,7 @@ function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuPr
                             setIsMenuVisible(false);
                         }
                     }}
-                    anchorPosition={shouldUseStyleUtilityForAnchorPosition ? styles.popoverButtonDropdownMenuOffset(windowWidth) : popoverAnchorPosition}
+                    anchorPosition={popoverAnchorPosition}
                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                     // eslint-disable-next-line react-compiler/react-compiler
                     anchorRef={nullCheckRef(dropdownAnchor)}
