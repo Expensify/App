@@ -28,7 +28,7 @@ function hasWorkspaceCreationRestriction(
     const securityGroupKey = `${ONYXKEYS.COLLECTION.SECURITY_GROUP}${domainSecurityGroupID}`;
     const securityGroup = securityGroups[securityGroupKey];
 
-    return securityGroup?.hasRestrictedPolicyCreation ?? false;
+    return securityGroup?.enableRestrictedPolicyCreation ?? false;
 }
 
 export default hasWorkspaceCreationRestriction;

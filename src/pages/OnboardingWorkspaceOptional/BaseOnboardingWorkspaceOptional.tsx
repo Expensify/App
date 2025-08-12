@@ -14,7 +14,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import hasWorkspaceCreationRestriction from '@libs/hasWorkspaceCreationRestriction';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {completeOnboarding as completeOnboardingReport} from '@userActions/Report';
@@ -49,9 +48,6 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const ICON_SIZE = 48;
-    const [myDomainSecurityGroups] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {canBeMissing: true});
-    const [securityGroups] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP, {canBeMissing: true});
-    // Check if user has domain workspace creation restrictions
 
     const processedHelperText = `<comment><muted-text-label>${translate('onboarding.workspace.price')}</muted-text-label></comment>`;
 
@@ -159,12 +155,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                         text={translate('onboarding.workspace.createWorkspace')}
                         onPress={() => {
                             setOnboardingErrorMessage('');
-                            const hasRestriction = hasWorkspaceCreationRestriction(currentUserPersonalDetails.login, myDomainSecurityGroups, securityGroups);
 
-                            if (hasRestriction) {
-                                Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(undefined, true));
-                                return;
-                            }
                             Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.getRoute());
                         }}
                     />

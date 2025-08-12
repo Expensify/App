@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
@@ -15,6 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import hasWorkspaceCreationRestriction from '@libs/hasWorkspaceCreationRestriction';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
@@ -57,7 +59,10 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
 
-    const isDomainRestriction = !!route.params?.isDomainRestriction;
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [myDomainSecurityGroups] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {canBeMissing: true});
+    const [securityGroups] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP, {canBeMissing: true});
+    const isDomainRestriction = hasWorkspaceCreationRestriction(currentUserPersonalDetails.login, myDomainSecurityGroups, securityGroups);
 
     const handleJoinWorkspace = useCallback(
         (policy: JoinablePolicy) => {
@@ -163,6 +168,20 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                         text={isDomainRestriction ? translate('onboarding.domainWorkspaceRestriction.skipForNow') : translate('common.skip')}
                         testID="onboardingWorkSpaceSkipButton"
                         onPress={() => {
+                            if (isDomainRestriction) {
+                                completeOnboarding({
+                                    engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                                    onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
+                                    firstName: onboardingPersonalDetails?.firstName ?? '',
+                                    lastName: onboardingPersonalDetails?.lastName ?? '',
+                                });
+
+                                InteractionManager.runAfterInteractions(() => {
+                                    Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
+                                });
+
+                                return;
+                            }
                             if (isVsb) {
                                 Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
                                 return;
@@ -172,22 +191,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                                 Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
                                 return;
                             }
-                            if (isDomainRestriction) {
-                                completeOnboarding({
-                                    engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
-                                    onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
-                                    firstName: onboardingPersonalDetails?.firstName ?? '',
-                                    lastName: onboardingPersonalDetails?.lastName ?? '',
-                                });
-                                setOnboardingAdminsChatReportID();
-                                setOnboardingPolicyID();
 
-                                InteractionManager.runAfterInteractions(() => {
-                                    Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
-                                });
-
-                                return;
-                            }
                             Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
                         }}
                         style={[styles.mt5]}

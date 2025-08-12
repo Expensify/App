@@ -15,12 +15,12 @@ describe('DomainUtils', () => {
 
         const mockSecurityGroupWithRestriction: SecurityGroup = {
             hasRestrictedPrimaryLogin: false,
-            hasRestrictedPolicyCreation: true,
+            enableRestrictedPolicyCreation: true,
         };
 
         const mockSecurityGroupWithoutRestriction: SecurityGroup = {
             hasRestrictedPrimaryLogin: false,
-            hasRestrictedPolicyCreation: false,
+            enableRestrictedPolicyCreation: false,
         };
 
         const mockSecurityGroupsWithRestriction = {
