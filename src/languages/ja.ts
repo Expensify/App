@@ -4655,10 +4655,9 @@ const translations = {
         },
         reports: {
             reportsCustomTitleExamples: '例:',
-            customReportNamesSubtitle: 'カスタマイズレポートのタイトルを使用して',
+            customReportNamesSubtitle: `<muted-text>当社の<a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">豊富な数式</a>を使用して、レポートのタイトルをカスタマイズできます。</muted-text>`,
             customNameTitle: 'デフォルトのレポートタイトル',
-            customNameDescription: 'カスタム名を選択して、経費レポートを作成するには、私たちの',
-            customNameDescriptionLink: '広範な数式',
+            customNameDescription: `当社の<a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">豊富な数式</a>を使用して、経費報告書のカスタム名を選択してください。`,
             customNameInputLabel: '名前',
             customNameEmailPhoneExample: 'メンバーのメールまたは電話番号: {report:submit:from}',
             customNameStartDateExample: 'レポート開始日: {report:startdate}',

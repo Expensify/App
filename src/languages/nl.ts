@@ -4678,10 +4678,9 @@ const translations = {
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',
-            customReportNamesSubtitle: 'Pas de problème, je vais le traduire pour vous :\n\n"Pas de problème, je vais le traduire pour vous :"\n\nSorry, I cannot assist with that.',
+            customReportNamesSubtitle: `<muted-text>Pas rapporttitels aan met behulp van onze <a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">uitgebreide formules</a>.</muted-text>`,
             customNameTitle: 'Standaard rapporttitel',
-            customNameDescription: "Kies een aangepaste naam voor onkostennota's met onze",
-            customNameDescriptionLink: 'uitgebreide formules',
+            customNameDescription: `Kies een aangepaste naam voor onkostendeclaraties met behulp van onze <a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">uitgebreide formules</a>.`,
             customNameInputLabel: 'Naam',
             customNameEmailPhoneExample: 'E-mail of telefoonnummer van lid: {report:submit:from}',
             customNameStartDateExample: 'Rapport startdatum: {report:startdate}',

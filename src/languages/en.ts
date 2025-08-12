@@ -4644,10 +4644,9 @@ const translations = {
         },
         reports: {
             reportsCustomTitleExamples: 'Examples:',
-            customReportNamesSubtitle: 'Customize report titles using our ',
+            customReportNamesSubtitle: `<muted-text>Customize report titles using our <a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">extensive formulas</a>.</muted-text>`,
             customNameTitle: 'Default report title',
-            customNameDescription: 'Choose a custom name for expense reports using our ',
-            customNameDescriptionLink: 'extensive formulas',
+            customNameDescription: `Choose a custom name for expense reports using our <a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">extensive formulas</a>.`,
             customNameInputLabel: 'Name',
             customNameEmailPhoneExample: 'Member’s email or phone: {report:submit:from}',
             customNameStartDateExample: 'Report start date: {report:startdate}',
