@@ -6716,6 +6716,7 @@ describe('actions/IOU', () => {
                         merchant: 'NASDAQ',
                         comment: '*hey* `hey`',
                     },
+                    shouldGenerateTransactionThreadReport: true,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
