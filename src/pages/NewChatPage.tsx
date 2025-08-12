@@ -288,9 +288,10 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
             } else if (selectedOptions.length === 1) {
                 login = selectedOptions.at(0)?.login ?? '';
             }
-            // Prefer using accountID when available to correctly resolve secondary logins
-            const accountID = option?.accountID ?? selectedOptions.at(0)?.accountID;
-            if (accountID && accountID !== CONST.DEFAULT_NUMBER_ID) {
+            // Prefer using a known non-optimistic accountID to correctly resolve secondary logins
+            const accountID = (option && !option.isOptimisticAccount ? option.accountID : undefined) ??
+                (selectedOptions.length === 1 && !selectedOptions.at(0)?.isOptimisticAccount ? selectedOptions.at(0)?.accountID : undefined);
+            if (accountID && accountID) {
                 KeyboardUtils.dismiss().then(() => navigateToAndOpenReportWithAccountIDs([accountID]));
                 return;
             }
