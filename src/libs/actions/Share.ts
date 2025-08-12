@@ -24,8 +24,13 @@ function addTempShareFile(file: ShareTempFile) {
     Onyx.merge(ONYXKEYS.SHARE_TEMP_FILE, file);
 }
 
+/**
+ * Stores a previously validated file object in Onyx for further use.
+ *
+ * @param file Array of validated file objects to be saved
+ */
 function addValidatedShareFile(file: FileObject[]) {
-    Onyx.set(ONYXKEYS.SHARE_FILE_OBJECT, file);
+    Onyx.set(ONYXKEYS.VALIDATED_FILE_OBJECT, file);
 }
 
 /**
