@@ -39,6 +39,7 @@ import {
     isTaskListItemType,
     isTransactionGroupListItemType,
     isTransactionListItemType,
+    isTransactionMemberGroupListItemType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
@@ -522,6 +523,15 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 return;
             }
 
+            if (isTransactionMemberGroupListItemType(item)) {
+                const newflatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
+                newflatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.accountID}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newflatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQuery}));
+                return;
+            }
+
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
             const isTransactionItem = isTransactionListItemType(item);
 
@@ -567,7 +577,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         },
-        [hash, isMobileSelectionModeEnabled, toggleTransaction],
+        [hash, isMobileSelectionModeEnabled, toggleTransaction, queryJSON],
     );
 
     const onViewableItemsChanged = useCallback(

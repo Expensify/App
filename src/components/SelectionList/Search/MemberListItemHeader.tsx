@@ -17,6 +17,9 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
     /** The member currently being looked at */
     member: TransactionMemberGroupListItemType;
 
+    /** Callback to fire when the item is pressed */
+    onSelectRow: (item: TItem) => void;
+
     /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
 
@@ -27,7 +30,7 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
     canSelectMultiple: boolean | undefined;
 };
 
-function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onCheckboxPress, isDisabled, canSelectMultiple}: MemberListItemHeaderProps<TItem>) {
+function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onSelectRow, onCheckboxPress, isDisabled, canSelectMultiple}: MemberListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -81,7 +84,7 @@ function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onChe
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
                     <ActionCell
                         action={CONST.SEARCH.ACTION_TYPES.VIEW}
-                        goToItem={() => {}} // s77rt
+                        goToItem={() => onSelectRow(memberItem as unknown as TItem)}
                         isSelected={memberItem.isSelected}
                     />
                 </View>
