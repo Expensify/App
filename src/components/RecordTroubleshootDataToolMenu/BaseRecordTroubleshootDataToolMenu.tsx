@@ -239,45 +239,8 @@ function BaseRecordTroubleshootDataToolMenu({
 
                 setShareUrls([`file://${path}`, `file://${file?.path}`]);
             });
-        } else {
-            onStopProfiling(true, newFileName).then((path) => {
-                if (!path) {
-                    return;
-                }
-
-                const newFilePath = `${pathToBeUsed}/${newFileName}`;
-
-                RNFS.exists(newFilePath)
-                    .then((fileExists) => {
-                        if (!fileExists) {
-                            return;
-                        }
-
-                        return RNFS.unlink(newFilePath).then(() => {
-                            Log.hmmm('[ProfilingToolMenu] existing file deleted successfully');
-                        });
-                    })
-                    .catch((error) => {
-                        const typedError = error as Error;
-                        Log.hmmm('[ProfilingToolMenu] error checking/deleting existing file: ', typedError.message);
-                    })
-                    .then(() => {
-                        RNFS.copyFile(path, newFilePath)
-                            .then(() => {
-                                Log.hmmm('[ProfilingToolMenu] file copied successfully');
-                                setShareUrls([`file://${newFilePath}`, `file://${file?.path}`]);
-                            })
-                            .catch((err) => {
-                                console.error('[ProfilingToolMenu] error copying file: ', err);
-                            });
-                    })
-                    .catch((error: Record<string, unknown>) => {
-                        console.error('[ProfilingToolMenu] error copying file: ', error);
-                        Log.hmmm('[ProfilingToolMenu] error copying file: ', error);
-                    });
-            });
         }
-    }, [file?.path, onDownloadZip, onStopProfiling, pathToBeUsed]);
+    }, [file?.path, onDownloadZip, onStopProfiling]);
 
     useEffect(() => {
         if (!file) {
