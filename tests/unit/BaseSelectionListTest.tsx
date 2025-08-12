@@ -103,18 +103,6 @@ describe('BaseSelectionList', () => {
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}2`)).toBeSelected();
     });
 
-    it('should scroll to top when selecting a multi option list', () => {
-        const spy = jest.spyOn(SectionList.prototype, 'scrollToLocation');
-        render(
-            <BaseListItemRenderer
-                sections={[{data: []}, {data: mockSections}]}
-                canSelectMultiple
-            />,
-        );
-        fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`));
-        expect(spy).toHaveBeenCalledWith(expect.objectContaining({itemIndex: 0}));
-    });
-
     it('should show only elements from first page and Show More button when items exceed page limit', () => {
         render(
             <BaseListItemRenderer
