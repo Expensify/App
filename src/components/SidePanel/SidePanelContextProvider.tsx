@@ -71,16 +71,18 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- sidePanelWidth dependency caused the help panel content to slide in on window resize
     }, [shouldHideSidePanel, shouldApplySidePanelOffset]);
 
+    const finishSidePanelTransition = () => setIsSidePanelTransitionEnded(true);
+
     const openSidePanel = useCallback(() => {
         setIsSidePanelTransitionEnded(false);
         KeyboardUtils.dismiss();
-        SidePanelActions.openSidePanel(!isExtraLargeScreenWidth);
+        SidePanelActions.openSidePanel(!isExtraLargeScreenWidth, finishSidePanelTransition);
     }, [isExtraLargeScreenWidth]);
 
     const closeSidePanel = useCallback(
         (shouldUpdateNarrow = false) => {
             setIsSidePanelTransitionEnded(false);
-            SidePanelActions.closeSidePanel(!isExtraLargeScreenWidth || shouldUpdateNarrow);
+            SidePanelActions.closeSidePanel(!isExtraLargeScreenWidth || shouldUpdateNarrow, finishSidePanelTransition);
 
             // Focus the composer after closing the Side Panel
             focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);

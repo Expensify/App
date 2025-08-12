@@ -10,7 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
  *
  * @param shouldOpenOnNarrowScreen - Whether to open the side panel on narrow screen
  */
-function openSidePanel(shouldOpenOnNarrowScreen: boolean) {
+function openSidePanel(shouldOpenOnNarrowScreen: boolean, cb: () => void) {
     const optimisticData: OnyxUpdate[] = [
         {
             key: ONYXKEYS.NVP_SIDE_PANEL,
@@ -21,7 +21,7 @@ function openSidePanel(shouldOpenOnNarrowScreen: boolean) {
 
     const params: OpenSidePanelParams = {isNarrowScreen: shouldOpenOnNarrowScreen};
 
-    API.write(WRITE_COMMANDS.OPEN_SIDE_PANEL, params, {optimisticData});
+    API.write(WRITE_COMMANDS.OPEN_SIDE_PANEL, params, {optimisticData}).then(cb);
 }
 
 /**
@@ -29,7 +29,7 @@ function openSidePanel(shouldOpenOnNarrowScreen: boolean) {
  *
  * @param shouldCloseOnNarrowScreen - Whether to close the side panel on narrow screen
  */
-function closeSidePanel(shouldCloseOnNarrowScreen: boolean) {
+function closeSidePanel(shouldCloseOnNarrowScreen: boolean, cb: () => void) {
     const optimisticData: OnyxUpdate[] = [
         {
             key: ONYXKEYS.NVP_SIDE_PANEL,
@@ -40,7 +40,7 @@ function closeSidePanel(shouldCloseOnNarrowScreen: boolean) {
 
     const params: CloseSidePanelParams = {isNarrowScreen: shouldCloseOnNarrowScreen};
 
-    API.write(WRITE_COMMANDS.CLOSE_SIDE_PANEL, params, {optimisticData});
+    API.write(WRITE_COMMANDS.CLOSE_SIDE_PANEL, params, {optimisticData}).then(cb);
 }
 
 export default {openSidePanel, closeSidePanel};
