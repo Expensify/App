@@ -1,4 +1,4 @@
-import type {ElementRef, ForwardedRef, RefObject} from 'react';
+import type {ComponentRef, ForwardedRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, HostComponent, PressableStateCallbackType, PressableProps as RNPressableProps, Text as RNText, StyleProp, View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -114,7 +114,7 @@ type PressableProps = RNPressableProps &
         /**
          * Specifies which component should be focused after interacting with this component
          */
-        nextFocusRef?: ElementRef<HostComponent<unknown>> & RefObject<HTMLOrSVGElement>;
+        nextFocusRef?: ComponentRef<HostComponent<unknown>> & RefObject<HTMLOrSVGElement>;
 
         /**
          * Specifies the accessibility label for the component
