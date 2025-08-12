@@ -76,7 +76,7 @@ describe('NewChatPage', () => {
         });
         const spy = jest.spyOn(SectionList.prototype, 'scrollToLocation');
 
-        const addButton = screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0);
+        const addButton = await waitFor(() => screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0));
         if (addButton) {
             fireEvent.press(addButton);
             expect(spy).toHaveBeenCalledWith(expect.objectContaining({itemIndex: 0}));
