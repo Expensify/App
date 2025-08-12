@@ -924,7 +924,6 @@ function MoneyReportHeader({
             icon: Expensicons.Workflows,
             value: CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER,
             onSelected: () => {
-                console.debug('[MoneyReportHeader] Change Approver selected', moneyRequestReport);
                 if (!moneyRequestReport) {
                     return;
                 }
