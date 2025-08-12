@@ -51,6 +51,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isEmpty = groupItem.transactions.length === 0;
+    // Currently only the transaction report groups have transactions where the empty view makes sense
+    const shouldDisplayEmptyView = isEmpty && groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
     const isDisabledOrEmpty = isEmpty || isDisabled;
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -178,7 +180,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             >
                 <View style={styles.flex1}>
                     {getHeader}
-                    {isEmpty ? (
+                    {shouldDisplayEmptyView ? (
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
                             <Text
                                 style={[styles.textLabelSupporting]}

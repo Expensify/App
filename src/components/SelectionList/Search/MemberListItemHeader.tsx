@@ -86,9 +86,6 @@ function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onChe
                     />
                 </View>
             </View>
-            <View style={[styles.pv2, styles.ph3]}>
-                <View style={[styles.borderBottom]} />
-            </View>
         </View>
     );
 }
