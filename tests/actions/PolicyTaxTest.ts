@@ -12,7 +12,27 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 OnyxUpdateManager();
 describe('actions/PolicyTax', () => {
-    const fakePolicy: PolicyType = {...createRandomPolicy(0), taxRates: CONST.DEFAULT_TAX};
+    const fakePolicy: PolicyType = {
+        ...createRandomPolicy(0),
+        taxRates: CONST.DEFAULT_TAX,
+        customUnits: {
+            [CONST.CUSTOM_UNITS.NAME_DISTANCE]: {
+                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                customUnitID: 'id_CUSTOM_UNIT_1',
+                enabled: true,
+                rates: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    id_CUSTOM_UNIT_1: {
+                        name: 'Distance',
+                        customUnitRateID: 'id_CUSTOM_UNIT_1',
+                        enabled: true,
+                        currency: 'USD',
+                        rate: 67,
+                    },
+                },
+            },
+        },
+    };
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -832,19 +852,20 @@ describe('actions/PolicyTax', () => {
         });
     });
     describe('SetPolicyTaxCode', () => {
-        const taxID = 'id_TAX_RATE_1';
+        const oldtaxCode = 'id_TAX_RATE_1';
         const newTaxCode = 'id_TAX_RATE_2';
+        const oldTaxRateName = fakePolicy?.taxRates?.taxes[oldtaxCode]?.name;
+        
         it('Set policy`s tax code', () => {
             mockFetch?.pause?.();
             const distanceRateCustomUnit = fakePolicy?.customUnits?.[CONST.CUSTOM_UNITS.NAME_DISTANCE];
 
-            
             setPolicyTaxCode(
                 fakePolicy.id,
-                taxID,
+                oldtaxCode,
                 newTaxCode,
                 // @ts-expect-error - we can send undefined tax rate here for testing
-                fakePolicy?.taxRates?.taxes[taxID],
+                fakePolicy?.taxRates?.taxes[oldtaxCode],
                 fakePolicy?.taxRates?.foreignTaxDefault,
                 fakePolicy?.taxRates?.defaultExternalID,
                 distanceRateCustomUnit,
@@ -860,9 +881,12 @@ describe('actions/PolicyTax', () => {
                                 Onyx.disconnect(connection);
                                 const taxRates = policy?.taxRates;
                                 const updatedTaxRate = taxRates?.taxes?.[newTaxCode];
+                                
                                 // We expected to have a new tax rate with the new tax code
                                 expect(updatedTaxRate).toBeDefined();
                                 expect(updatedTaxRate?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                                expect(updatedTaxRate?.previousTaxCode).toBe(oldtaxCode);
+                                expect(updatedTaxRate?.name).toBe(oldTaxRateName);
                                 resolve();
                             },
                         });

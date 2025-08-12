@@ -30,23 +30,7 @@ export default function createRandomPolicy(index: number, type?: ValueOf<typeof 
         lastModified: randPastDate().toISOString(),
         pendingAction: rand(Object.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
         errors: {},
-        customUnits: {
-            [CONST.CUSTOM_UNITS.NAME_DISTANCE]: {
-                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                customUnitID: 'id_CUSTOM_UNIT_1',
-                enabled: true,
-                rates: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    id_CUSTOM_UNIT_1: {
-                        name: 'Distance',
-                        customUnitRateID: 'id_CUSTOM_UNIT_1',
-                        enabled: true,
-                        currency: 'USD',
-                        rate: 67,
-                    },
-                },
-            },
-        },
+        customUnits: {},
         errorFields: {},
         approvalMode: rand(Object.values(CONST.POLICY.APPROVAL_MODE)),
     };
