@@ -39,16 +39,7 @@ type CurrencyPickerProps = {
     shouldShowFullPageOfflineView?: boolean;
 };
 
-function CurrencyPicker({
-    label,
-    value,
-    errorText,
-    headerContent,
-    excludeCurrencies,
-    disabled = false,
-    shouldShowFullPageOfflineView = false,
-    onInputChange = () => {},
-}: CurrencyPickerProps) {
+function CurrencyPicker({label, value, errorText, headerContent, excludeCurrencies, disabled = false, shouldShowFullPageOfflineView = false, onInputChange = () => {}}: CurrencyPickerProps) {
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const styles = useThemeStyles();
