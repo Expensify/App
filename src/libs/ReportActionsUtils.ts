@@ -267,6 +267,13 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
     return reportAction.originalMessage;
 }
 
+/**
+ * Get the transaction ID from a money request report action
+ */
+function getTransactionIDFromReportAction(reportAction: OnyxInputOrEntry<ReportAction>): string | undefined {
+    return isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : undefined;
+}
+
 function isExportIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION> {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION;
 }
@@ -3021,6 +3028,7 @@ export {
     getSortedReportActionsForDisplay,
     getTextFromHtml,
     getTrackExpenseActionableWhisper,
+    getTransactionIDFromReportAction,
     getWhisperedTo,
     hasRequestFromCurrentAccount,
     isActionOfType,
