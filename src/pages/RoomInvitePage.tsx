@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
@@ -142,7 +141,7 @@ function RoomInvitePage({
         }
 
         return sectionsArr;
-    }, [inviteOptions, areOptionsInitialized, selectedOptions, debouncedSearchTerm, translate]);
+    }, [inviteOptions, areOptionsInitialized, selectedOptions, translate]);
 
     const toggleOption = useCallback(
         (option: MemberForList) => {

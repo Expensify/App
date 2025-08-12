@@ -62,7 +62,7 @@ function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, search
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
         () => tokenizedSearch(usersWorkspaces, searchTerm, (policy) => [policy.text]).sort((policy1, policy2) => localeCompare(policy1.text, policy2.text)),
-        [searchTerm, usersWorkspaces, selectedPolicyIDs],
+        [searchTerm, usersWorkspaces, selectedPolicyIDs, localeCompare],
     );
 
     const sections = useMemo(() => {

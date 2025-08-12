@@ -68,15 +68,17 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         );
     }, [areOptionsInitialized, options.personalDetails, options.reports]);
 
-    const defaultOptionsModified = {
-        ...defaultOptions,
-        recentReports: defaultOptions.recentReports.map((item) =>
-            selectedOptions.some((selectedOption) => selectedOption.accountID === item.accountID) ? {...item, isSelected: true} : item,
-        ),
-        personalDetails: defaultOptions.personalDetails.map((item) =>
-            selectedOptions.some((selectedOption) => selectedOption.accountID === item.accountID) ? {...item, isSelected: true} : item,
-        ),
-    };
+    const defaultOptionsModified = useMemo(() => {
+        return {
+            ...defaultOptions,
+            recentReports: defaultOptions.recentReports.map((item) =>
+                selectedOptions.some((selectedOption) => selectedOption.accountID === item.accountID) ? {...item, isSelected: true} : item,
+            ),
+            personalDetails: defaultOptions.personalDetails.map((item) =>
+                selectedOptions.some((selectedOption) => selectedOption.accountID === item.accountID) ? {...item, isSelected: true} : item,
+            ),
+        };
+    }, [defaultOptions]);
 
     const chatOptions = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(defaultOptionsModified, cleanSearchTerm, {
@@ -114,7 +116,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             sections: newSections,
             headerMessage: message,
         };
-    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, translate]);
+    }, [areOptionsInitialized, chatOptions, translate]);
 
     const resetChanges = useCallback(() => {
         setSelectedOptions([]);

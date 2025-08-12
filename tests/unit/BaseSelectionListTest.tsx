@@ -1,7 +1,6 @@
 import * as NativeNavigation from '@react-navigation/native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {useState} from 'react';
-import {SectionList} from 'react-native';
 import BaseSelectionList from '@components/SelectionList/BaseSelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem, SelectionListProps} from '@components/SelectionList/types';

@@ -27,7 +27,6 @@ import {
     getEmptyOptions,
     getHeaderMessage,
     getMemberInviteOptions,
-    getSearchValueForPhoneOrEmail,
     isPersonalDetailsReady,
 } from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
@@ -35,7 +34,6 @@ import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getGroupChatName, getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import tokenizedSearch from '@libs/tokenizedSearch';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -105,7 +103,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
 
         setSelectedOptions(newSelectedOptions);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [personalDetails, betas, debouncedSearchTerm, excludedUsers, options]);
+    }, [personalDetails, betas, excludedUsers, options]);
 
     const sections = useMemo(() => {
         const sectionsArr: Sections = [];
@@ -139,7 +137,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
         }
 
         return sectionsArr;
-    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, inviteOptions.recentReports, inviteOptions.personalDetails, inviteOptions.userToInvite, translate]);
+    }, [areOptionsInitialized, selectedOptions, inviteOptions.recentReports, inviteOptions.personalDetails, inviteOptions.userToInvite, translate]);
 
     const toggleOption = useCallback(
         (option: MemberForList) => {
