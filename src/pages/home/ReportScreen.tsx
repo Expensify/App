@@ -372,7 +372,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     if (isTransactionThreadView) {
         const transactionID = getTransactionIDFromReportAction(parentReportAction);
-        const transactionViolations = transactionID && allReportViolations ? (allReportViolations as Record<string, OnyxTypes.TransactionViolations>)[transactionID] : undefined;
+        const transactionViolations = transactionID && allReportViolations ? allReportViolations[transactionID] : undefined;
 
         headerView = (
             <MoneyRequestHeader
