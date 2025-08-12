@@ -1840,6 +1840,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Connections feature is enabled */
         areConnectionsEnabled?: boolean;
 
+        /** Whether the Receipt Partners feature is enabled */
+        areReceiptPartnersEnabled?: boolean;
+
         /** Whether the Invoices feature is enabled */
         areInvoicesEnabled?: boolean;
 
