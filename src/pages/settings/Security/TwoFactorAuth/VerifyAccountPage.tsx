@@ -1,36 +1,33 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {clearContactMethodErrors, clearUnvalidatedNewContactMethodAction, requestValidateCodeAction, validateSecondaryLogin} from '@libs/actions/User';
 import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {TwoFactorAuthNavigatorParamList} from '@libs/Navigation/types';
+import {quitAndNavigateBack} from '@userActions/TwoFactorAuthActions';
+import {clearContactMethodErrors, requestValidateCodeAction, validateSecondaryLogin} from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type VerifyAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VERIFY_ACCOUNT>;
+type VerifyAccountPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList, typeof SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT>;
 
 function VerifyAccountPage({route}: VerifyAccountPageProps) {
-    const styles = useThemeStyles();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const contactMethod = account?.primaryLogin ?? '';
     const {translate, formatPhoneNumber} = useLocalize();
+
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+
+    const isUserValidated = account?.validated ?? false;
+    const contactMethod = account?.primaryLogin ?? '';
+
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
-    const isUserValidated = account?.validated ?? false;
 
     const navigateForwardTo = route.params?.forwardTo;
     const backTo = route.params?.backTo;
-
-    useEffect(() => () => clearUnvalidatedNewContactMethodAction(), []);
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
@@ -38,10 +35,6 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
         },
         [loginList, contactMethod, formatPhoneNumber],
     );
-
-    const closeModal = useCallback(() => {
-        Navigation.goBack(backTo);
-    }, [backTo]);
 
     // Handle navigation once the user is validated
     useEffect(() => {
@@ -56,22 +49,6 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
         }
     }, [isUserValidated, navigateForwardTo, backTo]);
 
-    // Once user is validated or the modal is dismissed, we don't want to show empty content.
-    if (isUserValidated) {
-        return (
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom
-                testID={VerifyAccountPage.displayName}
-            >
-                <HeaderWithBackButton
-                    title={translate('contacts.validateAccount')}
-                    onBackButtonPress={() => Navigation.goBack(backTo)}
-                />
-                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
-            </ScreenWrapper>
-        );
-    }
-
     return (
         <ValidateCodeActionContent
             title={translate('contacts.validateAccount')}
@@ -83,11 +60,11 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
             handleSubmitForm={handleSubmitForm}
             validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
             clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
-            onClose={closeModal}
+            onClose={quitAndNavigateBack}
         />
     );
 }
 
-VerifyAccountPage.displayName = 'VerifyAccountPage';
+VerifyAccountPage.displayName = 'CopyCodesPage';
 
 export default VerifyAccountPage;

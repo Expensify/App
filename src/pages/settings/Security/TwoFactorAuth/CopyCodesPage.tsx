@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -63,6 +63,13 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     }, [isUserValidated, accountMetadata.status]);
 
     useBeforeRemove(() => setIsValidateModalVisible(false));
+
+    const handleSubmitForm = useCallback(
+        (validateCode: string) => {
+            validateSecondaryLogin(loginList, contactMethod, validateCode, formatPhoneNumber, true);
+        },
+        [loginList, contactMethod, formatPhoneNumber],
+    );
 
     return (
         <TwoFactorAuthWrapper
@@ -171,18 +178,17 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                 title={translate('contacts.validateAccount')}
                 descriptionPrimary={translate('contacts.featureRequiresValidate')}
                 descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
-                isVisible={isValidateModalVisible}
+                sendValidateCode={requestValidateCodeAction}
                 validateCodeActionErrorField="validateLogin"
                 validatePendingAction={loginData?.pendingFields?.validateCodeSent}
-                sendValidateCode={() => requestValidateCodeAction()}
-                handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode, formatPhoneNumber, true)}
+                handleSubmitForm={handleSubmitForm}
                 validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
                 clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
-                onModalHide={() => {}}
                 onClose={() => {
                     setIsValidateModalVisible(false);
                     quitAndNavigateBack();
                 }}
+                isVisible={isValidateModalVisible}
             />
         </TwoFactorAuthWrapper>
     );

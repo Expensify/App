@@ -134,7 +134,7 @@ function SecuritySettingsPage() {
                         showLockedAccountModal();
                         return;
                     }
-                    Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute());
+                    Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute(ROUTES.SETTINGS_SECURITY, ROUTES.SETTINGS_2FA_ROOT.getRoute()));
                 },
             },
             {
