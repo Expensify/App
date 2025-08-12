@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {render} from '@testing-library/react-native';
+import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -63,8 +64,11 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 type PersonalDetailsList = Record<string, PersonalDetails & OptionData>;
 
 const renderLocaleContextProvider = () => {
-    // @ts-expect-error TS2741: Property 'children' is missing
-    render(<ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]} />);
+    return render(
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+            <View>TEST</View>
+        </ComposeProviders>,
+    );
 };
 
 describe('OptionsListUtils', () => {

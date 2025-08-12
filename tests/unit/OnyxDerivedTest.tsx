@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {render} from '@testing-library/react-native';
+import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
@@ -17,8 +18,11 @@ import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const renderLocaleContextProvider = () => {
-    // @ts-expect-error TS2741: Property 'children' is missing
-    render(<ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]} />);
+    return render(
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+            <View>TEST</View>
+        </ComposeProviders>,
+    );
 };
 
 describe('OnyxDerived', () => {
