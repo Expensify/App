@@ -211,7 +211,12 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
                 }
                 case CONST.RESERVATION_TYPE.CAR: {
                     const days = differenceInCalendarDays(new Date(lastReservation.end.date), new Date(firstReservation.start.date));
-                    return `${days} ${days > 1 ? translate('travel.daysCarRental') : translate('travel.dayCarRental')}`;
+
+                    if (days > 0) {
+                        return `${days} ${days > 1 ? translate('common.days') : translate('common.day')}${translate('travel.carRental')}`;
+                    }
+
+                    return `${DateUtils.getFormattedDurationBetweenDates(translate, new Date(firstReservation.start.date), new Date(lastReservation.end.date))}${translate('travel.carRental')}`;
                 }
                 default:
                     return '';
