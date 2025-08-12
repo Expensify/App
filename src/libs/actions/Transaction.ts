@@ -584,14 +584,6 @@ function getRecentWaypoints() {
     return recentWaypoints;
 }
 
-function getAllTransactionViolationsLength() {
-    return allTransactionViolations.length;
-}
-
-function getAllTransactions() {
-    return Object.keys(allTransactions ?? {}).length;
-}
-
 /**
  * Returns a client generated 16 character hexadecimal value for the transactionID
  */
@@ -1069,8 +1061,6 @@ export {
     openDraftDistanceExpense,
     getRecentWaypoints,
     sanitizeRecentWaypoints,
-    getAllTransactionViolationsLength,
-    getAllTransactions,
     getLastModifiedExpense,
     revert,
     changeTransactionsReport,
