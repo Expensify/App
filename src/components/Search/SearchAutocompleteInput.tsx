@@ -250,32 +250,33 @@ function SearchAutocompleteInput(
                         selection={selection}
                     />
                 </View>
-                <Animated.View
-                    style={styles.pr3}
-                    layout={SearchFiltersButtonTransition}
-                >
-                    {value && !isSearchingForReports ? (
+
+                {value && !isSearchingForReports ? (
+                    <Animated.View
+                        style={styles.pr3}
+                        layout={SearchFiltersButtonTransition}
+                    >
                         <TextInputClearButton
                             onPressButton={clearFilters}
                             style={styles.mt0}
                         />
-                    ) : (
-                        <PressableWithoutFeedback
-                            accessibilityRole={CONST.ROLE.BUTTON}
-                            accessibilityLabel={CONST.ROLE.BUTTON}
-                            style={[styles.cursorAuto, styles.justifyContentCenter, styles.alignSelfStretch, !isSearchingForReports && styles.cursorText]}
-                            onPress={() => {
-                                textInput?.current?.focus();
-                            }}
-                        >
-                            <ActivityIndicator
-                                size="small"
-                                color={theme.iconSuccessFill}
-                                style={[styles.ml1, !isSearchingForReports && styles.opacity0]}
-                            />
-                        </PressableWithoutFeedback>
-                    )}
-                </Animated.View>
+                    </Animated.View>
+                ) : (
+                    <PressableWithoutFeedback
+                        accessibilityRole={CONST.ROLE.BUTTON}
+                        accessibilityLabel={CONST.ROLE.BUTTON}
+                        style={[styles.cursorAuto, styles.justifyContentCenter, styles.alignSelfStretch, !isSearchingForReports && styles.cursorText]}
+                        onPress={() => {
+                            textInput?.current?.focus();
+                        }}
+                    >
+                        <ActivityIndicator
+                            size="small"
+                            color={theme.iconSuccessFill}
+                            style={[styles.ml1, !isSearchingForReports && styles.opacity0]}
+                        />
+                    </PressableWithoutFeedback>
+                )}
             </Animated.View>
             <FormHelpMessage
                 style={styles.ph3}
