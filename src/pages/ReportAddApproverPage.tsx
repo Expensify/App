@@ -15,6 +15,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {changeReportApprover} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -73,6 +74,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                         keyForList: email,
                         isSelected: selectedApproverEmail === email,
                         login: email,
+                        value: accountID.toString(),
                         icons: [{source: avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
                         rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : undefined,
                     };
@@ -99,7 +101,14 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
 
     const shouldShowListEmptyContent = !debouncedSearchTerm && !sections.at(0)?.data.length;
 
-    const addApprover = useCallback(() => {}, []);
+    const addApprover = useCallback(() => {
+        const employeeAccountID = allApprovers.find((approver) => approver.login === selectedApproverEmail)?.value;
+        if (!selectedApproverEmail || !employeeAccountID) {
+            return;
+        }
+        changeReportApprover(report, selectedApproverEmail, Number(employeeAccountID));
+        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+    }, [allApprovers, selectedApproverEmail, report]);
 
     const button = useMemo(() => {
         return (

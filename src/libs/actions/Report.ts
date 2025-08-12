@@ -5891,6 +5891,68 @@ function assignCurrentUserAsApprover(report: OnyxEntry<Report>) {
     API.write(WRITE_COMMANDS.ASSIGN_REPORT_TO_ME, params, onyxData);
 }
 
+function changeReportApprover(report: OnyxEntry<Report>, newApproverEmail: string, newApproverAccountID: number) {
+    if (!report?.reportID) {
+        return;
+    }
+
+    const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID);
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+                value: {
+                    managerID: currentUserAccountID,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+                value: {
+                    [takeControlReportAction.reportActionID]: takeControlReportAction,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+                value: {
+                    [takeControlReportAction.reportActionID]: {
+                        pendingAction: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+                value: {
+                    managerID: report.managerID,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+                value: {
+                    [takeControlReportAction.reportActionID]: {
+                        pendingAction: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const params = {
+        reportID: report.reportID,
+        newApproverEmail,
+    };
+
+    API.write(WRITE_COMMANDS.ADD_REPORT_APPROVER, params, onyxData);
+}
+
 export type {Video, GuidedSetupData, TaskForParameters, IntroSelected};
 
 export {
@@ -6004,4 +6066,5 @@ export {
     removeFailedReport,
     openUnreportedExpense,
     assignCurrentUserAsApprover,
+    changeReportApprover,
 };
