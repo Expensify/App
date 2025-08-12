@@ -79,6 +79,9 @@ type MagicCodeInputProps = {
     /** Function to call when the input is changed  */
     onChangeText?: (value: string) => void;
 
+    /** Callback that is called when the text input is focused */
+    onFocus?: () => void;
+
     /** Function to call when the input is submitted or fully complete */
     onFulfill?: (value: string) => void;
 
@@ -137,6 +140,7 @@ function MagicCodeInput(
         errorText = '',
         shouldSubmitOnComplete = true,
         onChangeText: onChangeTextProp = () => {},
+        onFocus: onFocusProps,
         maxLength = CONST.MAGIC_CODE_LENGTH,
         onFulfill = () => {},
         isDisableKeyboard = false,
@@ -151,7 +155,7 @@ function MagicCodeInput(
     const StyleUtils = useStyleUtils();
     const inputRef = useRef<BaseTextInputRef | null>(null);
     const [input, setInput] = useState(TEXT_INPUT_EMPTY_STATE);
-    const [focusedIndex, setFocusedIndex] = useState<number | undefined>(0);
+    const [focusedIndex, setFocusedIndex] = useState<number | undefined>(autoFocus ? 0 : undefined);
     const editIndex = useRef(0);
     const [wasSubmitted, setWasSubmitted] = useState(false);
     const shouldFocusLast = useRef(false);
@@ -172,6 +176,14 @@ function MagicCodeInput(
         // to not have outdated values.
         valueRef.current = value;
     }, [value]);
+
+    useEffect(() => {
+        // Reset wasSubmitted when code becomes incomplete to allow retry attempts and fix issue where wasSubmitted didn't update on Android
+        if (value.length >= maxLength) {
+            return;
+        }
+        setWasSubmitted(false);
+    }, [value, maxLength]);
 
     const blurMagicCodeInput = () => {
         inputRef.current?.blur();
@@ -197,6 +209,7 @@ function MagicCodeInput(
         },
         focusLastSelected() {
             inputRef.current?.focus();
+            setFocusedIndex(lastFocusedIndex.current);
         },
         resetFocus() {
             setInput(TEXT_INPUT_EMPTY_STATE);
@@ -248,6 +261,7 @@ function MagicCodeInput(
             lastValue.current = TEXT_INPUT_EMPTY_STATE;
             setInputAndIndex(lastFocusedIndex.current);
         }
+        onFocusProps?.();
         event.preventDefault();
     };
 
@@ -471,7 +485,7 @@ function MagicCodeInput(
                             inputStyle={[styles.inputTransparent]}
                             role={CONST.ROLE.PRESENTATION}
                             style={[styles.inputTransparent]}
-                            textInputContainerStyles={[styles.borderNone, styles.bgTransparent]}
+                            textInputContainerStyles={[styles.borderTransparent, styles.bgTransparent]}
                             testID={testID}
                         />
                     </View>
