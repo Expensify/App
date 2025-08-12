@@ -80,6 +80,10 @@ No. Expensify does not charge you to add or use a personal account. It’s inclu
 
 ## Are there countries where personal bank accounts aren’t supported?
 
-Yes. Expensify supports personal bank accounts from 190+ countries, but there’s a small number not supported. The full list of supported countries is available when adding a personal bank account. 
+Yes. Expensify supports personal bank accounts from 190+ countries, but there’s a small number not supported. The full list of supported countries is available when adding a personal bank account.
+
+## Why can't I add my HSBC bank account details in Singapore?
+
+You can. HSBC typically includes the **branch code** which is the final three digits of the Swift Code (HSBCSGS2XXX) in their "Account Number". If you see figures like "146172002492", please drop first 3 digit (146) which is the Branch Code.
 
 </div>
