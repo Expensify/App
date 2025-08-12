@@ -6,12 +6,28 @@ type TransactionThreadParams = {
     parentReportActionID?: string;
 };
 
+// Timer ID to automatically clear params after a delay
+let clearTimer: NodeJS.Timeout | null = null;
+
 /**
  * Sets transaction thread parameters in session storage
+ * Automatically clears the params after 1000ms
  */
 function setParams(params: TransactionThreadParams): void {
     try {
+        // Clear any existing timer
+        if (clearTimer) {
+            clearTimeout(clearTimer);
+            clearTimer = null;
+        }
+
         sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.TRANSACTION_THREAD_PARAMS, JSON.stringify(params));
+
+        // Set a timer to automatically clear the params after 1000ms
+        clearTimer = setTimeout(() => {
+            clearParams();
+            clearTimer = null;
+        }, 1000);
     } catch (error) {
         Log.warn('Failed to set transaction thread params in sessionStorage:');
     }
@@ -34,9 +50,23 @@ function getParams(): TransactionThreadParams {
     }
 }
 
+function clearParams(): void {
+    try {
+        if (clearTimer) {
+            clearTimeout(clearTimer);
+            clearTimer = null;
+        }
+
+        sessionStorage.removeItem(CONST.SESSION_STORAGE_KEYS.TRANSACTION_THREAD_PARAMS);
+    } catch (error) {
+        Log.warn('Failed to clear transaction thread params from sessionStorage:');
+    }
+}
+
 export default {
     setParams,
     getParams,
+    clearParams,
 };
 
 export type {TransactionThreadParams};
