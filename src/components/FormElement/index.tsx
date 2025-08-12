@@ -2,7 +2,7 @@ import type {ForwardedRef} from 'react';
 import React, {useEffect, useRef} from 'react';
 import type {ViewProps} from 'react-native';
 import {View} from 'react-native';
-import * as ComponentUtils from '@libs/ComponentUtils';
+import {ACCESSIBILITY_ROLE_FORM} from '@libs/ComponentUtils/index';
 import mergeRefs from '@libs/mergeRefs';
 
 type FormElementProps = ViewProps & {
@@ -42,7 +42,7 @@ function FormElement({ref, ...props}: FormElementProps) {
 
     return (
         <View
-            role={ComponentUtils.ACCESSIBILITY_ROLE_FORM}
+            role={ACCESSIBILITY_ROLE_FORM}
             ref={mergedRef}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
