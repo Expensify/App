@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type {SearchDateFilterKeys, SearchGroupBy} from '@components/Search/types';
+import type {SearchDateFilterKeys, SearchGroupBy, SearchWithdrawalType} from '@components/Search/types';
 import CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type Form from './Form';
@@ -11,6 +11,7 @@ const DATE_FILTER_KEYS: SearchDateFilterKeys[] = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
 ];
 
 const FILTER_KEYS = {
@@ -35,6 +36,10 @@ const FILTER_KEYS = {
     POSTED_ON: 'postedOn',
     POSTED_AFTER: 'postedAfter',
     POSTED_BEFORE: 'postedBefore',
+    WITHDRAWAL_TYPE: 'withdrawalType',
+    WITHDRAWN_ON: 'withdrawnOn',
+    WITHDRAWN_AFTER: 'withdrawnAfter',
+    WITHDRAWN_BEFORE: 'withdrawnBefore',
     CURRENCY: 'currency',
     CATEGORY: 'category',
     POLICY_ID: 'policyID',
@@ -82,9 +87,14 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.PAYER,
         FILTER_KEYS.DESCRIPTION,
         FILTER_KEYS.CARD_ID,
+        FILTER_KEYS.FEED,
         FILTER_KEYS.POSTED_AFTER,
         FILTER_KEYS.POSTED_BEFORE,
         FILTER_KEYS.POSTED_ON,
+        FILTER_KEYS.WITHDRAWAL_TYPE,
+        FILTER_KEYS.WITHDRAWN_AFTER,
+        FILTER_KEYS.WITHDRAWN_BEFORE,
+        FILTER_KEYS.WITHDRAWN_ON,
         FILTER_KEYS.TAX_RATE,
         FILTER_KEYS.REIMBURSABLE,
         FILTER_KEYS.BILLABLE,
@@ -101,6 +111,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.EXPORTED_AFTER,
         FILTER_KEYS.EXPORTED_BEFORE,
         FILTER_KEYS.EXPORTED_ON,
+        FILTER_KEYS.EXPORTER,
         FILTER_KEYS.GROUP_BY,
         FILTER_KEYS.FEED,
         FILTER_KEYS.ACTION,
@@ -124,9 +135,14 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.PAYER,
         FILTER_KEYS.DESCRIPTION,
         FILTER_KEYS.CARD_ID,
+        FILTER_KEYS.FEED,
         FILTER_KEYS.POSTED_AFTER,
         FILTER_KEYS.POSTED_BEFORE,
         FILTER_KEYS.POSTED_ON,
+        FILTER_KEYS.WITHDRAWAL_TYPE,
+        FILTER_KEYS.WITHDRAWN_AFTER,
+        FILTER_KEYS.WITHDRAWN_BEFORE,
+        FILTER_KEYS.WITHDRAWN_ON,
         FILTER_KEYS.TAX_RATE,
         FILTER_KEYS.REPORT_ID,
         FILTER_KEYS.SUBMITTED_ON,
@@ -141,6 +157,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.EXPORTED_AFTER,
         FILTER_KEYS.EXPORTED_BEFORE,
         FILTER_KEYS.EXPORTED_ON,
+        FILTER_KEYS.EXPORTER,
         FILTER_KEYS.ACTION,
     ],
     [CONST.SEARCH.DATA_TYPES.TRIP]: [
@@ -162,6 +179,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.PAYER,
         FILTER_KEYS.DESCRIPTION,
         FILTER_KEYS.CARD_ID,
+        FILTER_KEYS.FEED,
         FILTER_KEYS.POSTED_AFTER,
         FILTER_KEYS.POSTED_BEFORE,
         FILTER_KEYS.POSTED_ON,
@@ -179,6 +197,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.EXPORTED_AFTER,
         FILTER_KEYS.EXPORTED_BEFORE,
         FILTER_KEYS.EXPORTED_ON,
+        FILTER_KEYS.EXPORTER,
         FILTER_KEYS.GROUP_BY,
         FILTER_KEYS.FEED,
         FILTER_KEYS.ACTION,
@@ -235,6 +254,10 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.POSTED_ON]: string;
         [FILTER_KEYS.POSTED_AFTER]: string;
         [FILTER_KEYS.POSTED_BEFORE]: string;
+        [FILTER_KEYS.WITHDRAWAL_TYPE]: SearchWithdrawalType;
+        [FILTER_KEYS.WITHDRAWN_ON]: string;
+        [FILTER_KEYS.WITHDRAWN_AFTER]: string;
+        [FILTER_KEYS.WITHDRAWN_BEFORE]: string;
         [FILTER_KEYS.CURRENCY]: string[];
         [FILTER_KEYS.CATEGORY]: string[];
         [FILTER_KEYS.POLICY_ID]: string[];

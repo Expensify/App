@@ -37,19 +37,21 @@ const reportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
         stateNum: report.stateNum,
         statusNum: report.statusNum,
         type: report.type,
+        pendingFields: report.pendingFields,
     };
 
 type Props = {
     backTo: Route | undefined;
     transactionsReports: Report[];
+    policyID?: string;
     selectReport: (item: TransactionGroupListItem) => void;
     removeFromReport?: () => void;
     isEditing?: boolean;
     isUnreported?: boolean;
 };
 
-function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, removeFromReport, isEditing = false, isUnreported}: Props) {
-    const {translate} = useLocalize();
+function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, policyID: policyIDFromProps, removeFromReport, isEditing = false, isUnreported}: Props) {
+    const {translate, localeCompare} = useLocalize();
     const {options} = useOptionsList();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => mapOnyxCollectionItems(reports, reportSelector), canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
@@ -66,7 +68,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
     const expenseReports = useMemo(
         () =>
             Object.values(allPoliciesID ?? {}).flatMap((policyID) => {
-                if (!policyID) {
+                if (!policyID || (policyIDFromProps && policyID !== policyIDFromProps)) {
                     return [];
                 }
                 const reports = getOutstandingReportsForUser(
@@ -74,10 +76,11 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
                     transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID,
                     allReports ?? {},
                     reportNameValuePairs,
+                    isEditing,
                 );
                 return reports;
             }),
-        [allReports, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID, reportNameValuePairs],
+        [allReports, currentUserPersonalDetails.accountID, transactionsReports, isEditing, allPoliciesID, reportNameValuePairs, policyIDFromProps],
     );
 
     const reportOptions: TransactionGroupListItem[] = useMemo(() => {
@@ -86,19 +89,22 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
         }
 
         return expenseReports
-            .sort((report1, report2) => sortOutstandingReportsBySelected(report1, report2, onlyReport?.reportID))
+            .sort((report1, report2) => sortOutstandingReportsBySelected(report1, report2, onlyReport?.reportID, localeCompare))
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
             .filter((report): report is NonNullable<typeof report> => report !== undefined)
             .map((report) => {
                 const matchingOption = options.reports.find((option) => option.reportID === report.reportID);
                 return {
                     ...matchingOption,
+                    // We are shallow copying properties from matchingOption, so if it has a brickRoadIndicator, it will display RBR.
+                    // We set it to null here to prevent showing RBR for reports https://github.com/Expensify/App/issues/65960.
+                    brickRoadIndicator: null,
                     alternateText: getPolicyName({report}) ?? matchingOption?.alternateText,
                     value: report.reportID,
                     isSelected: onlyReport && report.reportID === onlyReport?.reportID,
                 };
             });
-    }, [allReports, debouncedSearchValue, expenseReports, onlyReport, options.reports]);
+    }, [allReports, debouncedSearchValue, expenseReports, onlyReport, options.reports, localeCompare]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
