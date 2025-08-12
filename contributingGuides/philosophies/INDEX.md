@@ -7,3 +7,4 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 ## Contents
 * [Offline Philosophy](contributingGuides/philosophies/OFFLINE.md)
 * [Routing Philosophy](contributingGuides/philosophies/ROUTING.md)
+* [Cross-Platform Philosophy](contributingGuides/philosophies/CROSS-PLATFORM.md)
