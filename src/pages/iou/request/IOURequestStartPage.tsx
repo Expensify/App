@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -14,6 +14,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissProductTraining} from '@libs/actions/Welcome';
+import {isMobile} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -115,8 +116,26 @@ function IOURequestStartPage({
         Navigation.closeRHPFlow();
     };
 
+    // This useEffect is used to initialize the money request, so that currency will be reset to default currency on page reload.
+    useEffect(() => {
+        if (transaction?.amount !== 0) {
+            return;
+        }
+        initMoneyRequest({
+            reportID,
+            policy,
+            isFromGlobalCreate,
+            currentIouRequestType: transaction?.iouRequestType,
+            newIouRequestType: transaction?.iouRequestType,
+            report,
+            parentReport,
+        });
+        // eslint-disable-next-line
+    }, []);
+
     const resetIOUTypeIfChanged = useCallback(
         (newIOUType: IOURequestType) => {
+            Keyboard.dismiss();
             if (transaction?.iouRequestType === newIOUType) {
                 return;
             }
@@ -179,6 +198,7 @@ function IOURequestStartPage({
         >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
+                shouldEnableMaxHeight={selectedTab === CONST.TAB_REQUEST.PER_DIEM}
                 shouldEnableMinHeight={canUseTouchScreen()}
                 headerGapStyles={isDraggingOver ? styles.dropWrapper : []}
                 testID={IOURequestStartPage.displayName}
@@ -211,7 +231,8 @@ function IOURequestStartPage({
                                 shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
                                 renderProductTrainingTooltip={renderProductTrainingTooltip}
                                 lazyLoadEnabled
-                                disableSwipe={isMultiScanEnabled && selectedTab === CONST.TAB_REQUEST.SCAN}
+                                // We're disabling swipe on mWeb fo the Per Diem tab because the keyboard will hang on the other tab after switching
+                                disableSwipe={(isMultiScanEnabled && selectedTab === CONST.TAB_REQUEST.SCAN) || (selectedTab === CONST.TAB_REQUEST.PER_DIEM && isMobile())}
                             >
                                 <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
                                     {() => (

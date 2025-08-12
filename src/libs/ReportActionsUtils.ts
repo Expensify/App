@@ -372,6 +372,10 @@ function isReopenedAction(reportAction: OnyxEntry<ReportAction>): reportAction i
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REOPENED);
 }
 
+function isRetractedAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RETRACTED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.RETRACTED);
+}
+
 function isRoomChangeLogAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>> {
     return reportAction?.actionName ? ROOM_CHANGE_LOG_ARRAY.has(reportAction.actionName) : false;
 }
@@ -733,12 +737,6 @@ function isActionableMentionWhisper(reportAction: OnyxEntry<ReportAction>): repo
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER);
 }
 
-function isActionableMentionInviteToSubmitExpenseConfirmWhisper(
-    reportAction: OnyxEntry<ReportAction>,
-): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER);
-}
-
 /**
  * Checks if a given report action corresponds to an actionable report mention whisper.
  * @param reportAction
@@ -844,6 +842,10 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
 
     // If action is actionable whisper and resolved by user, then we don't want to render anything
     if (isActionableWhisper(reportAction) && isResolvedActionableWhisper(reportAction)) {
+        return false;
+    }
+
+    if (!isVisiblePreviewOrMoneyRequest(reportAction)) {
         return false;
     }
 
@@ -990,14 +992,24 @@ function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions
 }
 
 /**
- * Helper for filtering out Report Actions that are either:
+ * Determines whether a report action should be visible in the report view.
+ * Filters out:
  * - ReportPreview with shouldShow set to false and without a pending action
  * - Money request with parent action deleted
  */
+function isVisiblePreviewOrMoneyRequest(action: ReportAction): boolean {
+    const isDeletedMoneyRequest = isDeletedParentAction(action) && isMoneyRequestAction(action);
+    const isHiddenReportPreviewWithoutPendingAction = isReportPreviewAction(action) && action.pendingAction === undefined && !action.shouldShow;
+
+    return !isDeletedMoneyRequest && !isHiddenReportPreviewWithoutPendingAction;
+}
+
+/**
+ * Helper for filtering out report actions that should not be displayed in the report view.
+ * Delegates visibility logic to isVisiblePreviewOrMoneyRequest.
+ */
 function getFilteredReportActionsForReportView(actions: ReportAction[]) {
-    const isDeletedMoneyRequest = (action: ReportAction) => isDeletedParentAction(action) && isMoneyRequestAction(action);
-    const isHiddenReportPreviewWithoutPendingAction = (action: ReportAction) => isReportPreviewAction(action) && action.pendingAction === undefined && !action.shouldShow;
-    return actions.filter((action) => !isDeletedMoneyRequest(action) && !isHiddenReportPreviewWithoutPendingAction(action));
+    return actions.filter(isVisiblePreviewOrMoneyRequest);
 }
 
 /**
@@ -1362,17 +1374,6 @@ function isReportActionAttachment(reportAction: OnyxInputOrEntry<ReportAction>):
     return false;
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
-function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
-    if (!reportAction) {
-        return false;
-    }
-
-    const actions: ReportActionName[] = [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE];
-
-    return actions.includes(reportAction.actionName);
-}
-
 // We pass getReportName as a param to avoid cyclic dependency.
 function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>, getReportNameCallback: typeof getReportName): readonly MemberChangeMessageElement[] {
     const isInviteAction = isInviteMemberAction(reportAction);
@@ -1398,7 +1399,7 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>, g
 
     const mentionElements = targetAccountIDs.map((accountID): MemberChangeMessageUserMentionElement => {
         const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
-        const handleText = getEffectiveDisplayName(personalDetail) ?? translateLocal('common.hidden');
+        const handleText = getEffectiveDisplayName(formatPhoneNumber, personalDetail) ?? translateLocal('common.hidden');
 
         return {
             kind: 'userMention',
@@ -1474,7 +1475,6 @@ function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
     return [
         CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
         CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE,
-        CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT,
         CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV,
         CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
         CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT,
@@ -1527,10 +1527,6 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
                 return translateLocal('report.actions.type.changeFieldEmpty', {newValue, fieldName});
             }
             return translateLocal('report.actions.type.changeField', {oldValue, newValue, fieldName});
-        }
-        case CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT: {
-            const {delegateUser, originalManager} = originalMessage;
-            return translateLocal('report.actions.type.delegateSubmit', {delegateUser, originalManager});
         }
         case CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV:
             return translateLocal('report.actions.type.exportedToCSV');
@@ -1862,7 +1858,7 @@ function getActionableMentionWhisperMessage(reportAction: OnyxEntry<ReportAction
     const personalDetails = getPersonalDetailsByIDs({accountIDs: targetAccountIDs, currentUserAccountID: 0});
     const mentionElements = targetAccountIDs.map((accountID): string => {
         const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
-        const displayName = getEffectiveDisplayName(personalDetail);
+        const displayName = getEffectiveDisplayName(formatPhoneNumber, personalDetail);
         const handleText = isEmpty(displayName) ? translateLocal('common.hidden') : displayName;
         return `<mention-user accountID=${accountID}>@${handleText}</mention-user>`;
     });
@@ -1889,9 +1885,9 @@ function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTim
  * Check whether the current report action of the report is unread or not
  *
  */
-function isCurrentActionUnread(report: OnyxEntry<Report>, reportAction: ReportAction): boolean {
+function isCurrentActionUnread(report: OnyxEntry<Report>, reportAction: ReportAction, visibleReportActions?: ReportAction[]): boolean {
     const lastReadTime = report?.lastReadTime ?? '';
-    const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(report?.reportID)));
+    const sortedReportActions = visibleReportActions ?? getSortedReportActions(Object.values(getAllReportActions(report?.reportID)));
     const currentActionIndex = sortedReportActions.findIndex((action) => action.reportActionID === reportAction.reportActionID);
     if (currentActionIndex === -1) {
         return false;
@@ -2888,10 +2884,6 @@ function getCardIssuedMessage({
     }
 }
 
-function getReportActionsLength() {
-    return Object.keys(allReportActions ?? {}).length;
-}
-
 function getReportActions(report: Report) {
     return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
 }
@@ -2947,6 +2939,30 @@ function getIntegrationSyncFailedMessage(action: OnyxEntry<ReportAction>, policy
     return translateLocal('report.actions.type.integrationSyncFailed', {label, errorMessage, workspaceAccountingLink});
 }
 
+function getManagerOnVacation(action: OnyxEntry<ReportAction>): string | undefined {
+    if (!isApprovedAction(action)) {
+        return;
+    }
+
+    return getOriginalMessage(action)?.managerOnVacation;
+}
+
+function getVacationer(action: OnyxEntry<ReportAction>): string | undefined {
+    if (!isSubmittedAction(action)) {
+        return;
+    }
+
+    return getOriginalMessage(action)?.vacationer;
+}
+
+function getSubmittedTo(action: OnyxEntry<ReportAction>): string | undefined {
+    if (!isSubmittedAction(action)) {
+        return;
+    }
+
+    return getOriginalMessage(action)?.to;
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -2997,7 +3013,6 @@ export {
     isActionableJoinRequest,
     isActionableJoinRequestPending,
     isActionableMentionWhisper,
-    isActionableMentionInviteToSubmitExpenseConfirmWhisper,
     isActionableReportMentionWhisper,
     isActionableTrackExpense,
     isExpenseChatWelcomeWhisper,
@@ -3025,7 +3040,6 @@ export {
     isModifiedExpenseAction,
     isMovedTransactionAction,
     isMoneyRequestAction,
-    isNotifiableReportAction,
     isOldDotReportAction,
     isPayAction,
     isPendingRemove,
@@ -3079,7 +3093,6 @@ export {
     getCardIssuedMessage,
     getRemovedConnectionMessage,
     getActionableJoinRequestPendingReportAction,
-    getReportActionsLength,
     getFilteredReportActionsForReportView,
     wasMessageReceivedWhileOffline,
     shouldShowAddMissingDetails,
@@ -3113,7 +3126,11 @@ export {
     getRetractedMessage,
     getReportActionFromExpensifyCard,
     isReopenedAction,
+    isRetractedAction,
     getIntegrationSyncFailedMessage,
+    getManagerOnVacation,
+    getVacationer,
+    getSubmittedTo,
     getReceiptScanFailedMessage,
 };
 
