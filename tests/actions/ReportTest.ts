@@ -11,7 +11,6 @@ import HttpUtils from '@libs/HttpUtils';
 import {buildNextStep} from '@libs/NextStepUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
-import {add, clearByKey} from '@src/libs/actions/CachedPDFPaths';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
 import * as Report from '@src/libs/actions/Report';
@@ -35,11 +34,6 @@ import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 jest.mock('@libs/NextStepUtils', () => ({
     buildNextStep: jest.fn(),
-}));
-
-jest.mock('react-native-fs', () => ({
-    exists: jest.fn(),
-    unlink: jest.fn(),
 }));
 
 jest.mock('@libs/ReportUtils', () => {
@@ -487,7 +481,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // If the user deletes a comment that is before the last read
-                Report.deleteReportComment(REPORT_ID, {...reportActions[200]}, {});
+                Report.deleteReportComment(REPORT_ID, {...reportActions[200]});
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -505,7 +499,7 @@ describe('actions/Report', () => {
                 expect(report?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActions[400].created, 1));
 
                 // If the user deletes the last comment after the lastReadTime the lastMessageText will reflect the new last comment
-                Report.deleteReportComment(REPORT_ID, {...reportActions[400]}, {});
+                Report.deleteReportComment(REPORT_ID, {...reportActions[400]});
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -929,7 +923,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, newReportAction, {});
+        Report.deleteReportComment(REPORT_ID, newReportAction);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -987,7 +981,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, reportAction, {});
+        Report.deleteReportComment(REPORT_ID, reportAction);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -1036,7 +1030,7 @@ describe('actions/Report', () => {
                 }),
             );
 
-        Report.deleteReportComment(REPORT_ID, reportAction, {});
+        Report.deleteReportComment(REPORT_ID, reportAction);
 
         jest.runOnlyPendingTimers();
         await waitForBatchedUpdates();
@@ -1098,7 +1092,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, newReportAction, {});
+        Report.deleteReportComment(REPORT_ID, newReportAction);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1167,7 +1161,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, newReportAction, {});
+        Report.deleteReportComment(REPORT_ID, newReportAction);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1264,7 +1258,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, newReportAction, {});
+        Report.deleteReportComment(REPORT_ID, newReportAction);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1347,7 +1341,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, reportAction, {});
+        Report.deleteReportComment(REPORT_ID, reportAction);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -1391,7 +1385,7 @@ describe('actions/Report', () => {
             reportActionID,
         );
 
-        Report.deleteReportComment(REPORT_ID, reportAction, {});
+        Report.deleteReportComment(REPORT_ID, reportAction);
 
         expect(PersistedRequests.getAll().length).toBe(3);
 
@@ -1524,8 +1518,8 @@ describe('actions/Report', () => {
             lastMentionedTime: mentionAction2.created,
         });
 
-        Report.deleteReportComment(reportID, mentionAction, {});
-        Report.deleteReportComment(reportID, mentionAction2, {});
+        Report.deleteReportComment(reportID, mentionAction);
+        Report.deleteReportComment(reportID, mentionAction2);
 
         await waitForBatchedUpdates();
 
@@ -1925,144 +1919,6 @@ describe('actions/Report', () => {
             const upperCaseRequest = PersistedRequests.getAll().at(0);
             const lowerCaseRequest = PersistedRequests.getAll().at(1);
             expect(upperCaseRequest?.data?.searchInput).toBe(lowerCaseRequest?.data?.searchInput);
-        });
-    });
-
-    describe('CachedPDFPaths functionality', () => {
-        // Import mocked functions with proper typing
-        const mockFs = jest.requireMock<{
-            exists: jest.MockedFunction<(path: string) => Promise<boolean>>;
-            unlink: jest.MockedFunction<(path: string) => Promise<void>>;
-        }>('react-native-fs');
-        const {exists: mockExists, unlink: mockUnlink} = mockFs;
-
-        beforeEach(() => {
-            jest.clearAllMocks();
-        });
-
-        describe('add function', () => {
-            it('should add new PDF path to cache because caching PDF paths is needed for cleanup', async () => {
-                // Given a new PDF ID and path
-                const id = 'pdf123';
-                const path = '/path/to/pdf.pdf';
-                const existingPaths = {};
-
-                // When adding the PDF path
-                await add(id, path, existingPaths);
-
-                await waitForBatchedUpdates();
-
-                // Then it should merge the path into Onyx cache
-                const cachedPaths = await new Promise<Record<string, string>>((resolve) => {
-                    const connection = Onyx.connect({
-                        key: ONYXKEYS.CACHED_PDF_PATHS,
-                        callback: (val) => {
-                            Onyx.disconnect(connection);
-                            resolve(val ?? {});
-                        },
-                    });
-                });
-
-                expect(cachedPaths[id]).toBe(path);
-            });
-
-            it('should not add duplicate PDF path because existing cached paths should not be overwritten', async () => {
-                // Given an existing PDF ID in cache
-                const id = 'pdf123';
-                const path = '/path/to/pdf.pdf';
-                const existingPath = '/existing/path.pdf';
-                const existingPaths = {[id]: existingPath};
-
-                // When attempting to add the same ID
-                await add(id, path, existingPaths);
-
-                await waitForBatchedUpdates();
-
-                // Then it should resolve immediately without changing cache
-                const cachedPaths = await new Promise<Record<string, string>>((resolve) => {
-                    const connection = Onyx.connect({
-                        key: ONYXKEYS.CACHED_PDF_PATHS,
-                        callback: (val) => {
-                            Onyx.disconnect(connection);
-                            resolve(val ?? {});
-                        },
-                    });
-                });
-
-                // Should not have the new path since it was skipped
-                expect(cachedPaths[id]).not.toBe(path);
-            });
-        });
-
-        describe('clearByKey function', () => {
-            it('should clear cached PDF by key and remove from Onyx because specific PDFs need targeted cleanup', async () => {
-                // Given a cached PDF with specific ID
-                const id = 'pdf123';
-                const path = '/path/to/cached.pdf';
-                const pdfPaths = {[id]: path};
-                mockExists.mockResolvedValue(true);
-                mockUnlink.mockResolvedValue();
-
-                // When clearing by key
-                clearByKey(id, pdfPaths);
-
-                // Allow promises to resolve
-                await new Promise<void>((resolve) => {
-                    setTimeout(() => {
-                        resolve();
-                    }, 10);
-                });
-                await waitForBatchedUpdates();
-
-                // Then it should clear the file and remove from cache
-                expect(mockExists).toHaveBeenCalledWith(path);
-                expect(mockUnlink).toHaveBeenCalledWith(path);
-
-                const cachedPaths = await new Promise<Record<string, string>>((resolve) => {
-                    const connection = Onyx.connect({
-                        key: ONYXKEYS.CACHED_PDF_PATHS,
-                        callback: (val) => {
-                            Onyx.disconnect(connection);
-                            resolve(val ?? {});
-                        },
-                    });
-                });
-
-                expect(cachedPaths[id]).toBeUndefined();
-            });
-
-            it('should handle missing key gracefully because nonexistent keys should not cause errors', async () => {
-                // Given PDF paths without the target key
-                const id = 'nonexistent';
-                const pdfPaths = {other: '/other/path.pdf'};
-
-                // When clearing by missing key
-                clearByKey(id, pdfPaths);
-
-                // Allow promises to resolve
-                await new Promise<void>((resolve) => {
-                    setTimeout(() => {
-                        resolve();
-                    }, 10);
-                });
-                await waitForBatchedUpdates();
-
-                // Then it should still remove the key from cache even if no file to clear
-                expect(mockExists).not.toHaveBeenCalled();
-                expect(mockUnlink).not.toHaveBeenCalled();
-
-                const cachedPaths = await new Promise<Record<string, string>>((resolve) => {
-                    const connection = Onyx.connect({
-                        key: ONYXKEYS.CACHED_PDF_PATHS,
-                        callback: (val) => {
-                            Onyx.disconnect(connection);
-                            resolve(val ?? {});
-                        },
-                    });
-                });
-
-                expect(cachedPaths[id]).toBeUndefined();
-            });
         });
     });
 });

@@ -7,7 +7,15 @@ import type {Add, Clear, ClearByKey} from './types';
  * We need to save the paths of PDF files so we can delete them later.
  * This is to remove the cached PDFs when an attachment is deleted or the user logs out.
  */
-const add: Add = (id: string, path: string, pdfPaths: Record<string, string>) => {
+let pdfPaths: Record<string, string> = {};
+Onyx.connect({
+    key: ONYXKEYS.CACHED_PDF_PATHS,
+    callback: (val) => {
+        pdfPaths = val ?? {};
+    },
+});
+
+const add: Add = (id: string, path: string) => {
     if (pdfPaths[id]) {
         return Promise.resolve();
     }
@@ -28,7 +36,7 @@ const clear: Clear = (path: string) => {
     });
 };
 
-const clearByKey: ClearByKey = (id: string, pdfPaths: Record<string, string>) => {
+const clearByKey: ClearByKey = (id: string) => {
     clear(pdfPaths[id] ?? '').then(() => Onyx.merge(ONYXKEYS.CACHED_PDF_PATHS, {[id]: null}));
 };
 
