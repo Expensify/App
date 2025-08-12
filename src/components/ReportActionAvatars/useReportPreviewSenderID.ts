@@ -6,6 +6,7 @@ import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isDM} from '@libs/ReportUtils';
+import {getCurrentUserAccountID} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, Transaction} from '@src/types/onyx';
@@ -46,6 +47,10 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`, {
         canBeMissing: true,
     });
+
+    if (action?.isOptimisticAction && action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+        return getCurrentUserAccountID();
+    }
 
     // 1. If all amounts have the same sign - either all amounts are positive or all amounts are negative.
     // We have to do it this way because there can be a case when actions are not available

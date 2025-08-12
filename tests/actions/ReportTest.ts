@@ -1593,21 +1593,8 @@ describe('actions/Report', () => {
             });
         });
 
-        // Temporarily skip the quick action test to see if other parts work
-        await new Promise<void>((resolve) => {
-            const connection = Onyx.connect({
-                key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-                callback: (quickAction) => {
-                    Onyx.disconnect(connection);
-
-                    // Then the quickAction.action should be set to CREATE_REPORT
-                    expect(quickAction?.action).toBe(CONST.QUICK_ACTIONS.CREATE_REPORT);
-                    expect(quickAction?.chatReportID).toBe('1234');
-                    resolve();
-                },
-            });
-        });
         mockAxios?.resume();
+
         await waitForBatchedUpdates();
         // Then the onyx data should be reverted to the state before the request
         await new Promise<void>((resolve) => {

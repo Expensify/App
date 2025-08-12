@@ -95,10 +95,10 @@ type SearchContext = SearchContextData & {
     setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
     lastSearchType: string | undefined;
-    shouldShowExportModeOption: boolean;
-    setShouldShowExportModeOption: (shouldShow: boolean) => void;
-    isExportMode: boolean;
-    setExportMode: (on: boolean) => void;
+    showSelectAllMatchingItems: boolean;
+    shouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
+    areAllMatchingItemsSelected: boolean;
+    selectAllMatchingItems: (on: boolean) => void;
 };
 
 type ASTNode = {
@@ -120,7 +120,8 @@ type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED;
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN;
 
 type SearchFilterKey =
     | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
