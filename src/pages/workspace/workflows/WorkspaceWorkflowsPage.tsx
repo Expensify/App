@@ -119,13 +119,14 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
         } else {
             updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
-            if (hasValidExistingAccounts) {
+            const hasValidExistingUSDAccounts = filterValidExistingAccounts(bankAccountList, CONST.CURRENCY.USD).length > 0;
+            if (hasValidExistingUSDAccounts) {
                 Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.getRoute(route.params.policyID));
             } else {
                 navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
             }
         }
-    }, [hasValidExistingAccounts, isBetaEnabled, policy, route.params.policyID]);
+    }, [bankAccountList, isBetaEnabled, policy, route.params.policyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const isPolicyAdmin = isPolicyAdminUtil(policy);
