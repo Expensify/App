@@ -21,7 +21,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/actions/Report';
+import {navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs, searchInServer, setGroupDraft} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import memoize from '@libs/memoize';
@@ -287,6 +287,12 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
                 login = option.login;
             } else if (selectedOptions.length === 1) {
                 login = selectedOptions.at(0)?.login ?? '';
+            }
+            // Prefer using accountID when available to correctly resolve secondary logins
+            const accountID = option?.accountID ?? selectedOptions.at(0)?.accountID;
+            if (accountID && accountID !== CONST.DEFAULT_NUMBER_ID) {
+                KeyboardUtils.dismiss().then(() => navigateToAndOpenReportWithAccountIDs([accountID]));
+                return;
             }
             if (!login) {
                 Log.warn('Tried to create chat with empty login');
