@@ -58,7 +58,7 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxP
                             subscriptCardFeed={cardItem.bank as CompanyCardFeed}
                             subscriptAvatarBorderColor={backgroundColor}
                             noRightMarginOnSubscriptContainer
-                            reportID={cardItem.reportID}
+                            accountIDs={[cardItem.accountID]}
                         />
                         <View style={[styles.gapHalf]}>
                             <TextWithTooltip

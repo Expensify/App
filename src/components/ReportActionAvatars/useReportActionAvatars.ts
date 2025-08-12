@@ -261,7 +261,7 @@ function useReportActionAvatars({
         secondaryAvatar = secondUserFallbackAvatar;
     }
 
-    const shouldUseMappedAccountIDs = avatarsForAccountIDs.length > 0 && (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE || shouldUseActorAccountID);
+    const shouldUseMappedAccountIDs = avatarsForAccountIDs.length > 0 && (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE || shouldUseActorAccountID || shouldUseCardFeed);
     const shouldUsePrimaryAvatarID = isWorkspaceActor && !!primaryAvatar.id;
     const shouldUseInvoiceExpenseIcons = isWorkspaceExpense && isNestedInInvoiceReport && !!accountID;
 
