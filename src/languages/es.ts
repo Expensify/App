@@ -6042,7 +6042,7 @@ const translations = {
             groupBy: {
                 reports: 'Informe',
                 from: 'De',
-                cards: 'Tarjeta',
+                card: 'Tarjeta',
             },
             feed: 'Feed',
             withdrawalType: {

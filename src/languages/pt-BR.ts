@@ -6054,7 +6054,7 @@ const translations = {
             groupBy: {
                 reports: 'Relatório',
                 from: 'De',
-                cards: 'Cartão',
+                card: 'Cartão',
             },
             feed: 'Feed',
             withdrawalType: {

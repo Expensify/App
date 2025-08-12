@@ -6305,7 +6305,7 @@ const CONST = {
         GROUP_BY: {
             REPORTS: 'reports',
             FROM: 'from',
-            CARDS: 'cards',
+            CARD: 'card',
         },
         BOOLEAN: {
             YES: 'yes',

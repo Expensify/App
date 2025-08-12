@@ -44,6 +44,7 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import type {
     ListItemDataType,
     ListItemType,
+    SearchCardGroup,
     SearchDataTypes,
     SearchMemberGroup,
     SearchPersonalDetails,
@@ -357,6 +358,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 feed: defaultFeedID ? [defaultFeedID] : [''],
                 status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+                groupBy: CONST.SEARCH.GROUP_BY.CARD,
             }),
             get hash() {
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
@@ -557,7 +559,7 @@ function isTransactionMemberGroupListItemType(item: ListItem): item is Transacti
  * Type guard that checks if something is a TransactionCardGroupListItemType
  */
 function isTransactionCardGroupListItemType(item: ListItem): item is TransactionCardGroupListItemType {
-    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.CARDS;
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.CARD;
 }
 
 /**
@@ -1296,7 +1298,23 @@ function getMemberSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
  * Do not use directly, use only via `getSections()` facade.
  */
 function getCardSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): TransactionCardGroupListItemType[] {
-    return data && metadata ? [] : []; // s77rt TODO
+    const cardSections: Record<string, TransactionCardGroupListItemType> = {};
+
+    for (const key in data) {
+        if (isGroupEntry(key)) {
+            const cardGroup = data[key] as SearchCardGroup;
+            const personalDetails = data.personalDetailsList[cardGroup.accountID];
+
+            cardSections[key] = {
+                groupedBy: CONST.SEARCH.GROUP_BY.CARD,
+                transactions: [],
+                ...personalDetails,
+                ...cardGroup,
+            };
+        }
+    }
+
+    return Object.values(cardSections);
 }
 
 /**
@@ -1344,7 +1362,7 @@ function getSections(
                 return getReportSections(data, metadata, currentSearch, currentAccountID, formatPhoneNumber, reportActions);
             case CONST.SEARCH.GROUP_BY.FROM:
                 return getMemberSections(data, metadata);
-            case CONST.SEARCH.GROUP_BY.CARDS:
+            case CONST.SEARCH.GROUP_BY.CARD:
                 return getCardSections(data, metadata);
         }
     }
@@ -1379,7 +1397,7 @@ function getSortedSections(
                 return getSortedReportData(data as TransactionReportGroupListItemType[], localeCompare);
             case CONST.SEARCH.GROUP_BY.FROM:
                 return getSortedMemberData(data as TransactionMemberGroupListItemType[], localeCompare);
-            case CONST.SEARCH.GROUP_BY.CARDS:
+            case CONST.SEARCH.GROUP_BY.CARD:
                 return getSortedCardData(data as TransactionCardGroupListItemType[], localeCompare);
         }
     }

@@ -6040,7 +6040,7 @@ const translations = {
             groupBy: {
                 reports: 'Raport',
                 from: 'Od',
-                cards: 'Karta',
+                card: 'Karta',
             },
             feed: 'Kanal',
             withdrawalType: {

@@ -6021,7 +6021,7 @@ const translations = {
             groupBy: {
                 reports: '報告',
                 from: 'から',
-                cards: 'カード',
+                card: 'カード',
             },
             feed: 'フィード',
             withdrawalType: {

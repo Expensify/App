@@ -6061,7 +6061,7 @@ const translations = {
             groupBy: {
                 reports: 'Rapport',
                 from: 'De',
-                cards: 'Carte',
+                card: 'Carte',
             },
             feed: 'Flux',
             withdrawalType: {

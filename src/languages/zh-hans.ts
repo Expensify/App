@@ -5944,7 +5944,7 @@ const translations = {
             groupBy: {
                 reports: '报告',
                 from: '从',
-                cards: '卡片',
+                card: '卡片',
             },
             feed: '通道',
             withdrawalType: {

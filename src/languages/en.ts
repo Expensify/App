@@ -6025,7 +6025,7 @@ const translations = {
             groupBy: {
                 reports: 'Report', // s77rt use singular key name
                 from: 'From',
-                cards: 'Card', // s77rt use singular key name
+                card: 'Card',
             },
             feed: 'Feed',
             withdrawalType: {

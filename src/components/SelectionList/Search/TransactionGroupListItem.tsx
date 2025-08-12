@@ -127,7 +127,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     canSelectMultiple={canSelectMultiple}
                 />
             ),
-            [CONST.SEARCH.GROUP_BY.CARDS]: (
+            [CONST.SEARCH.GROUP_BY.CARD]: (
                 <CardListItemHeader
                     card={groupItem as TransactionCardGroupListItemType}
                     onCheckboxPress={onCheckboxPress}
