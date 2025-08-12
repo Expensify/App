@@ -6,6 +6,54 @@ import * as Localize from '../../src/libs/Localize';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+type EnvironmentConfig = {
+    isProduction: boolean;
+    isStaging: boolean;
+};
+
+type SessionEmail = string | null;
+
+
+function mockEnvironmentConfig(config: EnvironmentConfig): () => void {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const CONFIG = require('@src/CONFIG');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    const originalConfig = {...CONFIG.default};
+    
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    CONFIG.default.IS_IN_PRODUCTION = config.isProduction;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    CONFIG.default.IS_IN_STAGING = config.isStaging;
+    
+    // Return cleanup function
+    return () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        Object.assign(CONFIG.default, originalConfig);
+    };
+}
+
+async function setupSession(email: SessionEmail): Promise<void> {
+    await Onyx.merge(ONYXKEYS.SESSION, email ? {email} : null);
+    await waitForBatchedUpdates();
+}
+
+async function testMissingTranslationBehavior(
+    environmentConfig: EnvironmentConfig,
+    sessionEmail: SessionEmail,
+    expectedResult: string,
+): Promise<void> {
+    const cleanup = mockEnvironmentConfig(environmentConfig);
+    
+    try {
+        await setupSession(sessionEmail);
+        
+        const result = Localize.translate(CONST.LOCALES.EN, 'missing.translation.key' as TranslationPaths);
+        expect(result).toBe(expectedResult);
+    } finally {
+        cleanup();
+    }
+}
+
 describe('localize', () => {
     beforeAll(() => {
         Onyx.init({
@@ -70,124 +118,15 @@ describe('localize', () => {
             await IntlStore.load(CONST.LOCALES.EN);
         });
 
-        it('should return MISSING_TRANSLATION for missing key with expensify email in production', async () => {
-            // Mock production environment
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            const CONFIG = require('@src/CONFIG');
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-            const originalConfig = {...CONFIG.default};
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            CONFIG.default.IS_IN_PRODUCTION = true;
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            CONFIG.default.IS_IN_STAGING = false;
-
-            // Set up session with expensify email
-            await Onyx.merge(ONYXKEYS.SESSION, {email: 'user@expensify.com'});
-            await waitForBatchedUpdates();
-
-            const result = Localize.translate(CONST.LOCALES.EN, 'missing.translation.key' as TranslationPaths);
-
-            expect(result).toBe(CONST.MISSING_TRANSLATION);
-
-            // Restore original config
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            Object.assign(CONFIG.default, originalConfig);
-        });
-
-        it('should return MISSING_TRANSLATION for missing key with expensify email in staging', async () => {
-            // Mock staging environment
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            const CONFIG = require('@src/CONFIG');
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-            const originalConfig = {...CONFIG.default};
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            CONFIG.default.IS_IN_PRODUCTION = false;
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            CONFIG.default.IS_IN_STAGING = true;
-
-            // Set up session with expensify email
-            await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@expensify.com'});
-            await waitForBatchedUpdates();
-
-            const result = Localize.translate(CONST.LOCALES.EN, 'missing.translation.key' as TranslationPaths);
-
-            expect(result).toBe(CONST.MISSING_TRANSLATION);
-
-            // Restore original config
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            Object.assign(CONFIG.default, originalConfig);
-        });
-
-        it('should return key string for missing key with external email in production', async () => {
-            // Mock production environment
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            const CONFIG = require('@src/CONFIG');
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-            const originalConfig = {...CONFIG.default};
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            CONFIG.default.IS_IN_PRODUCTION = true;
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            CONFIG.default.IS_IN_STAGING = false;
-
-            // Set up session with external email
-            await Onyx.merge(ONYXKEYS.SESSION, {email: 'user@external.com'});
-            await waitForBatchedUpdates();
-
-            const result = Localize.translate(CONST.LOCALES.EN, 'missing.translation.key' as TranslationPaths);
-
-            expect(result).toBe('missing.translation.key');
-
-            // Restore original config
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            Object.assign(CONFIG.default, originalConfig);
-        });
-
-        it('should return key string for missing key with external email in staging', async () => {
-            // Mock staging environment
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            const CONFIG = require('@src/CONFIG');
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-            const originalConfig = {...CONFIG.default};
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            CONFIG.default.IS_IN_PRODUCTION = false;
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            CONFIG.default.IS_IN_STAGING = true;
-
-            // Set up session with external email
-            await Onyx.merge(ONYXKEYS.SESSION, {email: 'user@external.com'});
-            await waitForBatchedUpdates();
-
-            const result = Localize.translate(CONST.LOCALES.EN, 'missing.translation.key' as TranslationPaths);
-
-            expect(result).toBe('missing.translation.key');
-
-            // Restore original config
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            Object.assign(CONFIG.default, originalConfig);
-        });
-
-        it('should return key string for missing key without email in production', async () => {
-            // Mock production environment
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            const CONFIG = require('@src/CONFIG');
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-            const originalConfig = {...CONFIG.default};
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            CONFIG.default.IS_IN_PRODUCTION = true;
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            CONFIG.default.IS_IN_STAGING = false;
-
-            // Clear session to have no email
-            await Onyx.merge(ONYXKEYS.SESSION, null);
-            await waitForBatchedUpdates();
-
-            const result = Localize.translate(CONST.LOCALES.EN, 'missing.translation.key' as TranslationPaths);
-
-            expect(result).toBe('missing.translation.key');
-
-            // Restore original config
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            Object.assign(CONFIG.default, originalConfig);
+        test.each([
+            // [description, environment, sessionEmail, expectedResult]
+            ['should return MISSING_TRANSLATION for missing key when user has expensify email in production environment', {isProduction: true, isStaging: false}, 'user@expensify.com', CONST.MISSING_TRANSLATION],
+            ['should return MISSING_TRANSLATION for missing key when user has expensify email in staging environment', {isProduction: false, isStaging: true}, 'test@expensify.com', CONST.MISSING_TRANSLATION],
+            ['should return key string for missing key when user has external email in production environment', {isProduction: true, isStaging: false}, 'user@external.com', 'missing.translation.key'],
+            ['should return key string for missing key when user has external email in staging environment', {isProduction: false, isStaging: true}, 'user@external.com', 'missing.translation.key'],
+            ['should return key string for missing key when user has no email in production environment', {isProduction: true, isStaging: false}, null, 'missing.translation.key'],
+        ])('%s', async (description, environmentConfig, sessionEmail, expectedResult) => {
+            await testMissingTranslationBehavior(environmentConfig, sessionEmail, expectedResult);
         });
     });
 });
