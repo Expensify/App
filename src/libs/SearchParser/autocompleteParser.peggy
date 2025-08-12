@@ -70,6 +70,7 @@ autocompleteKey "key"
       / createdBy
       / assignee
       / expenseType
+      / withdrawalType
       / type
       / status
       / cardID

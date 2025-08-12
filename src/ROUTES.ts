@@ -4,6 +4,7 @@
  * Refer to ./contributingGuides/philosophies/ROUTING.md for information on how to construct routes.
  */
 import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {SearchQueryString} from './components/Search/types';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
@@ -74,6 +75,7 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_CARD: 'search/filters/card',
     SEARCH_ADVANCED_FILTERS_TAX_RATE: 'search/filters/taxRate',
     SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE: 'search/filters/expenseType',
+    SEARCH_ADVANCED_FILTERS_WITHDRAWAL_TYPE: 'search/filters/withdrawal-type',
     SEARCH_ADVANCED_FILTERS_TAG: 'search/filters/tag',
     SEARCH_ADVANCED_FILTERS_FROM: 'search/filters/from',
     SEARCH_ADVANCED_FILTERS_TO: 'search/filters/to',
@@ -1262,7 +1264,7 @@ const ROUTES = {
     },
     WORKSPACE_AVATAR: {
         route: 'workspaces/:policyID/avatar',
-        getRoute: (policyID: string) => `workspaces/${policyID}/avatar` as const,
+        getRoute: (policyID: string, fallbackLetter?: UpperCaseCharacters) => `workspaces/${policyID}/avatar${fallbackLetter ? `?letter=${fallbackLetter}` : ''}` as const,
     },
     WORKSPACE_JOIN_USER: {
         route: 'workspaces/:policyID/join',
@@ -1852,6 +1854,15 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_PER_DIEM route');
             }
             return getUrlWithBackToParam(`workspaces/${policyID}/per-diem`, backTo);
+        },
+    },
+    WORKSPACE_RECEIPT_PARTNERS: {
+        route: 'workspaces/:policyID/receipt-partners',
+        getRoute: (policyID: string | undefined, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_RECEIPT_PARTNERS route');
+            }
+            return getUrlWithBackToParam(`workspaces/${policyID}/receipt-partners`, backTo);
         },
     },
     WORKSPACE_PER_DIEM_IMPORT: {
