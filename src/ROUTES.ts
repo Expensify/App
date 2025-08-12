@@ -74,6 +74,7 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_CARD: 'search/filters/card',
     SEARCH_ADVANCED_FILTERS_TAX_RATE: 'search/filters/taxRate',
     SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE: 'search/filters/expenseType',
+    SEARCH_ADVANCED_FILTERS_WITHDRAWAL_TYPE: 'search/filters/withdrawal-type',
     SEARCH_ADVANCED_FILTERS_TAG: 'search/filters/tag',
     SEARCH_ADVANCED_FILTERS_FROM: 'search/filters/from',
     SEARCH_ADVANCED_FILTERS_TO: 'search/filters/to',
@@ -1852,6 +1853,15 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_PER_DIEM route');
             }
             return getUrlWithBackToParam(`workspaces/${policyID}/per-diem`, backTo);
+        },
+    },
+    WORKSPACE_RECEIPT_PARTNERS: {
+        route: 'workspaces/:policyID/receipt-partners',
+        getRoute: (policyID: string | undefined, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_RECEIPT_PARTNERS route');
+            }
+            return getUrlWithBackToParam(`workspaces/${policyID}/receipt-partners`, backTo);
         },
     },
     WORKSPACE_PER_DIEM_IMPORT: {
