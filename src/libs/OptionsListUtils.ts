@@ -1004,7 +1004,7 @@ function createOption(
         }
 
         // Type/category flags already set in initialization above, but update brickRoadIndicator
-        const allReportErrors = reportAttributesDerivedValue?.[report.reportID]?.reportErrors ?? {};
+        const allReportErrors = reportAttributesDerived?.[report.reportID]?.reportErrors ?? {};
         result.brickRoadIndicator = !isEmptyObject(allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- below is a boolean expression
