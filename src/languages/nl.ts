@@ -482,6 +482,7 @@ const translations = {
         message: 'Bericht',
         leaveThread: 'Verlaat thread',
         you: 'Jij',
+        me: 'mij',
         youAfterPreposition: 'jij',
         your: 'uw',
         conciergeHelp: 'Neem contact op met Concierge voor hulp.',
@@ -881,6 +882,7 @@ const translations = {
         hereAlternateText: 'Breng iedereen in dit gesprek op de hoogte',
     },
     newMessages: 'Nieuwe berichten',
+    latestMessages: 'Laatste berichten',
     youHaveBeenBanned: 'Opmerking: Je bent verbannen van het chatten in dit kanaal.',
     reportTypingIndicator: {
         isTyping: 'is aan het typen...',
@@ -3530,6 +3532,11 @@ const translations = {
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Uitgaven van ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card transacties worden automatisch geëxporteerd naar een “Expensify Card Liability Account” die is aangemaakt met <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">onze integratie</a>.</muted-text-label>`,
         },
+        receiptPartners: {
+            uber: {
+                subtitle: 'Automatiseer reis- en maaltijdbezorgkosten binnen uw organisatie.',
+            },
+        },
         perDiem: {
             subtitle: 'Stel dagvergoedingen in om de dagelijkse uitgaven van werknemers te beheersen.',
             amount: 'Bedrag',
@@ -6045,6 +6052,10 @@ const translations = {
                 cards: 'Kaart',
             },
             feed: 'Feed',
+            withdrawalType: {
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Terugbetaling',
+            },
         },
         groupBy: 'Groep per',
         moneyRequestReport: {
@@ -6054,6 +6065,7 @@ const translations = {
         noCategory: 'Geen categorie',
         noTag: 'Geen tag',
         expenseType: 'Uitgavetype',
+        withdrawalType: 'Opnametype',
         recentSearches: 'Recente zoekopdrachten',
         recentChats: 'Recente chats',
         searchIn: 'Zoeken in',
