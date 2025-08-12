@@ -8,10 +8,12 @@ function OptionRowRendererComponent(
         index,
         onLayout,
         style,
+        children,
     }: {
         index: number;
         onLayout?: () => void;
         style?: StyleProp<ViewStyle>;
+        children?: React.ReactNode;
     },
     ref: ForwardedRef<View>,
 ) {
@@ -20,7 +22,9 @@ function OptionRowRendererComponent(
             ref={ref}
             onLayout={onLayout}
             style={[style, {zIndex: -index}]}
-        />
+        >
+            {children}
+        </View>
     );
 }
 
