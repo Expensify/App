@@ -26,12 +26,6 @@ type MoneyRequestAmountInputProps = {
     /** Currency chosen by user or saved in Onyx */
     currency?: string;
 
-    /** The decimals of the currency/unit. If not provided, it will be inferred from the currency */
-    decimals?: number;
-
-    /** Extra symbol to be shown after the amount input */
-    extraSymbol?: React.ReactNode;
-
     /** Whether the currency symbol is pressable */
     isCurrencyPressable?: boolean;
 

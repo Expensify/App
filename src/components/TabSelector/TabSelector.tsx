@@ -56,7 +56,7 @@ function getIconTitleAndTestID(route: string, translate: LocaleContextProps['tra
         case CONST.TAB_REQUEST.PER_DIEM:
             return {icon: Expensicons.CalendarSolid, title: translate('common.perDiem'), testID: 'perDiem'};
         case CONST.TAB_REQUEST.DISTANCE_MAP:
-            return {icon: Expensicons.Location, title: translate('tabSelector.map'), testID: 'distanceMap'};
+            return {icon: Expensicons.EmptyStateRoutePending, title: translate('tabSelector.map'), testID: 'distanceMap'};
         case CONST.TAB_REQUEST.DISTANCE_MANUAL:
             return {icon: Expensicons.Pencil, title: translate('tabSelector.manual'), testID: 'distanceManual'};
         default:

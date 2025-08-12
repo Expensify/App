@@ -125,9 +125,9 @@ function MoneyRequestAmountForm(
                 return;
             }
 
-            onSubmitButtonPress({amount: currentAmount, currency: unit ?? currency, paymentMethod: iouPaymentType});
+            onSubmitButtonPress({amount: currentAmount, currency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, onSubmitButtonPress, currency, translate, formattedTaxAmount, unit],
+        [taxAmount, onSubmitButtonPress, currency, translate, formattedTaxAmount],
     );
 
     const buttonText: string = useMemo(() => {
