@@ -5432,8 +5432,8 @@ const translations = {
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Multiple approval levels',
-                description: 'Multiple aproval levels is a workflow tool for companies that require more than one person to approve a report before it can be reimbursed.',
-                onlyAvailableOnPlan: 'Multiple aproval levels are only available on the Control plan, starting at ',
+                description: 'Multiple approval levels is a workflow tool for companies that require more than one person to approve a report before it can be reimbursed.',
+                onlyAvailableOnPlan: 'Multiple approval levels are only available on the Control plan, starting at ',
             },
             pricing: {
                 perActiveMember: 'per active member per month.',
