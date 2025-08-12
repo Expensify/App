@@ -1,16 +1,25 @@
-import {CellContainer} from '@shopify/flash-list';
-import type {CellContainerProps} from '@shopify/flash-list/dist/native/cell-container/CellContainer';
 import type {ForwardedRef} from 'react';
 import {forwardRef} from 'react';
-import type {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 
-function OptionRowRendererComponent(props: CellContainerProps, ref: ForwardedRef<View>) {
+function OptionRowRendererComponent(
+    {
+        index,
+        onLayout,
+        style,
+    }: {
+        index: number;
+        onLayout?: () => void;
+        style?: StyleProp<ViewStyle>;
+    },
+    ref: ForwardedRef<View>,
+) {
     return (
-        <CellContainer
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+        <View
             ref={ref}
-            style={[props.style, {zIndex: -props.index}]}
+            onLayout={onLayout}
+            style={[style, {zIndex: -index}]}
         />
     );
 }

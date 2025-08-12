@@ -1,4 +1,3 @@
-import type {ContentStyle} from '@shopify/flash-list';
 import type {RefObject} from 'react';
 import type {LayoutChangeEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -16,7 +15,7 @@ type CustomLHNOptionsListProps = {
     style?: StyleProp<ViewStyle>;
 
     /** Extra styles for the section list container */
-    contentContainerStyles?: StyleProp<ContentStyle>;
+    contentContainerStyles?: StyleProp<ViewStyle>;
 
     /** List of reports */
     data: Report[];
