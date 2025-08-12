@@ -120,7 +120,7 @@
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/60421
 
-### [react-native-web+0.20.0+011+fullstory-support.patch](react-native-web+0.20.0+011+fullstory-support.patch.patch)
+### [react-native-web+0.20.0+011+fullstory-support.patch](react-native-web+0.20.0+011+fullstory-support.patch)
 
 - Reason:
   
