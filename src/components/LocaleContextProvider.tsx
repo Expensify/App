@@ -90,7 +90,9 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         if (nvpPreferredLocale && isSupportedLocale(nvpPreferredLocale)) {
             return nvpPreferredLocale;
         }
-        return getDevicePreferredLocale();
+
+        const deviceLocale = getDevicePreferredLocale();
+        return isSupportedLocale(deviceLocale) ? deviceLocale : CONST.LOCALES.DEFAULT;
     }, [nvpPreferredLocale, nvpPreferredLocaleMetadata]);
 
     useEffect(() => {
