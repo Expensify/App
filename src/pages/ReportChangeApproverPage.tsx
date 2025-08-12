@@ -91,7 +91,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
                 customListHeader={
                     <>
                         <Text style={[styles.ph5, styles.mb5]}>{translate('iou.changeApprover.subtitle')}</Text>
-                        <View style={[styles.ph5, styles.mb5]}>
+                        <View style={[styles.ph5, styles.mb5, styles.renderHTML, styles.flexRow]}>
                             <RenderHTML html={translate('iou.changeApprover.description', {workflowSettingLink: `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy?.id)}`})} />
                         </View>
                     </>

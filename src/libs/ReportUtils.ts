@@ -7565,6 +7565,7 @@ function buildOptimisticResolvedDuplicatesReportAction(): OptimisticDismissedVio
 }
 
 function buildOptimisticChangeApproverReportAction(managerID: number): OptimisticChangedApproverReportAction {
+    const created = DateUtils.getDBTime();
     return {
         actionName: managerID === currentUserAccountID ? CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL : CONST.REPORT.ACTIONS.TYPE.ACTION_REROUTE,
         actorAccountID: currentUserAccountID,
@@ -7584,6 +7585,11 @@ function buildOptimisticChangeApproverReportAction(managerID: number): Optimisti
                 text: getCurrentUserDisplayNameOrEmail(),
             },
         ],
+        originalMessage: {
+            isNewDot: true,
+            lastModified: created,
+            mentionedAccountIDs: [managerID],
+        },
         shouldShow: false,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         reportActionID: rand64(),
