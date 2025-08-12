@@ -25,7 +25,7 @@ class MainActivity : ReactActivity() {
      */
     override fun getMainComponentName() = "NewExpensify"
 
-    var wasAppRelaunchedFromIcon: Boolean = false;
+    var wasAppRelaunchedFromIcon: Boolean = false
 
     /**
      * Returns the instance of the [ReactActivityDelegate]. Here we use a util class [ ] which allows you to easily enable Fabric and Concurrent React
@@ -68,7 +68,7 @@ class MainActivity : ReactActivity() {
         if (intent.hasCategory(Intent.CATEGORY_LAUNCHER)
               && intent.getAction() != null
               && intent.getAction().equals(Intent.ACTION_MAIN)) {
-             wasAppRelaunchedFromIcon = true;
+             wasAppRelaunchedFromIcon = true
         }
 
         setIntent(intent) // Must store the new intent unless getIntent() will return the old one
@@ -117,6 +117,6 @@ class MainActivity : ReactActivity() {
 
     override fun onStart() {
         super.onStart()
-        RNPerformance.getInstance().mark("appCreationEnd", false);
+        RNPerformance.getInstance().mark("appCreationEnd", false)
     }
 }
