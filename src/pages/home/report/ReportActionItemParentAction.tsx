@@ -14,12 +14,14 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getAllAncestorReportActionIDs,
     getAllAncestorReportActions,
+    getOriginalReportID,
     isArchivedReport,
     navigateToLinkedReportAction,
 } from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
 import ReportActionItem from './ReportActionItem';
@@ -62,6 +64,27 @@ type ReportActionItemParentActionProps = {
 
     /** If the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
+
+    /** User wallet tierName */
+    userWalletTierName: string | undefined;
+
+    /** Whether the user is validated */
+    isUserValidated: boolean | undefined;
+
+    /** Personal details list */
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+
+    /** All draft messages collection */
+    allDraftMessages?: OnyxCollection<OnyxTypes.ReportActionsDrafts>;
+
+    /** All emoji reactions collection */
+    allEmojiReactions?: OnyxCollection<OnyxTypes.ReportActionReactions>;
+
+    /** Linked transaction route error */
+    linkedTransactionRouteError?: OnyxEntry<Errors>;
+
+    /** User billing fund ID */
+    userBillingFundID: number | undefined;
 };
 
 function ReportActionItemParentAction({
@@ -76,6 +99,13 @@ function ReportActionItemParentAction({
     shouldDisplayReplyDivider,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
+    userWalletTierName,
+    isUserValidated,
+    personalDetails,
+    allDraftMessages,
+    allEmojiReactions,
+    linkedTransactionRouteError,
+    userBillingFundID,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestorIDs = useRef(getAllAncestorReportActionIDs(report));
@@ -142,6 +172,13 @@ function ReportActionItemParentAction({
                 const reportNameValuePair =
                     ancestorReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReports.current?.[ancestor?.report?.reportID]?.reportID}`];
                 const isAncestorReportArchived = isArchivedReport(reportNameValuePair);
+
+                const originalReportID = getOriginalReportID(ancestor.report.reportID, ancestor.reportAction);
+                const reportDraftMessages = originalReportID ? allDraftMessages?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`] : undefined;
+                const matchingDraftMessage = reportDraftMessages?.[ancestor.reportAction.reportActionID];
+                const matchingDraftMessageString = typeof matchingDraftMessage === 'string' ? matchingDraftMessage : matchingDraftMessage?.message;
+                const actionEmojiReactions = allEmojiReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${ancestor.reportAction.reportActionID}`];
+
                 return (
                     <OfflineWithFeedback
                         key={ancestor.reportAction.reportActionID}
@@ -177,6 +214,13 @@ function ReportActionItemParentAction({
                             isFirstVisibleReportAction={isFirstVisibleReportAction}
                             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                             isThreadReportParentAction
+                            userWalletTierName={userWalletTierName}
+                            isUserValidated={isUserValidated}
+                            personalDetails={personalDetails}
+                            draftMessage={matchingDraftMessageString}
+                            emojiReactions={actionEmojiReactions}
+                            linkedTransactionRouteError={linkedTransactionRouteError}
+                            userBillingFundID={userBillingFundID}
                         />
                     </OfflineWithFeedback>
                 );

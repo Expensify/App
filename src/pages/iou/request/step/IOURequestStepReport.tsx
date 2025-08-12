@@ -122,8 +122,10 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         if (!transaction) {
             return;
         }
-        changeTransactionsReport([transaction.transactionID], CONST.REPORT.UNREPORTED_REPORT_ID);
         Navigation.dismissModal();
+        InteractionManager.runAfterInteractions(() => {
+            changeTransactionsReport([transaction.transactionID], CONST.REPORT.UNREPORTED_REPORT_ID);
+        });
     };
 
     return (

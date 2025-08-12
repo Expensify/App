@@ -11,6 +11,7 @@ import type {
     Route,
 } from '@react-navigation/native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {SearchQueryString} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
@@ -1059,7 +1060,7 @@ type SettingsNavigatorParamList = {
         cardID: string;
         backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.RULES_CUSTOM_NAME]: {
+    [SCREENS.WORKSPACE.REPORTS_DEFAULT_TITLE]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES_AUTO_APPROVE_REPORTS_UNDER]: {
@@ -1713,6 +1714,25 @@ type TransactionDuplicateNavigatorParamList = {
     };
 };
 
+type MergeTransactionNavigatorParamList = {
+    [SCREENS.MERGE_TRANSACTION.LIST_PAGE]: {
+        transactionID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.MERGE_TRANSACTION.RECEIPT_PAGE]: {
+        transactionID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.MERGE_TRANSACTION.DETAILS_PAGE]: {
+        transactionID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE]: {
+        transactionID: string;
+        backTo?: Routes;
+    };
+};
+
 type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SETTINGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: NavigatorScreenParams<TwoFactorAuthNavigatorParamList>;
@@ -1757,6 +1777,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: NavigatorScreenParams<SplitExpenseParamList>;
     [SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE]: NavigatorScreenParams<{reportId: string | undefined}>;
     [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: NavigatorScreenParams<ScheduleCallParamList>;
+    [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: NavigatorScreenParams<MergeTransactionNavigatorParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -1808,7 +1829,6 @@ type ReportsSplitNavigatorParamList = {
         backTo?: Routes;
         moneyRequestReportActionID?: string;
         transactionID?: string;
-        iouReportID?: string;
     };
     [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
 };
@@ -1840,6 +1860,9 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
@@ -1908,7 +1931,7 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.TAXES]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.REPORT_FIELDS]: {
+    [SCREENS.WORKSPACE.REPORTS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
@@ -1944,9 +1967,6 @@ type WorkspaceSplitNavigatorParamList = {
 };
 
 type OnboardingModalNavigatorParamList = {
-    [SCREENS.ONBOARDING_MODAL.ONBOARDING]: {
-        backTo?: string;
-    };
     [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
         backTo?: string;
     };
@@ -2066,6 +2086,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     };
     [SCREENS.WORKSPACE_AVATAR]: {
         policyID: string;
+        letter?: UpperCaseCharacters;
     };
     [SCREENS.WORKSPACE_JOIN_USER]: {
         policyID: string;
@@ -2100,6 +2121,7 @@ type AuthScreensParamList = SharedScreensParamList & {
         isFromReviewDuplicates?: string;
         action?: IOUAction;
         iouType?: IOUType;
+        mergeTransactionID?: string;
     };
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
@@ -2334,4 +2356,5 @@ export type {
     SetParamsAction,
     WorkspacesTabNavigatorName,
     TestToolsModalModalNavigatorParamList,
+    MergeTransactionNavigatorParamList,
 };
