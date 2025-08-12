@@ -1655,7 +1655,6 @@ function getUserToInviteContactOption({
         isChatRoom: false,
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
-        isOwnPolicyExpenseChat: false,
         isExpenseReport: false,
         lastMessageText: '',
         isBold: true,
@@ -1718,7 +1717,7 @@ function isValidReport(option: SearchOption<Report>, config: GetValidReportsConf
         return false;
     }
 
-    if (isPolicyExpenseChat && option.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
+    if (isPolicyExpenseChat && !includeOwnedWorkspaceChats) {
         return false;
     }
     // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to expense chats only.
