@@ -37,7 +37,7 @@ type AmountPickerProps = {
 
     /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
-} & Pick<MenuItemBaseProps, 'rightLabel' | 'description'> &
+} & Pick<MenuItemBaseProps, 'rightLabel' | 'description' | 'ref'> &
     Pick<
         NumberWithSymbolFormProps,
         'decimals' | 'maxLength' | 'symbol' | 'symbolPosition' | 'isSymbolPressable' | 'style' | 'containerStyle' | 'touchableInputWrapperStyle' | 'autoGrowExtraSpace' | 'autoGrowMarginSide'

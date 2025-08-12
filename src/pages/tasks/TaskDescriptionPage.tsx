@@ -1,4 +1,5 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
+import type {ForwardedRef} from 'react';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -122,15 +123,18 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
                             label={translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={translate('newTaskPage.descriptionOptional')}
                             defaultValue={Parser.htmlToMarkdown(report?.description ?? '')}
-                            ref={(element: AnimatedTextInputRef) => {
-                                if (!element) {
-                                    return;
-                                }
-                                if (!inputRef.current) {
-                                    updateMultilineInputRange(inputRef.current);
-                                }
-                                inputRef.current = element;
-                            }}
+                            // eslint-disable-next-line react-compiler/react-compiler
+                            ref={
+                                ((element: AnimatedTextInputRef) => {
+                                    if (!element) {
+                                        return;
+                                    }
+                                    if (!inputRef.current) {
+                                        updateMultilineInputRange(inputRef.current);
+                                    }
+                                    inputRef.current = element;
+                                }) as ForwardedRef<AnimatedTextInputRef>
+                            }
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             shouldSubmitForm

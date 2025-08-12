@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {CheckSquare} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
@@ -17,21 +17,20 @@ type SelectionListWithModalProps<TItem extends ListItem> = SelectionListProps<TI
     onTurnOnSelectionMode?: (item: TItem | null) => void;
     isSelected?: (item: TItem) => boolean;
     isScreenFocused?: boolean;
+    ref?: ForwardedRef<SelectionListHandle>;
 };
 
-function SelectionListWithModal<TItem extends ListItem>(
-    {
-        turnOnSelectionModeOnLongPress,
-        onTurnOnSelectionMode,
-        onLongPressRow,
-        isScreenFocused = false,
-        sections,
-        isSelected,
-        selectedItems: selectedItemsProp,
-        ...rest
-    }: SelectionListWithModalProps<TItem>,
-    ref: ForwardedRef<SelectionListHandle>,
-) {
+function SelectionListWithModal<TItem extends ListItem>({
+    turnOnSelectionModeOnLongPress,
+    onTurnOnSelectionMode,
+    onLongPressRow,
+    isScreenFocused = false,
+    sections,
+    isSelected,
+    selectedItems: selectedItemsProp,
+    ref,
+    ...rest
+}: SelectionListWithModalProps<TItem>) {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<TItem | null>(null);
     const {translate} = useLocalize();
@@ -146,4 +145,4 @@ function SelectionListWithModal<TItem extends ListItem>(
 }
 
 export type {SelectionListWithModalProps};
-export default forwardRef(SelectionListWithModal);
+export default SelectionListWithModal;

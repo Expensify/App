@@ -1,6 +1,5 @@
 import {Str} from 'expensify-common';
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -11,7 +10,7 @@ import CONST from '@src/CONST';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import TypeSelectorModal from './TypeSelectorModal';
 
-type TypeSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel' | 'errorText'> & {
+type TypeSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel' | 'errorText' | 'ref'> & {
     /** Currently selected type */
     value?: string;
 
@@ -25,7 +24,7 @@ type TypeSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel' | 'error
     onTypeSelected?: (reportFieldType: PolicyReportFieldType) => void;
 };
 
-function TypeSelector({value, label = '', rightLabel, subtitle = '', errorText = '', onInputChange, onTypeSelected}: TypeSelectorProps, forwardedRef: ForwardedRef<View>) {
+function TypeSelector({value, label = '', rightLabel, subtitle = '', errorText = '', onInputChange, onTypeSelected, ref}: TypeSelectorProps) {
     const {translate} = useLocalize();
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -47,7 +46,7 @@ function TypeSelector({value, label = '', rightLabel, subtitle = '', errorText =
     return (
         <View>
             <MenuItemWithTopDescription
-                ref={forwardedRef}
+                ref={ref}
                 shouldShowRightIcon
                 title={value ? Str.recapitalize(translate(getReportFieldTypeTranslationKey(value as PolicyReportFieldType))) : ''}
                 description={label}
@@ -70,4 +69,4 @@ function TypeSelector({value, label = '', rightLabel, subtitle = '', errorText =
 
 TypeSelector.displayName = 'TypeSelector';
 
-export default forwardRef(TypeSelector);
+export default TypeSelector;

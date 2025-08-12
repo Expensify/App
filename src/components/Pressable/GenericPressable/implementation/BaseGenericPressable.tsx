@@ -1,9 +1,8 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {Pressable} from 'react-native';
-import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -13,35 +12,33 @@ import HapticFeedback from '@libs/HapticFeedback';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import CONST from '@src/CONST';
 
-function GenericPressable(
-    {
-        children,
-        onPress = () => {},
-        onLongPress,
-        onKeyDown,
-        disabled,
-        style,
-        disabledStyle = {},
-        hoverStyle = {},
-        focusStyle = {},
-        pressStyle = {},
-        screenReaderActiveStyle = {},
-        shouldUseHapticsOnLongPress = true,
-        shouldUseHapticsOnPress = false,
-        nextFocusRef,
-        keyboardShortcut,
-        shouldUseAutoHitSlop = false,
-        enableInScreenReaderStates = CONST.SCREEN_READER_STATES.ALL,
-        onPressIn,
-        onPressOut,
-        accessible = true,
-        fullDisabled = false,
-        interactive = true,
-        isNested = false,
-        ...rest
-    }: PressableProps,
-    ref: PressableRef,
-) {
+function GenericPressable({
+    children,
+    onPress = () => {},
+    onLongPress,
+    onKeyDown,
+    disabled,
+    style,
+    disabledStyle = {},
+    hoverStyle = {},
+    focusStyle = {},
+    pressStyle = {},
+    screenReaderActiveStyle = {},
+    shouldUseHapticsOnLongPress = true,
+    shouldUseHapticsOnPress = false,
+    nextFocusRef,
+    keyboardShortcut,
+    shouldUseAutoHitSlop = false,
+    enableInScreenReaderStates = CONST.SCREEN_READER_STATES.ALL,
+    onPressIn,
+    onPressOut,
+    accessible = true,
+    fullDisabled = false,
+    interactive = true,
+    isNested = false,
+    ref,
+    ...rest
+}: PressableProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isExecuting, singleExecution} = useSingleExecution();
@@ -200,4 +197,4 @@ function GenericPressable(
 
 GenericPressable.displayName = 'GenericPressable';
 
-export default forwardRef(GenericPressable);
+export default GenericPressable;

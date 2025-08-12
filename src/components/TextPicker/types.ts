@@ -54,7 +54,7 @@ type TextPickerProps = {
 
     /** Whether the field is required */
     required?: boolean;
-} & Pick<MenuItemBaseProps, 'rightLabel' | 'subtitle' | 'description' | 'interactive'> &
+} & Pick<MenuItemBaseProps, 'rightLabel' | 'subtitle' | 'description' | 'interactive' | 'ref'> &
     TextProps;
 
 export type {TextSelectorModalProps, TextPickerProps};

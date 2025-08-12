@@ -9,6 +9,7 @@ import getButtonState from '@libs/getButtonState';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip/PopoverAnchorTooltip';
 
@@ -36,16 +37,18 @@ type BaseMiniContextMenuItemProps = {
      * Can be used to control the click event, and for example whether or not to lose focus from the composer when pressing the item
      */
     shouldPreventDefaultFocusOnPress?: boolean;
+
+    /**
+     * Reference to the outer element
+     */
+    ref?: ForwardedRef<View>;
 };
 
 /**
  * Component that renders a mini context menu item with a
  * pressable. Also renders a tooltip when hovering the item.
  */
-function BaseMiniContextMenuItem(
-    {tooltipText, onPress, children, isDelayButtonStateComplete = true, shouldPreventDefaultFocusOnPress = true}: BaseMiniContextMenuItemProps,
-    ref: ForwardedRef<View>,
-) {
+function BaseMiniContextMenuItem({tooltipText, onPress, children, isDelayButtonStateComplete = true, shouldPreventDefaultFocusOnPress = true, ref}: BaseMiniContextMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     return (
@@ -54,7 +57,7 @@ function BaseMiniContextMenuItem(
             shouldRender
         >
             <PressableWithoutFeedback
-                ref={ref}
+                ref={ref as PressableRef}
                 onPress={onPress}
                 onMouseDown={(event) => {
                     if (!ReportActionComposeFocusManager.isFocused() && !ReportActionComposeFocusManager.isEditFocused()) {
@@ -95,4 +98,4 @@ function BaseMiniContextMenuItem(
 
 BaseMiniContextMenuItem.displayName = 'BaseMiniContextMenuItem';
 
-export default React.forwardRef(BaseMiniContextMenuItem);
+export default BaseMiniContextMenuItem;
