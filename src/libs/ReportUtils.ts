@@ -7010,6 +7010,7 @@ type BuildOptimisticChatReportParams = {
     description?: string;
     avatarUrl?: string;
     optimisticReportID?: string;
+    isPinned?: boolean;
 };
 
 function buildOptimisticChatReport({
@@ -7028,6 +7029,7 @@ function buildOptimisticChatReport({
     description = '',
     avatarUrl = '',
     optimisticReportID = '',
+    isPinned = false,
 }: BuildOptimisticChatReportParams): OptimisticChatReport {
     const isWorkspaceChatType = chatType && isWorkspaceChat(chatType);
     const participants = participantList.reduce((reportParticipants: Participants, accountID: number) => {
@@ -7044,7 +7046,7 @@ function buildOptimisticChatReport({
         type: CONST.REPORT.TYPE.CHAT,
         chatType,
         isOwnPolicyExpenseChat,
-        isPinned: false,
+        isPinned,
         lastActorAccountID: 0,
         lastMessageHtml: '',
         lastMessageText: undefined,
@@ -7682,6 +7684,7 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string, exp
             policyID,
             ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
             oldPolicyName: policyName,
+            isPinned: true,
         }),
     };
     const adminsChatReportID = adminsChatData.reportID;
