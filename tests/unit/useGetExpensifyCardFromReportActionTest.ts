@@ -1,5 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import {useCardList, useWorkspaceCardList} from '@components/OnyxListItemProvider';
 import {getPolicy, getWorkspaceAccountID, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getOriginalMessage, isCardIssuedAction} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
@@ -12,6 +13,10 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 // Mock the dependencies
 jest.mock('@libs/PolicyUtils');
 jest.mock('@libs/ReportActionsUtils');
+jest.mock('@components/OnyxListItemProvider', () => ({
+    useCardList: jest.fn(),
+    useWorkspaceCardList: jest.fn(),
+}));
 
 // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
 // eslint-disable-next-line deprecation/deprecation
@@ -20,6 +25,8 @@ const mockGetWorkspaceAccountID = getWorkspaceAccountID as jest.MockedFunction<t
 const mockIsPolicyAdmin = isPolicyAdmin as jest.MockedFunction<typeof isPolicyAdmin>;
 const mockGetOriginalMessage = getOriginalMessage as jest.MockedFunction<typeof getOriginalMessage>;
 const mockIsCardIssuedAction = isCardIssuedAction as jest.MockedFunction<typeof isCardIssuedAction>;
+const mockUseCardList = useCardList as jest.MockedFunction<typeof useCardList>;
+const mockUseWorkspaceCardList = useWorkspaceCardList as jest.MockedFunction<typeof useWorkspaceCardList>;
 
 describe('useGetExpensifyCardFromReportAction', () => {
     const mockCard: Card = {
@@ -76,6 +83,8 @@ describe('useGetExpensifyCardFromReportAction', () => {
         mockIsPolicyAdmin.mockReturnValue(false);
         mockGetOriginalMessage.mockReturnValue({cardID: 123, assigneeAccountID: 1});
         mockIsCardIssuedAction.mockReturnValue(true);
+        mockUseCardList.mockReturnValue({});
+        mockUseWorkspaceCardList.mockReturnValue({});
     });
 
     describe('when reportAction is not a card issued action', () => {
@@ -102,8 +111,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
 
             it('returns card from allUserCards when card exists', async () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                Onyx.set(ONYXKEYS.CARD_LIST, {'123': mockCard});
-                await waitForBatchedUpdatesWithAct();
+                mockUseCardList.mockReturnValue({'123': mockCard});
 
                 const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
                 await waitForBatchedUpdatesWithAct();
@@ -112,8 +120,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
             });
 
             it('returns undefined when card does not exist in allUserCards', async () => {
-                Onyx.set(ONYXKEYS.CARD_LIST, {});
-                await waitForBatchedUpdatesWithAct();
+                mockUseCardList.mockReturnValue({});
 
                 const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
                 await waitForBatchedUpdatesWithAct();
@@ -143,8 +150,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
             it('returns card from allExpensifyCards when card exists', async () => {
                 const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}123_${CONST.EXPENSIFY_CARD.BANK}` as OnyxKey;
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                Onyx.set(workspaceCardsKey, {123: mockCard});
-                await waitForBatchedUpdatesWithAct();
+                mockUseWorkspaceCardList.mockReturnValue({[workspaceCardsKey]: {123: mockCard}});
 
                 const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
                 await waitForBatchedUpdatesWithAct();
@@ -155,8 +161,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
             it('returns undefined when card does not exist in allExpensifyCards', async () => {
                 const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}123_${CONST.EXPENSIFY_CARD.BANK}` as OnyxKey;
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                Onyx.set(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {[workspaceCardsKey]: {}});
-                await waitForBatchedUpdatesWithAct();
+                mockUseWorkspaceCardList.mockReturnValue({[workspaceCardsKey]: {}});
 
                 const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
                 await waitForBatchedUpdatesWithAct();
@@ -168,16 +173,22 @@ describe('useGetExpensifyCardFromReportAction', () => {
 
     describe('reactivity to Onyx changes', () => {
         it('updates when allUserCards changes', async () => {
+            mockUseCardList.mockReturnValue({});
+            mockUseWorkspaceCardList.mockReturnValue({});
+
             const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current).toBeUndefined();
 
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            Onyx.set(ONYXKEYS.CARD_LIST, {'123': mockCard});
+            mockUseCardList.mockReturnValue({'123': mockCard});
+
+            // Re-render the hook to get the updated result
+            const {result: updatedResult} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
             await waitForBatchedUpdatesWithAct();
 
-            expect(result.current).toEqual(mockCard);
+            expect(updatedResult.current).toEqual(mockCard);
         });
 
         it('updates when allExpensifyCards changes for policy admin', async () => {
@@ -193,26 +204,30 @@ describe('useGetExpensifyCardFromReportAction', () => {
                 isPolicyExpenseChatEnabled: false,
                 workspaceAccountID: 123,
             });
+
+            // Set initial state
+            mockUseCardList.mockReturnValue({});
+            mockUseWorkspaceCardList.mockReturnValue({});
+
             const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current).toBeUndefined();
 
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}123_${CONST.EXPENSIFY_CARD.BANK}` as OnyxKey;
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            Onyx.set(workspaceCardsKey, {123: mockCard});
+            mockUseWorkspaceCardList.mockReturnValue({[workspaceCardsKey]: {123: mockCard}});
+            const {result: updatedResult} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
             await waitForBatchedUpdatesWithAct();
 
-            expect(result.current).toEqual(mockCard);
+            expect(updatedResult.current).toEqual(mockCard);
         });
     });
 
     describe('workspace account ID generation', () => {
         it('calls getWorkspaceAccountID with correct policyID', async () => {
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            Onyx.set(ONYXKEYS.CARD_LIST, {'123': mockCard});
-            await waitForBatchedUpdatesWithAct();
+            mockUseCardList.mockReturnValue({'123': mockCard});
 
             const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'test-policy-123'}));
             await waitForBatchedUpdatesWithAct();
@@ -238,8 +253,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
             mockGetPolicy.mockReturnValue(testPolicy);
 
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            Onyx.set(ONYXKEYS.CARD_LIST, {'123': mockCard});
-            await waitForBatchedUpdatesWithAct();
+            mockUseCardList.mockReturnValue({'123': mockCard});
 
             const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
             await waitForBatchedUpdatesWithAct();
