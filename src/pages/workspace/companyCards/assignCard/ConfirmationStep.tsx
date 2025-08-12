@@ -22,8 +22,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed} from '@src/types/onyx';
+import type {CompanyCardFeed, CurrencyList} from '@src/types/onyx';
 import type {AssignCardStep} from '@src/types/onyx/AssignCard';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ConfirmationStepProps = {
     /** Current policy id */
@@ -31,9 +32,12 @@ type ConfirmationStepProps = {
 
     /** Route to go back to */
     backTo?: Route;
+
+    /** Selected feed */
+    feed: CompanyCardFeed;
 };
 
-function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
+function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -41,8 +45,8 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
-    const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
-    const feed = assignCard?.data?.bankName as CompanyCardFeed | undefined;
+    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
+    const bankName = (assignCard?.data?.bankName as CompanyCardFeed | undefined) ?? feed;
     const [cardFeeds] = useCardFeeds(policyID);
 
     const data = assignCard?.data;
@@ -69,8 +73,8 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
             return;
         }
 
-        const isFeedExpired = isSelectedFeedExpired(feed ? cardFeeds?.settings?.oAuthAccountDetails?.[feed] : undefined);
-        const institutionId = !!getPlaidInstitutionId(feed);
+        const isFeedExpired = isSelectedFeedExpired(bankName ? cardFeeds?.settings?.oAuthAccountDetails?.[bankName] : undefined);
+        const institutionId = !!getPlaidInstitutionId(bankName);
 
         if (isFeedExpired) {
             if (institutionId) {
@@ -84,7 +88,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
             setAssignCardStepAndData({currentStep: institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
             return;
         }
-        assignWorkspaceCompanyCard(policyID, data);
+        assignWorkspaceCompanyCard(policyID, {...data, bankName});
     };
 
     const editStep = (step: AssignCardStep) => {

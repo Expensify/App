@@ -32,7 +32,6 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearTaxRateError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getLatestErrorFieldForAnyField} from '@libs/ErrorUtils';
-import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
@@ -66,11 +65,11 @@ function WorkspaceTaxesPage({
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {environmentURL} = useEnvironment();
     const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    const {selectionMode} = useMobileSelectionMode();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
@@ -81,7 +80,7 @@ function WorkspaceTaxesPage({
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
-    const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
+    const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
 
     const enabledRatesCount = selectedTaxesIDs.filter((taxID) => !policy?.taxRates?.taxes[taxID]?.isDisabled).length;
     const disabledRatesCount = selectedTaxesIDs.length - enabledRatesCount;
@@ -189,13 +188,16 @@ function WorkspaceTaxesPage({
         const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase() ?? '');
         return taxName.includes(normalizedSearchInput) || taxAlternateText.includes(normalizedSearchInput);
     }, []);
-    const sortTaxes = useCallback((taxes: ListItem[]) => {
-        return taxes.sort((a, b) => {
-            const aText = a.text ?? a.keyForList ?? '';
-            const bText = b.text ?? b.keyForList ?? '';
-            return localeCompare(aText, bText);
-        });
-    }, []);
+    const sortTaxes = useCallback(
+        (taxes: ListItem[]) => {
+            return taxes.sort((a, b) => {
+                const aText = a.text ?? a.keyForList ?? '';
+                const bText = b.text ?? b.keyForList ?? '';
+                return localeCompare(aText, bText);
+            });
+        },
+        [localeCompare],
+    );
     const [inputValue, setInputValue, filteredTaxesList] = useSearchResults(taxesList, filterTax, sortTaxes);
 
     const isLoading = !isOffline && taxesList === undefined;
@@ -243,13 +245,13 @@ function WorkspaceTaxesPage({
         if (!policy?.id) {
             return;
         }
-        deletePolicyTaxes(policy, selectedTaxesIDs);
+        deletePolicyTaxes(policy, selectedTaxesIDs, localeCompare);
         setIsDeleteModalVisible(false);
 
         InteractionManager.runAfterInteractions(() => {
             setSelectedTaxesIDs([]);
         });
-    }, [policy, selectedTaxesIDs]);
+    }, [policy, selectedTaxesIDs, localeCompare]);
 
     const toggleTaxes = useCallback(
         (isEnabled: boolean) => {
@@ -266,7 +268,7 @@ function WorkspaceTaxesPage({
         if (!taxRate.keyForList) {
             return;
         }
-        if (isSmallScreenWidth && selectionMode?.isEnabled) {
+        if (isSmallScreenWidth && isMobileSelectionModeEnabled) {
             toggleTax(taxRate);
             return;
         }
@@ -307,7 +309,7 @@ function WorkspaceTaxesPage({
         return options;
     }, [hasAccountingConnections, policy?.taxRates?.taxes, selectedTaxesIDs, toggleTaxes, translate, enabledRatesCount, disabledRatesCount]);
 
-    const shouldShowBulkActionsButton = shouldUseNarrowLayout ? selectionMode?.isEnabled : selectedTaxesIDs.length > 0;
+    const shouldShowBulkActionsButton = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : selectedTaxesIDs.length > 0;
 
     const secondaryActions = useMemo(
         () => [
@@ -335,7 +337,7 @@ function WorkspaceTaxesPage({
             <ButtonWithDropdownMenu
                 success={false}
                 onPress={() => {}}
-                shouldAlwaysShowDropdownMenu
+                shouldUseOptionIcon
                 customText={translate('common.more')}
                 options={secondaryActions}
                 isSplitButton={false}
@@ -355,7 +357,7 @@ function WorkspaceTaxesPage({
         />
     );
 
-    const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
+    const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
     const headerContent = (
         <>
@@ -404,7 +406,7 @@ function WorkspaceTaxesPage({
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.taxes')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => {
-                        if (selectionMode?.isEnabled) {
+                        if (isMobileSelectionModeEnabled) {
                             setSelectedTaxesIDs([]);
                             turnOffMobileSelectionMode();
                             return;

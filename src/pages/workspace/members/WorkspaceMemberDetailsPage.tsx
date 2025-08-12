@@ -29,6 +29,7 @@ import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {getAllCardsForWorkspace, getCardFeedIcon, getCompanyFeeds, getPlaidInstitutionIconUrl, isExpensifyCardFullySetUp, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
 import {isControlPolicy} from '@libs/PolicyUtils';
@@ -72,7 +73,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const styles = useThemeStyles();
-    const {formatPhoneNumber, translate} = useLocalize();
+    const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -110,8 +111,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                 employees: policy?.employeeList ?? {},
                 defaultApprover: policyApproverEmail ?? policy?.owner ?? '',
                 personalDetails: personalDetails ?? {},
+                localeCompare,
             }),
-        [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail],
+        [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail, localeCompare],
     );
 
     useEffect(() => {
@@ -167,7 +169,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         if (!prevMember || prevMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || member?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
-        Navigation.goBack();
+        navigateAfterInteraction(() => Navigation.goBack());
     }, [member, prevMember]);
 
     const askForConfirmationToRemove = () => {
@@ -250,6 +252,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                 assigneeEmail: memberLogin,
             },
             isEditing: false,
+            isChangeAssigneeDisabled: true,
             policyID,
         });
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));

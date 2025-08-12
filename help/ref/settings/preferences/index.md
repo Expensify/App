@@ -5,42 +5,22 @@ title: Preferences
 
 # Preferences
 
-Customize your Expensify experience with these preference settings:
+Your preferences shape how Expensify looks and feels just for you. Customize your language, theme, and notification settings to customize your experience across all your devices.
 
-## Theme
-Change the app's appearance to suit your preference:
-- **Dark Mode** - Easy on the eyes in low-light environments
-- **Light Mode** - Bright, clean interface for well-lit spaces  
-- **Use Device Settings** - Automatically match your device's theme
+---
 
-**To change your theme:**
-1. Go to **Account > Preferences**
-2. Click **Theme** and choose your preferred option
-3. Your theme applies across web, mobile, and desktop versions
+- **Notifications**: Decide which alerts you want to receive, such as feature updates, news, or sound notifications. You’re in control.
 
-## Language
-Expensify supports multiple languages including:
-- English, Español, Deutsch, Français, Italiano
-- 日本語, Nederlands, Polski, Português (BR)
-- 中文 (简体)
+- **Priority mode:** Choose how chats appear in your inbox -- Focus on unread and pinned chats, or keep everything visible, with the most recent messages shown at the top of the left-hand menu.
 
-**To change your language:**
-1. In the left-hand menu, select **Account > Preferences**
-2. Tap or click on **Language**
-3. Choose your preferred language from the list
-4. Your account will update automatically
+- **Language options**: You can update your interface in just a few clicks by choosing from 10 supported languages. Choose your preferred language from the list, and your account will update automatically.
 
-## Notifications
-Control how and when you receive updates:
-- **Receive relevant feature updates and Expensify news**
-- **Mute all sounds from Expensify**
+- **Payment Currency:** Set your default currency for expense tracking and reimbursements.
 
-**To manage notifications:**
-1. Go to **Account > Preferences**
-2. Toggle notification settings on or off as needed
-
-## Payment Currency
-Set your default currency for expense tracking and reimbursements.
+- **Theme:** Change the app's appearance to suit your preference:
+     - **Dark Mode** - Easy on the eyes in low-light environments
+     - **Light Mode** - Bright, clean interface for well-lit spaces
+     - **Use Device Settings** - Automatically match your device's theme
 
 ---
 

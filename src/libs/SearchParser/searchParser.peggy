@@ -30,7 +30,7 @@
 {
   const defaultValues = {
     type: "expense",
-    status: "all",
+    status: "",
     sortBy: "date",
     sortOrder: "desc",
   };
@@ -131,6 +131,7 @@ key "key"
       / paid
       / exported
       / posted
+      / withdrawn
       / feed
       / title
       / assignee

@@ -3,6 +3,7 @@ import {renderHook} from '@testing-library/react-native';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
 import {search} from '@libs/actions/Search';
+import CONST from '@src/CONST';
 
 jest.mock('@libs/actions/Search');
 jest.mock('@react-navigation/native', () => ({
@@ -39,7 +40,7 @@ describe('useSearchHighlightAndScroll', () => {
                 hasMoreResults: false,
                 hasResults: true,
                 offset: 0,
-                status: 'all',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 type: 'expense',
                 isLoading: false,
             },
@@ -50,15 +51,17 @@ describe('useSearchHighlightAndScroll', () => {
         previousReportActions: {},
         queryJSON: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {operator: 'and', left: 'tag', right: ''},
-            inputQuery: 'type:expense status:all',
+            inputQuery: 'type:expense',
             flatFilters: [],
             hash: 123,
             recentSearchHash: 456,
         },
+        searchKey: undefined,
+        shouldCalculateTotals: false,
         offset: 0,
     };
 
@@ -92,7 +95,7 @@ describe('useSearchHighlightAndScroll', () => {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
-        expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, offset: 0});
+        expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false});
     });
 
     it('should not trigger search when not focused', () => {
@@ -150,7 +153,7 @@ describe('useSearchHighlightAndScroll', () => {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
-        expect(search).toHaveBeenCalledWith({queryJSON: chatProps.queryJSON, offset: 0});
+        expect(search).toHaveBeenCalledWith({queryJSON: chatProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false});
     });
 
     it('should not trigger search when new transaction removed and focused', () => {

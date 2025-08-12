@@ -45,6 +45,18 @@ function AmountWithoutCurrencyInput(
         [onInputChange],
     );
 
+    // Add custom notation for using '-' character in the mask.
+    // If we only use '-' for characterSet instead of '0123456789.-'
+    // then the first character has to be '-' optionally, but we also want to allow a digit in first position if the value is positive.
+    // More info: https://github.com/IvanIhnatsiuk/react-native-advanced-input-mask?tab=readme-ov-file#custom-notations
+    const customMask = [
+        {
+            character: '~',
+            characterSet: '0123456789.-',
+            isOptional: true,
+        },
+    ];
+
     return (
         <TextInput
             inputID={inputID}
@@ -57,9 +69,10 @@ function AmountWithoutCurrencyInput(
             ref={ref}
             keyboardType={!shouldAllowNegative ? CONST.KEYBOARD_TYPE.DECIMAL_PAD : undefined}
             type="mask"
-            mask={`[09999999]${separator}[09]`}
-            allowedKeys="0123456789.,"
-            validationRegex={'^(?!.*[.,].*[.,])\\d{0,8}(?:[.,]\\d{0,2})?$'}
+            mask={shouldAllowNegative ? `[~][99999999]${separator}[09]` : `[09999999]${separator}[09]`}
+            customNotations={customMask}
+            allowedKeys="0123456789.,-"
+            validationRegex={'^-?(?!.*[.,].*[.,])\\d{0,8}(?:[.,]\\d{0,2})?$'}
             // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
             // See https://github.com/Expensify/App/issues/51868 for more information
             autoCapitalize="words"
@@ -69,6 +82,6 @@ function AmountWithoutCurrencyInput(
     );
 }
 
-AmountWithoutCurrencyInput.displayName = 'AmountWithoutCurrencyForm';
+AmountWithoutCurrencyInput.displayName = 'AmountWithoutCurrencyInput';
 
 export default React.forwardRef(AmountWithoutCurrencyInput);

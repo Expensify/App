@@ -6,16 +6,8 @@ const tests = [
     {
         query: parserCommonTests.simple,
         expected: {
-            autocomplete: {
-                key: 'status',
-                value: 'all',
-                start: 20,
-                length: 3,
-            },
-            ranges: [
-                {key: 'type', value: 'expense', start: 5, length: 7},
-                {key: 'status', value: 'all', start: 20, length: 3},
-            ],
+            autocomplete: {key: 'type', value: 'expense', start: 5, length: 7},
+            ranges: [{key: 'type', value: 'expense', start: 5, length: 7}],
         },
     },
     {
@@ -64,13 +56,12 @@ const tests = [
             autocomplete: {
                 key: 'category',
                 length: 5,
-                start: 33,
+                start: 22,
                 value: 'a b',
             },
             ranges: [
                 {key: 'type', value: 'expense', start: 5, length: 7},
-                {key: 'status', value: 'all', start: 20, length: 3},
-                {key: 'category', value: 'a b', start: 33, length: 5},
+                {key: 'category', value: 'a b', start: 22, length: 5},
             ],
         },
     },
@@ -179,22 +170,19 @@ const tests = [
         },
     },
     {
-        query: 'type:expense status:all word',
+        query: 'type:expense word',
         expected: {
             autocomplete: null,
-            ranges: [
-                {key: 'type', value: 'expense', start: 5, length: 7},
-                {key: 'status', value: 'all', start: 20, length: 3},
-            ],
+            ranges: [{key: 'type', value: 'expense', start: 5, length: 7}],
         },
     },
     {
-        query: 'in:"Big Room" from:Friend category:Car,"Cell Phone" status:all expense-type:card,cash',
+        query: 'in:"Big Room" from:Friend category:Car,"Cell Phone" expense-type:card,cash',
         expected: {
             autocomplete: {
                 key: 'expenseType',
                 value: 'cash',
-                start: 81,
+                start: 70,
                 length: 4,
             },
             ranges: [
@@ -202,9 +190,8 @@ const tests = [
                 {key: 'from', value: 'Friend', start: 19, length: 6},
                 {key: 'category', value: 'Car', start: 35, length: 3},
                 {key: 'category', value: 'Cell Phone', start: 39, length: 12},
-                {key: 'status', value: 'all', start: 59, length: 3},
-                {key: 'expenseType', value: 'card', start: 76, length: 4},
-                {key: 'expenseType', value: 'cash', start: 81, length: 4},
+                {key: 'expenseType', value: 'card', start: 65, length: 4},
+                {key: 'expenseType', value: 'cash', start: 70, length: 4},
             ],
         },
     },

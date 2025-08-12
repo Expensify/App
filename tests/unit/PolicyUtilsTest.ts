@@ -5,12 +5,16 @@ import DateUtils from '@libs/DateUtils';
 import {
     getActivePolicies,
     getManagerAccountID,
+    getPolicyEmployeeAccountIDs,
     getPolicyNameByID,
     getRateDisplayValue,
     getSubmitToAccountID,
+    getTagList,
+    getTagListByOrderWeight,
     getUnitRateValue,
     isUserInvitedToWorkspace,
     shouldShowPolicy,
+    sortWorkspacesBySelected,
 } from '@libs/PolicyUtils';
 import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -171,6 +175,20 @@ const rules = {
             id: '4',
         },
     ],
+};
+const policyTags = {
+    TagListTest0: {
+        name: 'TagListTest0',
+        orderWeight: 0,
+        required: false,
+        tags: {},
+    },
+    TagListTest2: {
+        name: 'TagListTest2',
+        orderWeight: 2,
+        required: false,
+        tags: {},
+    },
 };
 
 describe('PolicyUtils', () => {
@@ -816,6 +834,99 @@ describe('PolicyUtils', () => {
             const result = isUserInvitedToWorkspace();
 
             expect(result).toBeTruthy();
+        });
+    });
+    describe('getTagList', () => {
+        it.each([
+            ['when index is 0', 0, policyTags.TagListTest0.name],
+            ['when index is 1', 1, policyTags.TagListTest2.name],
+            ['when index is out of range', 2, ''],
+        ])('%s', (_description, index, expected) => {
+            const tagList = getTagList(policyTags, index);
+            expect(tagList.name).toEqual(expected);
+        });
+    });
+    describe('getTagListByOrderWeight', () => {
+        it.each([
+            ['when orderWeight is 0', 0, policyTags.TagListTest0.name],
+            ['when orderWeight is 2', 2, policyTags.TagListTest2.name],
+            ['when orderWeight is out of range', 1, ''],
+        ])('%s', (_description, orderWeight, expected) => {
+            const tagList = getTagListByOrderWeight(policyTags, orderWeight);
+            expect(tagList.name).toEqual(expected);
+        });
+    });
+    describe('sortWorkspacesBySelected', () => {
+        it('should order workspaces with selected workspace first', () => {
+            const workspace1 = {policyID: '1', name: 'Workspace 1'};
+            const workspace2 = {policyID: '2', name: 'Workspace 2'};
+            const selectedWorkspace1 = {policyID: '3', name: 'Workspace 3'};
+            const selectedWorkspace2 = {policyID: '4', name: 'Workspace 4'};
+            expect(sortWorkspacesBySelected(workspace1, workspace2, ['3', '4'], TestHelper.localeCompare)).toBe(-1);
+            expect(sortWorkspacesBySelected(workspace1, selectedWorkspace1, ['3', '4'], TestHelper.localeCompare)).toBe(1);
+            expect(sortWorkspacesBySelected(selectedWorkspace1, selectedWorkspace2, ['3', '4'], TestHelper.localeCompare)).toBe(-1);
+        });
+
+        it('should order workspaces using name if no workspace is selected', () => {
+            const workspace1 = {policyID: '1', name: 'Workspace 1'};
+            const workspace2 = {policyID: '2', name: 'Workspace 2'};
+            const workspace3 = {policyID: '3', name: 'Workspace 3'};
+            const workspace4 = {policyID: '4', name: 'Workspace 4'};
+            expect(sortWorkspacesBySelected(workspace1, workspace2, undefined, TestHelper.localeCompare)).toBe(-1);
+            expect(sortWorkspacesBySelected(workspace1, workspace3, undefined, TestHelper.localeCompare)).toBe(-1);
+            expect(sortWorkspacesBySelected(workspace3, workspace4, undefined, TestHelper.localeCompare)).toBe(-1);
+        });
+
+        it('should sort workspaces when using this method correctly', () => {
+            const unsortedWorkspaces = [
+                {policyID: '2', name: 'Workspace 2'},
+                {policyID: '1', name: 'Workspace 1'},
+                {policyID: '4', name: 'Workspace 4'},
+                {policyID: '3', name: 'Workspace 3'},
+            ];
+            const selectedWorkspaceIDs = ['3', '4'];
+            const sortedWorkspaces = unsortedWorkspaces.sort((a, b) => sortWorkspacesBySelected(a, b, selectedWorkspaceIDs, TestHelper.localeCompare));
+            expect(sortedWorkspaces).toEqual([
+                {policyID: '3', name: 'Workspace 3'},
+                {policyID: '4', name: 'Workspace 4'},
+                {policyID: '1', name: 'Workspace 1'},
+                {policyID: '2', name: 'Workspace 2'},
+            ]);
+        });
+    });
+
+    describe('getPolicyEmployeeAccountIDs', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should return an array of employee accountIDs for the given policy (including current user accountID) if no current user is passed', () => {
+            const policy = {
+                employeeList,
+            };
+            const result = getPolicyEmployeeAccountIDs(policy);
+            expect(result).toEqual([7, 1, 2, 3, 4, 5, 6]);
+        });
+
+        it('should return an array of employee accountIDs for the given policy (excluding current user accountID) if current user is passed', () => {
+            const policy = {
+                employeeList,
+            };
+            const result = getPolicyEmployeeAccountIDs(policy, 5);
+            expect(result).toEqual([7, 1, 2, 3, 4, 6]);
+        });
+
+        it('should return an empty array if no employees are found', () => {
+            const policy = {
+                employeeList: {},
+            };
+            const result = getPolicyEmployeeAccountIDs(policy);
+            expect(result).toEqual([]);
         });
     });
 });

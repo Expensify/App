@@ -14,7 +14,7 @@ By setting a submission schedule for your workspace, expenses are automatically 
 
 When an employee creates an expense, it's automatically added to a report. If no report exists, a new one is created. Reports are then submitted according to the schedule you choose—daily, weekly, monthly, twice per month, by trip, or manually.
 
-**Note:** If you're using **Delayed Submissions** and an expense has a violation, it won't be submitted until the violation is fixed. That expense is removed from the current report and added to a new open report.
+**Note:** If you're using **Delay Submissions** and an expense has a violation, it won't be submitted until the violation is fixed. That expense is removed from the current report and added to a new open report.
 
 ---
 

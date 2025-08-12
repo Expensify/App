@@ -102,13 +102,12 @@ function CurrencyPicker({
                 isVisible={isPickerVisible}
                 onClose={hidePickerModal}
                 onModalHide={hidePickerModal}
-                hideModalContentWhileAnimating
                 shouldEnableNewFocusManagement
-                useNativeDriver
                 onBackdropPress={Navigation.dismissModal}
                 shouldUseModalPaddingStyle={false}
                 shouldHandleNavigationBack
                 enableEdgeToEdgeBottomSafeAreaPadding
+                shouldUseReanimatedModal
             >
                 <ScreenWrapper
                     style={[styles.pb0]}

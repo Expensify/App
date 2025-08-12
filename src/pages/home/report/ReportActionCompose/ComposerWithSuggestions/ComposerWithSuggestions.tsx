@@ -99,7 +99,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     inputPlaceholder: string;
 
     /** Function to display a file in a modal */
-    displayFileInModal: (file: FileObject) => void;
+    displayFilesInModal: (file: FileObject[]) => void;
 
     /** Whether the user is blocked from concierge */
     isBlockedFromConcierge: boolean;
@@ -214,7 +214,7 @@ function ComposerWithSuggestions(
         setIsFullComposerAvailable,
         isMenuVisible,
         inputPlaceholder,
-        displayFileInModal,
+        displayFilesInModal,
         isBlockedFromConcierge,
         disabled,
         setIsCommentEmpty,
@@ -305,8 +305,8 @@ function ComposerWithSuggestions(
         if (!RNTextInputReset) {
             return;
         }
-        RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef.current));
-    }, [textInputRef]);
+        RNTextInputReset.resetKeyboardInput(CONST.COMPOSER.NATIVE_ID);
+    }, []);
 
     const debouncedSaveReportComment = useMemo(
         () =>
@@ -812,7 +812,7 @@ function ComposerWithSuggestions(
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={(file) => {
                         textInputRef.current?.blur();
-                        displayFileInModal(file);
+                        displayFilesInModal([file]);
                     }}
                     onClear={onClear}
                     isDisabled={isBlockedFromConcierge || disabled}

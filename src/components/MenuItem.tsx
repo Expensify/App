@@ -11,10 +11,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
 import type {AvatarSource} from '@libs/UserUtils';
+import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
@@ -30,15 +32,13 @@ import FormHelpMessage from './FormHelpMessage';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 import {MenuItemGroupContext} from './MenuItemGroup';
-import MultipleAvatars from './MultipleAvatars';
 import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import RenderHTML from './RenderHTML';
+import ReportActionAvatars from './ReportActionAvatars';
 import SelectCircle from './SelectCircle';
-import SubscriptAvatar from './SubscriptAvatar';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
 
@@ -53,7 +53,7 @@ type IconProps = {
 type AvatarProps = {
     iconType?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE | typeof CONST.ICON_TYPE_PLAID;
 
-    icon: AvatarSource | IconType[];
+    icon?: AvatarSource | IconType[];
 };
 
 type NoIcon = {
@@ -225,18 +225,6 @@ type MenuItemBaseProps = {
     /** Prop to represent the size of the avatar images to be shown */
     avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
-    /** Avatars to show on the right of the menu item */
-    floatRightAvatars?: IconType[];
-
-    /** Prop to represent the size of the float right avatar images to be shown */
-    floatRightAvatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
-
-    /** Whether the secondary right avatar should show as a subscript */
-    shouldShowSubscriptRightAvatar?: boolean;
-
-    /** Whether the secondary avatar should show as a subscript */
-    shouldShowSubscriptAvatar?: boolean;
-
     /** Affects avatar size  */
     viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -266,6 +254,10 @@ type MenuItemBaseProps = {
 
     /** Should we remove the hover background color of the menu item */
     shouldRemoveHoverBackground?: boolean;
+
+    rightIconAccountID?: number | string;
+
+    iconAccountID?: number;
 
     /** Should we use default cursor for disabled content */
     shouldUseDefaultCursorWhenDisabled?: boolean;
@@ -379,6 +371,12 @@ type MenuItemBaseProps = {
 
     /** Plaid image for the bank */
     plaidUrl?: string;
+
+    /** Report ID for the avatar */
+    iconReportID?: string;
+
+    /** Report ID for the avatar on the right */
+    rightIconReportID?: string;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -420,6 +418,8 @@ function MenuItem(
         fallbackIcon = Expensicons.FallbackAvatar,
         shouldShowTitleIcon = false,
         titleIcon,
+        rightIconAccountID,
+        iconAccountID,
         shouldShowRightIcon = false,
         iconRight = Expensicons.ArrowRight,
         furtherDetailsIcon,
@@ -435,6 +435,7 @@ function MenuItem(
         shouldShowRedDotIndicator,
         hintText,
         success = false,
+        iconReportID,
         focused = false,
         disabled = false,
         title,
@@ -453,10 +454,7 @@ function MenuItem(
         shouldShowDescriptionOnTop = false,
         shouldShowRightComponent = false,
         rightComponent,
-        floatRightAvatars = [],
-        floatRightAvatarSize,
-        shouldShowSubscriptRightAvatar = false,
-        shouldShowSubscriptAvatar: shouldShowSubscriptAvatarProp = false,
+        rightIconReportID,
         avatarSize = CONST.AVATAR_SIZE.DEFAULT,
         isSmallAvatarSubscriptMenu = false,
         brickRoadIndicator,
@@ -514,8 +512,6 @@ function MenuItem(
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
-    const fallbackAvatarSize = isCompact ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
-    const firstRightIcon = floatRightAvatars.at(0);
 
     const combinedTitleTextStyle = StyleUtils.combineStyles(
         [
@@ -533,9 +529,7 @@ function MenuItem(
         ],
         titleStyle ?? {},
     );
-    const shouldShowAvatar = !!icon && Array.isArray(icon);
-    const firstIcon = Array.isArray(icon) && !!icon.length ? icon.at(0) : undefined;
-    const shouldShowSubscriptAvatar = shouldShowSubscriptAvatarProp && !!firstIcon;
+
     const descriptionTextStyles = StyleUtils.combineStyles<TextStyle>([
         styles.textLabelSupporting,
         icon && !Array.isArray(icon) ? styles.ml3 : {},
@@ -601,6 +595,18 @@ function MenuItem(
             );
         }
 
+        const titleContainsTextAndCustomEmoji = containsCustomEmoji(title ?? '') && !containsOnlyCustomEmoji(title ?? '');
+
+        if (title && titleContainsTextAndCustomEmoji) {
+            return (
+                <TextWithEmojiFragment
+                    message={convertToLTR(title) || ''}
+                    style={combinedTitleTextStyle}
+                    alignCustomEmoji
+                />
+            );
+        }
+
         return title ? convertToLTR(title) : '';
     };
 
@@ -638,6 +644,8 @@ function MenuItem(
         });
         onSecondaryInteraction?.(event);
     };
+
+    const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
 
     return (
         <View onBlur={onBlur}>
@@ -696,32 +704,27 @@ function MenuItem(
                                         <View style={[styles.flexRow]}>
                                             <View style={[styles.flexColumn, styles.flex1]}>
                                                 {!!label && isLabelHoverable && (
-                                                    <View style={[icon ? styles.mb2 : null, labelStyle]}>
+                                                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                                    <View style={[isIDPassed ? styles.mb2 : null, labelStyle]}>
                                                         <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>
                                                             {label}
                                                         </Text>
                                                     </View>
                                                 )}
                                                 <View style={[styles.flexRow, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}>
-                                                    {shouldShowAvatar && !shouldShowSubscriptAvatar && (
-                                                        <MultipleAvatars
-                                                            isHovered={isHovered}
-                                                            isPressed={pressed}
-                                                            icons={icon as IconType[]}
+                                                    {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
+                                                    {isIDPassed && (
+                                                        <ReportActionAvatars
+                                                            subscriptAvatarBorderColor={getSubscriptAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
+                                                            singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
                                                             size={avatarSize}
-                                                            secondAvatarStyle={[
+                                                            secondaryAvatarContainerStyle={[
                                                                 StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
                                                                 pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.buttonPressedBG) : undefined,
                                                                 isHovered && !pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.border) : undefined,
                                                             ]}
-                                                        />
-                                                    )}
-                                                    {shouldShowAvatar && shouldShowSubscriptAvatar && (
-                                                        <SubscriptAvatar
-                                                            backgroundColor={getSubscriptAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
-                                                            mainAvatar={firstIcon as IconType}
-                                                            secondaryAvatar={(icon as IconType[]).at(1)}
-                                                            size={avatarSize}
+                                                            reportID={iconReportID}
+                                                            accountIDs={iconAccountID ? [iconAccountID] : undefined}
                                                         />
                                                     )}
                                                     {!icon && shouldPutLeftPaddingWhenNoIcon && (
@@ -896,26 +899,22 @@ function MenuItem(
                                                         <Text style={[styles.textLabelSupporting, ...(combinedStyle as TextStyle[])]}>{subtitle}</Text>
                                                     </View>
                                                 )}
-                                                {floatRightAvatars?.length > 0 && !!firstRightIcon && (
+                                                {(!!rightIconAccountID || !!rightIconReportID) && (
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : styles.mrn2]}>
-                                                        {shouldShowSubscriptRightAvatar ? (
-                                                            <SubscriptAvatar
-                                                                backgroundColor={isHovered ? theme.activeComponentBG : theme.componentBG}
-                                                                mainAvatar={firstRightIcon}
-                                                                secondaryAvatar={floatRightAvatars.at(1)}
-                                                                size={floatRightAvatarSize ?? fallbackAvatarSize}
-                                                            />
-                                                        ) : (
-                                                            <MultipleAvatars
-                                                                isHovered={isHovered}
-                                                                isPressed={pressed}
-                                                                icons={floatRightAvatars}
-                                                                size={floatRightAvatarSize ?? fallbackAvatarSize}
-                                                                fallbackIcon={defaultWorkspaceAvatars.WorkspaceBuilding}
-                                                                shouldStackHorizontally={shouldStackHorizontally}
-                                                                isFocusMode
-                                                            />
-                                                        )}
+                                                        <ReportActionAvatars
+                                                            subscriptAvatarBorderColor={isHovered ? theme.activeComponentBG : theme.componentBG}
+                                                            singleAvatarContainerStyle={[styles.actionAvatar, styles.mr2]}
+                                                            reportID={rightIconReportID}
+                                                            size={CONST.AVATAR_SIZE.SMALL}
+                                                            horizontalStacking={
+                                                                shouldStackHorizontally && {
+                                                                    isHovered,
+                                                                    isPressed: pressed,
+                                                                }
+                                                            }
+                                                            accountIDs={!!rightIconAccountID && Number(rightIconAccountID) > 0 ? [Number(rightIconAccountID)] : undefined}
+                                                            useMidSubscriptSizeForMultipleAvatars
+                                                        />
                                                     </View>
                                                 )}
                                                 {!!brickRoadIndicator && (

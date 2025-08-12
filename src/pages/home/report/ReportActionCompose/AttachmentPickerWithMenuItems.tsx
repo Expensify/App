@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentPicker from '@components/AttachmentPicker';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -15,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -48,7 +50,7 @@ type AttachmentPickerWithMenuItemsProps = {
     currentUserPersonalDetails: OnyxTypes.PersonalDetails;
 
     /** Callback to open the file in the modal */
-    displayFileInModal: (url: FileObject) => void;
+    displayFilesInModal: (files: FileObject[]) => void;
 
     /** Whether or not the full size composer is available */
     isFullComposerAvailable: boolean;
@@ -106,7 +108,7 @@ function AttachmentPickerWithMenuItems({
     report,
     currentUserPersonalDetails,
     reportParticipantIDs,
-    displayFileInModal,
+    displayFilesInModal,
     isFullComposerAvailable,
     isComposerFullSize,
     reportID,
@@ -133,6 +135,8 @@ function AttachmentPickerWithMenuItems({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const {isProduction} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
+    const {setIsLoaderVisible} = useFullScreenLoader();
+    const isReportArchived = useReportIsArchived(report?.reportID);
 
     const isManualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
 
@@ -226,10 +230,21 @@ function AttachmentPickerWithMenuItems({
             ],
         };
 
-        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => options[option]);
+        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => options[option], isReportArchived);
 
         return moneyRequestOptionsList.flat().filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
-    }, [translate, shouldUseNarrowLayout, report, policy, reportParticipantIDs, selectOption, isDelegateAccessRestricted, showDelegateNoAccessModal, isManualDistanceTrackingEnabled]);
+    }, [
+        translate,
+        shouldUseNarrowLayout,
+        report,
+        policy,
+        reportParticipantIDs,
+        selectOption,
+        isDelegateAccessRestricted,
+        showDelegateNoAccessModal,
+        isManualDistanceTrackingEnabled,
+        isReportArchived,
+    ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
         if (!isPolicyExpenseChat(report) || !isPaidGroupPolicy(report) || !isReportOwner(report)) {
@@ -310,13 +325,22 @@ function AttachmentPickerWithMenuItems({
     const createButtonContainerStyles = [styles.flexGrow0, styles.flexShrink0];
 
     return (
-        <AttachmentPicker>
+        <AttachmentPicker
+            allowMultiple
+            onOpenPicker={() => setIsLoaderVisible(true)}
+            fileLimit={CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT}
+            shouldValidateImage={false}
+        >
             {({openPicker}) => {
                 const triggerAttachmentPicker = () => {
                     onTriggerAttachmentPicker();
                     openPicker({
-                        onPicked: (data) => displayFileInModal(data.at(0) ?? {}),
-                        onCanceled: onCanceledAttachmentPicker,
+                        onPicked: (data) => displayFilesInModal(data),
+                        onCanceled: () => {
+                            onCanceledAttachmentPicker?.();
+                            setIsLoaderVisible(false);
+                        },
+                        onClosed: () => setIsLoaderVisible(false),
                     });
                 };
                 const menuItems = [
@@ -439,7 +463,10 @@ function AttachmentPickerWithMenuItems({
                                 }
                             }}
                             anchorPosition={styles.createMenuPositionReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth)}
-                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
+                            anchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                            }}
                             menuItems={menuItems}
                             anchorRef={actionButtonRef}
                         />

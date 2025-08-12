@@ -1,5 +1,6 @@
 import lodashMapKeys from 'lodash/mapKeys';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
@@ -14,6 +15,7 @@ const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     usedApproverEmails: [],
     isDefault: false,
     action: CONST.APPROVAL_WORKFLOW.ACTION.CREATE,
+    originalApprovers: [],
 };
 
 type GetApproversParams = {
@@ -68,46 +70,35 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: Get
 }
 
 type PolicyConversionParams = {
-    /**
-     * List of employees in the policy
-     */
+    /** List of employees in the policy */
     employees: PolicyEmployeeList;
 
-    /**
-     * Personal details of the employees
-     */
+    /** Personal details of the employees */
     personalDetails: PersonalDetailsList;
 
-    /**
-     * Email of the default approver for the policy
-     */
+    /** Email of the default approver for the policy */
     defaultApprover: string;
 
-    /**
-     * Email of the first approver in current edited workflow
-     */
+    /** Email of the first approver in current edited workflow */
     firstApprover?: string;
+
+    /** Locale comparison function */
+    localeCompare: LocaleContextProps['localeCompare'];
 };
 
 type PolicyConversionResult = {
-    /**
-     * List of approval workflows
-     */
+    /** List of approval workflows */
     approvalWorkflows: ApprovalWorkflow[];
 
-    /**
-     * List of available members that can be selected in the workflow
-     */
+    /** List of available members that can be selected in the workflow */
     availableMembers: Member[];
 
-    /**
-     * Emails that are used as approvers in currently configured workflows
-     */
+    /** Emails that are used as approvers in currently configured workflows */
     usedApproverEmails: string[];
 };
 
 /** Convert a list of policy employees to a list of approval workflows */
-function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails, firstApprover}: PolicyConversionParams): PolicyConversionResult {
+function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails, firstApprover, localeCompare}: PolicyConversionParams): PolicyConversionResult {
     const approvalWorkflows: Record<string, ApprovalWorkflow> = {};
 
     // Keep track of used approver emails to display hints in the UI
@@ -158,7 +149,7 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
             return 1;
         }
 
-        return (a.approvers.at(0)?.displayName ?? CONST.DEFAULT_NUMBER_ID).toString().localeCompare((b.approvers.at(0)?.displayName ?? CONST.DEFAULT_NUMBER_ID).toString());
+        return localeCompare(a.approvers.at(0)?.displayName ?? '', b.approvers.at(0)?.displayName ?? '');
     });
 
     // Add a default workflow if one doesn't exist (no employees submit to the default approver)

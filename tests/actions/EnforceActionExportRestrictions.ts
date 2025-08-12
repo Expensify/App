@@ -18,11 +18,10 @@ describe('ReportUtils', () => {
         expect(ReportUtils.getReport).toBeUndefined();
     });
 
-    // TODO: Re-enable this test when isOneTransactionReport is fixed https://github.com/Expensify/App/issues/64333
-    // it('does not export isOneTransactionReport', () => {
-    //     // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
-    //     expect(ReportUtils.isOneTransactionReport).toBeUndefined();
-    // });
+    it('does not export isOneTransactionReport', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.isOneTransactionReport).toBeUndefined();
+    });
 
     it('does not export getPolicy', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal

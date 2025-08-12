@@ -62,9 +62,9 @@ function PolicyDistanceRatesPage({
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const policy = usePolicy(policyID);
-    const {selectionMode} = useMobileSelectionMode();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
-    const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
+    const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
 
     const customUnit = getDistanceRateCustomUnit(policy);
     const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit]);
@@ -151,7 +151,8 @@ function PolicyDistanceRatesPage({
             Object.values(customUnitRates).map((value) => ({
                 rate: value.rate,
                 value: value.customUnitRateID,
-                text: `${convertAmountToDisplayString(value.rate, value.currency ?? CONST.CURRENCY.USD)} / ${translate(
+                text: value.name,
+                alternateText: `${convertAmountToDisplayString(value.rate, value.currency ?? CONST.CURRENCY.USD)} / ${translate(
                     `common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`,
                 )}`,
                 keyForList: value.customUnitRateID,
@@ -182,7 +183,7 @@ function PolicyDistanceRatesPage({
         const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase());
         return rateText.includes(normalizedSearchInput);
     }, []);
-    const sortRates = useCallback((rates: RateForList[]) => rates.sort((a, b) => (a.rate ?? 0) - (b.rate ?? 0)), []);
+    const sortRates = useCallback((rates: RateForList[]) => rates, []);
     const [inputValue, setInputValue, filteredDistanceRatesList] = useSearchResults(distanceRatesList, filterRate, sortRates);
 
     const addRate = () => {
@@ -325,7 +326,7 @@ function PolicyDistanceRatesPage({
 
     const headerButtons = (
         <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
-            {(shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedDistanceRates.length === 0) ? (
+            {(shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedDistanceRates.length === 0) ? (
                 <>
                     <Button
                         text={translate('workspace.distanceRates.addRate')}
@@ -337,7 +338,7 @@ function PolicyDistanceRatesPage({
                     <ButtonWithDropdownMenu
                         success={false}
                         onPress={() => {}}
-                        shouldAlwaysShowDropdownMenu
+                        shouldUseOptionIcon
                         customText={translate('common.more')}
                         options={secondaryActions}
                         isSplitButton={false}
@@ -361,7 +362,7 @@ function PolicyDistanceRatesPage({
         </View>
     );
 
-    const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
+    const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
     const headerContent = (
         <>
@@ -399,7 +400,7 @@ function PolicyDistanceRatesPage({
                     title={translate(!selectionModeHeader ? 'workspace.common.distanceRates' : 'common.selectMultiple')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => {
-                        if (selectionMode?.isEnabled) {
+                        if (isMobileSelectionModeEnabled) {
                             setSelectedDistanceRates([]);
                             turnOffMobileSelectionMode();
                             return;

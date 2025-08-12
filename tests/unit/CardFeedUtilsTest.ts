@@ -1,11 +1,12 @@
-import {getCardFeedNamesWithType, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
+/* eslint-disable @typescript-eslint/naming-convention */
+import type {OnyxCollection} from 'react-native-onyx';
+import {getCardFeedNamesWithType, getCardFeedsForDisplay, getCardFeedsForDisplayPerPolicy, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
 import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import type {WorkspaceCardsList} from '@src/types/onyx';
+import type {CardFeeds, CardList, CompanyCardFeed, WorkspaceCardsList} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-/* eslint-disable @typescript-eslint/naming-convention */
 const fakeWorkspace: Record<string, WorkspaceCardsList> = {
     'cards_11111111_Expensify Card': {
         '11111111': {
@@ -57,7 +58,41 @@ const fakeWorkspace: Record<string, WorkspaceCardsList> = {
         },
     },
 };
-/* eslint-enable @typescript-eslint/naming-convention */
+
+const cardListMock = {
+    '11223344': {
+        state: 1,
+        bank: 'vcf',
+        fundID: '5555',
+        lastFourPAN: '1234',
+    },
+    '10203040': {
+        state: 1,
+        bank: CONST.EXPENSIFY_CARD.BANK,
+        fundID: '5555',
+        lastFourPAN: '1234',
+    },
+} as unknown as CardList;
+
+const cardFeedAmericaExpressMock = 'oauth.americanexpressfdx.com 1001' as CompanyCardFeed;
+const cardFeedVisaMock = 'vcf' as CompanyCardFeed;
+const cardFeedCitiBankMock = 'oauth.citibank.com' as CompanyCardFeed;
+const cardFeedStripeMock = 'stripe' as CompanyCardFeed;
+const cardFeedsMock: OnyxCollection<CardFeeds> = {
+    sharedNVP_private_domain_member_1234: {
+        settings: {
+            companyCardNicknames: {
+                [cardFeedVisaMock]: 'Custom feed name',
+            },
+            companyCards: {
+                [cardFeedAmericaExpressMock]: {},
+                [cardFeedVisaMock]: {preferredPolicy: 'AA1BB2CC3'},
+                [cardFeedCitiBankMock]: {preferredPolicy: 'AA1BB2CC3'},
+                [cardFeedStripeMock]: {preferredPolicy: 'XX1YY2ZZ3'},
+            },
+        },
+    },
+};
 
 describe('Card Feed Utils', () => {
     beforeAll(() => {
@@ -86,5 +121,38 @@ describe('Card Feed Utils', () => {
         const feeds = ['99999999_Expensify Card'];
         const selected = getSelectedCardsFromFeeds({}, fakeWorkspace, feeds);
         expect(selected).toEqual([]);
+    });
+
+    it('returns card feeds for display with custom names', () => {
+        const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeedsMock, cardListMock);
+        expect(cardFeedsForDisplay).toEqual({
+            '5555_Expensify Card': {id: '5555_Expensify Card', fundID: '5555', feed: 'Expensify Card', name: 'Expensify Card'},
+            '1234_oauth.americanexpressfdx.com 1001': {id: '1234_oauth.americanexpressfdx.com 1001', fundID: '1234', feed: 'oauth.americanexpressfdx.com 1001', name: 'American Express'},
+            '1234_vcf': {id: '1234_vcf', fundID: '1234', feed: 'vcf', name: 'Custom feed name'},
+            '1234_oauth.citibank.com': {id: '1234_oauth.citibank.com', fundID: '1234', feed: 'oauth.citibank.com', name: 'Citibank'},
+            '1234_stripe': {id: '1234_stripe', fundID: '1234', feed: 'stripe', name: 'Stripe'},
+        });
+    });
+
+    it('returns card feeds for display without Expensify Card', () => {
+        const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeedsMock, {});
+        expect(cardFeedsForDisplay).toEqual({
+            '1234_oauth.americanexpressfdx.com 1001': {id: '1234_oauth.americanexpressfdx.com 1001', fundID: '1234', feed: 'oauth.americanexpressfdx.com 1001', name: 'American Express'},
+            '1234_vcf': {id: '1234_vcf', fundID: '1234', feed: 'vcf', name: 'Custom feed name'},
+            '1234_oauth.citibank.com': {id: '1234_oauth.citibank.com', fundID: '1234', feed: 'oauth.citibank.com', name: 'Citibank'},
+            '1234_stripe': {id: '1234_stripe', fundID: '1234', feed: 'stripe', name: 'Stripe'},
+        });
+    });
+
+    it('returns card feeds grouped per policy', () => {
+        const cardFeedsForDisplayPerPolicy = getCardFeedsForDisplayPerPolicy(cardFeedsMock);
+        expect(cardFeedsForDisplayPerPolicy).toEqual({
+            '': [{id: '1234_oauth.americanexpressfdx.com 1001', fundID: '1234', feed: 'oauth.americanexpressfdx.com 1001', name: 'American Express'}],
+            AA1BB2CC3: [
+                {id: '1234_vcf', fundID: '1234', feed: 'vcf', name: 'Custom feed name'},
+                {id: '1234_oauth.citibank.com', fundID: '1234', feed: 'oauth.citibank.com', name: 'Citibank'},
+            ],
+            XX1YY2ZZ3: [{id: '1234_stripe', fundID: '1234', feed: 'stripe', name: 'Stripe'}],
+        });
     });
 });

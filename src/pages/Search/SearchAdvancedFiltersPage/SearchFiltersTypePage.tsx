@@ -28,11 +28,11 @@ function SearchFiltersTypePage() {
 
     const listData: Array<ListItem<SearchDataTypes>> = useMemo(() => {
         return getTypeOptions(allPolicies, session?.email).map((typeOption) => ({
-            text: translate(typeOption.translation),
+            text: typeOption.text,
             keyForList: typeOption.value,
             isSelected: selectedItem === typeOption.value,
         }));
-    }, [allPolicies, selectedItem, session?.email, translate]);
+    }, [allPolicies, selectedItem, session?.email]);
 
     const updateSelectedItem = useCallback((type: ListItem<SearchDataTypes>) => {
         setSelectedItem(type?.keyForList ?? CONST.SEARCH.DATA_TYPES.EXPENSE);

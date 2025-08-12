@@ -2,20 +2,35 @@ import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {translateLocal} from '@libs/Localize';
+import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-// Wrapper component with OnyxProvider
+// Wrapper component with OnyxListItemProvider
 function Wrapper({children}: {children: React.ReactNode}) {
     return (
-        <OnyxProvider>
+        <OnyxListItemProvider>
             <LocaleContextProvider>{children}</LocaleContextProvider>
-        </OnyxProvider>
+        </OnyxListItemProvider>
     );
 }
+const CURRENT_USER_EMAIL = 'fake@gmail.com';
+const CURRENT_USER_ACCOUNT_ID = 1;
+const SESSION = {
+    email: CURRENT_USER_EMAIL,
+    accountID: CURRENT_USER_ACCOUNT_ID,
+};
+const POLICY_ID = '1';
+const createPaidGroupPolicy = (isPolicyExpenseChatEnabled = true) => ({
+    id: POLICY_ID,
+    type: CONST.POLICY.TYPE.TEAM,
+    isPolicyExpenseChatEnabled,
+    role: CONST.POLICY.ROLE.ADMIN,
+});
 
 describe('EmptySearchView', () => {
     afterEach(() => {
@@ -73,6 +88,84 @@ describe('EmptySearchView', () => {
 
             // And correct modal subtitle
             expect(screen.getByText(translateLocal('search.searchResults.emptyExpenseResults.subtitleWithOnlyCreateButton'))).toBeVisible();
+        });
+
+        describe('Submit suggestion', () => {
+            beforeEach(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, SESSION);
+            });
+
+            afterEach(() => {
+                Onyx.clear();
+            });
+
+            it('should display "Create Report" button when user has a paid group policy with expense chat enabled', async () => {
+                // Given a paid group policy with expense chat enabled
+                const paidGroupPolicy = createPaidGroupPolicy();
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${paidGroupPolicy.id}`, paidGroupPolicy);
+
+                // Given a query string for expense search with draft status
+                const queryString = buildQueryStringFromFilterFormValues({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                    status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+                    from: [CURRENT_USER_ACCOUNT_ID.toString()],
+                });
+                const queryJSON = buildSearchQueryJSON(queryString);
+
+                // When rendering the EmptySearchView component
+                render(
+                    <Wrapper>
+                        <EmptySearchView
+                            hash={queryJSON?.hash ?? 1}
+                            type={dataType}
+                            hasResults={false}
+                            groupBy={CONST.SEARCH.GROUP_BY.REPORTS}
+                        />
+                    </Wrapper>,
+                );
+                await waitForBatchedUpdates();
+
+                // Then it should display the submit empty results title
+                expect(screen.getByText(translateLocal('search.searchResults.emptySubmitResults.title'))).toBeVisible();
+
+                // And it should display the "Create Report" button
+                expect(screen.getByText(translateLocal('report.newReport.createReport'))).toBeVisible();
+            });
+
+            it('should hide "Create Report" button when user has a paid group policy with expense chat disabled', async () => {
+                // Given a paid group policy with expense chat disabled
+                const policy = createPaidGroupPolicy(false);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+                // Given: A query string for expense search with draft status
+                const queryString = buildQueryStringFromFilterFormValues({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                    status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+                    from: [CURRENT_USER_ACCOUNT_ID.toString()],
+                });
+                const queryJSON = buildSearchQueryJSON(queryString);
+
+                // When rendering the EmptySearchView component
+                render(
+                    <Wrapper>
+                        <EmptySearchView
+                            hash={queryJSON?.hash ?? 1}
+                            type={dataType}
+                            hasResults={false}
+                            groupBy={CONST.SEARCH.GROUP_BY.REPORTS}
+                        />
+                    </Wrapper>,
+                );
+                await waitForBatchedUpdates();
+
+                // Then it should display the submit empty results title
+                expect(screen.getByText(translateLocal('search.searchResults.emptySubmitResults.title'))).toBeVisible();
+
+                // And it should not display the "Create Report" button
+                expect(screen.queryByText(translateLocal('report.newReport.createReport'))).not.toBeOnTheScreen();
+            });
         });
     });
 

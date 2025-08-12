@@ -56,7 +56,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [myDomainSecurityGroups, myDomainSecurityGroupsResult] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {canBeMissing: true});
     const [securityGroups, securityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP, {canBeMissing: true});
-    const [isLoadingReportData, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true, canBeMissing: true});
+    const [isLoadingReportData = true, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
     const [isValidateCodeFormVisible, setIsValidateCodeFormVisible] = useState(true);
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);
@@ -101,8 +101,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
      * Attempt to set this contact method as user's "Default contact method"
      */
     const setAsDefault = useCallback(() => {
-        setContactMethodAsDefault(contactMethod, backTo);
-    }, [contactMethod, backTo]);
+        setContactMethodAsDefault(contactMethod, formatPhoneNumber, backTo);
+    }, [contactMethod, backTo, formatPhoneNumber]);
 
     /**
      * Checks if the user is allowed to change their default contact method. This should only be allowed if:
@@ -273,10 +273,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                                 showDelegateNoAccessModal();
                                 return;
                             }
-                            if (isAccountLocked) {
-                                showLockedAccountModal();
-                                return;
-                            }
                             toggleDeleteModal(true);
                         }}
                     />
@@ -347,7 +343,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 {isValidateCodeFormVisible && !!loginData && !loginData.validatedDate && (
                     <ValidateCodeActionForm
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                        handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode)}
+                        handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode, formatPhoneNumber)}
                         validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
                         clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
                         sendValidateCode={() => requestContactMethodValidateCode(contactMethod)}
