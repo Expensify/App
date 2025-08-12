@@ -144,7 +144,7 @@ describe('Transaction', () => {
 
         it('correctly handles reportNextStep parameter when moving transactions between reports', async () => {
             const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
-            
+
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
             });
@@ -183,9 +183,7 @@ describe('Transaction', () => {
             const apiWriteCall = mockAPIWrite.mock.calls.at(0);
             const failureData = (apiWriteCall?.[2] as {failureData?: Array<{key: string; value: unknown}>})?.failureData;
 
-            const nextStepFailureData = failureData?.find(
-                (data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${FAKE_NEW_REPORT_ID}`
-            );
+            const nextStepFailureData = failureData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${FAKE_NEW_REPORT_ID}`);
 
             expect(nextStepFailureData).toBeDefined();
             expect(nextStepFailureData?.value).toEqual(mockReportNextStep);
@@ -195,7 +193,7 @@ describe('Transaction', () => {
 
         it('correctly handles reportNextStep parameter when moving transactions to unreported report', async () => {
             const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
-            
+
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
             });
@@ -235,9 +233,7 @@ describe('Transaction', () => {
             const apiWriteCall = mockAPIWrite.mock.calls.at(0);
             const failureData = (apiWriteCall?.[2] as {failureData?: Array<{key: string; value: unknown}>})?.failureData;
 
-            const nextStepFailureData = failureData?.find(
-                (data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${CONST.REPORT.UNREPORTED_REPORT_ID}`
-            );
+            const nextStepFailureData = failureData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${CONST.REPORT.UNREPORTED_REPORT_ID}`);
 
             expect(nextStepFailureData).toBeDefined();
             expect(nextStepFailureData?.value).toEqual(mockReportNextStep);
@@ -247,7 +243,7 @@ describe('Transaction', () => {
 
         it('correctly handles undefined reportNextStep parameter', async () => {
             const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
-            
+
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
             });
@@ -276,9 +272,7 @@ describe('Transaction', () => {
             const apiWriteCall = mockAPIWrite.mock.calls.at(0);
             const failureData = (apiWriteCall?.[2] as {failureData?: Array<{key: string; value: unknown}>})?.failureData;
 
-            const nextStepFailureData = failureData?.find(
-                (data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${FAKE_NEW_REPORT_ID}`
-            );
+            const nextStepFailureData = failureData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${FAKE_NEW_REPORT_ID}`);
 
             expect(nextStepFailureData).toBeDefined();
             expect(nextStepFailureData?.value).toBeUndefined();
