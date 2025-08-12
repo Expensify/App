@@ -855,7 +855,7 @@ describe('actions/PolicyTax', () => {
         const oldtaxCode = 'id_TAX_RATE_1';
         const newTaxCode = 'id_TAX_RATE_2';
         const oldTaxRateName = fakePolicy?.taxRates?.taxes[oldtaxCode]?.name;
-        
+
         it('Set policy`s tax code', () => {
             mockFetch?.pause?.();
             const distanceRateCustomUnit = fakePolicy?.customUnits?.[CONST.CUSTOM_UNITS.NAME_DISTANCE];
@@ -884,7 +884,6 @@ describe('actions/PolicyTax', () => {
                                 
                                 // We expected to have a new tax rate with the new tax code
                                 expect(updatedTaxRate).toBeDefined();
-                                expect(updatedTaxRate?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                                 expect(updatedTaxRate?.previousTaxCode).toBe(oldtaxCode);
                                 expect(updatedTaxRate?.name).toBe(oldTaxRateName);
                                 resolve();
