@@ -190,11 +190,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     }, [session]);
 
     const timezone = useMemo(() => {
-        if (!personalDetailsList || !isEmptyObject(timezone)) {
+        const timezoneObject = personalDetailsList?.[currentAccountID]?.timezone ?? {};
+        if (!personalDetailsList || !isEmptyObject(timezoneObject)) {
             return;
         }
-
-        return personalDetailsList?.[currentAccountID]?.timezone ?? {};
+        return timezoneObject;
     }, [currentAccountID, personalDetailsList]);
 
     useEffect(() => {
