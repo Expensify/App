@@ -102,6 +102,13 @@ type MoneyRequestAmountInputProps = {
 
     /** Reference to the amount form */
     moneyRequestAmountInputRef?: ForwardedRef<NumberWithSymbolFormRef>;
+
+    /**
+     * Whether to wrap the input in a full width & height container
+     * Disable when you only want to display the input alone without `flex: 1` container
+     * E.g., Split amount input
+     */
+    shouldWrapInputInContainer?: boolean;
 } & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix'>;
 
 type Selection = {
@@ -121,15 +128,25 @@ function MoneyRequestAmountInput(
         isCurrencyPressable = true,
         onCurrencyButtonPress,
         onAmountChange,
+        prefixCharacter = '',
         hideCurrencySymbol = false,
+        moneyRequestAmountInputRef,
+        disableKeyboard = true,
         onFormatAmount = defaultOnFormatAmount,
         formatAmountOnBlur,
-        shouldKeepUserInput = false,
         maxLength,
-        moneyRequestAmountInputRef,
+        hideFocusedState = true,
+        shouldKeepUserInput = false,
         shouldShowBigNumberPad = false,
         inputStyle,
+        autoGrow = true,
+        autoGrowExtraSpace,
+        contentWidth,
+        testID,
+        submitBehavior,
+        shouldApplyPaddingToContainer = false,
         shouldUseDefaultLineHeightForPrefix = true,
+        shouldWrapInputInContainer = true,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -196,22 +213,23 @@ function MoneyRequestAmountInput(
             isSymbolPressable={isCurrencyPressable}
             shouldShowBigNumberPad={shouldShowBigNumberPad}
             style={inputStyle}
+            autoGrow={autoGrow}
+            disableKeyboard={disableKeyboard}
+            prefixCharacter={prefixCharacter}
+            hideFocusedState={hideFocusedState}
+            shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
             shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
+            shouldWrapInputInContainer={shouldWrapInputInContainer}
             containerStyle={props.containerStyle}
-            prefixCharacter={props.prefixCharacter}
-            disableKeyboard={props.disableKeyboard}
             prefixStyle={props.prefixStyle}
             prefixContainerStyle={props.prefixContainerStyle}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
-            hideFocusedState={props.hideFocusedState}
-            autoGrow={props.autoGrow}
-            contentWidth={props.contentWidth}
-            shouldApplyPaddingToContainer={props.shouldApplyPaddingToContainer}
-            testID={props.testID}
+            contentWidth={contentWidth}
+            testID={testID}
             errorText={props.errorText}
             footer={props.footer}
-            autoGrowExtraSpace={props.autoGrowExtraSpace}
-            submitBehavior={props.submitBehavior}
+            autoGrowExtraSpace={autoGrowExtraSpace}
+            submitBehavior={submitBehavior}
         />
     );
 }

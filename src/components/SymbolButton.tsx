@@ -30,11 +30,10 @@ function SymbolButton({onSymbolButtonPress, symbol, isSymbolPressable = true, te
     const styles = useThemeStyles();
     const theme = useTheme();
     return isSymbolPressable ? (
-        // TODO: Update tooltip text
-        <Tooltip text={translate('common.selectCurrency')}>
+        <Tooltip text={translate('common.selectSymbolOrCurrency')}>
             <PressableWithoutFeedback
                 onPress={onSymbolButtonPress}
-                accessibilityLabel={translate('common.selectCurrency')}
+                accessibilityLabel={translate('common.selectSymbolOrCurrency')}
                 role={CONST.ROLE.BUTTON}
                 style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
             >
