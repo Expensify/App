@@ -1,3 +1,5 @@
+/* eslint-disable react/jsx-key */
+
 /* eslint-disable react/no-unescaped-entities */
 
 /* eslint-disable @typescript-eslint/naming-convention */
