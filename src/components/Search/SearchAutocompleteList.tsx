@@ -190,17 +190,17 @@ function SearchAutocompleteList(
 
         switch (currentType) {
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
-                return Object.values(CONST.SEARCH.STATUS.EXPENSE);
+                return Object.values(CONST.SEARCH.STATUS.EXPENSE).map((value) => getUserFriendlyValue(value));
             case CONST.SEARCH.DATA_TYPES.INVOICE:
-                return Object.values(CONST.SEARCH.STATUS.INVOICE);
+                return Object.values(CONST.SEARCH.STATUS.INVOICE).map((value) => getUserFriendlyValue(value));
             case CONST.SEARCH.DATA_TYPES.CHAT:
-                return Object.values(CONST.SEARCH.STATUS.CHAT);
+                return Object.values(CONST.SEARCH.STATUS.CHAT).map((value) => getUserFriendlyValue(value));
             case CONST.SEARCH.DATA_TYPES.TRIP:
-                return Object.values(CONST.SEARCH.STATUS.TRIP);
+                return Object.values(CONST.SEARCH.STATUS.TRIP).map((value) => getUserFriendlyValue(value));
             case CONST.SEARCH.DATA_TYPES.TASK:
-                return Object.values(CONST.SEARCH.STATUS.TASK);
+                return Object.values(CONST.SEARCH.STATUS.TASK).map((value) => getUserFriendlyValue(value));
             default:
-                return Object.values({...CONST.SEARCH.STATUS.EXPENSE, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP, ...CONST.SEARCH.STATUS.TASK});
+                return Object.values({...CONST.SEARCH.STATUS.EXPENSE, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP, ...CONST.SEARCH.STATUS.TASK}).map((value) => getUserFriendlyValue(value));
         }
     }, [autocompleteQueryValue]);
 

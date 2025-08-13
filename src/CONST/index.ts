@@ -6485,6 +6485,7 @@ const CONST = {
             return {
                 [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',
                 [this.GROUP_BY.REPORTS]: 'report',
+                [this.STATUS.EXPENSE.DRAFTS]: 'draft',
             };
         },
         DATE_MODIFIERS: {

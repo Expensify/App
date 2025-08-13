@@ -465,13 +465,13 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     if (status && typeof status === 'string') {
-        const sanitizedStatus = sanitizeSearchValue(status);
+        const sanitizedStatus = getUserFriendlyValue(sanitizeSearchValue(status));
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizedStatus}`);
     }
 
     if (status && Array.isArray(status)) {
         const filterValueArray = [...new Set<string>(status)];
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${filterValueArray.map(sanitizeSearchValue).join(',')}`);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${filterValueArray.map(sanitizeSearchValue).map(getUserFriendlyValue).join(',')}`);
     }
 
     const mappedFilters = Object.entries(otherFilters)
@@ -798,7 +798,7 @@ function buildUserReadableQueryString(
     const {type, status, groupBy, policyID} = queryJSON;
     const filters = queryJSON.flatFilters;
 
-    let title = status ? `type:${getUserFriendlyValue(type)} status:${Array.isArray(status) ? status.join(',') : status}` : `type:${getUserFriendlyValue(type)}`;
+    let title = status ? `type:${getUserFriendlyValue(type)} status:${Array.isArray(status) ? status.map(getUserFriendlyValue).join(',') : getUserFriendlyValue(status)}` : `type:${getUserFriendlyValue(type)}`;
 
     if (groupBy) {
         title += ` group-by:${getUserFriendlyValue(groupBy)}`;

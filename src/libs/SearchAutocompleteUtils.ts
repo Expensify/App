@@ -132,7 +132,7 @@ function filterOutRangesWithCorrectValue(
         ...CONST.SEARCH.STATUS.CHAT,
         ...CONST.SEARCH.STATUS.TRIP,
         ...CONST.SEARCH.STATUS.TASK,
-    }) as string[];
+    }).map((value) => getUserFriendlyValue(value));
     const groupByList = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
     const booleanList = Object.values(CONST.SEARCH.BOOLEAN) as string[];
     const actionList = Object.values(CONST.SEARCH.ACTION_FILTERS) as string[];
