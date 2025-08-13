@@ -1248,8 +1248,8 @@ describe('ReportActionsUtils', () => {
 
         const testPolicyID = 'test-policy-123';
 
-        describe('when generating virtual card issuance messages', () => {
-            it('should generate message with plain text when no card data is available', () => {
+        describe('render virtual card issued messages', () => {
+            it('should render a plain text message without card link when no card data is available', () => {
                 const messageResult = getCardIssuedMessage({
                     reportAction: mockVirtualCardIssuedAction,
                     shouldRenderHTML: true,
@@ -1260,7 +1260,7 @@ describe('ReportActionsUtils', () => {
                 expect(messageResult).toBe('issued <mention-user accountID="456"/> a virtual Expensify Card! The card can be used right away.');
             });
 
-            it('should generate message with deactivation notice when card is deactivated', () => {
+            it('should render a message with deactivation notice when the card is deactivated', () => {
                 const messageResult = getCardIssuedMessage({
                     reportAction: mockVirtualCardIssuedAction,
                     shouldRenderHTML: true,
@@ -1271,7 +1271,7 @@ describe('ReportActionsUtils', () => {
                 expect(messageResult).toBe('issued <mention-user accountID="456"/> a virtual Expensify Card (card deactivated)! The card can be used right away.');
             });
 
-            it('should generate message with clickable card link when card is active', () => {
+            it('should render a message with clickable card link when the card is active', () => {
                 const messageResult = getCardIssuedMessage({
                     reportAction: mockVirtualCardIssuedAction,
                     shouldRenderHTML: true,
