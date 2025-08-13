@@ -74,6 +74,12 @@ type OriginalMessageIOU = {
 
     /** Collection of accountIDs of users mentioned in message */
     whisperedTo?: number[];
+
+    /** Where the invoice is paid with business account or not */
+    payAsBusiness?: boolean;
+
+    /** The bank account id */
+    bankAccountID?: number;
 };
 
 /** Names of moderation decisions */
@@ -164,6 +170,9 @@ type OriginalMessageSubmitted = {
     /** Was the report submitted via harvesting (delayed submit) */
     harvesting?: boolean;
 
+    /** The memo of the submitted report */
+    message?: string;
+
     /** The login the approver who is acting on behalf of the vacationer */
     to?: string;
 
@@ -196,6 +205,9 @@ type OriginalMessageClosed = {
 
     /** If the expense report was mark as closed, then this is the report currency */
     currency?: string;
+
+    /** The memo of the closed report */
+    message?: string;
 };
 
 /** Model of `renamed` report action, created when chat rooms get renamed */
@@ -370,6 +382,12 @@ type OriginalMessagePolicyChangeLog = {
 
     /** New default billable value */
     newDefaultBillable?: string;
+
+    /** Old default reimbursable value */
+    oldDefaultReimbursable?: string;
+
+    /** New default reimbursable value */
+    newDefaultReimbursable?: string;
 
     /** value -- returned when updating "Auto-approve compliant reports" */
     value?: boolean;
