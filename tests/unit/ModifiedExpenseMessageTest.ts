@@ -5,6 +5,7 @@ import IntlStore from '@src/languages/IntlStore';
 import {translate} from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists} from '@src/types/onyx/PolicyTag';
+import type {SearchReport} from '@src/types/onyx/SearchResults';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -644,6 +645,234 @@ describe('ModifiedExpenseMessage', () => {
                 const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags: {}});
 
                 expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('parameter handling and API compatibility', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    amount: 2000,
+                    currency: CONST.CURRENCY.USD,
+                    oldAmount: 1500,
+                    oldCurrency: CONST.CURRENCY.USD,
+                },
+            };
+
+            const testPolicyTags: PolicyTagLists = {
+                Department: {
+                    name: 'Department',
+                    required: false,
+                    tags: {
+                        Engineering: {
+                            name: 'Engineering',
+                            enabled: true,
+                        },
+                        Marketing: {
+                            name: 'Marketing',
+                            enabled: true,
+                        },
+                        Sales: {
+                            name: 'Sales',
+                            enabled: true,
+                        },
+                    },
+                    orderWeight: 0,
+                },
+                Project: {
+                    name: 'Project',
+                    required: false,
+                    tags: {
+                        projectAlpha: {
+                            name: 'Project Alpha',
+                            enabled: true,
+                        },
+                        projectBeta: {
+                            name: 'Project Beta',
+                            enabled: true,
+                        },
+                    },
+                    orderWeight: 1,
+                },
+            };
+
+            it('validates unused reportOrID parameter works correctly', () => {
+                // Test that marking reportOrID as unused doesn't break functionality
+                const result = ModifiedExpenseMessage.getForReportAction({
+                    reportOrID: '123', // This parameter is marked as unused but should still be accepted
+                    reportAction,
+                    policyTags: {},
+                });
+
+                expect(result).toBe('changed the amount to $20.00 (previously $15.00)');
+            });
+
+            it('validates unused searchReports parameter works correctly', () => {
+                // Test that marking searchReports as unused doesn't break functionality
+                const searchReports: SearchReport[] = [
+                    {
+                        reportID: '123',
+                        reportName: 'Test Report',
+                        total: 3000,
+                        currency: 'USD',
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        accountID: 1,
+                        policyID: 'policy1',
+                        created: '2024-01-01',
+                    },
+                ];
+
+                const result = ModifiedExpenseMessage.getForReportAction({
+                    reportOrID: '123',
+                    reportAction,
+                    searchReports, // This parameter is marked as unused but should still be accepted
+                    policyTags: {},
+                });
+
+                expect(result).toBe('changed the amount to $20.00 (previously $15.00)');
+            });
+
+            it('maintains backward compatibility with all parameter combinations', () => {
+                const searchReport: SearchReport = {
+                    reportID: '789',
+                    reportName: 'Backward Compatibility Test',
+                    total: 2500,
+                    currency: 'GBP',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    accountID: 3,
+                    policyID: 'policy3',
+                    created: '2024-01-03',
+                };
+
+                // Test all possible parameter combinations
+                const combinations = [
+                    {reportOrID: '123', searchReports: undefined},
+                    {reportOrID: '123', searchReports: []},
+                    {reportOrID: searchReport, searchReports: undefined},
+                    {reportOrID: searchReport, searchReports: []},
+                    {reportOrID: undefined, searchReports: undefined},
+                    {reportOrID: undefined, searchReports: []},
+                ];
+
+                combinations.forEach((params) => {
+                    const result = ModifiedExpenseMessage.getForReportAction({
+                        ...params,
+                        reportAction,
+                        policyTags: {},
+                    });
+
+                    expect(result).toBe('changed the amount to $20.00 (previously $15.00)');
+                });
+            });
+
+            describe('with non-empty policy tags', () => {
+                it('validates policy tags still work with unused parameters', () => {
+                    const tagModificationAction = {
+                        ...createRandomReportAction(1),
+                        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                        originalMessage: {
+                            tag: 'Engineering',
+                            oldTag: 'Marketing',
+                        },
+                    };
+
+                    // Test that policy tags functionality is preserved despite unused parameters
+                    const result = ModifiedExpenseMessage.getForReportAction({
+                        reportOrID: '123', // unused but required for API compatibility
+                        reportAction: tagModificationAction,
+                        searchReports: [], // unused but required for API compatibility
+                        policyTags: testPolicyTags,
+                    });
+
+                    expect(result).toBe('changed the Department to "Engineering" (previously "Marketing")');
+                });
+            });
+        });
+
+        describe('Onyx connectWithoutView behavior', () => {
+            beforeEach(() => {
+                // Clear Onyx state before each test to verify our connectWithoutView works
+                return Onyx.clear();
+            });
+
+            it('works correctly with connectWithoutView when Onyx reports collection is empty', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        amount: 3000,
+                        currency: CONST.CURRENCY.USD,
+                        oldAmount: 2000,
+                        oldCurrency: CONST.CURRENCY.USD,
+                    },
+                };
+
+                const result = ModifiedExpenseMessage.getForReportAction({
+                    reportOrID: '123',
+                    reportAction,
+                    policyTags: {},
+                });
+
+                // This validates that our connectWithoutView change doesn't break functionality
+                expect(result).toBe('changed the amount to $30.00 (previously $20.00)');
+            });
+        });
+
+        describe('validation of updated functionality', () => {
+            it('maintains consistency with policy tags across multiple parameter combinations', () => {
+                const testPolicyTags: PolicyTagLists = {
+                    Category: {
+                        name: 'Category',
+                        required: false,
+                        tags: {
+                            Business: {name: 'Business', enabled: true},
+                            Personal: {name: 'Personal', enabled: true},
+                        },
+                        orderWeight: 0,
+                    },
+                };
+
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        tag: 'Business',
+                        oldTag: 'Personal',
+                    },
+                };
+
+                const searchReport: SearchReport = {
+                    reportID: '123',
+                    reportName: 'Consistency Test Report',
+                    total: 1000,
+                    currency: 'USD',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    accountID: 1,
+                    policyID: 'policy1',
+                    created: '2024-01-01',
+                };
+
+                // Test different parameter combinations to validate our unused parameter handling
+                const combinations = [
+                    {reportOrID: '123', searchReports: undefined},
+                    {reportOrID: searchReport, searchReports: undefined},
+                    {reportOrID: '123', searchReports: [searchReport]},
+                    {reportOrID: searchReport, searchReports: [searchReport]},
+                    {reportOrID: undefined, searchReports: undefined},
+                ];
+
+                const expectedResult = 'changed the Category to "Business" (previously "Personal")';
+
+                combinations.forEach((params) => {
+                    const result = ModifiedExpenseMessage.getForReportAction({
+                        ...params,
+                        reportAction,
+                        policyTags: testPolicyTags,
+                    });
+
+                    expect(result).toBe(expectedResult);
+                });
             });
         });
     });
