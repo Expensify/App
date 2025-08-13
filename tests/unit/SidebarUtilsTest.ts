@@ -1528,7 +1528,7 @@ describe('SidebarUtils', () => {
                 expect(result.pinnedAndGBRReports.at(0)?.reportID).toBe('0');
             });
 
-            it('should skip reports without reportID', () => {
+            it('should process reports with empty reportID', () => {
                 // Given the reports are created
                 const reports = createSidebarReportsCollection([
                     {
@@ -1554,8 +1554,9 @@ describe('SidebarUtils', () => {
                 expect(result.pinnedAndGBRReports).toHaveLength(0);
                 expect(result.errorReports).toHaveLength(0);
                 expect(result.draftReports).toHaveLength(0);
-                expect(result.nonArchivedReports).toHaveLength(1);
+                expect(result.nonArchivedReports).toHaveLength(2);
                 expect(result.nonArchivedReports.at(0)?.reportID).toBe('0');
+                expect(result.nonArchivedReports.at(1)?.reportID).toBe('');
                 expect(result.archivedReports).toHaveLength(0);
             });
 
@@ -1801,10 +1802,7 @@ describe('SidebarUtils', () => {
                 const result = SidebarUtils.sortReportsToDisplayInLHN(reports, priorityMode, mockLocaleCompare);
 
                 // Then the reports are sorted in the correct order
-                expect(result).toContain('0'); // Pinned first
-                expect(result).toContain('1'); // Error second
-                expect(result).toContain('2'); // Normal third
-                expect(result.length).toBe(3);
+                expect(result).toEqual(['0', '1', '2']); // Pinned first, Error second, Normal third
             });
 
             it('should handle different priority modes correctly', () => {

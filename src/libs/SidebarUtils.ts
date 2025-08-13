@@ -344,17 +344,6 @@ function categorizeReportsForLHN(
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
-    // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
-    // 1. Pinned/GBR - Always sorted by reportDisplayName
-    // 2. Error reports - Always sorted by reportDisplayName
-    // 3. Drafts - Always sorted by reportDisplayName
-    // 4. Non-archived reports and settled IOUs
-    //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
-    //      - Sorted by reportDisplayName in GSD (focus) view mode
-    // 5. Archived reports
-    //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
-    //      - Sorted by reportDisplayName in GSD (focus) view mode
-
     const pinnedAndGBRReports: MiniReport[] = [];
     const errorReports: MiniReport[] = [];
     const draftReports: MiniReport[] = [];
@@ -363,10 +352,6 @@ function categorizeReportsForLHN(
 
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     for (const report of Object.values(reportsToDisplay)) {
-        if (!report?.reportID) {
-            continue;
-        }
-
         const reportID = report.reportID;
         const isPinned = report.isPinned ?? false;
         const hasErrors = report.hasErrorsOtherThanFailedReceipt;
@@ -475,6 +460,9 @@ function combineReportCategories(
     return [...pinnedAndGBRReports, ...errorReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID).filter(Boolean) as string[];
 }
 
+/**
+ * @returns An array of reportIDs sorted in the proper order
+ */
 function sortReportsToDisplayInLHN(
     reportsToDisplay: ReportsToDisplayInLHN,
     priorityMode: OnyxEntry<PriorityMode>,
@@ -486,6 +474,16 @@ function sortReportsToDisplayInLHN(
 
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInFocusMode;
+    // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
+    // 1. Pinned/GBR - Always sorted by reportDisplayName
+    // 2. Error reports - Always sorted by reportDisplayName
+    // 3. Drafts - Always sorted by reportDisplayName
+    // 4. Non-archived reports and settled IOUs
+    //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
+    //      - Sorted by reportDisplayName in GSD (focus) view mode
+    // 5. Archived reports
+    //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
+    //      - Sorted by reportDisplayName in GSD (focus) view mode
 
     // Step 1: Categorize reports
     const categories = categorizeReportsForLHN(reportsToDisplay, reportNameValuePairs, reportAttributes);
