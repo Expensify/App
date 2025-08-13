@@ -136,6 +136,7 @@
     "expo-font": "^13.0.4",
     "expo-image": "^2.1.6",
     "expo-image-manipulator": "^13.1.5",
+    "expo-video": "~2.2.2",
     "fast-equals": "^5.2.2",
     "focus-trap-react": "^11.0.3",
     "heic-to": "^1.1.13",
@@ -203,8 +204,7 @@
     "react-native-webview": "13.13.1",
     "react-plaid-link": "3.3.2",
     "react-web-config": "^1.0.0",
-    "react-webcam": "^7.1.1",
-    "expo-video": "~2.2.2"
+    "react-webcam": "^7.1.1"
   },
   "devDependencies": {
     "@actions/core": "1.10.0",

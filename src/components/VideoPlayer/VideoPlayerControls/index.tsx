@@ -51,6 +51,8 @@ type VideoPlayerControlsProps = {
     controlsStatus: ValueOf<typeof CONST.VIDEO_PLAYER.CONTROLS_STATUS>;
 
     reportID: string | undefined;
+
+    enterFullscreenAction?: () => void;
 };
 
 function VideoPlayerControls({
@@ -66,6 +68,7 @@ function VideoPlayerControls({
     togglePlayCurrentVideo,
     controlsStatus = CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW,
     reportID,
+    enterFullscreenAction,
 }: VideoPlayerControlsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -79,12 +82,15 @@ function VideoPlayerControls({
     };
 
     const enterFullScreenMode = useCallback(() => {
+        if (enterFullscreenAction) {
+            enterFullscreenAction();
+            return;
+        }
         updateCurrentURLAndReportID(url, reportID);
-
         const result = videoViewRef.current?.enterFullscreen();
         // eslint-disable-next-line react-compiler/react-compiler
         result?.then(() => (isFullScreenRef.current = true)).catch(() => {});
-    }, [isFullScreenRef, reportID, updateCurrentURLAndReportID, url, videoViewRef]);
+    }, [enterFullscreenAction, isFullScreenRef, reportID, updateCurrentURLAndReportID, url, videoViewRef]);
 
     const seekPosition = useCallback(
         (newPosition: number) => {
