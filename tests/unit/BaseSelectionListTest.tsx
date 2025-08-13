@@ -1,7 +1,6 @@
 import * as NativeNavigation from '@react-navigation/native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {useState} from 'react';
-import {SectionList} from 'react-native';
 import BaseSelectionList from '@components/SelectionList/BaseSelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem, SelectionListProps} from '@components/SelectionList/types';
@@ -101,18 +100,6 @@ describe('BaseSelectionList', () => {
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`)).toBeSelected();
         rerender(<BaseListItemRenderer sections={[{data: updatedMockSections}]} />);
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}2`)).toBeSelected();
-    });
-
-    it('should scroll to top when selecting a multi option list', () => {
-        const spy = jest.spyOn(SectionList.prototype, 'scrollToLocation');
-        render(
-            <BaseListItemRenderer
-                sections={[{data: []}, {data: mockSections}]}
-                canSelectMultiple
-            />,
-        );
-        fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`));
-        expect(spy).toHaveBeenCalledWith(expect.objectContaining({itemIndex: 0}));
     });
 
     it('should show only elements from first page and Show More button when items exceed page limit', () => {

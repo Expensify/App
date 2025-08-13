@@ -3,7 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {ListItem, SectionListDataType} from '@components/SelectionList/types';
-import {isPolicyAdmin, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
+import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -61,10 +61,7 @@ function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, search
     }, [policies, shouldShowPendingDeletePolicy, currentUserLogin, additionalFilter, selectedPolicyIDs]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
-        () =>
-            tokenizedSearch(usersWorkspaces, searchTerm, (policy) => [policy.text]).sort((policy1, policy2) =>
-                sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, selectedPolicyIDs, localeCompare),
-            ),
+        () => tokenizedSearch(usersWorkspaces, searchTerm, (policy) => [policy.text]).sort((policy1, policy2) => localeCompare(policy1.text, policy2.text)),
         [searchTerm, usersWorkspaces, selectedPolicyIDs, localeCompare],
     );
 

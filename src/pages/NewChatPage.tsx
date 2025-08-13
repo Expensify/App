@@ -27,16 +27,7 @@ import Log from '@libs/Log';
 import memoize from '@libs/memoize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {Option, Section} from '@libs/OptionsListUtils';
-import {
-    filterAndOrderOptions,
-    filterSelectedOptions,
-    formatSectionsFromSearchTerm,
-    getFirstKeyForList,
-    getHeaderMessage,
-    getPersonalDetailSearchTerms,
-    getUserToInviteOption,
-    getValidOptions,
-} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, getFirstKeyForList, getHeaderMessage, getPersonalDetailSearchTerms, getUserToInviteOption, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -76,21 +67,30 @@ function useOptions() {
             {
                 betas: betas ?? [],
                 includeSelfDM: true,
+                includeSelectedOptions: true,
             },
         );
         return filteredOptions;
     }, [betas, listOptions.personalDetails, listOptions.reports, contacts]);
 
-    const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID))), [defaultOptions, selectedOptions]);
+    const defaultOptionsModified = {
+        ...defaultOptions,
+        recentReports: defaultOptions.recentReports.map((item) =>
+            selectedOptions.some((selectedOption) => selectedOption.accountID === item.accountID) ? {...item, isSelected: true} : item,
+        ),
+        personalDetails: defaultOptions.personalDetails.map((item) =>
+            selectedOptions.some((selectedOption) => selectedOption.accountID === item.accountID) ? {...item, isSelected: true} : item,
+        ),
+    };
 
     const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, {
+        const filteredOptions = filterAndOrderOptions(defaultOptionsModified, debouncedSearchTerm, {
             selectedOptions,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
 
         return filteredOptions;
-    }, [debouncedSearchTerm, unselectedOptions, selectedOptions]);
+    }, [defaultOptionsModified, debouncedSearchTerm, selectedOptions]);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const headerMessage = useMemo(() => {
         return getHeaderMessage(
@@ -170,35 +170,17 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
     const personalData = useCurrentUserPersonalDetails();
     const {top} = useSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const selectionListRef = useRef<SelectionListHandle | null>(null);
 
     useImperativeHandle(ref, () => ({
         focus: selectionListRef.current?.focusTextInput,
     }));
 
-    const {headerMessage, searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized} =
-        useOptions();
+    const {headerMessage, searchTerm, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized} = useOptions();
 
     const [sections, firstKeyForList] = useMemo(() => {
         const sectionsList: Section[] = [];
         let firstKey = '';
-
-        const formatResults = formatSectionsFromSearchTerm(
-            debouncedSearchTerm,
-            selectedOptions as OptionData[],
-            recentReports,
-            personalDetails,
-            undefined,
-            undefined,
-            undefined,
-            reportAttributesDerived,
-        );
-        sectionsList.push(formatResults.section);
-
-        if (!firstKey) {
-            firstKey = getFirstKeyForList(formatResults.section.data);
-        }
 
         sectionsList.push({
             title: translate('common.recents'),
@@ -230,7 +212,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
         }
 
         return [sectionsList, firstKey];
-    }, [debouncedSearchTerm, selectedOptions, recentReports, personalDetails, reportAttributesDerived, translate, userToInvite]);
+    }, [selectedOptions, recentReports, personalDetails, translate, userToInvite]);
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
@@ -394,7 +376,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
                 headerMessage={headerMessage}
                 onSelectRow={selectOption}
                 shouldSingleExecuteRowSelect
-                onConfirm={(e, option) => (selectedOptions.length > 0 ? createGroup() : selectOption(option))}
+                onConfirm={(_e, option) => (selectedOptions.length > 0 ? createGroup() : selectOption(option))}
                 rightHandSideComponent={itemRightSideComponent}
                 footerContent={footerContent}
                 showLoadingPlaceholder={!areOptionsInitialized}

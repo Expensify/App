@@ -27,7 +27,7 @@ import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import type {MemberForList} from '@libs/OptionsListUtils';
-import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getIneligibleInvitees, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -157,31 +157,9 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             return [];
         }
 
-        // Filter all options that is a part of the search term or in the personal details
-        let filterSelectedOptions = selectedOptions;
-        if (debouncedSearchTerm !== '') {
-            filterSelectedOptions = selectedOptions.filter((option) => {
-                const accountID = option.accountID;
-                const isOptionInPersonalDetails = Object.values(personalDetails).some((personalDetail) => personalDetail.accountID === accountID);
-
-                const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm);
-
-                const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
-                return isPartOfSearchTerm || isOptionInPersonalDetails;
-            });
-        }
-
-        sectionsArr.push({
-            title: undefined,
-            data: filterSelectedOptions,
-            shouldShow: true,
-        });
-
-        // Filtering out selected users from the search results
         const selectedLoginsSet = new Set(selectedOptions.map(({login}) => login));
-        const personalDetailsFormatted = Object.values(personalDetails)
-            .filter(({login}) => !selectedLoginsSet.has(login ?? ''))
-            .map(formatMemberForList);
+        const personalDetailsModified = Object.values(personalDetails).map((item) => (selectedLoginsSet.has(item.login ?? '') ? {...item, isSelected: true} : item));
+        const personalDetailsFormatted = personalDetailsModified.map((item) => formatMemberForList(item));
 
         sectionsArr.push({
             title: translate('common.contacts'),
@@ -202,7 +180,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         });
 
         return sectionsArr;
-    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, personalDetails, translate, usersToInvite]);
+    }, [areOptionsInitialized, selectedOptions, personalDetails, translate, usersToInvite]);
 
     const toggleOption = (option: MemberForList) => {
         const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
