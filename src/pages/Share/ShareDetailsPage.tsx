@@ -51,7 +51,7 @@ function ShareDetailsPage({
 
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const isTextShared = currentAttachment?.mimeType === 'txt';
-    const shouldUsePreValidatedFile = currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.HEIC;
+    const shouldUsePreValidatedFile = currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.HEIC || currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.IMG;
     const [message, setMessage] = useState(isTextShared ? (currentAttachment?.content ?? '') : '');
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
@@ -96,10 +96,8 @@ function ShareDetailsPage({
     const currentUserID = getCurrentUserAccountID();
     const shouldShowAttachment = !isTextShared;
 
-    const fileName = currentAttachment?.content.split('/').pop();
-
     const handleShare = () => {
-        if (!currentAttachment || !!validatedFile) {
+        if (!currentAttachment || !validatedFile) {
             return;
         }
 
@@ -136,6 +134,8 @@ function ShareDetailsPage({
             fileType,
         );
     };
+
+    debugger;
 
     return (
         <ScreenWrapper
@@ -203,9 +203,9 @@ function ShareDetailsPage({
                                 </View>
                                 <SafeAreaView>
                                     <AttachmentModal
-                                        headerTitle={fileName}
+                                        headerTitle={validateFileName}
                                         source={fileUri}
-                                        originalFileName={fileName}
+                                        originalFileName={validateFileName}
                                         fallbackSource={FallbackAvatar}
                                     >
                                         {({show}) => (
