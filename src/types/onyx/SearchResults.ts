@@ -502,7 +502,7 @@ type SearchCardGroup = {
     /** Card name */
     cardName: string;
 
-    /** Card name */
+    /** Card ID */
     cardID: number;
 
     /** Last four Primary Account Number digits */
