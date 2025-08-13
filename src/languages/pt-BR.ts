@@ -314,7 +314,7 @@ const translations = {
         no: 'Não',
         ok: 'OK',
         notNow: 'Agora não',
-        learnMore: 'Saiba mais.',
+        learnMore: 'Saiba mais',
         buttonConfirm: 'Entendi',
         name: 'Nome',
         attachment: 'Anexo',
@@ -3505,7 +3505,7 @@ const translations = {
                 `Como você já se conectou ao ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} antes, você pode optar por reutilizar uma conexão existente ou criar uma nova.`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Última sincronização em ${formattedDate}`,
             authenticationError: ({connectionName}: AuthenticationErrorParams) => `Não é possível conectar a ${connectionName} devido a um erro de autenticação.`,
-            learnMore: 'Saiba mais.',
+            learnMore: 'Saiba mais',
             memberAlternateText: 'Os membros podem enviar e aprovar relatórios.',
             adminAlternateText: 'Os administradores têm acesso total de edição a todos os relatórios e configurações do espaço de trabalho.',
             auditorAlternateText: 'Os auditores podem visualizar e comentar nos relatórios.',
@@ -6513,7 +6513,7 @@ const translations = {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Quantia acima do limite de ${formattedLimit}/pessoa`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Quantia acima do limite diário de ${formattedLimit}/pessoa para a categoria`,
         receiptNotSmartScanned:
-            'Recibo e detalhes da despesa adicionados manualmente. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Saiba mais.</a>',
+            'Recibo e detalhes da despesa adicionados manualmente. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Saiba mais</a>.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Recibo necessário';
             if (formattedLimit ?? category) {
