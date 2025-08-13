@@ -1820,7 +1820,7 @@ function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefi
             return getTaskStatusOptions();
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         default:
-            return groupBy === CONST.SEARCH.GROUP_BY.REPORTS || groupBy === CONST.SEARCH.GROUP_BY.FROM ? getExpenseReportedStatusOptions() : getExpenseStatusOptions();
+            return groupBy === CONST.SEARCH.GROUP_BY.REPORTS ? getExpenseReportedStatusOptions() : getExpenseStatusOptions();
     }
 }
 
