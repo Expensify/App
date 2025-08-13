@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardDescription, getCompanyCardDescription} from '@libs/CardUtils';
 import {convertToDisplayString, getCurrencySymbol} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getTransactionDetails} from '@libs/ReportUtils';
+import {getAmount, getCardID, getCardName, getCurrency, getFormattedCreated, getMerchant} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,14 +43,13 @@ function EReceipt({transactionID, transactionItem, isThumbnail = false}: EReceip
 
     const {primaryColor, secondaryColor, titleColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transactionItem ?? transaction);
 
-    const {
-        amount: transactionAmount,
-        currency: transactionCurrency,
-        merchant: transactionMerchant,
-        created: transactionDate,
-        cardID: transactionCardID,
-        cardName: transactionCardName,
-    } = getTransactionDetails(transactionItem ?? transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT) ?? {};
+    const transactionData = transactionItem ?? transaction;
+    const transactionAmount = transactionData ? getAmount(transactionData, false, false) : undefined;
+    const transactionCurrency = transactionData ? getCurrency(transactionData) : undefined;
+    const transactionMerchant = transactionData ? getMerchant(transactionData) : undefined;
+    const transactionDate = transactionData ? getFormattedCreated(transactionData, CONST.DATE.MONTH_DAY_YEAR_FORMAT) : undefined;
+    const transactionCardID = transactionData ? getCardID(transactionData) : undefined;
+    const transactionCardName = transactionData ? getCardName(transactionData) : undefined;
     const formattedAmount = convertToDisplayString(transactionAmount, transactionCurrency);
     const currency = getCurrencySymbol(transactionCurrency ?? '');
     const amount = currency ? formattedAmount.replace(currency, '') : formattedAmount;

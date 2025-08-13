@@ -6,7 +6,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertAmountToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencySymbol} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getTransactionDetails} from '@libs/ReportUtils';
+import {getAmount, getCurrency, getMerchant} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -59,12 +59,14 @@ function PerDiemEReceipt({transactionID}: PerDiemEReceiptProps) {
     // Get receipt colorway, or default to Yellow.
     const {backgroundColor: primaryColor, color: secondaryColor} = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction)) ?? {};
 
-    const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant} = getTransactionDetails(transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT) ?? {};
-    const ratesDescription = computeDefaultPerDiemExpenseRates(transaction?.comment?.customUnit ?? {}, transactionCurrency ?? '');
-    const datesDescription = getPerDiemDates(transactionMerchant ?? '');
-    const destination = getPerDiemDestination(transactionMerchant ?? '');
-    const formattedAmount = convertToDisplayStringWithoutCurrency(transactionAmount ?? 0, transactionCurrency);
-    const currency = getCurrencySymbol(transactionCurrency ?? '');
+    const transactionAmount = transaction ? getAmount(transaction, false, false) : 0;
+    const transactionCurrency = transaction ? getCurrency(transaction) : '';
+    const transactionMerchant = transaction ? getMerchant(transaction) : '';
+    const ratesDescription = computeDefaultPerDiemExpenseRates(transaction?.comment?.customUnit ?? {}, transactionCurrency);
+    const datesDescription = getPerDiemDates(transactionMerchant);
+    const destination = getPerDiemDestination(transactionMerchant);
+    const formattedAmount = convertToDisplayStringWithoutCurrency(transactionAmount, transactionCurrency);
+    const currency = getCurrencySymbol(transactionCurrency);
 
     const secondaryTextColorStyle = secondaryColor ? StyleUtils.getColorStyle(secondaryColor) : undefined;
 
