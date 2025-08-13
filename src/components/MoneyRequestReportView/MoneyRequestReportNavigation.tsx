@@ -23,7 +23,9 @@ type MoneyRequestReportNavigationProps = {
 function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion, backTo}: MoneyRequestReportNavigationProps) {
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {canBeMissing: true});
-    const {localeCompare} = useLocalize();
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (s) => s?.accountID});
+
+    const {localeCompare, formatPhoneNumber} = useLocalize();
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
@@ -39,7 +41,17 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion, bac
     const {type, status, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
     let results: string[] = [];
     if (!!type && !!groupBy && !!currentSearchResults?.data && !!currentSearchResults?.search) {
-        const temp = getSections(type, currentSearchResults.data, currentSearchResults.search, groupBy, exportReportActions, lastSearchQuery?.searchKey, archivedReportsIdSet);
+        const temp = getSections(
+            type,
+            currentSearchResults.data,
+            currentSearchResults.search,
+            accountID,
+            formatPhoneNumber,
+            groupBy,
+            exportReportActions,
+            lastSearchQuery?.searchKey,
+            archivedReportsIdSet,
+        );
         results = getSortedSections(type, status ?? '', temp, localeCompare, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }
     const allReports = results;
@@ -121,7 +133,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion, bac
     return (
         shouldDisplayNavigationArrows && (
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                {!shouldDisplayNarrowVersion && <Text style={styles.textSupporting}>{`${currentIndex + 1} of ${allReportsCount}`}</Text>}
+                {!shouldDisplayNarrowVersion && <Text style={styles.mutedTextLabel}>{`${currentIndex + 1} of ${allReportsCount}`}</Text>}
                 <PrevNextButtons
                     isPrevButtonDisabled={hidePrevButton}
                     isNextButtonDisabled={hideNextButton}

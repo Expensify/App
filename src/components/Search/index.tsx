@@ -296,7 +296,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return;
         }
 
-        const results = searchResults ? getSections(type, searchResults.data, searchResults.search, groupBy).map((element) => element?.reportID ?? CONST.REPORT.DEFAULT_REPORT_ID) : [];
+        const results = searchResults
+            ? getSections(type, searchResults.data, searchResults.search, accountID, formatPhoneNumber, groupBy).map((element) => element?.reportID ?? CONST.REPORT.DEFAULT_REPORT_ID)
+            : [];
         handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReports: results});
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-compiler/react-compiler
@@ -339,7 +341,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return [];
         }
 
-        const results = getSections(type, searchResults.data, searchResults.search, accountID, formatPhoneNumber,groupBy, exportReportActions, searchKey, archivedReportsIdSet);
+        const results = getSections(type, searchResults.data, searchResults.search, accountID, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet);
         return results;
     }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID]);
 
