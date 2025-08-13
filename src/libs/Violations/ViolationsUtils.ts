@@ -293,7 +293,7 @@ const ViolationsUtils = {
         const customUnitRateID = updatedTransaction?.comment?.customUnit?.customUnitRateID;
         if (customUnitRateID) {
             const distanceRateCustomRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
-            if (!!distanceRateCustomRate) {
+            if (distanceRateCustomRate) {
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
             } else {
                 newTransactionViolations.push({
