@@ -30,6 +30,7 @@ export type {default as SyncPolicyToQuickbooksDesktopParams} from './SyncPolicyT
 export type {default as DeleteContactMethodParams} from './DeleteContactMethodParams';
 export type {default as DeletePaymentBankAccountParams} from './DeletePaymentBankAccountParams';
 export type {default as DeletePaymentCardParams} from './DeletePaymentCardParams';
+export type {default as TogglePolicyUberAutoInvitePageParams} from './TogglePolicyUberAutoInvitePageParams';
 export type {default as DismissReferralBannerParams} from './DismissReferralBannerParams';
 export type {default as ExpandURLPreviewParams} from './ExpandURLPreviewParams';
 export type {default as GetMissingOnyxMessagesParams} from './GetMissingOnyxMessagesParams';
@@ -122,6 +123,7 @@ export type {default as AddEmojiReactionParams} from './AddEmojiReactionParams';
 export type {default as RemoveEmojiReactionParams} from './RemoveEmojiReactionParams';
 export type {default as LeaveRoomParams} from './LeaveRoomParams';
 export type {default as LeaveGroupChatParams} from './LeaveGroupChatParams';
+export type {default as TogglePolicyUberAutoRemovePageParams} from './TogglePolicyUberAutoRemovePageParams';
 export type {default as InviteToRoomParams} from './InviteToRoomParams';
 export type {default as InviteToGroupChatParams} from './InviteToGroupChatParams';
 export type {default as RemoveFromRoomParams} from './RemoveFromRoomParams';

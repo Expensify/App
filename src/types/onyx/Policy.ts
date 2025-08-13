@@ -123,41 +123,52 @@ type CompanyAddress = {
 /**
  * Uber Receipt Partner
  */
-type UberReceiptPartner = {
-    /**
-     * form data for uber partner
-     */
-    connectFormData: {
+type UberReceiptPartner = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
         /**
-         * fname for uber partner
+         * form data for uber partner
          */
-        fname?: string;
+        connectFormData: {
+            /**
+             * fname for uber partner
+             */
+            fname?: string;
+            /**
+             * hash for uber partner
+             */
+            hash: string;
+            /**
+             * id for uber partner
+             */
+            id: string;
+            /**
+             * lname for uber partner
+             */
+            lname?: string;
+            /**
+             * name for uber partner
+             */
+            name: string;
+            /**
+             * query for uber partner
+             */
+            query: string;
+            /**
+             * requestID for uber partner
+             */
+            requestID?: string;
+        };
         /**
-         * hash for uber partner
+         * auto invite for uber connection
          */
-        hash: string;
+        autoInvite?: boolean;
         /**
-         * id for uber partner
+         * auto remove for uber connection
          */
-        id: string;
-        /**
-         * lname for uber partner
-         */
-        lname?: string;
-        /**
-         * name for uber partner
-         */
-        name: string;
-        /**
-         * query for uber partner
-         */
-        query: string;
-        /**
-         * requestID for uber partner
-         */
-        requestID?: string;
-    };
-};
+        autoRemove?: boolean;
+    },
+    'autoInvite' | 'autoRemove'
+>;
 
 /** Policy Receipt partners */
 type ReceiptPartners = {

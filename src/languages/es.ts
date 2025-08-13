@@ -3500,6 +3500,9 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: 'Automatice los gastos de viajes y entrega de comidas en toda su organización.',
+                autoRemove: 'Invitar a nuevos miembros del espacio de trabajo a Uber para Empresas',
+                autoInvite: 'Desactivar miembros del espacio de trabajo eliminados de Uber para Empresas',
+                manageInvites: 'Administrar invitaciones',
             },
         },
         perDiem: {
@@ -4644,6 +4647,7 @@ const translations = {
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Desconectar Uber',
                 disconnectText: 'Para desactivar esta función, desconecta primero la integración de Uber for Business.',
+                description: '¿Está seguro de que desea desconectar esta integración?',
                 confirmText: 'Entendido',
             },
             workflowWarningModal: {

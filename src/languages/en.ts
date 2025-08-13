@@ -3512,6 +3512,9 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: 'Automate travel and meal delivery expenses across your organization.',
+                autoRemove: 'Invite new workspace members to Uber for Business',
+                autoInvite: 'Deactivate removed workspace members from Uber for Business',
+                manageInvites: 'Manage invites',
             },
         },
         perDiem: {
@@ -4634,6 +4637,7 @@ const translations = {
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Disconnect Uber',
                 disconnectText: 'To disable this feature, please disconnect the Uber for Business integration first.',
+                description: 'Are you sure you want to disconnect this integration?',
                 confirmText: 'Got it',
             },
             workflowWarningModal: {
