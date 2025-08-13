@@ -108,9 +108,6 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
     /** A method to call when the input is blur */
     onComposerBlur?: () => void;
 
-    /** Should the input be disabled  */
-    disabled?: boolean;
-
     /** Whether the main composer was hidden */
     didHideComposerInput?: boolean;
 };
@@ -125,7 +122,6 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 let onSubmitAction = noop;
 
 function ReportActionCompose({
-    disabled = false,
     isComposerFullSize = false,
     onSubmit,
     pendingAction,
@@ -393,11 +389,11 @@ function ReportActionCompose({
     const isGroupPolicyReport = useMemo(() => !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE, [report]);
     const reportRecipientAccountIDs = getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
     const reportRecipient = personalDetails?.[reportRecipientAccountIDs[0]];
-    const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
+    const shouldUseFocusedColor = !isBlockedFromConcierge && isFocused;
 
     const hasReportRecipient = !isEmptyObject(reportRecipient);
 
-    const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || !!disabled || !!exceededMaxLength;
+    const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || !!exceededMaxLength;
 
     // Note: using JS refs is not well supported in reanimated, thus we need to store the function in a shared value
     // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
@@ -622,7 +618,7 @@ function ReportActionCompose({
                                             isFullComposerAvailable={isFullComposerAvailable}
                                             isComposerFullSize={isComposerFullSize}
                                             isBlockedFromConcierge={isBlockedFromConcierge}
-                                            disabled={disabled}
+                                            disabled={false}
                                             setMenuVisibility={setMenuVisibility}
                                             isMenuVisible={isMenuVisible}
                                             onTriggerAttachmentPicker={onTriggerAttachmentPicker}
@@ -660,7 +656,7 @@ function ReportActionCompose({
                                             setIsFullComposerAvailable={setIsFullComposerAvailable}
                                             displayFilesInModal={displayFilesInModal}
                                             onCleared={submitForm}
-                                            disabled={disabled || isBlockedFromConcierge}
+                                            disabled={isBlockedFromConcierge}
                                             setIsCommentEmpty={setIsCommentEmpty}
                                             handleSendMessage={handleSendMessage}
                                             shouldShowComposeInput={shouldShowComposeInput}
@@ -695,7 +691,7 @@ function ReportActionCompose({
                         </AttachmentComposerModal>
                         {canUseTouchScreen() && isMediumScreenWidth ? null : (
                             <EmojiPickerButton
-                                isDisabled={isBlockedFromConcierge || disabled}
+                                isDisabled={isBlockedFromConcierge}
                                 onModalHide={(isNavigating) => {
                                     if (isNavigating) {
                                         return;
