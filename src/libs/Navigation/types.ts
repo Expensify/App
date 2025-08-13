@@ -1087,6 +1087,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.RULES_REIMBURSABLE_DEFAULT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: {
         policyID: string;
     };
@@ -1863,6 +1866,9 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
