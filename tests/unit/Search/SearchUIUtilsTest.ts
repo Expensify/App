@@ -1045,10 +1045,10 @@ describe('SearchUIUtils', () => {
 
         test('Should return `Submit` action for transaction on policy with delayed submission and no violations', () => {
             let action = SearchUIUtils.getAction(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
 
             action = SearchUIUtils.getAction(searchResults.data, {}, `transactions_${transactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
         test('Should return `View` action for transaction on policy with delayed submission and with violations when current user is submitter and the expense was submitted', async () => {
