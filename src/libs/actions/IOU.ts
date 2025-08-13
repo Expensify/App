@@ -10919,7 +10919,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
     const iouAction = getIOUActionForReportID(transaction?.reportID, transactionID);
-    let report;
+    let report: OnyxTypes.Report | undefined;
 
     if (initialReportID) {
         report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${initialReportID}`];
@@ -11057,6 +11057,11 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`,
                 value: {[iouAction?.reportActionID]: {childReportID: reportID, childType: CONST.REPORT.TYPE.CHAT}},
             });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`,
+                value: {[iouAction?.reportActionID]: {childReportID: null, childType: null}},
+            });
         }
 
         successData.push(
@@ -11071,6 +11076,24 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
                 value: {
                     isOptimisticReport: false,
                 },
+            },
+        );
+
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: null,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: null,
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                value: null,
             },
         );
     }
