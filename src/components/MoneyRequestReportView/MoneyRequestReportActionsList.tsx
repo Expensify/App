@@ -28,7 +28,6 @@ import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsAction
 import useThemeStyles from '@hooks/useThemeStyles';
 import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 import DateUtils from '@libs/DateUtils';
-import {parseFSAttributes} from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -293,6 +292,9 @@ function MoneyRequestReportActionsList({
     }, []);
 
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
         if (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction, visibleReportActions))) {
             // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
@@ -588,9 +590,6 @@ function MoneyRequestReportActionsList({
         [reportScrollManager],
     );
     const reportHasComments = visibleReportActions.length > 0;
-
-    // Parse Fullstory attributes on initial render
-    useLayoutEffect(parseFSAttributes, []);
 
     /**
      * Runs when the FlatList finishes laying out

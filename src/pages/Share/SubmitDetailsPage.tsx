@@ -2,14 +2,12 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {FileObject} from '@components/AttachmentModal';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -62,17 +60,6 @@ function SubmitDetailsPage({
     const {isBetaEnabled} = usePermissions();
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
 
-    const [validFilesToUpload, setValidFilesToUpload] = useState<FileObject[]>([]);
-    const {validateFiles} = useFilesValidation(setValidFilesToUpload);
-
-    useEffect(() => {
-        if (!currentAttachment || validFilesToUpload.length !== 0) {
-            return;
-        }
-
-        validateFiles([{name: currentAttachment.id, uri: currentAttachment.content, type: currentAttachment.mimeType}]);
-    }, [currentAttachment, validFilesToUpload.length, validateFiles]);
-
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
             return;
@@ -124,6 +111,7 @@ function SubmitDetailsPage({
                     taxCode: transactionTaxCode,
                     taxAmount: transactionTaxAmount,
                     billable: transaction.billable,
+                    reimbursable: transaction.reimbursable,
                     merchant: transaction.merchant ?? '',
                     created: transaction.created,
                     actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
@@ -149,6 +137,7 @@ function SubmitDetailsPage({
                     taxCode: transactionTaxCode,
                     taxAmount: transactionTaxAmount,
                     billable: transaction.billable,
+                    reimbursable: transaction.reimbursable,
                     merchant: transaction.merchant ?? '',
                     created: transaction.created,
                     actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
@@ -202,13 +191,12 @@ function SubmitDetailsPage({
             return;
         }
 
-        const validatedFile = validFilesToUpload.at(0);
         readFileAsync(
-            validatedFile?.uri ?? '',
-            getFileName(validatedFile?.name ?? 'shared_image.png'),
+            currentAttachment?.content ?? '',
+            getFileName(currentAttachment?.content ?? 'shared_image.png'),
             (file) => onSuccess(file, shouldStartLocationPermissionFlow),
             () => {},
-            validatedFile?.type ?? 'image/jpeg',
+            currentAttachment?.mimeType ?? 'image/jpeg',
         );
     };
 
@@ -239,8 +227,8 @@ function SubmitDetailsPage({
                         iouComment={trimmedComment}
                         iouCategory={transaction?.category}
                         onConfirm={() => onConfirm(true)}
-                        receiptPath={validFilesToUpload.at(0)?.uri}
-                        receiptFilename={getFileName(validFilesToUpload.at(0)?.name ?? '')}
+                        receiptPath={currentAttachment?.content}
+                        receiptFilename={getFileName(currentAttachment?.content ?? '')}
                         reportID={reportOrAccountID}
                         shouldShowSmartScanFields={false}
                         isDistanceRequest={false}
