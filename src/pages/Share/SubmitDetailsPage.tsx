@@ -92,7 +92,7 @@ function SubmitDetailsPage({
             parentReport,
             currentDate,
         });
-    }, [reportOrAccountID, policy, report, parentReport]);
+    }, [reportOrAccountID, policy, report, parentReport, currentDate]);
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report);
     const participants = selectedParticipants.map((participant) =>
