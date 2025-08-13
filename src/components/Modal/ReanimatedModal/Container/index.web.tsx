@@ -46,6 +46,7 @@ function Container({
                 .reduceMotion(ReduceMotion.Never),
         [animationOutTiming, animationOut],
     );
+
     return (
         <Animated.View
             style={[style, type !== CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && type !== CONST.MODAL.MODAL_TYPE.POPOVER && styles.modalAnimatedContainer, animatedStyles, {zIndex: 1}]}
