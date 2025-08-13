@@ -4,7 +4,6 @@ import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -160,7 +159,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
      * Function which renders a row in the list
      */
     const renderItem = useCallback(
-        ({item}: RenderItemProps): ReactElement => {
+        ({item, index}: RenderItemProps): ReactElement => {
             const reportID = item.reportID;
             const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
             const itemReportNameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
@@ -246,6 +245,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     isReportsSplitNavigatorLast={isReportsSplitNavigatorLast}
                     isScreenFocused={isScreenFocused}
                     localeCompare={localeCompare}
+                    testID={index}
                 />
             );
         },
@@ -373,8 +373,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         }
     }, [data, shouldShowEmptyLHN, route, reports, reportActions, policy, personalDetails]);
 
-    const contentContainerStyle = StyleSheet.flatten(contentContainerStyles) as StyleProp<ViewStyle>;
-
     return (
         <View style={[style ?? styles.flex1, shouldShowEmptyLHN ? styles.emptyLHNWrapper : undefined]}>
             {shouldShowEmptyLHN ? (
@@ -393,7 +391,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     indicatorStyle="white"
                     keyboardShouldPersistTaps="always"
                     CellRendererComponent={OptionRowRendererComponent}
-                    contentContainerStyle={contentContainerStyle}
+                    contentContainerStyle={StyleSheet.flatten(contentContainerStyles)}
                     data={data}
                     testID="lhn-options-list"
                     keyExtractor={keyExtractor}

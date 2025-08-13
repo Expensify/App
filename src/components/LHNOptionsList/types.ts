@@ -127,6 +127,9 @@ type OptionRowLHNDataProps = {
 
     /** Function to compare locale strings */
     localeCompare: LocaleContextProps['localeCompare'];
+
+    /** TestID of the row, indicating order */
+    testID: number;
 };
 
 type OptionRowLHNProps = {
@@ -173,8 +176,11 @@ type OptionRowLHNProps = {
 
     /** Whether the screen is focused */
     isScreenFocused?: boolean;
+
+    /** The testID of the row */
+    testID: number;
 };
 
-type RenderItemProps = {item: Report};
+type RenderItemProps = {item: Report; index: number};
 
 export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, RenderItemProps};

@@ -249,12 +249,13 @@ describe('Sidebar', () => {
                     // Then the order of the reports should be 1 > 3 > 2
                     //                                         ^--- (1 goes to the front and pushes other two down)
                     .then(() => {
-                        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
-                        const displayNames = screen.queryAllByLabelText(hintText);
-                        expect(displayNames).toHaveLength(3);
-                        expect(displayNames.at(0)).toHaveTextContent('Email Two');
-                        expect(displayNames.at(1)).toHaveTextContent('Email Four');
-                        expect(displayNames.at(2)).toHaveTextContent('Email Three');
+                        const firstElement = screen.queryByTestId('DisplayNames-0');
+                        const secondElement = screen.queryByTestId('DisplayNames-1');
+                        const thirdElement = screen.queryByTestId('DisplayNames-2');
+
+                        expect(firstElement).toHaveTextContent('Email Two');
+                        expect(secondElement).toHaveTextContent('Email Four');
+                        expect(thirdElement).toHaveTextContent('Email Three');
                     })
             );
         });
@@ -751,13 +752,7 @@ describe('Sidebar', () => {
 
                     // Then they are still in alphabetical order
                     .then(() => {
-                        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
-                        const displayNames = screen.queryAllByLabelText(hintText);
-                        expect(displayNames).toHaveLength(4);
-                        expect(displayNames.at(0)).toHaveTextContent('Email Five');
-                        expect(displayNames.at(1)).toHaveTextContent('Email Four');
-                        expect(displayNames.at(2)).toHaveTextContent('Email Three');
-                        expect(displayNames.at(3)).toHaveTextContent('Email Two');
+                        TestHelper.assertSidebarOptionsAlphabetical();
                     })
             );
         });
@@ -827,13 +822,7 @@ describe('Sidebar', () => {
 
                     // Then they are still in alphabetical order
                     .then(() => {
-                        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
-                        const displayNames = screen.queryAllByLabelText(hintText);
-                        expect(displayNames).toHaveLength(4);
-                        expect(displayNames.at(0)).toHaveTextContent('Email Five');
-                        expect(displayNames.at(1)).toHaveTextContent('Email Four');
-                        expect(displayNames.at(2)).toHaveTextContent('Email Three');
-                        expect(displayNames.at(3)).toHaveTextContent('Email Two');
+                        TestHelper.assertSidebarOptionsAlphabetical();
                     })
             );
         });
@@ -981,13 +970,7 @@ describe('Sidebar', () => {
 
                     // Then they are still in alphabetical order
                     .then(() => {
-                        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
-                        const displayNames = screen.queryAllByLabelText(hintText);
-                        expect(displayNames).toHaveLength(4);
-                        expect(displayNames.at(0)).toHaveTextContent('Email Five');
-                        expect(displayNames.at(1)).toHaveTextContent('Email Four');
-                        expect(displayNames.at(2)).toHaveTextContent('Email Three');
-                        expect(displayNames.at(3)).toHaveTextContent('Email Two');
+                        TestHelper.assertSidebarOptionsAlphabetical();
                     })
             );
         });
