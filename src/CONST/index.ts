@@ -6479,6 +6479,14 @@ const CONST = {
             BILLABLE: 'billable',
             ACTION: 'action',
         },
+        get SEARCH_USER_FRIENDLY_VALUES_MAP() {
+            return {
+                [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',
+            };
+        },
+        SEARCH_TEXT_TO_VALUE_MAP: {
+            'per-diem': 'perDiem',
+        },
         DATE_MODIFIERS: {
             ON: 'On',
             AFTER: 'After',

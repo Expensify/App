@@ -14,6 +14,7 @@ import type {
     SearchStatus,
     SearchWithdrawalType,
     UserFriendlyKey,
+    UserFriendlyValue,
 } from '@components/Search/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -167,11 +168,11 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
             index !== 0 &&
             ((queryFilter.operator === 'eq' && queryFilters?.at(index - 1)?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters.at(index - 1)?.operator === 'neq'))
         ) {
-            filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
+            filterValueString += `${delimiter}${sanitizeSearchValue(getUserFriendlyValue(queryFilter.value.toString()))}`;
         } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
-            filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
+            filterValueString += `${delimiter}${sanitizeSearchValue(getUserFriendlyValue(queryFilter.value.toString()))}`;
         } else {
-            filterValueString += ` ${filterName}${operatorToCharMap[queryFilter.operator]}${sanitizeSearchValue(queryFilter.value.toString())}`;
+            filterValueString += ` ${filterName}${operatorToCharMap[queryFilter.operator]}${sanitizeSearchValue(getUserFriendlyValue(queryFilter.value.toString()))}`;
         }
     });
 
@@ -208,13 +209,13 @@ function getFilters(queryJSON: SearchQueryJSON) {
         if (!Array.isArray(node.right)) {
             filterArray.push({
                 operator: node.operator,
-                value: node.right as string | number,
+                value: CONST.SEARCH.SEARCH_TEXT_TO_VALUE_MAP[node.right as keyof typeof CONST.SEARCH.SEARCH_TEXT_TO_VALUE_MAP] ?? node.right as string | number,
             });
         } else {
             node.right.forEach((element) => {
                 filterArray.push({
                     operator: node.operator,
-                    value: element,
+                    value: CONST.SEARCH.SEARCH_TEXT_TO_VALUE_MAP[element as keyof typeof CONST.SEARCH.SEARCH_TEXT_TO_VALUE_MAP] ?? element,
                 });
             });
         }
@@ -1051,6 +1052,16 @@ function getUserFriendlyKey(keyName: SearchFilterKey | typeof CONST.SEARCH.SYNTA
     return UserFriendlyKeyMap[keyName];
 }
 
+/**
+ * Converts a filter value from backend value to display text value
+ *
+ * @example
+ * getUserFriendlyValues("perDiem") // returns "per-diem"
+ */
+function getUserFriendlyValue(value: string): UserFriendlyValue {
+    return CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP[value as keyof typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP] ?? value;
+}
+
 function shouldHighlight(referenceText: string, searchText: string) {
     if (!referenceText || !searchText) {
         return false;
@@ -1080,10 +1091,10 @@ export {
     getQueryWithUpdatedValues,
     getCurrentSearchQueryJSON,
     getQueryWithoutFilters,
-    getUserFriendlyKey,
     isDefaultExpensesQuery,
     sortOptionsWithEmptyValue,
     shouldHighlight,
     getAllPolicyValues,
     getTodoSearchQuery,
+    getUserFriendlyValue,
 };
