@@ -27,7 +27,6 @@ import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {AnchorPosition} from '@src/styles';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
