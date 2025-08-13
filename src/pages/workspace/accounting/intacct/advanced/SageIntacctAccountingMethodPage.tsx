@@ -83,4 +83,6 @@ function SageIntacctAccountingMethodPage({policy, route}: WithPolicyConnectionsP
     );
 }
 
+SageIntacctAccountingMethodPage.displayName = 'SageIntacctAccountingMethodPage';
+
 export default withPolicyConnections(SageIntacctAccountingMethodPage);

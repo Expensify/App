@@ -863,7 +863,11 @@ function updateSageIntacctAutoSync(policyID: string | undefined, enabled: boolea
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_AUTO_SYNC, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctImportEmployees(policyID: string, enabled: boolean) {
+function updateSageIntacctImportEmployees(policyID: string | undefined, enabled: boolean) {
+    if (!policyID) {
+        return;
+    }
+
     const {optimisticData, failureData, successData} = prepareOnyxDataForConfigUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.IMPORT_EMPLOYEES, enabled, !enabled);
     const parameters = {
         policyID,
@@ -873,7 +877,11 @@ function updateSageIntacctImportEmployees(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_IMPORT_EMPLOYEES, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctApprovalMode(policyID: string, enabled: boolean) {
+function updateSageIntacctApprovalMode(policyID: string | undefined, enabled: boolean) {
+    if (!policyID) {
+        return;
+    }
+
     const approvalModeSettingValue = enabled ? CONST.SAGE_INTACCT.APPROVAL_MODE.APPROVAL_MANUAL : '';
     const oldApprovalModeSettingValue = enabled ? '' : CONST.SAGE_INTACCT.APPROVAL_MODE.APPROVAL_MANUAL;
     const {optimisticData, failureData, successData} = prepareOnyxDataForConfigUpdate(
@@ -890,7 +898,11 @@ function updateSageIntacctApprovalMode(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_APPROVAL_MODE, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctSyncReimbursedReports(policyID: string, enabled: boolean) {
+function updateSageIntacctSyncReimbursedReports(policyID: string | undefined, enabled: boolean) {
+    if (!policyID) {
+        return;
+    }
+
     const {optimisticData, failureData, successData} = prepareOnyxDataForSyncUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS, enabled, !enabled);
     const parameters = {
         policyID,
@@ -900,7 +912,11 @@ function updateSageIntacctSyncReimbursedReports(policyID: string, enabled: boole
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_REIMBURSED_REPORTS, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctSyncReimbursementAccountID(policyID: string, vendorID: string, oldVendorID?: string) {
+function updateSageIntacctSyncReimbursementAccountID(policyID: string | undefined, vendorID: string, oldVendorID?: string) {
+    if (!policyID) {
+        return;
+    }
+    
     const {optimisticData, failureData, successData} = prepareOnyxDataForSyncUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID, vendorID, oldVendorID);
     const parameters = {
         policyID,
