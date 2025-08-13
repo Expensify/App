@@ -151,7 +151,7 @@ function TransferBalancePage() {
                 shouldShow={!shouldShowTransferView}
                 titleKey="notFound.pageNotFound"
                 subtitleKey="transferAmountPage.notHereSubTitle"
-                linkKey="transferAmountPage.goToWallet"
+                linkTranslationKey="transferAmountPage.goToWallet"
                 onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
             >
                 <HeaderWithBackButton

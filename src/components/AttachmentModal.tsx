@@ -494,7 +494,7 @@ function AttachmentModal({
                                 iconHeight={variables.modalTopIconHeight}
                                 title={translate('notFound.notHere')}
                                 subtitle={translate('notFound.pageNotFound')}
-                                linkKey="notFound.goBackHome"
+                                linkTranslationKey="notFound.goBackHome"
                                 onLinkPress={() => Navigation.dismissModal()}
                             />
                         )}

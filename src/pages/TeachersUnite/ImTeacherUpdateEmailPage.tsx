@@ -27,7 +27,7 @@ function ImTeacherUpdateEmailPage() {
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <BlockingView
-                linkKey="notFound.goBackHome"
+                linkTranslationKey="notFound.goBackHome"
                 shouldEmbedLinkWithSubtitle
                 icon={Illustrations.EmailAddress}
                 title={translate('teachersUnitePage.updateYourEmail')}
