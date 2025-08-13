@@ -648,9 +648,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         Array.from({length: duplicatesPerTransaction}, (_, dupIndex) => ({
                             ...transaction,
                             keyForList: `${transaction.keyForList}_perf_${index}_${dupIndex}`,
-                            transactionID: `${transaction.transactionID}_perf_${index}_${dupIndex}`,
-                            amount: transaction.amount + (dupIndex * 5), // Vary amount slightly
-                            merchant: `${transaction.merchant} (Test ${index}-${dupIndex})`,
+                            transactionID: `${(transaction as TransactionListItemType).transactionID}_perf_${index}_${dupIndex}`,
+                            amount: (transaction as TransactionListItemType).amount + (dupIndex * 5), // Vary amount slightly
+                            merchant: `${(transaction as TransactionListItemType).merchant} (Test ${index}-${dupIndex})`,
                             shouldAnimateInHighlight: false,
                         }))
                     );
