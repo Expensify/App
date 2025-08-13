@@ -483,6 +483,7 @@ const translations = {
         message: 'Mensagem',
         leaveThread: 'Sair do tópico',
         you: 'Você',
+        me: 'mim',
         youAfterPreposition: 'você',
         your: 'seu/sua/seus/suas (dependendo do contexto)',
         conciergeHelp: 'Por favor, entre em contato com o Concierge para obter ajuda.',
@@ -594,6 +595,7 @@ const translations = {
         unread: 'Não lido',
         sent: 'Enviado',
         links: 'Links',
+        day: 'dia',
         days: 'dias',
         rename: 'Renomear',
         address: 'Endereço',
@@ -885,6 +887,7 @@ const translations = {
         hereAlternateText: 'Notificar todos nesta conversa',
     },
     newMessages: 'Novas mensagens',
+    latestMessages: 'Mensagens recentes',
     youHaveBeenBanned: 'Nota: Você foi banido de conversar neste canal.',
     reportTypingIndicator: {
         isTyping: 'está digitando...',
@@ -3411,6 +3414,11 @@ const translations = {
             railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `Seu bilhete de trem de ${origin} → ${destination} em ${startDate} foi atualizado.`,
             defaultUpdate: ({type}: TravelTypeParams) => `Sua reserva de ${type} foi atualizada.`,
         },
+        flightTo: 'Voo para',
+        trainTo: 'Trem para',
+        carRental: ' de aluguel de carro',
+        nightIn: 'noite em',
+        nightsIn: 'noites em',
     },
     workspace: {
         common: {
@@ -3532,6 +3540,11 @@ const translations = {
             viewTransactions: 'Ver transações',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Despesas de ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>As transações do cartão Expensify serão exportadas automaticamente para uma “Conta de responsabilidade do cartão Expensify” criada com <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nossa integração</a>.</muted-text-label>`,
+        },
+        receiptPartners: {
+            uber: {
+                subtitle: 'Automatize despesas de viagens e entrega de refeições em toda a sua organização.',
+            },
         },
         perDiem: {
             subtitle: 'Defina taxas de diárias para controlar os gastos diários dos funcionários.',
@@ -5545,6 +5558,17 @@ const translations = {
                     one: '1 dia',
                     other: (count: number) => `${count} dias`,
                 }),
+                cashExpenseDefault: 'Despesa em dinheiro padrão',
+                cashExpenseDefaultDescription:
+                    'Escolha como as despesas em dinheiro devem ser criadas. Uma despesa é considerada em dinheiro se não for uma transação de cartão corporativo importada. Isso inclui despesas criadas manualmente, recibos, diárias, distância e despesas de tempo.',
+                reimbursableDefault: 'Reembolsável',
+                reimbursableDefaultDescription: 'Despesas geralmente são reembolsadas aos funcionários',
+                nonReimbursableDefault: 'Não reembolsável',
+                nonReimbursableDefaultDescription: 'Despesas às vezes são reembolsadas aos funcionários',
+                alwaysReimbursable: 'Sempre reembolsável',
+                alwaysReimbursableDescription: 'Despesas são sempre reembolsadas aos funcionários',
+                alwaysNonReimbursable: 'Nunca reembolsável',
+                alwaysNonReimbursableDescription: 'Despesas nunca são reembolsadas aos funcionários',
                 billableDefault: 'Padrão faturável',
                 billableDefaultDescription: 'Escolha se as despesas em dinheiro e cartão de crédito devem ser faturáveis por padrão. Despesas faturáveis são ativadas ou desativadas em',
                 billable: 'Faturável',
@@ -5832,6 +5856,8 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `atualizou "Refaturar despesas para clientes" para "${newValue}" (anteriormente "${oldValue}")`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `atualizou "Despesa em dinheiro padrão" para "${newValue}" (anteriormente "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `transformado "Aplicar títulos padrão de relatórios" ${value ? 'em' : 'desligado'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `atualizou o nome deste espaço de trabalho para "${newName}" (anteriormente "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -6049,6 +6075,10 @@ const translations = {
                 cards: 'Cartão',
             },
             feed: 'Feed',
+            withdrawalType: {
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reembolso',
+            },
         },
         groupBy: 'Agrupar por',
         moneyRequestReport: {
@@ -6058,6 +6088,7 @@ const translations = {
         noCategory: 'Sem categoria',
         noTag: 'Sem etiqueta',
         expenseType: 'Tipo de despesa',
+        withdrawalType: 'Tipo de retirada',
         recentSearches: 'Pesquisas recentes',
         recentChats: 'Chats recentes',
         searchIn: 'Pesquisar em',

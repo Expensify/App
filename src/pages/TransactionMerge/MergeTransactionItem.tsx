@@ -61,6 +61,7 @@ function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTool
                     taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                     shouldHighlightItemWhenSelected={false}
                     shouldShowErrors={false}
+                    style={styles.p3}
                     shouldShowRadioButton
                     onRadioButtonPress={() => {
                         onSelectRow(item);

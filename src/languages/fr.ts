@@ -483,6 +483,7 @@ const translations = {
         message: 'Message',
         leaveThread: 'Quitter le fil de discussion',
         you: 'Vous',
+        me: 'moi',
         youAfterPreposition: 'vous',
         your: 'votre',
         conciergeHelp: "Veuillez contacter Concierge pour obtenir de l'aide.",
@@ -593,6 +594,7 @@ const translations = {
         unread: 'Non lu',
         sent: 'Envoyé',
         links: 'Liens',
+        day: 'journée',
         days: 'jours',
         rename: 'Renommer',
         address: 'Adresse',
@@ -888,6 +890,7 @@ const translations = {
         hereAlternateText: 'Notifier tout le monde dans cette conversation',
     },
     newMessages: 'Nouveaux messages',
+    latestMessages: 'Derniers messages',
     youHaveBeenBanned: 'Remarque : Vous avez été banni de la discussion dans ce canal.',
     reportTypingIndicator: {
         isTyping: 'est en train de taper...',
@@ -3401,6 +3404,11 @@ const translations = {
             railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `Votre billet de train pour ${origin} → ${destination} le ${startDate} a été mis à jour.`,
             defaultUpdate: ({type}: TravelTypeParams) => `Votre réservation de ${type} a été mise à jour.`,
         },
+        flightTo: 'Vol pour',
+        trainTo: 'Train pour',
+        carRental: ' de location de voiture',
+        nightIn: 'nuit à',
+        nightsIn: 'nuits à',
     },
     workspace: {
         common: {
@@ -3522,6 +3530,11 @@ const translations = {
             viewTransactions: 'Voir les transactions',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Les dépenses de ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Les transactions Expensify Card seront automatiquement exportées vers un « Expensify Card Liability Account » créé avec <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">notre intégration</a>.</muted-text-label>`,
+        },
+        receiptPartners: {
+            uber: {
+                subtitle: 'Automatisez les dépenses de déplacement et de livraison de repas dans toute votre organisation.',
+            },
         },
         perDiem: {
             subtitle: 'Définissez des taux de per diem pour contrôler les dépenses quotidiennes des employés.',
@@ -5549,6 +5562,17 @@ const translations = {
                     one: '1 jour',
                     other: (count: number) => `${count} jours`,
                 }),
+                cashExpenseDefault: 'Dépense en espèces par défaut',
+                cashExpenseDefaultDescription:
+                    'Choisissez comment les dépenses en espèces doivent être créées. Une dépense est considérée comme en espèces si elle n’est pas une transaction par carte d’entreprise importée. Cela inclut les dépenses créées manuellement, les reçus, les indemnités journalières, les frais kilométriques et les frais de temps.',
+                reimbursableDefault: 'Remboursable',
+                reimbursableDefaultDescription: 'Les dépenses sont généralement remboursées aux employés',
+                nonReimbursableDefault: 'Non remboursable',
+                nonReimbursableDefaultDescription: 'Les dépenses sont parfois remboursées aux employés',
+                alwaysReimbursable: 'Toujours remboursable',
+                alwaysReimbursableDescription: 'Les dépenses sont toujours remboursées aux employés',
+                alwaysNonReimbursable: 'Jamais remboursable',
+                alwaysNonReimbursableDescription: 'Les dépenses ne sont jamais remboursées aux employés',
                 billableDefault: 'Par défaut facturable',
                 billableDefaultDescription:
                     'Choisissez si les dépenses en espèces et par carte de crédit doivent être facturables par défaut. Les dépenses facturables sont activées ou désactivées dans',
@@ -5839,6 +5863,8 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `mis à jour "Refacturer les dépenses aux clients" à "${newValue}" (précédemment "${oldValue}")`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `mis à jour "Dépense en espèces par défaut" en "${newValue}" (anciennement "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `"Appliquer les titres de rapport par défaut" ${value ? 'sur' : 'désactivé'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `a mis à jour le nom de cet espace de travail en "${newName}" (précédemment "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -6056,6 +6082,10 @@ const translations = {
                 cards: 'Carte',
             },
             feed: 'Flux',
+            withdrawalType: {
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Remboursement',
+            },
         },
         groupBy: 'Groupe par',
         moneyRequestReport: {
@@ -6065,6 +6095,7 @@ const translations = {
         noCategory: 'Aucune catégorie',
         noTag: 'Aucun tag',
         expenseType: 'Type de dépense',
+        withdrawalType: 'Type de retrait',
         recentSearches: 'Recherches récentes',
         recentChats: 'Discussions récentes',
         searchIn: 'Rechercher dans',
