@@ -4866,7 +4866,7 @@ const translations = {
             title: 'Benennen Sie Ihren neuen Arbeitsbereich',
             selectFeatures: 'Auswählen der zu kopierenden Features',
             whichFeatures: 'Welche Funktionen möchten Sie in Ihren neuen Arbeitsbereich kopieren?',
-            confirmDuplicate: 'Möchten Sie wirklich fortfahren?',
+            confirmDuplicate: '\n\nMöchten Sie wirklich fortfahren?',
             categories: 'Kategorien und Ihre Auto-Kategorisierungsregeln',
             reimbursementAccount: 'Erstattungskonto',
             delayedSubmission: 'verspätete Einreichung',

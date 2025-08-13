@@ -4881,7 +4881,7 @@ const translations = {
             title: 'Assegna un nome al tuo nuovo spazio di lavoro',
             selectFeatures: 'Seleziona le funzionalità da copiare',
             whichFeatures: 'Quali funzionalità vuoi copiare nel tuo nuovo spazio di lavoro?',
-            confirmDuplicate: 'Sei sicuro di voler procedere?',
+            confirmDuplicate: '\n\nSei sicuro di voler procedere?',
             categories: 'Categorie e regole di categorizzazione automatica',
             reimbursementAccount: 'Account di rimborso',
             delayedSubmission: 'Invio ritardato',

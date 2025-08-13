@@ -4872,7 +4872,7 @@ const translations = {
             title: 'Nazwij swój nowy obszar roboczy',
             selectFeatures: 'Wybierz funkcje do skopiowania',
             whichFeatures: 'Które funkcje chcesz skopiować do nowego obszaru roboczego?',
-            confirmDuplicate: 'Czy na pewno chcesz kontynuować?',
+            confirmDuplicate: '\n\nCzy na pewno chcesz kontynuować?',
             categories: 'kategorie i zasady automatycznej kategoryzacji',
             reimbursementAccount: 'konto zwrotu',
             delayedSubmission: 'opóźnione przesłanie',

@@ -4849,7 +4849,7 @@ const translations = {
             title: 'Name your new workspace',
             selectFeatures: 'Select features to copy',
             whichFeatures: 'Which features do you want to copy over to your new workspace?',
-            confirmDuplicate: 'Are you sure you want to proceed?',
+            confirmDuplicate: '\n\nAre you sure you want to proceed?',
             categories: 'categories and your auto-categorization rules',
             reimbursementAccount: 'reimbursement account',
             welcomeNote: 'Please start using my new workspace',

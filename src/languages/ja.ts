@@ -4860,7 +4860,7 @@ const translations = {
             title: '新しいワークスペースに名前を付けてください',
             selectFeatures: 'コピーする機能を選択してください',
             whichFeatures: '新しいワークスペースにコピーする機能はどれですか？',
-            confirmDuplicate: '続行してもよろしいですか？',
+            confirmDuplicate: '\n\n続行してもよろしいですか？',
             categories: 'カテゴリと自動分類ルール',
             reimbursementAccount: '払い戻し口座',
             delayedSubmission: '遅延送信',

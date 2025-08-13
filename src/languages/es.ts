@@ -4859,7 +4859,7 @@ const translations = {
             title: 'Nombra tu nuevo espacio de trabajo',
             selectFeatures: 'Selecciona las funciones a copiar',
             whichFeatures: '¿Qué funciones deseas copiar a tu nuevo espacio de trabajo?',
-            confirmDuplicate: '¿Estás seguro de que deseas continuar?',
+            confirmDuplicate: '\n\n¿Estás seguro de que deseas continuar?',
             categories: 'categorías y tus reglas de auto-categorización',
             reimbursementAccount: 'cuenta de reembolso',
             delayedSubmission: 'presentación retrasada',

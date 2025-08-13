@@ -306,7 +306,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 onConfirm={confirmDuplicateAndHideModal}
                 onCancel={() => setIsDuplicateModalOpen(false)}
                 prompt={
-                    <View>
+                    <Text>
                         <Text style={[styles.webViewStyles.baseFontStyle, styles.textSupporting, styles.mb3]}>
                             {translate('workspace.duplicateWorkspace.confirmTitle', {
                                 newWorkspaceName: duplicateWorkspace?.name,
@@ -315,7 +315,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                             })}
                         </Text>
                         <Text style={[styles.webViewStyles.baseFontStyle, styles.textSupporting]}>{translate('workspace.duplicateWorkspace.confirmDuplicate')}</Text>
-                    </View>
+                    </Text>
                 }
                 confirmText={translate('common.proceed')}
                 cancelText={translate('common.cancel')}

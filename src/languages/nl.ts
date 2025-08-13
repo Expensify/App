@@ -4883,7 +4883,7 @@ const translations = {
             title: 'Geef je nieuwe werkruimte een naam',
             selectFeatures: 'Selecteer te kopiëren functies',
             whichFeatures: 'Welke functies wil je kopiëren naar je nieuwe werkruimte?',
-            confirmDuplicate: 'Weet je zeker dat je wilt doorgaan?',
+            confirmDuplicate: '\n\nWeet je zeker dat je wilt doorgaan?',
             categories: 'categorieën en je regels voor automatische categorisatie',
             reimbursementAccount: 'vergoedingsrekening',
             delayedSubmission: 'vertraagde indiening',

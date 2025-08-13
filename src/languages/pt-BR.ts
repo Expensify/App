@@ -4878,7 +4878,7 @@ const translations = {
             title: 'Nomeie seu novo espaço de trabalho',
             selectFeatures: 'Selecione os recursos a serem copiados',
             whichFeatures: 'Quais recursos você deseja copiar para o seu novo espaço de trabalho?',
-            confirmDuplicate: 'Tem certeza de que deseja prosseguir?',
+            confirmDuplicate: '\n\nTem certeza de que deseja prosseguir?',
             categories: 'categorias e suas regras de categorização automática',
             reimbursementAccount: 'conta de reembolso',
             delayedSubmission: 'envio atrasado',
