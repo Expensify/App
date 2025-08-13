@@ -288,6 +288,7 @@ import type {
     WorkEmailResendCodeParams,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
+    WorkspaceMembersCountParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
     WorkspacesListRouteParams,
@@ -4921,7 +4922,7 @@ const translations = {
             },
             addedWithPrimary: 'Alcuni membri sono stati aggiunti con i loro accessi principali.',
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Aggiunto da login secondario ${secondaryLogin}.`,
-            membersListTitle: 'Directory di tutti i membri del workspace.',
+            workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Numero totale di membri dello spazio di lavoro: ${count}`,
             importMembers: 'Importa membri',
         },
         card: {
