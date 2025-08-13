@@ -6,6 +6,7 @@ import type {ListItem, TransactionMemberGroupListItemType} from '@components/Sel
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -34,11 +35,12 @@ function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onSel
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
-
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const [formattedDisplayName, formattedLogin] = useMemo(
         () => [formatPhoneNumber(getDisplayNameOrDefault(memberItem)), formatPhoneNumber(memberItem.login ?? '')],
         [memberItem, formatPhoneNumber],
     );
+    const shouldShowAction = isLargeScreenWidth;
 
     return (
         <View>
@@ -81,13 +83,15 @@ function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onSel
                         currency={memberItem.currency}
                     />
                 </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
-                    <ActionCell
-                        action={CONST.SEARCH.ACTION_TYPES.VIEW}
-                        goToItem={() => onSelectRow(memberItem as unknown as TItem)}
-                        isSelected={memberItem.isSelected}
-                    />
-                </View>
+                {shouldShowAction && (
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+                        <ActionCell
+                            action={CONST.SEARCH.ACTION_TYPES.VIEW}
+                            goToItem={() => onSelectRow(memberItem as unknown as TItem)}
+                            isSelected={memberItem.isSelected}
+                        />
+                    </View>
+                )}
             </View>
         </View>
     );

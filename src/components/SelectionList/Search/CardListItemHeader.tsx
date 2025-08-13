@@ -5,6 +5,7 @@ import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {ListItem, TransactionCardGroupListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -39,11 +40,11 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onSelectRow
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
-
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const formattedDisplayName = useMemo(() => formatPhoneNumber(getDisplayNameOrDefault(cardItem)), [cardItem, formatPhoneNumber]);
-
     const backgroundColor =
         StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
+    const shouldShowAction = isLargeScreenWidth;
 
     return (
         <View>
@@ -82,13 +83,15 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onSelectRow
                         currency={cardItem.currency}
                     />
                 </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
-                    <ActionCell
-                        action={CONST.SEARCH.ACTION_TYPES.VIEW}
-                        goToItem={() => onSelectRow(cardItem as unknown as TItem)}
-                        isSelected={cardItem.isSelected}
-                    />
-                </View>
+                {shouldShowAction && (
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+                        <ActionCell
+                            action={CONST.SEARCH.ACTION_TYPES.VIEW}
+                            goToItem={() => onSelectRow(cardItem as unknown as TItem)}
+                            isSelected={cardItem.isSelected}
+                        />
+                    </View>
+                )}
             </View>
         </View>
     );
