@@ -71,7 +71,7 @@ describe('useInvoiceChatByParticipants', () => {
             expect(result.current).toBeUndefined();
 
             // Should return undefined when when policyID does not match
-            const differentPolicyID = 'different_poliicyID_999807';
+            const differentPolicyID = 'different_policyID_999807';
             rerender({receiverID: accountID, receiverType: activeIndividualInvoiceReceiver.type, policyID: differentPolicyID});
             expect(result.current).toBeUndefined();
         });
@@ -91,7 +91,7 @@ describe('useInvoiceChatByParticipants', () => {
         });
     });
 
-    describe('Business Invoice Reciever', () => {
+    describe('Business Invoice Receiver', () => {
         beforeAll(() => {
             Onyx.init({keys: ONYXKEYS});
         });
@@ -113,8 +113,8 @@ describe('useInvoiceChatByParticipants', () => {
             expect(result.current).toEqual(mockActiveBusinessInvoiceReport);
 
             // Should return undefined when business policyID does not match
-            const differetBusinessPolicyID = 'different_business_policy_123';
-            rerender({receiverID: differetBusinessPolicyID, receiverType: activeBusinessInvoiceReceiver.type, policyID: activeBusinessPolicyID});
+            const differentBusinessPolicyID = 'different_business_policy_123';
+            rerender({receiverID: differentBusinessPolicyID, receiverType: activeBusinessInvoiceReceiver.type, policyID: activeBusinessPolicyID});
             expect(result.current).toBeUndefined();
         });
 
