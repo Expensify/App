@@ -101,11 +101,8 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     /** Function to display a file in a modal */
     displayFilesInModal: (file: FileObject[]) => void;
 
-    /** Whether the user is blocked from concierge */
-    isBlockedFromConcierge: boolean;
-
-    /** Whether the input is disabled */
-    disabled: boolean;
+    /** Whether the input is disabled, defaults to false */
+    disabled?: boolean;
 
     /** Function to set whether the comment is empty */
     setIsCommentEmpty: (isCommentEmpty: boolean) => void;
@@ -215,7 +212,6 @@ function ComposerWithSuggestions(
         isMenuVisible,
         inputPlaceholder,
         displayFilesInModal,
-        isBlockedFromConcierge,
         disabled,
         setIsCommentEmpty,
         handleSendMessage,
@@ -815,7 +811,7 @@ function ComposerWithSuggestions(
                         displayFilesInModal([file]);
                     }}
                     onClear={onClear}
-                    isDisabled={isBlockedFromConcierge || disabled}
+                    isDisabled={disabled}
                     selection={selection}
                     onSelectionChange={onSelectionChange}
                     isComposerFullSize={isComposerFullSize}

@@ -660,8 +660,7 @@ function ReportActionCompose({
                                             setIsFullComposerAvailable={setIsFullComposerAvailable}
                                             displayFilesInModal={displayFilesInModal}
                                             onCleared={submitForm}
-                                            isBlockedFromConcierge={isBlockedFromConcierge}
-                                            disabled={disabled}
+                                            disabled={disabled || isBlockedFromConcierge}
                                             setIsCommentEmpty={setIsCommentEmpty}
                                             handleSendMessage={handleSendMessage}
                                             shouldShowComposeInput={shouldShowComposeInput}
