@@ -377,6 +377,9 @@ type MenuItemBaseProps = {
 
     /** Report ID for the avatar on the right */
     rightIconReportID?: string;
+
+    /** Whether the menu item contains nested submenu items. */
+    hasSubMenuItems?: boolean;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -498,6 +501,7 @@ function MenuItem(
         shouldTeleportPortalToModalLayer,
         copyValue,
         plaidUrl,
+        hasSubMenuItems = false,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -936,11 +940,14 @@ function MenuItem(
                                                             styles.pointerEventsAuto,
                                                             StyleUtils.getMenuItemIconStyle(isCompact),
                                                             disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
+                                                            hasSubMenuItems && styles.opacitySemiTransparent,
                                                         ]}
                                                     >
                                                         <Icon
                                                             src={iconRight}
                                                             fill={StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))}
+                                                            width={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
+                                                            height={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
                                                         />
                                                     </View>
                                                 )}
