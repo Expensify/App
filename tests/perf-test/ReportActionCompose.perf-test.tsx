@@ -83,7 +83,6 @@ function ReportActionComposeWrapper() {
             <ReportActionCompose
                 onSubmit={() => jest.fn()}
                 reportID="1"
-                disabled={false}
                 report={LHNTestUtils.getFakeReport()}
                 isComposerFullSize
             />
