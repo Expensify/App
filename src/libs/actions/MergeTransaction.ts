@@ -6,7 +6,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getReportOrDraftReport, getReportTransactions, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import {getTransactionViolationsOfTransaction, isCardTransaction} from '@src/libs/TransactionUtils';
+import {getAmount, getTransactionViolationsOfTransaction, isCardTransaction} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction, Policy, Report, Transaction} from '@src/types/onyx';
 
@@ -37,7 +37,16 @@ function getTransactionsForMergingFromAPI(transactionID: string) {
 
 function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2: Transaction) {
     // Do not allow merging two card transactions
-    return !isCardTransaction(transaction1) || !isCardTransaction(transaction2);
+    if (isCardTransaction(transaction1) && isCardTransaction(transaction2)) {
+        return false;
+    }
+
+    // Do not allow merging two $0 transactions
+    if (getAmount(transaction1, false, false) === 0 && getAmount(transaction2, false, false) === 0) {
+        return false;
+    }
+
+    return true;
 }
 
 /**
