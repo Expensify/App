@@ -38,6 +38,9 @@ from = "from"i { return "from"; }
 expenseType
   = "expenseType"
   / "expense-type"i { return "expenseType"; }
+withdrawalType
+  = "withdrawalType"
+  / "withdrawal-type"i { return "withdrawalType"; }
 billable = "billable"i { return "billable"; }
 reimbursable = "reimbursable"i { return "reimbursable"; }
 type = "type"i { return "type"; }
