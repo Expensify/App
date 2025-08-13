@@ -315,6 +315,15 @@ signingConfigs {
 - Delete any existing apps off emulator or device
 - Run `react-native run-android --variant release`
 
+## Example Performance Optimization Proposals
+
+Here are examples of well-documented performance optimization proposals that demonstrate good practices for investigating, profiling, and fixing performance issues:
+
+- [#65926 Do not render `ChatBubbleCell` when not displayed](https://github.com/Expensify/App/issues/65926#issue-3222509070)
+- [#65789 Optimize `useSearchHighlightAndScroll`](https://github.com/Expensify/App/issues/65789#issue-3217069356)
+- [#64774 Improve the `subscribeToKey` efficiency in Onyx](https://github.com/Expensify/App/issues/64774#issue-3169673669)
+- [#67626 Migrate FlashList to 2.0](https://github.com/Expensify/App/issues/67626#issue-3283123603)
+
 ## Reconciliation
 
 React is pretty smart and in many cases is able to tell if something needs to update. The process by which React goes about updating the UI is called reconciliation. If React thinks something needs to update, it will render it again. React also assumes that if a parent component rendered, then its child should also re-render.
