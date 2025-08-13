@@ -2,7 +2,7 @@ import { NativeModules, Platform } from 'react-native';
 
 const LINKING_ERROR =
   `The package 'group-ib-fp' doesn't seem to be linked. Make sure: \n\n` +
-  Platform.select({ ios: '- You have run \'pod install\'\n', default: '' }) +
+  Platform.select({ ios: "- You have run 'pod install'\n", default: '' }) +
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo Go\n';
 
@@ -28,13 +28,13 @@ export enum Capability {
   Security = 18,
   Advertise = 19,
   PortScan = 20,
-  GlobalId = 21
+  GlobalId = 21,
 }
 
 export enum FPAttributeFormat {
-  ClearText = (1 << 0),
-  Hashed = (1 << 1),
-  Encrypted = (1 << 2)
+  ClearText = 1 << 0,
+  Hashed = 1 << 1,
+  Encrypted = 1 << 2,
 }
 
 export enum AndroidCapability {
@@ -46,7 +46,7 @@ export enum AndroidCapability {
   CallIdentification = 5,
   ActivityCollection = 6,
   MotionCollection = 7,
-  PackageCollection = 8
+  PackageCollection = 8,
 }
 
 export type FPErrorHandler = (error: string) => void;
@@ -55,13 +55,13 @@ export type FPCookiesHandler = (cookies: Record<string, string> | null) => void;
 const ModuleFhpIos = NativeModules.ModuleFhpIos
   ? NativeModules.ModuleFhpIos
   : new Proxy(
-    {},
-    {
-      get() {
-        throw new Error(LINKING_ERROR);
-      },
-    },
-  );
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
 
 export class FP {
   private static instance: FP | null = null;
@@ -85,7 +85,10 @@ export class FP {
     }
   }
 
-  enableAndroidCapability(capability: AndroidCapability, responseHandler: Function) {
+  enableAndroidCapability(
+    capability: AndroidCapability,
+    responseHandler: Function
+  ) {
     if (Platform.OS === 'android') {
       return ModuleFhpIos.enableAndroidCapability(capability, responseHandler);
     }
@@ -97,7 +100,10 @@ export class FP {
     }
   }
 
-  disableAndroidCapability(capability: AndroidCapability, responseHandler: Function) {
+  disableAndroidCapability(
+    capability: AndroidCapability,
+    responseHandler: Function
+  ) {
     if (Platform.OS === 'android') {
       return ModuleFhpIos.disableAndroidCapability(capability, responseHandler);
     }
@@ -111,7 +117,11 @@ export class FP {
     return ModuleFhpIos.setTargetURL(url, errorCallback);
   }
 
-  setCustomerId(iOSCustomerId: string, androidCustomerId: string, errorCallback: FPErrorHandler) {
+  setCustomerId(
+    iOSCustomerId: string,
+    androidCustomerId: string,
+    errorCallback: FPErrorHandler
+  ) {
     if (Platform.OS === 'ios') {
       return ModuleFhpIos.setCustomerId(iOSCustomerId, errorCallback);
     } else if (Platform.OS === 'android') {
@@ -171,7 +181,12 @@ export class FP {
     return ModuleFhpIos.setCustomEvent(event, errorCallback);
   }
 
-  setAttributeTitle(title: string, value: string, format: FPAttributeFormat, errorCallback: FPErrorHandler) {
+  setAttributeTitle(
+    title: string,
+    value: string,
+    format: FPAttributeFormat,
+    errorCallback: FPErrorHandler
+  ) {
     return ModuleFhpIos.setAttributeTitle(title, value, format, errorCallback);
   }
 

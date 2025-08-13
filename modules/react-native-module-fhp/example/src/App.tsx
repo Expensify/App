@@ -1,60 +1,56 @@
 import * as React from 'react';
 
 import { StyleSheet, View, Text, Button, Image } from 'react-native';
-import {
- FP,
- Capability,
- AndroidCapability,
- Format
- } from 'group-ib-fp';
+import { FP, Capability, AndroidCapability, Format } from 'group-ib-fp';
 
 export default function App() {
   const [result, setResult] = React.useState<number | undefined>();
 
   enableDebugLogs();
-  setCustomerId("react-native-i", (error: any) => {
+  setCustomerId('react-native-i', (error: any) => {
     console.log(error);
   });
-  setTargetURL("https://sbbe.group-ib.ru/api/fl", (error: any) => {
+  setTargetURL('https://sbbe.group-ib.ru/api/fl', (error: any) => {
     console.log(error);
   });
   enableCapability(Capability.Swizzle, (error: any, isRun: Boolean) => {
     if (error) {
       console.log(error);
     }
-    console.log("Capability run status " + isRun);
+    console.log('Capability run status ' + isRun);
   });
   enableCapability(Capability.Behavior, (error: any, isRun: Boolean) => {
     if (error) {
       console.log(error);
     }
-    console.log("Capability run status " + isRun);
+    console.log('Capability run status ' + isRun);
   });
   enableCapability(Capability.Motion, (error: any, isRun: Boolean) => {
     if (error) {
       console.log(error);
     }
-    console.log("Capability run status " + isRun);
+    console.log('Capability run status ' + isRun);
   });
-  enableAndroidCapability(AndroidCapability.ActivityCollection, (error: any, isRun: Boolean) => {
+  enableAndroidCapability(
+    AndroidCapability.ActivityCollection,
+    (error: any, isRun: Boolean) => {
       if (error) {
         console.log(error);
       }
-      console.log("Capability run status " + isRun);
-  });
+      console.log('Capability run status ' + isRun);
+    }
+  );
 
   run((error: any) => {
-    console.log("Run error console");
+    console.log('Run error console');
     console.log(error);
   });
-  setSessionId("123", (error: any) => {
+  setSessionId('123', (error: any) => {
     console.log(error);
-  }
-  );
+  });
   setSessionId('', (error: any) => {
     console.log(error);
-  }
-  );
+  });
   const styles = StyleSheet.create({
     container: {
       paddingTop: 50,
@@ -71,7 +67,7 @@ export default function App() {
   return (
     <View style={styles.container}>
       <Text>Result: {result}</Text>
-      <Button title='Test'></Button>
+      <Button title="Test"></Button>
       <Image
         style={styles.logo}
         source={{
