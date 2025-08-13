@@ -2,9 +2,9 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {SageIntacctMappingValue} from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
-import type * as Parameters from './parameters';
 // We have to disable eslint for this import because otherwise the import will be 300 lines long
 // eslint-disable-next-line no-restricted-syntax
+import type * as Parameters from './parameters';
 import type SignInUserParams from './parameters/SignInUserParams';
 import type UpdateBeneficialOwnersForBankAccountParams from './parameters/UpdateBeneficialOwnersForBankAccountParams';
 

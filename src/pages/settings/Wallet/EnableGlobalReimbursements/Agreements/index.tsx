@@ -2,7 +2,6 @@ import React from 'react';
 import AgreementsFullStep from '@components/SubStepForms/AgreementsFullStep';
 import useOnyx from '@hooks/useOnyx';
 import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
 
