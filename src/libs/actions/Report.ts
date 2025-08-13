@@ -4337,7 +4337,6 @@ function resolveActionableMentionWhisper(
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
 ) {
-    console.log('resolveActionableMentionWhisper reportAction', reportAction, 'reportID', reportID, 'resolution', resolution);
     const message = ReportActionsUtils.getReportActionMessage(reportAction);
     if (!message || !reportAction || !reportID) {
         return;

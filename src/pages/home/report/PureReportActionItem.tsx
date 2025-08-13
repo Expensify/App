@@ -703,7 +703,6 @@ function PureReportActionItem({
         }
 
         const reportActionReportID = originalReportID ?? reportID;
-        console.log('PureReportActionItem originalReportID', originalReportID, 'reportID', reportID, 'action.actionName', action.actionName);
         if (isConciergeCategoryOptions(action)) {
             const options = getOriginalMessage(action)?.options;
             if (!options) {
@@ -756,7 +755,7 @@ function PureReportActionItem({
                         text: 'actionableMentionTrackExpense.share',
                         key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
                         onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
+                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportActionReportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
                         },
                     },
                 );
