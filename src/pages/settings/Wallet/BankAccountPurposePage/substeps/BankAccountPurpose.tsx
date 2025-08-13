@@ -27,7 +27,7 @@ function BankAccountPurpose({showCountrySelectionStep}: BankAccountPurposeProps)
                     title={translate('bankAccount.getReimbursed')}
                     description={translate('bankAccount.getReimbursedDescription')}
                     shouldShowRightIcon
-                    onPress={showCountrySelectionStep}
+                    onPress={() => openPersonalBankAccountSetupView({})}
                     displayInDefaultIconColor
                     iconStyles={[styles.ml3, styles.mr2]}
                     iconWidth={variables.menuIconSize}
@@ -39,7 +39,7 @@ function BankAccountPurpose({showCountrySelectionStep}: BankAccountPurposeProps)
                     title={translate('bankAccount.makePayments')}
                     description={translate('bankAccount.makePaymentsDescription')}
                     shouldShowRightIcon
-                    onPress={() => openPersonalBankAccountSetupView({})}
+                    onPress={showCountrySelectionStep}
                     displayInDefaultIconColor
                     iconStyles={[styles.ml3, styles.mr2]}
                     iconWidth={variables.menuIconSize}
