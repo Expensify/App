@@ -109,7 +109,7 @@ function ReportActionItemParentAction({
     allEmojiReactions,
     linkedTransactionRouteError,
     userBillingFundID,
-    isReportArchived,
+    isReportArchived = false,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestorIDs = useRef(getAllAncestorReportActionIDs(report));

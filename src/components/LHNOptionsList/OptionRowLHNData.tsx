@@ -35,7 +35,7 @@ function OptionRowLHNData({
     transactionViolations,
     lastMessageTextFromReport,
     localeCompare,
-    isReportArchived,
+    isReportArchived = false,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
