@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
 import {renderHook} from '@testing-library/react-native';
 import React from 'react';
+import type {OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
@@ -25,7 +25,7 @@ jest.mock('@libs/ReportUtils', () => ({
     getReportIDFromLink: jest.fn(() => ''),
 }));
 
-const mockSidebarUtils = SidebarUtils as any;
+const mockSidebarUtils = SidebarUtils as jest.Mocked<typeof SidebarUtils>;
 
 describe('useSidebarOrderedReports', () => {
     beforeAll(async () => {
@@ -61,7 +61,7 @@ describe('useSidebarOrderedReports', () => {
             [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT]: {},
             [ONYXKEYS.BETAS]: [],
             [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: {reports: {}},
-        } as any);
+        } as unknown as OnyxMultiSetInput);
 
         // Default mock implementations
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue({});
@@ -148,7 +148,7 @@ describe('useSidebarOrderedReports', () => {
         await Onyx.multiSet({
             [`${ONYXKEYS.COLLECTION.REPORT}1`]: initialReports['1'],
             [`${ONYXKEYS.COLLECTION.REPORT}2`]: initialReports['2'],
-        } as any);
+        } as unknown as OnyxMultiSetInput);
 
         // When the mock is updated
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(initialReports);
@@ -239,8 +239,8 @@ describe('useSidebarOrderedReports', () => {
 
         await waitForBatchedUpdates();
 
-        // Then sortReportsToDisplayInLHN should be called when priority mode changes, even with same content
-        expect(mockSidebarUtils.sortReportsToDisplayInLHN).toHaveBeenCalledWith({}, expect.any(String), expect.any(Function), expect.any(Object), expect.any(Object));
+        // Then sortReportsToDisplayInLHN should not be called again since reports are empty
+        expect(mockSidebarUtils.sortReportsToDisplayInLHN).not.toHaveBeenCalled();
     });
 
     it('should maintain referential stability across multiple renders with same content', () => {
