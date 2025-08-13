@@ -4,7 +4,7 @@ import useInvoiceChatByParticipants from '@hooks/useInvoiceChatByParticipants';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InvoiceReceiver} from '@src/types/onyx/Report';
-import {createInvoiceRoom} from '../utils/collections/reports';
+import {createExpenseReport, createInvoiceRoom} from '../utils/collections/reports';
 
 const accountID = 12345;
 const mockPolicyID = '123';
@@ -44,12 +44,12 @@ const mockActiveBusinessInvoiceReport = {...createInvoiceRoom(activeBusinessRepo
 const mockArchivedBusinessInvoiceReport = {...createInvoiceRoom(archivedBusinessReportID), invoiceReceiver: archivedBusinessInvoiceReceiver, policyID: archivedBusinessPolicyID};
 
 describe('useInvoiceChatByParticipants', () => {
-    describe('Individual Invoice Reciever', () => {
-        beforeAll(() => {
+    describe('Individual Invoice Receiver', () => {
+        beforeEach(() => {
             Onyx.init({keys: ONYXKEYS});
         });
 
-        afterAll(() => {
+        afterEach(() => {
             Onyx.clear();
         });
 
@@ -87,6 +87,17 @@ describe('useInvoiceChatByParticipants', () => {
             });
 
             // Then invoice should not be sent in the archived invoice room
+            expect(result.current).toBeUndefined();
+        });
+
+        it('should return undefined when the report is not an invoice report', async () => {
+            const expenseReport = {...createExpenseReport(5645), invoiceReceiver: activeIndividualInvoiceReceiver, policyID: mockPolicyID};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+
+            const {result} = renderHook(({receiverID, receiverType, policyID}) => useInvoiceChatByParticipants(receiverID, receiverType, policyID), {
+                initialProps: {receiverID: accountID, receiverType: activeIndividualInvoiceReceiver.type, policyID: mockPolicyID},
+            });
+
             expect(result.current).toBeUndefined();
         });
     });
