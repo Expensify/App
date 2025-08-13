@@ -278,6 +278,13 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
     return reportAction.originalMessage;
 }
 
+/**
+ * Get the transaction ID from a money request report action
+ */
+function getTransactionIDFromReportAction(reportAction: OnyxInputOrEntry<ReportAction>): string | undefined {
+    return isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : undefined;
+}
+
 function isExportIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION> {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION;
 }
@@ -381,6 +388,10 @@ function isRenamedAction(reportAction: OnyxEntry<ReportAction>): reportAction is
 
 function isReopenedAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REOPENED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REOPENED);
+}
+
+function isRetractedAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RETRACTED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.RETRACTED);
 }
 
 function isRoomChangeLogAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>> {
@@ -742,12 +753,6 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
  */
 function isActionableMentionWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER);
-}
-
-function isActionableMentionInviteToSubmitExpenseConfirmWhisper(
-    reportAction: OnyxEntry<ReportAction>,
-): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER);
 }
 
 /**
@@ -1385,17 +1390,6 @@ function isReportActionAttachment(reportAction: OnyxInputOrEntry<ReportAction>):
     }
 
     return false;
-}
-
-// eslint-disable-next-line rulesdir/no-negated-variables
-function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
-    if (!reportAction) {
-        return false;
-    }
-
-    const actions: ReportActionName[] = [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE];
-
-    return actions.includes(reportAction.actionName);
 }
 
 // We pass getReportName as a param to avoid cyclic dependency.
@@ -2690,6 +2684,19 @@ function getPolicyChangeLogDefaultBillableMessage(action: ReportAction): string 
     return getReportActionText(action);
 }
 
+function getPolicyChangeLogDefaultReimbursableMessage(action: ReportAction): string {
+    const {oldDefaultReimbursable, newDefaultReimbursable} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_REIMBURSABLE>) ?? {};
+
+    if (typeof oldDefaultReimbursable === 'string' && typeof newDefaultReimbursable === 'string') {
+        return translateLocal('workspaceActions.updateDefaultReimbursable', {
+            oldValue: oldDefaultReimbursable,
+            newValue: newDefaultReimbursable,
+        });
+    }
+
+    return getReportActionText(action);
+}
+
 function getPolicyChangeLogDefaultTitleEnforcedMessage(action: ReportAction): string {
     const {value} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED>) ?? {};
 
@@ -2908,10 +2915,6 @@ function getCardIssuedMessage({
     }
 }
 
-function getReportActionsLength() {
-    return Object.keys(allReportActions ?? {}).length;
-}
-
 function getReportActions(report: Report) {
     return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
 }
@@ -3034,6 +3037,7 @@ export {
     getSortedReportActionsForDisplay,
     getTextFromHtml,
     getTrackExpenseActionableWhisper,
+    getTransactionIDFromReportAction,
     getWhisperedTo,
     hasRequestFromCurrentAccount,
     isActionOfType,
@@ -3041,7 +3045,6 @@ export {
     isActionableJoinRequest,
     isActionableJoinRequestPending,
     isActionableMentionWhisper,
-    isActionableMentionInviteToSubmitExpenseConfirmWhisper,
     isActionableReportMentionWhisper,
     isActionableTrackExpense,
     isExpenseChatWelcomeWhisper,
@@ -3069,7 +3072,6 @@ export {
     isModifiedExpenseAction,
     isMovedTransactionAction,
     isMoneyRequestAction,
-    isNotifiableReportAction,
     isOldDotReportAction,
     isPayAction,
     isPendingRemove,
@@ -3124,7 +3126,6 @@ export {
     getCardIssuedMessage,
     getRemovedConnectionMessage,
     getActionableJoinRequestPendingReportAction,
-    getReportActionsLength,
     getFilteredReportActionsForReportView,
     wasMessageReceivedWhileOffline,
     shouldShowAddMissingDetails,
@@ -3158,7 +3159,9 @@ export {
     getRetractedMessage,
     getReportActionFromExpensifyCard,
     isReopenedAction,
+    isRetractedAction,
     getIntegrationSyncFailedMessage,
+    getPolicyChangeLogDefaultReimbursableMessage,
     getManagerOnVacation,
     getVacationer,
     getSubmittedTo,

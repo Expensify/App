@@ -854,6 +854,10 @@ type MergeFailureDescriptionGenericParams = {
     email: string;
 };
 
+type SubmittedWithMemoParams = {
+    memo?: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     ContactMethodParams,
@@ -1143,5 +1147,6 @@ export type {
     MergeSuccessDescriptionParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
+    SubmittedWithMemoParams,
     SignerInfoMessageParams,
 };
