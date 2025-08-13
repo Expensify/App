@@ -59,7 +59,7 @@ const operatorToCharMap = {
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
     const map = new Map<string, string>();
-    
+
     // Map SYNTAX_FILTER_KEYS values to their user-friendly names
     Object.entries(CONST.SEARCH.SYNTAX_FILTER_KEYS).forEach(([keyName, keyValue]) => {
         if (!(keyName in CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS)) {
@@ -67,7 +67,7 @@ const createKeyToUserFriendlyMap = () => {
         }
         map.set(keyValue, CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS[keyName as keyof typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS]);
     });
-    
+
     // Map SYNTAX_ROOT_KEYS values to their user-friendly names
     Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS).forEach(([keyName, keyValue]) => {
         if (!(keyName in CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS)) {
@@ -75,18 +75,18 @@ const createKeyToUserFriendlyMap = () => {
         }
         map.set(keyValue, CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS[keyName as keyof typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS]);
     });
-    
+
     return map;
 };
 
 const createDisplayTextToValueMap = () => {
     const map = new Map<string, string>();
-    
+
     // Create reverse mapping from user-friendly values to backend keys
     Object.entries(CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP).forEach(([backendKey, userFriendlyValue]) => {
         map.set(userFriendlyValue, backendKey);
     });
-    
+
     return map;
 };
 
@@ -96,7 +96,7 @@ const displayTextToValueMap = createDisplayTextToValueMap();
 
 /**
  * Lookup a key in the keyToUserFriendlyMap and return the user-friendly key.
- * 
+ *
  * @example
  * getUserFriendlyKey("taxRate") // returns "tax-rate"
  */
@@ -106,7 +106,7 @@ function getUserFriendlyKey(keyName: SearchFilterKey | typeof CONST.SEARCH.SYNTA
 
 /**
  * Lookup a value in the displayTextToValueMap and return the backend value.
- * 
+ *
  * @example
  * getUserFriendlyValueFromMap("per-diem") // returns "perDiem"
  */
