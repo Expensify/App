@@ -1,3 +1,4 @@
+import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection} from 'react-native-onyx';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import type * as Illustrations from '@src/components/Icon/Illustrations';
@@ -8,10 +9,14 @@ import {
     filterInactiveCards,
     flatAllCardsList,
     formatCardExpiration,
+    getAllCardsForWorkspace,
+    getAssignedCardSortKey,
     getBankCardDetailsImage,
     getBankName,
+    getCardDescription,
     getCardFeedIcon,
     getCardsByCardholderName,
+    getCompanyCardDescription,
     getCompanyFeeds,
     getCustomOrFormattedFeedName,
     getFeedType,
@@ -21,12 +26,13 @@ import {
     getYearFromExpirationDateString,
     hasIssuedExpensifyCard,
     isCustomFeed as isCustomFeedCardUtils,
+    isExpensifyCard,
     isExpensifyCardFullySetUp,
     lastFourNumbersFromCardName,
     maskCardNumber,
     sortCardsByCardholderName,
 } from '@src/libs/CardUtils';
-import type {CardFeeds, CardList, CompanyCardFeed, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import type {Card, CardFeeds, CardList, CompanyCardFeed, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -268,6 +274,20 @@ const allCardsList = {
     cards_11111111_vcf1: customFeedCardsList,
     'cards_22222222_oauth.chase.com': directFeedCardsSingleList,
     'cards_11111111_Expensify Card': {
+        '21570657': {
+            accountID: 18439984,
+            bank: CONST.EXPENSIFY_CARD.BANK,
+            cardID: 21570657,
+            cardName: 'CREDIT CARD...5644',
+            domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+            fraud: 'none',
+            lastFourPAN: '',
+            lastScrape: '',
+            lastUpdated: '',
+            state: 2,
+        },
+    },
+    'cards_10101_Expensify Card': {
         '21570657': {
             accountID: 18439984,
             bank: CONST.EXPENSIFY_CARD.BANK,
@@ -596,7 +616,7 @@ describe('CardUtils', () => {
 
     describe('getFilteredCardList', () => {
         it('Should return filtered custom feed cards list', () => {
-            const cardsList = getFilteredCardList(customFeedCardsList, undefined);
+            const cardsList = getFilteredCardList(customFeedCardsList, undefined, undefined);
             expect(cardsList).toStrictEqual({
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '480801XXXXXX2111': 'ENCRYPTED_CARD_NUMBER',
@@ -606,13 +626,13 @@ describe('CardUtils', () => {
         });
 
         it('Should return filtered direct feed cards list with a single card', () => {
-            const cardsList = getFilteredCardList(directFeedCardsSingleList, oAuthAccountDetails[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]);
+            const cardsList = getFilteredCardList(directFeedCardsSingleList, oAuthAccountDetails[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE], undefined);
             // eslint-disable-next-line @typescript-eslint/naming-convention
             expect(cardsList).toStrictEqual({'CREDIT CARD...6607': 'CREDIT CARD...6607'});
         });
 
         it('Should return filtered direct feed cards list with multiple cards', () => {
-            const cardsList = getFilteredCardList(directFeedCardsMultipleList, oAuthAccountDetails[CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]);
+            const cardsList = getFilteredCardList(directFeedCardsMultipleList, oAuthAccountDetails[CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE], undefined);
             expect(cardsList).toStrictEqual({
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 'CREDIT CARD...1233': 'CREDIT CARD...1233',
@@ -624,7 +644,7 @@ describe('CardUtils', () => {
         });
 
         it('Should return empty object if no data was provided', () => {
-            const cardsList = getFilteredCardList(undefined, undefined);
+            const cardsList = getFilteredCardList(undefined, undefined, undefined);
             expect(cardsList).toStrictEqual({});
         });
 
@@ -697,7 +717,7 @@ describe('CardUtils', () => {
                 },
             } as unknown as WorkspaceCardsList;
 
-            const filteredCards = getFilteredCardList(customFeedWorkspaceCardsList, undefined);
+            const filteredCards = getFilteredCardList(customFeedWorkspaceCardsList, undefined, undefined);
             expect(filteredCards).toStrictEqual({});
         });
 
@@ -818,6 +838,72 @@ describe('CardUtils', () => {
         it('should return false when Expensify Card was not issued for given workspace', () => {
             const workspaceAccountID = 11111111;
             expect(hasIssuedExpensifyCard(workspaceAccountID, {})).toBe(false);
+        });
+
+        it('should not erroneously return true when workspaceAccountID is 0', () => {
+            const workspaceAccountID = 0;
+            expect(hasIssuedExpensifyCard(workspaceAccountID, allCardsList)).toBe(false);
+        });
+    });
+
+    describe('getAllCardsForWorkspace', () => {
+        it('should return all cards for a given workspace', () => {
+            const workspaceAccountID = 11111111;
+            expect(getAllCardsForWorkspace(workspaceAccountID, allCardsList)).toEqual({
+                '21310091': {
+                    accountID: 18439984,
+                    bank: 'vcf',
+                    cardID: 21310091,
+                    cardName: '480801XXXXXX2554',
+                    domainName: 'expensify-policy41314f4dc5ce25af.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '2554',
+                    lastScrape: '2024-11-27 11:00:53',
+                    lastUpdated: '',
+                    scrapeMinDate: '2024-10-17',
+                    state: 3,
+                },
+                '21570655': {
+                    accountID: 18439984,
+                    bank: 'oauth.capitalone.com',
+                    cardID: 21570655,
+                    cardName: 'CREDIT CARD...5678',
+                    domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '5678',
+                    lastScrape: '',
+                    lastScrapeResult: 200,
+                    lastUpdated: '',
+                    scrapeMinDate: '2024-08-27',
+                    state: 3,
+                },
+                '21570656': {
+                    accountID: 18439984,
+                    bank: 'oauth.capitalone.com',
+                    cardID: 21570656,
+                    cardName: 'CREDIT CARD...4444',
+                    domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '5678',
+                    lastScrape: '',
+                    lastScrapeResult: 403,
+                    lastUpdated: '',
+                    scrapeMinDate: '2024-08-27',
+                    state: 3,
+                },
+                '21570657': {
+                    accountID: 18439984,
+                    bank: 'Expensify Card',
+                    cardID: 21570657,
+                    cardName: 'CREDIT CARD...5644',
+                    domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 2,
+                },
+            });
         });
     });
 
@@ -1003,6 +1089,140 @@ describe('CardUtils', () => {
 
             expect(sortedCards).toHaveLength(1);
             expect(sortedCards.at(0)?.cardID).toBe(1);
+        });
+    });
+
+    describe('getCardDescription', () => {
+        it('should return the correct card description for company card', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                cardID: 21310091,
+                cardName: '480801XXXXXX2554',
+                domainName: 'expensify-policy41314f4dc5ce25af.exfy',
+                fraud: 'none',
+                lastFourPAN: '2554',
+                lastUpdated: '',
+                lastScrape: '2024-11-27 11:00:53',
+                scrapeMinDate: '2024-10-17',
+                state: 3,
+            };
+            const description = getCardDescription(card);
+            expect(description).toBe('Visa - 2554');
+        });
+
+        it('should return the correct card description for Expensify card', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                cardID: 21570657,
+                cardName: 'CREDIT CARD...5644',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 2,
+            };
+            const description = getCardDescription(card);
+            expect(description).toBe('Expensify Card');
+        });
+    });
+
+    describe('isExpensifyCard', () => {
+        it('should return true for Expensify Card', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                cardID: 21570657,
+                cardName: 'CREDIT CARD...5644',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 2,
+            };
+            expect(isExpensifyCard(card)).toBe(true);
+        });
+
+        it('should return false for non-Expensify Card', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                cardID: 21310091,
+                cardName: '480801XXXXXX2554',
+                domainName: 'expensify-policy41314f4dc5ce25af.exfy',
+                fraud: 'none',
+                lastFourPAN: '2554',
+                lastUpdated: '',
+                lastScrape: '2024-11-27 11:00:53',
+                scrapeMinDate: '2024-10-17',
+                state: 3,
+            };
+            expect(isExpensifyCard(card)).toBe(false);
+        });
+    });
+
+    describe('getCompanyCardDescription', () => {
+        const cardList: CardList = {
+            '21310091': {
+                accountID: 18439984,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                cardID: 21310091,
+                cardName: '480801XXXXXX2554',
+                domainName: 'expensify-policy41314f4dc5ce25af.exfy',
+                fraud: 'none',
+                lastFourPAN: '2554',
+                lastUpdated: '',
+                lastScrape: '2024-11-27 11:00:53',
+                scrapeMinDate: '2024-10-17',
+                state: 3,
+            },
+            '21570657': {
+                accountID: 18439984,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                cardID: 21570657,
+                cardName: 'CREDIT CARD...5644',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 2,
+            },
+        };
+        it('should return the correct description for a company card', () => {
+            const description = getCompanyCardDescription('Test', 21310091, cardList);
+            expect(description).toBe('480801XXXXXX2554');
+        });
+
+        it('should return the correct description for an Expensify card', () => {
+            const description = getCompanyCardDescription('Test', 21570657, cardList);
+            expect(description).toBe('Test');
+        });
+    });
+
+    describe('Expensify card sort comparator', () => {
+        it('should not change the order of non-Expensify cards', () => {
+            const cardList = {
+                10: {cardID: 10, bank: 'chase'}, // non-Expensify
+                11: {cardID: 11, bank: 'chase'}, // non-Expensify
+            } as unknown as CardList;
+
+            const sorted = lodashSortBy(Object.values(cardList), getAssignedCardSortKey);
+            expect(sorted.map((r: Card) => r.cardID)).toEqual([10, 11]);
+        });
+
+        it('places physical Expensify card before its virtual sibling', () => {
+            const cardList = {
+                10: {cardID: 10, bank: CONST.EXPENSIFY_CARD.BANK, nameValuePairs: {isVirtual: true}}, // Expensify virtual
+                11: {cardID: 11, bank: CONST.EXPENSIFY_CARD.BANK}, // Expensify physical
+                99: {cardID: 99, bank: 'chase'}, // non-Expensify
+            } as unknown as CardList;
+
+            const sorted = lodashSortBy(Object.values(cardList), getAssignedCardSortKey);
+            expect(sorted.map((r: Card) => r.cardID)).toEqual([11, 10, 99]);
         });
     });
 });

@@ -482,6 +482,7 @@ const translations = {
         message: '消息',
         leaveThread: '离开线程',
         you: '你',
+        me: '我',
         youAfterPreposition: '你',
         your: '你的',
         conciergeHelp: '请联系Concierge寻求帮助。',
@@ -592,6 +593,7 @@ const translations = {
         unread: '未读',
         sent: '已发送',
         links: 'Links',
+        day: '天',
         days: '天',
         rename: '重命名',
         address: '地址',
@@ -633,6 +635,7 @@ const translations = {
         getTheApp: '获取应用程序',
         scanReceiptsOnTheGo: '用手机扫描收据',
         headsUp: '\u6CE8\u610F\uFF01',
+        merge: '合并',
         unstableInternetConnection: '互联网连接不稳定。请检查你的网络，然后重试。',
     },
     supportalNoAccess: {
@@ -849,17 +852,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `本聊天室用于与 <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> 有关的任何内容。`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `该聊天用于 <strong>${invoicePayer}</strong> 和 <strong>${invoiceReceiver}</strong> 之间的发票。使用 <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> 按钮发送发票。`,
+            `该聊天用于 <strong>${invoicePayer}</strong> 和 <strong>${invoiceReceiver}</strong> 之间的发票。使用 + 按钮发送发票。`,
         beginningOfChatHistory: '此聊天是与',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `这是<strong>${submitterDisplayName}</strong> 向<strong>${workspaceName}</strong> 提交费用的地方。使用 <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> 按钮即可。`,
+            `这是<strong>${submitterDisplayName}</strong> 向<strong>${workspaceName}</strong> 提交费用的地方。使用 + 按钮即可。`,
         beginningOfChatHistorySelfDM: '这是您的个人空间。用于记录笔记、任务、草稿和提醒。',
         beginningOfChatHistorySystemDM: '欢迎！让我们为您进行设置。',
         chatWithAccountManager: '在这里与您的客户经理聊天',
         sayHello: '说你好！',
         yourSpace: '您的空间',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `欢迎来到${roomName}！`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `使用 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮${additionalText}一笔费用。`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => `使用 + 按钮${additionalText}一笔费用。`,
         askConcierge: '随时提问并获得全天候实时支持。',
         conciergeSupport: '24/7 支持',
         create: '创建',
@@ -879,6 +882,7 @@ const translations = {
         hereAlternateText: '通知此对话中的所有人',
     },
     newMessages: '新消息',
+    latestMessages: '最新消息',
     youHaveBeenBanned: '注意：您已被禁止在此频道聊天。',
     reportTypingIndicator: {
         isTyping: '正在输入...',
@@ -1339,6 +1343,30 @@ const translations = {
         rates: '费率',
         submitsTo: ({name}: SubmitsToParams) => `提交给${name}`,
         moveExpenses: () => ({one: '移动费用', other: '移动费用'}),
+    },
+    transactionMerge: {
+        listPage: {
+            header: '合并费用',
+            noEligibleExpenseFound: '未找到可合并的费用',
+            noEligibleExpenseFoundSubtitle: `您没有可与此合并的费用。<a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">了解更多</a>关于可合并费用的信息。`,
+            selectTransactionToMerge: ({reportName}: {reportName: string}) => `选择一个<a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">可合并的费用</a> <strong>${reportName}</strong>.`,
+        },
+        receiptPage: {
+            header: '选择收据',
+            pageTitle: '选择您想保留的收据：',
+        },
+        detailsPage: {
+            header: '选择详情',
+            pageTitle: '选择您想保留的详情：',
+            noDifferences: '发现交易无差异',
+            pleaseSelectError: ({field}: {field: string}) => `请选择一个${field}`,
+            selectAllDetailsError: '继续前请选取所有详情。',
+        },
+        confirmationPage: {
+            header: '确认详情',
+            pageTitle: '确认您保留的详情。未保留的详情将被删除。',
+            confirmButton: '合并费用',
+        },
     },
     share: {
         shareToExpensify: '分享到Expensify',
@@ -3335,6 +3363,11 @@ const translations = {
             railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `您从${origin}到${destination}的火车票已在${startDate}更新。`,
             defaultUpdate: ({type}: TravelTypeParams) => `您的${type}预订已更新。`,
         },
+        flightTo: '飞往',
+        trainTo: '火车前往',
+        carRental: '汽车租赁',
+        nightIn: '晚住宿',
+        nightsIn: '晚住宿',
     },
     workspace: {
         common: {
@@ -3455,6 +3488,11 @@ const translations = {
             viewTransactions: '查看交易记录',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}的费用`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify 卡交易将自动导出到与<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">我们集成</a>创建的 “Expensify 卡责任账户”。</muted-text-label>`,
+        },
+        receiptPartners: {
+            uber: {
+                subtitle: '自动化整个组织的差旅和送餐费用。',
+            },
         },
         perDiem: {
             subtitle: '设置每日津贴标准以控制员工的日常支出。',
@@ -5420,6 +5458,16 @@ const translations = {
                     one: '1天',
                     other: (count: number) => `${count}天`,
                 }),
+                cashExpenseDefault: '现金支出默认值',
+                cashExpenseDefaultDescription: '选择如何创建现金支出。如果不是导入的公司卡交易，则视为现金支出。这包括手动创建的支出、收据、津贴、里程和工时支出。',
+                reimbursableDefault: '可报销',
+                reimbursableDefaultDescription: '支出通常会报销给员工',
+                nonReimbursableDefault: '不可报销',
+                nonReimbursableDefaultDescription: '支出偶尔会报销给员工',
+                alwaysReimbursable: '始终可报销',
+                alwaysReimbursableDescription: '支出始终会报销给员工',
+                alwaysNonReimbursable: '始终不可报销',
+                alwaysNonReimbursableDescription: '支出永远不会报销给员工',
                 billableDefault: '默认计费',
                 billableDefaultDescription: '选择现金和信用卡费用是否应默认可计费。可计费用在中启用或禁用。',
                 billable: '可计费的',
@@ -5697,6 +5745,7 @@ const translations = {
             return `将月度报告提交日期更新为“${newValue}”（之前为“${oldValue}”）`;
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `已将“重新向客户计费费用”更新为“${newValue}”（之前为“${oldValue}”）`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `已将“现金支出默认值”更新为“${newValue}”（之前为“${oldValue}”）`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `"强制执行默认报告标题" ${value ? 'on' : '关'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `已将此工作区的名称更新为“${newName}”（之前为“${oldName}”）`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -5794,7 +5843,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: '无内容显示',
-                subtitle: `尝试调整您的搜索条件或使用绿色的 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮创建内容。`,
+                subtitle: '尝试调整您的搜索条件或使用绿色的 + 按钮创建内容。',
             },
             emptyExpenseResults: {
                 title: '您还没有创建任何费用',
@@ -5909,6 +5958,10 @@ const translations = {
                 cards: '卡片',
             },
             feed: '通道',
+            withdrawalType: {
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '报销',
+            },
         },
         groupBy: '组别',
         moneyRequestReport: {
@@ -5918,6 +5971,7 @@ const translations = {
         noCategory: '无类别',
         noTag: '无标签',
         expenseType: '费用类型',
+        withdrawalType: '提款类型',
         recentSearches: '最近的搜索',
         recentChats: '最近的聊天记录',
         searchIn: '搜索在',
@@ -6187,9 +6241,8 @@ const translations = {
         levelThreeResult: '消息已从频道中移除，并收到匿名警告，消息已提交审核。',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: '邀请提交费用',
-        inviteToChat: '仅邀请聊天',
-        nothing: '什么都不做',
+        invite: '邀请他们',
+        nothing: 'Do nothing',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: '接受',
