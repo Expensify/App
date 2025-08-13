@@ -213,13 +213,13 @@ function getFilters(queryJSON: SearchQueryJSON) {
         if (!Array.isArray(node.right)) {
             filterArray.push({
                 operator: node.operator,
-                value: String(node.right) as string | number,
+                value: node.right as string | number,
             });
         } else {
             node.right.forEach((element) => {
                 filterArray.push({
                     operator: node.operator,
-                    value: String(element),
+                    value: element,
                 });
             });
         }
