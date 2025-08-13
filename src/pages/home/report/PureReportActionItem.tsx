@@ -426,6 +426,7 @@ function PureReportActionItem({
     userBillingFundID,
     shouldShowBorder,
     shouldHighlight = false,
+    policyTags,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate, datetimeToCalendarTime, formatPhoneNumber, localeCompare} = useLocalize();

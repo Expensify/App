@@ -5142,6 +5142,7 @@ function getReportNameInternal({
     reports,
     reportNameValuePairs = allReportNameValuePair,
     policies,
+    policyTags,
 }: GetReportNameParams): string {
     let formattedName: string | undefined;
     let parentReportAction: OnyxEntry<ReportAction>;
