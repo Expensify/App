@@ -472,7 +472,11 @@ function SearchPage({route}: SearchPageProps) {
                         setIsOfflineModalVisible(true);
                         return;
                     }
-                    setIsDeleteExpensesConfirmModalVisible(true);
+
+                    // Use InteractionManager to ensure this runs after the dropdown modal closes
+                    InteractionManager.runAfterInteractions(() => {
+                        setIsDeleteExpensesConfirmModalVisible(true);
+                    });
                 },
             });
         }
