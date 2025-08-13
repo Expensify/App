@@ -137,7 +137,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         if (isTransactionThreadView) {
             // Extract transaction ID from parent report action to get specific violations
             const transactionID = getTransactionIDFromReportAction(parentReportAction);
-            const transactionViolations = transactionID && reportViolations ? (reportViolations as Record<string, OnyxTypes.TransactionViolations>)[transactionID] : undefined;
+            const transactionViolations = transactionID && reportViolations ? reportViolations[transactionID] : undefined;
 
             return (
                 <MoneyRequestHeader
