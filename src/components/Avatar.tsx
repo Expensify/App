@@ -100,7 +100,7 @@ function Avatar({
     let iconColors;
     if (isWorkspace) {
         iconColors = StyleUtils.getDefaultWorkspaceAvatarColor(avatarID?.toString() ?? '');
-    } else if (useFallBackAvatar) {
+    } else if (useFallBackAvatar && !fallbackIcon) {
         iconColors = StyleUtils.getBackgroundColorAndFill(theme.buttonHoveredBG, theme.icon);
     } else {
         iconColors = null;
