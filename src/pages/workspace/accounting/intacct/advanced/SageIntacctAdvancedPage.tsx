@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -23,6 +24,7 @@ import {clearSageIntacctErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SageIntacctDataElement} from '@src/types/onyx/Policy';
+import type {TranslationPaths} from '@src/languages/types';
 
 function getReimbursedAccountName(bankAccounts: SageIntacctDataElement[], reimbursementAccountID?: string): string | undefined {
     return bankAccounts.find((bankAccount) => bankAccount.id === reimbursementAccountID)?.name ?? reimbursementAccountID;
@@ -35,20 +37,12 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
 
     const {importEmployees, autoSync, sync, pendingFields, errorFields} = policy?.connections?.intacct?.config ?? {};
     const {data, config} = policy?.connections?.intacct ?? {};
+    const accountingMethod = config?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH
 
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!sync?.syncReimbursedReports);
 
     const toggleSections = useMemo(
         () => [
-            {
-                label: translate('workspace.sageIntacct.autoSync'),
-                description: translate('workspace.sageIntacct.autoSyncDescription'),
-                isActive: !!autoSync?.enabled,
-                onToggle: (enabled: boolean) => updateSageIntacctAutoSync(policyID, enabled),
-                subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED],
-                error: getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED),
-                onCloseError: () => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED),
-            },
             {
                 label: translate('workspace.sageIntacct.inviteEmployees'),
                 description: translate('workspace.sageIntacct.inviteEmployeesDescription'),
@@ -99,6 +93,26 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
         >
+            <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED, CONST.SAGE_INTACCT_CONFIG.ACCOUNTING_METHOD], config?.pendingFields)}>
+                <MenuItemWithTopDescription
+                    title={config?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled')}
+                    description={translate('workspace.accounting.autoSync')}
+                    shouldShowRightIcon
+                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC.getRoute(policyID))}
+                    brickRoadIndicator={
+                        areSettingsInErrorFields([CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC, CONST.SAGE_INTACCT_CONFIG.ACCOUNTING_METHOD], config?.errorFields)
+                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                            : undefined
+                    }
+                    hintText={(() => {
+                        if (!config?.autoSync?.enabled) {
+                            return undefined;
+                        }
+                        return translate(`workspace.sageIntacct.accountingMethods.alternateText.${accountingMethod}` as TranslationPaths);
+                    })()}
+                />
+            </OfflineWithFeedback>
+
             {toggleSections.map((section) => (
                 <ToggleSettingOptionRow
                     key={section.label}
