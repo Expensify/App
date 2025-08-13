@@ -73,6 +73,7 @@ values
 
 perDiem
   = "perDiem"i / "per-diem"i { return "perDiem"; }
+  / "reports"i / "report"i {return "reports"; }
 
 operator "operator"
   = (":" / "=") { return "eq"; }
