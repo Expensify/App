@@ -999,7 +999,7 @@ function peg$parse(input, options) {
     }
     s2 = peg$currPos;
     s3 = [];
-    s4 = peg$parseperDiem();
+    s4 = peg$parsevalues();
     if (s4 === peg$FAILED) {
       s4 = peg$parsequotedString();
       if (s4 === peg$FAILED) {
@@ -1032,7 +1032,7 @@ function peg$parse(input, options) {
         s5 = peg$FAILED;
       }
       if (s5 !== peg$FAILED) {
-        s5 = peg$parseperDiem();
+        s5 = peg$parsevalues();
         if (s5 === peg$FAILED) {
           s5 = peg$parsequotedString();
           if (s5 === peg$FAILED) {
@@ -1912,6 +1912,17 @@ function peg$parse(input, options) {
     return s0;
   }
 
+  function peg$parsevalues() {
+    var s0;
+
+    s0 = peg$parseperDiem();
+    if (s0 === peg$FAILED) {
+      s0 = peg$parsereport();
+    }
+
+    return s0;
+  }
+
   function peg$parseperDiem() {
     var s0, s1;
 
@@ -1936,30 +1947,35 @@ function peg$parse(input, options) {
         s1 = peg$f44();
       }
       s0 = s1;
-      if (s0 === peg$FAILED) {
-        s0 = input.substr(peg$currPos, 7);
-        if (s0.toLowerCase() === peg$c49) {
-          peg$currPos += 7;
-        } else {
-          s0 = peg$FAILED;
-          if (peg$silentFails === 0) { peg$fail(peg$e52); }
-        }
-        if (s0 === peg$FAILED) {
-          s0 = peg$currPos;
-          s1 = input.substr(peg$currPos, 6);
-          if (s1.toLowerCase() === peg$c50) {
-            peg$currPos += 6;
-          } else {
-            s1 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$e53); }
-          }
-          if (s1 !== peg$FAILED) {
-            peg$savedPos = s0;
-            s1 = peg$f45();
-          }
-          s0 = s1;
-        }
+    }
+
+    return s0;
+  }
+
+  function peg$parsereport() {
+    var s0, s1;
+
+    s0 = input.substr(peg$currPos, 7);
+    if (s0.toLowerCase() === peg$c49) {
+      peg$currPos += 7;
+    } else {
+      s0 = peg$FAILED;
+      if (peg$silentFails === 0) { peg$fail(peg$e52); }
+    }
+    if (s0 === peg$FAILED) {
+      s0 = peg$currPos;
+      s1 = input.substr(peg$currPos, 6);
+      if (s1.toLowerCase() === peg$c50) {
+        peg$currPos += 6;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$e53); }
       }
+      if (s1 !== peg$FAILED) {
+        peg$savedPos = s0;
+        s1 = peg$f45();
+      }
+      s0 = s1;
     }
 
     return s0;

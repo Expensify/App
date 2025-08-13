@@ -108,9 +108,9 @@ function getUserFriendlyKey(keyName: SearchFilterKey | typeof CONST.SEARCH.SYNTA
  * Lookup a value in the displayTextToValueMap and return the backend value.
  *
  * @example
- * getUserFriendlyValueFromMap("per-diem") // returns "perDiem"
+ * getFilterValueFromText("per-diem") // returns "perDiem"
  */
-function getUserFriendlyValueFromMap(searchText: string): string {
+function getFilterValueFromText(searchText: string): string {
     return displayTextToValueMap.get(searchText) ?? searchText;
 }
 
@@ -235,13 +235,13 @@ function getFilters(queryJSON: SearchQueryJSON) {
         if (!Array.isArray(node.right)) {
             filterArray.push({
                 operator: node.operator,
-                value: getUserFriendlyValueFromMap(String(node.right)) as string | number,
+                value: getFilterValueFromText(String(node.right)) as string | number,
             });
         } else {
             node.right.forEach((element) => {
                 filterArray.push({
                     operator: node.operator,
-                    value: getUserFriendlyValueFromMap(String(element)),
+                    value: getFilterValueFromText(String(element)),
                 });
             });
         }

@@ -133,7 +133,7 @@ function filterOutRangesWithCorrectValue(
         ...CONST.SEARCH.STATUS.TRIP,
         ...CONST.SEARCH.STATUS.TASK,
     }) as string[];
-    const groupByList = Object.values(CONST.SEARCH.GROUP_BY) as string[];
+    const groupByList = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
     const booleanList = Object.values(CONST.SEARCH.BOOLEAN) as string[];
     const actionList = Object.values(CONST.SEARCH.ACTION_FILTERS) as string[];
     const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];
