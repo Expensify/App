@@ -782,7 +782,7 @@
         "tests/unit/ValidationUtilsTest.ts",
         "src/CONST/index.ts",
         "src/libs/SearchParser/*",
-        "modules/react-native-module-fhp"
+        "modules/react-group-ib-fp"
     ],
     "ignoreRegExpList": ["@assets/.*"],
     "useGitignore": true
