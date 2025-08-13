@@ -47,8 +47,7 @@ function ShareDetailsPage({
     const {translate} = useLocalize();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, {canBeMissing: true});
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
-    const [validFilesToUpload] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
-    const validatedFile = validFilesToUpload?.at(0);
+    const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
 
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const isTextShared = currentAttachment?.mimeType === 'txt';
@@ -100,7 +99,7 @@ function ShareDetailsPage({
     const fileName = currentAttachment?.content.split('/').pop();
 
     const handleShare = () => {
-        if (!currentAttachment || (!!validFilesToUpload && validFilesToUpload.length === 0)) {
+        if (!currentAttachment || !!validatedFile) {
             return;
         }
 

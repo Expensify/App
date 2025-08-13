@@ -53,7 +53,6 @@ function SubmitDetailsPage({
     const [validFilesToUpload] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
     const shouldUsePreValidatedFile = currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.HEIC;
-    const validatedFile = validFilesToUpload?.at(0);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -64,9 +63,9 @@ function SubmitDetailsPage({
     const {isBetaEnabled} = usePermissions();
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
 
-    const fileUri = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');
-    const fileName = shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? 'shared_image.png') : getFileName(currentAttachment?.content ?? '');
-    const fileType = shouldUsePreValidatedFile ? (validatedFile?.type ?? 'image/jpeg') : (currentAttachment?.mimeType ?? '');
+    const fileUri = shouldUsePreValidatedFile ? (validFilesToUpload?.uri ?? '') : (currentAttachment?.content ?? '');
+    const fileName = shouldUsePreValidatedFile ? getFileName(validFilesToUpload?.uri ?? 'shared_image.png') : getFileName(currentAttachment?.content ?? '');
+    const fileType = shouldUsePreValidatedFile ? (validFilesToUpload?.type ?? 'image/jpeg') : (currentAttachment?.mimeType ?? '');
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {

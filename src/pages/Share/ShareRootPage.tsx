@@ -41,8 +41,13 @@ function ShareRootPage() {
     const {validateFiles} = useFilesValidation(addValidatedShareFile);
     const isTextShared = currentAttachment?.mimeType === 'txt';
 
-    const validateFilesWrapper = (file: ShareTempFile) => {
-        if (!file || isTextShared) {
+    // Currently, we use the pre-validated format only for HEIC files. If this changes,
+    // we need to ensure that in ShareDetailsPage and SubmitDetailsPage,
+    // the shouldUsePreValidatedFile condition is consistent with the one below.
+    const willNeedValidatedFiles = currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.HEIC;
+
+    const validateFileIfNecessary = (file: ShareTempFile) => {
+        if (!file || isTextShared || !willNeedValidatedFiles) {
             return;
         }
 
@@ -121,7 +126,7 @@ function ShareRootPage() {
                 }
 
                 addTempShareFile(tempFile);
-                validateFilesWrapper(tempFile);
+                validateFileIfNecessary(tempFile);
             }
         });
     }, [receiptFileFormats, shareFileMimeTypes, translate, errorTitle]);
