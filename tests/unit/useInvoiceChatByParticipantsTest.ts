@@ -41,12 +41,22 @@ describe('useInvoiceChatByParticipants', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockActiveIndividualInvoiceReport?.reportID}`, mockActiveIndividualInvoiceReport);
 
             // When sending invoice to the same receiver from FAB flow (outside of invoice room)
-            const {result} = renderHook(({receiverID, receiverType, policyID}) => useInvoiceChatByParticipants(receiverID, receiverType, policyID), {
+            const {result, rerender} = renderHook(({receiverID, receiverType, policyID}) => useInvoiceChatByParticipants(receiverID, receiverType, policyID), {
                 initialProps: {receiverID: accountID, receiverType: activeIndividualInvoiceReceiver.type, policyID: mockPolicyID},
             });
 
             // Then invoice should be sent in the same invoice room
             expect(result.current).toEqual(mockActiveIndividualInvoiceReport);
+
+            // Should return undefined when the receiverID does not match
+            const differentReceiverID = 99999;
+            rerender({receiverID: differentReceiverID, receiverType: activeIndividualInvoiceReceiver.type, policyID: mockPolicyID});
+            expect(result.current).toBeUndefined();
+
+            // Should return undefined when when policyID does not match
+            const differentPolicyID = 'different_poliicyID_999807';
+            rerender({receiverID: accountID, receiverType: activeIndividualInvoiceReceiver.type, policyID: differentPolicyID});
+            expect(result.current).toBeUndefined();
         });
 
         it('should return undefined when the invoice report is archived', async () => {
