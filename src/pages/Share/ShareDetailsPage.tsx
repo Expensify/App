@@ -135,8 +135,6 @@ function ShareDetailsPage({
         );
     };
 
-    debugger;
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
