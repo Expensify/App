@@ -939,6 +939,7 @@ const translations = {
         distance: 'Distanza',
         manual: 'Manuale',
         scan: 'Scansiona',
+        map: 'Mappa',
     },
     spreadsheet: {
         upload: 'Carica un foglio di calcolo',
