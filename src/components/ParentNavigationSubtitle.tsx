@@ -4,6 +4,7 @@ import type {StyleProp, TextStyle} from 'react-native';
 import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -21,7 +22,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import Text from './Text';
 import TextLink from './TextLink';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 
 type ParentNavigationSubtitleProps = {
     parentNavigationSubtitleData: ParentNavigationSummaryParams;
