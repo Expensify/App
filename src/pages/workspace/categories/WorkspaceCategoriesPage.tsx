@@ -415,20 +415,17 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const headerContent = (
         <>
             <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                {(() => {
-                    if (!hasSyncError && isConnectionVerified && currentConnectionName) {
-                        return (
-                            <ImportedFromAccountingSoftware
-                                policyID={policyId}
-                                currentConnectionName={currentConnectionName}
-                                connectedIntegration={connectedIntegration}
-                                translatedText={translate('workspace.categories.importedFromAccountingSoftware')}
-                                environmentURL={environmentURL}
-                            />
-                        );
-                    }
-                    return <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>;
-                })()}
+                {!hasSyncError && isConnectionVerified && currentConnectionName ? (
+                    <ImportedFromAccountingSoftware
+                        policyID={policyId}
+                        currentConnectionName={currentConnectionName}
+                        connectedIntegration={connectedIntegration}
+                        translatedText={translate('workspace.categories.importedFromAccountingSoftware')}
+                        environmentURL={environmentURL}
+                    />
+                ) : (
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
+                )}
             </View>
             {categoryList.length > CONST.SEARCH_ITEM_LIMIT && (
                 <SearchBar
