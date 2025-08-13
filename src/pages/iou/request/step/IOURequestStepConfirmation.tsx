@@ -19,6 +19,7 @@ import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
@@ -35,6 +36,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
+import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import {getAttendees, getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints, hasReceipt, isScanRequest} from '@libs/TransactionUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
@@ -131,6 +133,7 @@ function IOURequestStepConfirmation({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${realPolicyID}`, {canBeMissing: true});
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${realPolicyID}`, {canBeMissing: true});
 
     /*
      * We want to use a report from the transaction if it exists
@@ -147,6 +150,7 @@ function IOURequestStepConfirmation({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {isOffline} = useNetwork();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -214,6 +218,7 @@ function IOURequestStepConfirmation({
         [transaction?.participants, iouType, personalDetails, reportAttributesDerived],
     );
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
+    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const formHasBeenSubmitted = useRef(false);
 
     useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
@@ -240,7 +245,7 @@ function IOURequestStepConfirmation({
         });
     }, [transactionIDs, defaultBillable]);
 
-    const defaultReimbursable = !!policy?.defaultReimbursable;
+    const defaultReimbursable = isPaidGroupPolicy(policy) ? !!policy?.defaultReimbursable : true;
     useEffect(() => {
         transactionIDs.forEach((transactionID) => {
             setMoneyRequestReimbursable(transactionID, defaultReimbursable);
@@ -502,6 +507,7 @@ function IOURequestStepConfirmation({
                         source: item.comment?.source,
                     },
                     shouldHandleNavigation: index === transactions.length - 1,
+                    shouldGenerateTransactionThreadReport,
                     backToReport,
                 });
             });
@@ -520,6 +526,7 @@ function IOURequestStepConfirmation({
             transactionTaxAmount,
             customUnitRateID,
             backToReport,
+            shouldGenerateTransactionThreadReport,
         ],
     );
 
@@ -545,6 +552,9 @@ function IOURequestStepConfirmation({
                     policyTagList: policyTags,
                     policyCategories,
                 },
+                recentlyUsedParams: {
+                    destinations: recentlyUsedDestinations,
+                },
                 transactionParams: {
                     currency: transaction.currency,
                     created: transaction.created,
@@ -558,7 +568,7 @@ function IOURequestStepConfirmation({
                 },
             });
         },
-        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories],
+        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories, recentlyUsedDestinations],
     );
 
     const trackExpense = useCallback(

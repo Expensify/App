@@ -1,6 +1,7 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
 import type {OnboardingCompanySize, OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -474,6 +475,7 @@ const translations = {
         message: 'Message ',
         leaveThread: 'Leave thread',
         you: 'You',
+        me: 'me',
         youAfterPreposition: 'you',
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
@@ -523,6 +525,7 @@ const translations = {
         pm: 'PM',
         tbd: 'TBD',
         selectCurrency: 'Select a currency',
+        selectSymbolOrCurrency: 'Select a symbol or currency',
         card: 'Card',
         whyDoWeAskForThis: 'Why do we ask for this?',
         required: 'Required',
@@ -583,6 +586,7 @@ const translations = {
         unread: 'Unread',
         sent: 'Sent',
         links: 'Links',
+        day: 'day',
         days: 'days',
         rename: 'Rename',
         address: 'Address',
@@ -624,6 +628,7 @@ const translations = {
         getTheApp: 'Get the app',
         scanReceiptsOnTheGo: 'Scan receipts from your phone',
         headsUp: 'Heads up!',
+        merge: 'Merge',
         unstableInternetConnection: 'Unstable internet connection. Please check your network and try again.',
     },
     supportalNoAccess: {
@@ -870,6 +875,7 @@ const translations = {
         hereAlternateText: 'Notify everyone in this conversation',
     },
     newMessages: 'New messages',
+    latestMessages: 'Latest messages',
     youHaveBeenBanned: "Note: You've been banned from chatting in this channel.",
     reportTypingIndicator: {
         isTyping: 'is typing...',
@@ -1340,6 +1346,34 @@ const translations = {
         rates: 'Rates',
         submitsTo: ({name}: SubmitsToParams) => `Submits to ${name}`,
         moveExpenses: () => ({one: 'Move expense', other: 'Move expenses'}),
+    },
+    transactionMerge: {
+        listPage: {
+            header: 'Merge expenses',
+            noEligibleExpenseFound: 'No eligible expenses found',
+            noEligibleExpenseFoundSubtitle: `You don't have any expenses that can be merged with this one. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Learn more</a> about eligible expenses.`,
+            selectTransactionToMerge: ({reportName}: {reportName: string}) =>
+                `Select an <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">eligible expense</a> to merge with <strong>${reportName}</strong>.`,
+        },
+        receiptPage: {
+            header: 'Select receipt',
+            pageTitle: 'Select the receipt you want to keep:',
+        },
+        detailsPage: {
+            header: 'Select details',
+            pageTitle: 'Select the details you want to keep:',
+            noDifferences: 'No differences found between the transactions',
+            pleaseSelectError: ({field}: {field: string}) => {
+                const article = StringUtils.startsWithVowel(field) ? 'an' : 'a';
+                return `Please select ${article} ${field}`;
+            },
+            selectAllDetailsError: 'Select all details before continuing.',
+        },
+        confirmationPage: {
+            header: 'Confirm details',
+            pageTitle: "Confirm the details you're keeping. The details you don't keep will be deleted.",
+            confirmButton: 'Merge expenses',
+        },
     },
     share: {
         shareToExpensify: 'Share to Expensify',
@@ -3355,6 +3389,11 @@ const translations = {
             railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been updated.`,
             defaultUpdate: ({type}: TravelTypeParams) => `Your ${type} reservation was updated.`,
         },
+        flightTo: 'Flight to',
+        trainTo: 'Train to',
+        carRental: ' car rental',
+        nightIn: 'night in',
+        nightsIn: 'nights in',
     },
     workspace: {
         common: {
@@ -3387,6 +3426,7 @@ const translations = {
             travel: 'Travel',
             members: 'Members',
             accounting: 'Accounting',
+            receiptPartners: 'Receipt partners',
             rules: 'Rules',
             displayedAs: 'Displayed as',
             plan: 'Plan',
@@ -3480,6 +3520,11 @@ const translations = {
             viewTransactions: 'View transactions',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}'s expenses`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card transactions will automatically export to an "Expensify Card Liability Account" created with <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">our integration</a>.</muted-text-label>`,
+        },
+        receiptPartners: {
+            uber: {
+                subtitle: 'Automate travel and meal delivery expenses across your organization.',
+            },
         },
         perDiem: {
             subtitle: 'Set per diem rates to control daily employee spend. ',
@@ -4588,11 +4633,20 @@ const translations = {
                 title: 'Accounting',
                 subtitle: 'Sync your chart of accounts and more.',
             },
+            receiptPartners: {
+                title: 'Receipt partners',
+                subtitle: 'Automatically import receipts.',
+            },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Not so fast...',
                 featureEnabledText: "To enable or disable this feature, you'll need to change your accounting import settings.",
                 disconnectText: "To disable accounting, you'll need to disconnect your accounting connection from your workspace.",
                 manageSettings: 'Manage settings',
+            },
+            receiptPartnersWarningModal: {
+                featureEnabledTitle: 'Disconnect Uber',
+                disconnectText: 'To disable this feature, please disconnect the Uber for Business integration first.',
+                confirmText: 'Got it',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Not so fast...',
@@ -4604,6 +4658,20 @@ const translations = {
                 title: 'Rules',
                 subtitle: 'Require receipts, flag high spend, and more.',
             },
+        },
+        reports: {
+            reportsCustomTitleExamples: 'Examples:',
+            customReportNamesSubtitle: 'Customize report titles using our ',
+            customNameTitle: 'Default report title',
+            customNameDescription: 'Choose a custom name for expense reports using our ',
+            customNameDescriptionLink: 'extensive formulas',
+            customNameInputLabel: 'Name',
+            customNameEmailPhoneExample: 'Member’s email or phone: {report:submit:from}',
+            customNameStartDateExample: 'Report start date: {report:startdate}',
+            customNameWorkspaceNameExample: 'Workspace name: {report:workspacename}',
+            customNameReportIDExample: 'Report ID: {report:id}',
+            customNameTotalExample: 'Total: {report:total}.',
+            preventMembersFromChangingCustomNamesTitle: 'Prevent members from changing custom report names',
         },
         reportFields: {
             addField: 'Add field',
@@ -5503,20 +5571,8 @@ const translations = {
                 adultEntertainment: 'Adult entertainment',
             },
             expenseReportRules: {
-                examples: 'Examples:',
                 title: 'Expense reports',
                 subtitle: 'Automate expense report compliance, approvals, and payment.',
-                customReportNamesSubtitle: 'Customize report titles using our ',
-                customNameTitle: 'Default report title',
-                customNameDescription: 'Choose a custom name for expense reports using our ',
-                customNameDescriptionLink: 'extensive formulas',
-                customNameInputLabel: 'Name',
-                customNameEmailPhoneExample: 'Member’s email or phone: {report:submit:from}',
-                customNameStartDateExample: 'Report start date: {report:startdate}',
-                customNameWorkspaceNameExample: 'Workspace name: {report:workspacename}',
-                customNameReportIDExample: 'Report ID: {report:id}',
-                customNameTotalExample: 'Total: {report:total}.',
-                preventMembersFromChangingCustomNamesTitle: 'Prevent members from changing custom report names',
                 preventSelfApprovalsTitle: 'Prevent self-approvals',
                 preventSelfApprovalsSubtitle: 'Prevent workspace members from approving their own expense reports.',
                 autoApproveCompliantReportsTitle: 'Auto-approve compliant reports',
@@ -5992,6 +6048,7 @@ const translations = {
             paid: 'Paid date',
             exported: 'Exported date',
             posted: 'Posted date',
+            withdrawn: 'Withdrawn date',
             billable: 'Billable',
             reimbursable: 'Reimbursable',
             groupBy: {
@@ -6000,6 +6057,10 @@ const translations = {
                 cards: 'Card', // s77rt use singular key name
             },
             feed: 'Feed',
+            withdrawalType: {
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reimbursement',
+            },
         },
         groupBy: 'Group by',
         moneyRequestReport: {
@@ -6009,6 +6070,7 @@ const translations = {
         noCategory: 'No category',
         noTag: 'No tag',
         expenseType: 'Expense type',
+        withdrawalType: 'Withdrawal type',
         recentSearches: 'Recent searches',
         recentChats: 'Recent chats',
         searchIn: 'Search in',
@@ -6281,8 +6343,7 @@ const translations = {
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Invite to submit expenses',
-        inviteToChat: 'Invite to chat only',
+        invite: 'Invite them',
         nothing: 'Do nothing',
     },
     actionableMentionJoinWorkspaceOptions: {

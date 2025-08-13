@@ -483,6 +483,7 @@ const translations = {
         message: 'Wiadomość',
         leaveThread: 'Opuść wątek',
         you: 'Ty',
+        me: 'mnie',
         youAfterPreposition: 'ty',
         your: 'twój',
         conciergeHelp: 'Proszę skontaktować się z Concierge po pomoc.',
@@ -532,6 +533,7 @@ const translations = {
         pm: 'PM',
         tbd: 'TBD',
         selectCurrency: 'Wybierz walutę',
+        selectSymbolOrCurrency: 'Wybierz symbol lub walutę',
         card: 'Karta',
         whyDoWeAskForThis: 'Dlaczego o to prosimy?',
         required: 'Wymagane',
@@ -592,6 +594,7 @@ const translations = {
         unread: 'Nieprzeczytane',
         sent: 'Wysłano',
         links: 'Linki',
+        day: 'dzień',
         days: 'dni',
         rename: 'Zmień nazwę',
         address: 'Adres',
@@ -634,6 +637,7 @@ const translations = {
         getTheApp: 'Pobierz aplikację',
         scanReceiptsOnTheGo: 'Skanuj paragony za pomocą telefonu',
         headsUp: 'Uwaga!',
+        merge: 'Scal',
         unstableInternetConnection: 'Niestabilne połączenie internetowe. Sprawdź swoją sieć i spróbuj ponownie.',
     },
     supportalNoAccess: {
@@ -880,6 +884,7 @@ const translations = {
         hereAlternateText: 'Powiadom wszystkich w tej rozmowie',
     },
     newMessages: 'Nowe wiadomości',
+    latestMessages: 'Ostatnie wiadomości',
     youHaveBeenBanned: 'Uwaga: Zostałeś zbanowany z czatu na tym kanale.',
     reportTypingIndicator: {
         isTyping: 'pisze...',
@@ -1352,6 +1357,31 @@ const translations = {
         rates: 'Stawki',
         submitsTo: ({name}: SubmitsToParams) => `Przesyła do ${name}`,
         moveExpenses: () => ({one: 'Przenieś wydatek', other: 'Przenieś wydatki'}),
+    },
+    transactionMerge: {
+        listPage: {
+            header: 'Scal wydatki',
+            noEligibleExpenseFound: 'Nie znaleziono kwalifikujących się wydatków',
+            noEligibleExpenseFoundSubtitle: `Nie masz wydatków, które można scalić z tym. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Dowiedz się więcej</a> o kwalifikujących się wydatkach.`,
+            selectTransactionToMerge: ({reportName}: {reportName: string}) =>
+                `Wybierz <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">kwalifikujący się wydatek</a> do scalenia <strong>${reportName}</strong>.`,
+        },
+        receiptPage: {
+            header: 'Wybierz paragon',
+            pageTitle: 'Wybierz paragon, który chcesz zachować:',
+        },
+        detailsPage: {
+            header: 'Wybierz szczegóły',
+            pageTitle: 'Wybierz szczegóły, które chcesz zachować:',
+            noDifferences: 'Nie znaleziono różnic między transakcjami',
+            pleaseSelectError: ({field}: {field: string}) => `Proszę wybrać ${field}`,
+            selectAllDetailsError: 'Wybierz wszystkie szczegóły przed kontynuowaniem.',
+        },
+        confirmationPage: {
+            header: 'Potwierdź szczegóły',
+            pageTitle: 'Potwierdź szczegóły, które zachowujesz. Niezachowane zostaną usunięte.',
+            confirmButton: 'Scal wydatki',
+        },
     },
     share: {
         shareToExpensify: 'Udostępnij do Expensify',
@@ -3375,6 +3405,11 @@ const translations = {
             railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `Twój bilet kolejowy na trasie ${origin} → ${destination} na dzień ${startDate} został zaktualizowany.`,
             defaultUpdate: ({type}: TravelTypeParams) => `Twoja rezerwacja ${type} została zaktualizowana.`,
         },
+        flightTo: 'Lot do',
+        trainTo: 'Pociąg do',
+        carRental: ' wynajmu samochodu',
+        nightIn: 'noc w',
+        nightsIn: 'noce w',
     },
     workspace: {
         common: {
@@ -3407,6 +3442,7 @@ const translations = {
             travel: 'Podróże',
             members: 'Członkowie',
             accounting: 'Księgowość',
+            receiptPartners: 'Partnerzy paragonów',
             rules: 'Zasady',
             displayedAs: 'Wyświetlane jako',
             plan: 'Plan',
@@ -3500,6 +3536,11 @@ const translations = {
             viewTransactions: 'Wyświetl transakcje',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Wydatki ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Transakcje kartą Expensify będą automatycznie eksportowane na „Konto odpowiedzialności karty Expensify” utworzone za pomocą <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">naszej integracji</a>.</muted-text-label>`,
+        },
+        receiptPartners: {
+            uber: {
+                subtitle: 'Zautomatyzuj wydatki na podróże i dostawę posiłków w swojej organizacji.',
+            },
         },
         perDiem: {
             subtitle: 'Ustaw stawki diety, aby kontrolować dzienne wydatki pracowników.',
@@ -4615,11 +4656,20 @@ const translations = {
                 title: 'Księgowość',
                 subtitle: 'Synchronizuj swój plan kont i więcej.',
             },
+            receiptPartners: {
+                title: 'Partnerzy paragonów',
+                subtitle: 'Automatycznie importuj paragony.',
+            },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Nie tak szybko...',
                 featureEnabledText: 'Aby włączyć lub wyłączyć tę funkcję, musisz zmienić ustawienia importu księgowego.',
                 disconnectText: 'Aby wyłączyć księgowość, musisz odłączyć swoje połączenie księgowe od przestrzeni roboczej.',
                 manageSettings: 'Zarządzaj ustawieniami',
+            },
+            receiptPartnersWarningModal: {
+                featureEnabledTitle: 'Rozłącz Uber',
+                disconnectText: 'Aby wyłączyć tę funkcję, najpierw rozłącz integrację Uber for Business.',
+                confirmText: 'Rozumiem',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Nie tak szybko...',
@@ -4631,6 +4681,20 @@ const translations = {
                 title: 'Zasady',
                 subtitle: 'Wymagaj paragonów, oznaczaj wysokie wydatki i więcej.',
             },
+        },
+        reports: {
+            reportsCustomTitleExamples: 'Przykłady:',
+            customReportNamesSubtitle: 'Dostosuj tytuły raportów za pomocą naszego',
+            customNameTitle: 'Domyślny tytuł raportu',
+            customNameDescription: 'Wybierz niestandardową nazwę dla raportów wydatków za pomocą naszego',
+            customNameDescriptionLink: 'rozbudowane formuły',
+            customNameInputLabel: 'Imię',
+            customNameEmailPhoneExample: 'Email lub telefon członka: {report:submit:from}',
+            customNameStartDateExample: 'Data rozpoczęcia raportu: {report:startdate}',
+            customNameWorkspaceNameExample: 'Nazwa przestrzeni roboczej: {report:workspacename}',
+            customNameReportIDExample: 'Report ID: {report:id}',
+            customNameTotalExample: 'Suma: {report:total}.',
+            preventMembersFromChangingCustomNamesTitle: 'Uniemożliw członkom zmianę nazw raportów niestandardowych',
         },
         reportFields: {
             addField: 'Dodaj pole',
@@ -5528,20 +5592,8 @@ const translations = {
                 adultEntertainment: 'Rozrywka dla dorosłych',
             },
             expenseReportRules: {
-                examples: 'Przykłady:',
                 title: 'Raporty wydatków',
                 subtitle: 'Zautomatyzuj zgodność raportów wydatków, zatwierdzenia i płatności.',
-                customReportNamesSubtitle: 'Dostosuj tytuły raportów za pomocą naszego',
-                customNameTitle: 'Domyślny tytuł raportu',
-                customNameDescription: 'Wybierz niestandardową nazwę dla raportów wydatków za pomocą naszego',
-                customNameDescriptionLink: 'rozbudowane formuły',
-                customNameInputLabel: 'Imię',
-                customNameEmailPhoneExample: 'Email lub telefon członka: {report:submit:from}',
-                customNameStartDateExample: 'Data rozpoczęcia raportu: {report:startdate}',
-                customNameWorkspaceNameExample: 'Nazwa przestrzeni roboczej: {report:workspacename}',
-                customNameReportIDExample: 'Report ID: {report:id}',
-                customNameTotalExample: 'Suma: {report:total}.',
-                preventMembersFromChangingCustomNamesTitle: 'Uniemożliw członkom zmianę nazw raportów niestandardowych',
                 preventSelfApprovalsTitle: 'Zapobiegaj samodzielnym zatwierdzeniom',
                 preventSelfApprovalsSubtitle: 'Uniemożliwiaj członkom przestrzeni roboczej zatwierdzanie własnych raportów wydatków.',
                 autoApproveCompliantReportsTitle: 'Automatycznie zatwierdzaj zgodne raporty',
@@ -6013,6 +6065,7 @@ const translations = {
             paid: 'Data płatności',
             exported: 'Data eksportu',
             posted: 'Data opublikowania',
+            withdrawn: 'Data wycofania',
             billable: 'Podlegające fakturowaniu',
             reimbursable: 'Podlegające zwrotowi',
             groupBy: {
@@ -6021,6 +6074,10 @@ const translations = {
                 cards: 'Karta',
             },
             feed: 'Kanal',
+            withdrawalType: {
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Zwrot kosztów',
+            },
         },
         groupBy: 'Grupa według',
         moneyRequestReport: {
@@ -6030,6 +6087,7 @@ const translations = {
         noCategory: 'Brak kategorii',
         noTag: 'Brak tagu',
         expenseType: 'Typ wydatku',
+        withdrawalType: 'Rodzaj wypłaty',
         recentSearches: 'Ostatnie wyszukiwania',
         recentChats: 'Ostatnie czaty',
         searchIn: 'Szukaj w',
@@ -6305,9 +6363,8 @@ const translations = {
         levelThreeResult: 'Wiadomość usunięta z kanału, dodano anonimowe ostrzeżenie, a wiadomość została zgłoszona do przeglądu.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Zaproś do przesyłania wydatków',
-        inviteToChat: 'Zaproś tylko do czatu',
-        nothing: 'Nie rób nic',
+        invite: 'Zaproś ich',
+        nothing: 'Do nothing',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Akceptuj',

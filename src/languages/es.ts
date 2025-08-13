@@ -466,6 +466,7 @@ const translations = {
         message: 'Chatear con ',
         leaveThread: 'Salir del hilo',
         you: 'Tú',
+        me: 'yo',
         youAfterPreposition: 'ti',
         your: 'tu',
         conciergeHelp: 'Por favor, contacta con Concierge para obtener ayuda.',
@@ -515,6 +516,7 @@ const translations = {
         pm: 'PM',
         tbd: 'Por determinar',
         selectCurrency: 'Selecciona una moneda',
+        selectSymbolOrCurrency: 'Selecciona un símbolo o moneda',
         card: 'Tarjeta',
         whyDoWeAskForThis: '¿Por qué pedimos esto?',
         required: 'Obligatorio',
@@ -576,6 +578,7 @@ const translations = {
         unread: 'No leído',
         sent: 'Enviado',
         links: 'Enlaces',
+        day: 'día',
         days: 'días',
         address: 'Dirección',
         hourAbbreviation: 'h',
@@ -615,6 +618,7 @@ const translations = {
         getTheApp: 'Descarga la app',
         scanReceiptsOnTheGo: 'Escanea recibos desde tu teléfono',
         headsUp: '¡Atención!',
+        merge: 'Fusionar',
         unstableInternetConnection: 'Conexión a internet inestable. Por favor, revisa tu red e inténtalo de nuevo.',
     },
     supportalNoAccess: {
@@ -863,6 +867,7 @@ const translations = {
         hereAlternateText: 'Notificar a todos en esta conversación',
     },
     newMessages: 'Mensajes nuevos',
+    latestMessages: 'Últimos mensajes',
     youHaveBeenBanned: 'Nota: Se te ha prohibido comunicarte en este canal',
     reportTypingIndicator: {
         isTyping: 'está escribiendo...',
@@ -1338,6 +1343,31 @@ const translations = {
         rates: 'Tasas',
         submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
         moveExpenses: () => ({one: 'Mover gasto', other: 'Mover gastos'}),
+    },
+    transactionMerge: {
+        listPage: {
+            header: 'Fusionar gastos',
+            noEligibleExpenseFound: 'No se encontraron gastos válidos',
+            noEligibleExpenseFoundSubtitle: `No tienes ningún gasto que pueda fusionarse con éste. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Obtén más información</a> sobre gastos válidos.`,
+            selectTransactionToMerge: ({reportName}: {reportName: string}) =>
+                `Selecciona un <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">gasto válido</a> con el que fusionar <strong>${reportName}</strong>.`,
+        },
+        receiptPage: {
+            header: 'Selecciona el comprobante',
+            pageTitle: 'Selecciona el comprobante que deseas conservar:',
+        },
+        detailsPage: {
+            header: 'Selecciona los detalles',
+            pageTitle: 'Selecciona los detalles que deseas conservar:',
+            noDifferences: 'No se encontraron diferencias entre las transacciones',
+            pleaseSelectError: ({field}: {field: string}) => `Por favor, selecciona un(a) ${field}`,
+            selectAllDetailsError: 'Selecciona todos los detalles antes de continuar.',
+        },
+        confirmationPage: {
+            header: 'Confirma los detalles',
+            pageTitle: 'Confirma los detalles que conservarás. Los detalles que no conserves serán eliminados.',
+            confirmButton: 'Fusionar gastos',
+        },
     },
     share: {
         shareToExpensify: 'Compartir para Expensify',
@@ -3347,6 +3377,11 @@ const translations = {
             railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `Tu billete de tren de ${origin} a ${destination} para el ${startDate} ha sido actualizado.`,
             defaultUpdate: ({type}: TravelTypeParams) => `Tu reserva de ${type} fue actualizada.`,
         },
+        flightTo: 'Vuelo a',
+        trainTo: 'Tren a',
+        carRental: ' de alquiler de coche',
+        nightIn: 'noche en',
+        nightsIn: 'noches en',
     },
     workspace: {
         common: {
@@ -3378,6 +3413,7 @@ const translations = {
             travel: 'Viajes',
             members: 'Miembros',
             accounting: 'Contabilidad',
+            receiptPartners: 'Socios de recibos',
             rules: 'Reglas',
             plan: 'Plan',
             profile: 'Resumen',
@@ -3472,6 +3508,11 @@ const translations = {
             viewTransactions: 'Ver transacciones',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}'s gastos`,
             deepDiveExpensifyCard: `<muted-text-label>Las transacciones de la Tarjeta Expensify se exportan automáticamente a una "Cuenta de Responsabilidad de la Tarjeta Expensify" creada con <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nuestra integración</a>.</muted-text-label>`,
+        },
+        receiptPartners: {
+            uber: {
+                subtitle: 'Automatice los gastos de viajes y entrega de comidas en toda su organización.',
+            },
         },
         perDiem: {
             subtitle: 'Establece las tasas per diem para controlar los gastos diarios de los empleados. ',
@@ -4602,11 +4643,20 @@ const translations = {
                 title: 'Contabilidad',
                 subtitle: 'Sincroniza tu plan de cuentas y otras opciones.',
             },
+            receiptPartners: {
+                title: 'Socios de recibos',
+                subtitle: 'Importación automática de recibos.',
+            },
             connectionsWarningModal: {
                 featureEnabledTitle: 'No tan rápido...',
                 featureEnabledText: 'Para activar o desactivar esta función, cambia la configuración de importación contable.',
                 disconnectText: 'Para desactivar la contabilidad, desconecta tu conexión contable del espacio de trabajo.',
                 manageSettings: 'Gestionar la configuración',
+            },
+            receiptPartnersWarningModal: {
+                featureEnabledTitle: 'Desconectar Uber',
+                disconnectText: 'Para desactivar esta función, desconecta primero la integración de Uber for Business.',
+                confirmText: 'Entendido',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'No tan rápido...',
@@ -4618,6 +4668,20 @@ const translations = {
                 title: 'Reglas',
                 subtitle: 'Solicita recibos, resalta gastos de alto importe y mucho más.',
             },
+        },
+        reports: {
+            reportsCustomTitleExamples: 'Ejemplos:',
+            customReportNamesSubtitle: 'Personaliza los títulos de los informes usando nuestras amplias fórmulas.',
+            customNameTitle: 'Título de informe predeterminado',
+            customNameDescription: 'Elige un nombre personalizado para los informes de gastos usando nuestras ',
+            customNameDescriptionLink: 'fórmulas variadas',
+            customNameInputLabel: 'Nombre',
+            customNameEmailPhoneExample: 'Correo electrónico o teléfono del miembro: {report:submit:from}',
+            customNameStartDateExample: 'Fecha de inicio del informe: {report:startdate}',
+            customNameWorkspaceNameExample: 'Nombre del espacio de trabajo: {report:workspacename}',
+            customNameReportIDExample: 'ID del informe: {report:id}',
+            customNameTotalExample: 'Total: {report:total}.',
+            preventMembersFromChangingCustomNamesTitle: 'Evitar que los miembros cambien los nombres personalizados de los informes',
         },
         reportFields: {
             addField: 'Añadir campo',
@@ -5541,20 +5605,8 @@ const translations = {
                 adultEntertainment: 'Entretenimiento para adultos',
             },
             expenseReportRules: {
-                examples: 'Ejemplos:',
                 title: 'Informes de gastos',
                 subtitle: 'Automatiza el cumplimiento, la aprobación y el pago de los informes de gastos.',
-                customReportNamesSubtitle: 'Personaliza los títulos de los informes usando nuestras amplias fórmulas.',
-                customNameTitle: 'Título de informe predeterminado',
-                customNameDescription: 'Elige un nombre personalizado para los informes de gastos usando nuestras ',
-                customNameDescriptionLink: 'fórmulas variadas',
-                customNameInputLabel: 'Nombre',
-                customNameEmailPhoneExample: 'Correo electrónico o teléfono del miembro: {report:submit:from}',
-                customNameStartDateExample: 'Fecha de inicio del informe: {report:startdate}',
-                customNameWorkspaceNameExample: 'Nombre del espacio de trabajo: {report:workspacename}',
-                customNameReportIDExample: 'ID del informe: {report:id}',
-                customNameTotalExample: 'Total: {report:total}.',
-                preventMembersFromChangingCustomNamesTitle: 'Evitar que los miembros cambien los nombres personalizados de los informes',
                 preventSelfApprovalsTitle: 'Evitar autoaprobaciones',
                 preventSelfApprovalsSubtitle: 'Evita que los miembros del espacio de trabajo aprueben sus propios informes de gastos.',
                 autoApproveCompliantReportsTitle: 'Aprobación automática de informes conformes',
@@ -6015,6 +6067,7 @@ const translations = {
             paid: 'Fecha de pago',
             exported: 'Fecha de exportación',
             posted: 'Fecha de contabilización',
+            withdrawn: 'Fecha de retirada',
             billable: 'Facturable',
             reimbursable: 'Reembolsable',
             groupBy: {
@@ -6023,6 +6076,10 @@ const translations = {
                 cards: 'Tarjeta',
             },
             feed: 'Feed',
+            withdrawalType: {
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reembolso',
+            },
         },
         groupBy: 'Agrupar por',
         moneyRequestReport: {
@@ -6032,6 +6089,7 @@ const translations = {
         noCategory: 'Sin categoría',
         noTag: 'Sin etiqueta',
         expenseType: 'Tipo de gasto',
+        withdrawalType: 'Tipo de retiro',
         recentSearches: 'Búsquedas recientes',
         recentChats: 'Chats recientes',
         searchIn: 'Buscar en',
@@ -6747,8 +6805,7 @@ const translations = {
         copied: '¡Copiado!',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Invitar a enviar gastos',
-        inviteToChat: 'Invitar solo a chatear',
+        invite: 'Invitar',
         nothing: 'No hacer nada',
     },
     actionableMentionJoinWorkspaceOptions: {
