@@ -4930,6 +4930,7 @@ const translations = {
             issueCard: 'Émettre une carte',
             issueNewCard: {
                 whoNeedsCard: "Qui a besoin d'une carte ?",
+                inviteNewMember: 'Inviter un nouveau membre',
                 findMember: 'Trouver un membre',
                 chooseCardType: 'Choisissez un type de carte',
                 physicalCard: 'Carte physique',

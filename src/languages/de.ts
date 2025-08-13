@@ -4916,6 +4916,7 @@ const translations = {
             issueCard: 'Karte ausstellen',
             issueNewCard: {
                 whoNeedsCard: 'Wer braucht eine Karte?',
+                inviteNewMember: 'Neues Mitglied einladen',
                 findMember: 'Mitglied finden',
                 chooseCardType: 'Wählen Sie einen Kartentyp aus',
                 physicalCard: 'Physische Karte',

@@ -40,6 +40,9 @@ type AssignCardData = {
 
     /** Plaid accounts */
     plaidAccounts?: LinkAccount[] | PlaidAccount[];
+
+    /** The account ID of the cardholder */
+    assigneeAccountID?: number;
 };
 
 /** Model of assign card flow */
