@@ -53,7 +53,6 @@ function AutoUpdateTime({timezone}: AutoUpdateTimeProps) {
                 title={`${DateUtils.formatToLocalTime(currentUserLocalTime)} ${timezoneName}`}
                 description={translate('detailsPage.localTime')}
                 interactive={false}
-                copiable
             />
         </View>
     );
