@@ -117,10 +117,10 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const [cardFeeds] = useCardFeeds(policy?.id);
     const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
 
+    const {userToInvite, searchValue, personalDetails, debouncedSearchValue, setSearchValue, areOptionsInitialized, headerMessage} = useOptions();
     const isEditing = assignCard?.isEditing;
 
     const [selectedMember, setSelectedMember] = useState(assignCard?.data?.email ?? '');
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [shouldShowError, setShouldShowError] = useState(false);
 
     const selectMember = (assignee: ListItem) => {
