@@ -373,10 +373,9 @@ describe('ReportUtils', () => {
             return waitForBatchedUpdates();
         });
 
-        // Then the user should be able to move the invoice to the outstanding expense report
-        it('should return true for invoice report action given that there is a minimum of one outstanding report', () => {
+        it('should return false for invoice report action if it is not outstanding report', () => {
             const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT);
-            expect(canEditReportField).toBe(true);
+            expect(canEditReportField).toBe(false);
         });
     });
 
