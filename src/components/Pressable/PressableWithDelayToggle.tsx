@@ -1,5 +1,5 @@
 /* eslint-disable react-native-a11y/has-valid-accessibility-descriptors */
-import React, {forwardRef} from 'react';
+import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -50,25 +50,28 @@ type PressableWithDelayToggleProps = PressableProps & {
      */
     inline?: boolean;
     accessibilityRole?: string;
+
+    /**
+     * Reference to the outer element
+     */
+    ref?: PressableRef;
 };
 
-function PressableWithDelayToggle(
-    {
-        iconChecked = Expensicons.Checkmark,
-        inline = true,
-        onPress,
-        text,
-        textChecked,
-        tooltipText,
-        tooltipTextChecked,
-        styles: pressableStyle,
-        textStyles,
-        iconStyles,
-        icon,
-        accessibilityRole,
-    }: PressableWithDelayToggleProps,
-    ref: PressableRef,
-) {
+function PressableWithDelayToggle({
+    iconChecked = Expensicons.Checkmark,
+    inline = true,
+    onPress,
+    text,
+    textChecked,
+    tooltipText,
+    tooltipTextChecked,
+    styles: pressableStyle,
+    textStyles,
+    iconStyles,
+    icon,
+    accessibilityRole,
+    ref,
+}: PressableWithDelayToggleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isActive, temporarilyDisableInteractions] = useThrottledButtonState();
@@ -142,4 +145,4 @@ function PressableWithDelayToggle(
 
 PressableWithDelayToggle.displayName = 'PressableWithDelayToggle';
 
-export default forwardRef(PressableWithDelayToggle);
+export default PressableWithDelayToggle;
