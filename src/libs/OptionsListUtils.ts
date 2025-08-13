@@ -60,7 +60,6 @@ import {
     getSubmitToAccountID,
     isUserInvitedToWorkspace,
 } from './PolicyUtils';
-import RandomAvatarUtils from './RandomAvatarUtils';
 import {
     getCombinedReportActions,
     getExportIntegrationLastMessageText,

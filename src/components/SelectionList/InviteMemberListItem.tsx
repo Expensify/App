@@ -14,7 +14,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils';
-import RandomAvatarUtils from '@libs/RandomAvatarUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
@@ -64,7 +63,6 @@ function InviteMemberListItem<TItem extends ListItem>({
         }
     }, [item, onCheckboxPress, onSelectRow]);
 
-    const fallBackAvatar = RandomAvatarUtils.getAvatarForContact(item.login);
     const firstItemIconID = Number(item?.icons?.at(0)?.id);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
