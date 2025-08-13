@@ -78,7 +78,6 @@ function ReportFooter({
     report = {reportID: '-1'},
     reportMetadata,
     policy,
-
     isComposerFullSize = false,
     onComposerBlur,
     onComposerFocus,
