@@ -8,6 +8,7 @@
         "ADDCOMMENT",
         "Addendums",
         "ADFS",
+        "aeiou",
         "Aeroplan",
         "águero",
         "Aircall",
@@ -145,6 +146,7 @@
         "deeplinking",
         "deeplinks",
         "delegators",
+        "deployers",
         "delish",
         "describedby",
         "Deutsch",
@@ -272,6 +274,7 @@
         "Highlightable",
         "Hoverable",
         "HRMS",
+        "HSBCSGS",
         "hybridapp",
         "Hydronics",
         "iaco",
@@ -734,7 +737,8 @@
         "pnrs",
         "POLICYCHANGELOG_ADD_EMPLOYEE",
         "xcshareddata",
-        "xcuserdata"
+        "xcuserdata",
+        "inputmethod"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

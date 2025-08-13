@@ -10,6 +10,8 @@ import HTMLEngineProvider from '@src/components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
 import {EnvironmentProvider} from '@src/components/withEnvironment';
 import {KeyboardStateProvider} from '@src/components/withKeyboardState';
+import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import './fonts.css';
 
@@ -19,6 +21,8 @@ Onyx.init({
         [ONYXKEYS.NETWORK]: {isOffline: false},
     },
 });
+
+IntlStore.load(CONST.LOCALES.EN);
 
 const decorators = [
     (Story: React.ElementType) => (

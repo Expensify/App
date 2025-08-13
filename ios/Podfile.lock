@@ -2015,7 +2015,32 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-keyboard-controller (1.16.7):
+  - react-native-keyboard-controller (1.18.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - react-native-keyboard-controller/common (= 1.18.1)
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - react-native-keyboard-controller/common (1.18.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3245,11 +3270,11 @@ PODS:
   - SocketRocket (0.7.1)
   - Turf (2.8.0)
   - TweetNacl (1.0.2)
-  - VisionCamera (4.6.1):
-    - VisionCamera/Core (= 4.6.1)
-    - VisionCamera/React (= 4.6.1)
-  - VisionCamera/Core (4.6.1)
-  - VisionCamera/React (4.6.1):
+  - VisionCamera (4.7.0):
+    - VisionCamera/Core (= 4.7.0)
+    - VisionCamera/React (= 4.7.0)
+  - VisionCamera/Core (4.7.0)
+  - VisionCamera/React (4.7.0):
     - React-Core
   - Yoga (0.0.0)
 
@@ -3824,7 +3849,7 @@ SPEC CHECKSUMS:
   react-native-geolocation: d5114c4ea019574f76344eca8503555ba1208b46
   react-native-image-picker: 05b58a33b780623da2f891c55dcc57c6aa867d83
   react-native-key-command: b04997038f8fe4a03b711abe36cd84ced93c50b3
-  react-native-keyboard-controller: 8fd0fed639fcc91bb8986113d3b4a58b7d1567c0
+  react-native-keyboard-controller: 2602bca1715435e3742c5a69d45ff42c1d97e1b9
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: b8577cba87fbe7b7740c279ee23d25d7c5d87666
   react-native-pager-view: 12c1b7b6f50efb3e5d57d62ea5c601cba0585bfd
@@ -3898,7 +3923,7 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
   TweetNacl: 3abf4d1d2082b0114e7a67410e300892448951e6
-  VisionCamera: c95a8ad535f527562be1fb05fb2fd324578e769c
+  VisionCamera: b3c0cf261b9ad1ac7d60ec292d252cf3368b801e
   Yoga: 50518ade05048235d91a78b803336dbb5b159d5d
 
 PODFILE CHECKSUM: f7a8d931f2dd2be0fed9bb22df37140219a07ff3

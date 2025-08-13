@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {GpsPoint} from '@libs/actions/IOU';
 import {getIOURequestPolicyID, getMoneyRequestParticipantsFromReport, initMoneyRequest, requestMoney, trackExpense, updateLastLocationPermissionPrompt} from '@libs/actions/IOU';
@@ -43,6 +44,7 @@ function SubmitDetailsPage({
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, {canBeMissing: true});
     const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {canBeMissing: true});
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: false});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
@@ -54,6 +56,9 @@ function SubmitDetailsPage({
 
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+
+    const {isBetaEnabled} = usePermissions();
+    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
@@ -69,8 +74,10 @@ function SubmitDetailsPage({
             policy,
             currentIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            report,
+            parentReport,
         });
-    }, [reportOrAccountID, policy]);
+    }, [reportOrAccountID, policy, report, parentReport]);
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report);
     const participants = selectedParticipants.map((participant) =>
@@ -104,6 +111,7 @@ function SubmitDetailsPage({
                     taxCode: transactionTaxCode,
                     taxAmount: transactionTaxAmount,
                     billable: transaction.billable,
+                    reimbursable: transaction.reimbursable,
                     merchant: transaction.merchant ?? '',
                     created: transaction.created,
                     actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
@@ -129,12 +137,14 @@ function SubmitDetailsPage({
                     taxCode: transactionTaxCode,
                     taxAmount: transactionTaxAmount,
                     billable: transaction.billable,
+                    reimbursable: transaction.reimbursable,
                     merchant: transaction.merchant ?? '',
                     created: transaction.created,
                     actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
                     linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
                 },
+                shouldGenerateTransactionThreadReport,
             });
         }
     };
