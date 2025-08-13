@@ -129,8 +129,8 @@ type OptionRowLHNDataProps = {
     /** Function to compare locale strings */
     localeCompare: LocaleContextProps['localeCompare'];
 
-    /** AllReportNameValuePairs data */
-    allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+    /** Whether the report is archived */
+    isReportArchived: boolean;
 };
 
 type OptionRowLHNProps = {

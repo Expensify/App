@@ -1,6 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,6 +9,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
 import {READ_COMMANDS} from '@libs/API/types';
@@ -23,7 +23,7 @@ import {setShareDestinationValue} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report, ReportNameValuePairs} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 
 const selectReportHandler = (option: unknown) => {
     HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
@@ -37,10 +37,11 @@ const selectReportHandler = (option: unknown) => {
     Navigation.goBack(ROUTES.NEW_TASK.getRoute());
 };
 
-const reportFilter = (reportOptions: Array<SearchOption<Report>>, allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>) =>
+const reportFilter = (reportOptions: Array<SearchOption<Report>>) =>
     (reportOptions ?? []).reduce((filtered: Array<SearchOption<Report>>, option) => {
         const report = option.item;
-        if (canUserPerformWriteAction(report, allReportNameValuePairs) && canCreateTaskInReport(report) && !isCanceledTaskReport(report)) {
+        const isReportArchived = useReportIsArchived(report?.reportID);
+        if (canUserPerformWriteAction(report, isReportArchived) && canCreateTaskInReport(report) && !isCanceledTaskReport(report)) {
             filtered.push(option);
         }
         return filtered;
@@ -53,7 +54,6 @@ function TaskShareDestinationSelectorModal() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const {options: optionList, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -70,7 +70,7 @@ function TaskShareDestinationSelectorModal() {
                 header: '',
             };
         }
-        const filteredReports = reportFilter(optionList.reports, allReportNameValuePairs);
+        const filteredReports = reportFilter(optionList.reports);
         const {recentReports} = getShareDestinationOptions(filteredReports, optionList.personalDetails, [], [], {}, true);
         const header = getHeaderMessage(recentReports && recentReports.length !== 0, false, '');
         return {

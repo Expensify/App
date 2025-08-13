@@ -228,7 +228,8 @@ function MoneyRequestView({
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
-    const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report, allReportNameValuePairs) && !readonly;
+    const isReportArchived = !!allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]?.private_isArchived;
+    const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
     const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived) && canUserPerformWriteAction;
 
     const canEditTaxFields = canEdit && !isDistanceRequest;

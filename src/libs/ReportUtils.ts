@@ -8998,7 +8998,7 @@ function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: b
     }
 }
 
-function canUserPerformWriteAction(report: OnyxEntry<Report>, allReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>) {
+function canUserPerformWriteAction(report: OnyxEntry<Report>, isReportArchived?: boolean) {
     const reportErrors = getCreationReportErrors(report);
 
     // If the expense report is marked for deletion, let us prevent any further write action.
@@ -9008,12 +9008,9 @@ function canUserPerformWriteAction(report: OnyxEntry<Report>, allReportNameValue
 
     // This will get removed as part of https://github.com/Expensify/App/issues/59961
     // eslint-disable-next-line deprecation/deprecation
-    let reportNameValuePairs = getReportNameValuePairs(report?.reportID);
-    if (allReportNameValuePairs) {
-        reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-    }
+    const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
     return (
-        !isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived) &&
+        !isArchivedNonExpenseReport(report, isReportArchived ?? !!reportNameValuePairs?.private_isArchived) &&
         isEmptyObject(reportErrors) &&
         report &&
         isAllowedToComment(report) &&

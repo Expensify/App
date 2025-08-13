@@ -1,13 +1,14 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
@@ -62,9 +63,6 @@ type ReportActionsViewProps = {
 
     /** If the report has older actions to load */
     hasOlderActions: boolean;
-
-    /** All report name value pairs collection */
-    allReportNameValuePairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -77,12 +75,12 @@ function ReportActionsView({
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
-    allReportNameValuePairs,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+    const isReportArchived = useReportIsArchived(report?.reportID);
     const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {
-        selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction(report, allReportNameValuePairs), true),
+        selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction(report, isReportArchived), true),
         canBeMissing: true,
     });
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
@@ -198,7 +196,7 @@ function ReportActionsView({
         [allReportActions, transactionThreadReportActions, transactionThreadReport?.parentReportActionID],
     );
 
-    const canPerformWriteAction = canUserPerformWriteAction(report, allReportNameValuePairs);
+    const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
     const visibleReportActions = useMemo(
         () =>
             reportActions.filter(

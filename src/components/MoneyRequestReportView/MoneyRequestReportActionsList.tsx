@@ -158,7 +158,8 @@ function MoneyRequestReportActionsList({
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.accountID});
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
-    const canPerformWriteAction = canUserPerformWriteAction(report, allReportNameValuePairs);
+    const isReportArchived = !!allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`]?.private_isArchived;
+    const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 

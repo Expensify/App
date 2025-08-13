@@ -58,7 +58,8 @@ function ParentNavigationSubtitle({
     const {translate} = useLocalize();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {canBeMissing: false});
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
-    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, allReportNameValuePairs);
+    const isReportArchived = !!allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]?.private_isArchived;
+    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
     const isReportInRHP = currentRoute.name === SCREENS.SEARCH.REPORT_RHP;
     const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
 

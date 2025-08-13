@@ -6,7 +6,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,7 +14,6 @@ import {canUserPerformWriteAction, navigateToLinkedReportAction} from '@libs/Rep
 import type {Ancestor} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 type ThreadDividerProps = {
     /** Thread ancestor */
@@ -30,7 +29,7 @@ function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
     const {translate} = useLocalize();
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const {isOffline} = useNetwork();
-    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
+    const isReportArchived = useReportIsArchived(ancestor.report.reportID);
 
     return (
         <View
@@ -49,7 +48,7 @@ function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
                 </>
             ) : (
                 <PressableWithoutFeedback
-                    onPress={() => navigateToLinkedReportAction(ancestor, isInNarrowPaneModal, canUserPerformWriteAction(ancestor.report, allReportNameValuePairs), isOffline)}
+                    onPress={() => navigateToLinkedReportAction(ancestor, isInNarrowPaneModal, canUserPerformWriteAction(ancestor.report, isReportArchived), isOffline)}
                     accessibilityLabel={translate('threads.thread')}
                     role={CONST.ROLE.BUTTON}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}

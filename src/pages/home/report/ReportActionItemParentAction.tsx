@@ -86,8 +86,8 @@ type ReportActionItemParentActionProps = {
     /** User billing fund ID */
     userBillingFundID: number | undefined;
 
-    /** All report name value pairs collection */
-    allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
+    /** Whether the report is archived */
+    isReportArchived: boolean;
 };
 
 function ReportActionItemParentAction({
@@ -109,7 +109,7 @@ function ReportActionItemParentAction({
     allEmojiReactions,
     linkedTransactionRouteError,
     userBillingFundID,
-    allReportNameValuePairs,
+    isReportArchived,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestorIDs = useRef(getAllAncestorReportActionIDs(report));
@@ -171,7 +171,7 @@ function ReportActionItemParentAction({
             {/* eslint-disable-next-line react-compiler/react-compiler */}
             {allAncestors.map((ancestor) => {
                 const ancestorReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ancestor.report.reportID}`];
-                const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(ancestorReport, allReportNameValuePairs);
+                const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(ancestorReport, isReportArchived);
                 const shouldDisplayThreadDivider = !isTripPreview(ancestor.reportAction);
                 const reportNameValuePair =
                     ancestorReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReports.current?.[ancestor?.report?.reportID]?.reportID}`];

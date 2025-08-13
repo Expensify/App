@@ -108,7 +108,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
-    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: true});
     const isReportArchived = isArchivedReport(reportNameValuePairs);
 
@@ -163,7 +162,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         account?.guideDetails?.email !== CONST.EMAIL.CONCIERGE &&
         !!account?.guideDetails?.calendarLink &&
         isAdminRoom(report) &&
-        !!canUserPerformWriteAction(report, allReportNameValuePairs) &&
+        !!canUserPerformWriteAction(report, isReportArchived) &&
         !isChatThread &&
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO;
 
