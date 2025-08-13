@@ -99,9 +99,6 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
     /** The type of action that's pending  */
     pendingAction?: OnyxCommon.PendingAction;
 
-    /** Whether the report is ready for display */
-    isReportReadyForDisplay?: boolean;
-
     /** A method to call when the input is focus */
     onComposerFocus?: () => void;
 
@@ -127,7 +124,6 @@ function ReportActionCompose({
     pendingAction,
     report,
     reportID,
-    isReportReadyForDisplay = true,
     lastReportAction,
     onComposerFocus,
     onComposerBlur,
@@ -409,13 +405,13 @@ function ReportActionCompose({
             throw new Error('The composerRefShared.clear function is not set yet. This should never happen, and indicates a developer error.');
         }
 
-        if (isSendDisabled || !isReportReadyForDisplay) {
+        if (isSendDisabled) {
             return;
         }
 
         // This will cause onCleared to be triggered where we actually send the message
         clearComposer();
-    }, [isSendDisabled, isReportReadyForDisplay, composerRefShared]);
+    }, [isSendDisabled, composerRefShared]);
 
     const measureComposer = useCallback(
         (e: LayoutChangeEvent) => {
