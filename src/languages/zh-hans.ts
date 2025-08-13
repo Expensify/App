@@ -544,6 +544,7 @@ const translations = {
         auditor: '审计员',
         role: '角色',
         currency: '货币',
+        groupCurrency: '集团货币',
         rate: '费率',
         emptyLHN: {
             title: '太好了！全部搞定了。',

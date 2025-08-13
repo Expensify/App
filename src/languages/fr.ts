@@ -544,6 +544,7 @@ const translations = {
         auditor: 'Auditeur',
         role: 'Rôle',
         currency: 'Devise',
+        groupCurrency: 'Devise du groupe',
         rate: 'Taux',
         emptyLHN: {
             title: 'Youpi ! Tout est à jour.',

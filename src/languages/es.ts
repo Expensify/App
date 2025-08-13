@@ -528,6 +528,7 @@ const translations = {
         auditor: 'Auditor',
         role: 'Role',
         currency: 'Divisa',
+        groupCurrency: 'Group currency', // s77rt
         rate: 'Tarifa',
         emptyLHN: {
             title: 'Woohoo! Todo al día.',

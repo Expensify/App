@@ -544,6 +544,7 @@ const translations = {
         auditor: 'Auditor',
         role: 'Rol',
         currency: 'Valuta',
+        groupCurrency: 'Groepsvaluta',
         rate: 'Beoordeel',
         emptyLHN: {
             title: 'Woohoo! Helemaal bij.',
