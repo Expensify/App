@@ -166,13 +166,13 @@ Yes. The same image will appear on all the split expenses for easy reference and
 ## Can I apply different categories or tags to each split?
 Absolutely! That's one of the main benefits of splitting an expense — you can customize each part individually.
 
-## Can Expensify automatically merge a cash and card expenses?
+## Can Expensify automatically merge cash and card expenses?
 
 Yes. Expensify auto-merges SmartScanned receipts with matching card transactions by date and amount.
 
-- If the receipt comes first, the card transaction merges into it.
+- If the receipt comes first, the card transaction merges into the receipt.
 - If the card comes first, the receipt merges into the card.
-- SmartScanned merchant names override the card’s.
+- Merchant names from SmartScan will override merchant names from the card.
 - Merging can occur even after reports are submitted, approved, or reimbursed.
 
 **Merging won't happen automatically:**
