@@ -1,10 +1,12 @@
 import React, {useMemo} from 'react';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
+import useOnyx from '@hooks/useOnyx';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -14,6 +16,7 @@ type TransactionGroupListItem = ListItem & {
 function SearchTransactionsChangeReport() {
     const {selectedTransactions, clearSelectedTransactions} = useSearchContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
+    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
 
     const firstTransactionKey = selectedTransactionsKeys.at(0);
     const firstTransactionReportID = firstTransactionKey ? selectedTransactions[firstTransactionKey]?.reportID : undefined;
@@ -29,7 +32,8 @@ function SearchTransactionsChangeReport() {
             return;
         }
 
-        changeTransactionsReport(selectedTransactionsKeys, item.value);
+        const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${item.value}`];
+        changeTransactionsReport(selectedTransactionsKeys, item.value, undefined, reportNextStep);
         clearSelectedTransactions();
 
         Navigation.goBack();

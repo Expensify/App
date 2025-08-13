@@ -109,6 +109,7 @@ jobs:
         uses: ./.github/actions/javascript/markPullRequestsAsDeployed
         with:
           PR_LIST: ${{ steps.getPullRequestList.outputs.PR_LIST }}
+          MOBILE_EXPENSIFY_PR_LIST: ${{ steps.getPullRequestList.outputs.MOBILE_EXPENSIFY_PR_LIST }}
           IS_PRODUCTION_DEPLOY: ${{ inputs.env == 'production' }}
           DEPLOY_VERSION: ${{ inputs.version }}
           GITHUB_TOKEN: ${{ github.token }}
