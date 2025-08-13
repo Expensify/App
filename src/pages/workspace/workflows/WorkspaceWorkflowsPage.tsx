@@ -80,7 +80,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         () =>
             convertPolicyEmployeesToApprovalWorkflows({
                 employees: policy?.employeeList ?? {},
-                defaultApprover: policyApproverEmail ?? policy?.owner ?? '',
+                defaultApprover: (policyApproverEmail || policy?.owner) ?? '',
                 personalDetails: personalDetails ?? {},
                 localeCompare,
             }),
