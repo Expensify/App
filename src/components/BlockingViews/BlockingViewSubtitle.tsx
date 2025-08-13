@@ -10,7 +10,7 @@ function BlockingViewSubtitle({
     subtitle,
     subtitleStyle,
     onLinkPress = () => {},
-    linkKey,
+    linkTranslationKey,
 }: {
     /** Subtitle message below the title */
     subtitle: string;
@@ -21,8 +21,8 @@ function BlockingViewSubtitle({
     /** Function to call when pressing the navigation link */
     onLinkPress?: () => void;
 
-    /** Link message below the subtitle */
-    linkKey?: TranslationPaths;
+    /** Translation key for the link text displayed below the subtitle */
+    linkTranslationKey?: TranslationPaths;
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -34,14 +34,14 @@ function BlockingViewSubtitle({
                     text={subtitle}
                 />
             )}
-            {linkKey ? (
+            {!!linkTranslationKey && (
                 <TextLink
                     onPress={onLinkPress}
                     style={[styles.link, styles.mt2]}
                 >
-                    {translate(linkKey)}
+                    {translate(linkTranslationKey)}
                 </TextLink>
-            ) : null}
+            )}
         </>
     );
 }

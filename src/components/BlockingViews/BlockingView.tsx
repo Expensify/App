@@ -27,8 +27,8 @@ type BaseBlockingViewProps = {
     /** The style of the subtitle message */
     subtitleStyle?: StyleProp<TextStyle>;
 
-    /** Link message below the subtitle */
-    linkKey?: TranslationPaths;
+    /** Translation key for the link text displayed below the subtitle */
+    linkTranslationKey?: TranslationPaths;
 
     /** Message below the link message */
     subtitleKeyBelowLink?: TranslationPaths | '';
@@ -96,7 +96,7 @@ function BlockingView({
     title,
     subtitle = '',
     subtitleStyle,
-    linkKey,
+    linkTranslationKey,
     subtitleKeyBelowLink,
     iconWidth = variables.iconSizeSuperLarge,
     iconHeight = variables.iconSizeSuperLarge,
@@ -150,20 +150,20 @@ function BlockingView({
                 {CustomSubtitle}
                 {!CustomSubtitle && (
                     <SubtitleWrapper style={subtitleWrapperStyle}>
-                        {!!subtitleKeyBelowLink && !!linkKey ? (
+                        {!!subtitleKeyBelowLink && !!linkTranslationKey ? (
                             <SubtitleWithBelowLink
                                 subtitle={subtitle}
                                 subtitleStyle={subtitleStyle}
                                 subtitleKeyBelowLink={subtitleKeyBelowLink}
                                 onLinkPress={onLinkPress}
-                                linkKey={linkKey}
+                                linkTranslationKey={linkTranslationKey}
                             />
                         ) : (
                             <BlockingViewSubtitle
                                 subtitle={subtitle}
                                 subtitleStyle={subtitleStyle}
                                 onLinkPress={onLinkPress}
-                                linkKey={linkKey}
+                                linkTranslationKey={linkTranslationKey}
                             />
                         )}
                     </SubtitleWrapper>

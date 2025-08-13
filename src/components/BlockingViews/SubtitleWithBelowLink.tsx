@@ -12,7 +12,7 @@ function SubtitleWithBelowLink({
     subtitleStyle,
     subtitleKeyBelowLink,
     onLinkPress = () => {},
-    linkKey,
+    linkTranslationKey,
 }: {
     /** Subtitle message below the title */
     subtitle?: string;
@@ -26,8 +26,8 @@ function SubtitleWithBelowLink({
     /** Function to call when pressing the navigation link */
     onLinkPress?: () => void;
 
-    /** Link message below the subtitle */
-    linkKey?: TranslationPaths;
+    /** Translation key for the link text displayed below the subtitle */
+    linkTranslationKey?: TranslationPaths;
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -40,12 +40,12 @@ function SubtitleWithBelowLink({
                         text={subtitle}
                     />
                 )}
-                {!!linkKey && (
+                {!!linkTranslationKey && (
                     <TextLink
                         onPress={onLinkPress}
                         style={[styles.link, styles.mt2, styles.textAlignCenter]}
                     >
-                        {` ${translate(linkKey)}`}
+                        {` ${translate(linkTranslationKey)}`}
                     </TextLink>
                 )}
             </Text>
