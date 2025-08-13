@@ -9,6 +9,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, Report, Transaction} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 
+/**
+ * Shows not found page when:
+ * - Split bill: User is not the original actor OR transaction is incomplete
+ * - Split expense: Transaction doesn't exist
+ * - Money request: Action is not a money request OR user cannot edit it
+ */
 // eslint-disable-next-line rulesdir/no-negated-variables
 const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, reportActionID: string | undefined, report: OnyxInputOrEntry<Report>, transaction: OnyxEntry<Transaction>) => {
     const isEditing = action === CONST.IOU.ACTION.EDIT;
