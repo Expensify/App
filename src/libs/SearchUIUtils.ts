@@ -1271,7 +1271,7 @@ function getReportSections(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getMemberSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): TransactionMemberGroupListItemType[] {
+function getMemberSections(data: OnyxTypes.SearchResults['data']): TransactionMemberGroupListItemType[] {
     const memberSections: Record<string, TransactionMemberGroupListItemType> = {};
 
     for (const key in data) {
@@ -1297,7 +1297,7 @@ function getMemberSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getCardSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): TransactionCardGroupListItemType[] {
+function getCardSections(data: OnyxTypes.SearchResults['data']): TransactionCardGroupListItemType[] {
     const cardSections: Record<string, TransactionCardGroupListItemType> = {};
 
     for (const key in data) {
@@ -1361,9 +1361,9 @@ function getSections(
             case CONST.SEARCH.GROUP_BY.REPORTS:
                 return getReportSections(data, metadata, currentSearch, currentAccountID, formatPhoneNumber, reportActions);
             case CONST.SEARCH.GROUP_BY.FROM:
-                return getMemberSections(data, metadata);
+                return getMemberSections(data);
             case CONST.SEARCH.GROUP_BY.CARD:
-                return getCardSections(data, metadata);
+                return getCardSections(data);
         }
     }
 

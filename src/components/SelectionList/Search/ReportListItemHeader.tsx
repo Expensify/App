@@ -74,20 +74,20 @@ function HeaderFirstRow<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
 
     const {total, currency} = useMemo(() => {
-        let total = reportItem.total ?? 0;
+        let reportTotal = reportItem.total ?? 0;
 
-        if (total) {
+        if (reportTotal) {
             if (reportItem.type === CONST.REPORT.TYPE.IOU) {
-                total = Math.abs(total ?? 0);
+                reportTotal = Math.abs(reportTotal ?? 0);
             } else {
-                total *= reportItem.type === CONST.REPORT.TYPE.EXPENSE || reportItem.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
+                reportTotal *= reportItem.type === CONST.REPORT.TYPE.EXPENSE || reportItem.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
             }
         }
 
-        const currency = reportItem.currency ?? CONST.CURRENCY.USD;
+        const reportCurrency = reportItem.currency ?? CONST.CURRENCY.USD;
 
-        return {total, currency};
-    }, [reportItem.type, reportItem.total, reportItem?.currency]);
+        return {total: reportTotal, currency: reportCurrency};
+    }, [reportItem.type, reportItem.total, reportItem.currency]);
 
     return (
         <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, styles.pr3, styles.pl3]}>
