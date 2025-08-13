@@ -20,10 +20,8 @@ function SubscriptionPlanDowngradeBlockedPage() {
     return (
         <ScreenWrapper
             testID={SubscriptionPlanDowngradeBlockedPage.displayName}
-            includeSafeAreaPaddingBottom={false}
-            shouldEnablePickerAvoiding={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            shouldShowOfflineIndicatorInWideScreen
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
