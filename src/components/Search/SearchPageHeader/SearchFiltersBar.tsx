@@ -88,7 +88,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     const hasMultipleOutputCurrency = useMemo(() => {
         const policies = Object.values(allPolicies ?? {});
         const outputCurrency = policies.at(0)?.outputCurrency;
-        return policies.some((policy) => policy?.outputCurrency != outputCurrency);
+        return policies.some((policy) => policy?.outputCurrency !== outputCurrency);
     }, [allPolicies]);
 
     const filterFormValues = useMemo(() => {
