@@ -106,6 +106,10 @@ const restrictedImportPaths = [
         importNames: ['useOnyx'],
         message: "Please use '@hooks/useOnyx' instead.",
     },
+    {
+        name: '@src/utils/findNodeHandle',
+        message: "Do not use 'findNodeHandle' as it is no longer supported on web.",
+    },
 ];
 
 const restrictedImportPatterns = [
