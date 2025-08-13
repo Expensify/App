@@ -65,7 +65,7 @@ type ActionSheetKeyboardSpaceProps = ViewProps & {
     position?: SharedValue<number>;
 };
 
-function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
+function ActionSheetKeyboardSpace({children, ...props}: ActionSheetKeyboardSpaceProps) {
     const styles = useThemeStyles();
     const {
         unmodifiedPaddings: {top: paddingTop = 0, bottom: paddingBottom = 0},
@@ -258,7 +258,9 @@ function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
             style={[styles.flex1, animatedStyle]}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-        />
+        >
+            {children}
+        </Reanimated.View>
     );
 }
 

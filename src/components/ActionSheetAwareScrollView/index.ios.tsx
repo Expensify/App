@@ -6,7 +6,7 @@ import Reanimated, {useAnimatedRef, useScrollViewOffset} from 'react-native-rean
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
 import ActionSheetKeyboardSpace from './ActionSheetKeyboardSpace';
 
-const ActionSheetAwareScrollView = forwardRef<ScrollView, PropsWithChildren<ScrollViewProps>>((props, ref) => {
+const ActionSheetAwareScrollView = forwardRef<ScrollView, PropsWithChildren<ScrollViewProps>>(({children, ...props}, ref) => {
     const scrollViewAnimatedRef = useAnimatedRef<Reanimated.ScrollView>();
     const position = useScrollViewOffset(scrollViewAnimatedRef);
 
@@ -30,7 +30,7 @@ const ActionSheetAwareScrollView = forwardRef<ScrollView, PropsWithChildren<Scro
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
-            <ActionSheetKeyboardSpace position={position}>{props.children}</ActionSheetKeyboardSpace>
+            <ActionSheetKeyboardSpace position={position}>{children}</ActionSheetKeyboardSpace>
         </Reanimated.ScrollView>
     );
 });
