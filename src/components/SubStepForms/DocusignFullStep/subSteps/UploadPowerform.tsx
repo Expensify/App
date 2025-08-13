@@ -30,10 +30,10 @@ type UploadPowerformProps<TFormID extends keyof OnyxFormValuesMapping> = SubStep
     /** Indicates that action is being processed */
     isLoading: boolean;
 
-    /** Currency of affiliated policy */
-    policyCurrency: string;
+    /** Currency of related account */
+    currency: string;
 };
-function UploadPowerform<TFormID extends keyof OnyxFormValuesMapping>({defaultValue, formID, inputID, isLoading, onNext, policyCurrency}: UploadPowerformProps<TFormID>) {
+function UploadPowerform<TFormID extends keyof OnyxFormValuesMapping>({defaultValue, formID, inputID, isLoading, onNext, currency}: UploadPowerformProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
@@ -67,7 +67,7 @@ function UploadPowerform<TFormID extends keyof OnyxFormValuesMapping>({defaultVa
         setErrorFields(formID, {[inputID]: {onUpload: error}});
     };
 
-    const country = mapCurrencyToCountry(policyCurrency ?? '');
+    const country = mapCurrencyToCountry(currency ?? '');
 
     return (
         <FormProvider

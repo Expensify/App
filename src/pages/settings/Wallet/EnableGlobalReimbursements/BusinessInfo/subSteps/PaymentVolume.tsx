@@ -8,12 +8,12 @@ import getListOptionsFromCorpayPicklist from '@pages/ReimbursementAccount/NonUSD
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
 
-type PaymentVolumeProps = SubStepProps & {policyCurrency: string};
+type PaymentVolumeProps = SubStepProps & {currency: string};
 
 const {ANNUAL_VOLUME} = INPUT_IDS;
 const STEP_FIELDS = [ANNUAL_VOLUME];
 
-function PaymentVolume({onNext, onMove, isEditing, policyCurrency}: PaymentVolumeProps) {
+function PaymentVolume({onNext, onMove, isEditing, currency}: PaymentVolumeProps) {
     const {translate} = useLocalize();
     const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT, {canBeMissing: true});
     const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS, {canBeMissing: true});
@@ -26,12 +26,12 @@ function PaymentVolume({onNext, onMove, isEditing, policyCurrency}: PaymentVolum
                 inputID: ANNUAL_VOLUME,
                 defaultValue: enableGlobalReimbursementsDraft?.[ANNUAL_VOLUME] ?? '',
                 options: annualVolumeRangeListOptions,
-                description: translate('businessInfoStep.annualPaymentVolumeInCurrency', {currencyCode: policyCurrency}),
+                description: translate('businessInfoStep.annualPaymentVolumeInCurrency', {currencyCode: currency}),
                 modalHeaderTitle: translate('businessInfoStep.selectAnnualPaymentVolume'),
                 searchInputTitle: translate('businessInfoStep.findAnnualPaymentVolume'),
             },
         ],
-        [enableGlobalReimbursementsDraft, policyCurrency, annualVolumeRangeListOptions, translate],
+        [enableGlobalReimbursementsDraft, currency, annualVolumeRangeListOptions, translate],
     );
 
     const handleSubmit = useEnableGlobalReimbursementsStepFormSubmit({

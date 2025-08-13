@@ -712,7 +712,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                             return;
                                         }
                                         closeModal(() =>
-                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS.getRoute(paymentMethod.selectedPaymentMethod.additionalData?.policyID)),
+                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)),
                                         );
                                     }}
                                     wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}

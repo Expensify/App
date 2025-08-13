@@ -29,8 +29,8 @@ type DocusignFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
     /** Handles submit button press */
     onSubmit: () => void;
 
-    /** Currency of the policy */
-    policyCurrency: string;
+    /** Currency of related account */
+    currency: string;
 
     /** Array of step names */
     stepNames?: readonly string[];
@@ -51,8 +51,8 @@ type DocusignFullStepStepProps<TFormID extends keyof OnyxFormValuesMapping> = Su
     /** Indicates that action is being processed */
     isLoading: boolean;
 
-    /** Currency of the policy */
-    policyCurrency: string;
+    /** Currency of related account */
+    currency: string;
 };
 
 function DocusignFullStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -62,7 +62,7 @@ function DocusignFullStep<TFormID extends keyof OnyxFormValuesMapping>({
     isLoading,
     onBackButtonPress,
     onSubmit,
-    policyCurrency,
+    currency,
     startStepIndex,
     stepNames,
 }: DocusignFullStepProps<TFormID>) {
@@ -110,7 +110,7 @@ function DocusignFullStep<TFormID extends keyof OnyxFormValuesMapping>({
                 isEditing={isEditing}
                 onMove={moveTo}
                 onNext={nextScreen}
-                policyCurrency={policyCurrency}
+                currency={currency}
             />
         </InteractiveStepWrapper>
     );

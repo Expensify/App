@@ -8,12 +8,12 @@ import getListOptionsFromCorpayPicklist from '@pages/ReimbursementAccount/NonUSD
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
 
-type AverageReimbursementsProps = SubStepProps & {policyCurrency: string};
+type AverageReimbursementsProps = SubStepProps & {currency: string};
 
 const {TRADE_VOLUME} = INPUT_IDS;
 const STEP_FIELDS = [TRADE_VOLUME];
 
-function AverageReimbursements({onNext, onMove, isEditing, policyCurrency}: AverageReimbursementsProps) {
+function AverageReimbursements({onNext, onMove, isEditing, currency}: AverageReimbursementsProps) {
     const {translate} = useLocalize();
     const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT, {canBeMissing: true});
     const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS, {canBeMissing: true});
@@ -26,12 +26,12 @@ function AverageReimbursements({onNext, onMove, isEditing, policyCurrency}: Aver
                 inputID: TRADE_VOLUME,
                 defaultValue: enableGlobalReimbursementsDraft?.[TRADE_VOLUME] ?? '',
                 options: tradeVolumeRangeListOptions,
-                description: translate('businessInfoStep.averageReimbursementAmountInCurrency', {currencyCode: policyCurrency}),
+                description: translate('businessInfoStep.averageReimbursementAmountInCurrency', {currencyCode: currency}),
                 modalHeaderTitle: translate('businessInfoStep.selectAverageReimbursement'),
                 searchInputTitle: translate('businessInfoStep.findAverageReimbursement'),
             },
         ],
-        [enableGlobalReimbursementsDraft, policyCurrency, tradeVolumeRangeListOptions, translate],
+        [enableGlobalReimbursementsDraft, currency, tradeVolumeRangeListOptions, translate],
     );
 
     const handleSubmit = useEnableGlobalReimbursementsStepFormSubmit({

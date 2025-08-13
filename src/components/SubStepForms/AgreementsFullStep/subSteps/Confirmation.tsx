@@ -56,15 +56,15 @@ type ConfirmationProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepPro
         authorizedToBindClientToAgreement: FormOnyxKeys<TFormID>;
     };
 
-    /** Currency of affiliated policy */
-    policyCurrency: string;
+    /** Currency of related account */
+    currency: string;
 };
 
-function Confirmation<TFormID extends keyof OnyxFormValuesMapping>({defaultValues, formID, inputIDs, onNext, policyCurrency}: ConfirmationProps<TFormID>) {
+function Confirmation<TFormID extends keyof OnyxFormValuesMapping>({defaultValues, formID, inputIDs, onNext, currency}: ConfirmationProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const isDocusignStepRequired = requiresDocusignStep(policyCurrency);
+    const isDocusignStepRequired = requiresDocusignStep(currency);
 
     const stepFields = useMemo(
         () => [inputIDs.authorizedToBindClientToAgreement, inputIDs.provideTruthfulInformation, inputIDs.agreeToTermsAndConditions, inputIDs.consentToPrivacyNotice],

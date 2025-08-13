@@ -2,6 +2,7 @@ import React from 'react';
 import AgreementsFullStep from '@components/SubStepForms/AgreementsFullStep';
 import useOnyx from '@hooks/useOnyx';
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
 
@@ -12,8 +13,8 @@ type AgreementsProps = {
     /** Handles submit button press */
     onSubmit: () => void;
 
-    /** Currency of affiliated policy */
-    policyCurrency: string;
+    /** Currency of bank account */
+    currency: string;
 };
 
 const inputIDs = {
@@ -23,7 +24,7 @@ const inputIDs = {
     authorizedToBindClientToAgreement: INPUT_IDS.AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT,
 };
 
-function Agreements({onBackButtonPress, onSubmit, policyCurrency}: AgreementsProps) {
+function Agreements({onBackButtonPress, onSubmit, currency}: AgreementsProps) {
     const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT, {canBeMissing: true});
     const defaultValues: Record<keyof typeof inputIDs, boolean> = Object.fromEntries(
         Object.keys(inputIDs).map((key) => {
@@ -39,7 +40,7 @@ function Agreements({onBackButtonPress, onSubmit, policyCurrency}: AgreementsPro
             inputIDs={inputIDs}
             onBackButtonPress={onBackButtonPress}
             onSubmit={onSubmit}
-            policyCurrency={policyCurrency}
+            currency={currency}
             startStepIndex={1}
             stepNames={CONST.ENABLE_GLOBAL_REIMBURSEMENTS.STEP_NAMES}
         />

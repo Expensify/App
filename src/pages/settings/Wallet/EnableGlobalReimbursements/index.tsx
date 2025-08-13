@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import useOnyx from '@hooks/useOnyx';
-import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -19,15 +18,16 @@ import Docusign from './Docusign';
 type EnableGlobalReimbursementsProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS>;
 
 function EnableGlobalReimbursements({route}: EnableGlobalReimbursementsProps) {
-    const policyID = route.params?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
-    const policyCurrency = policy?.outputCurrency ?? '';
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const bankAccountID = route.params?.bankAccountID;
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: false});
     const [enableGlobalReimbursements] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS, {canBeMissing: true});
     const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT, {canBeMissing: true});
+    const currency = bankAccountList?.[bankAccountID]?.bankCurrency ?? '';
+    const country = bankAccountList?.[bankAccountID]?.bankCountry;
 
-    const country = mapCurrencyToCountry(policyCurrency);
-    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    console.log(route);
+    console.log(bankAccountList?.[bankAccountID]);
+    console.log(currency, 'currency');
     const [enableGlobalReimbursementsStep, setEnableGlobalReimbursementsStep] = useState<ValueOf<typeof CONST.ENABLE_GLOBAL_REIMBURSEMENTS.STEP>>(
         CONST.ENABLE_GLOBAL_REIMBURSEMENTS.STEP.BUSINESS_INFO,
     );
@@ -60,11 +60,11 @@ function EnableGlobalReimbursements({route}: EnableGlobalReimbursementsProps) {
                         businessRegistrationIncorporationNumber: enableGlobalReimbursementsDraft?.[INPUT_IDS.BUSINESS_REGISTRATION_INCORPORATION_NUMBER],
                         fundSourceCountries: country,
                         fundDestinationCountries: country,
-                        currencyNeeded: policyCurrency,
+                        currencyNeeded: currency,
                         purposeOfTransactionId: CONST.NON_USD_BANK_ACCOUNT.PURPOSE_OF_TRANSACTION_ID,
                     }),
                     achAuthorizationForm: enableGlobalReimbursementsDraft?.[INPUT_IDS.ACH_AUTHORIZATION_FORM].at(0),
-                    bankAccountID,
+                    bankAccountID: Number(bankAccountID),
                 });
         }
     };
@@ -108,7 +108,7 @@ function EnableGlobalReimbursements({route}: EnableGlobalReimbursementsProps) {
                 <BusinessInfo
                     onBackButtonPress={handleEnableGlobalReimbursementGoBack}
                     onSubmit={handleNextEnableGlobalReimbursementsStep}
-                    policyCurrency={policyCurrency}
+                    currency={currency}
                     country={country as Country}
                 />
             );
@@ -117,7 +117,7 @@ function EnableGlobalReimbursements({route}: EnableGlobalReimbursementsProps) {
                 <Agreements
                     onBackButtonPress={handleEnableGlobalReimbursementGoBack}
                     onSubmit={handleNextEnableGlobalReimbursementsStep}
-                    policyCurrency={policyCurrency}
+                    currency={currency}
                 />
             );
         case CONST.ENABLE_GLOBAL_REIMBURSEMENTS.STEP.DOCUSIGN:
@@ -125,7 +125,7 @@ function EnableGlobalReimbursements({route}: EnableGlobalReimbursementsProps) {
                 <Docusign
                     onBackButtonPress={handleEnableGlobalReimbursementGoBack}
                     onSubmit={handleNextEnableGlobalReimbursementsStep}
-                    policyCurrency={policyCurrency}
+                    currency={currency}
                 />
             );
         default:

@@ -13,10 +13,10 @@ type DocusignProps = {
     onSubmit: () => void;
 
     /** Currency of affiliated policy */
-    policyCurrency: string;
+    currency: string;
 };
 
-function Docusign({onBackButtonPress, onSubmit, policyCurrency}: DocusignProps) {
+function Docusign({onBackButtonPress, onSubmit, currency}: DocusignProps) {
     const [enableGlobalReimbursements] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS, {canBeMissing: true});
     const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT, {canBeMissing: true});
     const defaultValue = enableGlobalReimbursementsDraft?.[INPUT_IDS.ACH_AUTHORIZATION_FORM] ?? [];
@@ -29,7 +29,7 @@ function Docusign({onBackButtonPress, onSubmit, policyCurrency}: DocusignProps) 
             isLoading={enableGlobalReimbursements?.isEnablingGlobalReimbursements ?? false}
             onBackButtonPress={onBackButtonPress}
             onSubmit={onSubmit}
-            policyCurrency={policyCurrency}
+            currency={currency}
             startStepIndex={2}
             stepNames={CONST.ENABLE_GLOBAL_REIMBURSEMENTS.STEP_NAMES}
         />

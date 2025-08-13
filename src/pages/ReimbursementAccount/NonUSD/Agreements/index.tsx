@@ -86,7 +86,7 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, policyCurrency}: Ag
             inputIDs={INPUT_KEYS}
             onBackButtonPress={handleBackButtonPress}
             onSubmit={submit}
-            policyCurrency={policyCurrency ?? ''}
+            currency={policyCurrency ?? ''}
             startStepIndex={5}
             stepNames={stepNames}
         />

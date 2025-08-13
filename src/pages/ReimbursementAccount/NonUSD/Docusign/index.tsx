@@ -78,7 +78,7 @@ function Docusign({onBackButtonPress, onSubmit, stepNames, policyCurrency}: Docu
             isLoading={reimbursementAccount?.isFinishingCorpayBankAccountOnboarding ?? false}
             onBackButtonPress={handleBackButtonPress}
             onSubmit={submit}
-            policyCurrency={policyCurrency}
+            currency={policyCurrency}
             startStepIndex={6}
             stepNames={stepNames}
         />

@@ -30,8 +30,8 @@ type AgreementsFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
     /** Handles submit button press */
     onSubmit: () => void;
 
-    /** Currency of the policy */
-    policyCurrency: string;
+    /** Currency of related account */
+    currency: string;
 
     /** Array of step names */
     stepNames?: readonly string[];
@@ -50,8 +50,8 @@ type AgreementsFullStepSubStepProps<TFormID extends keyof OnyxFormValuesMapping>
     /** Input IDs for field in the form */
     inputIDs: AgreementsFullStepProps<TFormID>['inputIDs'];
 
-    /** Currency of affiliated policy */
-    policyCurrency: string;
+    /** Currency of related account */
+    currency: string;
 };
 
 function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -60,7 +60,7 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
     inputIDs,
     onBackButtonPress,
     onSubmit,
-    policyCurrency,
+    currency,
     stepNames,
     startStepIndex,
 }: AgreementsFullStepProps<TFormID>) {
@@ -107,7 +107,7 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
                 isEditing={isEditing}
                 onMove={moveTo}
                 onNext={nextScreen}
-                policyCurrency={policyCurrency}
+                currency={currency}
             />
         </InteractiveStepWrapper>
     );

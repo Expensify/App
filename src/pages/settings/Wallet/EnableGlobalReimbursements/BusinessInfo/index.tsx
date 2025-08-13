@@ -21,18 +21,18 @@ type BusinessInfoProps = {
     /** Handles submit button press */
     onSubmit: () => void;
 
-    /** Currency of affiliated policy */
-    policyCurrency: string;
+    /** Currency of bank account */
+    currency: string;
 
-    /** Country of affiliated policy */
+    /** Country of bank account */
     country: Country | '';
 };
 
-type BusinessInfoSubStepProps = SubStepProps & {policyCurrency: string; country: Country | ''};
+type BusinessInfoSubStepProps = SubStepProps & {currency: string; country: Country | ''};
 
 const bodyContent: Array<ComponentType<BusinessInfoSubStepProps>> = [RegistrationNumber, BusinessType, PaymentVolume, AverageReimbursement, Confirmation];
 
-function BusinessInfo({onBackButtonPress, onSubmit, policyCurrency, country}: BusinessInfoProps) {
+function BusinessInfo({onBackButtonPress, onSubmit, currency, country}: BusinessInfoProps) {
     const {translate} = useLocalize();
 
     const {
@@ -73,7 +73,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, policyCurrency, country}: Bu
                 onMove={moveTo}
                 screenIndex={screenIndex}
                 country={country}
-                policyCurrency={policyCurrency}
+                currency={currency}
             />
         </InteractiveStepWrapper>
     );
