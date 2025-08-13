@@ -8173,6 +8173,44 @@ function deleteMoneyRequest(
         );
     }
 
+    const currentUserAccountID = getCurrentUserAccountID();
+    const deletedTransactionAction: ReportAction = {
+        actionName: CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION,
+        actorAccountID: currentUserAccountID,
+        automatic: false,
+        created: DateUtils.getDBTime(),
+        isAttachmentOnly: false,
+        message: [
+            {
+                // Currently we are composing the message from the originalMessage and message is only used in OldDot and not in the App
+                text: 'You',
+                style: 'strong',
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            },
+        ],
+        originalMessage: {
+            amount: transaction?.amount,
+            currency: transaction?.currency,
+            merchant: transaction?.merchant,
+        },
+        person: [
+            {
+                style: 'strong',
+                text: currentUserPersonalDetails?.displayName ?? String(currentUserAccountID),
+                type: 'TEXT',
+            },
+        ],
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        reportActionID: NumberUtils.rand64(),
+        reportID: transactionThread?.reportID,
+        shouldShow: true,
+    };
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+        value: {[deletedTransactionAction.reportActionID]: deletedTransactionAction},
+    });
+
     optimisticData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
