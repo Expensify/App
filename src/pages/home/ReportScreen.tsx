@@ -372,7 +372,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     if (isTransactionThreadView) {
         const transactionID = getTransactionIDFromReportAction(parentReportAction);
-        const transactionViolations = transactionID && allReportViolations ? (allReportViolations as Record<string, OnyxTypes.TransactionViolations>)[transactionID] : undefined;
+        const transactionViolations = transactionID && allReportViolations ? allReportViolations[transactionID] : undefined;
 
         headerView = (
             <MoneyRequestHeader
@@ -798,12 +798,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 >
                     <FullPageNotFoundView
                         shouldShow={shouldShowNotFoundPage}
-                        subtitleKey={shouldShowNotFoundLinkedAction ? '' : 'notFound.noAccess'}
+                        subtitleKey={shouldShowNotFoundLinkedAction ? 'notFound.commentYouLookingForCannotBeFound' : 'notFound.noAccess'}
                         subtitleStyle={[styles.textSupporting]}
                         shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={shouldShowNotFoundLinkedAction ? navigateToEndOfReport : Navigation.goBack}
                         shouldShowLink={shouldShowNotFoundLinkedAction}
-                        linkKey="notFound.noAccess"
+                        linkTranslationKey="notFound.goToChatInstead"
+                        subtitleKeyBelowLink={shouldShowNotFoundLinkedAction ? 'notFound.contactConcierge' : ''}
                         onLinkPress={navigateToEndOfReport}
                         shouldDisplaySearchRouter
                     >
