@@ -51,16 +51,16 @@ type PressableWithDelayToggleProps = PressableProps & {
     inline?: boolean;
     accessibilityRole?: string;
 
-    /** For using the background color, e.g. if we need bg for the icon */
-    shouldIconUseBackgroundColor?: boolean;
+    /** Whether to use background color based on button states, e.g., hovered, active, pressed...  */
+    shouldUseButtonBackground?: boolean;
 
-    /** For using the hovered style by default, e.g. if we always need the hovered bg */
-    shouldIconAlwaysUseHoveredStyle?: boolean;
+    /** Whether to always use active (hovered) background by default */
+    shouldHaveActiveBackground?: boolean;
 
-    /** Copy icon width */
+    /** Icon width */
     iconWidth?: number;
 
-    /** Copy icon height */
+    /** Icon height */
     iconHeight?: number;
 };
 
@@ -78,10 +78,10 @@ function PressableWithDelayToggle(
         iconStyles,
         icon,
         accessibilityRole,
-        shouldIconAlwaysUseHoveredStyle,
+        shouldHaveActiveBackground,
         iconWidth = variables.iconSizeSmall,
         iconHeight = variables.iconSizeSmall,
-        shouldIconUseBackgroundColor = false,
+        shouldUseButtonBackground = false,
     }: PressableWithDelayToggleProps,
     ref: PressableRef,
 ) {
@@ -138,13 +138,9 @@ function PressableWithDelayToggle(
                             styles.flexRow,
                             pressableStyle,
                             !isActive && styles.cursorDefault,
-                            shouldIconUseBackgroundColor &&
+                            shouldUseButtonBackground &&
                                 StyleUtils.getButtonBackgroundColorStyle(
-                                    getButtonState(
-                                        !!shouldIconAlwaysUseHoveredStyle || hovered,
-                                        shouldIconAlwaysUseHoveredStyle ? hovered : pressed,
-                                        !shouldIconAlwaysUseHoveredStyle && !isActive,
-                                    ),
+                                    getButtonState(!!shouldHaveActiveBackground || hovered, shouldHaveActiveBackground ? hovered : pressed, !shouldHaveActiveBackground && !isActive),
                                     true,
                                 ),
                         ]}

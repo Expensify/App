@@ -218,7 +218,6 @@ function ProfilePage({route}: ProfilePageProps) {
                                         title={statusContent}
                                         description={translate('statusPage.status')}
                                         interactive={false}
-                                        copiable
                                     />
                                 </View>
                             )}
@@ -243,7 +242,6 @@ function ProfilePage({route}: ProfilePageProps) {
                                         title={pronouns}
                                         description={translate('profilePage.preferredPronouns')}
                                         interactive={false}
-                                        copiable
                                     />
                                 </View>
                             ) : null}

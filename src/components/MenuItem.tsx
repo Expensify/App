@@ -367,10 +367,10 @@ type MenuItemBaseProps = {
     /** Whether to teleport the portal to the modal layer */
     shouldTeleportPortalToModalLayer?: boolean;
 
-    /** The value to copy on secondary interaction */
+    /** The value to copy in copy to clipboard action. Must be used in conjunction with `copiable=true`. Default value is `title` prop. */
     copyValue?: string;
 
-    /** Should disable copy to clipboard action */
+    /** Should enable copy to clipboard action */
     copiable?: boolean;
 
     /** Plaid image for the bank */
@@ -513,6 +513,7 @@ function MenuItem(
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
     const popoverAnchor = useRef<View>(null);
+    const deviceHasHoverSupport = hasHoverSupport();
 
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
@@ -958,16 +959,16 @@ function MenuItem(
                                                         additionalStyles={styles.alignSelfCenter}
                                                     />
                                                 )}
-                                                {copiable && hasHoverSupport() && !interactive && isHovered && !!copyValue && (
+                                                {copiable && deviceHasHoverSupport && !interactive && isHovered && !!copyValue && (
                                                     <View style={styles.justifyContentCenter}>
                                                         <CopyTextToClipboard
                                                             urlToCopy={copyValue}
-                                                            shouldIconAlwaysUseHoveredStyle
+                                                            shouldHaveActiveBackground
                                                             iconHeight={variables.iconSizeExtraSmall}
                                                             iconWidth={variables.iconSizeExtraSmall}
                                                             iconStyles={styles.t0}
                                                             styles={styles.reportActionContextMenuMiniButton}
-                                                            shouldIconUseBackgroundColor
+                                                            shouldUseButtonBackground
                                                         />
                                                     </View>
                                                 )}

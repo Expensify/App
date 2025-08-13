@@ -57,7 +57,6 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
                     description={translate('cardPage.cardDetails.expiration')}
                     title={expiration}
                     interactive={false}
-                    copiable
                 />
             )}
             {cvv?.length > 0 && (

@@ -16,7 +16,7 @@ type CopyTextToClipboardProps = {
     urlToCopy?: string;
 
     accessibilityRole?: AccessibilityRole;
-} & Pick<PressableWithDelayToggleProps, 'iconStyles' | 'iconHeight' | 'iconWidth' | 'styles' | 'shouldIconUseBackgroundColor' | 'shouldIconAlwaysUseHoveredStyle'>;
+} & Pick<PressableWithDelayToggleProps, 'iconStyles' | 'iconHeight' | 'iconWidth' | 'styles' | 'shouldUseButtonBackground' | 'shouldHaveActiveBackground'>;
 
 function CopyTextToClipboard({
     text,
@@ -26,8 +26,8 @@ function CopyTextToClipboard({
     iconHeight,
     iconStyles,
     iconWidth,
-    shouldIconAlwaysUseHoveredStyle,
-    shouldIconUseBackgroundColor,
+    shouldHaveActiveBackground,
+    shouldUseButtonBackground,
     styles,
 }: CopyTextToClipboardProps) {
     const {translate} = useLocalize();
@@ -48,12 +48,12 @@ function CopyTextToClipboard({
             accessible
             accessibilityLabel={translate('reportActionContextMenu.copyToClipboard')}
             accessibilityRole={accessibilityRole}
-            shouldIconAlwaysUseHoveredStyle={shouldIconAlwaysUseHoveredStyle}
+            shouldHaveActiveBackground={shouldHaveActiveBackground}
             iconWidth={iconWidth}
             iconHeight={iconHeight}
             iconStyles={iconStyles}
             styles={styles}
-            shouldIconUseBackgroundColor={shouldIconUseBackgroundColor}
+            shouldUseButtonBackground={shouldUseButtonBackground}
         />
     );
 }
