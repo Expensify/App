@@ -255,7 +255,6 @@ function ExpensifyCardPage({
                                                     />
                                                 ) : undefined
                                             }
-                                            copiable
                                         />
                                         <DotIndicatorMessage
                                             messages={cardsDetailsErrors[card.cardID] ? {error: translate(cardsDetailsErrors[card.cardID] as TranslationPaths)} : {}}
