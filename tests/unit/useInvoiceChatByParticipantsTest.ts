@@ -27,40 +27,40 @@ const mockActiveIndividualInvoiceReport = {...createInvoiceRoom(activeReportID),
 const mockArchivedIndividualInvoiceReport = {...createInvoiceRoom(archivedReportID), invoiceReceiver: archivedIndividualReportInvoiceReceiver, policyID: mockPolicyID};
 
 describe('useInvoiceChatByParticipants', () => {
-    beforeAll(() => {
-        Onyx.init({keys: ONYXKEYS});
-    });
-
-    afterAll(() => {
-        Onyx.clear();
-    });
-
-    describe('Individual Invoice Reciever', () => {});
-
-    it('should return the invoice report when there is an active individual invoice report', async () => {
-        // Given that there is an active (not archived) individual invoice room with an invoice receiver
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockActiveIndividualInvoiceReport?.reportID}`, mockActiveIndividualInvoiceReport);
-
-        // When sending invoice to the same receiver from FAB flow (outside of invoice room)
-        const {result} = renderHook(({receiverID, receiverType, policyID}) => useInvoiceChatByParticipants(receiverID, receiverType, policyID), {
-            initialProps: {receiverID: accountID, receiverType: invoiceReceiver.type, policyID: mockPolicyID},
+    describe('Individual Invoice Reciever', () => {
+        beforeAll(() => {
+            Onyx.init({keys: ONYXKEYS});
         });
 
-        // Then invoice should be sent in the same invoice room
-        expect(result.current).toEqual(mockActiveIndividualInvoiceReport);
-    });
-
-    it('should return undefined when the invoice report is archived', async () => {
-        // Given that there is an archived individual invoice room with an invoice receiver
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockArchivedIndividualInvoiceReport?.reportID}`, mockArchivedIndividualInvoiceReport);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockArchivedIndividualInvoiceReport?.reportID}`, archivedReportNameValuePairs);
-
-        // When sending invoice to the same receiver from FAB flow (outside of invoice room)
-        const {result} = renderHook(({receiverID, receiverType, policyID}) => useInvoiceChatByParticipants(receiverID, receiverType, policyID), {
-            initialProps: {receiverID: archivedIndividualReportInvoiceReceiver.accountID, receiverType: archivedIndividualReportInvoiceReceiver.type, policyID: mockPolicyID},
+        afterAll(() => {
+            Onyx.clear();
         });
 
-        // Then invoice should not be sent in the archived invoice room
-        expect(result.current).toBeUndefined();
+        it('should return the invoice report when there is an active individual invoice report', async () => {
+            // Given that there is an active (not archived) individual invoice room with an invoice receiver
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockActiveIndividualInvoiceReport?.reportID}`, mockActiveIndividualInvoiceReport);
+
+            // When sending invoice to the same receiver from FAB flow (outside of invoice room)
+            const {result} = renderHook(({receiverID, receiverType, policyID}) => useInvoiceChatByParticipants(receiverID, receiverType, policyID), {
+                initialProps: {receiverID: accountID, receiverType: invoiceReceiver.type, policyID: mockPolicyID},
+            });
+
+            // Then invoice should be sent in the same invoice room
+            expect(result.current).toEqual(mockActiveIndividualInvoiceReport);
+        });
+
+        it('should return undefined when the invoice report is archived', async () => {
+            // Given that there is an archived individual invoice room with an invoice receiver
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockArchivedIndividualInvoiceReport?.reportID}`, mockArchivedIndividualInvoiceReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockArchivedIndividualInvoiceReport?.reportID}`, archivedReportNameValuePairs);
+
+            // When sending invoice to the same receiver from FAB flow (outside of invoice room)
+            const {result} = renderHook(({receiverID, receiverType, policyID}) => useInvoiceChatByParticipants(receiverID, receiverType, policyID), {
+                initialProps: {receiverID: archivedIndividualReportInvoiceReceiver.accountID, receiverType: archivedIndividualReportInvoiceReceiver.type, policyID: mockPolicyID},
+            });
+
+            // Then invoice should not be sent in the archived invoice room
+            expect(result.current).toBeUndefined();
+        });
     });
 });
