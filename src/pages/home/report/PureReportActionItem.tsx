@@ -689,9 +689,6 @@ function PureReportActionItem({
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID, exactlyMatch: true}), [report?.reportID]);
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
-        const actionOriginalMessage = getOriginalMessage(action);
-        const reportActionReportID = action.reportID ?? (actionOriginalMessage && 'reportID' in actionOriginalMessage && actionOriginalMessage.reportID) ?? reportID;
-        console.log('originalReportID',originalReportID);
         if (isActionableAddPaymentCard(action) && userBillingFundID === undefined && shouldRenderAddPaymentCard()) {
             return [
                 {
@@ -705,6 +702,8 @@ function PureReportActionItem({
             ];
         }
 
+        const reportActionReportID = originalReportID ?? reportID;
+        console.log('PureReportActionItem originalReportID', originalReportID, 'reportID', reportID, 'action.actionName', action.actionName);
         if (isConciergeCategoryOptions(action)) {
             const options = getOriginalMessage(action)?.options;
             if (!options) {
@@ -723,7 +722,7 @@ function PureReportActionItem({
                 text: `${i + 1} - ${option}`,
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
                 onPress: () => {
-                    resolveConciergeCategoryOptions(reportID, originalReportID, action.reportActionID, option);
+                    resolveConciergeCategoryOptions(reportActionReportID, action.reportActionID, option);
                 },
             }));
         }
