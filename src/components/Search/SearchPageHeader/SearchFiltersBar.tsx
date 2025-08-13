@@ -1,4 +1,5 @@
 import React, {useCallback, useMemo, useRef} from 'react';
+import type {ReactNode} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
@@ -47,9 +48,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
+import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {CurrencyList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
+
+type FilterItem = {
+    label: string;
+    PopoverComponent: (props: PopoverComponentProps) => ReactNode;
+    value: string | string[] | null;
+    filterKey: SearchAdvancedFiltersKey;
+};
 
 type SearchFiltersBarProps = {
     queryJSON: SearchQueryJSON;
@@ -380,7 +389,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
      * Builds the list of all filter chips to be displayed in the
      * filter bar
      */
-    const filters = useMemo(() => {
+    const filters = useMemo<FilterItem[]>(() => {
         const fromValue = filterFormValues.from?.map((accountID) => personalDetails?.[accountID]?.displayName ?? accountID) ?? [];
 
         // s77rt remove DEV lock
@@ -502,6 +511,13 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         feedOptions.length,
     ]);
 
+    const hiddenSelectedFilters = useMemo(() => {
+        const exposedFilters = filters.map((filter) => filter.filterKey);
+        return Object.entries(filterFormValues)
+            .filter(([key, value]) => value && !exposedFilters.includes(key as SearchAdvancedFiltersKey))
+            .map(([key]) => key);
+    }, [filterFormValues, filters]);
+
     if (hasErrors) {
         return null;
     }
@@ -564,7 +580,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                         link
                         small
                         shouldUseDefaultHover={false}
-                        text={translate('search.filtersHeader')}
+                        text={translate('search.filtersHeader') + (hiddenSelectedFilters.length > 0 ? ` (${hiddenSelectedFilters.length})` : '')}
                         iconFill={theme.link}
                         iconHoverFill={theme.linkHover}
                         icon={Expensicons.Filter}
