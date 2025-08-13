@@ -196,7 +196,7 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
         ) {
             filterValueString += `${delimiter}${sanitizeSearchValue(getUserFriendlyValue(queryFilter.value.toString()))}`;
         } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
-            filterValueString += `${delimiter}${sanitizeSearchValue(getUserFriendlyValue(queryFilter.value.toString()))}`;
+            filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else {
             filterValueString += ` ${filterName}${operatorToCharMap[queryFilter.operator]}${sanitizeSearchValue(getUserFriendlyValue(queryFilter.value.toString()))}`;
         }
