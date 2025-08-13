@@ -97,8 +97,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
                     "⚠️ Unable to fetch Mobile-Expensify PRs because this workflow is running on a forked repository and secrets aren't accessble. This is expected for development/testing on forks.",
                 );
             } else {
-                console.error('Failed to fetch Mobile-Expensify PRs from main repository:', error);
-                throw error;
+                console.error('Failed to fetch Mobile-Expensify PRs:', error);
             }
         }
 
