@@ -1,6 +1,5 @@
 import {fromUnixTime, isBefore} from 'date-fns';
 import groupBy from 'lodash/groupBy';
-import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
@@ -20,20 +19,28 @@ import {filterObject} from './ObjectUtils';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
 
-let allWorkspaceCards: OnyxCollection<WorkspaceCardsList> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allWorkspaceCards = value;
-    },
-});
-
 /**
  * @returns string with a month in MM format
  */
 function getMonthFromExpirationDateString(expirationDateString: string) {
     return expirationDateString.substring(0, 2);
+}
+
+/**
+ * Sorting logic for assigned cards.
+ *
+ * Ensure to sort physical Expensify cards first, no matter what their cardIDs are.
+ * This way ensures the Expensify Combo Card detail is rendered correctly,
+ * because we will always use the cardID of the physical card from the combo card duo.
+ *
+ * @param card - card to get the sort key for
+ * @returns number
+ */
+function getAssignedCardSortKey(card: Card): number {
+    if (!isExpensifyCard(card)) {
+        return 2;
+    }
+    return card?.nameValuePairs?.isVirtual ? 1 : 0;
 }
 
 /**
@@ -489,7 +496,7 @@ function isSelectedFeedExpired(directFeed: DirectCardFeedData | undefined): bool
 }
 
 /** Returns list of cards which can be assigned */
-function getFilteredCardList(list: WorkspaceCardsList | undefined, directFeed: DirectCardFeedData | undefined, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards) {
+function getFilteredCardList(list: WorkspaceCardsList | undefined, directFeed: DirectCardFeedData | undefined, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>) {
     const {cardList: customFeedCardsToAssign, ...cards} = list ?? {};
     const assignedCards = Object.values(cards).map((card) => card.cardName);
 
@@ -544,7 +551,7 @@ function filterInactiveCards(cards: CardList | undefined): CardList {
 
 function getAllCardsForWorkspace(
     workspaceAccountID: number,
-    allCardList: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards,
+    allCardList: OnyxCollection<WorkspaceCardsList>,
     cardFeeds?: CardFeeds,
     expensifyCardSettings?: OnyxCollection<ExpensifyCardSettings>,
 ): CardList {
@@ -634,14 +641,9 @@ function checkIfFeedConnectionIsBroken(feedCards: Record<string, Card> | undefin
 /**
  * Checks if an Expensify Card was issued for a given workspace.
  */
-function hasIssuedExpensifyCard(workspaceAccountID: number, allCardList: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards): boolean {
+function hasIssuedExpensifyCard(workspaceAccountID: number, allCardList: OnyxCollection<WorkspaceCardsList>): boolean {
     const cards = getAllCardsForWorkspace(workspaceAccountID, allCardList);
     return Object.values(cards).some((card) => card.bank === CONST.EXPENSIFY_CARD.BANK);
-}
-
-function hasCardListObject(workspaceAccountID: number, feedName: CompanyCardFeed): boolean {
-    const workspaceCards = allWorkspaceCards?.[`cards_${workspaceAccountID}_${feedName}`] ?? {};
-    return !!workspaceCards.cardList;
 }
 
 /**
@@ -663,6 +665,7 @@ function getFundIdFromSettingsKey(key: string) {
 }
 
 export {
+    getAssignedCardSortKey,
     isExpensifyCard,
     getDomainCards,
     formatCardExpiration,
@@ -702,7 +705,6 @@ export {
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
     hasIssuedExpensifyCard,
-    hasCardListObject,
     isExpensifyCardFullySetUp,
     filterInactiveCards,
     getFundIdFromSettingsKey,
