@@ -210,6 +210,7 @@ import type {
     StripePaidParams,
     SubmitsToParams,
     SubmittedToVacationDelegateParams,
+    SubmittedWithMemoParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -313,7 +314,7 @@ const translations = {
         no: 'Nie',
         ok: 'OK',
         notNow: 'Nie teraz',
-        learnMore: 'Dowiedz się więcej.',
+        learnMore: 'Dowiedz się więcej',
         buttonConfirm: 'Zrozumiałem.',
         name: 'Imię',
         attachment: 'Załącznik',
@@ -1167,7 +1168,7 @@ const translations = {
         sendInvoice: ({amount}: RequestAmountParams) => `Wyślij fakturę na kwotę ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `Zatwierdź ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `dla ${comment}` : ''}`,
-        submitted: `przesłano`,
+        submitted: ({memo}: SubmittedWithMemoParams) => `przesłano${memo ? `, mówiąc ${memo}` : ''}`,
         automaticallySubmitted: `przesłane za pomocą <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">opóźnij zgłoszenia</a>`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `śledzenie ${formattedAmount}${comment ? `dla ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `podziel ${amount}`,
@@ -3499,7 +3500,7 @@ const translations = {
                 `Ponieważ wcześniej połączyłeś się z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, możesz wybrać ponowne użycie istniejącego połączenia lub utworzyć nowe.`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Ostatnia synchronizacja ${formattedDate}`,
             authenticationError: ({connectionName}: AuthenticationErrorParams) => `Nie można połączyć się z ${connectionName} z powodu błędu uwierzytelniania.`,
-            learnMore: 'Dowiedz się więcej.',
+            learnMore: 'Dowiedz się więcej',
             memberAlternateText: 'Członkowie mogą składać i zatwierdzać raporty.',
             adminAlternateText: 'Administratorzy mają pełny dostęp do edycji wszystkich raportów i ustawień przestrzeni roboczej.',
             auditorAlternateText: 'Audytorzy mogą przeglądać i komentować raporty.',
@@ -6498,7 +6499,7 @@ const translations = {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Kwota przekracza limit ${formattedLimit}/osobę`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Kwota przekracza dzienny limit ${formattedLimit}/osoba dla kategorii`,
         receiptNotSmartScanned:
-            'Paragon i szczegóły wydatku dodane ręcznie. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Dowiedz się więcej.</a>',
+            'Paragon i szczegóły wydatku dodane ręcznie. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Dowiedz się więcej</a>.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Wymagany paragon';
             if (formattedLimit ?? category) {

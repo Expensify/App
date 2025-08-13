@@ -5164,7 +5164,7 @@ function getReportNameInternal({
         if (harvesting) {
             return translateLocal('iou.automaticallySubmitted');
         }
-        return translateLocal('iou.submitted');
+        return translateLocal('iou.submitted', {memo: getOriginalMessage(parentReportAction)?.message});
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
         const {automaticAction} = getOriginalMessage(parentReportAction) ?? {};
