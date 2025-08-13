@@ -395,6 +395,18 @@ describe('ReportActionsUtils', () => {
             },
         };
 
+        const linkedPayActionWithIOUDetails = {
+            ...mockIOUAction,
+            originalMessage: {
+                ...getOriginalMessage(mockIOUAction),
+                IOUTransactionID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                IOUDetails: {
+                    amount: mockIOUAction.originalMessage?.amount,
+                },
+            },
+        };
+
         it('should return the childReportID for a valid single IOU action', () => {
             const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedCreateAction], false, [IOUTransactionID]);
             expect(result).toEqual(linkedCreateAction.childReportID);
@@ -413,6 +425,11 @@ describe('ReportActionsUtils', () => {
         it('should skip actions where original message type is PAY', () => {
             const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedPayAction, linkedCreateAction], false, [IOUTransactionID]);
             expect(result).toEqual(linkedCreateAction.childReportID);
+        });
+
+        it('should return the childReportID if original message type is PAY with IOUDetails', () => {
+            const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedPayActionWithIOUDetails], false, [IOUTransactionID]);
+            expect(result).toEqual(linkedPayActionWithIOUDetails.childReportID);
         });
 
         it('should return undefined if no valid IOU actions are present', () => {
