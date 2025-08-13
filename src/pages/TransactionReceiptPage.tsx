@@ -16,19 +16,20 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type TransactionReceiptProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSACTION_RECEIPT>;
+type TransactionReceiptProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSACTION_RECEIPT | typeof SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW>;
 
 function TransactionReceipt({route}: TransactionReceiptProps) {
     const reportID = route.params.reportID;
     const transactionID = route.params.transactionID;
-    const action = route.params.action;
+    const {action, iouType} = 'action' in route.params ? {action: route.params.action, iouType: route.params.iouType} : {};
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [transactionMain] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [reportMetadata = CONST.DEFAULT_REPORT_METADATA] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: true});
 
     // If we have a merge transaction, we need to use the receipt from the merge transaction
-    const mergeTransactionID = route.params.mergeTransactionID;
+    const {mergeTransactionID, isFromReviewDuplicates} =
+        'mergeTransactionID' in route.params ? {mergeTransactionID: route.params.mergeTransactionID, isFromReviewDuplicates: route.params.isFromReviewDuplicates === 'true'} : {};
     const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, {canBeMissing: true});
     if (mergeTransactionID && mergeTransaction && transactionMain) {
         transactionMain.receipt = mergeTransaction.receipt;
@@ -39,7 +40,6 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
     const receiptURIs = getThumbnailAndImageURIs(transaction);
     const isLocalFile = receiptURIs.isLocalFile;
     const readonly = route.params.readonly === 'true';
-    const isFromReviewDuplicates = route.params.isFromReviewDuplicates === 'true';
     const imageSource = isDraftTransaction ? transactionDraft?.receipt?.source : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
@@ -47,7 +47,6 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
     const canDeleteReceipt = canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, true);
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
     const isTrackExpenseAction = isTrackExpenseReportReportActionsUtils(parentReportAction);
-    const iouType = route.params.iouType;
 
     useEffect(() => {
         if ((!!report && !!transaction) || isDraftTransaction) {
