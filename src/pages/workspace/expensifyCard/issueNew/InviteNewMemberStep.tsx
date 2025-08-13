@@ -54,7 +54,7 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails}: Invite
         >
             <WorkspaceInviteMessageComponent
                 policy={policy}
-                policyID={policyID ?? ''}
+                policyID={policyID}
                 backTo={undefined}
                 currentUserPersonalDetails={currentUserPersonalDetails}
                 shouldShowBackButton={false}

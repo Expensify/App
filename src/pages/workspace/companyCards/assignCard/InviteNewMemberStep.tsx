@@ -24,10 +24,11 @@ type InviteeNewMemberStepProps = WithPolicyAndFullscreenLoadingProps &
 function InviteNewMemberStep({policy, route, currentUserPersonalDetails, feed}: InviteeNewMemberStepProps) {
     const {translate} = useLocalize();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const isEditing = assignCard?.isEditing;
     const [list] = useCardsList(policy?.id, feed);
     const [cardFeeds] = useCardFeeds(policy?.id);
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed]);
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -78,7 +79,7 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails, feed}: 
         >
             <WorkspaceInviteMessageComponent
                 policy={policy}
-                policyID={route.params.policyID ?? ''}
+                policyID={route.params.policyID}
                 backTo={undefined}
                 currentUserPersonalDetails={currentUserPersonalDetails}
                 shouldShowBackButton={false}
