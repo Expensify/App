@@ -11602,7 +11602,7 @@ async function run() {
         }
         catch (error) {
             // Check if this is a forked repository
-            if (process.env.GITHUB_REPOSITORY !== CONST_1.default.APP_REPO) {
+            if (process.env.GITHUB_REPOSITORY !== `${CONST_1.default.GITHUB_OWNER}/${CONST_1.default.APP_REPO}`) {
                 console.warn("⚠️ Unable to fetch Mobile-Expensify PRs because this workflow is running on a forked repository and secrets aren't accessble. This is expected for development/testing on forks.");
             }
             else {

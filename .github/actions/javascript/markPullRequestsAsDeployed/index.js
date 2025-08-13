@@ -12814,7 +12814,7 @@ async function commentStagingDeployPRs(prList, repoName, recentTags, getDeployMe
             if (error.status === 404) {
                 console.log(`Unable to comment on ${repoName} PR #${prNumber}. GitHub responded with 404.`);
             }
-            else if (repoName === CONST_1.default.MOBILE_EXPENSIFY_REPO && process.env.GITHUB_REPOSITORY !== CONST_1.default.APP_REPO) {
+            else if (repoName === CONST_1.default.MOBILE_EXPENSIFY_REPO && process.env.GITHUB_REPOSITORY !== `${CONST_1.default.GITHUB_OWNER}/${CONST_1.default.APP_REPO}`) {
                 console.warn(`Unable to comment on ${repoName} PR #${prNumber} from forked repository. This is expected.`);
             }
             else {
@@ -12897,7 +12897,7 @@ async function run() {
             mobileExpensifyRecentTags = response.data;
         }
         catch (error) {
-            if (process.env.GITHUB_REPOSITORY !== CONST_1.default.APP_REPO) {
+            if (process.env.GITHUB_REPOSITORY !== `${CONST_1.default.GITHUB_OWNER}/${CONST_1.default.APP_REPO}`) {
                 console.warn('Unable to fetch Mobile-Expensify tags from forked repository. This is expected.');
             }
             else {
