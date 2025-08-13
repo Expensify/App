@@ -197,6 +197,7 @@ function MoneyRequestReportActionsList({
         allTransactionsLength: transactions.length,
         session,
         onExportFailed: () => setIsDownloadErrorModalVisible(true),
+        policy,
         beginExportWithTemplate: (templateName, templateType, transactionIDList) => beginExportWithTemplate(templateName, templateType, transactionIDList),
     });
 
@@ -737,7 +738,10 @@ function MoneyRequestReportActionsList({
                 onClose={() => setIsDownloadErrorModalVisible(false)}
             />
             <ConfirmModal
-                onConfirm={() => setIsExportWithTemplateModalVisible(false)}
+                onConfirm={() => {
+                    setIsExportWithTemplateModalVisible(false);
+                    clearSelectedTransactions(undefined, true);
+                }}
                 isVisible={isExportWithTemplateModalVisible}
                 title={translate('export.exportInProgress')}
                 prompt={translate('export.conciergeWillSend')}
