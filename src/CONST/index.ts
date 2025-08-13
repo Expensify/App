@@ -3175,7 +3175,7 @@ const CONST = {
             BREX: 'oauth.brex.com',
             WELLS_FARGO: 'oauth.wellsfargo.com',
             AMEX_DIRECT: 'oauth.americanexpressfdx.com',
-            CSV: '_ccupload',
+            CSV: 'ccupload',
         },
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
