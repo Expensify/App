@@ -881,7 +881,7 @@ describe('actions/PolicyTax', () => {
                                 Onyx.disconnect(connection);
                                 const taxRates = policy?.taxRates;
                                 const updatedTaxRate = taxRates?.taxes?.[newTaxCode];
-                                
+
                                 // We expected to have a new tax rate with the new tax code
                                 expect(updatedTaxRate).toBeDefined();
                                 expect(updatedTaxRate?.previousTaxCode).toBe(oldTaxCode);
