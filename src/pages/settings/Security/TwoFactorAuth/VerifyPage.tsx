@@ -35,8 +35,9 @@ type VerifyPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList,
 function VerifyPage({route}: VerifyPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const contactMethod = getContactMethod();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const contactMethod = getContactMethod(account?.primaryLogin, session?.email);
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
 
     useEffect(() => {
