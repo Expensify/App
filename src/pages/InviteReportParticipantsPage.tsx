@@ -38,7 +38,7 @@ type Sections = Array<SectionListData<OptionData, Section<OptionData>>>;
 function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteReportParticipantsPageProps) {
     const route = useRoute<PlatformStackRouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.INVITE>>();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(() => {
@@ -140,9 +140,9 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
             }
             invitedEmailsToAccountIDs[login] = accountID;
         });
-        inviteToGroupChat(reportID, invitedEmailsToAccountIDs);
+        inviteToGroupChat(reportID, invitedEmailsToAccountIDs, formatPhoneNumber);
         goBack();
-    }, [selectedOptions, goBack, reportID, validate]);
+    }, [selectedOptions, goBack, reportID, validate, formatPhoneNumber]);
 
     const headerMessage = useMemo(() => {
         const processedLogin = searchTerm.trim().toLowerCase();
