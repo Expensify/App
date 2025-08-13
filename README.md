@@ -1035,6 +1035,3 @@ The main things to look at for the `canBeMissing` param are:
 - Where/who loads the data? If the data is always ensured to be loaded before this component renders, then `canBeMissing` would be set to `false`. So any data that is always returned by `OpenApp` used in a component where we have a user (so not in the homepage for example) will have `canBeMissing` set to `false`
 - Will the user always have data? Maybe we always try to load a piece of data, but the data can be missing/empty, in this case `canBeMissing` would be set to `false`
 - If neither of above, then the param should probably be `true`, but additionally we need to make sure that the code using the data manages correctly the fact that the data might be missing
-
-
-
