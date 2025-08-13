@@ -620,7 +620,7 @@ const translations = {
         headsUp: '¡Atención!',
         merge: 'Fusionar',
         unstableInternetConnection: 'Conexión a internet inestable. Por favor, revisa tu red e inténtalo de nuevo.',
-        enableGlobalReimbursements: 'Habilitar reembolsos globales',
+        enableGlobalReimbursements: 'Habilitar Reembolsos Globales',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
