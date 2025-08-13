@@ -7,8 +7,9 @@ import {fetchCorpayFields} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-function CountrySelection({isEditing, onNext, formValues, resetScreenIndex}: CustomSubStepProps) {
+function CountrySelection({isEditing, onNext, formValues, resetScreenIndex, fieldsMap}: CustomSubStepProps) {
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: (account) => account?.validated,
         canBeMissing: false,
@@ -24,14 +25,14 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex}: Cus
                 }
                 return;
             }
-            if (isEditing && formValues.bankCountry === country) {
+            if (!isEmptyObject(fieldsMap) && formValues.bankCountry === country) {
                 onNext();
                 return;
             }
             fetchCorpayFields(country);
             resetScreenIndex?.(CONST.CORPAY_FIELDS.INDEXES.MAPPING.BANK_ACCOUNT_DETAILS);
         },
-        [formValues.bankCountry, isEditing, onNext, resetScreenIndex, isUserValidated],
+        [formValues.bankCountry, fieldsMap, onNext, resetScreenIndex, isUserValidated],
     );
 
     const countries = useMemo(() => Object.keys(CONST.ALL_COUNTRIES).filter((countryISO) => !CONST.CORPAY_FIELDS.EXCLUDED_COUNTRIES.includes(countryISO)), []);

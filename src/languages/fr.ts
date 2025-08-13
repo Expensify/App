@@ -482,6 +482,7 @@ const translations = {
         message: 'Message',
         leaveThread: 'Quitter le fil de discussion',
         you: 'Vous',
+        me: 'moi',
         youAfterPreposition: 'vous',
         your: 'votre',
         conciergeHelp: "Veuillez contacter Concierge pour obtenir de l'aide.",
@@ -634,6 +635,7 @@ const translations = {
         getTheApp: "Obtenez l'application",
         scanReceiptsOnTheGo: 'Numérisez les reçus depuis votre téléphone',
         headsUp: 'Attention !',
+        merge: 'Fusionner',
         unstableInternetConnection: 'Connexion Internet instable. Veuillez vérifier votre réseau et réessayer.',
     },
     supportalNoAccess: {
@@ -854,17 +856,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `Ce salon de discussion est destiné à tout ce qui concerne <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `Ce chat concerne les factures entre <strong>${invoicePayer}</strong> et <strong>${invoiceReceiver}</strong>. Utilisez le bouton <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> pour envoyer une facture.`,
+            `Ce chat concerne les factures entre <strong>${invoicePayer}</strong> et <strong>${invoiceReceiver}</strong>. Utilisez le bouton + pour envoyer une facture.`,
         beginningOfChatHistory: 'Ce chat est avec',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `C'est ici que <strong>${submitterDisplayName}</strong> soumettra ses dépenses à <strong>${workspaceName}</strong>. Il suffit d'utiliser le bouton <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>.`,
+            `C'est ici que <strong>${submitterDisplayName}</strong> soumettra ses dépenses à <strong>${workspaceName}</strong>. Il suffit d'utiliser le bouton +.`,
         beginningOfChatHistorySelfDM: "C'est votre espace personnel. Utilisez-le pour des notes, des tâches, des brouillons et des rappels.",
         beginningOfChatHistorySystemDM: 'Bienvenue ! Commençons votre configuration.',
         chatWithAccountManager: 'Discutez avec votre gestionnaire de compte ici',
         sayHello: 'Dites bonjour !',
         yourSpace: 'Votre espace',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Bienvenue dans ${roomName} !`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `Utilisez le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} pour ${additionalText} une dépense.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => `Utilisez le bouton + pour ${additionalText} une dépense.`,
         askConcierge: 'Posez des questions et obtenez une assistance en temps réel 24h/24 et 7j/7.',
         conciergeSupport: 'Support 24h/24 et 7j/7',
         create: 'créer',
@@ -884,6 +886,7 @@ const translations = {
         hereAlternateText: 'Notifier tout le monde dans cette conversation',
     },
     newMessages: 'Nouveaux messages',
+    latestMessages: 'Derniers messages',
     youHaveBeenBanned: 'Remarque : Vous avez été banni de la discussion dans ce canal.',
     reportTypingIndicator: {
         isTyping: 'est en train de taper...',
@@ -1360,6 +1363,31 @@ const translations = {
         rates: 'Tarifs',
         submitsTo: ({name}: SubmitsToParams) => `Soumet à ${name}`,
         moveExpenses: () => ({one: 'Déplacer la dépense', other: 'Déplacer les dépenses'}),
+    },
+    transactionMerge: {
+        listPage: {
+            header: 'Fusionner les dépenses',
+            noEligibleExpenseFound: 'Aucune dépense éligible trouvée',
+            noEligibleExpenseFoundSubtitle: `Vous n’avez aucune dépense pouvant être fusionnée avec celle-ci. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">En savoir plus</a> sur les dépenses éligibles.`,
+            selectTransactionToMerge: ({reportName}: {reportName: string}) =>
+                `Sélectionnez une <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">dépense éligible</a> à fusionner <strong>${reportName}</strong>.`,
+        },
+        receiptPage: {
+            header: 'Sélectionner le reçu',
+            pageTitle: 'Sélectionnez le reçu à conserver :',
+        },
+        detailsPage: {
+            header: 'Sélectionner les détails',
+            pageTitle: 'Sélectionnez les détails à conserver :',
+            noDifferences: 'Aucune différence trouvée entre les transactions',
+            pleaseSelectError: ({field}: {field: string}) => `Veuillez sélectionner un/une ${field}`,
+            selectAllDetailsError: 'Sélectionnez tous les détails avant de continuer.',
+        },
+        confirmationPage: {
+            header: 'Confirmer les détails',
+            pageTitle: 'Confirmez les détails que vous gardez. Les autres seront supprimés.',
+            confirmButton: 'Fusionner les dépenses',
+        },
     },
     share: {
         shareToExpensify: 'Partager sur Expensify',
@@ -3405,6 +3433,7 @@ const translations = {
             travel: 'Voyage',
             members: 'Membres',
             accounting: 'Comptabilité',
+            receiptPartners: 'Partenaires de reçus',
             rules: 'Règles',
             displayedAs: 'Affiché comme',
             plan: 'Planification',
@@ -3495,6 +3524,11 @@ const translations = {
             viewTransactions: 'Voir les transactions',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Les dépenses de ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Les transactions Expensify Card seront automatiquement exportées vers un « Expensify Card Liability Account » créé avec <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">notre intégration</a>.</muted-text-label>`,
+        },
+        receiptPartners: {
+            uber: {
+                subtitle: 'Automatisez les dépenses de déplacement et de livraison de repas dans toute votre organisation.',
+            },
         },
         perDiem: {
             subtitle: 'Définissez des taux de per diem pour contrôler les dépenses quotidiennes des employés.',
@@ -4625,11 +4659,20 @@ const translations = {
                 title: 'Comptabilité',
                 subtitle: 'Synchronisez votre plan comptable et plus encore.',
             },
+            receiptPartners: {
+                title: 'Partenaires de reçus',
+                subtitle: 'Importer automatiquement les reçus.',
+            },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Pas si vite...',
                 featureEnabledText: "Pour activer ou désactiver cette fonctionnalité, vous devrez modifier vos paramètres d'importation comptable.",
                 disconnectText: 'Pour désactiver la comptabilité, vous devrez déconnecter votre connexion comptable de votre espace de travail.',
                 manageSettings: 'Gérer les paramètres',
+            },
+            receiptPartnersWarningModal: {
+                featureEnabledTitle: 'Déconnecter Uber',
+                disconnectText: "Pour désactiver cette fonctionnalité, veuillez d'abord déconnecter l'intégration Uber for Business.",
+                confirmText: 'Compris',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Pas si vite...',
@@ -5905,7 +5948,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'Rien à afficher',
-                subtitle: `Essayez d'ajuster vos critères de recherche ou de créer quelque chose avec le bouton vert ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.`,
+                subtitle: "Essayez d'ajuster vos critères de recherche ou de créer quelque chose avec le bouton vert +.",
             },
             emptyExpenseResults: {
                 title: "Vous n'avez pas encore créé de dépenses.",
@@ -6011,6 +6054,7 @@ const translations = {
             paid: 'Date de paiement',
             exported: 'Date exportée',
             posted: 'Date de publication',
+            withdrawn: 'Date de retrait',
             billable: 'Facturable',
             reimbursable: 'Remboursable',
             groupBy: {
@@ -6019,6 +6063,10 @@ const translations = {
                 cards: 'Carte',
             },
             feed: 'Flux',
+            withdrawalType: {
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Remboursement',
+            },
         },
         groupBy: 'Groupe par',
         moneyRequestReport: {
@@ -6028,6 +6076,7 @@ const translations = {
         noCategory: 'Aucune catégorie',
         noTag: 'Aucun tag',
         expenseType: 'Type de dépense',
+        withdrawalType: 'Type de retrait',
         recentSearches: 'Recherches récentes',
         recentChats: 'Discussions récentes',
         searchIn: 'Rechercher dans',
@@ -6303,8 +6352,7 @@ const translations = {
         levelThreeResult: 'Message supprimé du canal avec un avertissement anonyme et le message est signalé pour examen.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Inviter à soumettre des dépenses',
-        inviteToChat: 'Inviter uniquement à discuter',
+        invite: 'Invitez-les',
         nothing: 'Ne rien faire',
     },
     actionableMentionJoinWorkspaceOptions: {
