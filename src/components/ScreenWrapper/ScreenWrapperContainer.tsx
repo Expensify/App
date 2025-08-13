@@ -1,5 +1,5 @@
 import type {ForwardedRef, ReactNode} from 'react';
-import React, {forwardRef, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
@@ -81,6 +81,9 @@ type ScreenWrapperContainerProps = React.PropsWithChildren<{
      * Whether the screen is focused. (Only passed if wrapped in ScreenWrapper)
      */
     isFocused?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<View>;
 }>;
 
 function ScreenWrapperContainer(
@@ -104,8 +107,8 @@ function ScreenWrapperContainer(
         includePaddingTop = true,
         includeSafeAreaPaddingBottom = false,
         isFocused = true,
+        ref,
     }: ScreenWrapperContainerProps,
-    ref: ForwardedRef<View>,
 ) {
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
     const {initialHeight} = useInitialDimensions();
@@ -205,6 +208,7 @@ function ScreenWrapperContainer(
             testID={testID}
         >
             <View
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
                 fsClass={CONST.FULLSTORY.CLASS.UNMASK}
                 style={[style, paddingTopStyle]}
                 // eslint-disable-next-line react/jsx-props-no-spreading, react-compiler/react-compiler
@@ -233,5 +237,5 @@ function ScreenWrapperContainer(
 }
 ScreenWrapperContainer.displayName = 'ScreenWrapperContainer';
 
-export default React.memo(forwardRef(ScreenWrapperContainer));
+export default React.memo(ScreenWrapperContainer);
 export type {ScreenWrapperContainerProps};
