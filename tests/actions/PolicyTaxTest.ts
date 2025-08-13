@@ -852,9 +852,9 @@ describe('actions/PolicyTax', () => {
         });
     });
     describe('SetPolicyTaxCode', () => {
-        const oldtaxCode = 'id_TAX_RATE_1';
+        const oldTaxCode = 'id_TAX_RATE_1';
         const newTaxCode = 'id_TAX_RATE_2';
-        const oldTaxRateName = fakePolicy?.taxRates?.taxes[oldtaxCode]?.name;
+        const oldTaxRateName = fakePolicy?.taxRates?.taxes[oldTaxCode]?.name;
 
         it('Set policy`s tax code', () => {
             mockFetch?.pause?.();
@@ -862,10 +862,10 @@ describe('actions/PolicyTax', () => {
 
             setPolicyTaxCode(
                 fakePolicy.id,
-                oldtaxCode,
+                oldTaxCode,
                 newTaxCode,
                 // @ts-expect-error - we can send undefined tax rate here for testing
-                fakePolicy?.taxRates?.taxes[oldtaxCode],
+                fakePolicy?.taxRates?.taxes[oldTaxCode],
                 fakePolicy?.taxRates?.foreignTaxDefault,
                 fakePolicy?.taxRates?.defaultExternalID,
                 distanceRateCustomUnit,
@@ -884,7 +884,7 @@ describe('actions/PolicyTax', () => {
                                 
                                 // We expected to have a new tax rate with the new tax code
                                 expect(updatedTaxRate).toBeDefined();
-                                expect(updatedTaxRate?.previousTaxCode).toBe(oldtaxCode);
+                                expect(updatedTaxRate?.previousTaxCode).toBe(oldTaxCode);
                                 expect(updatedTaxRate?.name).toBe(oldTaxRateName);
                                 resolve();
                             },
