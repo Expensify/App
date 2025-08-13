@@ -28,6 +28,7 @@ import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsAction
 import useThemeStyles from '@hooks/useThemeStyles';
 import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 import DateUtils from '@libs/DateUtils';
+import {parseFSAttributes} from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -587,6 +588,9 @@ function MoneyRequestReportActionsList({
         [reportScrollManager],
     );
     const reportHasComments = visibleReportActions.length > 0;
+
+    // Parse Fullstory attributes on initial render
+    useLayoutEffect(parseFSAttributes, []);
 
     /**
      * Runs when the FlatList finishes laying out

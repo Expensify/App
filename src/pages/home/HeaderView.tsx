@@ -277,7 +277,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                 >
                                     {shouldShowSubscript ? multipleAvatars : <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>{multipleAvatars}</OfflineWithFeedback>}
                                     <View
-                                        fsClass={CONST.FULLSTORY.CLASS.UNMASK}
+                                        fsClass="fs-unmask"
                                         style={[styles.flex1, styles.flexColumn]}
                                     >
                                         <CaretWrapper>

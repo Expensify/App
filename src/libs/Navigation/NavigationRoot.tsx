@@ -1,5 +1,5 @@
-import type {NavigationState} from '@react-navigation/native';
 import {DarkTheme, DefaultTheme, findFocusedRoute, getPathFromState, NavigationContainer} from '@react-navigation/native';
+import type {NavigationState} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useCurrentReportID from '@hooks/useCurrentReportID';
@@ -9,7 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemePreference from '@hooks/useThemePreference';
 import Firebase from '@libs/Firebase';
-import FS from '@libs/Fullstory';
+import {FSPage} from '@libs/Fullstory';
 import Log from '@libs/Log';
 import {hasCompletedGuidedSetupFlowSelector, wasInvitedToNewDotSelector} from '@libs/onboardingSelectors';
 import shouldOpenLastVisitedPath from '@libs/shouldOpenLastVisitedPath';
@@ -81,7 +81,7 @@ function parseAndLogRoute(state: NavigationState) {
     // Fullstory Page navigation tracking
     const focusedRouteName = focusedRoute?.name;
     if (focusedRouteName) {
-        new FS.Page(focusedRouteName, {path: currentPath}).start();
+        new FSPage(focusedRouteName, {path: currentPath}).start();
     }
 }
 

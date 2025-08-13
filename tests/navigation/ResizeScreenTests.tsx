@@ -26,6 +26,7 @@ jest.mock('@libs/Fullstory', () => ({
     default: {
         consentAndIdentify: jest.fn(),
     },
+    parseFSAttributes: jest.fn(),
 }));
 
 const INITIAL_STATE = {

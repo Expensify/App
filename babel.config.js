@@ -55,6 +55,7 @@ if (!process.env.ELECTRON_ENV && process.env.npm_lifecycle_event !== 'desktop') 
     defaultPluginsForWebpack.push([
         '@fullstory/babel-plugin-annotate-react',
         {
+            'react-native-web': true,
             native: true,
         },
     ]);

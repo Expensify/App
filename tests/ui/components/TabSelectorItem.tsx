@@ -9,6 +9,7 @@ jest.mock('@libs/Fullstory', () => ({
     default: {
         consentAndIdentify: jest.fn(),
     },
+    parseFSAttributes: jest.fn(),
 }));
 
 describe('TabSelectorItem Component', () => {
