@@ -169,20 +169,7 @@ function useSearchSelector({
                 );
                 break;
             case 'getAttendeeOptions':
-                baseOptions = getAttendeeOptions(
-                    options.reports,
-                    personalDetailsWithContacts,
-                    betas ?? [],
-                    [],
-                    [],
-                    false,
-                    true,
-                    false,
-                    undefined,
-                    debouncedSearchTerm,
-                    maxResults,
-                    includeUserToInvite,
-                );
+                baseOptions = getAttendeeOptions(options.reports, personalDetailsWithContacts, betas ?? [], [], [], false, undefined, debouncedSearchTerm, maxResults, includeUserToInvite);
                 break;
             case 'getShareLogOptions':
                 baseOptions = getShareLogOptions(optionsWithContacts, betas ?? [], debouncedSearchTerm, maxResults, includeUserToInvite);

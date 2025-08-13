@@ -2144,8 +2144,6 @@ function getAttendeeOptions(
     attendees: Attendee[],
     recentAttendees: Attendee[],
     includeOwnedWorkspaceChats = false,
-    includeP2P = true,
-    includeInvoiceRooms = false,
     action: IOUAction | undefined = undefined,
     searchString = '',
     maxElements?: number,
@@ -2187,10 +2185,10 @@ function getAttendeeOptions(
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             includeOwnedWorkspaceChats,
             includeRecentReports: false,
-            includeP2P,
+            includeP2P: true,
             includeSelectedOptions: false,
             includeSelfDM: false,
-            includeInvoiceRooms,
+            includeInvoiceRooms: false,
             action,
             recentAttendees: filteredRecentAttendees,
             searchString,
@@ -2796,4 +2794,4 @@ export {
     sortAlphabetically,
 };
 
-export type {MemberForList, Option, OptionList, OptionTree, Options, ReportAndPersonalDetailOptions, SearchOption, Section, SectionBase, GetValidOptionsConfig};
+export type {MemberForList, Option, OptionList, OptionTree, Options, ReportAndPersonalDetailOptions, SearchOption, Section, SectionBase, GetOptionsConfig};
