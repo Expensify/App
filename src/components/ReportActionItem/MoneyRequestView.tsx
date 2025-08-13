@@ -1,8 +1,10 @@
+import {Str} from 'expensify-common';
 import mapValues from 'lodash/mapValues';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
+import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -20,6 +22,8 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import useViolations from '@hooks/useViolations';
@@ -53,10 +57,13 @@ import type {TransactionDetails} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
+    getAmount,
     getBillable,
+    getCurrency,
     getDescription,
     getDistanceInMeters,
     getOriginalTransactionWithSplitInfo,
+    getReimbursable,
     getTagForDisplay,
     getTaxName,
     hasMissingSmartscanFields,
@@ -72,7 +79,7 @@ import {
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
-import {cleanUpMoneyRequest, updateMoneyRequestBillable} from '@userActions/IOU';
+import {cleanUpMoneyRequest, updateMoneyRequestBillable, updateMoneyRequestReimbursable} from '@userActions/IOU';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {clearError, getLastModifiedExpense, revert} from '@userActions/Transaction';
@@ -104,8 +111,11 @@ type MoneyRequestViewProps = {
     /** whether or not this report is from review duplicates */
     isFromReviewDuplicates?: boolean;
 
-    /** Updated transaction to show in duplicate transaction flow  */
+    /** Updated transaction to show in duplicate & merge transaction flow  */
     updatedTransaction?: OnyxEntry<OnyxTypes.Transaction>;
+
+    /** Merge transaction ID to show in merge transaction flow */
+    mergeTransactionID?: string;
 };
 
 const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
@@ -119,8 +129,19 @@ const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
 
 const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
 
-function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
+function MoneyRequestView({
+    allReports,
+    report,
+    policy,
+    shouldShowAnimatedBackground,
+    readonly = false,
+    updatedTransaction,
+    isFromReviewDuplicates = false,
+    mergeTransactionID,
+}: MoneyRequestViewProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -164,6 +185,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
         currency: transactionCurrency,
         comment: transactionDescription,
         merchant: transactionMerchant,
+        reimbursable: transactionReimbursable,
         billable: transactionBillable,
         category: transactionCategory,
         tag: transactionTag,
@@ -178,9 +200,13 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
-    const shouldDisplayTransactionAmount = ((isDistanceRequest && hasRoute) || !!transactionAmount) && transactionAmount !== undefined;
-    const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(transactionAmount, transactionCurrency) : '';
-    const formattedPerAttendeeAmount = shouldDisplayTransactionAmount ? convertToDisplayString(transactionAmount / (transactionAttendees?.length ?? 1), transactionCurrency) : '';
+
+    const actualAmount = updatedTransaction ? getAmount(updatedTransaction) : transactionAmount;
+    const actualCurrency = updatedTransaction ? getCurrency(updatedTransaction) : transactionCurrency;
+    const shouldDisplayTransactionAmount = ((isDistanceRequest && hasRoute) || !!actualAmount) && actualAmount !== undefined;
+    const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount, actualCurrency) : '';
+    const formattedPerAttendeeAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount / (transactionAttendees?.length ?? 1), actualCurrency) : '';
+
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
     const cardProgramName = getCompanyCardDescription(transaction?.cardName, transaction?.cardID, cardList);
@@ -196,9 +222,12 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
     const taxRatesDescription = taxRates?.name;
     const taxRateTitle = updatedTransaction ? getTaxName(policy, updatedTransaction) : getTaxName(policy, transaction);
 
+    const fallbackTaxRateTitle = transaction?.taxValue;
+
     const isSettled = isSettledReportUtils(moneyRequestReport?.reportID);
     const isCancelled = moneyRequestReport && moneyRequestReport?.isCancelledIOU;
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
+    const shouldShowPaid = isSettled && transactionReimbursable;
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
@@ -242,6 +271,8 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowTag = isPolicyExpenseChat && (transactionTag || hasEnabledTags(policyTagLists));
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true) || !!updatedTransaction?.billable);
+    const shouldShowReimbursable = isPolicyExpenseChat && !policy?.disabledFields?.reimbursable && !isCardTransaction && !isInvoice;
+    const canEditReimbursable = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE);
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
@@ -291,6 +322,17 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
         [transaction, report, policy, policyTagList, policyCategories],
     );
 
+    const saveReimbursable = useCallback(
+        (newReimbursable: boolean) => {
+            // If the value hasn't changed, don't request to save changes on the server and just close the modal
+            if (newReimbursable === getReimbursable(transaction) || !transaction?.transactionID || !report?.reportID) {
+                return;
+            }
+            updateMoneyRequestReimbursable(transaction.transactionID, report?.reportID, newReimbursable, policy, policyTagList, policyCategories);
+        },
+        [transaction, report, policy, policyTagList, policyCategories],
+    );
+
     if (isCardTransaction) {
         if (transactionPostedDate) {
             dateDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.posted')} ${transactionPostedDate}`;
@@ -312,7 +354,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         } else if (isApproved) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
-        } else if (isSettled) {
+        } else if (shouldShowPaid) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.settledExpensify')}`;
         }
     }
@@ -644,6 +686,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                                     enablePreviewModal
                                     readonly={readonly || !canEditReceipt}
                                     isFromReviewDuplicates={isFromReviewDuplicates}
+                                    mergeTransactionID={mergeTransactionID}
                                 />
                             </View>
                         )}
@@ -651,10 +694,26 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                 )}
                 {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
                 {!!shouldShowAuditMessage && <ReceiptAuditMessages notes={receiptImageViolations} />}
+                {isCustomUnitOutOfPolicy && isPerDiemRequest && (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mh4, styles.mb2]}>
+                        <Icon
+                            src={Expensicons.DotIndicator}
+                            fill={theme.danger}
+                            height={16}
+                            width={16}
+                        />
+                        <Text
+                            numberOfLines={1}
+                            style={[StyleUtils.getDotIndicatorTextStyles(true), styles.pre, styles.flexShrink1]}
+                        >
+                            {translate('violations.customUnitOutOfPolicy')}
+                        </Text>
+                    </View>
+                )}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount') ?? (amountTitle ? getPendingFieldAction('customUnitRateID') : undefined)}>
                     <MenuItemWithTopDescription
                         title={amountTitle}
-                        shouldShowTitleIcon={isSettled}
+                        shouldShowTitleIcon={shouldShowPaid}
                         titleIcon={Expensicons.Checkmark}
                         description={amountDescription}
                         titleStyle={styles.textHeadlineH2}
@@ -776,7 +835,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                 {shouldShowTax && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('taxCode')}>
                         <MenuItemWithTopDescription
-                            title={taxRateTitle ?? ''}
+                            title={taxRateTitle ?? fallbackTaxRateTitle}
                             description={taxRatesDescription}
                             interactive={canEditTaxFields}
                             shouldShowRightIcon={canEditTaxFields}
@@ -837,8 +896,27 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                         />
                     </OfflineWithFeedback>
                 )}
+                {shouldShowReimbursable && (
+                    <OfflineWithFeedback
+                        pendingAction={getPendingFieldAction('reimbursable')}
+                        contentContainerStyle={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}
+                    >
+                        <View>
+                            <Text>{Str.UCFirst(translate('iou.reimbursable'))}</Text>
+                        </View>
+                        <Switch
+                            accessibilityLabel={Str.UCFirst(translate('iou.reimbursable'))}
+                            isOn={updatedTransaction?.reimbursable ?? !!transactionReimbursable}
+                            onToggle={saveReimbursable}
+                            disabled={!canEditReimbursable}
+                        />
+                    </OfflineWithFeedback>
+                )}
                 {shouldShowBillable && (
-                    <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                    <OfflineWithFeedback
+                        pendingAction={getPendingFieldAction('billable')}
+                        contentContainerStyle={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}
+                    >
                         <View>
                             <Text>{translate('common.billable')}</Text>
                             {!!getErrorForField('billable') && (
@@ -857,7 +935,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                             onToggle={saveBillable}
                             disabled={!canEdit}
                         />
-                    </View>
+                    </OfflineWithFeedback>
                 )}
                 {!!parentReportID && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>

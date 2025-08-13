@@ -117,11 +117,6 @@ function closeAccount(reason: string) {
         optimisticData,
         failureData,
     });
-
-    // On HybridApp, we need to sign out from the oldDot app as well to keep state of both apps in sync
-    if (CONFIG.IS_HYBRID_APP) {
-        HybridAppModule.signOutFromOldDot();
-    }
 }
 
 /**
@@ -668,7 +663,7 @@ function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
         const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
         const reportActions = Object.values((update.value as OnyxCollection<ReportAction>) ?? {});
 
-        reportActions.forEach((action) => action && ReportActionsUtils.isNotifiableReportAction(action) && showReportActionNotification(reportID, action));
+        reportActions.forEach((action) => action && showReportActionNotification(reportID, action));
     });
 }
 
