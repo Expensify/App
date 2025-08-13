@@ -29,6 +29,13 @@ const mockedNavigate = jest.fn();
 jest.mock('@libs/Fullstory', () => ({
     default: {
         consentAndIdentify: jest.fn(),
+        getChatFSClass: jest.fn(() => 'fs-mask'),
+        Page: jest.fn(),
+        init: jest.fn(),
+        onReady: jest.fn(() => Promise.resolve()),
+        consent: jest.fn(),
+        identify: jest.fn(),
+        anonymize: jest.fn(),
     },
 }));
 
