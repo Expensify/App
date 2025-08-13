@@ -48,19 +48,9 @@ type Props = {
     removeFromReport?: () => void;
     isEditing?: boolean;
     isUnreported?: boolean;
-    shouldShowNotFoundPage?: boolean;
 };
 
-function IOURequestEditReportCommon({
-    backTo,
-    transactionsReports,
-    selectReport,
-    policyID: policyIDFromProps,
-    removeFromReport,
-    isEditing = false,
-    isUnreported,
-    shouldShowNotFoundPage = false,
-}: Props) {
+function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, policyID: policyIDFromProps, removeFromReport, isEditing = false, isUnreported}: Props) {
     const {translate, localeCompare} = useLocalize();
     const {options} = useOptionsList();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => mapOnyxCollectionItems(reports, reportSelector), canBeMissing: true});
@@ -129,7 +119,7 @@ function IOURequestEditReportCommon({
             shouldShowWrapper
             testID="IOURequestEditReportCommon"
             includeSafeAreaPaddingBottom
-            shouldShowNotFoundPage={expenseReports.length === 0 || shouldShowNotFoundPage}
+            shouldShowNotFoundPage={expenseReports.length === 0}
         >
             <SelectionList
                 sections={[{data: reportOptions}]}

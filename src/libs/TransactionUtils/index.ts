@@ -943,6 +943,10 @@ function getTransactionViolations(transaction: OnyxEntry<Transaction | SearchTra
     return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]?.filter((violation) => !isViolationDismissed(transaction, violation));
 }
 
+function getTransactionViolationsOfTransaction(transactionID: string) {
+    return allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+}
+
 /**
  * Check if there is pending rter violation in transactionViolations.
  */
@@ -1975,6 +1979,7 @@ export {
     isDemoTransaction,
     shouldShowViolation,
     isUnreportedAndHasInvalidDistanceRateTransaction,
+    getTransactionViolationsOfTransaction,
 };
 
 export type {TransactionChanges};
