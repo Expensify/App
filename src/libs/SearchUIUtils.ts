@@ -195,7 +195,7 @@ type PolicyKey = `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`;
 
 type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
 
-type GroupKey = `${typeof CONST.SEARCH.GROUP_PREFIX}${string}`;
+type SearchGroupKey = `${typeof CONST.SEARCH.GROUP_PREFIX}${string}`;
 
 type SearchKey = ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>;
 
@@ -492,7 +492,7 @@ function isReportEntry(key: string): key is ReportKey {
 /**
  * @private
  */
-function isGroupEntry(key: string): key is GroupKey {
+function isGroupEntry(key: string): key is SearchGroupKey {
     return key.startsWith(CONST.SEARCH.GROUP_PREFIX);
 }
 
