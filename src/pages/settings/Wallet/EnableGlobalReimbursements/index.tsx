@@ -25,9 +25,6 @@ function EnableGlobalReimbursements({route}: EnableGlobalReimbursementsProps) {
     const currency = bankAccountList?.[bankAccountID]?.bankCurrency ?? '';
     const country = bankAccountList?.[bankAccountID]?.bankCountry;
 
-    console.log(route);
-    console.log(bankAccountList?.[bankAccountID]);
-    console.log(currency, 'currency');
     const [enableGlobalReimbursementsStep, setEnableGlobalReimbursementsStep] = useState<ValueOf<typeof CONST.ENABLE_GLOBAL_REIMBURSEMENTS.STEP>>(
         CONST.ENABLE_GLOBAL_REIMBURSEMENTS.STEP.BUSINESS_INFO,
     );
@@ -94,7 +91,7 @@ function EnableGlobalReimbursements({route}: EnableGlobalReimbursementsProps) {
 
         if (enableGlobalReimbursements?.isSuccess) {
             clearEnableGlobalReimbursementsForUSDBankAccount();
-            Navigation.goBack();
+            Navigation.closeRHPFlow();
         }
 
         return () => {
