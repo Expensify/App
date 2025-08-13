@@ -15,9 +15,7 @@ const DATE_FILTER_KEYS: SearchDateFilterKeys[] = [
 ];
 
 const FILTER_KEYS = {
-    GROUP_BY: 'groupBy',
-    TYPE: 'type',
-    STATUS: 'status',
+    ...CONST.SEARCH.SYNTAX_FILTER_KEYS,
     DATE_ON: 'dateOn',
     DATE_AFTER: 'dateAfter',
     DATE_BEFORE: 'dateBefore',
@@ -36,34 +34,11 @@ const FILTER_KEYS = {
     POSTED_ON: 'postedOn',
     POSTED_AFTER: 'postedAfter',
     POSTED_BEFORE: 'postedBefore',
-    WITHDRAWAL_TYPE: 'withdrawalType',
     WITHDRAWN_ON: 'withdrawnOn',
     WITHDRAWN_AFTER: 'withdrawnAfter',
     WITHDRAWN_BEFORE: 'withdrawnBefore',
-    CURRENCY: 'currency',
-    CATEGORY: 'category',
-    POLICY_ID: 'policyID',
-    CARD_ID: 'cardID',
-    FEED: 'feed',
-    MERCHANT: 'merchant',
-    DESCRIPTION: 'description',
-    REPORT_ID: 'reportID',
     LESS_THAN: 'lessThan',
     GREATER_THAN: 'greaterThan',
-    TAX_RATE: 'taxRate',
-    EXPENSE_TYPE: 'expenseType',
-    TAG: 'tag',
-    KEYWORD: 'keyword',
-    FROM: 'from',
-    TO: 'to',
-    PAYER: 'payer',
-    EXPORTER: 'exporter',
-    IN: 'in',
-    TITLE: 'title',
-    ASSIGNEE: 'assignee',
-    REIMBURSABLE: 'reimbursable',
-    BILLABLE: 'billable',
-    ACTION: 'action',
 } as const;
 
 const ALLOWED_TYPE_FILTERS = {
@@ -236,6 +211,14 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.GROUP_BY]: SearchGroupBy;
         [FILTER_KEYS.TYPE]: SearchDataTypes;
         [FILTER_KEYS.STATUS]: string[] | string;
+        [FILTER_KEYS.DATE]: string;
+        [FILTER_KEYS.AMOUNT]: string;
+        [FILTER_KEYS.PAID]: string;
+        [FILTER_KEYS.APPROVED]: string;
+        [FILTER_KEYS.SUBMITTED]: string;
+        [FILTER_KEYS.EXPORTED]: string;
+        [FILTER_KEYS.POSTED]: string;
+        [FILTER_KEYS.WITHDRAWN]: string;
         [FILTER_KEYS.DATE_AFTER]: string;
         [FILTER_KEYS.DATE_BEFORE]: string;
         [FILTER_KEYS.DATE_ON]: string;
