@@ -85,6 +85,11 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     const taxRates = getAllTaxRates();
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
+    const hasMultipleOutputCurrency = useMemo(() => {
+        const policies = Object.values(allPolicies ?? {});
+        const outputCurrency = policies.at(0)?.outputCurrency;
+        return policies.some((policy) => policy?.outputCurrency != outputCurrency);
+    }, [allPolicies]);
 
     const filterFormValues = useMemo(() => {
         return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
@@ -405,8 +410,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         const fromValue = filterFormValues.from?.map((accountID) => personalDetails?.[accountID]?.displayName ?? accountID) ?? [];
 
         const shouldDisplayGroupByFilter = !!groupBy;
-        // s77rt update based on search results
-        const shouldDisplayGroupCurrencyFilter = !!groupBy;
+        const shouldDisplayGroupCurrencyFilter = !!groupBy && hasMultipleOutputCurrency;
         const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues.feed;
         const shouldDisplayPostedFilter = !!filterFormValues.feed && (!!filterFormValues.postedOn || !!filterFormValues.postedAfter || !!filterFormValues.postedBefore);
         // We'll refactor this to use a const in https://github.com/Expensify/App/issues/68227
@@ -533,6 +537,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         feed,
         feedComponent,
         feedOptions.length,
+        hasMultipleOutputCurrency,
     ]);
 
     if (hasErrors) {
