@@ -57,14 +57,14 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onSelectRow
                             accessibilityLabel={translate('common.select')}
                         />
                     )}
-                    <View style={[styles.flexRow, styles.gap3]}>
+                    <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
                         <ReportActionAvatars
                             subscriptCardFeed={cardItem.bank as CompanyCardFeed}
                             subscriptAvatarBorderColor={backgroundColor}
                             noRightMarginOnSubscriptContainer
                             accountIDs={[cardItem.accountID]}
                         />
-                        <View style={[styles.gapHalf]}>
+                        <View style={[styles.gapHalf, styles.flexShrink1]}>
                             <TextWithTooltip
                                 text={formattedDisplayName}
                                 style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre]}

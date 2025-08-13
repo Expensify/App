@@ -52,7 +52,7 @@ function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onSel
                             accessibilityLabel={translate('common.select')}
                         />
                     )}
-                    <View style={[styles.flexRow, styles.gap3]}>
+                    <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
                         <UserDetailsTooltip accountID={memberItem.accountID}>
                             <View>
                                 <Avatar
@@ -63,7 +63,7 @@ function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onSel
                                 />
                             </View>
                         </UserDetailsTooltip>
-                        <View style={[styles.gapHalf]}>
+                        <View style={[styles.gapHalf, styles.flexShrink1]}>
                             <TextWithTooltip
                                 text={formattedDisplayName}
                                 style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre]}
