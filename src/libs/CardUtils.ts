@@ -385,7 +385,7 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknam
     const feedName = getBankName(feed);
     const formattedFeedName = shouldAddCardsSuffix ? translateLocal('workspace.companyCards.feedName', {feedName}) : feedName;
 
-    return customFeedName ?? formattedFeedName;
+    return customFeedName || formattedFeedName;
 }
 
 function getPlaidInstitutionIconUrl(feedName?: string) {
