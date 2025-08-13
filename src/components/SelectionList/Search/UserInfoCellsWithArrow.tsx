@@ -50,7 +50,7 @@ function UserInfoCellsWithArrow({
                 avatarSize={avatarSize}
                 textStyle={infoCellsTextStyle}
                 avatarStyle={infoCellsAvatarStyle}
-                containerStyle={[styles.mw50, fromRecipientStyle]}
+                containerStyle={[styles.mw50, styles.flexShrink1, fromRecipientStyle]}
             />
             {shouldShowToRecipient && (
                 <>
@@ -68,7 +68,7 @@ function UserInfoCellsWithArrow({
                         avatarSize={avatarSize}
                         textStyle={infoCellsTextStyle}
                         avatarStyle={infoCellsAvatarStyle}
-                        containerStyle={[styles.mw50, fromRecipientStyle]}
+                        containerStyle={[styles.mw50, styles.flexShrink1, fromRecipientStyle]}
                     />
                 </>
             )}
