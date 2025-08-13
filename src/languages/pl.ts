@@ -136,6 +136,9 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeFailureDescriptionGenericParams,
+    MergeFailureUncreatedAccountDescriptionParams,
+    MergeSuccessDescriptionParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
@@ -163,6 +166,7 @@ import type {
     PolicyDisabledReportFieldAllOptionsParams,
     PolicyDisabledReportFieldOptionParams,
     PolicyExpenseChatNameParams,
+    QBDSetupErrorBodyParams,
     RailTicketParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
@@ -478,6 +482,7 @@ const translations = {
         message: 'Wiadomość',
         leaveThread: 'Opuść wątek',
         you: 'Ty',
+        me: 'mnie',
         youAfterPreposition: 'ty',
         your: 'twój',
         conciergeHelp: 'Proszę skontaktować się z Concierge po pomoc.',
@@ -527,6 +532,7 @@ const translations = {
         pm: 'PM',
         tbd: 'TBD',
         selectCurrency: 'Wybierz walutę',
+        selectSymbolOrCurrency: 'Wybierz symbol lub walutę',
         card: 'Karta',
         whyDoWeAskForThis: 'Dlaczego o to prosimy?',
         required: 'Wymagane',
@@ -562,7 +568,6 @@ const translations = {
         userID: 'ID użytkownika',
         disable: 'Wyłącz',
         export: 'Eksportuj',
-        basicExport: 'Eksport podstawowy',
         initialValue: 'Wartość początkowa',
         currentDate: 'Aktualna data',
         value: 'Wartość',
@@ -588,6 +593,7 @@ const translations = {
         unread: 'Nieprzeczytane',
         sent: 'Wysłano',
         links: 'Linki',
+        day: 'dzień',
         days: 'dni',
         rename: 'Zmień nazwę',
         address: 'Adres',
@@ -630,6 +636,7 @@ const translations = {
         getTheApp: 'Pobierz aplikację',
         scanReceiptsOnTheGo: 'Skanuj paragony za pomocą telefonu',
         headsUp: 'Uwaga!',
+        merge: 'Scal',
         unstableInternetConnection: 'Niestabilne połączenie internetowe. Sprawdź swoją sieć i spróbuj ponownie.',
     },
     supportalNoAccess: {
@@ -876,6 +883,7 @@ const translations = {
         hereAlternateText: 'Powiadom wszystkich w tej rozmowie',
     },
     newMessages: 'Nowe wiadomości',
+    latestMessages: 'Ostatnie wiadomości',
     youHaveBeenBanned: 'Uwaga: Zostałeś zbanowany z czatu na tym kanale.',
     reportTypingIndicator: {
         isTyping: 'pisze...',
@@ -1349,6 +1357,31 @@ const translations = {
         submitsTo: ({name}: SubmitsToParams) => `Przesyła do ${name}`,
         moveExpenses: () => ({one: 'Przenieś wydatek', other: 'Przenieś wydatki'}),
     },
+    transactionMerge: {
+        listPage: {
+            header: 'Scal wydatki',
+            noEligibleExpenseFound: 'Nie znaleziono kwalifikujących się wydatków',
+            noEligibleExpenseFoundSubtitle: `Nie masz wydatków, które można scalić z tym. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Dowiedz się więcej</a> o kwalifikujących się wydatkach.`,
+            selectTransactionToMerge: ({reportName}: {reportName: string}) =>
+                `Wybierz <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">kwalifikujący się wydatek</a> do scalenia <strong>${reportName}</strong>.`,
+        },
+        receiptPage: {
+            header: 'Wybierz paragon',
+            pageTitle: 'Wybierz paragon, który chcesz zachować:',
+        },
+        detailsPage: {
+            header: 'Wybierz szczegóły',
+            pageTitle: 'Wybierz szczegóły, które chcesz zachować:',
+            noDifferences: 'Nie znaleziono różnic między transakcjami',
+            pleaseSelectError: ({field}: {field: string}) => `Proszę wybrać ${field}`,
+            selectAllDetailsError: 'Wybierz wszystkie szczegóły przed kontynuowaniem.',
+        },
+        confirmationPage: {
+            header: 'Potwierdź szczegóły',
+            pageTitle: 'Potwierdź szczegóły, które zachowujesz. Niezachowane zostaną usunięte.',
+            confirmButton: 'Scal wydatki',
+        },
+    },
     share: {
         shareToExpensify: 'Udostępnij do Expensify',
         messageInputLabel: 'Wiadomość',
@@ -1601,67 +1634,32 @@ const translations = {
         },
         mergeSuccess: {
             accountsMerged: 'Konta połączone!',
-            successfullyMergedAllData: {
-                beforeFirstEmail: `Pomyślnie scalono wszystkie dane z`,
-                beforeSecondEmail: `do`,
-                afterSecondEmail: `. Przechodząc dalej, możesz używać dowolnego logowania dla tego konta.`,
-            },
+            description: ({from, to}: MergeSuccessDescriptionParams) =>
+                `<muted-text><centered-text>Pomyślnie scalono wszystkie dane z <strong>${from}</strong> do <strong>${to}</strong>. W przyszłości możesz używać dowolnego loginu dla tego konta.</centered-text></muted-text>`,
         },
         mergePendingSAML: {
             weAreWorkingOnIt: 'Pracujemy nad tym',
             limitedSupport: 'Nie obsługujemy jeszcze łączenia kont w New Expensify. Proszę wykonać tę czynność w Expensify Classic.',
-            reachOutForHelp: {
-                beforeLink: 'Nie krępuj się, aby',
-                linkText: 'skontaktuj się z Concierge',
-                afterLink: 'jeśli masz jakieś pytania!',
-            },
+            reachOutForHelp: '<muted-text><centered-text>Jeśli masz jakiekolwiek pytania, <concierge-link>skontaktuj się z Concierge</concierge-link>!</centered-text></muted-text>',
             goToExpensifyClassic: 'Przejdź do Expensify Classic',
         },
-        mergeFailureSAMLDomainControl: {
-            beforeFirstEmail: 'Nie możesz połączyć',
-            beforeDomain: 'ponieważ jest kontrolowane przez',
-            afterDomain: '. Proszę',
-            linkText: 'skontaktuj się z Concierge',
-            afterLink: 'w celu uzyskania pomocy.',
-        },
-        mergeFailureSAMLAccount: {
-            beforeEmail: 'Nie możesz połączyć',
-            afterEmail: 'do innych kont, ponieważ administrator domeny ustawił je jako Twoje główne logowanie. Zamiast tego połącz inne konta z nim.',
-        },
+        mergeFailureSAMLDomainControlDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>Nie można połączyć strony <strong>${email}</strong>, ponieważ jest ona kontrolowana przez <strong>${email.split('@').at(1) ?? ''}</strong>. <concierge-link>Skontaktuj się z Concierge</concierge-link>, aby uzyskać pomoc.</centered-text></muted-text>`,
+        mergeFailureSAMLAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>Nie można połączyć <strong>${email}</strong> z innymi kontami, ponieważ administrator domeny ustawił je jako główny login. Zamiast tego połącz z nim inne konta.</centered-text></muted-text>`,
         mergeFailure2FA: {
-            oldAccount2FAEnabled: {
-                beforeFirstEmail: 'Nie możesz połączyć kont, ponieważ',
-                beforeSecondEmail: 'ma włączone uwierzytelnianie dwuskładnikowe (2FA). Proszę wyłączyć 2FA dla',
-                afterSecondEmail: 'i spróbuj ponownie.',
-            },
+            description: ({email}: MergeFailureDescriptionGenericParams) =>
+                `<muted-text><centered-text>Nie można scalić kont, ponieważ <strong>${email}</strong> ma włączone uwierzytelnianie dwuskładnikowe (2FA). Wyłącz 2FA dla <strong>${email}</strong> i spróbuj ponownie.</centered-text></muted-text>`,
             learnMore: 'Dowiedz się więcej o łączeniu kont.',
         },
-        mergeFailureAccountLocked: {
-            beforeEmail: 'Nie możesz połączyć',
-            afterEmail: 'ponieważ jest zablokowane. Proszę',
-            linkText: 'skontaktuj się z Concierge',
-            afterLink: `po pomoc.`,
-        },
-        mergeFailureUncreatedAccount: {
-            noExpensifyAccount: {
-                beforeEmail: 'Nie możesz połączyć kont, ponieważ',
-                afterEmail: 'nie ma konta Expensify.',
-            },
-            addContactMethod: {
-                beforeLink: 'Proszę',
-                linkText: 'dodaj to jako metodę kontaktu',
-                afterLink: 'zamiast.',
-            },
-        },
-        mergeFailureSmartScannerAccount: {
-            beforeEmail: 'Nie możesz połączyć',
-            afterEmail: 'do innych kont. Proszę połączyć inne konta z nim zamiast tego.',
-        },
-        mergeFailureInvoicedAccount: {
-            beforeEmail: 'Nie możesz połączyć kont z ',
-            afterEmail: ', ponieważ to konto ma wystawioną fakturę w ramach relacji rozliczeniowej.',
-        },
-
+        mergeFailureAccountLockedDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>Nie można scalić strony <strong>${email}</strong>, ponieważ jest zablokowana. <concierge-link>Skontaktuj się z Concierge</concierge-link>, aby uzyskać pomoc.</centered-text></muted-text>`,
+        mergeFailureUncreatedAccountDescription: ({email, contactMethodLink}: MergeFailureUncreatedAccountDescriptionParams) =>
+            `<muted-text><centered-text>Nie możesz scalić kont, ponieważ <strong>${email}</strong> nie ma konta Expensify. Zamiast tego <a href="${contactMethodLink}">dodaj je jako metodę kontaktu</a>.</centered-text></muted-text>`,
+        mergeFailureSmartScannerAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>Nie można połączyć <strong>${email}</strong> z innymi kontami. Zamiast tego połącz z nim inne konta.</centered-text></muted-text>`,
+        mergeFailureInvoicedAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
+            `<muted-text><centered-text>Nie można scalić kont w <strong>${email}</strong>, ponieważ to konto posiada zafakturowaną relację rozliczeniową.</centered-text></muted-text>`,
         mergeFailureTooManyAttempts: {
             heading: 'Spróbuj ponownie później',
             description: 'Było zbyt wiele prób połączenia kont. Proszę spróbować ponownie później.',
@@ -3406,6 +3404,11 @@ const translations = {
             railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `Twój bilet kolejowy na trasie ${origin} → ${destination} na dzień ${startDate} został zaktualizowany.`,
             defaultUpdate: ({type}: TravelTypeParams) => `Twoja rezerwacja ${type} została zaktualizowana.`,
         },
+        flightTo: 'Lot do',
+        trainTo: 'Pociąg do',
+        carRental: ' wynajmu samochodu',
+        nightIn: 'noc w',
+        nightsIn: 'noce w',
     },
     workspace: {
         common: {
@@ -3436,6 +3439,7 @@ const translations = {
             travel: 'Podróżować',
             members: 'Członkowie',
             accounting: 'Księgowość',
+            receiptPartners: 'Partnerzy paragonów',
             rules: 'Zasady',
             displayedAs: 'Wyświetlane jako',
             plan: 'Plan',
@@ -3526,6 +3530,11 @@ const translations = {
             viewTransactions: 'Wyświetl transakcje',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Wydatki ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Transakcje kartą Expensify będą automatycznie eksportowane na „Konto odpowiedzialności karty Expensify” utworzone za pomocą <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">naszej integracji</a>.</muted-text-label>`,
+        },
+        receiptPartners: {
+            uber: {
+                subtitle: 'Zautomatyzuj wydatki na podróże i dostawę posiłków w swojej organizacji.',
+            },
         },
         perDiem: {
             subtitle: 'Ustaw stawki diety, aby kontrolować dzienne wydatki pracowników.',
@@ -3625,9 +3634,8 @@ const translations = {
                 title: 'Otwórz ten link, aby się połączyć',
                 body: 'Aby zakończyć konfigurację, otwórz poniższy link na komputerze, na którym działa QuickBooks Desktop.',
                 setupErrorTitle: 'Coś poszło nie tak',
-                setupErrorBody1: 'Połączenie z QuickBooks Desktop nie działa w tej chwili. Proszę spróbować ponownie później lub',
-                setupErrorBody2: 'jeśli problem będzie się powtarzał.',
-                setupErrorBodyContactConcierge: 'skontaktuj się z Concierge',
+                setupErrorBody: ({conciergeLink}: QBDSetupErrorBodyParams) =>
+                    `<muted-text><centered-text>Połączenie QuickBooks Desktop obecnie nie działa. Spróbuj ponownie później lub <a href="${conciergeLink}">skontaktuj się z Concierge</a>, jeśli problem będzie się powtarzał.</centered-text></muted-text>`,
             },
             importDescription: 'Wybierz, które konfiguracje kodowania zaimportować z QuickBooks Desktop do Expensify.',
             classes: 'Klasy',
@@ -4642,11 +4650,20 @@ const translations = {
                 title: 'Księgowość',
                 subtitle: 'Synchronizuj swój plan kont i więcej.',
             },
+            receiptPartners: {
+                title: 'Partnerzy paragonów',
+                subtitle: 'Automatycznie importuj paragony.',
+            },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Nie tak szybko...',
                 featureEnabledText: 'Aby włączyć lub wyłączyć tę funkcję, musisz zmienić ustawienia importu księgowego.',
                 disconnectText: 'Aby wyłączyć księgowość, musisz odłączyć swoje połączenie księgowe od przestrzeni roboczej.',
                 manageSettings: 'Zarządzaj ustawieniami',
+            },
+            receiptPartnersWarningModal: {
+                featureEnabledTitle: 'Rozłącz Uber',
+                disconnectText: 'Aby wyłączyć tę funkcję, najpierw rozłącz integrację Uber for Business.',
+                confirmText: 'Rozumiem',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Nie tak szybko...',
@@ -4658,6 +4675,20 @@ const translations = {
                 title: 'Zasady',
                 subtitle: 'Wymagaj paragonów, oznaczaj wysokie wydatki i więcej.',
             },
+        },
+        reports: {
+            reportsCustomTitleExamples: 'Przykłady:',
+            customReportNamesSubtitle: 'Dostosuj tytuły raportów za pomocą naszego',
+            customNameTitle: 'Domyślny tytuł raportu',
+            customNameDescription: 'Wybierz niestandardową nazwę dla raportów wydatków za pomocą naszego',
+            customNameDescriptionLink: 'rozbudowane formuły',
+            customNameInputLabel: 'Imię',
+            customNameEmailPhoneExample: 'Email lub telefon członka: {report:submit:from}',
+            customNameStartDateExample: 'Data rozpoczęcia raportu: {report:startdate}',
+            customNameWorkspaceNameExample: 'Nazwa przestrzeni roboczej: {report:workspacename}',
+            customNameReportIDExample: 'Report ID: {report:id}',
+            customNameTotalExample: 'Suma: {report:total}.',
+            preventMembersFromChangingCustomNamesTitle: 'Uniemożliw członkom zmianę nazw raportów niestandardowych',
         },
         reportFields: {
             addField: 'Dodaj pole',
@@ -5511,6 +5542,17 @@ const translations = {
                     one: '1 dzień',
                     other: (count: number) => `${count} dni`,
                 }),
+                cashExpenseDefault: 'Domyślny wydatek gotówkowy',
+                cashExpenseDefaultDescription:
+                    'Wybierz, jak powinny być tworzone wydatki gotówkowe. Wydatek jest uznawany za gotówkowy, jeśli nie jest importowaną transakcją kartą firmową. Obejmuje to ręcznie tworzone wydatki, paragony, diety, odległości i czas pracy.',
+                reimbursableDefault: 'Zwracany',
+                reimbursableDefaultDescription: 'Wydatki są zazwyczaj zwracane pracownikom',
+                nonReimbursableDefault: 'Niezwracany',
+                nonReimbursableDefaultDescription: 'Wydatki są czasami zwracane pracownikom',
+                alwaysReimbursable: 'Zawsze zwracany',
+                alwaysReimbursableDescription: 'Wydatki są zawsze zwracane pracownikom',
+                alwaysNonReimbursable: 'Nigdy nie zwracany',
+                alwaysNonReimbursableDescription: 'Wydatki nigdy nie są zwracane pracownikom',
                 billableDefault: 'Domyślne do rozliczenia',
                 billableDefaultDescription: 'Wybierz, czy wydatki gotówkowe i na kartę kredytową powinny być domyślnie fakturowalne. Wydatki fakturowalne są włączane lub wyłączane w',
                 billable: 'Podlegające fakturowaniu',
@@ -5532,20 +5574,8 @@ const translations = {
                 adultEntertainment: 'Rozrywka dla dorosłych',
             },
             expenseReportRules: {
-                examples: 'Przykłady:',
                 title: 'Raporty wydatków',
                 subtitle: 'Zautomatyzuj zgodność raportów wydatków, zatwierdzenia i płatności.',
-                customReportNamesSubtitle: 'Dostosuj tytuły raportów za pomocą naszego',
-                customNameTitle: 'Domyślny tytuł raportu',
-                customNameDescription: 'Wybierz niestandardową nazwę dla raportów wydatków za pomocą naszego',
-                customNameDescriptionLink: 'rozbudowane formuły',
-                customNameInputLabel: 'Imię',
-                customNameEmailPhoneExample: 'Email lub telefon członka: {report:submit:from}',
-                customNameStartDateExample: 'Data rozpoczęcia raportu: {report:startdate}',
-                customNameWorkspaceNameExample: 'Nazwa przestrzeni roboczej: {report:workspacename}',
-                customNameReportIDExample: 'Report ID: {report:id}',
-                customNameTotalExample: 'Suma: {report:total}.',
-                preventMembersFromChangingCustomNamesTitle: 'Uniemożliw członkom zmianę nazw raportów niestandardowych',
                 preventSelfApprovalsTitle: 'Zapobiegaj samodzielnym zatwierdzeniom',
                 preventSelfApprovalsSubtitle: 'Uniemożliwiaj członkom przestrzeni roboczej zatwierdzanie własnych raportów wydatków.',
                 autoApproveCompliantReportsTitle: 'Automatycznie zatwierdzaj zgodne raporty',
@@ -5809,6 +5839,8 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `zaktualizowano "Ponowne obciążenie klientów kosztami" na "${newValue}" (wcześniej "${oldValue}")`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `zaktualizowano "Domyślny wydatek gotówkowy" na "${newValue}" (wcześniej "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `zmieniono "Wymuś domyślne tytuły raportów" ${value ? 'na' : 'wyłączony'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `zaktualizował nazwę tego miejsca pracy na "${newName}" (wcześniej "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -6015,6 +6047,7 @@ const translations = {
             paid: 'Data płatności',
             exported: 'Data eksportu',
             posted: 'Data opublikowania',
+            withdrawn: 'Data wycofania',
             billable: 'Podlegające fakturowaniu',
             reimbursable: 'Podlegające zwrotowi',
             groupBy: {
@@ -6023,6 +6056,10 @@ const translations = {
                 cards: 'Karta',
             },
             feed: 'Kanal',
+            withdrawalType: {
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Zwrot kosztów',
+            },
         },
         groupBy: 'Grupa według',
         moneyRequestReport: {
@@ -6032,6 +6069,7 @@ const translations = {
         noCategory: 'Brak kategorii',
         noTag: 'Brak tagu',
         expenseType: 'Typ wydatku',
+        withdrawalType: 'Rodzaj wypłaty',
         recentSearches: 'Ostatnie wyszukiwania',
         recentChats: 'Ostatnie czaty',
         searchIn: 'Szukaj w',
@@ -7058,6 +7096,13 @@ const translations = {
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} zaprosił Cię do wypróbowania Expensify\nHej! Właśnie zdobyłem dla nas *3 miesiące za darmo*, aby wypróbować Expensify, najszybszy sposób na rozliczanie wydatków.\n\nOto *przykładowy paragon*, aby pokazać Ci, jak to działa:`,
+    },
+    export: {
+        basicExport: 'Eksport podstawowy',
+        reportLevelExport: 'Wszystkie dane - poziom raportu',
+        expenseLevelExport: 'Wszystkie dane - poziom wydatków',
+        exportInProgress: 'Trwa eksport',
+        conciergeWillSend: 'Concierge wkrótce prześle plik.',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,8 +23,8 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
-import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
+import {getMoneyRequestSpendBreakdown, isIOUReport} from '@libs/ReportUtils';
+import {compareValues, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
@@ -100,6 +101,7 @@ function MoneyRequestReportTransactionList({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, localeCompare} = useLocalize();
+    const [, , violations] = useReportWithTransactionsAndViolations(report.reportID);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -157,13 +159,9 @@ function MoneyRequestReportTransactionList({
             .map((transaction) => ({
                 ...transaction,
                 shouldBeHighlighted: newTransactions?.includes(transaction),
+                violations: violations?.[transaction.transactionID] ?? [],
             }));
-    }, [newTransactions, sortBy, sortOrder, transactions, localeCompare]);
-
-    const columnsToShow = useMemo(() => {
-        const columns = getColumnsToShow(transactions, true);
-        return (Object.keys(columns) as SortableColumnName[]).filter((column) => columns[column]);
-    }, [transactions]);
+    }, [newTransactions, sortBy, sortOrder, transactions, localeCompare, violations]);
 
     const navigateToTransaction = useCallback(
         (activeTransactionID: string) => {
@@ -267,7 +265,6 @@ function MoneyRequestReportTransactionList({
                             shouldShowSorting
                             sortBy={sortBy}
                             sortOrder={sortOrder}
-                            columns={columnsToShow}
                             dateColumnSize={dateColumnSize}
                             amountColumnSize={amountColumnSize}
                             taxAmountColumnSize={taxAmountColumnSize}
@@ -278,6 +275,7 @@ function MoneyRequestReportTransactionList({
 
                                 setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
                             }}
+                            isIOUReport={isIOUReport(report)}
                         />
                     )}
                 </View>
@@ -288,7 +286,6 @@ function MoneyRequestReportTransactionList({
                         <MoneyRequestReportTransactionItem
                             key={transaction.transactionID}
                             transaction={transaction}
-                            columns={columnsToShow}
                             report={report}
                             isSelectionModeEnabled={isMobileSelectionModeEnabled}
                             toggleTransaction={toggleTransaction}

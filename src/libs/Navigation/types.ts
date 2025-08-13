@@ -15,6 +15,10 @@ import type {SearchQueryString} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
+import type {ProfileAvatarScreenParams} from '@pages/media/AttachmentModalScreen/routes/ProfileAvatarModalContent';
+import type {ReportAvatarScreenParams} from '@pages/media/AttachmentModalScreen/routes/report/ReportAvatarModalContent';
+import type {TransactionReceiptScreenParams} from '@pages/media/AttachmentModalScreen/routes/TransactionReceiptModalContent';
+import type {WorkspaceAvatarScreenParams} from '@pages/media/AttachmentModalScreen/routes/WorkspaceAvatarModalContent';
 import type {AttachmentModalScreenParams} from '@pages/media/AttachmentModalScreen/types';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
@@ -1059,7 +1063,7 @@ type SettingsNavigatorParamList = {
         cardID: string;
         backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.RULES_CUSTOM_NAME]: {
+    [SCREENS.WORKSPACE.REPORTS_DEFAULT_TITLE]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES_AUTO_APPROVE_REPORTS_UNDER]: {
@@ -1081,6 +1085,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_REIMBURSABLE_DEFAULT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: {
@@ -1713,6 +1720,25 @@ type TransactionDuplicateNavigatorParamList = {
     };
 };
 
+type MergeTransactionNavigatorParamList = {
+    [SCREENS.MERGE_TRANSACTION.LIST_PAGE]: {
+        transactionID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.MERGE_TRANSACTION.RECEIPT_PAGE]: {
+        transactionID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.MERGE_TRANSACTION.DETAILS_PAGE]: {
+        transactionID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE]: {
+        transactionID: string;
+        backTo?: Routes;
+    };
+};
+
 type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SETTINGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: NavigatorScreenParams<TwoFactorAuthNavigatorParamList>;
@@ -1757,6 +1783,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: NavigatorScreenParams<SplitExpenseParamList>;
     [SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE]: NavigatorScreenParams<{reportId: string | undefined}>;
     [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: NavigatorScreenParams<ScheduleCallParamList>;
+    [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: NavigatorScreenParams<MergeTransactionNavigatorParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -1840,6 +1867,9 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARDS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
         policyID: string;
         backTo?: Routes;
@@ -1906,7 +1936,7 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.TAXES]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.REPORT_FIELDS]: {
+    [SCREENS.WORKSPACE.REPORTS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
@@ -1942,9 +1972,6 @@ type WorkspaceSplitNavigatorParamList = {
 };
 
 type OnboardingModalNavigatorParamList = {
-    [SCREENS.ONBOARDING_MODAL.ONBOARDING]: {
-        backTo?: string;
-    };
     [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
         backTo?: string;
     };
@@ -2057,11 +2084,14 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.CONCIERGE]: undefined;
     [SCREENS.TRACK_EXPENSE]: undefined;
     [SCREENS.SUBMIT_EXPENSE]: undefined;
+
     [SCREENS.REPORT_ATTACHMENTS]: AttachmentModalScreenParams;
     [SCREENS.REPORT_ADD_ATTACHMENT]: AttachmentModalScreenParams;
-    [SCREENS.PROFILE_AVATAR]: AttachmentModalScreenParams;
-    [SCREENS.WORKSPACE_AVATAR]: AttachmentModalScreenParams;
-    [SCREENS.REPORT_AVATAR]: AttachmentModalScreenParams;
+    [SCREENS.REPORT_AVATAR]: ReportAvatarScreenParams;
+    [SCREENS.PROFILE_AVATAR]: ProfileAvatarScreenParams;
+    [SCREENS.WORKSPACE_AVATAR]: WorkspaceAvatarScreenParams;
+    [SCREENS.TRANSACTION_RECEIPT]: TransactionReceiptScreenParams;
+
     [SCREENS.WORKSPACE_JOIN_USER]: {
         policyID: string;
         email: string;
@@ -2084,14 +2114,6 @@ type AuthScreensParamList = SharedScreensParamList & {
     [NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR]: NavigatorScreenParams<TestDriveDemoNavigatorParamList>;
     [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
-    [SCREENS.TRANSACTION_RECEIPT]: {
-        reportID: string;
-        transactionID: string;
-        readonly?: string;
-        isFromReviewDuplicates?: string;
-        action?: IOUAction;
-        iouType?: IOUType;
-    };
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
     [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
@@ -2325,4 +2347,5 @@ export type {
     SetParamsAction,
     WorkspacesTabNavigatorName,
     TestToolsModalModalNavigatorParamList,
+    MergeTransactionNavigatorParamList,
 };

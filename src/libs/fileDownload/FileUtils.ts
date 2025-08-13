@@ -438,7 +438,7 @@ const validateAttachment = (file: FileObject, isCheckingMultipleFiles?: boolean,
         return isCheckingMultipleFiles ? CONST.MULTIPLE_ATTACHMENT_FILES_VALIDATION_ERRORS.FILE_TOO_LARGE : CONST.SINGLE_ATTACHMENT_FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
     }
 
-    if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+    if (isValidatingReceipt && (file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
         return CONST.SINGLE_ATTACHMENT_FILE_VALIDATION_ERRORS.FILE_TOO_SMALL;
     }
 
