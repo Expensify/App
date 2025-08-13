@@ -346,7 +346,7 @@ function MoneyRequestParticipantsSelector(
         (option: Participant & Option) => {
             const newParticipants: Participant[] = [
                 {
-                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID', 'isSelfDM', 'text', 'phoneNumber'),
+                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID', 'isSelfDM', 'text', 'phoneNumber', 'displayName'),
                     selected: true,
                     iouType,
                 },
@@ -462,7 +462,7 @@ function MoneyRequestParticipantsSelector(
     const initiateContactImportAndSetState = useCallback(() => {
         setContactPermissionState(RESULTS.GRANTED);
         InteractionManager.runAfterInteractions(importAndSaveContacts);
-    }, [importAndSaveContacts]);
+    }, [importAndSaveContacts, setContactPermissionState]);
 
     const footerContent = useMemo(() => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {
