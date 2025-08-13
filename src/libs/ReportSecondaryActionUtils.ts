@@ -18,6 +18,7 @@ import {
     isPolicyAdmin,
     isPolicyMember,
     isPreferredExporter,
+    isSubmitAndClose,
 } from './PolicyUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
 import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
@@ -27,6 +28,7 @@ import {
     canHoldUnholdReportAction,
     getTransactionDetails,
     hasOnlyHeldExpenses,
+    hasOnlyNonReimbursableTransactions,
     hasReportBeenReopened as hasReportBeenReopenedUtils,
     hasReportBeenRetracted as hasReportBeenRetractedUtils,
     isArchivedReport,
@@ -102,6 +104,10 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
         return false;
     }
 
+    if (hasOnlyNonReimbursableTransactions(report.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
+        return false;
+    }
+
     const isSubmitter = isCurrentUserSubmitter(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = (report.managerID ?? CONST.DEFAULT_NUMBER_ID) === getCurrentUserAccountID();
@@ -151,10 +157,9 @@ function isSubmitAction(
     }
 
     const isReportSubmitter = isCurrentUserSubmitter(report);
-    const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = report.managerID === getCurrentUserAccountID();
-    if (!isReportSubmitter && !isReportApprover && !isAdmin && !isManager) {
+    if (!isReportSubmitter && !isAdmin && !isManager) {
         return false;
     }
 
@@ -533,6 +538,9 @@ function isReopenAction(report: Report, policy?: Policy): boolean {
  * Checks whether the supplied report supports merging transactions from it.
  */
 function isMergeAction(parentReport: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
+    // Temporary hide merge action
+    return false;
+
     // Do not show merge action if there are multiple transactions
     if (reportTransactions.length !== 1) {
         return false;
@@ -546,6 +554,10 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
 
     if (isSelfDMReportUtils(parentReport)) {
         return true;
+    }
+
+    if (hasOnlyNonReimbursableTransactions(parentReport.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
+        return false;
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;

@@ -53,6 +53,7 @@ export type {default as OpenReportParams} from './OpenReportParams';
 export type {default as OpenRoomMembersPageParams} from './OpenRoomMembersPageParams';
 export type {default as OpenPlaidCompanyCardLoginParams} from './OpenPlaidCompanyCardLoginParams';
 export type {default as OpenSidePanelParams} from './OpenSidePanelParams';
+export type {default as OpenPolicyReceiptPartnersPageParams} from './OpenPolicyReceiptPartnersPageParams';
 export type {default as PaymentCardParams} from './PaymentCardParams';
 export type {default as PusherPingParams} from './PusherPingParams';
 export type {default as ReconnectAppParams} from './ReconnectAppParams';
@@ -315,6 +316,7 @@ export type {default as SetPolicyExpenseMaxAmount} from './SetPolicyExpenseMaxAm
 export type {default as SetPolicyExpenseMaxAge} from './SetPolicyExpenseMaxAge';
 export type {default as UpdateCustomRules} from './UpdateCustomRules';
 export type {default as SetPolicyBillableModeParams} from './SetPolicyBillableModeParams';
+export type {default as SetPolicyCashExpenseModeParams} from './SetPolicyCashExpenseModeParams';
 export type {default as DisablePolicyBillableModeParams} from './DisablePolicyBillableModeParams';
 export type {default as SetWorkspaceEReceiptsEnabled} from './SetWorkspaceEReceiptsEnabled';
 export type {default as SetPolicyAttendeeTrackingEnabledParams} from './SetPolicyAttendeeTrackingEnabledParams';
