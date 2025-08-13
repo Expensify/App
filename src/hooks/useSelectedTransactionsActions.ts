@@ -88,7 +88,8 @@ function useSelectedTransactionsActions({
         const transactionsWithActions = selectedTransactionIDs.map((transactionID) => ({
             transactionID,
             action: iouActions.find((action) => {
-                const IOUTransactionID = (getOriginalMessage(action) as OriginalMessageIOU)?.IOUTransactionID;
+                // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+                const IOUTransactionID = (getOriginalMessage(action) as OriginalMessageIOU | undefined)?.IOUTransactionID;
                 return transactionID === IOUTransactionID;
             }),
         }));
