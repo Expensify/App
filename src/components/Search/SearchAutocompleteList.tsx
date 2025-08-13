@@ -185,7 +185,7 @@ function SearchAutocompleteList(
 
     const statusAutocompleteList = useMemo(() => {
         const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
-        const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
+        const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE);
         const currentType = typeFilter?.value;
 
         switch (currentType) {
@@ -358,20 +358,20 @@ function SearchAutocompleteList(
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
                 }));
             }
-            case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE: {
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE: {
                 const filteredTypes = typeAutocompleteList
                     .filter((type) => type.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(type.toLowerCase()))
                     .sort();
 
                 return filteredTypes.map((type) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TYPE, text: type}));
             }
-            case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY: {
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_BY: {
                 const filteredGroupBy = groupByAutocompleteList.filter(
                     (groupByValue) => groupByValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(groupByValue.toLowerCase()),
                 );
                 return filteredGroupBy.map((groupByValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY, text: groupByValue}));
             }
-            case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS: {
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS: {
                 const filteredStatuses = statusAutocompleteList
                     .filter((status) => status.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(status))
                     .sort()

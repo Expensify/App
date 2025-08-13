@@ -20,15 +20,15 @@ function SearchAdvancedFiltersPage() {
 
     const shouldShowResetFilters = Object.entries(searchAdvancedFilters)
         .filter(([key, value]) => {
-            if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
+            if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_BY) {
                 return false;
             }
 
-            if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE) {
+            if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE) {
                 return value !== CONST.SEARCH.DATA_TYPES.EXPENSE;
             }
 
-            if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS) {
+            if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
                 return value !== CONST.SEARCH.STATUS.EXPENSE.ALL;
             }
 

@@ -282,6 +282,8 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.REIMBURSABLE]: string;
         [FILTER_KEYS.BILLABLE]: string;
         [FILTER_KEYS.ACTION]: string;
+        [FILTER_KEYS.SORT_BY]: string;
+        [FILTER_KEYS.SORT_ORDER]: string;
     }
 >;
 

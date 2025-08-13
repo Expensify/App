@@ -6392,16 +6392,12 @@ const CONST = {
             LOWER_THAN: 'lt',
             LOWER_THAN_OR_EQUAL_TO: 'lte',
         },
-        SYNTAX_ROOT_KEYS: {
+        SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
             STATUS: 'status',
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
             GROUP_BY: 'groupBy',
-        },
-        SYNTAX_FILTER_KEYS: {
-            TYPE: 'type',
-            STATUS: 'status',
             DATE: 'date',
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expenseType',
@@ -6433,6 +6429,9 @@ const CONST = {
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
             ACTION: 'action',
+        },
+        get SYNTAX_ROOT_KEYS() {
+            return [this.SYNTAX_FILTER_KEYS.TYPE, this.SYNTAX_FILTER_KEYS.STATUS, this.SYNTAX_FILTER_KEYS.SORT_BY, this.SYNTAX_FILTER_KEYS.SORT_ORDER, this.SYNTAX_FILTER_KEYS.GROUP_BY] as const;
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none,Uncategorized',

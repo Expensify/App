@@ -60,16 +60,7 @@ const operatorToCharMap = {
 const createKeyToUserFriendlyMap = () => {
     const map = new Map<string, string>();
 
-    // Map SYNTAX_FILTER_KEYS values to their user-friendly names
     Object.entries(CONST.SEARCH.SYNTAX_FILTER_KEYS).forEach(([keyName, keyValue]) => {
-        if (!(keyName in CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS)) {
-            return;
-        }
-        map.set(keyValue, CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS[keyName as keyof typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS]);
-    });
-
-    // Map SYNTAX_ROOT_KEYS values to their user-friendly names
-    Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS).forEach(([keyName, keyValue]) => {
         if (!(keyName in CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS)) {
             return;
         }
@@ -100,7 +91,7 @@ const displayTextToValueMap = createDisplayTextToValueMap();
  * @example
  * getUserFriendlyKey("taxRate") // returns "tax-rate"
  */
-function getUserFriendlyKey(keyName: SearchFilterKey | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER): UserFriendlyKey {
+function getUserFriendlyKey(keyName: SearchFilterKey): UserFriendlyKey {
     return (keyToUserFriendlyMap.get(keyName) ?? keyName) as UserFriendlyKey;
 }
 
@@ -318,9 +309,9 @@ const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'var
  */
 function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSearchHash: number} {
     let orderedQuery = '';
-    orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${query.type}`;
-    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${Array.isArray(query.status) ? query.status.join(',') : query.status}`;
-    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${query.groupBy}`;
+    orderedQuery += `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE}:${query.type}`;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS}:${Array.isArray(query.status) ? query.status.join(',') : query.status}`;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_BY}:${query.groupBy}`;
 
     query.flatFilters
         .map((filter) => {
@@ -333,8 +324,8 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
 
     const recentSearchHash = hashText(orderedQuery, 2 ** 32);
 
-    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${query.sortBy}`;
-    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${query.sortOrder}`;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.SORT_BY}:${query.sortBy}`;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.SORT_ORDER}:${query.sortOrder}`;
     if (query.policyID) {
         orderedQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${Array.isArray(query.policyID) ? query.policyID.join(',') : query.policyID} `;
     }
@@ -396,7 +387,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
     const queryParts: string[] = [];
     const defaultQueryJSON = buildSearchQueryJSON('');
 
-    for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
+    CONST.SEARCH.SYNTAX_ROOT_KEYS.forEach((key) => {
         const existingFieldValue = queryJSON?.[key];
         const queryFieldValue = existingFieldValue ?? defaultQueryJSON?.[key];
 
@@ -407,7 +398,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
                 queryParts.push(`${key}:${queryFieldValue}`);
             }
         }
-    }
+    });
 
     if (queryJSON?.policyID) {
         queryParts.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${Array.isArray(queryJSON.policyID) ? queryJSON.policyID.join(',') : queryJSON.policyID}`);
@@ -451,27 +442,27 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     const {type, status, groupBy, ...otherFilters} = supportedFilterValues;
     const filtersString: string[] = [];
 
-    filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${CONST.SEARCH.TABLE_COLUMNS.DATE}`);
-    filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${CONST.SEARCH.SORT_ORDER.DESC}`);
+    filtersString.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.SORT_BY}:${CONST.SEARCH.TABLE_COLUMNS.DATE}`);
+    filtersString.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.SORT_ORDER}:${CONST.SEARCH.SORT_ORDER.DESC}`);
 
     if (type) {
         const sanitizedType = sanitizeSearchValue(type);
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${sanitizedType}`);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE}:${sanitizedType}`);
     }
 
     if (groupBy) {
         const sanitizedGroupBy = sanitizeSearchValue(groupBy);
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${sanitizedGroupBy}`);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_BY}:${sanitizedGroupBy}`);
     }
 
     if (status && typeof status === 'string') {
         const sanitizedStatus = sanitizeSearchValue(status);
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizedStatus}`);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS}:${sanitizedStatus}`);
     }
 
     if (status && Array.isArray(status)) {
         const filterValueArray = [...new Set<string>(status)];
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${filterValueArray.map(sanitizeSearchValue).join(',')}`);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS}:${filterValueArray.map(sanitizeSearchValue).join(',')}`);
     }
 
     const mappedFilters = Object.entries(otherFilters)

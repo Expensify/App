@@ -155,13 +155,13 @@ function filterOutRangesWithCorrectValue(
 
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY:
             return currencyList.get().includes(range.value);
-        case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE:
             return typeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE:
             return expenseTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE:
             return withdrawalTypeList.includes(range.value);
-        case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS:
             return statusList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION:
             return actionList.includes(range.value);
@@ -169,7 +169,7 @@ function filterOutRangesWithCorrectValue(
             return categoryList.get().includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG:
             return tagList.get().includes(range.value);
-        case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_BY:
             return groupByList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:

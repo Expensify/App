@@ -224,7 +224,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-            CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_BY,
         ],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
@@ -290,7 +290,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-            CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_BY,
         ],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
@@ -477,7 +477,7 @@ function getFilterDisplayTitle(
         return filterValue ? translate(`common.${filterValue as ValueOf<typeof CONST.SEARCH.DATA_TYPES>}`) : undefined;
     }
 
-    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_BY) {
         const filterValue = filters[nonDateFilterKey];
         return filterValue ? translate(`search.filters.groupBy.${filterValue}`) : undefined;
     }
@@ -729,7 +729,7 @@ function AdvancedSearchFilters() {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, workspacesData);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, currentType, groupBy, translate);
-                    } else if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
+                    } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_BY) {
                         if (!shouldDisplayGroupByFilter) {
                             return;
                         }
