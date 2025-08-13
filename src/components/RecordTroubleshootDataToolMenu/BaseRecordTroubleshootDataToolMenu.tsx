@@ -90,6 +90,7 @@ function BaseRecordTroubleshootDataToolMenu({
     const [isProfilingInProgress] = useOnyx(ONYXKEYS.APP_PROFILING_IN_PROGRESS, {canBeMissing: true});
     const [shareUrls, setShareUrls] = useState<string[]>();
     const [isDisabled, setIsDisabled] = useState<boolean>(false);
+    const [profileTracePath, setProfileTracePath] = useState<string>();
 
     const shouldShowProfileTool = useMemo(() => shouldShowProfileToolUtil(), []);
 
@@ -153,7 +154,7 @@ function BaseRecordTroubleshootDataToolMenu({
         const logsWithParsedMessages = parseStringifiedMessages(logs);
 
         const infoFileName = `App_Info_${pkg.version}.json`;
-        // Try to move the stop profiling logic here, platform based
+
         if (getPlatform() === CONST.PLATFORM.WEB) {
             onStopProfiling(true, newFileName).then(() => {
                 getAppInfo().then((appInfo) => {
@@ -167,8 +168,7 @@ function BaseRecordTroubleshootDataToolMenu({
                     });
                 });
             });
-            // This is the default ios fallback, android and desktop will be added later
-        } else {
+        } else if (getPlatform() === CONST.PLATFORM.IOS) {
             onStopProfiling(true, newFileName).then((path) => {
                 if (!path) {
                     return;
@@ -204,8 +204,8 @@ function BaseRecordTroubleshootDataToolMenu({
                                     });
                                 });
                                 Log.hmmm('[ProfilingToolMenu] file copied successfully');
-                                // setShareUrls([`file://${newFilePath}`, `file://${file?.path}`]);
-                                setShareUrls([`file://${newFilePath}`]);
+
+                                setProfileTracePath(newFilePath);
                             })
                             .catch((err) => {
                                 console.error('[ProfilingToolMenu] error copying file: ', err);
@@ -216,48 +216,52 @@ function BaseRecordTroubleshootDataToolMenu({
                         Log.hmmm('[ProfilingToolMenu] error copying file: ', error);
                     });
             });
-        }
-        // getAppInfo().then((appInfo) => {
-        //     zipRef.current?.file(infoFileName, appInfo);
-
-        //     onDisableLogging(logsWithParsedMessages).then(() => {
-        //         disableLoggingAndFlushLogs();
-        //         setShouldRecordTroubleshootData(false);
-        //         setIsDisabled(false);
-        //     });
-        // });
-    };
-
-    const onDisableSwitch = useCallback(() => {
-        if (getPlatform() === CONST.PLATFORM.DESKTOP) {
-            onDownloadZip?.();
         } else if (getPlatform() === CONST.PLATFORM.ANDROID) {
             onStopProfiling(true, newFileName).then((path) => {
                 if (!path) {
                     return;
                 }
 
-                setShareUrls([`file://${path}`, `file://${file?.path}`]);
+                setProfileTracePath(path);
+
+                getAppInfo().then((appInfo) => {
+                    zipRef.current?.file(infoFileName, appInfo);
+
+                    onDisableLogging(logsWithParsedMessages).then(() => {
+                        disableLoggingAndFlushLogs();
+                        setShouldRecordTroubleshootData(false);
+                        setIsDisabled(false);
+                    });
+                });
+            });
+        } else {
+            // Desktop
+            onStopProfiling(true, newFileName).then(() => {
+                getAppInfo().then((appInfo) => {
+                    zipRef.current?.file(infoFileName, appInfo);
+
+                    onDisableLogging(logsWithParsedMessages).then(() => {
+                        disableLoggingAndFlushLogs();
+                        setShouldRecordTroubleshootData(false);
+                        setIsDisabled(false);
+                    });
+                });
             });
         }
-    }, [file?.path, onDownloadZip, onStopProfiling]);
+    };
 
     useEffect(() => {
-        if (!file) {
+        if (!profileTracePath || !file) {
             return;
         }
 
-        onDisableSwitch();
-    }, [file, onDisableSwitch]);
+        setShareUrls([`file://${profileTracePath}`, `file://${file?.path}`]);
+    }, [profileTracePath, file]);
 
     const onShare = () => {
         Share.open({
             urls: shareUrls,
         });
-    };
-
-    const onDownloadProfiling = () => {
-        onStopProfiling(true, newFileName);
     };
 
     return (
@@ -287,7 +291,7 @@ function BaseRecordTroubleshootDataToolMenu({
                     <Button
                         small
                         text={translate('common.download')}
-                        onPress={onDownloadProfiling}
+                        onPress={onDownloadZip}
                     />
                 </TestToolRow>
             )}
