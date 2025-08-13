@@ -56,28 +56,72 @@ const operatorToCharMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.OR]: ' ' as const,
 };
 
+// Create reverse lookup maps for O(1) performance
+const createKeyToUserFriendlyMap = () => {
+    const map = new Map<string, string>();
+    
+    // Map SYNTAX_FILTER_KEYS values to their user-friendly names
+    Object.entries(CONST.SEARCH.SYNTAX_FILTER_KEYS).forEach(([keyName, keyValue]) => {
+        if (!(keyName in CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS)) {
+            return;
+        }
+        map.set(keyValue, CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS[keyName as keyof typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS]);
+    });
+    
+    // Map SYNTAX_ROOT_KEYS values to their user-friendly names
+    Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS).forEach(([keyName, keyValue]) => {
+        if (!(keyName in CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS)) {
+            return;
+        }
+        map.set(keyValue, CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS[keyName as keyof typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS]);
+    });
+    
+    return map;
+};
+
+const createDisplayTextToValueMap = () => {
+    const map = new Map<string, string>();
+    
+    // Create reverse mapping from user-friendly values to backend keys
+    Object.entries(CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP).forEach(([backendKey, userFriendlyValue]) => {
+        map.set(userFriendlyValue, backendKey);
+    });
+    
+    return map;
+};
+
+// Create the maps once at module initialization for performance
+const keyToUserFriendlyMap = createKeyToUserFriendlyMap();
+const displayTextToValueMap = createDisplayTextToValueMap();
+
 /**
- * Dynamically maps filter names from the internal codebase format to user-friendly names.
- * This function automatically finds the corresponding user-friendly key for any filter key.
+ * Lookup a key in the keyToUserFriendlyMap and return the user-friendly key.
+ * 
+ * @example
+ * getUserFriendlyKey("taxRate") // returns "tax-rate"
  */
-function getUserFriendlyKeyFromMap(keyName: SearchFilterKey | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER): UserFriendlyKey {
-    // Find the corresponding key name in the SYNTAX objects
-    const filterKeyName = Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS).find(
-        (key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key as keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS] === keyName
-    );
-    
-    const rootKeyName = Object.keys(CONST.SEARCH.SYNTAX_ROOT_KEYS).find(
-        (key) => CONST.SEARCH.SYNTAX_ROOT_KEYS[key as keyof typeof CONST.SEARCH.SYNTAX_ROOT_KEYS] === keyName
-    );
-    
-    const foundKeyName = filterKeyName ?? rootKeyName;
-    
-    if (foundKeyName && foundKeyName in CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS) {
-        return CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS[foundKeyName as keyof typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS];
-    }
-    
-    // Fallback to the original key if no mapping is found
-    return keyName as UserFriendlyKey;
+function getUserFriendlyKey(keyName: SearchFilterKey | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER): UserFriendlyKey {
+    return (keyToUserFriendlyMap.get(keyName) ?? keyName) as UserFriendlyKey;
+}
+
+/**
+ * Lookup a value in the displayTextToValueMap and return the backend value.
+ * 
+ * @example
+ * getUserFriendlyValueFromMap("per-diem") // returns "perDiem"
+ */
+function getUserFriendlyValueFromMap(searchText: string): string {
+    return displayTextToValueMap.get(searchText) ?? searchText;
+}
+
+/**
+ * Converts a filter value from backend value to user friendly display text.
+ *
+ * @example
+ * getUserFriendlyValues("perDiem") // returns "per-diem"
+ */
+function getUserFriendlyValue(value: string): UserFriendlyValue {
+    return CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP[value as keyof typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP] ?? value;
 }
 
 /**
@@ -191,13 +235,13 @@ function getFilters(queryJSON: SearchQueryJSON) {
         if (!Array.isArray(node.right)) {
             filterArray.push({
                 operator: node.operator,
-                value: CONST.SEARCH.SEARCH_TEXT_TO_VALUE_MAP[node.right as keyof typeof CONST.SEARCH.SEARCH_TEXT_TO_VALUE_MAP] ?? node.right as string | number,
+                value: getUserFriendlyValueFromMap(String(node.right)) as string | number,
             });
         } else {
             node.right.forEach((element) => {
                 filterArray.push({
                     operator: node.operator,
-                    value: CONST.SEARCH.SEARCH_TEXT_TO_VALUE_MAP[element as keyof typeof CONST.SEARCH.SEARCH_TEXT_TO_VALUE_MAP] ?? element,
+                    value: getUserFriendlyValueFromMap(String(element)),
                 });
             });
         }
@@ -1017,31 +1061,6 @@ function getQueryWithoutFilters(searchQuery: string) {
     const keywordFilter = queryJSON.flatFilters.find((filter) => filter.key === 'keyword');
 
     return keywordFilter?.filters.map((filter) => filter.value).join(' ') ?? '';
-}
-
-/**
- * Converts a filter key from old naming (camelCase) to user friendly naming (kebab-case).
- *
- * There are two types of keys used in the context of Search.
- * The `camelCase` naming (ex: `sortBy`, `taxRate`) is more friendly to developers, but not nice to show to people. This was the default key naming in the past.
- * The "user friendly" naming (ex: `sort-by`, `tax-rate`) was introduced at a later point, to offer better experience for the users.
- * Currently search parsers support both versions as an input, but output the `camelCase` form. Whenever we display some query to the user however, we always do it in the newer pretty format.
- *
- * @example
- * getUserFriendlyKey("taxRate") // returns "tax-rate"
- */
-function getUserFriendlyKey(keyName: SearchFilterKey | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER): UserFriendlyKey {
-    return getUserFriendlyKeyFromMap(keyName);
-}
-
-/**
- * Converts a filter value from backend value to display text value
- *
- * @example
- * getUserFriendlyValues("perDiem") // returns "per-diem"
- */
-function getUserFriendlyValue(value: string): UserFriendlyValue {
-    return CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP[value as keyof typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP] ?? value;
 }
 
 function shouldHighlight(referenceText: string, searchText: string) {

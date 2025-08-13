@@ -6484,9 +6484,6 @@ const CONST = {
                 [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',
             };
         },
-        SEARCH_TEXT_TO_VALUE_MAP: {
-            'per-diem': 'perDiem',
-        },
         DATE_MODIFIERS: {
             ON: 'On',
             AFTER: 'After',
