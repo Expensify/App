@@ -3,7 +3,6 @@ import type {ReactNode} from 'react';
 import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -12,6 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -128,7 +128,7 @@ function WorkspacePageWithSections({
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
-    useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
+    const {isOffline} = useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
@@ -139,7 +139,7 @@ function WorkspacePageWithSections({
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
-    const achState = reimbursementAccount?.achData?.state;
+    const achState = policy?.achAccount?.state ?? reimbursementAccount?.achData?.state;
     const isUsingECard = account?.isUsingExpensifyCard ?? false;
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const content = typeof children === 'function' ? children(hasVBA, policyID, isUsingECard) : children;
@@ -218,7 +218,7 @@ function WorkspacePageWithSections({
                 >
                     {headerContent}
                 </HeaderWithBackButton>
-                {(isLoading || firstRender.current) && shouldShowLoading && isFocused ? (
+                {!isOffline && (isLoading || firstRender.current) && shouldShowLoading && isFocused ? (
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                 ) : (
                     <>

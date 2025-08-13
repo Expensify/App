@@ -8,10 +8,9 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {TranslationPaths} from '@src/languages/types';
 
 type SingleSelectItem<T> = {
-    translation: TranslationPaths;
+    text: string;
     value: T;
 };
 
@@ -41,11 +40,11 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
 
     const listData: ListItem[] = useMemo(() => {
         return items.map((item) => ({
-            text: translate(item.translation),
+            text: item.text,
             keyForList: item.value,
             isSelected: item.value === selectedItem?.value,
         }));
-    }, [items, translate, selectedItem]);
+    }, [items, selectedItem]);
 
     const updateSelectedItem = useCallback(
         (item: ListItem) => {
@@ -61,9 +60,9 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
     }, [closeOverlay, onChange, selectedItem]);
 
     const resetChanges = useCallback(() => {
-        onChange(items.at(0) ?? null);
+        onChange(null);
         closeOverlay();
-    }, [closeOverlay, items, onChange]);
+    }, [closeOverlay, onChange]);
 
     return (
         <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>

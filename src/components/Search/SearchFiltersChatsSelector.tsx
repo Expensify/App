@@ -1,19 +1,19 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import type {Option} from '@libs/OptionsListUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {createOptionFromReport, filterAndOrderOptions, formatSectionsFromSearchTerm, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
+import type {Option, Section} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
-import * as Report from '@userActions/Report';
+import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -27,6 +27,7 @@ const defaultListOptions = {
 };
 
 function getSelectedOptionData(option: Option): OptionData {
+    // eslint-disable-next-line rulesdir/no-default-id-values
     return {...option, isSelected: true, reportID: option.reportID ?? '-1'};
 }
 
@@ -44,47 +45,50 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         shouldInitialize: didScreenTransitionEnd,
     });
 
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const [selectedReportIDs, setSelectedReportIDs] = useState<string[]>(initialReportIDs);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
 
     const selectedOptions = useMemo<OptionData[]>(() => {
         return selectedReportIDs.map((id) => {
-            const report = getSelectedOptionData(OptionsListUtils.createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails));
-            const alternateText = OptionsListUtils.getAlternateText(report, {});
+            const report = getSelectedOptionData(createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, reportAttributesDerived));
+            const alternateText = getAlternateText(report, {});
             return {...report, alternateText};
         });
-    }, [personalDetails, reports, selectedReportIDs]);
+    }, [personalDetails, reportAttributesDerived, reports, selectedReportIDs]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
             return defaultListOptions;
         }
-        return OptionsListUtils.getSearchOptions(options, undefined, false);
+        return getSearchOptions(options, undefined, false);
     }, [areOptionsInitialized, isScreenTransitionEnd, options]);
 
     const chatOptions = useMemo(() => {
-        return OptionsListUtils.filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
+        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         });
     }, [defaultOptions, cleanSearchTerm, selectedOptions]);
 
     const {sections, headerMessage} = useMemo(() => {
-        const newSections: OptionsListUtils.Section[] = [];
+        const newSections: Section[] = [];
         if (!areOptionsInitialized) {
             return {sections: [], headerMessage: undefined};
         }
 
-        const formattedResults = OptionsListUtils.formatSectionsFromSearchTerm(
+        const formattedResults = formatSectionsFromSearchTerm(
             cleanSearchTerm,
             selectedOptions,
             chatOptions.recentReports,
             chatOptions.personalDetails,
             personalDetails,
             false,
+            undefined,
+            reportAttributesDerived,
         );
 
         newSections.push(formattedResults.section);
@@ -113,13 +117,14 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         cleanSearchTerm,
         didScreenTransitionEnd,
         personalDetails,
+        reportAttributesDerived,
         selectedOptions,
         selectedReportIDs,
         translate,
     ]);
 
     useEffect(() => {
-        Report.searchInServer(debouncedSearchTerm.trim());
+        searchInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
     const handleParticipantSelection = useCallback(
@@ -168,7 +173,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             textInputValue={searchTerm}
             footerContent={footerContent}
             showScrollIndicator
-            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             onChangeText={(value) => {
                 setSearchTerm(value);
             }}

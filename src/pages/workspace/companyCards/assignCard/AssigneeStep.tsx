@@ -1,7 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
@@ -16,11 +15,11 @@ import useCardsList from '@hooks/useCardsList';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
 import {getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
-import {filterAndOrderOptions, getHeaderMessage, getValidOptions, sortAlphabetically} from '@libs/OptionsListUtils';
+import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -94,13 +93,14 @@ function useOptions() {
 }
 
 function AssigneeStep({policy, feed}: AssigneeStepProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [list] = useCardsList(policy?.id, feed);
     const [cardFeeds] = useCardFeeds(policy?.id);
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed]);
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
 
     const isEditing = assignCard?.isEditing;
 
@@ -203,10 +203,10 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             });
         });
 
-        membersList = sortAlphabetically(membersList, 'text');
+        membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList, selectedMember]);
+    }, [isOffline, policy?.employeeList, selectedMember, formatPhoneNumber, localeCompare]);
 
     const sections = useMemo(() => {
         if (!debouncedSearchValue) {

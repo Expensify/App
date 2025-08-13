@@ -1,8 +1,8 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import AddressStep from '@components/SubStepForms/AddressStep';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import ONYXKEYS from '@src/ONYXKEYS';

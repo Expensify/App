@@ -1,20 +1,20 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import {EmptyStateExpenses} from '@components/Icon/Illustrations';
-import {useSession} from '@components/OnyxProvider';
+import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import TagPicker from '@components/TagPicker';
 import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftSplitTransaction, setMoneyRequestTag, updateMoneyRequestTag} from '@libs/actions/IOU';
 import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getTagListName, getTagLists, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getTagList, getTagListName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isPolicyAdmin} from '@libs/PolicyUtils';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {canEditMoneyRequest, isReportInGroupPolicy} from '@libs/ReportUtils';
@@ -69,6 +69,7 @@ function IOURequestStepTag({
     const canEditSplitExpense = isSplitExpense && !!transaction;
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
+    const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
     const shouldShowTag = transactionTag || hasEnabledTags(policyTagLists);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -93,17 +94,54 @@ function IOURequestStepTag({
     const updateTag = (selectedTag: Partial<OptionData>) => {
         const isSelectedTag = selectedTag.searchText === tag;
         const searchText = selectedTag.searchText ?? '';
-        const updatedTag = insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : searchText, tagListIndex);
+        let updatedTag: string;
+
+        if (hasDependentTags) {
+            const tagParts = transactionTag ? transactionTag.split(':') : [];
+
+            if (isSelectedTag) {
+                // Deselect: clear this and all child tags
+                tagParts.splice(tagListIndex);
+            } else {
+                // Select new tag: replace this index and clear child tags
+                tagParts.splice(tagListIndex, tagParts.length - tagListIndex, searchText);
+
+                // Check for auto-selection of subsequent tags
+                for (let i = tagListIndex + 1; i < policyTagLists.length; i++) {
+                    const availableNextLevelTags = getTagList(policyTags, i);
+                    const enabledTags = Object.values(availableNextLevelTags.tags).filter((t) => t.enabled);
+
+                    if (enabledTags.length === 1) {
+                        // If there is only one enabled tag, we can auto-select it
+                        const firstTag = enabledTags.at(0);
+                        if (firstTag) {
+                            tagParts.push(firstTag.name);
+                        }
+                    } else {
+                        // If there are no enabled tags or more than one, stop auto-selecting
+                        break;
+                    }
+                }
+            }
+
+            updatedTag = tagParts.join(':');
+        } else {
+            // Independent tags (fallback): use comma-separated list
+            updatedTag = insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : searchText, tagListIndex);
+        }
+
         if (isEditingSplit) {
             setDraftSplitTransaction(transactionID, {tag: updatedTag});
             navigateBack();
             return;
         }
+
         if (isEditing) {
             updateMoneyRequestTag(transactionID, report?.reportID, updatedTag, policy, policyTags, policyCategories, currentSearchHash);
             navigateBack();
             return;
         }
+
         setMoneyRequestTag(transactionID, updatedTag);
         navigateBack();
     };
@@ -154,6 +192,8 @@ function IOURequestStepTag({
                         tagListName={policyTagListName}
                         tagListIndex={tagListIndex}
                         selectedTag={tag}
+                        transactionTag={transactionTag}
+                        hasDependentTags={hasDependentTags}
                         onSubmit={updateTag}
                     />
                 </>

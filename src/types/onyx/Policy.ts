@@ -120,6 +120,53 @@ type CompanyAddress = {
     country: Country | '';
 };
 
+/**
+ * Uber Receipt Partner
+ */
+type UberReceiptPartner = {
+    /**
+     * form data for uber partner
+     */
+    connectFormData: {
+        /**
+         * fname for uber partner
+         */
+        fname?: string;
+        /**
+         * hash for uber partner
+         */
+        hash: string;
+        /**
+         * id for uber partner
+         */
+        id: string;
+        /**
+         * lname for uber partner
+         */
+        lname?: string;
+        /**
+         * name for uber partner
+         */
+        name: string;
+        /**
+         * query for uber partner
+         */
+        query: string;
+        /**
+         * requestID for uber partner
+         */
+        requestID?: string;
+    };
+};
+
+/** Policy Receipt partners */
+type ReceiptPartners = {
+    /**
+     * uber partner
+     */
+    [CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER]: UberReceiptPartner;
+};
+
 /** Policy disabled fields */
 type DisabledFields = {
     /** Whether the default billable field is disabled */
@@ -610,6 +657,9 @@ type XeroExportConfig = {
 
     /** TODO: Will be handled in another issue */
     reimbursable: ExpenseTypesValues;
+
+    /** The accounting Method for Xero connection config */
+    accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
 /** TODO: Will be handled in another issue */
@@ -1430,10 +1480,13 @@ type ACHAccount = {
 
     /** E-mail of the reimburser */
     reimburser: string;
+
+    /** Bank account state */
+    state?: string;
 };
 
 /** Prohibited expense types */
-type ProhibitedExpenses = {
+type ProhibitedExpenses = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether the policy prohibits alcohol expenses */
     alcohol?: boolean;
 
@@ -1448,7 +1501,7 @@ type ProhibitedExpenses = {
 
     /** Whether the policy prohibits adult entertainment expenses */
     adultEntertainment?: boolean;
-};
+}>;
 
 /** Day of the month to schedule submission  */
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
@@ -1682,6 +1735,12 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The reimbursement choice for policy */
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
 
+        /** The set reimburser for the policy */
+        reimburser?: string;
+
+        /** The set exporter for the policy */
+        exporter?: string;
+
         /** Detailed settings for the autoReimbursement */
         autoReimbursement?: OnyxCommon.OnyxValueWithOfflineFeedback<
             {
@@ -1740,6 +1799,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether transactions should be billable by default */
         defaultBillable?: boolean;
 
+        /** Whether transactions should be reimbursable by default */
+        defaultReimbursable?: boolean;
+
         /** The workspace description */
         description?: string;
 
@@ -1751,6 +1813,11 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether new transactions need to be categorized */
         requiresCategory?: boolean;
+
+        /**
+         * Policy Receipt Partners
+         */
+        receiptPartners?: ReceiptPartners;
 
         /** Whether the workspace has multiple levels of tags enabled */
         hasMultipleTagLists?: boolean;
@@ -1824,6 +1891,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Report Fields feature is enabled */
         areReportFieldsEnabled?: boolean;
+
+        /** Whether the Receipt Partners feature is enabled */
+        areReceiptPartnersEnabled?: boolean;
 
         /** Whether the Connections feature is enabled */
         areConnectionsEnabled?: boolean;
@@ -1941,6 +2011,7 @@ export type {
     Connections,
     SageIntacctOfflineStateKeys,
     ConnectionName,
+    UberReceiptPartner,
     AllConnectionName,
     Tenant,
     Account,

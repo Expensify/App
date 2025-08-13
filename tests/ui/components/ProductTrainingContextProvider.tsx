@@ -18,14 +18,6 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
     default: jest.fn(),
 }));
 
-// Mock Fullstory library dependency
-jest.mock('@libs/Fullstory', () => ({
-    default: {
-        consentAndIdentify: jest.fn(),
-    },
-    parseFSAttributes: jest.fn(),
-}));
-
 const DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE = {
     shouldUseNarrowLayout: true,
     isSmallScreenWidth: true,
@@ -228,7 +220,6 @@ describe('ProductTrainingContextProvider', () => {
         it('should hide tooltip when hideProductTrainingTooltip is called', async () => {
             // When migrated user has dismissed welcome modal
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
-            Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {nudgeMigration: {timestamp: new Date()}});
             const date = new Date();
             Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
                 migratedUserWelcomeModal: {

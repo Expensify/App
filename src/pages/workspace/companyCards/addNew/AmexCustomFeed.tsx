@@ -1,6 +1,5 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -10,6 +9,7 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';

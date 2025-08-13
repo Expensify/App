@@ -1,13 +1,13 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setNewRoomFormLoading} from '@libs/actions/Report';
@@ -25,7 +25,7 @@ function NewChatSelectorPage() {
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
     const [tabBarContainerElement, setTabBarContainerElement] = useState<HTMLElement | null>(null);
     const [activeTabContainerElement, setActiveTabContainerElement] = useState<HTMLElement | null>(null);
-    const [formState] = useOnyx(ONYXKEYS.FORMS.NEW_ROOM_FORM, {canBeMissing: false});
+    const [formState] = useOnyx(ONYXKEYS.FORMS.NEW_ROOM_FORM, {canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const chatPageInputRef = useRef<AnimatedTextInputRef | null>(null);
     const roomPageInputRef = useRef<AnimatedTextInputRef | null>(null);

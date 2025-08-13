@@ -1,16 +1,18 @@
 import {useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
+import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTransactionViolations from '@hooks/useTransactionViolations';
 import {deleteMoneyRequest, deleteTrackExpense, initSplitExpense} from '@libs/actions/IOU';
+import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportActions, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
@@ -31,7 +33,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Policy, Report, ReportAction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
@@ -40,6 +42,7 @@ import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmModal from './ConfirmModal';
 import DecisionModal from './DecisionModal';
+import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -61,9 +64,12 @@ type MoneyRequestHeaderProps = {
 
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: () => void;
+
+    /** Precomputed violations for the transaction */
+    transactionViolations?: TransactionViolation[];
 };
 
-function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPress}: MoneyRequestHeaderProps) {
+function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPress, transactionViolations = []}: MoneyRequestHeaderProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -77,21 +83,20 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         }`,
         {canBeMissing: true},
     );
-    const transactionViolations = useTransactionViolations(transaction?.transactionID);
-
+    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transaction?.transactionID ? [transaction.transactionID] : []);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
-    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true, canBeMissing: false});
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
+    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
+    const shouldShowLoadingBar = useLoadingBarVisibility();
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const isOnHold = isOnHoldTransactionUtils(transaction);
-    const isDuplicate = isDuplicateTransactionUtils(transaction?.transactionID);
+    const isDuplicate = isDuplicateTransactionUtils(transaction);
     const reportID = report?.reportID;
     const {removeTransaction} = useSearchContext();
-
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
 
@@ -200,14 +205,31 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (!transaction || !reportActions) {
             return [];
         }
-        return getSecondaryTransactionThreadActions(parentReport, transaction, Object.values(reportActions), policy);
-    }, [parentReport, policy, transaction]);
+        return getSecondaryTransactionThreadActions(parentReport, transaction, Object.values(reportActions), policy, report);
+    }, [report, parentReport, policy, transaction]);
 
     const secondaryActionsImplementation: Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>> = {
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD]: {
             text: translate('iou.hold'),
             icon: Expensicons.Stopwatch,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD,
+            onSelected: () => {
+                if (!parentReportAction) {
+                    throw new Error('Parent action does not exist');
+                }
+
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
+                changeMoneyRequestHoldStatus(parentReportAction);
+            },
+        },
+        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD]: {
+            text: translate('iou.unhold'),
+            icon: Expensicons.Stopwatch,
+            value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD,
             onSelected: () => {
                 if (!parentReportAction) {
                     throw new Error('Parent action does not exist');
@@ -221,7 +243,20 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             icon: Expensicons.ArrowSplit,
             value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {
-                initSplitExpense(transaction, reportID ?? String(CONST.DEFAULT_NUMBER_ID));
+                initSplitExpense(transaction);
+            },
+        },
+        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE]: {
+            text: translate('common.merge'),
+            icon: Expensicons.ArrowCollapse,
+            value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE,
+            onSelected: () => {
+                if (!transaction) {
+                    return;
+                }
+
+                setupMergeTransactionData(transaction.transactionID, {targetTransactionID: transaction.transactionID});
+                Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID, Navigation.getActiveRoute()));
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS]: {
@@ -229,7 +264,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             text: translate('iou.viewDetails'),
             icon: Expensicons.Info,
             onSelected: () => {
-                navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute());
+                navigateToDetailsPage(report, Navigation.getActiveRoute());
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE]: {
@@ -259,7 +294,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                           }
                         : undefined
                 }
-                policy={policy}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter={!isReportInRHP}
                 shouldDisplayHelpButton={!isReportInRHP}
@@ -308,7 +342,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     />
                 </View>
             )}
-            <LoadingBar shouldShow={(isLoadingReportData && shouldUseNarrowLayout) ?? false} />
+            <LoadingBar shouldShow={shouldShowLoadingBar && shouldUseNarrowLayout} />
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
                 prompt={translate('common.downloadFailedDescription')}
@@ -327,9 +361,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         throw new Error('Data missing');
                     }
                     if (isTrackExpenseAction(parentReportAction)) {
-                        deleteTrackExpense(report?.chatReportID, transaction.transactionID, parentReportAction, true);
+                        deleteTrackExpense(report?.parentReportID, transaction.transactionID, parentReportAction, duplicateTransactions, duplicateTransactionViolations, true);
                     } else {
-                        deleteMoneyRequest(transaction.transactionID, parentReportAction, true);
+                        deleteMoneyRequest(transaction.transactionID, parentReportAction, duplicateTransactions, duplicateTransactionViolations, true);
                         removeTransaction(transaction.transactionID);
                     }
                     onBackButtonPress();

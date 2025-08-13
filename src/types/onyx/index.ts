@@ -1,4 +1,4 @@
-import type {OnboardingPurpose} from '@src/CONST';
+import type {OnboardingPurpose} from '@libs/actions/Welcome/OnboardingFlow';
 import type Account from './Account';
 import type AccountData from './AccountData';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
@@ -23,7 +23,7 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
-import type ReportAttributesDerivedValue from './DerivedValues';
+import type {ReportAttributesDerivedValue, ReportTransactionsAndViolationsDerivedValue} from './DerivedValues';
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Download from './Download';
@@ -34,6 +34,7 @@ import type {FundList} from './Fund';
 import type Fund from './Fund';
 import type HybridApp from './HybridApp';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
+import type IntegrationServerExportTemplate from './IntegrationServerExportTemplate';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -45,7 +46,7 @@ import type LockAccountDetails from './LockAccountDetails';
 import type {LoginList} from './Login';
 import type Login from './Login';
 import type MapboxAccessToken from './MapboxAccessToken';
-import type MobileSelectionMode from './MobileSelectionMode';
+import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
 import type Network from './Network';
 import type NewGroupChatDraft from './NewGroupChatDraft';
@@ -112,6 +113,7 @@ import type TryNewDot from './TryNewDot';
 import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
+import type VacationDelegate from './VacationDelegate';
 import type ValidateMagicCodeAction from './ValidateMagicCodeAction';
 import type ValidateUserAndGetAccessiblePolicies from './ValidateUserAndGetAccessiblePolicies';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
@@ -210,6 +212,7 @@ export type {
     TaxRates,
     TaxRatesWithDefault,
     Transaction,
+    MergeTransaction,
     TransactionViolation,
     TransactionViolations,
     TravelSettings,
@@ -244,7 +247,6 @@ export type {
     BillingStatus,
     CancellationDetails,
     ApprovalWorkflowOnyx,
-    MobileSelectionMode,
     CardFeeds,
     SaveSearch,
     RecentSearchItem,
@@ -261,8 +263,11 @@ export type {
     SidePanel,
     LastPaymentMethodType,
     ReportAttributesDerivedValue,
+    ReportTransactionsAndViolationsDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
+    VacationDelegate,
     BillingReceiptDetails,
+    IntegrationServerExportTemplate,
     HybridApp,
 };

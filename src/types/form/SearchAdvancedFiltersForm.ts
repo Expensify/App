@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type {SearchDateFilterKeys, SearchGroupBy} from '@components/Search/types';
+import type {SearchDateFilterKeys, SearchGroupBy, SearchWithdrawalType} from '@components/Search/types';
 import CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type Form from './Form';
@@ -11,6 +11,7 @@ const DATE_FILTER_KEYS: SearchDateFilterKeys[] = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
 ];
 
 const FILTER_KEYS = {
@@ -35,6 +36,10 @@ const FILTER_KEYS = {
     POSTED_ON: 'postedOn',
     POSTED_AFTER: 'postedAfter',
     POSTED_BEFORE: 'postedBefore',
+    WITHDRAWAL_TYPE: 'withdrawalType',
+    WITHDRAWN_ON: 'withdrawnOn',
+    WITHDRAWN_AFTER: 'withdrawnAfter',
+    WITHDRAWN_BEFORE: 'withdrawnBefore',
     CURRENCY: 'currency',
     CATEGORY: 'category',
     POLICY_ID: 'policyID',
@@ -58,12 +63,175 @@ const FILTER_KEYS = {
     ASSIGNEE: 'assignee',
     REIMBURSABLE: 'reimbursable',
     BILLABLE: 'billable',
+    ACTION: 'action',
 } as const;
 
-type InputID = ValueOf<typeof FILTER_KEYS>;
+const ALLOWED_TYPE_FILTERS = {
+    [CONST.SEARCH.DATA_TYPES.EXPENSE]: [
+        FILTER_KEYS.TYPE,
+        FILTER_KEYS.STATUS,
+        FILTER_KEYS.FROM,
+        FILTER_KEYS.TO,
+        FILTER_KEYS.KEYWORD,
+        FILTER_KEYS.POLICY_ID,
+        FILTER_KEYS.EXPENSE_TYPE,
+        FILTER_KEYS.MERCHANT,
+        FILTER_KEYS.DATE_ON,
+        FILTER_KEYS.DATE_AFTER,
+        FILTER_KEYS.DATE_BEFORE,
+        FILTER_KEYS.GREATER_THAN,
+        FILTER_KEYS.LESS_THAN,
+        FILTER_KEYS.CURRENCY,
+        FILTER_KEYS.CATEGORY,
+        FILTER_KEYS.TAG,
+        FILTER_KEYS.PAYER,
+        FILTER_KEYS.DESCRIPTION,
+        FILTER_KEYS.CARD_ID,
+        FILTER_KEYS.FEED,
+        FILTER_KEYS.POSTED_AFTER,
+        FILTER_KEYS.POSTED_BEFORE,
+        FILTER_KEYS.POSTED_ON,
+        FILTER_KEYS.WITHDRAWAL_TYPE,
+        FILTER_KEYS.WITHDRAWN_AFTER,
+        FILTER_KEYS.WITHDRAWN_BEFORE,
+        FILTER_KEYS.WITHDRAWN_ON,
+        FILTER_KEYS.TAX_RATE,
+        FILTER_KEYS.REIMBURSABLE,
+        FILTER_KEYS.BILLABLE,
+        FILTER_KEYS.REPORT_ID,
+        FILTER_KEYS.SUBMITTED_ON,
+        FILTER_KEYS.SUBMITTED_AFTER,
+        FILTER_KEYS.SUBMITTED_BEFORE,
+        FILTER_KEYS.APPROVED_AFTER,
+        FILTER_KEYS.APPROVED_BEFORE,
+        FILTER_KEYS.APPROVED_ON,
+        FILTER_KEYS.PAID_AFTER,
+        FILTER_KEYS.PAID_BEFORE,
+        FILTER_KEYS.PAID_ON,
+        FILTER_KEYS.EXPORTED_AFTER,
+        FILTER_KEYS.EXPORTED_BEFORE,
+        FILTER_KEYS.EXPORTED_ON,
+        FILTER_KEYS.EXPORTER,
+        FILTER_KEYS.GROUP_BY,
+        FILTER_KEYS.FEED,
+        FILTER_KEYS.ACTION,
+    ],
+    [CONST.SEARCH.DATA_TYPES.INVOICE]: [
+        FILTER_KEYS.TYPE,
+        FILTER_KEYS.STATUS,
+        FILTER_KEYS.FROM,
+        FILTER_KEYS.TO,
+        FILTER_KEYS.KEYWORD,
+        FILTER_KEYS.POLICY_ID,
+        FILTER_KEYS.MERCHANT,
+        FILTER_KEYS.DATE_ON,
+        FILTER_KEYS.DATE_AFTER,
+        FILTER_KEYS.DATE_BEFORE,
+        FILTER_KEYS.GREATER_THAN,
+        FILTER_KEYS.LESS_THAN,
+        FILTER_KEYS.CURRENCY,
+        FILTER_KEYS.CATEGORY,
+        FILTER_KEYS.TAG,
+        FILTER_KEYS.PAYER,
+        FILTER_KEYS.DESCRIPTION,
+        FILTER_KEYS.CARD_ID,
+        FILTER_KEYS.FEED,
+        FILTER_KEYS.POSTED_AFTER,
+        FILTER_KEYS.POSTED_BEFORE,
+        FILTER_KEYS.POSTED_ON,
+        FILTER_KEYS.WITHDRAWAL_TYPE,
+        FILTER_KEYS.WITHDRAWN_AFTER,
+        FILTER_KEYS.WITHDRAWN_BEFORE,
+        FILTER_KEYS.WITHDRAWN_ON,
+        FILTER_KEYS.TAX_RATE,
+        FILTER_KEYS.REPORT_ID,
+        FILTER_KEYS.SUBMITTED_ON,
+        FILTER_KEYS.SUBMITTED_AFTER,
+        FILTER_KEYS.SUBMITTED_BEFORE,
+        FILTER_KEYS.APPROVED_AFTER,
+        FILTER_KEYS.APPROVED_BEFORE,
+        FILTER_KEYS.APPROVED_ON,
+        FILTER_KEYS.PAID_AFTER,
+        FILTER_KEYS.PAID_BEFORE,
+        FILTER_KEYS.PAID_ON,
+        FILTER_KEYS.EXPORTED_AFTER,
+        FILTER_KEYS.EXPORTED_BEFORE,
+        FILTER_KEYS.EXPORTED_ON,
+        FILTER_KEYS.EXPORTER,
+        FILTER_KEYS.ACTION,
+    ],
+    [CONST.SEARCH.DATA_TYPES.TRIP]: [
+        FILTER_KEYS.TYPE,
+        FILTER_KEYS.STATUS,
+        FILTER_KEYS.FROM,
+        FILTER_KEYS.TO,
+        FILTER_KEYS.KEYWORD,
+        FILTER_KEYS.POLICY_ID,
+        FILTER_KEYS.MERCHANT,
+        FILTER_KEYS.DATE_ON,
+        FILTER_KEYS.DATE_AFTER,
+        FILTER_KEYS.DATE_BEFORE,
+        FILTER_KEYS.GREATER_THAN,
+        FILTER_KEYS.LESS_THAN,
+        FILTER_KEYS.CURRENCY,
+        FILTER_KEYS.CATEGORY,
+        FILTER_KEYS.TAG,
+        FILTER_KEYS.PAYER,
+        FILTER_KEYS.DESCRIPTION,
+        FILTER_KEYS.CARD_ID,
+        FILTER_KEYS.FEED,
+        FILTER_KEYS.POSTED_AFTER,
+        FILTER_KEYS.POSTED_BEFORE,
+        FILTER_KEYS.POSTED_ON,
+        FILTER_KEYS.TAX_RATE,
+        FILTER_KEYS.REPORT_ID,
+        FILTER_KEYS.SUBMITTED_ON,
+        FILTER_KEYS.SUBMITTED_AFTER,
+        FILTER_KEYS.SUBMITTED_BEFORE,
+        FILTER_KEYS.APPROVED_AFTER,
+        FILTER_KEYS.APPROVED_BEFORE,
+        FILTER_KEYS.APPROVED_ON,
+        FILTER_KEYS.PAID_AFTER,
+        FILTER_KEYS.PAID_BEFORE,
+        FILTER_KEYS.PAID_ON,
+        FILTER_KEYS.EXPORTED_AFTER,
+        FILTER_KEYS.EXPORTED_BEFORE,
+        FILTER_KEYS.EXPORTED_ON,
+        FILTER_KEYS.EXPORTER,
+        FILTER_KEYS.GROUP_BY,
+        FILTER_KEYS.FEED,
+        FILTER_KEYS.ACTION,
+    ],
+    [CONST.SEARCH.DATA_TYPES.CHAT]: [
+        FILTER_KEYS.TYPE,
+        FILTER_KEYS.STATUS,
+        FILTER_KEYS.FROM,
+        FILTER_KEYS.TO,
+        FILTER_KEYS.IN,
+        FILTER_KEYS.KEYWORD,
+        FILTER_KEYS.POLICY_ID,
+        FILTER_KEYS.DATE_AFTER,
+        FILTER_KEYS.DATE_BEFORE,
+        FILTER_KEYS.DATE_ON,
+    ],
+    [CONST.SEARCH.DATA_TYPES.TASK]: [
+        FILTER_KEYS.TYPE,
+        FILTER_KEYS.STATUS,
+        FILTER_KEYS.TITLE,
+        FILTER_KEYS.DESCRIPTION,
+        FILTER_KEYS.IN,
+        FILTER_KEYS.FROM,
+        FILTER_KEYS.ASSIGNEE,
+        FILTER_KEYS.DATE_ON,
+        FILTER_KEYS.DATE_AFTER,
+        FILTER_KEYS.DATE_BEFORE,
+    ],
+};
+
+type SearchAdvancedFiltersKey = ValueOf<typeof FILTER_KEYS>;
 
 type SearchAdvancedFiltersForm = Form<
-    InputID,
+    SearchAdvancedFiltersKey,
     {
         [FILTER_KEYS.GROUP_BY]: SearchGroupBy;
         [FILTER_KEYS.TYPE]: SearchDataTypes;
@@ -86,9 +254,13 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.POSTED_ON]: string;
         [FILTER_KEYS.POSTED_AFTER]: string;
         [FILTER_KEYS.POSTED_BEFORE]: string;
+        [FILTER_KEYS.WITHDRAWAL_TYPE]: SearchWithdrawalType;
+        [FILTER_KEYS.WITHDRAWN_ON]: string;
+        [FILTER_KEYS.WITHDRAWN_AFTER]: string;
+        [FILTER_KEYS.WITHDRAWN_BEFORE]: string;
         [FILTER_KEYS.CURRENCY]: string[];
         [FILTER_KEYS.CATEGORY]: string[];
-        [FILTER_KEYS.POLICY_ID]: string;
+        [FILTER_KEYS.POLICY_ID]: string[];
         [FILTER_KEYS.CARD_ID]: string[];
         [FILTER_KEYS.FEED]: string[];
         [FILTER_KEYS.MERCHANT]: string;
@@ -109,9 +281,10 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.ASSIGNEE]: string[];
         [FILTER_KEYS.REIMBURSABLE]: string;
         [FILTER_KEYS.BILLABLE]: string;
+        [FILTER_KEYS.ACTION]: string;
     }
 >;
 
-export type {SearchAdvancedFiltersForm};
+export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey};
 export default FILTER_KEYS;
-export {DATE_FILTER_KEYS};
+export {DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, FILTER_KEYS};

@@ -30,7 +30,8 @@ function SingleSelectListItem<TItem extends ListItem>({
     const radioCheckboxComponent = useCallback(() => {
         return (
             <Checkbox
-                containerStyle={{borderRadius: 999}}
+                shouldSelectOnPressEnter
+                containerBorderRadius={999}
                 accessibilityLabel="SingleSelectListItem"
                 isChecked={isSelected}
                 onPress={() => onSelectRow(item)}

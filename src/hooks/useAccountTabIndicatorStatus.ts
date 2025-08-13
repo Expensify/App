@@ -1,10 +1,10 @@
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {hasPaymentMethodError} from '@libs/actions/PaymentMethods';
 import {checkIfFeedConnectionIsBroken} from '@libs/CardUtils';
 import {hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useOnyx from './useOnyx';
 import useTheme from './useTheme';
 
 type AccountTabIndicatorStatus = ValueOf<typeof CONST.INDICATOR_STATUS>;
@@ -25,6 +25,7 @@ function useAccountTabIndicatorStatus(): AccountTabIndicatorStatusResult {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const [allCards] = useOnyx(`${ONYXKEYS.CARD_LIST}`, {canBeMissing: true});
     const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
 
     // All of the error & info-checking methods are put into an array. This is so that using _.some() will return
     // early as soon as the first error / info condition is returned. This makes the checks very efficient since
@@ -41,7 +42,7 @@ function useAccountTabIndicatorStatus(): AccountTabIndicatorStatusResult {
     };
 
     const infoChecking: Partial<Record<AccountTabIndicatorStatus, boolean>> = {
-        [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO]: !!loginList && hasLoginListInfo(loginList),
+        [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO]: !!loginList && hasLoginListInfo(loginList, session?.email),
     };
 
     const [error] = Object.entries(errorChecking).find(([, value]) => value) ?? [];

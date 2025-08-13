@@ -37,6 +37,8 @@ GEM
       aws-eventstream (~> 1, >= 1.0.2)
     babosa (1.0.4)
     base64 (0.2.0)
+    benchmark (0.3.0)
+    bigdecimal (3.1.5)
     claide (1.1.0)
     cocoapods (1.15.2)
       addressable (~> 2.8)
@@ -227,6 +229,7 @@ GEM
     json (2.7.6)
     jwt (2.9.3)
       base64
+    logger (1.6.0)
     mime-types (3.5.1)
       mime-types-data (~> 3.2015)
     mime-types-data (3.2023.1003)
@@ -236,6 +239,7 @@ GEM
     molinillo (0.8.0)
     multi_json (1.15.0)
     multipart-post (2.4.1)
+    mutex_m (0.2.0)
     nanaimo (0.3.0)
     nap (1.1.0)
     naturally (2.2.1)
@@ -302,10 +306,14 @@ PLATFORMS
 
 DEPENDENCIES
   activesupport (>= 6.1.7.5, != 7.1.0)
+  benchmark
+  bigdecimal
   cocoapods (= 1.15.2)
   fastlane (~> 2, >= 2.227.1)
   fastlane-plugin-aws_s3
   fastlane-plugin-firebase_app_distribution
+  logger
+  mutex_m
   xcodeproj (< 1.26.0)
   xcpretty (~> 0)
 

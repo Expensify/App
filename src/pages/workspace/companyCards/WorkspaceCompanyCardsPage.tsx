@@ -1,13 +1,13 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {ActivityIndicator} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import DecisionModal from '@components/DecisionModal';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -36,8 +36,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {CurrencyList} from '@src/types/onyx';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspaceCompanyCardPageEmptyState from './WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedPendingPage from './WorkspaceCompanyCardsFeedPendingPage';
 import WorkspaceCompanyCardsList from './WorkspaceCompanyCardsList';
@@ -53,20 +54,20 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
+    const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
     const [cardFeeds] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const [cardsList] = useCardsList(policyID, selectedFeed);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
-    const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
+    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const hasNoAssignedCard = Object.keys(cardsList ?? {}).length === 0;
 
     const {cardList, ...cards} = cardsList ?? {};
 
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: false});
-    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
+    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
-    const filteredCardList = getFilteredCardList(cardsList, selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
+    const filteredCardList = getFilteredCardList(cardsList, selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined, workspaceCardFeeds);
 
     const companyCards = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed && companyCards[selectedFeed];
@@ -100,7 +101,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     const handleAssignCard = () => {
         if (isActingAsDelegate) {
-            setIsNoDelegateAccessMenuVisible(true);
+            showDelegateNoAccessModal();
             return;
         }
         if (!selectedFeed) {
@@ -205,10 +206,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                     )}
                 </WorkspacePageWithSections>
             )}
-            <DelegateNoAccessModal
-                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-            />
 
             <DecisionModal
                 title={translate('common.youAppearToBeOffline')}

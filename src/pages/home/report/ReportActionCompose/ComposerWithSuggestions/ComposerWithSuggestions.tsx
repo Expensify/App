@@ -1,6 +1,6 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
-import type {ForwardedRef, MutableRefObject, RefObject} from 'react';
+import type {ForwardedRef, RefObject} from 'react';
 import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {
     LayoutChangeEvent,
@@ -12,10 +12,9 @@ import type {
     TextInputKeyPressEventData,
     TextInputScrollEventData,
 } from 'react-native';
-import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
+import {DeviceEventEmitter, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import {useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
@@ -23,6 +22,7 @@ import Composer from '@components/Composer';
 import type {CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidePanelDisplayStatus} from '@hooks/useSidePanel';
@@ -59,6 +59,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+// eslint-disable-next-line no-restricted-imports
+import findNodeHandle from '@src/utils/findNodeHandle';
 
 type SyncSelection = {
     position: number;
@@ -99,7 +101,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     inputPlaceholder: string;
 
     /** Function to display a file in a modal */
-    displayFileInModal: (file: FileObject) => void;
+    displayFilesInModal: (file: FileObject[]) => void;
 
     /** Whether the user is blocked from concierge */
     isBlockedFromConcierge: boolean;
@@ -126,10 +128,10 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     raiseIsScrollLikelyLayoutTriggered: () => void;
 
     /** The ref to the suggestions */
-    suggestionsRef: React.RefObject<SuggestionsRef>;
+    suggestionsRef: React.RefObject<SuggestionsRef | null>;
 
     /** The ref to the next modal will open */
-    isNextModalWillOpenRef: MutableRefObject<boolean | null>;
+    isNextModalWillOpenRef: RefObject<boolean | null>;
 
     /** The last report action */
     lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
@@ -214,7 +216,7 @@ function ComposerWithSuggestions(
         setIsFullComposerAvailable,
         isMenuVisible,
         inputPlaceholder,
-        displayFileInModal,
+        displayFilesInModal,
         isBlockedFromConcierge,
         disabled,
         setIsCommentEmpty,
@@ -305,8 +307,8 @@ function ComposerWithSuggestions(
         if (!RNTextInputReset) {
             return;
         }
-        RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef.current));
-    }, [textInputRef]);
+        RNTextInputReset.resetKeyboardInput(CONST.COMPOSER.NATIVE_ID);
+    }, []);
 
     const debouncedSaveReportComment = useMemo(
         () =>
@@ -812,7 +814,7 @@ function ComposerWithSuggestions(
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={(file) => {
                         textInputRef.current?.blur();
-                        displayFileInModal(file);
+                        displayFilesInModal([file]);
                     }}
                     onClear={onClear}
                     isDisabled={isBlockedFromConcierge || disabled}

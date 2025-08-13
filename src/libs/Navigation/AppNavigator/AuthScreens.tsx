@@ -1,10 +1,12 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useNavigation} from '@react-navigation/native';
-import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
+import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import {InitialURLContext} from '@components/InitialURLContextProvider';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import PriorityModeController from '@components/PriorityModeController';
@@ -13,6 +15,7 @@ import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRout
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
@@ -36,6 +39,7 @@ import NetworkConnection from '@libs/NetworkConnection';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
+import {getReportIDFromLink} from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import {getSearchParamFromUrl} from '@libs/Url';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
@@ -61,6 +65,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+import attachmentModalScreenOptions from './attachmentModalScreenOptions';
 import createRootStackNavigator from './createRootStackNavigator';
 import {screensWithEnteringAnimation, workspaceSplitsWithoutEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
 import defaultScreenOptions from './defaultScreenOptions';
@@ -87,7 +92,7 @@ type AuthScreensProps = {
     initialLastUpdateIDAppliedToClient: OnyxEntry<number>;
 };
 
-const loadReportAttachments = () => require<ReactComponentModule>('../../../pages/home/report/ReportAttachments').default;
+const loadAttachmentModalScreen = () => require<ReactComponentModule>('../../../pages/media/AttachmentModalScreen').default;
 const loadValidateLoginPage = () => require<ReactComponentModule>('../../../pages/ValidateLoginPage').default;
 const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../../pages/LogOutPreviousUserPage').default;
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
@@ -183,11 +188,11 @@ function handleNetworkReconnect() {
 }
 
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
+
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
 // that depends on modal visibility until Modal is completely closed and its focused
 // When modal screen is focused, update modal visibility in Onyx
 // https://reactnavigation.org/docs/navigation-events/
-
 const modalScreenListeners = {
     focus: () => {
         Modal.setModalVisibility(true, CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED);
@@ -239,19 +244,20 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const prevIsOnboardingLoading = usePrevious(isOnboardingLoading);
     const [shouldShowRequire2FAPage, setShouldShowRequire2FAPage] = useState(!!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth);
     const navigation = useNavigation();
+    const {initialURL, isAuthenticatedAtStartup, setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
 
     // State to track whether the delegator's authentication is completed before displaying data
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
 
     // On HybridApp we need to prevent flickering during transition to OldDot
     const shouldRenderOnboardingExclusivelyOnHybridApp = useMemo(() => {
-        return CONFIG.IS_HYBRID_APP && Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_ACCOUNTING.route) && isOnboardingCompleted === true;
+        return CONFIG.IS_HYBRID_APP && Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_INTERESTED_FEATURES.route) && isOnboardingCompleted === true;
     }, [isOnboardingCompleted]);
 
     const shouldRenderOnboardingExclusively = useMemo(() => {
         return (
             !CONFIG.IS_HYBRID_APP &&
-            Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_ACCOUNTING.route) &&
+            Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_INTERESTED_FEATURES.route) &&
             getPlatform() !== CONST.PLATFORM.DESKTOP &&
             onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO &&
             isOnboardingCompleted === true &&
@@ -305,23 +311,32 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             init();
         }
 
-        // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
-        // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
-        if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
-            if (delegatorEmail) {
-                connect(delegatorEmail, true)
-                    ?.then((success) => {
-                        App.setAppLoading(!!success);
-                    })
-                    .finally(() => {
-                        setIsDelegatorFromOldDotIsReady(true);
-                    });
+        // In Hybrid App we decide to call one of those method when booting ND and we don't want to duplicate calls
+        if (!CONFIG.IS_HYBRID_APP) {
+            // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
+            // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
+            if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
+                if (delegatorEmail) {
+                    connect(delegatorEmail, true)
+                        ?.then((success) => {
+                            App.setAppLoading(!!success);
+                        })
+                        .finally(() => {
+                            setIsDelegatorFromOldDotIsReady(true);
+                        });
+                } else {
+                    const reportID = getReportIDFromLink(initialURL ?? null);
+                    if (reportID && !isAuthenticatedAtStartup) {
+                        Report.openReport(reportID);
+                        // Don't want to call `openReport` again when logging out and then logging in
+                        setIsAuthenticatedAtStartup(true);
+                    }
+                    App.openApp();
+                }
             } else {
-                App.openApp();
+                Log.info('[AuthScreens] Sending ReconnectApp');
+                App.reconnectApp(initialLastUpdateIDAppliedToClient);
             }
-        } else {
-            Log.info('[AuthScreens] Sending ReconnectApp');
-            App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
         App.setUpPoliciesAndNavigate(session);
@@ -536,7 +551,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     }
 
     return (
-        <ComposeProviders components={[OptionsListContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider, LockedAccountModalProvider]}>
+        <ComposeProviders components={[OptionsListContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider, LockedAccountModalProvider, DelegateNoAccessModalProvider]}>
             <RootStack.Navigator persistentScreens={[NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.SEARCH.ROOT]}>
                 {/* This has to be the first navigator in auth screens. */}
                 <RootStack.Screen
@@ -596,11 +611,8 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 />
                 <RootStack.Screen
                     name={SCREENS.ATTACHMENTS}
-                    options={{
-                        headerShown: false,
-                        presentation: Presentation.TRANSPARENT_MODAL,
-                    }}
-                    getComponent={loadReportAttachments}
+                    options={attachmentModalScreenOptions}
+                    getComponent={loadAttachmentModalScreen}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
@@ -757,6 +769,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                             cardStyle: {
                                 ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, 0.72),
                             },
+                            animation: InternalPlatformAnimations.FADE,
                         },
                     }}
                     component={TestToolsModalNavigator}

@@ -1,9 +1,9 @@
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef, useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useOnyx from '@hooks/useOnyx';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
@@ -49,7 +49,10 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_TIME
     | typeof SCREENS.MONEY_REQUEST.STEP_TIME_EDIT
     | typeof SCREENS.MONEY_REQUEST.STEP_SUBRATE
-    | typeof SCREENS.MONEY_REQUEST.EDIT_REPORT;
+    | typeof SCREENS.MONEY_REQUEST.EDIT_REPORT
+    | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE
+    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_MAP
+    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL;
 
 type WithWritableReportOrNotFoundProps<RouteName extends MoneyRequestRouteName> = WithWritableReportOrNotFoundOnyxProps & PlatformStackScreenProps<MoneyRequestNavigatorParamList, RouteName>;
 

@@ -69,6 +69,7 @@ autocompleteKey "key"
       / createdBy
       / assignee
       / expenseType
+      / withdrawalType
       / type
       / status
       / cardID
@@ -77,6 +78,10 @@ autocompleteKey "key"
       / reimbursable
       / billable
       / policyID
+      / action
+      / posted
+      / withdrawn
+      / exported
     )
 
 filterKey

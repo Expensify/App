@@ -28,9 +28,12 @@ type FormHelpMessageProps = {
 
     /** Whether should render error text as HTML or as Text */
     shouldRenderMessageAsHTML?: boolean;
+
+    /** Whether to show information icon */
+    isInfo?: boolean;
 };
 
-function FormHelpMessage({message = '', children, isError = true, style, shouldShowRedDotIndicator = true, shouldRenderMessageAsHTML = false}: FormHelpMessageProps) {
+function FormHelpMessage({message = '', children, isError = true, style, shouldShowRedDotIndicator = true, shouldRenderMessageAsHTML = false, isInfo = false}: FormHelpMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -58,6 +61,14 @@ function FormHelpMessage({message = '', children, isError = true, style, shouldS
                 <Icon
                     src={Expensicons.DotIndicator}
                     fill={theme.danger}
+                />
+            )}
+            {isInfo && (
+                <Icon
+                    src={Expensicons.Exclamation}
+                    fill={theme.icon}
+                    small
+                    additionalStyles={[styles.mr1]}
                 />
             )}
             <View style={[styles.flex1, isError && shouldShowRedDotIndicator ? styles.ml2 : {}]}>

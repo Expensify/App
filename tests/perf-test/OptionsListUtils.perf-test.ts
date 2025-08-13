@@ -13,7 +13,7 @@ import createCollection from '../utils/collections/createCollection';
 import createRandomOptionData from '../utils/collections/optionData';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {getRandomDate} from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 5000;

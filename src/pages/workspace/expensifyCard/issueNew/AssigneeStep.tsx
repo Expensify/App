@@ -1,6 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import {useBetas} from '@components/OnyxProvider';
@@ -12,10 +11,9 @@ import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {searchInServer} from '@libs/actions/Report';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
-import {filterAndOrderOptions, getHeaderMessage, getValidOptions, sortAlphabetically} from '@libs/OptionsListUtils';
+import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail, getUserNameByEmail} from '@libs/PersonalDetailsUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -29,6 +27,12 @@ import type {IssueNewCardData} from '@src/types/onyx/Card';
 type AssigneeStepProps = {
     // The policy that the card will be issued under
     policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Array of step names */
+    stepNames: readonly string[];
+
+    /** Start from step index */
+    startStepIndex: number;
 };
 
 function useOptions() {
@@ -85,8 +89,8 @@ function useOptions() {
     return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
 }
 
-function AssigneeStep({policy}: AssigneeStepProps) {
-    const {translate} = useLocalize();
+function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const policyID = policy?.id;
@@ -164,10 +168,10 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             });
         });
 
-        membersList = sortAlphabetically(membersList, 'text');
+        membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList]);
+    }, [isOffline, policy?.employeeList, formatPhoneNumber, localeCompare]);
 
     const sections = useMemo(() => {
         if (!debouncedSearchValue) {
@@ -221,8 +225,8 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={0}
-            stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
+            startStepIndex={startStepIndex}
+            stepNames={stepNames}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.whoNeedsCard')}</Text>

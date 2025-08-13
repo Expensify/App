@@ -10,9 +10,6 @@ import * as Expensicons from './Icon/Expensicons';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 type ReceiptEmptyStateProps = {
-    /** Whether or not there is an error */
-    hasError?: boolean;
-
     /** Callback to be called on onPress */
     onPress?: () => void;
 
@@ -32,7 +29,7 @@ type ReceiptEmptyStateProps = {
 };
 
 // Returns an SVG icon indicating that the user should attach a receipt
-function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumbnail = false, isInMoneyRequestView = false, shouldUseFullHeight = false, style}: ReceiptEmptyStateProps) {
+function ReceiptEmptyState({onPress, disabled = false, isThumbnail = false, isInMoneyRequestView = false, shouldUseFullHeight = false, style}: ReceiptEmptyStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -43,7 +40,6 @@ function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumb
         styles.justifyContentCenter,
         styles.moneyRequestViewImage,
         isThumbnail && !isInMoneyRequestView ? styles.moneyRequestAttachReceiptThumbnail : styles.moneyRequestAttachReceipt,
-        hasError && styles.borderColorDanger,
         shouldUseFullHeight && styles.receiptEmptyStateFullHeight,
         style,
     ];

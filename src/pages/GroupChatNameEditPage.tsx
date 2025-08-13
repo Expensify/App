@@ -1,5 +1,4 @@
 import React, {useCallback, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -8,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -31,7 +31,7 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
     // In this case its better to use empty string as the reportID if there is no reportID
     const reportID = report?.reportID;
     const isUpdatingExistingReport = !!reportID;
-    const [groupChatDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {initialValue: getGroupChatDraft(), canBeMissing: true});
+    const [groupChatDraft = getGroupChatDraft()] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();

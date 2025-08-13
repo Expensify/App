@@ -1,9 +1,9 @@
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';

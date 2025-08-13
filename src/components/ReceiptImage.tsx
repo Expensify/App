@@ -9,7 +9,7 @@ import EReceiptThumbnail from './EReceiptThumbnail';
 import type {IconSize} from './EReceiptThumbnail';
 import EReceiptWithSizeCalculation from './EReceiptWithSizeCalculation';
 import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
-import Image from './Image';
+import ImageWithLoading from './ImageWithLoading';
 import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import type {TransactionListItemType} from './SelectionList/types';
@@ -197,12 +197,13 @@ function ReceiptImage({
     }
 
     return (
-        <Image
+        <ImageWithLoading
             source={{uri: source}}
             style={[style ?? [styles.w100, styles.h100], styles.overflowHidden]}
-            isAuthTokenRequired={isAuthTokenRequired}
+            isAuthTokenRequired={!!isAuthTokenRequired}
             loadingIconSize={loadingIconSize}
             loadingIndicatorStyles={loadingIndicatorStyles}
+            shouldShowOfflineIndicator={false}
         />
     );
 }

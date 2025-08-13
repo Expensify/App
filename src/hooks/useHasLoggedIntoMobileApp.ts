@@ -1,5 +1,5 @@
-import {useOnyx} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useOnyx from './useOnyx';
 
 /**
  * Returns whether the user has ever logged into one of the Expensify mobile apps (iOS or Android),

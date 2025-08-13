@@ -1,12 +1,12 @@
 import React, {useCallback, useRef} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {InteractionManager, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -41,7 +41,7 @@ function IOURequestStepMerchant({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef, inputRef} = useAutoFocusInput();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
 
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
@@ -141,6 +141,11 @@ function IOURequestStepMerchant({
                 </View>
             </FormProvider>
             <DiscardChangesConfirmation
+                onCancel={() => {
+                    InteractionManager.runAfterInteractions(() => {
+                        inputRef.current?.focus();
+                    });
+                }}
                 getHasUnsavedChanges={() => {
                     if (isSavedRef.current) {
                         return false;

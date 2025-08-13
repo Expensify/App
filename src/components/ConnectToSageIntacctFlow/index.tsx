@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import {isAuthenticationError} from '@libs/actions/connections';
 import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';

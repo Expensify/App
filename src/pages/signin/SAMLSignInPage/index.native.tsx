@@ -1,5 +1,4 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import WebView from 'react-native-webview';
 import type {WebViewNativeEvent} from 'react-native-webview/lib/WebViewTypes';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -7,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import SAMLLoadingIndicator from '@components/SAMLLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import {setNewDotSignInState} from '@libs/actions/HybridApp';
+import useOnyx from '@hooks/useOnyx';
 import getPlatform from '@libs/getPlatform';
 import getUAForWebView from '@libs/getUAForWebView';
 import Log from '@libs/Log';
@@ -15,13 +14,12 @@ import {handleSAMLLoginError, postSAMLLogin} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {clearSignInData, setAccountError, signInWithShortLivedAuthToken} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function SAMLSignInPage() {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [showNavigation, shouldShowNavigation] = useState(true);
     const [SAMLUrl, setSAMLUrl] = useState('');
     const webViewRef = useRef<WebView>(null);
@@ -71,7 +69,6 @@ function SAMLSignInPage() {
             if (!account?.isLoading && credentials?.login && !!shortLivedAuthToken) {
                 Log.info('SAMLSignInPage - Successfully received shortLivedAuthToken. Signing in...');
                 signInWithShortLivedAuthToken(shortLivedAuthToken);
-                setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
             }
 
             // If the login attempt is unsuccessful, set the error message for the account and redirect to sign in page

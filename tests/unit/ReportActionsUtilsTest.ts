@@ -1,21 +1,15 @@
 import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {isExpenseReport} from '@libs/ReportUtils';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
-import {
-    getOneTransactionThreadReportID,
-    getOriginalMessage,
-    getSendMoneyFlowOneTransactionThreadID,
-    isIOUActionMatchingTransactionList,
-    isMessageDeleted,
-} from '../../src/libs/ReportActionsUtils';
+import {getOneTransactionThreadReportID, getOriginalMessage, getSendMoneyFlowAction, isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import type {Report, ReportAction} from '../../src/types/onyx';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -31,9 +25,10 @@ describe('ReportActionsUtils', () => {
     beforeEach(() => {
         // Wrap Onyx each onyx action with waitForBatchedUpdates
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
-        TranslationStore.load(CONST.LOCALES.DEFAULT);
+        IntlStore.load(CONST.LOCALES.DEFAULT);
         // Initialize the network key for OfflineWithFeedback
-        return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        return waitForBatchedUpdates();
     });
 
     // Clear out Onyx after each test so that each test starts with a clean slate
@@ -768,6 +763,64 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('hasRequestFromCurrentAccount', () => {
+        const currentUserAccountID = 1242;
+        const deletedIOUReportID = '2';
+        const activeIOUReportID = '3';
+
+        const deletedIOUReportAction: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction(),
+            reportActionID: '22',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: currentUserAccountID,
+            message: [
+                {
+                    deleted: '2025-07-15 09:06:16.568',
+                    html: '',
+                    isDeletedParentAction: false,
+                    isEdited: true,
+                    text: '',
+                    type: 'COMMENT',
+                },
+            ],
+        };
+
+        const activeIOUReportAction: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction(),
+            reportActionID: '33',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: currentUserAccountID,
+            message: [
+                {
+                    deleted: '',
+                    html: '$87.00 expense',
+                    isDeletedParentAction: false,
+                    isEdited: true,
+                    text: '',
+                    type: 'COMMENT',
+                },
+            ],
+        };
+
+        beforeEach(() => {
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${deletedIOUReportID}`]: {[deletedIOUReportAction.reportActionID]: deletedIOUReportAction},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${activeIOUReportID}`]: {[activeIOUReportAction.reportActionID]: activeIOUReportAction},
+            } as unknown as KeyValueMapping);
+            return waitForBatchedUpdates();
+        });
+
+        it('should return false for a deleted IOU report action', () => {
+            const result = ReportActionsUtils.hasRequestFromCurrentAccount(deletedIOUReportID, currentUserAccountID);
+            expect(result).toBe(false);
+        });
+
+        it('should return true for an active IOU report action', () => {
+            const result = ReportActionsUtils.hasRequestFromCurrentAccount(activeIOUReportID, currentUserAccountID);
+            expect(result).toBe(true);
+        });
+    });
+
     describe('getLastVisibleAction', () => {
         it('should return the last visible action for a report', () => {
             const report: Report = {
@@ -821,108 +874,6 @@ describe('ReportActionsUtils', () => {
         });
     });
 
-    describe('isMessageDeleted', () => {
-        it('should return true if there is property deleted inside message', () => {
-            const reportAction = {
-                created: '2025-05-12 17:27:01.825',
-                reportActionID: '8401445780099176',
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                originalMessage: {
-                    html: 'Hello world',
-                    whisperedTo: [],
-                },
-                message: [
-                    {
-                        html: 'Hello world',
-                        deleted: '2025-05-12 17:37:01.825',
-                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                        text: '',
-                    },
-                ],
-            };
-            expect(isMessageDeleted(reportAction)).toBeTruthy();
-        });
-        it('should return true if there is property isDeletedParentAction inside message', () => {
-            const reportAction = {
-                created: '2025-05-12 17:27:01.825',
-                reportActionID: '8401445780099176',
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                originalMessage: {
-                    html: 'Hello world',
-                    whisperedTo: [],
-                },
-                message: [
-                    {
-                        html: 'Hello world',
-                        isDeletedParentAction: true,
-                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                        text: '',
-                    },
-                ],
-            };
-            expect(isMessageDeleted(reportAction)).toBeTruthy();
-        });
-        it('should return true if there is property deleted inside original message', () => {
-            const reportAction = {
-                created: '2025-05-12 17:27:01.825',
-                reportActionID: '8401445780099176',
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                originalMessage: {
-                    html: 'Hello world',
-                    whisperedTo: [],
-                    deleted: '2025-05-12 17:37:01.825',
-                },
-                message: [
-                    {
-                        html: 'Hello world',
-                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                        text: '',
-                    },
-                ],
-            };
-            expect(isMessageDeleted(reportAction)).toBeTruthy();
-        });
-        it('should return true if there is property isDeletedParentAction inside original message', () => {
-            const reportAction = {
-                created: '2025-05-12 17:27:01.825',
-                reportActionID: '8401445780099176',
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                originalMessage: {
-                    html: 'Hello world',
-                    whisperedTo: [],
-                    isDeletedParentAction: true,
-                },
-                message: [
-                    {
-                        html: 'Hello world',
-                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                        text: '',
-                    },
-                ],
-            };
-            expect(isMessageDeleted(reportAction)).toBeTruthy();
-        });
-        it('should return false if there are no deletion properties in message and originalMessage', () => {
-            const reportAction = {
-                created: '2025-05-12 17:27:01.825',
-                reportActionID: '8401445780099176',
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                originalMessage: {
-                    html: 'Hello world',
-                    whisperedTo: [],
-                },
-                message: [
-                    {
-                        html: 'Hello world',
-                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                        text: '',
-                    },
-                ],
-            };
-            expect(isMessageDeleted(reportAction)).toBeFalsy();
-        });
-    });
-
     describe('getReportActionMessageFragments', () => {
         it('should return the correct fragment for the REIMBURSED action', () => {
             const action = {
@@ -961,25 +912,9 @@ describe('ReportActionsUtils', () => {
             const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(action);
             expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
         });
-        it('should return the correct fragment for the deleted message', () => {
-            const action = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                reportActionID: '1',
-                created: '1',
-                message: [
-                    {
-                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                        text: '',
-                        deleted: '2025-05-12 17:27:01.825',
-                    },
-                ],
-            };
-            const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(action);
-            expect(expectedFragments).toEqual([{text: '', type: CONST.REPORT.MESSAGE.TYPE.COMMENT, isDeletedParentAction: true, deleted: '2025-05-12 17:27:01.825'}]);
-        });
     });
 
-    describe('getSendMoneyFlowOneTransactionThreadID', () => {
+    describe('getSendMoneyFlowAction', () => {
         const mockChatReportID = `${ONYXKEYS.COLLECTION.REPORT}REPORT` as const;
         const mockDMChatReportID = `${ONYXKEYS.COLLECTION.REPORT}REPORT_DM` as const;
         const childReportID = `${ONYXKEYS.COLLECTION.REPORT}childReport123` as const;
@@ -1014,27 +949,27 @@ describe('ReportActionsUtils', () => {
         };
 
         it('should return undefined for a single non-IOU action', () => {
-            expect(getSendMoneyFlowOneTransactionThreadID([nonIOUAction], mockedReports[mockDMChatReportID])).toBeUndefined();
+            expect(getSendMoneyFlowAction([nonIOUAction], mockedReports[mockDMChatReportID])?.childReportID).toBeUndefined();
         });
 
         it('should return undefined for multiple IOU actions regardless of type', () => {
-            expect(getSendMoneyFlowOneTransactionThreadID([payAction, payAction], mockedReports[mockDMChatReportID])).toBeUndefined();
+            expect(getSendMoneyFlowAction([payAction, payAction], mockedReports[mockDMChatReportID])?.childReportID).toBeUndefined();
         });
 
         it('should return undefined for a single IOU action that is not `Pay`', () => {
-            expect(getSendMoneyFlowOneTransactionThreadID([createAction], mockedReports[mockDMChatReportID])).toBeUndefined();
+            expect(getSendMoneyFlowAction([createAction], mockedReports[mockDMChatReportID])?.childReportID).toBeUndefined();
         });
 
         it('should return the appropriate childReportID for a valid single `Pay` IOU action in DM chat', () => {
-            expect(getSendMoneyFlowOneTransactionThreadID([payAction], mockedReports[mockDMChatReportID])).toEqual(childReportID);
+            expect(getSendMoneyFlowAction([payAction], mockedReports[mockDMChatReportID])?.childReportID).toEqual(childReportID);
         });
 
         it('should return undefined for a valid single `Pay` IOU action in a chat that is not DM', () => {
-            expect(getSendMoneyFlowOneTransactionThreadID([payAction], mockedReports[mockChatReportID])).toBeUndefined();
+            expect(getSendMoneyFlowAction([payAction], mockedReports[mockChatReportID])?.childReportID).toBeUndefined();
         });
 
         it('should return undefined for a valid `Pay` IOU action in DM chat that has also a create IOU action', () => {
-            expect(getSendMoneyFlowOneTransactionThreadID([payAction, createAction], mockedReports[mockDMChatReportID])).toBeUndefined();
+            expect(getSendMoneyFlowAction([payAction, createAction], mockedReports[mockDMChatReportID])?.childReportID).toBeUndefined();
         });
     });
 

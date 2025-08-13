@@ -1,33 +1,30 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Str} from 'expensify-common';
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackground';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isClientTheLeader as isClientTheLeaderActiveClientManager} from '@libs/ActiveClientManager';
-import {getDevicePreferredLocale} from '@libs/Localize';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import Visibility from '@libs/Visibility';
-import {setLocale} from '@userActions/App';
 import {clearSignInData} from '@userActions/Session';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Account, Credentials} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import ChooseSSOOrMagicCode from './ChooseSSOOrMagicCode';
 import EmailDeliveryFailurePage from './EmailDeliveryFailurePage';
 import LoginForm from './LoginForm';
@@ -165,8 +162,7 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
       every time the leader client changes.
       We use that function to prevent repeating code that checks which client is the leader.
     */
-    const [activeClients = []] = useOnyx(ONYXKEYS.ACTIVE_CLIENTS, {canBeMissing: true});
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
+    const [activeClients = getEmptyArray<string>()] = useOnyx(ONYXKEYS.ACTIVE_CLIENTS, {canBeMissing: true});
 
     /** This state is needed to keep track of if user is using recovery code instead of 2fa code,
      * and we need it here since welcome text(`welcomeText`) also depends on it */
@@ -184,15 +180,9 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
     // We need to show "Another login page is opened" message if the page isn't active and visible
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowAnotherLoginPageOpenedMessage = Visibility.isVisible() && !isClientTheLeader;
-    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {canBeMissing: true});
 
     useEffect(() => Performance.measureTTI(), []);
-    useEffect(() => {
-        if (preferredLocale) {
-            return;
-        }
-        setLocale(getDevicePreferredLocale());
-    }, [preferredLocale]);
+
     useEffect(() => {
         if (credentials?.login) {
             return;
@@ -251,8 +241,9 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
         welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.getStarted');
         welcomeText = shouldUseNarrowLayout ? translate('welcomeText.getStarted') : '';
     } else if (shouldShowValidateCodeForm) {
-        if (account?.requiresTwoFactorAuth) {
-            // We will only know this after a user signs in successfully, without their 2FA code
+        // Only show the authenticator prompt after the magic code has been submitted
+        const isTwoFactorStage = account?.requiresTwoFactorAuth && !!credentials?.validateCode;
+        if (isTwoFactorStage) {
             welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcome');
             welcomeText = isUsingRecoveryCode ? translate('validateCodeForm.enterRecoveryCode') : translate('validateCodeForm.enterAuthenticatorCode');
         } else {
@@ -302,14 +293,6 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
     useImperativeHandle(ref, () => ({
         navigateBack,
     }));
-
-    useEffect(() => {
-        if (!CONFIG.IS_HYBRID_APP || !hybridApp?.loggedOutFromOldDot) {
-            return;
-        }
-        HybridAppModule.clearOldDotAfterSignOut();
-    }, [hybridApp?.loggedOutFromOldDot]);
-
     return (
         // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
         // The SVG should flow under the Home Indicator on iOS.

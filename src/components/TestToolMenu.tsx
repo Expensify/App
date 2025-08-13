@@ -1,7 +1,7 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isUsingStagingApi} from '@libs/ApiUtils';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
@@ -11,6 +11,7 @@ import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account as AccountOnyx} from '@src/types/onyx';
 import Button from './Button';
+import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
 import TestCrash from './TestCrash';
 import TestToolRow from './TestToolRow';
@@ -127,6 +128,7 @@ function TestToolMenu() {
                     disabled={!!network?.shouldForceOffline || network?.shouldSimulatePoorConnection}
                 />
             </TestToolRow>
+            <SoftKillTestToolRow />
             <TestCrash />
         </>
     );

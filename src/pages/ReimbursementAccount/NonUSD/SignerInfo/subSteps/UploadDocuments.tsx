@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormProvider from '@components/Form/FormProvider';
@@ -9,6 +8,7 @@ import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Fo
 import Text from '@components/Text';
 import UploadFile from '@components/UploadFile';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';

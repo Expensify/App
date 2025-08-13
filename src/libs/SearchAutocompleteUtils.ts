@@ -124,6 +124,7 @@ function filterOutRangesWithCorrectValue(
 
     const typeList = Object.values(CONST.SEARCH.DATA_TYPES) as string[];
     const expenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE) as string[];
+    const withdrawalTypeList = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE) as string[];
     const statusList = Object.values({
         ...CONST.SEARCH.STATUS.EXPENSE,
         ...CONST.SEARCH.STATUS.INVOICE,
@@ -133,6 +134,8 @@ function filterOutRangesWithCorrectValue(
     }) as string[];
     const groupByList = Object.values(CONST.SEARCH.GROUP_BY) as string[];
     const booleanList = Object.values(CONST.SEARCH.BOOLEAN) as string[];
+    const actionList = Object.values(CONST.SEARCH.ACTION_FILTERS) as string[];
+    const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];
 
     switch (range.key) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN:
@@ -155,8 +158,12 @@ function filterOutRangesWithCorrectValue(
             return typeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE:
             return expenseTypeList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE:
+            return withdrawalTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS:
             return statusList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION:
+            return actionList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY:
             return categoryList.get().includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG:
@@ -166,6 +173,10 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
             return booleanList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
+            return datePresetList.includes(range.value);
         default:
             return false;
     }

@@ -1,5 +1,5 @@
-import {useOnyx} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useOnyx from './useOnyx';
 import useWorkspaceAccountID from './useWorkspaceAccountID';
 
 function useExpensifyCardFeeds(policyID: string | undefined) {

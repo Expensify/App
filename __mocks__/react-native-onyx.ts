@@ -5,6 +5,7 @@
 
 /* eslint-disable rulesdir/prefer-onyx-connect-in-libs */
 import type {ConnectOptions, OnyxKey} from 'react-native-onyx';
+// eslint-disable-next-line no-restricted-imports
 import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
 
 let connectCallbackDelay = 0;

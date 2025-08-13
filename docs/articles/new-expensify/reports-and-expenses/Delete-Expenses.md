@@ -20,7 +20,7 @@ Do you need to remove an expense in New Expensify? The steps differ depending on
 
 You can delete any out-of-pocket expense that hasn’t been submitted yet:
 
-1. From the left-hand menu, head to **Reports > Expense Reports**.
+1. From the left-hand menu, head to **Reports > Reports**.
 2. Open the report containing the expense.
 3. Select the checkbox next to the expense you want to delete.
 4. Choose **Delete** from the drop-down menu.

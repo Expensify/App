@@ -2,6 +2,7 @@ import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {CancelTaskParams, CompleteTaskParams, CreateTaskParams, EditTaskAssigneeParams, EditTaskParams, ReopenTaskParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -388,16 +389,7 @@ function getOutstandingChildTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
     });
 }
 
-/**
- * Complete a task
- */
-function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromAction?: string): OnyxData {
-    const taskReportID = taskReport?.reportID ?? reportIDFromAction;
-
-    if (!taskReportID) {
-        return {};
-    }
-
+function buildTaskData(taskReport: OnyxEntry<OnyxTypes.Report>, taskReportID: string) {
     const message = `marked as complete`;
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, message);
     const parentReport = getParentReport(taskReport);
@@ -473,6 +465,21 @@ function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromActio
         taskReportID,
         completedTaskReportActionID: completedTaskReportAction.reportActionID,
     };
+
+    return {optimisticData, failureData, successData, parameters};
+}
+
+/**
+ * Complete a task
+ */
+function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromAction?: string): OnyxData {
+    const taskReportID = taskReport?.reportID ?? reportIDFromAction;
+
+    if (!taskReportID) {
+        return {};
+    }
+
+    const {optimisticData, successData, failureData, parameters} = buildTaskData(taskReport, taskReportID);
 
     playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.COMPLETE_TASK, parameters, {optimisticData, successData, failureData});
@@ -973,15 +980,24 @@ function getAssignee(assigneeAccountID: number | undefined, personalDetails: Ony
 /**
  * Get the share destination data
  * */
-function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes.Report>, personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>): ShareDestination {
-    const report = reports?.[`report_${reportID}`];
+function getShareDestination(
+    reportID: string,
+    reports: OnyxCollection<OnyxTypes.Report>,
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
+    localeCompare: LocaleContextProps['localeCompare'],
+): ShareDestination {
+    const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
 
     const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report);
 
     const isMultipleParticipant = participants.length > 1;
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails), isMultipleParticipant);
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
+        OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails),
+        isMultipleParticipant,
+        localeCompare,
+    );
 
     let subtitle = '';
     if (isOneOnOneChat) {
@@ -1260,7 +1276,7 @@ function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
     }
 
     // When there is no parent report, exit early (this can also happen due to onyx key initialization)
-    if (!parentReport) {
+    if (!parentReport && !taskReport?.parentReportID) {
         return false;
     }
 
@@ -1318,9 +1334,9 @@ function getFinishOnboardingTaskOnyxData(taskName: IntroSelectedTask): OnyxData 
 
     return {};
 }
-function completeTestDriveTask(viewTourReport: OnyxEntry<OnyxTypes.Report>, viewTourReportID: string | undefined, shouldUpdateSelfTourViewedOnlyLocally = false) {
+function completeTestDriveTask(shouldUpdateSelfTourViewedOnlyLocally = false) {
     setSelfTourViewed(shouldUpdateSelfTourViewedOnlyLocally);
-    completeTask(viewTourReport, viewTourReportID);
+    getFinishOnboardingTaskOnyxData(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
 }
 
 export {
@@ -1335,6 +1351,7 @@ export {
     setShareDestinationValue,
     clearOutTaskInfo,
     reopenTask,
+    buildTaskData,
     completeTask,
     clearOutTaskInfoAndNavigate,
     startOutCreateTaskQuickAction,

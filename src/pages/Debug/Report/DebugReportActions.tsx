@@ -1,11 +1,11 @@
 import React, {useCallback, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,7 +23,7 @@ type DebugReportActionsProps = {
 };
 
 function DebugReportActions({reportID}: DebugReportActionsProps) {
-    const {translate, datetimeToCalendarTime} = useLocalize();
+    const {translate, datetimeToCalendarTime, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
@@ -50,7 +50,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
             }
 
             if (isCreatedAction(reportAction)) {
-                return formatReportLastMessageText(SidebarUtils.getWelcomeMessage(report, policy, isReportArchived).messageText ?? translate('report.noActivityYet'));
+                return formatReportLastMessageText(SidebarUtils.getWelcomeMessage(report, policy, localeCompare, isReportArchived).messageText ?? translate('report.noActivityYet'));
             }
 
             if (reportActionMessage.html) {
@@ -59,7 +59,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
 
             return getReportActionMessageText(reportAction);
         },
-        [translate, policy, report, isReportArchived],
+        [translate, policy, report, isReportArchived, localeCompare],
     );
 
     const searchedReportActions = useMemo(() => {
