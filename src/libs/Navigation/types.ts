@@ -11,6 +11,7 @@ import type {
     Route,
 } from '@react-navigation/native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {SearchQueryString} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
@@ -1083,6 +1084,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.RULES_REIMBURSABLE_DEFAULT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: {
         policyID: string;
     };
@@ -1861,6 +1865,9 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARDS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
         policyID: string;
         backTo?: Routes;
@@ -2082,6 +2089,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     };
     [SCREENS.WORKSPACE_AVATAR]: {
         policyID: string;
+        letter?: UpperCaseCharacters;
     };
     [SCREENS.WORKSPACE_JOIN_USER]: {
         policyID: string;
