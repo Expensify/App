@@ -7,11 +7,18 @@ import {getFullSizeAvatar} from '@libs/UserUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
-import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
+import type {AttachmentModalScreenParams, AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
+import type {Routes} from '@src/types/onyx/Transaction';
 
-function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenProps) {
+type ProfileAvatarScreenParams = Omit<AttachmentModalScreenParams, 'accountID'> & {
+    accountID: number;
+    backTo?: Routes;
+};
+
+function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.PROFILE_AVATAR>) {
     const {accountID = CONST.DEFAULT_NUMBER_ID} = route.params;
     const {formatPhoneNumber} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
@@ -49,3 +56,4 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
 ProfileAvatarModalContent.displayName = 'ProfileAvatarModalContent';
 
 export default ProfileAvatarModalContent;
+export type {ProfileAvatarScreenParams};

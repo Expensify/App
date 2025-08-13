@@ -58,6 +58,7 @@ import AgentZeroProcessingRequestIndicator from '@pages/home/report/AgentZeroPro
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
+import type {ReportAddAttachmentScreenParams} from '@pages/media/AttachmentModalScreen/routes/report/ReportAddAttachmentModalContent';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
 import {initMoneyRequest, replaceReceipt, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
@@ -490,7 +491,7 @@ function ReportActionCompose({
     const reportAttachmentsContext = useContext(AttachmentModalContext);
     const showAttachmentModalScreen = useCallback(
         (file: FileObject | FileObject[]) => {
-            reportAttachmentsContext.setCurrentAttachment({
+            reportAttachmentsContext.setCurrentAttachment<ReportAddAttachmentScreenParams>({
                 file,
                 headerTitle: translate('reportActionCompose.sendAttachment'),
                 onConfirm: addAttachment,

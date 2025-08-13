@@ -12,15 +12,14 @@ import {openReport} from '@libs/actions/Report';
 import {isMultipleAttachmentsValidationResult, isSingleAttachmentValidationResult} from '@libs/AttachmentValidation';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {getFileValidationErrorText} from '@libs/fileDownload/FileUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import {isReportNotFound} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import type {AttachmentContentProps, AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
-import type {AttachmentModalScreenProps, FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {AttachmentModalScreenParams, AttachmentModalScreenProps, FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import useFileUploadValidation from './hooks/useFileUploadValidation';
 import useNavigateToReportOnRefresh from './hooks/useNavigateToReportOnRefresh';
@@ -35,6 +34,10 @@ const convertFileToAttachment = (file: FileObject | undefined): Attachment => {
         file,
         source: file.uri ?? '',
     };
+};
+
+type ReportAddAttachmentScreenParams = AttachmentModalScreenParams & {
+    source?: string;
 };
 
 function AddAttachmentModalCarouselView({fileToDisplay, files}: AttachmentContentProps) {
@@ -78,10 +81,9 @@ function AddAttachmentModalCarouselView({fileToDisplay, files}: AttachmentConten
     );
 }
 
-function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScreenProps) {
+function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.REPORT_ADD_ATTACHMENT>) {
     const {
         attachmentID,
-        type,
         file: fileParam,
         source: sourceParam,
         isAuthTokenRequired,
@@ -89,7 +91,6 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
         originalFileName,
         accountID = CONST.DEFAULT_NUMBER_ID,
         reportID,
-        hashKey,
         shouldDisableSendButton,
         headerTitle,
         onConfirm: onConfirmParam,
@@ -131,24 +132,6 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
 
         fetchReport();
     }, [reportID, fetchReport, shouldFetchReport]);
-
-    const onCarouselAttachmentChange = useCallback(
-        (attachment: Attachment) => {
-            const routeToNavigate = ROUTES.ATTACHMENTS.getRoute({
-                reportID,
-                attachmentID: attachment.attachmentID,
-                type,
-                source: String(attachment.source),
-                accountID,
-                isAuthTokenRequired: attachment?.isAuthTokenRequired,
-                originalFileName: attachment?.file?.name,
-                attachmentLink: attachment?.attachmentLink,
-                hashKey,
-            });
-            Navigation.navigate(routeToNavigate);
-        },
-        [reportID, type, accountID, hashKey],
-    );
 
     const onClose = useCallback(() => {
         // This enables Composer refocus when the attachments modal is closed by the browser navigation
@@ -240,25 +223,10 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
             headerTitle,
             shouldDisableSendButton,
             submitRef,
-            onCarouselAttachmentChange,
             AttachmentContent: AddAttachmentModalCarouselView,
             ExtraModals,
         };
-    }, [
-        ExtraModals,
-        accountID,
-        attachmentID,
-        attachmentLink,
-        headerTitle,
-        isAuthTokenRequired,
-        isLoading,
-        onCarouselAttachmentChange,
-        onConfirm,
-        originalFileName,
-        shouldDisableSendButton,
-        source,
-        validFilesToUpload,
-    ]);
+    }, [ExtraModals, accountID, attachmentID, attachmentLink, headerTitle, isAuthTokenRequired, isLoading, onConfirm, originalFileName, shouldDisableSendButton, source, validFilesToUpload]);
 
     return (
         <AttachmentModalContainer
@@ -273,3 +241,4 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
 ReportAddAttachmentModalContent.displayName = 'ReportAddAttachmentModalContent';
 
 export default ReportAddAttachmentModalContent;
+export type {ReportAddAttachmentScreenParams};

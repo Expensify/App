@@ -5,9 +5,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import type {AttachmentModalOnCloseOptions} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
+import type {AttachmentModalScreen} from '@src/SCREENS';
 import type AttachmentModalContainerProps from './types';
 
-function AttachmentModalContainer({contentProps, navigation, onShow, onClose}: AttachmentModalContainerProps) {
+function AttachmentModalContainer<Screen extends AttachmentModalScreen>({contentProps, navigation, onShow, onClose}: AttachmentModalContainerProps<Screen>) {
     const attachmentsContext = useContext(AttachmentModalContext);
     const testID = typeof contentProps.source === 'string' ? contentProps.source : (contentProps.source?.toString() ?? '');
 

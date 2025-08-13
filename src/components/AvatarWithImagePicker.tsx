@@ -341,7 +341,7 @@ function AvatarWithImagePicker({
             originalFileName,
             maybeIcon: isUsingDefaultAvatar,
         });
-        Navigation.navigate(ROUTES.ATTACHMENTS.getRoute());
+        Navigation.navigate(ROUTES.REPORT_ATTACHMENTS.getRoute());
     }, [fallbackIcon, headerTitle, isUsingDefaultAvatar, originalFileName, previewSource, reportAttachmentsContext]);
 
     return (

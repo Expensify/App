@@ -67,7 +67,7 @@ function ShareDetailsPage({
     const showAttachmentModalScreen = useCallback(() => {
         reportAttachmentsContext.setCurrentAttachment({headerTitle: fileName, originalFileName: fileName, fallbackSource: FallbackAvatar});
         Navigation.navigate(
-            ROUTES.ATTACHMENTS.getRoute({
+            ROUTES.REPORT_ATTACHMENTS.getRoute({
                 source: validFilesToUpload.at(0)?.uri,
             }),
         );

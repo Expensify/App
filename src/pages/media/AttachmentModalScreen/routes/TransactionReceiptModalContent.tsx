@@ -15,24 +15,43 @@ import {getRequestType, hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasR
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import type {AttachmentModalBaseContentProps, ThreeDotsMenuItemGenerator} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
-import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
+import type {AttachmentModalScreenParams, AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
+import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
-function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps) {
+type TransactionReceiptScreenParams = Omit<AttachmentModalScreenParams, 'reportID'> & {
+    reportID: string;
+    transactionID: string;
+    readonly?: string;
+    isFromReviewDuplicates?: string;
+    action?: IOUAction;
+    iouType?: IOUType;
+    mergeTransactionID?: string;
+};
+
+function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.TRANSACTION_RECEIPT>) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
-    const {reportID = '', transactionID = '', iouAction, iouType: iouTypeParam, readonly: readonlyProp, isFromReviewDuplicates: isFromReviewDuplicatesProp} = route.params;
+    const {reportID = '', transactionID = '', action, iouType: iouTypeParam, readonly: readonlyProp, isFromReviewDuplicates: isFromReviewDuplicatesProp} = route.params;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [transactionMain] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [reportMetadata = CONST.DEFAULT_REPORT_METADATA] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: true});
 
-    const isDraftTransaction = !!iouAction;
+    // If we have a merge transaction, we need to use the receipt from the merge transaction
+    const mergeTransactionID = route.params.mergeTransactionID;
+    const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, {canBeMissing: true});
+    if (mergeTransactionID && mergeTransaction && transactionMain) {
+        transactionMain.receipt = mergeTransaction.receipt;
+    }
+
+    const isDraftTransaction = !!action;
     const transaction = isDraftTransaction ? transactionDraft : transactionMain;
     const receiptURIs = getThumbnailAndImageURIs(transaction);
 
@@ -84,7 +103,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         iouTypeParam,
                         transactionID,
                         reportID,
-                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouAction, iouTypeParam, transactionID, reportID),
+                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouTypeParam, transactionID, reportID),
                     ),
                 ),
         );
@@ -146,7 +165,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     InteractionManager.runAfterInteractions(() => {
                         Navigation.navigate(
                             ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                iouAction ?? CONST.IOU.ACTION.EDIT,
+                                action ?? CONST.IOU.ACTION.EDIT,
                                 iouTypeParam ?? (isTrackExpenseActionValue ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT),
                                 draftTransactionID ?? transaction?.transactionID,
                                 report?.reportID,
@@ -190,7 +209,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         transaction,
         canDeleteReceipt,
         translate,
-        iouAction,
+        action,
         iouTypeParam,
         isTrackExpenseActionValue,
         draftTransactionID,
@@ -245,3 +264,4 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 TransactionReceiptModalContent.displayName = 'TransactionReceiptModalContent';
 
 export default TransactionReceiptModalContent;
+export type {TransactionReceiptScreenParams};

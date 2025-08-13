@@ -112,7 +112,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                 }
 
                                 const attachmentLink = tnode.parent?.attributes?.href;
-                                const route = ROUTES.ATTACHMENTS?.getRoute({
+                                const route = ROUTES.REPORT_ATTACHMENTS?.getRoute({
                                     attachmentID,
                                     reportID,
                                     type,

@@ -770,6 +770,14 @@ const SCREENS = {
 
 type Screen = DeepValueOf<typeof SCREENS>;
 
+type AttachmentModalScreen =
+    | typeof SCREENS.REPORT_ATTACHMENTS
+    | typeof SCREENS.REPORT_ADD_ATTACHMENT
+    | typeof SCREENS.REPORT_AVATAR
+    | typeof SCREENS.PROFILE_AVATAR
+    | typeof SCREENS.WORKSPACE_AVATAR
+    | typeof SCREENS.TRANSACTION_RECEIPT;
+
 export default SCREENS;
 export {PROTECTED_SCREENS};
-export type {Screen};
+export type {Screen, AttachmentModalScreen};

@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import type {Attachment} from '@components/Attachments/types';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -10,15 +11,24 @@ import {isReportNotFound} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
-import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
+import type {AttachmentModalScreenParams, AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import useNavigateToReportOnRefresh from './hooks/useNavigateToReportOnRefresh';
 import useReportAttachmentModalType from './hooks/useReportAttachmentModalType';
 
-function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreenProps) {
+type ReportAttachmentScreenParams = Omit<AttachmentModalScreenParams, 'reportID' | 'source' | 'type' | 'accountID'> & {
+    reportID: string;
+    source: string;
+    type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
+    accountID: number;
+    hashKey?: number;
+};
+
+function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.REPORT_ATTACHMENTS>) {
     const {
         attachmentID,
         type,
@@ -27,7 +37,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         isAuthTokenRequired,
         attachmentLink,
         originalFileName,
-        accountID = CONST.DEFAULT_NUMBER_ID,
+        accountID,
         reportID,
         hashKey,
         shouldDisableSendButton,
@@ -81,7 +91,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
 
     const onCarouselAttachmentChange = useCallback(
         (attachment: Attachment) => {
-            const routeToNavigate = ROUTES.ATTACHMENTS.getRoute({
+            const routeToNavigate = ROUTES.REPORT_ATTACHMENTS.getRoute({
                 reportID,
                 attachmentID: attachment.attachmentID,
                 type,
@@ -141,7 +151,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     );
 
     return (
-        <AttachmentModalContainer
+        <AttachmentModalContainer<typeof SCREENS.REPORT_ATTACHMENTS>
             navigation={navigation}
             contentProps={contentProps}
             modalType={modalType}
@@ -153,3 +163,4 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
 ReportAttachmentModalContent.displayName = 'ReportAttachmentModalContent';
 
 export default ReportAttachmentModalContent;
+export type {ReportAttachmentScreenParams};

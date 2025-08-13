@@ -16,10 +16,11 @@ import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
 import type {ProfileAvatarScreenParams} from '@pages/media/AttachmentModalScreen/routes/ProfileAvatarModalContent';
+import type {ReportAddAttachmentScreenParams} from '@pages/media/AttachmentModalScreen/routes/report/ReportAddAttachmentModalContent';
+import type {ReportAttachmentScreenParams} from '@pages/media/AttachmentModalScreen/routes/report/ReportAttachmentModalContent';
 import type {ReportAvatarScreenParams} from '@pages/media/AttachmentModalScreen/routes/report/ReportAvatarModalContent';
 import type {TransactionReceiptScreenParams} from '@pages/media/AttachmentModalScreen/routes/TransactionReceiptModalContent';
 import type {WorkspaceAvatarScreenParams} from '@pages/media/AttachmentModalScreen/routes/WorkspaceAvatarModalContent';
-import type {AttachmentModalScreenParams} from '@pages/media/AttachmentModalScreen/types';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -2085,8 +2086,8 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.TRACK_EXPENSE]: undefined;
     [SCREENS.SUBMIT_EXPENSE]: undefined;
 
-    [SCREENS.REPORT_ATTACHMENTS]: AttachmentModalScreenParams;
-    [SCREENS.REPORT_ADD_ATTACHMENT]: AttachmentModalScreenParams;
+    [SCREENS.REPORT_ATTACHMENTS]: ReportAttachmentScreenParams;
+    [SCREENS.REPORT_ADD_ATTACHMENT]: ReportAddAttachmentScreenParams;
     [SCREENS.REPORT_AVATAR]: ReportAvatarScreenParams;
     [SCREENS.PROFILE_AVATAR]: ProfileAvatarScreenParams;
     [SCREENS.WORKSPACE_AVATAR]: WorkspaceAvatarScreenParams;
