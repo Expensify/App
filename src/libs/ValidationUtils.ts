@@ -60,7 +60,7 @@ function isValidAddress(value: FormValue): boolean {
 /**
  * Validate date fields
  */
-function isValidDate(date: string | Date, isStrict = true): boolean {
+function isValidDate(date: string | Date): boolean {
     if (!date) {
         return false;
     }
@@ -68,7 +68,7 @@ function isValidDate(date: string | Date, isStrict = true): boolean {
     const pastDate = subYears(new Date(), 1000);
     const futureDate = addYears(new Date(), 1000);
 
-    if (isStrict && typeof date === 'string') {
+    if (typeof date === 'string') {
         const parsedDate = parse(date, 'yyyy-MM-dd', new Date());
         if (!isValid(parsedDate)) {
             return false;
