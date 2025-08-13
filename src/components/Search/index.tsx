@@ -714,7 +714,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         return (
             <SearchRowSkeleton
                 shouldAnimate
-                containerStyle={shouldUseNarrowLayout && styles.searchListContentContainerStyles}
+                containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3}
             />
         );
     }
