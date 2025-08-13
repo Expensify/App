@@ -782,7 +782,7 @@
         "tests/unit/ValidationUtilsTest.ts",
         "src/CONST/index.ts",
         "src/libs/SearchParser/*",
-        "modules/react-group-ib-fp"
+        "modules/group-ib-fp"
     ],
     "ignoreRegExpList": ["@assets/.*"],
     "useGitignore": true
