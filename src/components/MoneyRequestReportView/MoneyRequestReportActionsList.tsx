@@ -538,7 +538,7 @@ function MoneyRequestReportActionsList({
                     personalDetails={personalDetails}
                     userBillingFundID={userBillingFundID}
                     emojiReactions={actionEmojiReactions}
-                    allReportNameValuePairs={allReportNameValuePairs}
+                    isReportArchived={isReportArchived}
                     draftMessage={matchingDraftMessageString}
                 />
             );
