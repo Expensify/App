@@ -120,7 +120,7 @@ function getFilterValueFromText(searchText: string): string {
  * @example
  * getUserFriendlyValues("perDiem") // returns "per-diem"
  */
-function getUserFriendlyValue(value: string): UserFriendlyValue {
+function getUserFriendlyValue(value: string | undefined): UserFriendlyValue {
     return CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP[value as keyof typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP] ?? value;
 }
 
@@ -402,9 +402,9 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
 
         if (queryFieldValue) {
             if (Array.isArray(queryFieldValue)) {
-                queryParts.push(`${key}:${queryFieldValue.join(',')}`);
+                queryParts.push(`${key}:${getUserFriendlyValue(queryFieldValue.join(','))}`);
             } else {
-                queryParts.push(`${key}:${queryFieldValue}`);
+                queryParts.push(`${key}:${getUserFriendlyValue(queryFieldValue)}`);
             }
         }
     }
@@ -460,7 +460,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     if (groupBy) {
-        const sanitizedGroupBy = sanitizeSearchValue(groupBy);
+        const sanitizedGroupBy = getUserFriendlyValue(sanitizeSearchValue(groupBy));
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${sanitizedGroupBy}`);
     }
 
@@ -801,7 +801,7 @@ function buildUserReadableQueryString(
     let title = status ? `type:${type} status:${Array.isArray(status) ? status.join(',') : status}` : `type:${type}`;
 
     if (groupBy) {
-        title += ` group-by:${groupBy}`;
+        title += ` group-by:${getUserFriendlyValue(groupBy)}`;
     }
 
     if (policyID && policyID.length > 0) {
