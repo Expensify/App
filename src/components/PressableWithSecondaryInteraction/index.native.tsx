@@ -1,7 +1,6 @@
 import type {ReactNode} from 'react';
-import React, {forwardRef} from 'react';
+import React from 'react';
 import type {GestureResponderEvent, TextProps} from 'react-native';
-import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import type PressableWithSecondaryInteractionProps from './types';
@@ -18,9 +17,9 @@ function PressableWithSecondaryInteraction(
         preventDefaultContextMenu,
         withoutFocusOnSecondaryInteraction,
         enableLongPressWithHover,
+        ref,
         ...rest
     }: PressableWithSecondaryInteractionProps,
-    ref: PressableRef,
 ) {
     const executeSecondaryInteraction = (event: GestureResponderEvent) => {
         event.preventDefault();
@@ -59,4 +58,4 @@ function PressableWithSecondaryInteraction(
 
 PressableWithSecondaryInteraction.displayName = 'PressableWithSecondaryInteraction';
 
-export default forwardRef(PressableWithSecondaryInteraction);
+export default PressableWithSecondaryInteraction;
