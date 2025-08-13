@@ -6431,7 +6431,13 @@ const CONST = {
             ACTION: 'action',
         },
         get SYNTAX_ROOT_KEYS() {
-            return [this.SYNTAX_FILTER_KEYS.TYPE, this.SYNTAX_FILTER_KEYS.STATUS, this.SYNTAX_FILTER_KEYS.SORT_BY, this.SYNTAX_FILTER_KEYS.SORT_ORDER, this.SYNTAX_FILTER_KEYS.GROUP_BY] as const;
+            return [
+                this.SYNTAX_FILTER_KEYS.TYPE,
+                this.SYNTAX_FILTER_KEYS.STATUS,
+                this.SYNTAX_FILTER_KEYS.SORT_BY,
+                this.SYNTAX_FILTER_KEYS.SORT_ORDER,
+                this.SYNTAX_FILTER_KEYS.GROUP_BY,
+            ] as const;
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
