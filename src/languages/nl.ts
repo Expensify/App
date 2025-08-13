@@ -210,6 +210,7 @@ import type {
     StripePaidParams,
     SubmitsToParams,
     SubmittedToVacationDelegateParams,
+    SubmittedWithMemoParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -313,7 +314,7 @@ const translations = {
         no: 'No',
         ok: 'OK',
         notNow: 'Niet nu',
-        learnMore: 'Meer informatie.',
+        learnMore: 'Meer informatie',
         buttonConfirm: 'Begrepen',
         name: 'Naam',
         attachment: 'Bijlage',
@@ -482,6 +483,7 @@ const translations = {
         message: 'Bericht',
         leaveThread: 'Verlaat thread',
         you: 'Jij',
+        me: 'mij',
         youAfterPreposition: 'jij',
         your: 'uw',
         conciergeHelp: 'Neem contact op met Concierge voor hulp.',
@@ -592,6 +594,7 @@ const translations = {
         unread: 'Ongelezen',
         sent: 'Verzonden',
         links: 'Links',
+        day: 'dag',
         days: 'dagen',
         rename: 'Hernoemen',
         address: 'Adres',
@@ -633,6 +636,7 @@ const translations = {
         getTheApp: 'Download de app',
         scanReceiptsOnTheGo: 'Scan bonnetjes vanaf je telefoon',
         headsUp: 'Let op!',
+        merge: 'Samenvoegen',
         unstableInternetConnection: 'Onstabiele internetverbinding. Controleer je netwerk en probeer het opnieuw.',
     },
     supportalNoAccess: {
@@ -850,17 +854,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `Deze chatroom is voor alles wat met <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> te maken heeft.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `Deze chat is voor facturen tussen <strong>${invoicePayer}</strong> en <strong>${invoiceReceiver}</strong>. Gebruik de <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> knop om een factuur te sturen.`,
+            `Deze chat is voor facturen tussen <strong>${invoicePayer}</strong> en <strong>${invoiceReceiver}</strong>. Gebruik de + knop om een factuur te sturen.`,
         beginningOfChatHistory: 'Deze chat is met',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `Dit is waar <strong>${submitterDisplayName}</strong> kosten zal indienen bij <strong>${workspaceName}</strong>. Gebruik gewoon de <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> knop.`,
+            `Dit is waar <strong>${submitterDisplayName}</strong> kosten zal indienen bij <strong>${workspaceName}</strong>. Gebruik gewoon de + knop.`,
         beginningOfChatHistorySelfDM: 'Dit is je persoonlijke ruimte. Gebruik het voor notities, taken, concepten en herinneringen.',
         beginningOfChatHistorySystemDM: 'Welkom! Laten we je instellen.',
         chatWithAccountManager: 'Chat hier met uw accountmanager',
         sayHello: 'Zeg hallo!',
         yourSpace: 'Uw ruimte',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welkom bij ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `Gebruik de ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} knop om een uitgave te ${additionalText}.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => `Gebruik de + knop om een uitgave te ${additionalText}.`,
         askConcierge: 'Stel vragen en krijg 24/7 realtime ondersteuning.',
         conciergeSupport: '24/7 ondersteuning',
         create: 'maken',
@@ -880,6 +884,7 @@ const translations = {
         hereAlternateText: 'Breng iedereen in dit gesprek op de hoogte',
     },
     newMessages: 'Nieuwe berichten',
+    latestMessages: 'Laatste berichten',
     youHaveBeenBanned: 'Opmerking: Je bent verbannen van het chatten in dit kanaal.',
     reportTypingIndicator: {
         isTyping: 'is aan het typen...',
@@ -1165,7 +1170,7 @@ const translations = {
         sendInvoice: ({amount}: RequestAmountParams) => `Verstuur ${amount} factuur`,
         submitAmount: ({amount}: RequestAmountParams) => `Verstuur ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `voor ${comment}` : ''}`,
-        submitted: `ingediend`,
+        submitted: ({memo}: SubmittedWithMemoParams) => `ingediend${memo ? `, zegt ${memo}` : ''}`,
         automaticallySubmitted: `ingediend via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">vertraging indieningen</a>`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `volgt ${formattedAmount}${comment ? `voor ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `splitsen ${amount}`,
@@ -1355,6 +1360,31 @@ const translations = {
         rates: 'Tarieven',
         submitsTo: ({name}: SubmitsToParams) => `Dient in bij ${name}`,
         moveExpenses: () => ({one: 'Verplaats uitgave', other: 'Verplaats uitgaven'}),
+    },
+    transactionMerge: {
+        listPage: {
+            header: 'Kosten samenvoegen',
+            noEligibleExpenseFound: 'Geen in aanmerking komende kosten gevonden',
+            noEligibleExpenseFoundSubtitle: `Je hebt geen kosten die samengevoegd kunnen worden met deze. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Meer informatie</a> over in aanmerking komende kosten.`,
+            selectTransactionToMerge: ({reportName}: {reportName: string}) =>
+                `Selecteer een <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">geschikte kost</a> om te combineren <strong>${reportName}</strong>.`,
+        },
+        receiptPage: {
+            header: 'Ontvangstbewijs selecteren',
+            pageTitle: 'Kies het ontvangstbewijs dat je wilt behouden:',
+        },
+        detailsPage: {
+            header: 'Details selecteren',
+            pageTitle: 'Selecteer de details die je wilt behouden:',
+            noDifferences: 'Geen verschillen gevonden tussen de transacties',
+            pleaseSelectError: ({field}: {field: string}) => `Selecteer een ${field}`,
+            selectAllDetailsError: 'Selecteer alle details voordat je doorgaat.',
+        },
+        confirmationPage: {
+            header: 'Bevestig details',
+            pageTitle: 'Bevestig de details die je wilt bewaren. Niet bewaarde details worden verwijderd.',
+            confirmButton: 'Kosten samenvoegen',
+        },
     },
     share: {
         shareToExpensify: 'Delen met Expensify',
@@ -3385,6 +3415,11 @@ const translations = {
             railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `Je treinkaartje voor ${origin} → ${destination} op ${startDate} is bijgewerkt.`,
             defaultUpdate: ({type}: TravelTypeParams) => `Je ${type} reservering is bijgewerkt.`,
         },
+        flightTo: 'Vlucht naar',
+        trainTo: 'Trein naar',
+        carRental: ' autohuur',
+        nightIn: 'nacht in',
+        nightsIn: 'nachten in',
     },
     workspace: {
         common: {
@@ -3475,7 +3510,7 @@ const translations = {
                 `Aangezien je eerder verbinding hebt gemaakt met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, kun je ervoor kiezen om een bestaande verbinding opnieuw te gebruiken of een nieuwe te maken.`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Laatst gesynchroniseerd op ${formattedDate}`,
             authenticationError: ({connectionName}: AuthenticationErrorParams) => `Kan geen verbinding maken met ${connectionName} vanwege een authenticatiefout.`,
-            learnMore: 'Meer informatie.',
+            learnMore: 'Meer informatie',
             memberAlternateText: 'Leden kunnen rapporten indienen en goedkeuren.',
             adminAlternateText: 'Beheerders hebben volledige bewerkingsrechten voor alle rapporten en werkruimte-instellingen.',
             auditorAlternateText: 'Auditors kunnen rapporten bekijken en erop reageren.',
@@ -3506,6 +3541,11 @@ const translations = {
             viewTransactions: 'Transacties bekijken',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Uitgaven van ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card transacties worden automatisch geëxporteerd naar een “Expensify Card Liability Account” die is aangemaakt met <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">onze integratie</a>.</muted-text-label>`,
+        },
+        receiptPartners: {
+            uber: {
+                subtitle: 'Automatiseer reis- en maaltijdbezorgkosten binnen uw organisatie.',
+            },
         },
         perDiem: {
             subtitle: 'Stel dagvergoedingen in om de dagelijkse uitgaven van werknemers te beheersen.',
@@ -5518,6 +5558,17 @@ const translations = {
                     one: '1 dag',
                     other: (count: number) => `${count} dagen`,
                 }),
+                cashExpenseDefault: 'Contante uitgave standaard',
+                cashExpenseDefaultDescription:
+                    'Kies hoe contante uitgaven moeten worden aangemaakt. Een uitgave wordt als contant beschouwd als het geen geïmporteerde bedrijfspastransactie is. Dit omvat handmatig aangemaakte uitgaven, bonnetjes, dagvergoedingen, kilometer- en tijdsuitgaven.',
+                reimbursableDefault: 'Vergoedbaar',
+                reimbursableDefaultDescription: 'Uitgaven worden meestal terugbetaald aan medewerkers',
+                nonReimbursableDefault: 'Niet vergoedbaar',
+                nonReimbursableDefaultDescription: 'Uitgaven worden soms terugbetaald aan medewerkers',
+                alwaysReimbursable: 'Altijd vergoedbaar',
+                alwaysReimbursableDescription: 'Uitgaven worden altijd terugbetaald aan medewerkers',
+                alwaysNonReimbursable: 'Nooit vergoedbaar',
+                alwaysNonReimbursableDescription: 'Uitgaven worden nooit terugbetaald aan medewerkers',
                 billableDefault: 'Factureerbaar standaardwaarde',
                 billableDefaultDescription: 'Kies of contante en creditcarduitgaven standaard factureerbaar moeten zijn. Factureerbare uitgaven worden in- of uitgeschakeld in',
                 billable: 'Factureerbaar',
@@ -5805,6 +5856,8 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `bijgewerkt "Onkosten doorberekenen aan klanten" naar "${newValue}" (voorheen "${oldValue}")`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `bijgewerkt "Contante uitgave standaard" naar "${newValue}" (voorheen "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `omgezet "Standaardrapporttitels afdwingen" ${value ? 'op' : 'uit'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `heeft de naam van deze werkruimte bijgewerkt naar "${newName}" (voorheen "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -5907,7 +5960,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'Niets om te laten zien',
-                subtitle: `Probeer je zoekcriteria aan te passen of iets te maken met de groene ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} knop.`,
+                subtitle: 'Probeer je zoekcriteria aan te passen of iets te maken met de groene + knop.',
             },
             emptyExpenseResults: {
                 title: 'Je hebt nog geen uitgaven gemaakt.',
@@ -6022,6 +6075,10 @@ const translations = {
                 cards: 'Kaart',
             },
             feed: 'Feed',
+            withdrawalType: {
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Terugbetaling',
+            },
         },
         groupBy: 'Groep per',
         moneyRequestReport: {
@@ -6031,6 +6088,7 @@ const translations = {
         noCategory: 'Geen categorie',
         noTag: 'Geen tag',
         expenseType: 'Uitgavetype',
+        withdrawalType: 'Opnametype',
         recentSearches: 'Recente zoekopdrachten',
         recentChats: 'Recente chats',
         searchIn: 'Zoeken in',
@@ -6306,9 +6364,8 @@ const translations = {
         levelThreeResult: 'Bericht verwijderd uit kanaal plus anonieme waarschuwing en bericht is gerapporteerd voor beoordeling.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Uitnodigen om onkosten in te dienen',
-        inviteToChat: 'Alleen uitnodigen om te chatten',
-        nothing: 'Niets doen',
+        invite: 'Nodig hen uit',
+        nothing: 'Do nothing',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accepteren',
@@ -6461,7 +6518,7 @@ const translations = {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Bedrag boven ${formattedLimit}/persoon limiet`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Bedrag boven de dagelijkse ${formattedLimit}/persoon categoriegrens`,
         receiptNotSmartScanned:
-            'Bon en uitgavendetails handmatig toegevoegd. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Meer weten.</a>',
+            'Bon en uitgavendetails handmatig toegevoegd. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Meer weten</a>.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Bon vereist';
             if (formattedLimit ?? category) {

@@ -159,6 +159,11 @@ const baseFilterConfig = {
         description: 'search.expenseType' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE,
     },
+    withdrawalType: {
+        getTitle: getFilterDisplayTitle,
+        description: 'search.withdrawalType' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_WITHDRAWAL_TYPE,
+    },
     tag: {
         getTitle: getFilterDisplayTitle,
         description: 'common.tag' as const,
@@ -242,6 +247,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
         ],
     ],
@@ -272,6 +278,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
         ],
     ],
@@ -358,7 +365,7 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
 
     const cardNames = Object.values(cards)
         .filter((card) => cardIdsFilter.includes(card.cardID.toString()) && !feedFilter.includes(createCardFeedKey(card.fundID, card.bank)))
-        .map((card) => getCardDescription(card.cardID, cards));
+        .map((card) => getCardDescription(card));
 
     const feedNames = Object.keys(cardFeedNamesWithType)
         .filter((workspaceCardFeedKey) => {
@@ -473,6 +480,11 @@ function getFilterDisplayTitle(
     if (nonDateFilterKey === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
         const filterValue = filters[nonDateFilterKey];
         return filterValue ? translate(`search.filters.groupBy.${filterValue}`) : undefined;
+    }
+
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
+        const filterValue = filters[nonDateFilterKey];
+        return filterValue ? translate(`search.filters.withdrawalType.${filterValue}`) : undefined;
     }
 
     const filterValue = filters[nonDateFilterKey];
@@ -674,6 +686,7 @@ function AdvancedSearchFilters() {
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE
                     ) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
