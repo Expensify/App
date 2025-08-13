@@ -670,6 +670,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
 
+    // @todo we will remove checking whether currrent manager is admin in PR #68353
     // When report manager is not the policy admin and current user is policy admin, allow changing the approver
     if (!isMemberPolicyAdmin(policy, getManagerAccountEmail(policy, report)) && isExpenseReportUtils(report) && isProcessingReportUtils(report) && isPolicyAdmin(policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);

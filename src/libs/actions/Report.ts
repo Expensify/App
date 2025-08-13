@@ -15,6 +15,7 @@ import type {
     AddCommentOrAttachmentParams,
     AddEmojiReactionParams,
     AddWorkspaceRoomParams,
+    AssignReportToMeParams,
     CompleteGuidedSetupParams,
     DeleteAppReportParams,
     DeleteCommentParams,
@@ -5884,8 +5885,9 @@ function assignCurrentUserAsApprover(report: OnyxEntry<Report>) {
         ],
     };
 
-    const params = {
+    const params: AssignReportToMeParams = {
         reportID: report.reportID,
+        reportActionID: takeControlReportAction.reportActionID,
     };
 
     API.write(WRITE_COMMANDS.ASSIGN_REPORT_TO_ME, params, onyxData);
