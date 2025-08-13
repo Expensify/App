@@ -1,3 +1,4 @@
+import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -18,6 +19,7 @@ import type {
     SageIntacctMappingValue,
     SageIntacctOfflineStateKeys,
 } from '@src/types/onyx/Policy';
+import type UpdateSageIntacctAccountingMethodParams from '@libs/API/parameters/UpdateSageIntacctAccountingMethodParams';
 
 type SageIntacctCredentials = {companyID: string; userID: string; password: string};
 
@@ -847,7 +849,11 @@ function prepareOnyxDataForAutoSyncUpdate(policyID: string, settingName: keyof C
     return {optimisticData, failureData, successData};
 }
 
-function updateSageIntacctAutoSync(policyID: string, enabled: boolean) {
+function updateSageIntacctAutoSync(policyID: string | undefined, enabled: boolean) {
+    if (!policyID) {
+        return;
+    }
+
     const {optimisticData, failureData, successData} = prepareOnyxDataForAutoSyncUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED, enabled);
     const parameters = {
         policyID,
@@ -912,6 +918,21 @@ function updateSageIntacctEntity(policyID: string, entity: string, oldEntity: st
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_ENTITY, parameters, prepareOnyxDataForConfigUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.ENTITY, entity, oldEntity));
 }
 
+function updateSageIntacctAccountingMethod(policyID: string | undefined, accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>, oldAccountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>) {
+    if (!policyID) {
+        return;
+    }
+
+    const parameters: UpdateSageIntacctAccountingMethodParams = {
+        policyID,
+        accountingMethod,
+    }
+
+    const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.ACCOUNTING_METHOD, accountingMethod, oldAccountingMethod);
+
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_ACCOUNTING_METHOD, parameters, {optimisticData, failureData, successData});
+}
+
 export {
     connectToSageIntacct,
     updateSageIntacctBillable,
@@ -935,6 +956,7 @@ export {
     updateSageIntacctSyncReimbursedReports,
     updateSageIntacctSyncReimbursementAccountID,
     updateSageIntacctEntity,
+    updateSageIntacctAccountingMethod,
     changeMappingsValueFromDefaultToTag,
     UpdateSageIntacctTaxSolutionID,
 };
