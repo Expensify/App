@@ -329,6 +329,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 feed: defaultFeedID ? [defaultFeedID] : [''],
                 postedOn: CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT,
+                groupBy: CONST.SEARCH.GROUP_BY.CARD,
             }),
             get hash() {
                 return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
