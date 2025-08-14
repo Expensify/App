@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import StatsCounter from '@libs/actions/StatsCounter';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import BlockingView from './BlockingView';
 import ForceFullScreenView from './ForceFullScreenView';
@@ -87,7 +88,7 @@ function FullPageNotFoundView({
     const {translate} = useLocalize();
 
     if (shouldShow) {
-        StatsCounter('FullPageNotFoundView');
+        StatsCounter(CONST.STATS_COUNTER.FULL_PAGE_NOT_FOUND_VIEW);
         return (
             <ForceFullScreenView shouldForceFullScreen={shouldForceFullScreen}>
                 <HeaderWithBackButton

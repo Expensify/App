@@ -28,6 +28,7 @@ import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
 import {createDraftInitialWorkspace, createWorkspace, generatePolicyID} from './Policy/Policy';
 import {isAnonymousUser} from './Session';
+import StatsCounter from './StatsCounter';
 
 type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];
@@ -597,6 +598,8 @@ function setPreservedUserSession(session: OnyxTypes.Session) {
 }
 
 function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
+    StatsCounter(CONST.STATS_COUNTER.CLEAR_ONYX_AND_RESET_APP);
+
     // The value of isUsingImportedState will be lost once Onyx is cleared, so we need to store it
     const isStateImported = isUsingImportedState;
     const shouldUseStagingServer = preservedShouldUseStagingServer;

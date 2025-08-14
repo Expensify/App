@@ -6829,6 +6829,11 @@ const CONST = {
         },
     },
 
+    STATS_COUNTER: {
+        CLEAR_ONYX_AND_RESET_APP: 'ClearOnyxAndResetApp',
+        FULL_PAGE_NOT_FOUND_VIEW: 'FullPageNotFoundView',
+    },
+
     CORPAY_FIELDS: {
         EXCLUDED_COUNTRIES: ['IR', 'CU', 'SY', 'UA', 'KP', 'RU'] as string[],
         EXCLUDED_CURRENCIES: ['IRR', 'CUP', 'SYP', 'UAH', 'KPW', 'RUB'] as string[],
