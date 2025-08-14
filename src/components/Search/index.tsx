@@ -749,7 +749,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         />
                     )
                 }
-                contentContainerStyle={[{...styles.pb3}, contentContainerStyle]}
+                contentContainerStyle={[styles.pb3, contentContainerStyle]}
                 containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 onScroll={onSearchListScroll}
