@@ -70,20 +70,21 @@ function App() {
             <SplashScreenStateContextProvider>
                 <InitialURLContextProvider>
                     <HybridAppHandler />
-                    <View
-                        style={fill}
-                        fsClass={CONST.FULLSTORY.CLASS.UNMASK}
-                    >
-                        <GestureHandlerRootView style={fill}>
-                            {/* Initialize metrics early to ensure the UI renders even when NewDot is hidden.
+
+                    <GestureHandlerRootView style={fill}>
+                        {/* Initialize metrics early to ensure the UI renders even when NewDot is hidden.
                             This is necessary for iOS HybridApp's SignInPage to appear correctly without the bootsplash.
                             See: https://github.com/Expensify/App/pull/65178#issuecomment-3139026551
                         */}
-                            <SafeAreaProvider
-                                initialMetrics={{
-                                    insets: {top: 0, right: 0, bottom: 0, left: 0},
-                                    frame: {x: 0, y: 0, width: 0, height: 0},
-                                }}
+                        <SafeAreaProvider
+                            initialMetrics={{
+                                insets: {top: 0, right: 0, bottom: 0, left: 0},
+                                frame: {x: 0, y: 0, width: 0, height: 0},
+                            }}
+                        >
+                            <View
+                                style={fill}
+                                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
                             >
                                 <ComposeProviders
                                     components={[
@@ -125,9 +126,9 @@ function App() {
                                     </ErrorBoundary>
                                     <NavigationBar />
                                 </ComposeProviders>
-                            </SafeAreaProvider>
-                        </GestureHandlerRootView>
-                    </View>
+                            </View>
+                        </SafeAreaProvider>
+                    </GestureHandlerRootView>
                 </InitialURLContextProvider>
             </SplashScreenStateContextProvider>
         </StrictModeWrapper>
