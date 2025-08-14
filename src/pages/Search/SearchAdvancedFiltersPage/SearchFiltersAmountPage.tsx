@@ -6,6 +6,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import type {SearchAmountFilterKeys} from '@components/Search/types';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -18,29 +19,29 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
 
-function SearchFiltersAmountPage() {
+function SearchFiltersAmountBase(filterKey: SearchAmountFilterKeys) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const greaterThan = searchAdvancedFiltersForm?.[INPUT_IDS.GREATER_THAN];
+    const greaterThan = searchAdvancedFiltersForm?.[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`];
     const greaterThanFormattedAmount = greaterThan ? convertToFrontendAmountAsString(Number(greaterThan)) : undefined;
-    const lessThan = searchAdvancedFiltersForm?.[INPUT_IDS.LESS_THAN];
+    const lessThan = searchAdvancedFiltersForm?.[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`];
     const lessThanFormattedAmount = lessThan ? convertToFrontendAmountAsString(Number(lessThan)) : undefined;
     const {inputCallbackRef} = useAutoFocusInput();
 
     const updateAmountFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
-        const greater = values[INPUT_IDS.GREATER_THAN];
+        const greater = values[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`];
         const greaterThanBackendAmount = greater ? convertToBackendAmount(Number(greater)) : '';
-        const less = values[INPUT_IDS.LESS_THAN];
+        const less = values[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`];
         const lessThanBackendAmount = less ? convertToBackendAmount(Number(less)) : '';
-        updateAdvancedFilters({greaterThan: greaterThanBackendAmount?.toString(), lessThan: lessThanBackendAmount?.toString()});
+        updateAdvancedFilters({[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`]: greaterThanBackendAmount?.toString(), [`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`]: lessThanBackendAmount?.toString()});
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersAmountPage.displayName}
+            testID={SearchFiltersAmountBase.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
@@ -62,8 +63,8 @@ function SearchFiltersAmountPage() {
                 <View style={styles.mb5}>
                     <InputWrapper
                         InputComponent={AmountWithoutCurrencyInput}
-                        inputID={INPUT_IDS.GREATER_THAN}
-                        name={INPUT_IDS.GREATER_THAN}
+                        inputID={`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`}
+                        name={`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`}
                         defaultValue={greaterThanFormattedAmount}
                         label={translate('search.filters.amount.greaterThan')}
                         accessibilityLabel={translate('search.filters.amount.greaterThan')}
@@ -76,8 +77,8 @@ function SearchFiltersAmountPage() {
                 <View style={styles.mb5}>
                     <InputWrapper
                         InputComponent={AmountWithoutCurrencyInput}
-                        inputID={INPUT_IDS.LESS_THAN}
-                        name={INPUT_IDS.LESS_THAN}
+                        inputID={`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`}
+                        name={`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`}
                         defaultValue={lessThanFormattedAmount}
                         label={translate('search.filters.amount.lessThan')}
                         accessibilityLabel={translate('search.filters.amount.lessThan')}
@@ -91,6 +92,6 @@ function SearchFiltersAmountPage() {
     );
 }
 
-SearchFiltersAmountPage.displayName = 'SearchFiltersAmountPage';
+SearchFiltersAmountBase.displayName = 'SearchFiltersAmountBase';
 
-export default SearchFiltersAmountPage;
+export default SearchFiltersAmountBase;

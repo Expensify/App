@@ -6479,6 +6479,10 @@ const CONST = {
             AFTER: 'After',
             BEFORE: 'Before',
         },
+        AMOUNT_MODIFIERS: {
+            LESS_THAN: 'LessThan',
+            GREATER_THAN: 'GreaterThan',
+        },
         DATE_PRESETS: {
             NEVER: 'never',
             LAST_MONTH: 'last-month',
