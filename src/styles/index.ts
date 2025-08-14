@@ -5636,9 +5636,11 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 20,
         }),
 
-        getSelectionListPopoverHeight: (itemCount: number) => ({
-            height: itemCount * variables.optionRowHeightCompact,
-            ...sizing.mh45vh,
+        getSelectionListPopoverHeight: (itemCount: number, windowHeight: number) => ({
+            // Native platforms don't support maxHeight in the way thats expected, so lets manually set the height to either
+            // the listHeight, the max height of the popover, or 90% of the window height, such that we never overflow the screen
+            // and never expand over the max height
+            height: Math.min(itemCount * variables.optionRowHeightCompact, CONST.POPOVER_DROPDOWN_MAX_HEIGHT, windowHeight * 0.9),
         }),
 
         getUserSelectionListPopoverHeight: (itemCount: number, windowHeight: number, shouldUseNarrowLayout: boolean) => {
