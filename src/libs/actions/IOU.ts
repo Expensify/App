@@ -263,6 +263,7 @@ type InitMoneyRequestParams = {
     report: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
     currentDate: string | undefined;
+    lastSelectedDistanceRates?: OnyxEntry<OnyxTypes.LastSelectedDistanceRates>;
 };
 
 type MoneyRequestInformation = {
@@ -905,7 +906,7 @@ function getReportPreviewAction(chatReportID: string | undefined, iouReportID: s
  * @param report the report to attach the transaction to
  * @param parentReport the parent report to attach the transaction to
  */
-function initMoneyRequest({reportID, policy, isFromGlobalCreate, currentIouRequestType, newIouRequestType, report, parentReport, currentDate = ''}: InitMoneyRequestParams) {
+function initMoneyRequest({reportID, policy, isFromGlobalCreate, currentIouRequestType, newIouRequestType, report, parentReport, currentDate = '', lastSelectedDistanceRates}: InitMoneyRequestParams) {
     // Generate a brand new transactionID
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
@@ -946,7 +947,8 @@ function initMoneyRequest({reportID, policy, isFromGlobalCreate, currentIouReque
             waypoint1: {keyForList: 'stop_waypoint'},
         };
         if (!isFromGlobalCreate) {
-            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID(reportID);
+            const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report) || isPolicyExpenseChatReportUtil(parentReport);
+            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
             comment.customUnit = {customUnitRateID};
         }
     }
