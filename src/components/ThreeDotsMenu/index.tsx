@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
@@ -11,8 +11,10 @@ import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isMobile} from '@libs/Browser';
 import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
@@ -40,6 +42,7 @@ function ThreeDotsMenu({
     renderProductTrainingTooltipContent,
     shouldShowProductTrainingTooltip = false,
     isNested = false,
+    shouldSelfPosition = false,
     threeDotsMenuRef,
 }: ThreeDotsMenuProps) {
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
@@ -52,7 +55,8 @@ function ThreeDotsMenu({
     const buttonRef = useRef<View>(null);
     const {translate} = useLocalize();
     const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;
-
+    const {windowWidth, windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const showPopoverMenu = () => {
         setPopupMenuVisible(true);
     };
@@ -76,6 +80,31 @@ function ThreeDotsMenu({
         hidePopoverMenu();
     }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible]);
 
+    const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
+        if (shouldUseNarrowLayout) {
+            return Promise.resolve({horizontal: 0, vertical: 0});
+        }
+        return new Promise<AnchorPosition>((resolve) => {
+            buttonRef.current?.measureInWindow((x, y, width, height) => {
+                resolve({
+                    horizontal: x + width,
+                    vertical: y + height,
+                });
+            });
+        });
+    }, [shouldUseNarrowLayout]);
+    const getMenuPosition = shouldSelfPosition ? calculateAndSetThreeDotsMenuPosition : getAnchorPosition;
+
+    useLayoutEffect(() => {
+        if (!getMenuPosition || !isPopupMenuVisible) {
+            return;
+        }
+
+        getMenuPosition?.().then((value) => {
+            setPosition(value);
+        });
+    }, [windowWidth, windowHeight, shouldSelfPosition, getMenuPosition, isPopupMenuVisible]);
+
     const onThreeDotsPress = () => {
         if (isPopupMenuVisible) {
             hidePopoverMenu();
@@ -84,8 +113,8 @@ function ThreeDotsMenu({
         hideProductTrainingTooltip?.();
         buttonRef.current?.blur();
 
-        if (getAnchorPosition) {
-            getAnchorPosition().then((value) => {
+        if (getMenuPosition) {
+            getMenuPosition?.().then((value) => {
                 setPosition(value);
                 showPopoverMenu();
             });
