@@ -291,7 +291,7 @@ function BasePopoverMenu({
             <MenuItem
                 key={previouslySelectedItem?.text}
                 icon={Expensicons.BackArrow}
-                iconFill={theme.icon}
+                iconFill={(isHovered) => (isHovered ? theme.iconHovered : theme.icon)}
                 style={hasBackButtonText ? styles.pv0 : undefined}
                 additionalIconStyles={[{width: variables.iconSizeSmall, height: variables.iconSizeSmall}, styles.opacitySemiTransparent, styles.mr1]}
                 title={hasBackButtonText ? previouslySelectedItem?.backButtonText : previouslySelectedItem?.text}

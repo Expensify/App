@@ -104,7 +104,7 @@ type MenuItemBaseProps = {
     descriptionTextStyle?: StyleProp<TextStyle>;
 
     /** The fill color to pass into the icon. */
-    iconFill?: string;
+    iconFill?: string | ((isHovered: boolean) => string);
 
     /** Secondary icon to display on the left side of component, right of the icon */
     secondaryIcon?: IconAsset;
@@ -761,12 +761,14 @@ function MenuItem(
                                                                         fill={
                                                                             displayInDefaultIconColor
                                                                                 ? undefined
-                                                                                : (iconFill ??
-                                                                                  StyleUtils.getIconFillColor(
-                                                                                      getButtonState(focused || isHovered, pressed, success, disabled, interactive),
-                                                                                      true,
-                                                                                      isPaneMenu,
-                                                                                  ))
+                                                                                : typeof iconFill === 'function'
+                                                                                  ? iconFill(isHovered)
+                                                                                  : (iconFill ??
+                                                                                    StyleUtils.getIconFillColor(
+                                                                                        getButtonState(focused || isHovered, pressed, success, disabled, interactive),
+                                                                                        true,
+                                                                                        isPaneMenu,
+                                                                                    ))
                                                                         }
                                                                         additionalStyles={additionalIconStyles}
                                                                     />
