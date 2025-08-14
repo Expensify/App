@@ -6,7 +6,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -267,7 +266,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                                 />
                                             </View>
                                         </OfflineWithFeedback>
-                                        <MenuItemWithTopDescription
+                                        <MenuItem
                                             style={[styles.mt2, styles.pl0, styles.pr0]}
                                             title={translate('workspace.receiptPartners.uber.manageInvites')}
                                             shouldShowRightIcon
