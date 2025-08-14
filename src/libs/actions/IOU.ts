@@ -10432,7 +10432,15 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
         wasInvited: true,
     });
 }
-function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxEntry<OnyxTypes.Report>, paymentPolicyID?: string, full = true) {
+function payMoneyRequest(
+    paymentType: PaymentMethodType,
+    chatReport: OnyxTypes.Report,
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    paymentPolicyID?: string,
+    full = true,
+    searchHash?: number,
+    searchKey?: SearchKey,
+) {
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
         return;
@@ -10443,6 +10451,30 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
 
     const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType, full, undefined, undefined, paymentPolicyID);
+
+    if (searchHash) {
+        const createOnyxData = (update: Partial<SearchReport> | null): OnyxUpdate[] => [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+                value: {
+                    data: Object.fromEntries([iouReport?.reportID ?? ''].map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, update])) as Partial<SearchReport>,
+                },
+            },
+        ];
+
+        const searchPayOptimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
+        const searchPayFailureData: OnyxUpdate[] = createOnyxData({isActionLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
+
+        // If we are on the 'Pay' suggested search, remove the report from the view once the action is taken, don't wait for the view to be re-fetched via Search
+        const payActionSuggestedSearches: Partial<SearchKey[]> = [CONST.SEARCH.SEARCH_KEYS.PAY];
+
+        const searchPaySuccessData: OnyxUpdate[] = payActionSuggestedSearches.includes(searchKey) ? createOnyxData(null) : createOnyxData({isActionLoading: false});
+
+        optimisticData.push(...searchPayOptimisticData);
+        successData.push(...searchPaySuccessData);
+        failureData.push(...searchPayFailureData);
+    }
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
     // Expensify Wallets.

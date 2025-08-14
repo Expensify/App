@@ -365,10 +365,10 @@ function MoneyReportHeader({
                 payInvoice(type, chatReport, moneyRequestReport, payAsBusiness, methodID, paymentMethod);
             } else {
                 startAnimation();
-                payMoneyRequest(type, chatReport, moneyRequestReport, undefined, true);
+                payMoneyRequest(type, chatReport, moneyRequestReport, undefined, true, currentSearchHash, currentSearchKey);
             }
         },
-        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, showDelegateNoAccessModal, isInvoiceReport, moneyRequestReport, startAnimation],
+        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, showDelegateNoAccessModal, isInvoiceReport, moneyRequestReport, startAnimation, currentSearchHash, currentSearchKey],
     );
 
     const confirmApproval = () => {
