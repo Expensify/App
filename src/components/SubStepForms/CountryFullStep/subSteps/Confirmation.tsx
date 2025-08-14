@@ -42,7 +42,7 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
     const currencyMappedToCountry = mapCurrencyToCountry(currency);
 
     // TODO: change this after introducing Global Reimbursements
-    const countryDefaultValue = !isConnectedToPolicy ? CONST.COUNTRY.US : (reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY]) ?? '';
+    const countryDefaultValue = !isConnectedToPolicy ? CONST.COUNTRY.US : (reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '');
     const [selectedCountry, setSelectedCountry] = useState<string>(countryDefaultValue);
 
     const disableSubmit = !(currency in CONST.CURRENCY);
