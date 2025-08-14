@@ -232,6 +232,7 @@ function SearchAutocompleteInput(
                         parser={parser}
                         selection={selection}
                         shouldShowClearButton={!!value && !isSearchingForReports}
+                        shouldHideClearButton={false}
                         onClear={clearFilters}
                         clearButtonStyle={styles.mr1}
                     />
