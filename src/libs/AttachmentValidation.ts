@@ -108,7 +108,7 @@ function validateMultipleAttachmentFiles(files: FileObject[]): Promise<MultipleA
         if (results.every((result) => result.isValid)) {
             return {
                 isValid: true,
-                validatedFiles: results.map((result) => (result as SingleAttachmentValidResult).validatedFile),
+                validatedFiles: results.map((result) => result.validatedFile),
             };
         }
 
