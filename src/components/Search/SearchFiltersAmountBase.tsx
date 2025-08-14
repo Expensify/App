@@ -19,7 +19,7 @@ import ROUTES from '@src/ROUTES';
 import type {TranslationPaths} from '@src/languages/types';
 import type {SearchAmountFilterKeys} from './types';
 
-function SearchFiltersAmountBase({title, filterKey}: {title: TranslationPaths; filterKey: SearchAmountFilterKeys}) {
+function SearchFiltersAmountBase({title, filterKey, testID}: {title: TranslationPaths; filterKey: SearchAmountFilterKeys; testID: string}) {
     const styles = useThemeStyles();
 
     const {translate} = useLocalize();
@@ -42,7 +42,7 @@ function SearchFiltersAmountBase({title, filterKey}: {title: TranslationPaths; f
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersAmountBase.displayName}
+            testID={testID}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
