@@ -98,12 +98,14 @@ const ROUTES = {
             backTo,
             moneyRequestReportActionID,
             transactionID,
+            iouReportID,
         }: {
             reportID: string | undefined;
             reportActionID?: string;
             backTo?: string;
             moneyRequestReportActionID?: string;
             transactionID?: string;
+            iouReportID?: string;
         }) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the SEARCH_REPORT route');
@@ -118,6 +120,9 @@ const ROUTES = {
             }
             if (moneyRequestReportActionID) {
                 queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
+            }
+            if (iouReportID) {
+                queryParams.push(`iouReportID=${iouReportID}`);
             }
 
             const queryString = queryParams.length > 0 ? (`${baseRoute}?${queryParams.join('&')}` as const) : baseRoute;
@@ -592,11 +597,10 @@ const ROUTES = {
     },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':type/edit/reason/:transactionID?/:searchHash?',
-        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string, backTo: string, searchHash?: number) => {
-            const route = searchHash
-                ? (`${type as string}/edit/reason/${transactionID}/${searchHash}/?backTo=${backTo}&reportID=${reportID}` as const)
-                : (`${type as string}/edit/reason/${transactionID}/?backTo=${backTo}&reportID=${reportID}` as const);
-            return route;
+        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string | undefined, backTo: string, searchHash?: number) => {
+            const searchPart = searchHash ? `/${searchHash}` : '';
+            const reportPart = reportID ? `&reportID=${reportID}` : '';
+            return `${type as string}/edit/reason/${transactionID}${searchPart}/?backTo=${backTo}${reportPart}` as const;
         },
     },
     MONEY_REQUEST_CREATE: {
