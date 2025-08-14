@@ -43,6 +43,7 @@ import type {
     BeginningOfChatHistoryInvoiceRoomParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
+    BillableDefaultDescriptionParams,
     BillingBannerCardAuthenticationRequiredParams,
     BillingBannerCardExpiredParams,
     BillingBannerCardOnDisputeParams,
@@ -5563,7 +5564,8 @@ const translations = {
                 alwaysNonReimbursable: 'Nooit vergoedbaar',
                 alwaysNonReimbursableDescription: 'Uitgaven worden nooit terugbetaald aan medewerkers',
                 billableDefault: 'Factureerbaar standaardwaarde',
-                billableDefaultDescription: 'Kies of contante en creditcarduitgaven standaard factureerbaar moeten zijn. Factureerbare uitgaven worden in- of uitgeschakeld in',
+                billableDefaultDescription: ({tagsPageLink}: BillableDefaultDescriptionParams) =>
+                    `<muted-text>Kies of contante en creditcarduitgaven standaard factureerbaar moeten zijn. Factureerbare uitgaven worden in <a href="${tagsPageLink}">tags</a> in- of uitgeschakeld.</muted-text>`,
                 billable: 'Factureerbaar',
                 billableDescription: 'Uitgaven worden meestal doorberekend aan klanten.',
                 nonBillable: 'Niet-factureerbaar',
