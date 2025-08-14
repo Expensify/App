@@ -6803,9 +6803,7 @@ const translations = {
         },
         compareModal: {
             comparePlans: 'Vergelijk Plannen',
-            unlockTheFeatures: 'Ontgrendel de functies die je nodig hebt met het plan dat bij je past.',
-            viewOurPricing: 'Bekijk onze prijspagina',
-            forACompleteFeatureBreakdown: 'voor een volledige functieverdeling van elk van onze plannen.',
+            subtitle: `<muted-text>Ontgrendel de functies die u nodig hebt met het abonnement dat bij u past. <a href="${CONST.PRICING}">Bekijk onze prijspagina</a> of een volledig overzicht van de functies van elk van onze abonnementen.</muted-text>`,
         },
         details: {
             title: 'Abonnementsgegevens',

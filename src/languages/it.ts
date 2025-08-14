@@ -6813,9 +6813,7 @@ const translations = {
         },
         compareModal: {
             comparePlans: 'Confronta i piani',
-            unlockTheFeatures: 'Sblocca le funzionalità di cui hai bisogno con il piano giusto per te.',
-            viewOurPricing: 'Visualizza la nostra pagina dei prezzi',
-            forACompleteFeatureBreakdown: 'per una panoramica completa delle funzionalità di ciascuno dei nostri piani.',
+            subtitle: `<muted-text>Sblocca le funzionalità di cui hai bisogno con il piano più adatto a te. <a href="${CONST.PRICING}">Consulta la nostra pagina dei prezzi</a> o una panoramica completa delle funzionalità di ciascuno dei nostri piani.</muted-text>`,
         },
         details: {
             title: "Dettagli dell'abbonamento",

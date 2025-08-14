@@ -6811,9 +6811,7 @@ const translations = {
         },
         compareModal: {
             comparePlans: 'Comparer les forfaits',
-            unlockTheFeatures: 'Débloquez les fonctionnalités dont vous avez besoin avec le plan qui vous convient.',
-            viewOurPricing: 'Consultez notre page de tarification',
-            forACompleteFeatureBreakdown: 'pour un aperçu complet des fonctionnalités de chacun de nos plans.',
+            subtitle: `<muted-text>Débloquez les fonctionnalités dont vous avez besoin avec le forfait qui vous convient. <a href="${CONST.PRICING}">Consultez notre page de tarifs</a> ou la liste complète des fonctionnalités de chacun de nos forfaits.</muted-text>`,
         },
         details: {
             title: "Détails de l'abonnement",

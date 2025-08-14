@@ -6801,9 +6801,7 @@ const translations = {
         },
         compareModal: {
             comparePlans: 'Comparar Planos',
-            unlockTheFeatures: 'Desbloqueie os recursos que você precisa com o plano certo para você.',
-            viewOurPricing: 'Veja nossa página de preços',
-            forACompleteFeatureBreakdown: 'para uma análise completa dos recursos de cada um dos nossos planos.',
+            subtitle: `<muted-text>Desbloqueie os recursos de que você precisa com o plano ideal para você. <a href="${CONST.PRICING}">Consulte nossa página de preços</a> ou uma descrição completa dos recursos de cada um dos nossos planos.</muted-text>`,
         },
         details: {
             title: 'Detalhes da assinatura',
