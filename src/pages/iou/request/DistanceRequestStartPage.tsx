@@ -46,6 +46,7 @@ function DistanceRequestStartPage({
     const {translate} = useLocalize();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
+    const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`, {canBeMissing: true});
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
@@ -101,6 +102,7 @@ function DistanceRequestStartPage({
             report,
             parentReport,
             lastSelectedDistanceRates,
+            currentDate,
         });
         // eslint-disable-next-line
     }, []);
@@ -120,6 +122,7 @@ function DistanceRequestStartPage({
                 report,
                 parentReport,
                 lastSelectedDistanceRates,
+                currentDate,
             });
         },
         [transaction?.iouRequestType, reportID, policy, isFromGlobalCreate, report, parentReport, lastSelectedDistanceRates],
