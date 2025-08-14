@@ -22,7 +22,6 @@ import {
     canAddTransaction,
     canDeleteReportAction,
     canDeleteTransaction,
-    canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
     canEditReportDescription,
     canEditRoomVisibility,
@@ -373,9 +372,10 @@ describe('ReportUtils', () => {
             return waitForBatchedUpdates();
         });
 
-        it('should return false for invoice report action if it is not outstanding report', () => {
+        // Then the user should be able to move the invoice to the outstanding expense report
+        it('should return true for invoice report action given that there is a minimum of one outstanding report', () => {
             const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT);
-            expect(canEditReportField).toBe(false);
+            expect(canEditReportField).toBe(true);
         });
     });
 
@@ -1940,7 +1940,7 @@ describe('ReportUtils', () => {
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
 
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                currentUserAccountID: {
+                [currentUserAccountID]: {
                     accountID: currentUserAccountID,
                     displayName: currentUserEmail,
                     login: currentUserEmail,
@@ -5302,6 +5302,30 @@ describe('ReportUtils', () => {
             expect(getReportStatusTranslation(undefined, undefined)).toBe('');
             expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.OPEN, undefined)).toBe('');
             expect(getReportStatusTranslation(undefined, CONST.REPORT.STATUS_NUM.OPEN)).toBe('');
+        });
+    });
+
+    describe('buildOptimisticReportPreview', () => {
+        it('should include childOwnerAccountID and childManagerAccountID that matches with iouReport data', () => {
+            const chatReport: Report = {
+                ...createRandomReport(100),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: undefined,
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(200),
+                parentReportID: '1',
+                type: CONST.REPORT.TYPE.IOU,
+                chatType: undefined,
+                ownerAccountID: 1,
+                managerID: 2,
+            };
+
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport);
+
+            expect(reportPreviewAction.childOwnerAccountID).toBe(iouReport.ownerAccountID);
+            expect(reportPreviewAction.childManagerAccountID).toBe(iouReport.managerID);
         });
     });
     describe('canSeeDefaultRoom', () => {
