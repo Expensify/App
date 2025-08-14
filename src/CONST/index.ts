@@ -1536,7 +1536,7 @@ const CONST = {
         DEBOUNCE_HANDLE_SEARCH: 'debounce_handle_search',
         FAST_SEARCH_TREE_CREATION: 'fast_search_tree_creation',
         SHOW_HOVER_PREVIEW_DELAY: 270,
-        SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 200,
+        SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',

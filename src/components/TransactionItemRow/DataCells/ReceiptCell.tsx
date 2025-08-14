@@ -23,10 +23,13 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
     const {hovered, bind} = useHover();
     const isEReceipt = transactionItem.hasEReceipt && !hasReceiptSource(transactionItem);
     let source = transactionItem?.receipt?.source ?? '';
+    let previewSource = transactionItem?.receipt?.source ?? '';
+
     if (source) {
         const filename = getFileName(source);
         const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
         source = tryResolveUrlFromApiRoot(receiptURIs.thumbnail ?? receiptURIs.image ?? '');
+        previewSource = tryResolveUrlFromApiRoot(receiptURIs.image ?? receiptURIs.thumbnail ?? '');
     }
 
     return (
@@ -45,7 +48,7 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
                 source={source}
                 isEReceipt={isEReceipt}
                 transactionID={transactionItem.transactionID}
-                shouldUseThumbnailImage={!transactionItem?.receipt?.source}
+                shouldUseThumbnailImage
                 isAuthTokenRequired
                 fallbackIcon={Receipt}
                 fallbackIconSize={20}
@@ -55,9 +58,10 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
                 loadingIconSize="small"
                 loadingIndicatorStyles={styles.bgTransparent}
                 transactionItem={transactionItem}
+                shouldUseInitialObjectPosition
             />
             <ReceiptPreview
-                source={source}
+                source={previewSource}
                 hovered={hovered}
                 isEReceipt={!!isEReceipt}
                 transactionItem={transactionItem}
