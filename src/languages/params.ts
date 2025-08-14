@@ -620,6 +620,7 @@ type AssignedCardParams = {
 
 type FeatureNameParams = {
     featureName: string;
+    moreFeaturesLink: string;
 };
 
 type AutoPayApprovedReportsLimitErrorParams = {
@@ -849,6 +850,10 @@ type MergeFailureUncreatedAccountDescriptionParams = {
 
 type MergeFailureDescriptionGenericParams = {
     email: string;
+};
+
+type DomainPermissionInfoRestrictionParams = {
+    domain: string;
 };
 
 type SubmittedWithMemoParams = {
@@ -1145,5 +1150,6 @@ export type {
     MergeSuccessDescriptionParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
+    DomainPermissionInfoRestrictionParams,
     SubmittedWithMemoParams,
 };
