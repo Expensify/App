@@ -211,6 +211,7 @@ import type {
     StripePaidParams,
     SubmitsToParams,
     SubmittedToVacationDelegateParams,
+    SubmittedWithMemoParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -314,7 +315,7 @@ const translations = {
         no: 'No',
         ok: "D'accord",
         notNow: 'Pas maintenant',
-        learnMore: 'En savoir plus.',
+        learnMore: 'En savoir plus',
         buttonConfirm: 'Compris',
         name: 'Nom',
         attachment: 'Pièce jointe',
@@ -483,6 +484,7 @@ const translations = {
         message: 'Message',
         leaveThread: 'Quitter le fil de discussion',
         you: 'Vous',
+        me: 'moi',
         youAfterPreposition: 'vous',
         your: 'votre',
         conciergeHelp: "Veuillez contacter Concierge pour obtenir de l'aide.",
@@ -593,6 +595,7 @@ const translations = {
         unread: 'Non lu',
         sent: 'Envoyé',
         links: 'Liens',
+        day: 'journée',
         days: 'jours',
         rename: 'Renommer',
         address: 'Adresse',
@@ -886,6 +889,7 @@ const translations = {
         hereAlternateText: 'Notifier tout le monde dans cette conversation',
     },
     newMessages: 'Nouveaux messages',
+    latestMessages: 'Derniers messages',
     youHaveBeenBanned: 'Remarque : Vous avez été banni de la discussion dans ce canal.',
     reportTypingIndicator: {
         isTyping: 'est en train de taper...',
@@ -1172,7 +1176,7 @@ const translations = {
         sendInvoice: ({amount}: RequestAmountParams) => `Envoyer une facture de ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `Soumettre ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `pour ${comment}` : ''}`,
-        submitted: `soumis`,
+        submitted: ({memo}: SubmittedWithMemoParams) => `soumis${memo ? `, en disant ${memo}` : ''}`,
         automaticallySubmitted: `soumis via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">soumissions différées</a>`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `suivi ${formattedAmount}${comment ? `pour ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `diviser ${amount}`,
@@ -2596,6 +2600,9 @@ const translations = {
         pageNotFound: 'Oups, cette page est introuvable',
         noAccess: "Ce chat ou cette dépense a peut-être été supprimé ou vous n'y avez pas accès.\n\nPour toute question, veuillez contacter concierge@expensify.com",
         goBackHome: "Retourner à la page d'accueil",
+        commentYouLookingForCannotBeFound: 'Le commentaire que vous recherchez est introuvable. Retournez à la discussion',
+        contactConcierge: 'Pour toute question, veuillez contacter concierge@expensify.com',
+        goToChatInstead: 'Allez plutôt dans la discussion.',
     },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oups... ${isBreakLine ? '\n' : ''}Quelque chose a mal tourné`,
@@ -3395,6 +3402,11 @@ const translations = {
             railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `Votre billet de train pour ${origin} → ${destination} le ${startDate} a été mis à jour.`,
             defaultUpdate: ({type}: TravelTypeParams) => `Votre réservation de ${type} a été mise à jour.`,
         },
+        flightTo: 'Vol pour',
+        trainTo: 'Train pour',
+        carRental: ' de location de voiture',
+        nightIn: 'nuit à',
+        nightsIn: 'nuits à',
     },
     workspace: {
         common: {
@@ -3485,7 +3497,7 @@ const translations = {
                 `Puisque vous vous êtes déjà connecté à ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, vous pouvez choisir de réutiliser une connexion existante ou d'en créer une nouvelle.`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Dernière synchronisation le ${formattedDate}`,
             authenticationError: ({connectionName}: AuthenticationErrorParams) => `Impossible de se connecter à ${connectionName} en raison d'une erreur d'authentification`,
-            learnMore: 'En savoir plus.',
+            learnMore: 'En savoir plus',
             memberAlternateText: 'Les membres peuvent soumettre et approuver des rapports.',
             adminAlternateText: "Les administrateurs ont un accès complet pour modifier tous les rapports et les paramètres de l'espace de travail.",
             auditorAlternateText: 'Les auditeurs peuvent voir et commenter les rapports.',
@@ -3516,6 +3528,11 @@ const translations = {
             viewTransactions: 'Voir les transactions',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Les dépenses de ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Les transactions Expensify Card seront automatiquement exportées vers un « Expensify Card Liability Account » créé avec <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">notre intégration</a>.</muted-text-label>`,
+        },
+        receiptPartners: {
+            uber: {
+                subtitle: 'Automatisez les dépenses de déplacement et de livraison de repas dans toute votre organisation.',
+            },
         },
         perDiem: {
             subtitle: 'Définissez des taux de per diem pour contrôler les dépenses quotidiennes des employés.',
@@ -4674,10 +4691,9 @@ const translations = {
         },
         reports: {
             reportsCustomTitleExamples: 'Exemples :',
-            customReportNamesSubtitle: 'Personnalisez les titres des rapports en utilisant notre',
+            customReportNamesSubtitle: `<muted-text>Personnalisez les titres des rapports à l'aide de nos <a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">formules complètes</a>.</muted-text>`,
             customNameTitle: 'Titre de rapport par défaut',
-            customNameDescription: 'Choisissez un nom personnalisé pour les rapports de dépenses en utilisant notre',
-            customNameDescriptionLink: 'formules étendues',
+            customNameDescription: `Choisissez un nom personnalisé pour vos notes de frais à l'aide de nos <a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">formules complètes</a>.`,
             customNameInputLabel: 'Nom',
             customNameEmailPhoneExample: 'E-mail ou téléphone du membre : {report:submit:from}',
             customNameStartDateExample: 'Date de début du rapport : {report:startdate}',
@@ -5361,9 +5377,7 @@ const translations = {
             successTitle: 'Youpi ! Tout est prêt.',
             successDescription: 'Vous êtes maintenant le propriétaire de cet espace de travail.',
             errorTitle: 'Oups ! Pas si vite...',
-            errorDescriptionPartOne: 'Un problème est survenu lors du transfert de la propriété de cet espace de travail. Réessayez, ou',
-            errorDescriptionPartTwo: 'contactez Concierge',
-            errorDescriptionPartThree: "pour obtenir de l'aide.",
+            errorDescription: `<muted-text><centered-text>Un problème est survenu lors du transfert de propriété de cet espace de travail. Veuillez réessayer ou <concierge-link>contacter le Concierge</concierge-link> pour obtenir de l'aide.</centered-text></muted-text>`,
         },
         exportAgainModal: {
             title: 'Attention !',
@@ -5543,6 +5557,17 @@ const translations = {
                     one: '1 jour',
                     other: (count: number) => `${count} jours`,
                 }),
+                cashExpenseDefault: 'Dépense en espèces par défaut',
+                cashExpenseDefaultDescription:
+                    'Choisissez comment les dépenses en espèces doivent être créées. Une dépense est considérée comme en espèces si elle n’est pas une transaction par carte d’entreprise importée. Cela inclut les dépenses créées manuellement, les reçus, les indemnités journalières, les frais kilométriques et les frais de temps.',
+                reimbursableDefault: 'Remboursable',
+                reimbursableDefaultDescription: 'Les dépenses sont généralement remboursées aux employés',
+                nonReimbursableDefault: 'Non remboursable',
+                nonReimbursableDefaultDescription: 'Les dépenses sont parfois remboursées aux employés',
+                alwaysReimbursable: 'Toujours remboursable',
+                alwaysReimbursableDescription: 'Les dépenses sont toujours remboursées aux employés',
+                alwaysNonReimbursable: 'Jamais remboursable',
+                alwaysNonReimbursableDescription: 'Les dépenses ne sont jamais remboursées aux employés',
                 billableDefault: 'Par défaut facturable',
                 billableDefaultDescription:
                     'Choisissez si les dépenses en espèces et par carte de crédit doivent être facturables par défaut. Les dépenses facturables sont activées ou désactivées dans',
@@ -5833,6 +5858,8 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `mis à jour "Refacturer les dépenses aux clients" à "${newValue}" (précédemment "${oldValue}")`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `mis à jour "Dépense en espèces par défaut" en "${newValue}" (anciennement "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `"Appliquer les titres de rapport par défaut" ${value ? 'sur' : 'désactivé'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `a mis à jour le nom de cet espace de travail en "${newName}" (précédemment "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -6050,6 +6077,10 @@ const translations = {
                 cards: 'Carte',
             },
             feed: 'Flux',
+            withdrawalType: {
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Remboursement',
+            },
         },
         groupBy: 'Groupe par',
         moneyRequestReport: {
@@ -6059,6 +6090,7 @@ const translations = {
         noCategory: 'Aucune catégorie',
         noTag: 'Aucun tag',
         expenseType: 'Type de dépense',
+        withdrawalType: 'Type de retrait',
         recentSearches: 'Recherches récentes',
         recentChats: 'Discussions récentes',
         searchIn: 'Rechercher dans',
@@ -6488,7 +6520,7 @@ const translations = {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Montant au-delà de la limite de ${formattedLimit}/personne`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Montant dépassant la limite quotidienne de ${formattedLimit}/personne pour la catégorie`,
         receiptNotSmartScanned:
-            'Reçu et détails de la dépense ajoutés manuellement. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">En savoir plus.</a>',
+            'Reçu et détails de la dépense ajoutés manuellement. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">En savoir plus</a>.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Reçu requis';
             if (formattedLimit ?? category) {

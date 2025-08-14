@@ -211,6 +211,7 @@ import type {
     StripePaidParams,
     SubmitsToParams,
     SubmittedToVacationDelegateParams,
+    SubmittedWithMemoParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -314,7 +315,7 @@ const translations = {
         no: 'いいえ',
         ok: 'OK',
         notNow: '今は無理',
-        learnMore: '詳しくはこちら。',
+        learnMore: '詳しくはこちら',
         buttonConfirm: '了解しました。',
         name: '名前',
         attachment: '添付ファイル',
@@ -483,6 +484,7 @@ const translations = {
         message: 'メッセージ',
         leaveThread: 'スレッドを退出',
         you: 'あなた',
+        me: '自分',
         youAfterPreposition: 'あなた',
         your: 'あなたの',
         conciergeHelp: 'ヘルプが必要な場合は、Conciergeに連絡してください。',
@@ -593,6 +595,7 @@ const translations = {
         unread: '未読',
         sent: '送信済み',
         links: 'リンク',
+        day: '日',
         days: '日',
         rename: '名前を変更',
         address: '住所',
@@ -883,6 +886,7 @@ const translations = {
         hereAlternateText: 'この会話の全員に通知する',
     },
     newMessages: '新しいメッセージ',
+    latestMessages: '最新のメッセージ',
     youHaveBeenBanned: '注意: このチャンネルでのチャットは禁止されています。',
     reportTypingIndicator: {
         isTyping: '入力中...',
@@ -1168,7 +1172,7 @@ const translations = {
         sendInvoice: ({amount}: RequestAmountParams) => `${amount} 請求書を送信`,
         submitAmount: ({amount}: RequestAmountParams) => `${amount}を提出`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `${comment} のために` : ''}`,
-        submitted: `提出済み`,
+        submitted: ({memo}: SubmittedWithMemoParams) => `提出済み${memo ? `、次のように言って ${memo}` : ''}`,
         automaticallySubmitted: `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">送信の遅延</a>を通じて送信されました`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `tracking ${formattedAmount}${comment ? `${comment} のために` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `${amount} を分割`,
@@ -2615,6 +2619,9 @@ const translations = {
         pageNotFound: 'おっと、このページは見つかりません',
         noAccess: 'このチャットまたは経費は削除されたか、アクセス権がありません。\n\nご質問がある場合は、concierge@expensify.com にお問い合わせください。',
         goBackHome: 'ホームページに戻る',
+        commentYouLookingForCannotBeFound: 'お探しのコメントが見つかりません。チャットに戻ってください',
+        contactConcierge: 'ご質問がある場合は、concierge@expensify.com にお問い合わせください。',
+        goToChatInstead: '代わりにチャットに移動してください。',
     },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `おっと... ${isBreakLine ? '\n' : ''}何かがうまくいきませんでした。`,
@@ -3400,6 +3407,11 @@ const translations = {
             railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `${origin} → ${destination} の ${startDate} の鉄道チケットが更新されました。`,
             defaultUpdate: ({type}: TravelTypeParams) => `あなたの${type}予約が更新されました。`,
         },
+        flightTo: 'フライト',
+        trainTo: '電車',
+        carRental: '間のレンタカー',
+        nightIn: '泊',
+        nightsIn: '泊',
     },
     workspace: {
         common: {
@@ -3490,7 +3502,7 @@ const translations = {
                 `以前に${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}に接続したことがあるので、既存の接続を再利用するか、新しい接続を作成することができます。`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - 最終同期日 ${formattedDate}`,
             authenticationError: ({connectionName}: AuthenticationErrorParams) => `認証エラーのため、${connectionName} に接続できません`,
-            learnMore: '詳しくはこちら。',
+            learnMore: '詳しくはこちら',
             memberAlternateText: 'メンバーはレポートを提出および承認できます。',
             adminAlternateText: '管理者は、すべてのレポートとワークスペース設定に対して完全な編集アクセス権を持っています。',
             auditorAlternateText: '監査人はレポートを閲覧し、コメントを残すことができます。',
@@ -3521,6 +3533,11 @@ const translations = {
             viewTransactions: '取引を表示',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}の経費`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Cardの取引は、<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">弊社の統合</a>で作成された 「Expensify Card Liability Account 」に自動的にエクスポートされます。</muted-text-label>`,
+        },
+        receiptPartners: {
+            uber: {
+                subtitle: '組織全体で出張費や食事の配達費を自動化します。',
+            },
         },
         perDiem: {
             subtitle: '日当料金を設定して、従業員の1日の支出を管理します。',
@@ -4652,10 +4669,9 @@ const translations = {
         },
         reports: {
             reportsCustomTitleExamples: '例:',
-            customReportNamesSubtitle: 'カスタマイズレポートのタイトルを使用して',
+            customReportNamesSubtitle: `<muted-text>当社の<a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">豊富な数式</a>を使用して、レポートのタイトルをカスタマイズできます。</muted-text>`,
             customNameTitle: 'デフォルトのレポートタイトル',
-            customNameDescription: 'カスタム名を選択して、経費レポートを作成するには、私たちの',
-            customNameDescriptionLink: '広範な数式',
+            customNameDescription: `当社の<a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">豊富な数式</a>を使用して、経費報告書のカスタム名を選択してください。`,
             customNameInputLabel: '名前',
             customNameEmailPhoneExample: 'メンバーのメールまたは電話番号: {report:submit:from}',
             customNameStartDateExample: 'レポート開始日: {report:startdate}',
@@ -5331,9 +5347,7 @@ const translations = {
             successTitle: 'やったー！準備完了です。',
             successDescription: 'あなたはこのワークスペースのオーナーになりました。',
             errorTitle: 'おっと！ちょっと待って...',
-            errorDescriptionPartOne: 'このワークスペースの所有権の移行に問題が発生しました。もう一度お試しいただくか、',
-            errorDescriptionPartTwo: 'Conciergeに連絡する',
-            errorDescriptionPartThree: 'for help.',
+            errorDescription: `<muted-text><centered-text>このワークスペースの所有権の移転に問題が発生しました。もう一度お試しいただくか、<concierge-link>Concierge までお問い合わせ</concierge-link>ください。</centered-text></muted-text>`,
         },
         exportAgainModal: {
             title: '注意！',
@@ -5512,6 +5526,17 @@ const translations = {
                     one: '1日',
                     other: (count: number) => `${count}日間`,
                 }),
+                cashExpenseDefault: '現金経費のデフォルト',
+                cashExpenseDefaultDescription:
+                    '現金経費をどのように作成するかを選択します。インポートされた会社カード取引でない場合、経費は現金経費とみなされます。これには手動で作成された経費、領収書、日当、距離、時間経費が含まれます。',
+                reimbursableDefault: '精算可能',
+                reimbursableDefaultDescription: '経費は通常、従業員に返金されます',
+                nonReimbursableDefault: '精算不可',
+                nonReimbursableDefaultDescription: '経費は時々従業員に返金されます',
+                alwaysReimbursable: '常に精算可能',
+                alwaysReimbursableDescription: '経費は常に従業員に返金されます',
+                alwaysNonReimbursable: '常に精算不可',
+                alwaysNonReimbursableDescription: '経費は従業員に返金されません',
                 billableDefault: '請求可能なデフォルト',
                 billableDefaultDescription: '現金およびクレジットカードの経費をデフォルトで請求可能にするかどうかを選択します。請求可能な経費は、次の場所で有効または無効にします。',
                 billable: 'ビラブル',
@@ -5796,6 +5821,7 @@ const translations = {
             return `月次報告書の提出日を「${newValue}」（以前は「${oldValue}」）に更新しました。`;
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `"クライアントへの経費再請求"を"${newValue}"に更新しました（以前は"${oldValue}"）`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `「現金経費のデフォルト」を"${newValue}"に更新しました (以前は"${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `"デフォルトのレポートタイトルを強制する" ${value ? 'on' : 'オフ'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `このワークスペースの名前を「${newName}」（以前は「${oldName}」）に更新しました。`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -6010,6 +6036,10 @@ const translations = {
                 cards: 'カード',
             },
             feed: 'フィード',
+            withdrawalType: {
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '払い戻し',
+            },
         },
         groupBy: 'グループ',
         moneyRequestReport: {
@@ -6019,6 +6049,7 @@ const translations = {
         noCategory: 'カテゴリなし',
         noTag: 'タグなし',
         expenseType: '経費タイプ',
+        withdrawalType: '引き出しの種類',
         recentSearches: '最近の検索',
         recentChats: '最近のチャット',
         searchIn: 'で検索',
@@ -6445,7 +6476,7 @@ const translations = {
         overTripLimit: ({formattedLimit}: ViolationsOverLimitParams) => `${formattedLimit}/回を超える金額`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `${formattedLimit}/人の制限を超えた金額`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `1日あたりのカテゴリ制限${formattedLimit}/人を超える金額`,
-        receiptNotSmartScanned: '領収書と経費の詳細を手動で追加しました。<a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">詳細を学ぶ。</a>',
+        receiptNotSmartScanned: '領収書と経費の詳細を手動で追加しました。<a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">詳細を学ぶ</a>。',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = '領収書が必要です';
             if (formattedLimit ?? category) {

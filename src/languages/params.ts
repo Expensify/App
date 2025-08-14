@@ -853,6 +853,10 @@ type DomainPermissionInfoRestrictionParams = {
     domain: string;
 };
 
+type SubmittedWithMemoParams = {
+    memo?: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     ContactMethodParams,
@@ -1143,4 +1147,5 @@ export type {
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
     DomainPermissionInfoRestrictionParams,
+    SubmittedWithMemoParams,
 };

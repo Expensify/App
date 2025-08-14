@@ -200,6 +200,7 @@ import type {
     StripePaidParams,
     SubmitsToParams,
     SubmittedToVacationDelegateParams,
+    SubmittedWithMemoParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -306,7 +307,7 @@ const translations = {
         no: 'No',
         ok: 'OK',
         notNow: 'Not now',
-        learnMore: 'Learn more.',
+        learnMore: 'Learn more',
         buttonConfirm: 'Got it',
         name: 'Name',
         attachment: 'Attachment',
@@ -475,6 +476,7 @@ const translations = {
         message: 'Message ',
         leaveThread: 'Leave thread',
         you: 'You',
+        me: 'me',
         youAfterPreposition: 'you',
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
@@ -585,6 +587,7 @@ const translations = {
         unread: 'Unread',
         sent: 'Sent',
         links: 'Links',
+        day: 'day',
         days: 'days',
         rename: 'Rename',
         address: 'Address',
@@ -873,6 +876,7 @@ const translations = {
         hereAlternateText: 'Notify everyone in this conversation',
     },
     newMessages: 'New messages',
+    latestMessages: 'Latest messages',
     youHaveBeenBanned: "Note: You've been banned from chatting in this channel.",
     reportTypingIndicator: {
         isTyping: 'is typing...',
@@ -1155,7 +1159,7 @@ const translations = {
         sendInvoice: ({amount}: RequestAmountParams) => `Send ${amount} invoice`,
         submitAmount: ({amount}: RequestAmountParams) => `Submit ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? ` for ${comment}` : ''}`,
-        submitted: `submitted`,
+        submitted: ({memo}: SubmittedWithMemoParams) => `submitted${memo ? `, saying ${memo}` : ''}`,
         automaticallySubmitted: `submitted via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">delay submissions</a>`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
@@ -2594,6 +2598,9 @@ const translations = {
         pageNotFound: 'Oops, this page cannot be found',
         noAccess: 'This chat or expense may have been deleted or you do not have access to it.\n\nFor any questions please contact concierge@expensify.com',
         goBackHome: 'Go back to home page',
+        commentYouLookingForCannotBeFound: 'The comment you are looking for cannot be found.',
+        goToChatInstead: 'Go to the chat instead.',
+        contactConcierge: 'For any questions please contact concierge@expensify.com',
     },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oops... ${isBreakLine ? '\n' : ''}Something went wrong`,
@@ -3384,6 +3391,11 @@ const translations = {
             railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been updated.`,
             defaultUpdate: ({type}: TravelTypeParams) => `Your ${type} reservation was updated.`,
         },
+        flightTo: 'Flight to',
+        trainTo: 'Train to',
+        carRental: ' car rental',
+        nightIn: 'night in',
+        nightsIn: 'nights in',
     },
     workspace: {
         common: {
@@ -3474,7 +3486,7 @@ const translations = {
                 `Since you've connected to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} before, you can choose to reuse an existing connection or create a new one.`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Last synced ${formattedDate}`,
             authenticationError: ({connectionName}: AuthenticationErrorParams) => `Can’t connect to ${connectionName} due to an authentication error`,
-            learnMore: 'Learn more.',
+            learnMore: 'Learn more',
             memberAlternateText: 'Members can submit and approve reports.',
             adminAlternateText: 'Admins have full edit access to all reports and workspace settings.',
             auditorAlternateText: 'Auditors can view and comment on reports.',
@@ -3505,6 +3517,11 @@ const translations = {
             viewTransactions: 'View transactions',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}'s expenses`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card transactions will automatically export to an "Expensify Card Liability Account" created with <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">our integration</a>.</muted-text-label>`,
+        },
+        receiptPartners: {
+            uber: {
+                subtitle: 'Automate travel and meal delivery expenses across your organization.',
+            },
         },
         perDiem: {
             subtitle: 'Set per diem rates to control daily employee spend. ',
@@ -4641,10 +4658,9 @@ const translations = {
         },
         reports: {
             reportsCustomTitleExamples: 'Examples:',
-            customReportNamesSubtitle: 'Customize report titles using our ',
+            customReportNamesSubtitle: `<muted-text>Customize report titles using our <a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">extensive formulas</a>.</muted-text>`,
             customNameTitle: 'Default report title',
-            customNameDescription: 'Choose a custom name for expense reports using our ',
-            customNameDescriptionLink: 'extensive formulas',
+            customNameDescription: `Choose a custom name for expense reports using our <a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">extensive formulas</a>.`,
             customNameInputLabel: 'Name',
             customNameEmailPhoneExample: 'Member’s email or phone: {report:submit:from}',
             customNameStartDateExample: 'Report start date: {report:startdate}',
@@ -5326,9 +5342,7 @@ const translations = {
             successTitle: 'Woohoo! All set.',
             successDescription: "You're now the owner of this workspace.",
             errorTitle: 'Oops! Not so fast...',
-            errorDescriptionPartOne: 'There was a problem transferring ownership of this workspace. Try again, or',
-            errorDescriptionPartTwo: 'reach out to Concierge',
-            errorDescriptionPartThree: 'for help.',
+            errorDescription: `<muted-text><centered-text>There was a problem transferring ownership of this workspace. Try again, or <concierge-link>reach out to Concierge</concierge-link> for help.</centered-text></muted-text>`,
         },
         exportAgainModal: {
             title: 'Careful!',
@@ -5507,6 +5521,17 @@ const translations = {
                     one: '1 day',
                     other: (count: number) => `${count} days`,
                 }),
+                cashExpenseDefault: 'Cash expense default',
+                cashExpenseDefaultDescription:
+                    'Choose how cash expenses should be created. An expense is considered a cash expense if it is not an imported company card transaction. This includes manually created expenses, receipts, per diem, distance, and time expenses.',
+                reimbursableDefault: 'Reimbursable',
+                reimbursableDefaultDescription: 'Expenses are most often paid back to employees',
+                nonReimbursableDefault: 'Non-reimbursable',
+                nonReimbursableDefaultDescription: 'Expenses are occasionally paid back to employees',
+                alwaysReimbursable: 'Always reimbursable',
+                alwaysReimbursableDescription: 'Expenses are always paid back to employees',
+                alwaysNonReimbursable: 'Always non-reimbursable',
+                alwaysNonReimbursableDescription: 'Expenses are never paid back to employees',
                 billableDefault: 'Billable default',
                 billableDefaultDescription: 'Choose whether cash and credit card expenses should be billable by default. Billable expenses are enabled or disabled in',
                 billable: 'Billable',
@@ -5796,6 +5821,7 @@ const translations = {
             return `updated the monthly report submission date to "${newValue}" (previously "${oldValue}")`;
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `updated "Re-bill expenses to clients" to "${newValue}" (previously "${oldValue}")`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `updated "Cash expense default" to "${newValue}" (previously "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `turned "Enforce default report titles" ${value ? 'on' : 'off'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `updated the name of this workspace to "${newName}" (previously "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -6013,6 +6039,10 @@ const translations = {
                 cards: 'Card', // s77rt use singular key name
             },
             feed: 'Feed',
+            withdrawalType: {
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reimbursement',
+            },
         },
         groupBy: 'Group by',
         moneyRequestReport: {
@@ -6022,6 +6052,7 @@ const translations = {
         noCategory: 'No category',
         noTag: 'No tag',
         expenseType: 'Expense type',
+        withdrawalType: 'Withdrawal type',
         recentSearches: 'Recent searches',
         recentChats: 'Recent chats',
         searchIn: 'Search in',
@@ -6446,7 +6477,7 @@ const translations = {
         overTripLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Amount over ${formattedLimit}/trip limit`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Amount over ${formattedLimit}/person limit`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Amount over daily ${formattedLimit}/person category limit`,
-        receiptNotSmartScanned: 'Receipt and expense details added manually. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Learn more.</a>',
+        receiptNotSmartScanned: 'Receipt and expense details added manually. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Learn more</a>.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Receipt required';
             if (formattedLimit ?? category) {

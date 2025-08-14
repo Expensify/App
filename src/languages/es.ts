@@ -198,6 +198,7 @@ import type {
     StripePaidParams,
     SubmitsToParams,
     SubmittedToVacationDelegateParams,
+    SubmittedWithMemoParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -296,7 +297,7 @@ const translations = {
         no: 'No',
         ok: 'OK',
         notNow: 'Ahora no',
-        learnMore: 'Más información.',
+        learnMore: 'Más información',
         buttonConfirm: 'Ok, entendido',
         name: 'Nombre',
         attachment: 'Archivo adjunto',
@@ -466,6 +467,7 @@ const translations = {
         message: 'Chatear con ',
         leaveThread: 'Salir del hilo',
         you: 'Tú',
+        me: 'yo',
         youAfterPreposition: 'ti',
         your: 'tu',
         conciergeHelp: 'Por favor, contacta con Concierge para obtener ayuda.',
@@ -577,6 +579,7 @@ const translations = {
         unread: 'No leído',
         sent: 'Enviado',
         links: 'Enlaces',
+        day: 'día',
         days: 'días',
         address: 'Dirección',
         hourAbbreviation: 'h',
@@ -865,6 +868,7 @@ const translations = {
         hereAlternateText: 'Notificar a todos en esta conversación',
     },
     newMessages: 'Mensajes nuevos',
+    latestMessages: 'Últimos mensajes',
     youHaveBeenBanned: 'Nota: Se te ha prohibido comunicarte en este canal',
     reportTypingIndicator: {
         isTyping: 'está escribiendo...',
@@ -1149,7 +1153,7 @@ const translations = {
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar factura de ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `Solicitar ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? ` para ${comment}` : ''}`,
-        submitted: `enviado`,
+        submitted: ({memo}: SubmittedWithMemoParams) => `enviado${memo ? `, dijo ${memo}` : ''}`,
         automaticallySubmitted: `envió mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
@@ -2563,6 +2567,9 @@ const translations = {
         pageNotFound: 'Ups, no deberías estar aquí',
         noAccess: 'Es posible que este chat o gasto haya sido eliminado o que no tengas acceso a él. \n\nPara cualquier consulta, contáctanos a través de concierge@expensify.com',
         goBackHome: 'Volver a la página principal',
+        commentYouLookingForCannotBeFound: 'No se puede encontrar el comentario que estás buscando. Vuelve al chat',
+        contactConcierge: 'Para cualquier consulta, contáctanos a través de concierge@expensify.com',
+        goToChatInstead: 'Ve al chat en su lugar.',
     },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Ups... ${isBreakLine ? '\n' : ''}Algo no ha ido bien`,
@@ -3372,6 +3379,11 @@ const translations = {
             railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `Tu billete de tren de ${origin} a ${destination} para el ${startDate} ha sido actualizado.`,
             defaultUpdate: ({type}: TravelTypeParams) => `Tu reserva de ${type} fue actualizada.`,
         },
+        flightTo: 'Vuelo a',
+        trainTo: 'Tren a',
+        carRental: ' de alquiler de coche',
+        nightIn: 'noche en',
+        nightsIn: 'noches en',
     },
     workspace: {
         common: {
@@ -3462,7 +3474,7 @@ const translations = {
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Última sincronización ${formattedDate}`,
             topLevel: 'Nivel superior',
             authenticationError: ({connectionName}: AuthenticationErrorParams) => `No se puede conectar a ${connectionName} debido a un error de autenticación`,
-            learnMore: 'Más información.',
+            learnMore: 'Más información',
             memberAlternateText: 'Los miembros pueden presentar y aprobar informes.',
             adminAlternateText: 'Los administradores tienen acceso total para editar todos los informes y la configuración del área de trabajo.',
             auditorAlternateText: 'Los auditores pueden ver y comentar los informes.',
@@ -3493,6 +3505,11 @@ const translations = {
             viewTransactions: 'Ver transacciones',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}'s gastos`,
             deepDiveExpensifyCard: `<muted-text-label>Las transacciones de la Tarjeta Expensify se exportan automáticamente a una "Cuenta de Responsabilidad de la Tarjeta Expensify" creada con <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nuestra integración</a>.</muted-text-label>`,
+        },
+        receiptPartners: {
+            uber: {
+                subtitle: 'Automatice los gastos de viajes y entrega de comidas en toda su organización.',
+            },
         },
         perDiem: {
             subtitle: 'Establece las tasas per diem para controlar los gastos diarios de los empleados. ',
@@ -4651,10 +4668,9 @@ const translations = {
         },
         reports: {
             reportsCustomTitleExamples: 'Ejemplos:',
-            customReportNamesSubtitle: 'Personaliza los títulos de los informes usando nuestras amplias fórmulas.',
+            customReportNamesSubtitle: `<muted-text>Personaliza los títulos de los informes usando nuestras <a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">amplias fórmulas</a>.</muted-text>`,
             customNameTitle: 'Título de informe predeterminado',
-            customNameDescription: 'Elige un nombre personalizado para los informes de gastos usando nuestras ',
-            customNameDescriptionLink: 'fórmulas variadas',
+            customNameDescription: `Elige un nombre personalizado para los informes de gastos usando nuestras <a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">fórmulas variadas</a>.`,
             customNameInputLabel: 'Nombre',
             customNameEmailPhoneExample: 'Correo electrónico o teléfono del miembro: {report:submit:from}',
             customNameStartDateExample: 'Fecha de inicio del informe: {report:startdate}',
@@ -5338,9 +5354,7 @@ const translations = {
             successTitle: '¡Guau! Todo listo.',
             successDescription: 'Ahora eres el propietario de este espacio de trabajo.',
             errorTitle: '¡Ups! No tan rapido...',
-            errorDescriptionPartOne: 'Hubo un problema al transferir la propiedad de este espacio de trabajo. Inténtalo de nuevo, o',
-            errorDescriptionPartTwo: 'contacta con Concierge',
-            errorDescriptionPartThree: 'por ayuda.',
+            errorDescription: `<muted-text><centered-text>Hubo un problema al transferir la propiedad de este espacio de trabajo. Inténtalo de nuevo, o <concierge-link>contacta con Concierge</concierge-link> por ayuda.</centered-text></muted-text>`,
         },
 
         exportAgainModal: {
@@ -5541,6 +5555,17 @@ const translations = {
                     one: '1 día',
                     other: (count: number) => `${count} días`,
                 }),
+                cashExpenseDefault: 'Valor predeterminado para gastos en efectivo',
+                cashExpenseDefaultDescription:
+                    'Elige cómo deben crearse los gastos en efectivo. Un gasto se considera en efectivo si no es una transacción importada desde una tarjeta de empresa. Esto incluye gastos creados manualmente, recibos, viáticos y gastos de distancia y tiempo.',
+                reimbursableDefault: 'Reembolsable',
+                reimbursableDefaultDescription: 'Los gastos suelen ser reembolsados a los empleados',
+                nonReimbursableDefault: 'No reembolsable',
+                nonReimbursableDefaultDescription: 'Los gastos ocasionalmente son reembolsados a los empleados',
+                alwaysReimbursable: 'Siempre reembolsable',
+                alwaysReimbursableDescription: 'Los gastos siempre se reembolsados a los empleados',
+                alwaysNonReimbursable: 'Siempre no reembolsable',
+                alwaysNonReimbursableDescription: 'Los gastos nunca son reembolsados a los empleados',
                 billableDefault: 'Valor predeterminado facturable',
                 billableDefaultDescription: 'Elige si los gastos en efectivo y con tarjeta de crédito deben ser facturables por defecto. Los gastos facturables se activan o desactivan en',
                 billable: 'Facturable',
@@ -5808,6 +5833,8 @@ const translations = {
             `actualizó "Antigüedad máxima de gastos (días)" a "${newValue}" (previamente "${oldValue === 'false' ? CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE : oldValue}")`,
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `actualizó "Volver a facturar gastos a clientes" a "${newValue}" (previamente "${oldValue}")`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `actualizó "Valor predeterminado para gastos en efectivo" a "${newValue}" (previamente "${oldValue}")`,
         updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
             if (!oldValue) {
                 return `establecer la fecha de envío del informe mensual a "${newValue}"`;
@@ -6031,6 +6058,10 @@ const translations = {
                 cards: 'Tarjeta',
             },
             feed: 'Feed',
+            withdrawalType: {
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reembolso',
+            },
         },
         groupBy: 'Agrupar por',
         moneyRequestReport: {
@@ -6040,6 +6071,7 @@ const translations = {
         noCategory: 'Sin categoría',
         noTag: 'Sin etiqueta',
         expenseType: 'Tipo de gasto',
+        withdrawalType: 'Tipo de retiro',
         recentSearches: 'Búsquedas recientes',
         recentChats: 'Chats recientes',
         searchIn: 'Buscar en',
@@ -6930,7 +6962,7 @@ const translations = {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Importe supera el límite diario de la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         receiptNotSmartScanned:
-            'Detalles del recibo y del gasto añadidos manualmente. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Aprende más.</a>',
+            'Detalles del recibo y del gasto añadidos manualmente. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Aprende más</a>.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Recibo obligatorio';
             if (formattedLimit ?? category) {
