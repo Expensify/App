@@ -4676,10 +4676,9 @@ const translations = {
         },
         reports: {
             reportsCustomTitleExamples: 'Beispiele:',
-            customReportNamesSubtitle: 'Passen Sie Berichtstitel mit unserem an',
+            customReportNamesSubtitle: `<muted-text>Passen Sie Berichtstitel mithilfe unserer <a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">umfangreichen Formeln an</a>.</muted-text>`,
             customNameTitle: 'Standardberichtstitel',
-            customNameDescription: 'Wählen Sie einen benutzerdefinierten Namen für Spesenabrechnungen mit unserem',
-            customNameDescriptionLink: 'umfassende Formeln',
+            customNameDescription: `Wählen Sie mithilfe unserer <a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">umfangreichen Formeln</a> einen benutzerdefinierten Namen für Spesenabrechnungen.`,
             customNameInputLabel: 'Name',
             customNameEmailPhoneExample: 'E-Mail oder Telefon des Mitglieds: {report:submit:from}',
             customNameStartDateExample: 'Berichtsstartdatum: {report:startdate}',
@@ -5338,8 +5337,7 @@ const translations = {
             addPaymentCardPciCompliant: 'PCI-DSS-konform',
             addPaymentCardBankLevelEncrypt: 'Verschlüsselung auf Bankniveau',
             addPaymentCardRedundant: 'Redundante Infrastruktur',
-            addPaymentCardLearnMore: 'Erfahren Sie mehr über unsere',
-            addPaymentCardSecurity: 'Sicherheit',
+            addPaymentCardLearnMore: `<muted-text>Erfahren Sie mehr über unsere <a href="${CONST.PERSONAL_DATA_PROTECTION_INFO_URL}">Sicherheit</a>.</muted-text>`,
             amountOwedTitle: 'Ausstehender Saldo',
             amountOwedButtonText: 'OK',
             amountOwedText:
@@ -5366,9 +5364,7 @@ const translations = {
             successTitle: 'Woohoo! Alles bereit.',
             successDescription: 'Sie sind jetzt der Besitzer dieses Arbeitsbereichs.',
             errorTitle: 'Hoppla! Nicht so schnell...',
-            errorDescriptionPartOne: 'Es gab ein Problem beim Übertragen der Inhaberschaft dieses Arbeitsbereichs. Versuchen Sie es erneut, oder',
-            errorDescriptionPartTwo: 'Wenden Sie sich an Concierge.',
-            errorDescriptionPartThree: 'für Hilfe.',
+            errorDescription: `<muted-text><centered-text>TBei der Übertragung des Eigentums an diesem Arbeitsbereich ist ein Problem aufgetreten. Versuchen Sie es erneut, oder <concierge-link>wenden Sie sich an Concierge</concierge-link>.</centered-text></muted-text>`,
         },
         exportAgainModal: {
             title: 'Vorsicht!',
@@ -5598,9 +5594,10 @@ const translations = {
                 autoPayApprovedReportsLockedSubtitle: 'Gehen Sie zu Weitere Funktionen und aktivieren Sie Workflows, dann fügen Sie Zahlungen hinzu, um diese Funktion freizuschalten.',
                 autoPayReportsUnderTitle: 'Berichte unter Auto-Zahlung',
                 autoPayReportsUnderDescription: 'Vollständig konforme Spesenabrechnungen unter diesem Betrag werden automatisch bezahlt.',
-                unlockFeatureGoToSubtitle: 'Gehe zu',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `und Workflows aktivieren, dann ${featureName} hinzufügen, um diese Funktion freizuschalten.`,
-                enableFeatureSubtitle: ({featureName}: FeatureNameParams) => `und aktivieren Sie ${featureName}, um diese Funktion freizuschalten.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
+                    `Gehen Sie zu [Mehr Funktionen](${moreFeaturesLink}) und aktivieren Sie Workflows. Fügen Sie dann ${featureName} hinzu, um diese Funktion freizuschalten.`,
+                enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
+                    `Gehen Sie zu [Mehr Funktionen](${moreFeaturesLink}) und aktivieren Sie ${featureName}, um diese Funktion freizuschalten.`,
             },
             categoryRules: {
                 title: 'Kategorienregeln',
@@ -6803,9 +6800,7 @@ const translations = {
         },
         compareModal: {
             comparePlans: 'Pläne vergleichen',
-            unlockTheFeatures: 'Schalten Sie die Funktionen frei, die Sie benötigen, mit dem Plan, der für Sie richtig ist.',
-            viewOurPricing: 'Sehen Sie sich unsere Preisseite an',
-            forACompleteFeatureBreakdown: 'für eine vollständige Funktionsübersicht unserer Pläne.',
+            subtitle: `<muted-text>Schalten Sie die Funktionen frei, die Sie benötigen, und wählen Sie den für Sie passenden Tarif. <a href="${CONST.PRICING}">Sehen Sie sich unsere Preisseite</a> oder eine vollständige Aufschlüsselung der Funktionen jedes unserer Tarife an.</muted-text>`,
         },
         details: {
             title: 'Abonnementdetails',
@@ -6882,11 +6877,8 @@ const translations = {
             },
             requestSubmitted: {
                 title: 'Anfrage eingereicht',
-                subtitle: {
-                    part1: 'Vielen Dank, dass Sie uns mitgeteilt haben, dass Sie an der Kündigung Ihres Abonnements interessiert sind. Wir prüfen Ihre Anfrage und werden uns bald über Ihren Chat mit Ihnen in Verbindung setzen.',
-                    link: 'Concierge',
-                    part2: '.',
-                },
+                subtitle:
+                    'Vielen Dank, dass Sie uns mitgeteilt haben, dass Sie Ihr Abonnement kündigen möchten. Wir prüfen Ihre Anfrage und werden uns in Kürze über Ihren Chat mit <concierge-link>Concierge</concierge-link> bei Ihnen melden.',
             },
             acknowledgement: `Indem ich die vorzeitige Kündigung beantrage, erkenne ich an und stimme zu, dass Expensify keine Verpflichtung hat, einem solchen Antrag im Rahmen von Expensify stattzugeben.<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Nutzungsbedingungen</a>oder andere anwendbare Dienstleistungsvereinbarungen zwischen mir und Expensify und dass Expensify das alleinige Ermessen hinsichtlich der Gewährung eines solchen Antrags behält.`,
         },

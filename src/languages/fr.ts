@@ -4692,10 +4692,9 @@ const translations = {
         },
         reports: {
             reportsCustomTitleExamples: 'Exemples :',
-            customReportNamesSubtitle: 'Personnalisez les titres des rapports en utilisant notre',
+            customReportNamesSubtitle: `<muted-text>Personnalisez les titres des rapports à l'aide de nos <a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">formules complètes</a>.</muted-text>`,
             customNameTitle: 'Titre de rapport par défaut',
-            customNameDescription: 'Choisissez un nom personnalisé pour les rapports de dépenses en utilisant notre',
-            customNameDescriptionLink: 'formules étendues',
+            customNameDescription: `Choisissez un nom personnalisé pour vos notes de frais à l'aide de nos <a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">formules complètes</a>.`,
             customNameInputLabel: 'Nom',
             customNameEmailPhoneExample: 'E-mail ou téléphone du membre : {report:submit:from}',
             customNameStartDateExample: 'Date de début du rapport : {report:startdate}',
@@ -5352,8 +5351,7 @@ const translations = {
             addPaymentCardPciCompliant: 'Conforme à la norme PCI-DSS',
             addPaymentCardBankLevelEncrypt: 'Chiffrement de niveau bancaire',
             addPaymentCardRedundant: 'Infrastructure redondante',
-            addPaymentCardLearnMore: 'En savoir plus sur notre',
-            addPaymentCardSecurity: 'sécurité',
+            addPaymentCardLearnMore: `<muted-text>LEn savoir plus sur notre <a href="${CONST.PERSONAL_DATA_PROTECTION_INFO_URL}">sécurité</a>.</muted-text>`,
             amountOwedTitle: 'Solde impayé',
             amountOwedButtonText: "D'accord",
             amountOwedText: "Ce compte a un solde impayé d'un mois précédent.\n\nVoulez-vous régler le solde et prendre en charge la facturation de cet espace de travail ?",
@@ -5379,9 +5377,7 @@ const translations = {
             successTitle: 'Youpi ! Tout est prêt.',
             successDescription: 'Vous êtes maintenant le propriétaire de cet espace de travail.',
             errorTitle: 'Oups ! Pas si vite...',
-            errorDescriptionPartOne: 'Un problème est survenu lors du transfert de la propriété de cet espace de travail. Réessayez, ou',
-            errorDescriptionPartTwo: 'contactez Concierge',
-            errorDescriptionPartThree: "pour obtenir de l'aide.",
+            errorDescription: `<muted-text><centered-text>Un problème est survenu lors du transfert de propriété de cet espace de travail. Veuillez réessayer ou <concierge-link>contacter le Concierge</concierge-link> pour obtenir de l'aide.</centered-text></muted-text>`,
         },
         exportAgainModal: {
             title: 'Attention !',
@@ -5610,10 +5606,10 @@ const translations = {
                 autoPayApprovedReportsLockedSubtitle: 'Allez dans plus de fonctionnalités et activez les flux de travail, puis ajoutez des paiements pour débloquer cette fonctionnalité.',
                 autoPayReportsUnderTitle: 'Rapports de paiement automatique sous',
                 autoPayReportsUnderDescription: 'Les rapports de dépenses entièrement conformes en dessous de ce montant seront automatiquement payés.',
-                unlockFeatureGoToSubtitle: 'Aller à',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) =>
-                    `et activez les flux de travail, puis ajoutez ${featureName} pour débloquer cette fonctionnalité.`,
-                enableFeatureSubtitle: ({featureName}: FeatureNameParams) => `et activez ${featureName} pour débloquer cette fonctionnalité.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
+                    `Accédez à [plus de fonctionnalités](${moreFeaturesLink}) et activez les workflows, puis ajoutez ${featureName} pour débloquer cette fonctionnalité.`,
+                enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
+                    `Accédez à [plus de fonctionnalités](${moreFeaturesLink}) et activez ${featureName} pour débloquer cette fonctionnalité.`,
             },
             categoryRules: {
                 title: 'Règles de catégorie',
@@ -6815,9 +6811,7 @@ const translations = {
         },
         compareModal: {
             comparePlans: 'Comparer les forfaits',
-            unlockTheFeatures: 'Débloquez les fonctionnalités dont vous avez besoin avec le plan qui vous convient.',
-            viewOurPricing: 'Consultez notre page de tarification',
-            forACompleteFeatureBreakdown: 'pour un aperçu complet des fonctionnalités de chacun de nos plans.',
+            subtitle: `<muted-text>Débloquez les fonctionnalités dont vous avez besoin avec le forfait qui vous convient. <a href="${CONST.PRICING}">Consultez notre page de tarifs</a> ou la liste complète des fonctionnalités de chacun de nos forfaits.</muted-text>`,
         },
         details: {
             title: "Détails de l'abonnement",
@@ -6894,11 +6888,8 @@ const translations = {
             },
             requestSubmitted: {
                 title: 'Demande soumise',
-                subtitle: {
-                    part1: "Merci de nous avoir informés de votre intérêt pour l'annulation de votre abonnement. Nous examinons votre demande et vous contacterons bientôt via votre chat avec",
-                    link: 'Concierge',
-                    part2: '.',
-                },
+                subtitle:
+                    'Merci de nous avoir fait part de votre souhait de résilier votre abonnement. Nous examinons actuellement votre demande et vous contacterons prochainement via votre chat avec <concierge-link>Concierge</concierge-link>.',
             },
             acknowledgement: `En demandant une annulation anticipée, je reconnais et accepte qu'Expensify n'a aucune obligation d'accéder à cette demande en vertu d'Expensify.<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Conditions d'utilisation</a>ou tout autre accord de services applicable entre moi et Expensify et qu'Expensify conserve l'entière discrétion quant à l'octroi de toute demande de ce type.`,
         },

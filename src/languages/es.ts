@@ -4669,10 +4669,9 @@ const translations = {
         },
         reports: {
             reportsCustomTitleExamples: 'Ejemplos:',
-            customReportNamesSubtitle: 'Personaliza los títulos de los informes usando nuestras amplias fórmulas.',
+            customReportNamesSubtitle: `<muted-text>Personaliza los títulos de los informes usando nuestras <a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">amplias fórmulas</a>.</muted-text>`,
             customNameTitle: 'Título de informe predeterminado',
-            customNameDescription: 'Elige un nombre personalizado para los informes de gastos usando nuestras ',
-            customNameDescriptionLink: 'fórmulas variadas',
+            customNameDescription: `Elige un nombre personalizado para los informes de gastos usando nuestras <a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">fórmulas variadas</a>.`,
             customNameInputLabel: 'Nombre',
             customNameEmailPhoneExample: 'Correo electrónico o teléfono del miembro: {report:submit:from}',
             customNameStartDateExample: 'Fecha de inicio del informe: {report:startdate}',
@@ -5329,8 +5328,7 @@ const translations = {
             addPaymentCardPciCompliant: 'PCI-DSS obediente',
             addPaymentCardBankLevelEncrypt: 'Cifrado a nivel bancario',
             addPaymentCardRedundant: 'Infraestructura redundante',
-            addPaymentCardLearnMore: 'Conozca más sobre nuestra',
-            addPaymentCardSecurity: 'seguridad',
+            addPaymentCardLearnMore: `<muted-text>Conozca más sobre nuestra <a href="${CONST.PERSONAL_DATA_PROTECTION_INFO_URL}">seguridad</a>.</muted-text>`,
             amountOwedTitle: 'Saldo pendiente',
             amountOwedButtonText: 'OK',
             amountOwedText: 'Esta cuenta tiene un saldo pendiente de un mes anterior.\n\n¿Quiere liquidar el saldo y hacerse cargo de la facturación de este espacio de trabajo?',
@@ -5356,9 +5354,7 @@ const translations = {
             successTitle: '¡Guau! Todo listo.',
             successDescription: 'Ahora eres el propietario de este espacio de trabajo.',
             errorTitle: '¡Ups! No tan rapido...',
-            errorDescriptionPartOne: 'Hubo un problema al transferir la propiedad de este espacio de trabajo. Inténtalo de nuevo, o',
-            errorDescriptionPartTwo: 'contacta con Concierge',
-            errorDescriptionPartThree: 'por ayuda.',
+            errorDescription: `<muted-text><centered-text>Hubo un problema al transferir la propiedad de este espacio de trabajo. Inténtalo de nuevo, o <concierge-link>contacta con Concierge</concierge-link> por ayuda.</centered-text></muted-text>`,
         },
 
         exportAgainModal: {
@@ -5607,9 +5603,10 @@ const translations = {
                 autoPayApprovedReportsLockedSubtitle: 'Ve a más funciones y habilita flujos de trabajo, luego agrega pagos para desbloquear esta función.',
                 autoPayReportsUnderTitle: 'Pagar automáticamente informes por debajo de',
                 autoPayReportsUnderDescription: 'Los informes de gastos totalmente conformes por debajo de esta cantidad se pagarán automáticamente.',
-                unlockFeatureGoToSubtitle: 'Ir a',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `y habilita flujos de trabajo, luego agrega ${featureName} para desbloquear esta función.`,
-                enableFeatureSubtitle: ({featureName}: FeatureNameParams) => `y habilita ${featureName} para desbloquear esta función.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
+                    `Ir a [más características](${moreFeaturesLink}) y habilita flujos de trabajo, luego agrega ${featureName} para desbloquear esta función.`,
+                enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
+                    `Ir a [más características](${moreFeaturesLink}) y habilita ${featureName} para desbloquear esta función.`,
             },
             categoryRules: {
                 title: 'Reglas de categoría',
@@ -7256,9 +7253,7 @@ const translations = {
         },
         compareModal: {
             comparePlans: 'Comparar planes',
-            unlockTheFeatures: 'Desbloquea las funciones que necesitas con el plan adecuado para ti. ',
-            viewOurPricing: 'Consulta nuestra página de precios',
-            forACompleteFeatureBreakdown: ' para ver un desglose completo de las funciones de cada uno de nuestros planes.',
+            subtitle: `<muted-text>Desbloquea las funciones que necesitas con el plan adecuado para ti. <a href="${CONST.PRICING}">Consulta nuestra página de precios</a> para ver un desglose completo de las funciones de cada uno de nuestros planes.</muted-text>`,
         },
         details: {
             title: 'Datos de suscripción',
@@ -7335,11 +7330,8 @@ const translations = {
             },
             requestSubmitted: {
                 title: 'Solicitud enviada',
-                subtitle: {
-                    part1: 'Gracias por hacernos saber que deseas cancelar tu suscripción. Estamos revisando tu solicitud y nos comunicaremos contigo en breve a través de tu chat con ',
-                    link: 'Concierge',
-                    part2: '.',
-                },
+                subtitle:
+                    'Gracias por hacernos saber que deseas cancelar tu suscripción. Estamos revisando tu solicitud y nos comunicaremos contigo en breve a través de tu chat con <concierge-link>Concierge</concierge-link>.',
             },
             acknowledgement: `Al solicitar la cancelación anticipada, reconozco y acepto que Expensify no tiene ninguna obligación de conceder dicha solicitud en virtud de las <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Condiciones de Servicio</a> de Expensify u otro acuerdo de servicios aplicable entre Expensify y yo, y que Expensify se reserva el derecho exclusivo a conceder dicha solicitud.`,
         },

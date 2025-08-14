@@ -4682,10 +4682,9 @@ const translations = {
         },
         reports: {
             reportsCustomTitleExamples: 'Przykłady:',
-            customReportNamesSubtitle: 'Dostosuj tytuły raportów za pomocą naszego',
+            customReportNamesSubtitle: `<muted-text>Dostosuj tytuły raportów, korzystając z naszych <a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">rozbudowanych formuł</a>.</muted-text>`,
             customNameTitle: 'Domyślny tytuł raportu',
-            customNameDescription: 'Wybierz niestandardową nazwę dla raportów wydatków za pomocą naszego',
-            customNameDescriptionLink: 'rozbudowane formuły',
+            customNameDescription: `Wybierz własną nazwę dla raportów wydatków, korzystając z naszych <a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">rozbudowanych formuł</a>.`,
             customNameInputLabel: 'Imię',
             customNameEmailPhoneExample: 'Email lub telefon członka: {report:submit:from}',
             customNameStartDateExample: 'Data rozpoczęcia raportu: {report:startdate}',
@@ -5337,8 +5336,7 @@ const translations = {
             addPaymentCardPciCompliant: 'Zgodny z PCI-DSS',
             addPaymentCardBankLevelEncrypt: 'Szyfrowanie na poziomie bankowym',
             addPaymentCardRedundant: 'Nadmierna infrastruktura',
-            addPaymentCardLearnMore: 'Dowiedz się więcej o naszych',
-            addPaymentCardSecurity: 'bezpieczeństwo',
+            addPaymentCardLearnMore: `<muted-text>Dowiedz się więcej o naszym <a href="${CONST.PERSONAL_DATA_PROTECTION_INFO_URL}">bezpieczeństwie</a>.</muted-text>`,
             amountOwedTitle: 'Należność do zapłaty',
             amountOwedButtonText: 'OK',
             amountOwedText: 'To konto ma zaległe saldo z poprzedniego miesiąca.\n\nCzy chcesz uregulować saldo i przejąć rozliczenia tego miejsca pracy?',
@@ -5364,9 +5362,7 @@ const translations = {
             successTitle: 'Hurra! Wszystko gotowe.',
             successDescription: 'Jesteś teraz właścicielem tego miejsca pracy.',
             errorTitle: 'Ups! Nie tak szybko...',
-            errorDescriptionPartOne: 'Wystąpił problem z przeniesieniem własności tego miejsca pracy. Spróbuj ponownie lub',
-            errorDescriptionPartTwo: 'skontaktuj się z Concierge',
-            errorDescriptionPartThree: 'po pomoc.',
+            errorDescription: `<muted-text><centered-text>Wystąpił problem podczas przenoszenia własności tego obszaru roboczego. Spróbuj ponownie lub <concierge-link>skontaktuj się z Concierge</concierge-link>, aby uzyskać pomoc.</centered-text></muted-text>`,
         },
         exportAgainModal: {
             title: 'Ostrożnie!',
@@ -5594,9 +5590,10 @@ const translations = {
                 autoPayApprovedReportsLockedSubtitle: 'Przejdź do więcej funkcji i włącz przepływy pracy, a następnie dodaj płatności, aby odblokować tę funkcję.',
                 autoPayReportsUnderTitle: 'Automatyczne opłacanie raportów poniżej',
                 autoPayReportsUnderDescription: 'W pełni zgodne raporty wydatków poniżej tej kwoty będą automatycznie opłacane.',
-                unlockFeatureGoToSubtitle: 'Przejdź do',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `i włącz przepływy pracy, a następnie dodaj ${featureName}, aby odblokować tę funkcję.`,
-                enableFeatureSubtitle: ({featureName}: FeatureNameParams) => `i włącz ${featureName}, aby odblokować tę funkcję.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
+                    `Przejdź do [więcej funkcji](${moreFeaturesLink}) i włącz przepływy pracy, a następnie dodaj ${featureName}, aby odblokować tę funkcję.`,
+                enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
+                    `Przejdź do [więcej funkcji](${moreFeaturesLink}) i włącz ${featureName}, aby odblokować tę funkcję.`,
             },
             categoryRules: {
                 title: 'Zasady kategorii',
@@ -6791,9 +6788,7 @@ const translations = {
         },
         compareModal: {
             comparePlans: 'Porównaj plany',
-            unlockTheFeatures: 'Odblokuj potrzebne funkcje dzięki planowi, który jest dla Ciebie odpowiedni.',
-            viewOurPricing: 'Zobacz naszą stronę z cennikiem',
-            forACompleteFeatureBreakdown: 'aby uzyskać pełny podział funkcji każdego z naszych planów.',
+            subtitle: `<muted-text>Odblokuj potrzebne funkcje dzięki planowi, który najlepiej odpowiada Twoim potrzebom. <a href="${CONST.PRICING}">Zapoznaj się z naszą stroną z cennikiem</a> lub pełnym zestawieniem funkcji każdego z naszych planów.</muted-text>`,
         },
         details: {
             title: 'Szczegóły subskrypcji',
@@ -6870,11 +6865,8 @@ const translations = {
             },
             requestSubmitted: {
                 title: 'Żądanie zostało złożone',
-                subtitle: {
-                    part1: 'Dziękujemy za poinformowanie nas o chęci anulowania subskrypcji. Przeglądamy Twoją prośbę i wkrótce skontaktujemy się z Tobą za pośrednictwem czatu z',
-                    link: 'Concierge',
-                    part2: '.',
-                },
+                subtitle:
+                    'Dziękujemy za poinformowanie nas o chęci anulowania subskrypcji. Rozpatrujemy Twoją prośbę i wkrótce skontaktujemy się z Tobą za pośrednictwem czatu z <concierge-link>Concierge</concierge-link>.',
             },
             acknowledgement: `Poprzez złożenie prośby o wcześniejsze anulowanie, przyjmuję do wiadomości i zgadzam się, że Expensify nie ma obowiązku spełnienia takiej prośby zgodnie z Expensify.<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Warunki korzystania z usługi</a>lub inna odpowiednia umowa o świadczenie usług między mną a Expensify, a Expensify zachowuje wyłączną swobodę decyzji w odniesieniu do przyznania takiej prośby.`,
         },
