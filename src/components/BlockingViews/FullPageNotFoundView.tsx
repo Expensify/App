@@ -36,10 +36,7 @@ type FullPageNotFoundViewProps = {
     shouldShowBackButton?: boolean;
 
     /** The key in the translations file to use for the go back link */
-    linkTranslationKey?: TranslationPaths;
-
-    /** The key in the translations file to use for the subtitle */
-    subtitleKeyBelowLink?: TranslationPaths | '';
+    linkKey?: TranslationPaths;
 
     /** Method to trigger when pressing the back button of the header */
     onBackButtonPress?: () => void;
@@ -70,8 +67,7 @@ function FullPageNotFoundView({
     shouldShow = false,
     titleKey = 'notFound.notHere',
     subtitleKey = 'notFound.pageNotFound',
-    linkTranslationKey = 'notFound.goBackHome',
-    subtitleKeyBelowLink,
+    linkKey = 'notFound.goBackHome',
     onBackButtonPress = () => Navigation.goBack(),
     shouldShowLink = true,
     shouldShowBackButton = true,
@@ -105,8 +101,8 @@ function FullPageNotFoundView({
                         iconHeight={variables.modalTopIconHeight}
                         title={translate(titleKey)}
                         subtitle={subtitleKey && translate(subtitleKey)}
-                        linkTranslationKey={shouldShowLink ? linkTranslationKey : undefined}
-                        subtitleKeyBelowLink={subtitleKeyBelowLink}
+                        linkKey={linkKey}
+                        shouldShowLink={shouldShowLink}
                         onLinkPress={onLinkPress}
                         subtitleStyle={subtitleStyle}
                         addBottomSafeAreaPadding={addBottomSafeAreaPadding}

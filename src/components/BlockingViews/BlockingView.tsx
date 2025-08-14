@@ -5,17 +5,18 @@ import {View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
 import type {WebStyle} from 'react-native-web';
 import type {MergeExclusive} from 'type-fest';
+import AutoEmailLink from '@components/AutoEmailLink';
 import Icon from '@components/Icon';
 import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
-import BlockingViewSubtitle from './BlockingViewSubtitle';
-import SubtitleWithBelowLink from './SubtitleWithBelowLink';
 
 type BaseBlockingViewProps = {
     /** Title message below the icon */
@@ -27,11 +28,11 @@ type BaseBlockingViewProps = {
     /** The style of the subtitle message */
     subtitleStyle?: StyleProp<TextStyle>;
 
-    /** Translation key for the link text displayed below the subtitle */
-    linkTranslationKey?: TranslationPaths;
+    /** Link message below the subtitle */
+    linkKey?: TranslationPaths;
 
-    /** Message below the link message */
-    subtitleKeyBelowLink?: TranslationPaths | '';
+    /** Whether we should show a link to navigate elsewhere */
+    shouldShowLink?: boolean;
 
     /** Function to call when pressing the navigation link */
     onLinkPress?: () => void;
@@ -96,8 +97,8 @@ function BlockingView({
     title,
     subtitle = '',
     subtitleStyle,
-    linkTranslationKey,
-    subtitleKeyBelowLink,
+    linkKey = 'notFound.goBackHome',
+    shouldShowLink = false,
     iconWidth = variables.iconSizeSuperLarge,
     iconHeight = variables.iconSizeSuperLarge,
     onLinkPress = () => Navigation.dismissModal(),
@@ -113,11 +114,41 @@ function BlockingView({
     testID,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
-    const SubtitleWrapper = shouldEmbedLinkWithSubtitle ? Text : View;
-    const subtitleWrapperStyle = useMemo(
-        () => (shouldEmbedLinkWithSubtitle ? [styles.textAlignCenter] : [styles.alignItemsCenter, styles.justifyContentCenter]),
-        [shouldEmbedLinkWithSubtitle, styles],
+    const {translate} = useLocalize();
+
+    const subtitleText = useMemo(
+        () => (
+            <>
+                {!!subtitle && (
+                    <AutoEmailLink
+                        style={[styles.textAlignCenter, subtitleStyle]}
+                        text={subtitle}
+                    />
+                )}
+                {shouldShowLink ? (
+                    <TextLink
+                        onPress={onLinkPress}
+                        style={[styles.link, styles.mt2]}
+                    >
+                        {translate(linkKey)}
+                    </TextLink>
+                ) : null}
+            </>
+        ),
+        [styles, subtitle, shouldShowLink, linkKey, onLinkPress, translate, subtitleStyle],
     );
+
+    const subtitleContent = useMemo(() => {
+        if (CustomSubtitle) {
+            return CustomSubtitle;
+        }
+        return shouldEmbedLinkWithSubtitle ? (
+            <Text style={[styles.textAlignCenter]}>{subtitleText}</Text>
+        ) : (
+            <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>{subtitleText}</View>
+        );
+    }, [styles, subtitleText, shouldEmbedLinkWithSubtitle, CustomSubtitle]);
+
     const containerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, style: containerStyleProp});
 
     return (
@@ -147,27 +178,7 @@ function BlockingView({
             <View>
                 <Text style={[styles.notFoundTextHeader]}>{title}</Text>
 
-                {CustomSubtitle}
-                {!CustomSubtitle && (
-                    <SubtitleWrapper style={subtitleWrapperStyle}>
-                        {!!subtitleKeyBelowLink && !!linkTranslationKey ? (
-                            <SubtitleWithBelowLink
-                                subtitle={subtitle}
-                                subtitleStyle={subtitleStyle}
-                                subtitleKeyBelowLink={subtitleKeyBelowLink}
-                                onLinkPress={onLinkPress}
-                                linkTranslationKey={linkTranslationKey}
-                            />
-                        ) : (
-                            <BlockingViewSubtitle
-                                subtitle={subtitle}
-                                subtitleStyle={subtitleStyle}
-                                onLinkPress={onLinkPress}
-                                linkTranslationKey={linkTranslationKey}
-                            />
-                        )}
-                    </SubtitleWrapper>
-                )}
+                {subtitleContent}
             </View>
         </View>
     );

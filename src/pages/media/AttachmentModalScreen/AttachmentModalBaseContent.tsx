@@ -477,7 +477,8 @@ function AttachmentModalBaseContent({
                             iconHeight={variables.modalTopIconHeight}
                             title={translate('notFound.notHere')}
                             subtitle={translate('notFound.pageNotFound')}
-                            linkTranslationKey="notFound.goBackHome"
+                            linkKey="notFound.goBackHome"
+                            shouldShowLink
                             onLinkPress={onClose}
                         />
                     )}
