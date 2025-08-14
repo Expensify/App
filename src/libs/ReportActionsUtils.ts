@@ -20,7 +20,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {isCardPendingActivate, isCardPendingReplace, isVirtualCardReplaced} from './CardUtils';
+import {isCardPendingActivate, isCardPendingReplace} from './CardUtils';
 import {convertAmountToDisplayString, convertToDisplayString, convertToShortDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
@@ -2881,9 +2881,8 @@ function getCardIssuedMessage({
     const isPolicyAdmin = isPolicyAdminPolicyUtils(getPolicy(policyID));
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : Parser.htmlToText(`<mention-user accountID="${assigneeAccountID}"/>`);
     const navigateRoute = isPolicyAdmin ? ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID)) : ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(String(cardID));
-    const isCardVirtualAndReplaced = isVirtualCardReplaced(expensifyCard);
-    const expensifyCardLinkText = isCardVirtualAndReplaced ? translateLocal('workspace.expensifyCard.theNewCard') : translateLocal('cardPage.expensifyCard');
-    const expensifyCardLink = shouldRenderHTML && !!expensifyCard ? `<a href='${environmentURL}/${navigateRoute}'>${expensifyCardLinkText}</a>` : expensifyCardLinkText;
+    const expensifyCardLink = (expensifyCardLinkText: string) =>
+        shouldRenderHTML && !!expensifyCard ? `<a href='${environmentURL}/${navigateRoute}'>${expensifyCardLinkText}</a>` : expensifyCardLinkText;
     const isAssigneeCurrentUser = currentUserAccountID === assigneeAccountID;
     const companyCardLink =
         shouldRenderHTML && isAssigneeCurrentUser && companyCard
@@ -2894,7 +2893,7 @@ function getCardIssuedMessage({
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED:
             return translateLocal('workspace.expensifyCard.issuedCard', {assignee});
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
-            return translateLocal('workspace.expensifyCard.issuedCardVirtual', {assignee, link: expensifyCardLink});
+            return translateLocal('workspace.expensifyCard.issuedCardVirtual', {assignee, link: expensifyCardLink(translateLocal('workspace.expensifyCard.card'))});
         case CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED:
             return translateLocal('workspace.companyCards.assignedCard', {assignee, link: companyCardLink});
         case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
@@ -2904,7 +2903,7 @@ function getCardIssuedMessage({
             return translateLocal('workspace.expensifyCard.addedShippingDetails', {assignee});
         case CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL:
             if (expensifyCard?.nameValuePairs?.isVirtual) {
-                return translateLocal('workspace.expensifyCard.replacedVirtualCard', {assignee, link: expensifyCardLink});
+                return translateLocal('workspace.expensifyCard.replacedVirtualCard', {assignee, link: expensifyCardLink(translateLocal('workspace.expensifyCard.replacementCard'))});
             }
             return translateLocal('workspace.expensifyCard.replacedCard', {assignee});
         default:

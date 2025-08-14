@@ -681,10 +681,6 @@ function isCardPendingReplace(card?: Card) {
     );
 }
 
-function isVirtualCardReplaced(card?: Card) {
-    return card?.nameValuePairs?.isVirtual && card?.nameValuePairs?.statusChanges?.at(-1)?.status === CONST.EXPENSIFY_CARD.STATE.OPEN;
-}
-
 function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: PrivatePersonalDetails): boolean {
     return (
         card?.bank === CONST.EXPENSIFY_CARD.BANK &&
@@ -693,7 +689,7 @@ function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: Priv
     );
 }
 
-function hasPendingExpensifyCardAction(cards: CardList | undefined = allCards, privatePersonalDetails?: PrivatePersonalDetails) {
+function hasPendingExpensifyCardAction(cards: CardList | undefined, privatePersonalDetails?: PrivatePersonalDetails) {
     return Object.values(cards ?? {}).some((card) => isExpensifyCardPendingAction(card, privatePersonalDetails));
 }
 
@@ -757,7 +753,6 @@ export {
     isExpensifyCardPendingAction,
     getFundIdFromSettingsKey,
     isCardPendingReplace,
-    isVirtualCardReplaced,
     getCardsByCardholderName,
     filterCardsByPersonalDetails,
     getCompanyCardDescription,
