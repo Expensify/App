@@ -26,7 +26,7 @@ function parseForAutocomplete(text: string) {
  */
 function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists>) {
     const uniqueTagNames = new Set<string>();
-    const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item) as PolicyTagLists[];
+    const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item);
     tagListsUnpacked
         .map(getTagNamesFromTagsLists)
         .flat()
