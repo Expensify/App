@@ -461,7 +461,9 @@ Onyx.connect({
 });
 
 let allPolicyTags: OnyxCollection<PolicyTagLists>;
-Onyx.connect({
+// We use connectWithoutView here because this is lib-level functionality and
+// we need it for notification functionality
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
     callback: (value) => {
