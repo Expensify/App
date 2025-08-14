@@ -43,6 +43,7 @@ import type {
     BeginningOfChatHistoryInvoiceRoomParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
+    BillableDefaultDescriptionParams,
     BillingBannerCardAuthenticationRequiredParams,
     BillingBannerCardExpiredParams,
     BillingBannerCardOnDisputeParams,
@@ -120,6 +121,7 @@ import type {
     ImportPerDiemRatesSuccessfulDescriptionParams,
     ImportTagsSuccessfulDescriptionParams,
     IncorrectZipFormatParams,
+    IndividualExpenseRulesSubtitleParams,
     InstantSummaryParams,
     IntacctMappingTitleParams,
     IntegrationExportParams,
@@ -293,6 +295,7 @@ import type {
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
+    WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
@@ -3490,11 +3493,8 @@ const translations = {
             appliedOnExport: 'Expensifyにインポートされず、エクスポート時に適用されます。',
             shareNote: {
                 header: '他のメンバーとワークスペースを共有する',
-                content: {
-                    firstPart:
-                        'このQRコードを共有するか、以下のリンクをコピーして、メンバーがワークスペースへのアクセスをリクエストしやすくしてください。ワークスペースへの参加リクエストはすべて、',
-                    secondPart: 'レビューのためのスペース。',
-                },
+                content: ({adminsRoomLink}: WorkspaceShareNoteParams) =>
+                    `このQRコードを共有するか、以下のリンクをコピーして、メンバーがワークスペースへのアクセスをリクエストしやすくしてください。ワークスペースへの参加リクエストはすべて、<a href="${adminsRoomLink}">${CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}</a> ルームに表示され、ご確認いただけます。`,
             },
             connectTo: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}に接続`,
             createNewConnection: '新しい接続を作成',
@@ -5513,7 +5513,8 @@ const translations = {
         rules: {
             individualExpenseRules: {
                 title: '経費',
-                subtitle: '個別の経費に対して支出管理とデフォルトを設定します。また、ルールを作成することもできます。',
+                subtitle: ({categoriesPageLink, tagsPageLink}: IndividualExpenseRulesSubtitleParams) =>
+                    `<muted-text>個々の経費に対して支出制限とデフォルト設定を設定できます。また、<a href="${categoriesPageLink}">カテゴリ</a>と<a href="${tagsPageLink}">タグ</a>に関するルールを作成することも可能です。</muted-text>`,
                 receiptRequiredAmount: '領収書の必要金額',
                 receiptRequiredAmountDescription: 'カテゴリルールで上書きされない限り、この金額を超える支出には領収書が必要です。',
                 maxExpenseAmount: '最大経費額',
@@ -5525,19 +5526,9 @@ const translations = {
                     one: '1日',
                     other: (count: number) => `${count}日間`,
                 }),
-                cashExpenseDefault: '現金経費のデフォルト',
-                cashExpenseDefaultDescription:
-                    '現金経費をどのように作成するかを選択します。インポートされた会社カード取引でない場合、経費は現金経費とみなされます。これには手動で作成された経費、領収書、日当、距離、時間経費が含まれます。',
-                reimbursableDefault: '精算可能',
-                reimbursableDefaultDescription: '経費は通常、従業員に返金されます',
-                nonReimbursableDefault: '精算不可',
-                nonReimbursableDefaultDescription: '経費は時々従業員に返金されます',
-                alwaysReimbursable: '常に精算可能',
-                alwaysReimbursableDescription: '経費は常に従業員に返金されます',
-                alwaysNonReimbursable: '常に精算不可',
-                alwaysNonReimbursableDescription: '経費は従業員に返金されません',
                 billableDefault: '請求可能なデフォルト',
-                billableDefaultDescription: '現金およびクレジットカードの経費をデフォルトで請求可能にするかどうかを選択します。請求可能な経費は、次の場所で有効または無効にします。',
+                billableDefaultDescription: ({tagsPageLink}: BillableDefaultDescriptionParams) =>
+                    `<muted-text>現金とクレジットカードの支出をデフォルトで請求可能にするかどうかを選択します。請求可能な支出は<a href="${tagsPageLink}">タグ</a>で有効または無効に設定されます。</muted-text>`,
                 billable: 'ビラブル',
                 billableDescription: '経費は多くの場合、クライアントに再請求されます。',
                 nonBillable: '非請求対象',
@@ -5821,7 +5812,6 @@ const translations = {
             return `月次報告書の提出日を「${newValue}」（以前は「${oldValue}」）に更新しました。`;
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `"クライアントへの経費再請求"を"${newValue}"に更新しました（以前は"${oldValue}"）`,
-        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `「現金経費のデフォルト」を"${newValue}"に更新しました (以前は"${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `"デフォルトのレポートタイトルを強制する" ${value ? 'on' : 'オフ'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `このワークスペースの名前を「${newName}」（以前は「${oldName}」）に更新しました。`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
