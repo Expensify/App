@@ -11124,9 +11124,6 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
 function putTransactionsOnHold(transactionsID: string[], comment: string, reportID: string) {
     transactionsID.forEach((transactionID) => {
         const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
-        if (!childReportID) {
-            return;
-        }
         putOnHold(transactionID, comment, childReportID);
     });
 }
