@@ -211,6 +211,7 @@ import type {
     StripePaidParams,
     SubmitsToParams,
     SubmittedToVacationDelegateParams,
+    SubmittedWithMemoParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -314,7 +315,7 @@ const translations = {
         no: 'No',
         ok: 'OK',
         notNow: 'Niet nu',
-        learnMore: 'Meer informatie.',
+        learnMore: 'Meer informatie',
         buttonConfirm: 'Begrepen',
         name: 'Naam',
         attachment: 'Bijlage',
@@ -1174,7 +1175,7 @@ const translations = {
         sendInvoice: ({amount}: RequestAmountParams) => `Verstuur ${amount} factuur`,
         submitAmount: ({amount}: RequestAmountParams) => `Verstuur ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `voor ${comment}` : ''}`,
-        submitted: `ingediend`,
+        submitted: ({memo}: SubmittedWithMemoParams) => `ingediend${memo ? `, zegt ${memo}` : ''}`,
         automaticallySubmitted: `ingediend via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">vertraging indieningen</a>`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `volgt ${formattedAmount}${comment ? `voor ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `splitsen ${amount}`,
@@ -2621,6 +2622,9 @@ const translations = {
         pageNotFound: 'Oeps, deze pagina kan niet worden gevonden',
         noAccess: 'Deze chat of uitgave is mogelijk verwijderd of je hebt er geen toegang toe.\n\nVoor vragen kun je contact opnemen met concierge@expensify.com',
         goBackHome: 'Ga terug naar de startpagina',
+        commentYouLookingForCannotBeFound: 'De opmerking die je zoekt, is niet gevonden. Ga terug naar de chat',
+        contactConcierge: 'Voor vragen kun je contact opnemen met concierge@expensify.com',
+        goToChatInstead: 'Ga in plaats daarvan naar de chat.',
     },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oeps... ${isBreakLine ? '\n' : ''}Er is iets misgegaan`,
@@ -3511,7 +3515,7 @@ const translations = {
                 `Aangezien je eerder verbinding hebt gemaakt met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, kun je ervoor kiezen om een bestaande verbinding opnieuw te gebruiken of een nieuwe te maken.`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Laatst gesynchroniseerd op ${formattedDate}`,
             authenticationError: ({connectionName}: AuthenticationErrorParams) => `Kan geen verbinding maken met ${connectionName} vanwege een authenticatiefout.`,
-            learnMore: 'Meer informatie.',
+            learnMore: 'Meer informatie',
             memberAlternateText: 'Leden kunnen rapporten indienen en goedkeuren.',
             adminAlternateText: 'Beheerders hebben volledige bewerkingsrechten voor alle rapporten en werkruimte-instellingen.',
             auditorAlternateText: 'Auditors kunnen rapporten bekijken en erop reageren.',
@@ -6519,7 +6523,7 @@ const translations = {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Bedrag boven ${formattedLimit}/persoon limiet`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Bedrag boven de dagelijkse ${formattedLimit}/persoon categoriegrens`,
         receiptNotSmartScanned:
-            'Bon en uitgavendetails handmatig toegevoegd. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Meer weten.</a>',
+            'Bon en uitgavendetails handmatig toegevoegd. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Meer weten</a>.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Bon vereist';
             if (formattedLimit ?? category) {

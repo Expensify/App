@@ -211,6 +211,7 @@ import type {
     StripePaidParams,
     SubmitsToParams,
     SubmittedToVacationDelegateParams,
+    SubmittedWithMemoParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -314,7 +315,7 @@ const translations = {
         no: 'No',
         ok: "D'accord",
         notNow: 'Pas maintenant',
-        learnMore: 'En savoir plus.',
+        learnMore: 'En savoir plus',
         buttonConfirm: 'Compris',
         name: 'Nom',
         attachment: 'Pièce jointe',
@@ -1179,7 +1180,7 @@ const translations = {
         sendInvoice: ({amount}: RequestAmountParams) => `Envoyer une facture de ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `Soumettre ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `pour ${comment}` : ''}`,
-        submitted: `soumis`,
+        submitted: ({memo}: SubmittedWithMemoParams) => `soumis${memo ? `, en disant ${memo}` : ''}`,
         automaticallySubmitted: `soumis via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">soumissions différées</a>`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `suivi ${formattedAmount}${comment ? `pour ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `diviser ${amount}`,
@@ -2603,6 +2604,9 @@ const translations = {
         pageNotFound: 'Oups, cette page est introuvable',
         noAccess: "Ce chat ou cette dépense a peut-être été supprimé ou vous n'y avez pas accès.\n\nPour toute question, veuillez contacter concierge@expensify.com",
         goBackHome: "Retourner à la page d'accueil",
+        commentYouLookingForCannotBeFound: 'Le commentaire que vous recherchez est introuvable. Retournez à la discussion',
+        contactConcierge: 'Pour toute question, veuillez contacter concierge@expensify.com',
+        goToChatInstead: 'Allez plutôt dans la discussion.',
     },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oups... ${isBreakLine ? '\n' : ''}Quelque chose a mal tourné`,
@@ -3499,7 +3503,7 @@ const translations = {
                 `Puisque vous vous êtes déjà connecté à ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, vous pouvez choisir de réutiliser une connexion existante ou d'en créer une nouvelle.`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Dernière synchronisation le ${formattedDate}`,
             authenticationError: ({connectionName}: AuthenticationErrorParams) => `Impossible de se connecter à ${connectionName} en raison d'une erreur d'authentification`,
-            learnMore: 'En savoir plus.',
+            learnMore: 'En savoir plus',
             memberAlternateText: 'Les membres peuvent soumettre et approuver des rapports.',
             adminAlternateText: "Les administrateurs ont un accès complet pour modifier tous les rapports et les paramètres de l'espace de travail.",
             auditorAlternateText: 'Les auditeurs peuvent voir et commenter les rapports.',
@@ -6525,7 +6529,7 @@ const translations = {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Montant au-delà de la limite de ${formattedLimit}/personne`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Montant dépassant la limite quotidienne de ${formattedLimit}/personne pour la catégorie`,
         receiptNotSmartScanned:
-            'Reçu et détails de la dépense ajoutés manuellement. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">En savoir plus.</a>',
+            'Reçu et détails de la dépense ajoutés manuellement. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">En savoir plus</a>.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Reçu requis';
             if (formattedLimit ?? category) {

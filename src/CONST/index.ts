@@ -1861,7 +1861,6 @@ const CONST = {
         MSWORD: 'application/msword',
         ZIP: 'application/zip',
         RFC822: 'message/rfc822',
-        HEIC: 'image/heic',
     },
 
     SHARE_FILE_MIMETYPE: {
@@ -1872,7 +1871,6 @@ const CONST = {
         WEBP: 'image/webp',
         TIF: 'image/tif',
         TIFF: 'image/tiff',
-        HEIC: 'image/heic',
         IMG: 'image/*',
         PDF: 'application/pdf',
         MSWORD: 'application/msword',
