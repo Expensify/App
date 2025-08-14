@@ -5337,8 +5337,7 @@ const translations = {
             addPaymentCardPciCompliant: 'PCI-DSS-konform',
             addPaymentCardBankLevelEncrypt: 'Verschlüsselung auf Bankniveau',
             addPaymentCardRedundant: 'Redundante Infrastruktur',
-            addPaymentCardLearnMore: 'Erfahren Sie mehr über unsere',
-            addPaymentCardSecurity: 'Sicherheit',
+            addPaymentCardLearnMore: `<muted-text>Erfahren Sie mehr über unsere <a href="${CONST.PERSONAL_DATA_PROTECTION_INFO_URL}">Sicherheit</a>.</muted-text>`,
             amountOwedTitle: 'Ausstehender Saldo',
             amountOwedButtonText: 'OK',
             amountOwedText:
