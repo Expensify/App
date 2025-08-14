@@ -78,7 +78,7 @@ function MultiSelectPopup<T extends string>({label, value, items, closeOverlay, 
         <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
             {isSmallScreenWidth && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
 
-            <View style={[styles.getSelectionListPopoverHeight(items.length, windowHeight)]}>
+            <View style={[styles.getSelectionListPopoverHeight(items.length, windowHeight, false)]}>
                 <SelectionList
                     shouldSingleExecuteRowSelect
                     sections={[{data: listData}]}

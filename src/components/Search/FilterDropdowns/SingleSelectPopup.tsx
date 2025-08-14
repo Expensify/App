@@ -95,6 +95,8 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
         };
     }, [isSearchable, items, value, selectedItem, debouncedSearchTerm]);
 
+    const dataLength = useMemo(() => sections.flatMap((section) => section.data).length, [sections]);
+
     const updateSelectedItem = useCallback(
         (item: ListItem) => {
             const newItem = items.find((i) => i.value === item.keyForList) ?? null;
@@ -117,7 +119,7 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
         <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
             {isSmallScreenWidth && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
 
-            <View style={[styles.getSelectionListPopoverHeight(items.length, windowHeight)]}>
+            <View style={[styles.getSelectionListPopoverHeight(dataLength || 1, windowHeight, isSearchable ?? false)]}>
                 <SelectionList
                     shouldSingleExecuteRowSelect
                     sections={sections}
