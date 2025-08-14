@@ -210,6 +210,7 @@ import type {
     StripePaidParams,
     SubmitsToParams,
     SubmittedToVacationDelegateParams,
+    SubmittedWithMemoParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -313,7 +314,7 @@ const translations = {
         no: 'No',
         ok: 'OK',
         notNow: 'Nicht jetzt',
-        learnMore: 'Mehr erfahren.',
+        learnMore: 'Mehr erfahren',
         buttonConfirm: 'Verstanden',
         name: 'Name',
         attachment: 'Anhang',
@@ -593,6 +594,7 @@ const translations = {
         unread: 'Ungelesen',
         sent: 'Gesendet',
         links: 'Links',
+        day: 'Tag',
         days: 'Tage',
         rename: 'Umbenennen',
         address: 'Adresse',
@@ -1169,7 +1171,7 @@ const translations = {
         sendInvoice: ({amount}: RequestAmountParams) => `Sende ${amount} Rechnung`,
         submitAmount: ({amount}: RequestAmountParams) => `Einreichen ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `für ${comment}` : ''}`,
-        submitted: `eingereicht`,
+        submitted: ({memo}: SubmittedWithMemoParams) => `eingereicht${memo ? `, sagte ${memo}` : ''}`,
         automaticallySubmitted: `über <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">verzögerte Einreichungen</a> eingereicht`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `tracking ${formattedAmount}${comment ? `für ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `teilen ${amount}`,
@@ -2594,6 +2596,9 @@ const translations = {
         pageNotFound: 'Ups, diese Seite kann nicht gefunden werden.',
         noAccess: 'Dieser Chat oder diese Ausgabe wurde möglicherweise gelöscht oder Sie haben keinen Zugriff darauf.\n\nBei Fragen wenden Sie sich bitte an concierge@expensify.com',
         goBackHome: 'Zurück zur Startseite',
+        commentYouLookingForCannotBeFound: 'Der gesuchte Kommentar konnte nicht gefunden werden. Geh zurück zum Chat',
+        contactConcierge: 'Bei Fragen wenden Sie sich bitte an concierge@expensify.com',
+        goToChatInstead: 'Geh stattdessen zum Chat.',
     },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oops... ${isBreakLine ? '\n' : ''}Etwas ist schiefgelaufen`,
@@ -3390,6 +3395,11 @@ const translations = {
             railTicketUpdate: ({origin, destination, startDate}: RailTicketParams) => `Ihr Zugticket für ${origin} → ${destination} am ${startDate} wurde aktualisiert.`,
             defaultUpdate: ({type}: TravelTypeParams) => `Ihre ${type} Reservierung wurde aktualisiert.`,
         },
+        flightTo: 'Flug nach',
+        trainTo: 'Zug nach',
+        carRental: ' Mietwagen',
+        nightIn: 'Nacht in',
+        nightsIn: 'Nächte in',
     },
     workspace: {
         common: {
@@ -3480,7 +3490,7 @@ const translations = {
                 `Da Sie zuvor eine Verbindung zu ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} hergestellt haben, können Sie eine bestehende Verbindung wiederverwenden oder eine neue erstellen.`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Zuletzt synchronisiert am ${formattedDate}`,
             authenticationError: ({connectionName}: AuthenticationErrorParams) => `Kann nicht mit ${connectionName} verbunden werden aufgrund eines Authentifizierungsfehlers.`,
-            learnMore: 'Mehr erfahren.',
+            learnMore: 'Mehr erfahren',
             memberAlternateText: 'Mitglieder können Berichte einreichen und genehmigen.',
             adminAlternateText: 'Administratoren haben vollen Bearbeitungszugriff auf alle Berichte und Arbeitsbereichseinstellungen.',
             auditorAlternateText: 'Prüfer können Berichte einsehen und kommentieren.',
@@ -5540,6 +5550,17 @@ const translations = {
                     one: '1 Tag',
                     other: (count: number) => `${count} Tage`,
                 }),
+                cashExpenseDefault: 'Bargeldausgabe standard',
+                cashExpenseDefaultDescription:
+                    'Wählen Sie, wie Bargeldausgaben erstellt werden sollen. Eine Ausgabe gilt als Bargeldausgabe, wenn sie keine importierte Firmenkartentransaktion ist. Dazu gehören manuell erstellte Ausgaben, Belege, Pauschalen, Kilometer- und Zeitaufwand.',
+                reimbursableDefault: 'Erstattungsfähig',
+                reimbursableDefaultDescription: 'Ausgaben werden meistens an Mitarbeiter zurückgezahlt',
+                nonReimbursableDefault: 'Nicht erstattungsfähig',
+                nonReimbursableDefaultDescription: 'Ausgaben werden gelegentlich an Mitarbeiter zurückgezahlt',
+                alwaysReimbursable: 'Immer erstattungsfähig',
+                alwaysReimbursableDescription: 'Ausgaben werden immer an Mitarbeiter zurückgezahlt',
+                alwaysNonReimbursable: 'Nie erstattungsfähig',
+                alwaysNonReimbursableDescription: 'Ausgaben werden nie an Mitarbeiter zurückgezahlt',
                 billableDefault: 'Abrechnungsstandard',
                 billableDefaultDescription: 'Wählen Sie, ob Bar- und Kreditkartenausgaben standardmäßig abrechenbar sein sollen. Abrechenbare Ausgaben werden aktiviert oder deaktiviert in',
                 billable: 'Abrechenbar',
@@ -5829,6 +5850,7 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `aktualisiert "Kosten an Kunden weiterberechnen" auf "${newValue}" (vorher "${oldValue}")`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `aktualisiert "Bargeldausgabe Standard" auf "${newValue}" (vorher "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `"Standardberichtstitel erzwingen" ${value ? 'on' : 'aus'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `hat den Namen dieses Arbeitsbereichs in "${newName}" geändert (vorher "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -6489,7 +6511,7 @@ const translations = {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Betrag über dem Limit von ${formattedLimit}/Person`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Betrag über dem täglichen ${formattedLimit}/Personen-Kategorielimit`,
         receiptNotSmartScanned:
-            'Beleg und Ausgabendetails manuell hinzugefügt. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Erfahren Sie mehr.</a>',
+            'Beleg und Ausgabendetails manuell hinzugefügt. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Erfahren Sie mehr</a>.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Beleg erforderlich';
             if (formattedLimit ?? category) {
