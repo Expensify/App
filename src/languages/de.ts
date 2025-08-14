@@ -4373,7 +4373,8 @@ const translations = {
             verifyingTheDetails: 'Wir überprüfen ein paar Details. Concierge wird Sie informieren, wenn Expensify-Karten zur Ausgabe bereit sind.',
             disclaimer:
                 'The Expensify Visa® Commercial Card wird von der The Bancorp Bank, N.A., Mitglied FDIC, gemäß einer Lizenz von Visa U.S.A. Inc. ausgestellt und kann nicht bei allen Händlern verwendet werden, die Visa-Karten akzeptieren. Apple® und das Apple-Logo® sind Marken von Apple Inc., registriert in den USA und anderen Ländern. App Store ist eine Dienstleistungsmarke von Apple Inc. Google Play und das Google Play-Logo sind Marken von Google LLC.',
-            euUkDisclaimer: 'TBD',
+            euUkDisclaimer:
+                'Karten für Einwohner des EWR werden von Transact Payments Malta Limited ausgestellt. Karten für Einwohner des Vereinigten Königreichs werden von Transact Payments Limited gemäß einer Lizenz von Visa Europe Limited ausgestellt. Transact Payments Malta Limited ist von der maltesischen Finanzaufsichtsbehörde als Finanzinstitut gemäß dem Financial Institution Act 1994 ordnungsgemäß zugelassen und reguliert. Registrierungsnummer: C 91879. Transact Payments Limited ist von der Gibraltar Financial Service Commission zugelassen und reguliert.',
             issueCard: 'Karte ausstellen',
             findCard: 'Karte finden',
             newCard: 'Neue Karte',

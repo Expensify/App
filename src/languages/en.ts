@@ -4361,7 +4361,8 @@ const translations = {
             verifyingTheDetails: "We're verifying a few details. Concierge will let you know when Expensify Cards are ready to issue.",
             disclaimer:
                 'The Expensify Visa® Commercial Card is issued by The Bancorp Bank, N.A., Member FDIC, pursuant to a license from Visa U.S.A. Inc. and may not be used at all merchants that accept Visa cards. Apple® and the Apple logo® are trademarks of Apple Inc., registered in the U.S. and other countries. App Store is a service mark of Apple Inc. Google Play and the Google Play logo are trademarks of Google LLC.',
-            euUkDisclaimer: 'TBD',
+            euUkDisclaimer:
+                'Cards provided to EEA residents are issued by Transact Payments Malta Limited and cards provided to UK residents are issued by Transact Payments Limited pursuant to license by Visa Europe Limited. Transact Payments Malta Limited is duly authorized and regulated by the Malta Financial Services Authority as a Financial Institution under the Financial Institution Act 1994. Registration number C 91879. Transact Payments Limited is authorized and regulated by the Gibraltar Financial Service Commission.',
             issueCard: 'Issue card',
             findCard: 'Find card',
             newCard: 'New card',

@@ -4386,7 +4386,8 @@ const translations = {
             disclaimer:
                 "La carte commerciale Expensify Visa® est émise par The Bancorp Bank, N.A., membre FDIC, conformément à une licence de Visa U.S.A. Inc. et ne peut pas être utilisée chez tous les commerçants qui acceptent les cartes Visa. Apple® et le logo Apple® sont des marques déposées d'Apple Inc., enregistrées aux États-Unis et dans d'autres pays. App Store est une marque de service d'Apple Inc. Google Play et le logo Google Play sont des marques de commerce de Google LLC.",
             issueCard: 'Émettre une carte',
-            euUkDisclaimer: 'TBD',
+            euUkDisclaimer:
+                "Les cartes fournies aux résidents de l'EEE sont émises par Transact Payments Malta Limited et celles fournies aux résidents du Royaume-Uni sont émises par Transact Payments Limited, conformément à la licence de Visa Europe Limited. Transact Payments Malta Limited est dûment agréée et réglementée par l'Autorité des services financiers de Malte en tant qu'institution financière en vertu de la loi de 1994 sur les institutions financières. Numéro d'enregistrement : C 91879. Transact Payments Limited est agréée et réglementée par la Commission des services financiers de Gibraltar.",
             findCard: 'Trouver la carte',
             newCard: 'Nouvelle carte',
             name: 'Nom',
