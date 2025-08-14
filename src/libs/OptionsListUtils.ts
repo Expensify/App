@@ -235,6 +235,25 @@ type GetValidReportsConfig = {
     showRBR?: boolean;
 } & GetValidOptionsSharedConfig;
 
+type IsValidReportsConfig = Pick<
+    GetValidReportsConfig,
+    | 'betas'
+    | 'includeMultipleParticipantReports'
+    | 'includeOwnedWorkspaceChats'
+    | 'includeThreads'
+    | 'includeTasks'
+    | 'includeMoneyRequests'
+    | 'includeReadOnly'
+    | 'transactionViolations'
+    | 'includeSelfDM'
+    | 'includeInvoiceRooms'
+    | 'action'
+    | 'includeP2P'
+    | 'includeDomainEmail'
+    | 'loginsToExclude'
+    | 'excludeNonAdminWorkspaces'
+>;
+
 type GetValidReportsReturnTypeCombined = {
     selfDMOption: OptionData | undefined;
     workspaceOptions: OptionData[];
@@ -1639,7 +1658,7 @@ function getUserToInviteContactOption({
     return userToInvite;
 }
 
-function isValidReport(option: SearchOption<Report>, config: GetValidReportsConfig): boolean {
+function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfig): boolean {
     const {
         betas = [],
         includeMultipleParticipantReports = false,
@@ -1954,11 +1973,7 @@ function getValidOptions(
                 ...getValidReportsConfig,
                 includeP2P,
                 includeDomainEmail,
-                selectedOptions,
                 loginsToExclude,
-                shouldBoldTitleByDefault,
-                shouldSeparateSelfDMChat,
-                shouldSeparateWorkspaceChat,
             });
         };
 
@@ -1967,7 +1982,6 @@ function getValidOptions(
         const {recentReports, workspaceOptions, selfDMOption} = getValidReports(filteredReports, {
             ...getValidReportsConfig,
             selectedOptions,
-            loginsToExclude,
             shouldBoldTitleByDefault,
             shouldSeparateSelfDMChat,
             shouldSeparateWorkspaceChat,
@@ -2144,10 +2158,9 @@ function getAttendeeOptions(
     attendees: Attendee[],
     recentAttendees: Attendee[],
     includeOwnedWorkspaceChats = false,
+    includeP2P = true,
+    includeInvoiceRooms = false,
     action: IOUAction | undefined = undefined,
-    searchString = '',
-    maxElements?: number,
-    includeUserToInvite = false,
 ) {
     const personalDetailList = keyBy(
         personalDetails.map(({item}) => item),
@@ -2185,15 +2198,12 @@ function getAttendeeOptions(
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             includeOwnedWorkspaceChats,
             includeRecentReports: false,
-            includeP2P: true,
+            includeP2P,
             includeSelectedOptions: false,
             includeSelfDM: false,
-            includeInvoiceRooms: false,
+            includeInvoiceRooms,
             action,
             recentAttendees: filteredRecentAttendees,
-            searchString,
-            maxElements,
-            includeUserToInvite,
         },
     );
 }
