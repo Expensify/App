@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';

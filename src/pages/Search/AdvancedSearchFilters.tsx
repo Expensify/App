@@ -131,7 +131,7 @@ const baseFilterConfig = {
     },
     amount: {
         getTitle: getFilterDisplayTitle,
-        description: 'common.total' as const,
+        description: 'iou.amount' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_AMOUNT,
     },
     category: {

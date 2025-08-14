@@ -47,7 +47,7 @@ function SearchFiltersAmountPage() {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('common.total')}
+                title={translate('iou.amount')}
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
                 }}
