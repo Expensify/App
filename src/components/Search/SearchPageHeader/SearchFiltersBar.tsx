@@ -410,7 +410,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         const fromValue = filterFormValues.from?.map((accountID) => personalDetails?.[accountID]?.displayName ?? accountID) ?? [];
 
         const shouldDisplayGroupByFilter = !!groupBy;
-        const shouldDisplayGroupCurrencyFilter = !!groupBy && hasMultipleOutputCurrency;
+        const shouldDisplayGroupCurrencyFilter = (groupBy?.value === CONST.SEARCH.GROUP_BY.FROM || groupBy?.value === CONST.SEARCH.GROUP_BY.CARD) && hasMultipleOutputCurrency;
         const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues.feed;
         const shouldDisplayPostedFilter = !!filterFormValues.feed && (!!filterFormValues.postedOn || !!filterFormValues.postedAfter || !!filterFormValues.postedBefore);
         // We'll refactor this to use a const in https://github.com/Expensify/App/issues/68227
