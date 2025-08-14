@@ -1,15 +1,13 @@
 /* eslint-disable rulesdir/no-acc-spread-in-reduce */
 import type {ForwardedRef, RefObject} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo} from 'react';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import FormHelpMessage from '@components/FormHelpMessage';
-import {PressableWithoutFeedback} from '@components/Pressable';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -25,10 +23,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import getSearchFiltersButtonTransition from './getSearchFiltersButtonTransition.ts/index';
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
-
-const SearchFiltersButtonTransition = getSearchFiltersButtonTransition();
 
 type SearchAutocompleteInputProps = {
     /** Value of TextInput */
@@ -100,7 +95,6 @@ function SearchAutocompleteInput(
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const textInput = useRef<BaseTextInputRef | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
@@ -219,6 +213,7 @@ function SearchAutocompleteInput(
                         textInputContainerStyles={[styles.borderNone, styles.pb0, styles.pl3]}
                         inputStyle={[inputWidth, styles.lineHeightUndefined]}
                         placeholderTextColor={theme.textSupporting}
+                        loadingSpinnerStyle={[styles.mt0, styles.mr0, styles.justifyContentCenter]}
                         onFocus={() => {
                             onFocus?.();
                             autocompleteListRef?.current?.updateExternalTextInputFocus(true);
@@ -230,48 +225,16 @@ function SearchAutocompleteInput(
 
                             onBlur?.();
                         }}
-                        ref={(ref: BaseTextInputRef) => {
-                            if (typeof forwardedRef === 'function') {
-                                forwardedRef(ref);
-                            } else if (forwardedRef && 'current' in forwardedRef) {
-                                // eslint-disable-next-line no-param-reassign
-                                forwardedRef.current = ref;
-                            }
-                            textInput.current = ref;
-                        }}
+                        isLoading={isSearchingForReports}
+                        ref={forwardedRef}
                         type="markdown"
                         multiline={false}
                         parser={parser}
                         selection={selection}
+                        shouldShowClearButton={!!value && !isSearchingForReports}
+                        onClear={clearFilters}
                     />
                 </View>
-
-                {value && !isSearchingForReports ? (
-                    <Animated.View
-                        style={styles.pr3}
-                        layout={SearchFiltersButtonTransition}
-                    >
-                        <TextInputClearButton
-                            onPressButton={clearFilters}
-                            style={styles.mt0}
-                        />
-                    </Animated.View>
-                ) : (
-                    <PressableWithoutFeedback
-                        role={CONST.ROLE.PRESENTATION}
-                        accessibilityLabel={CONST.ROLE.PRESENTATION}
-                        style={[styles.justifyContentCenter, styles.alignSelfStretch, styles.pr3, isSearchingForReports && styles.cursorAuto]}
-                        onPress={() => {
-                            textInput?.current?.focus();
-                        }}
-                    >
-                        <ActivityIndicator
-                            size="small"
-                            color={theme.iconSuccessFill}
-                            style={[styles.ml1, !isSearchingForReports && styles.opacity0]}
-                        />
-                    </PressableWithoutFeedback>
-                )}
             </Animated.View>
             <FormHelpMessage
                 style={styles.ph3}

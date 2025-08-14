@@ -443,7 +443,7 @@ function BaseTextInput(
                                     </Text>
                                 </View>
                             )}
-                            {((isFocused && !isReadOnly && shouldShowClearButton) || !shouldHideClearButton) && !!value && (
+                            {((isFocused && !isReadOnly && shouldShowClearButton) || !shouldHideClearButton) && !!value && !inputProps.isLoading && (
                                 <View
                                     onLayout={() => {
                                         if (didScrollToEndRef.current || !input.current) {
@@ -462,7 +462,7 @@ function BaseTextInput(
                                     />
                                 </View>
                             )}
-                            {inputProps.isLoading !== undefined && (
+                            {inputProps.isLoading !== undefined && !shouldShowClearButton && (
                                 <ActivityIndicator
                                     size="small"
                                     color={theme.iconSuccessFill}
