@@ -505,7 +505,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
 
         // If there is one transaction thread that has not yet been created, we should create it.
-        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport && parentReportAction?.childMoneyRequestCount === 1) {
+        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport) {
             createOneTransactionThreadReport();
             return;
         }
@@ -519,7 +519,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         currentUserEmail,
         transactionThreadReportID,
         transactionThreadReport,
-        parentReportAction?.childMoneyRequestCount,
         reportIDFromRoute,
         reportActionIDFromRoute,
         createOneTransactionThreadReport,
