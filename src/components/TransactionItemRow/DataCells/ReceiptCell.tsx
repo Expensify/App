@@ -41,7 +41,7 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
                 source={source}
                 isEReceipt={transactionItem.hasEReceipt && !hasReceiptSource(transactionItem)}
                 transactionID={transactionItem.transactionID}
-                shouldUseThumbnailImage={!transactionItem?.receipt?.source}
+                shouldUseThumbnailImage
                 isAuthTokenRequired
                 fallbackIcon={Receipt}
                 fallbackIconSize={20}
@@ -51,6 +51,7 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
                 loadingIconSize="small"
                 loadingIndicatorStyles={styles.bgTransparent}
                 transactionItem={transactionItem}
+                shouldUseInitialObjectPosition
             />
         </View>
     );
