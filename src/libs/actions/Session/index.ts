@@ -254,14 +254,12 @@ type SignOutAndRedirectToSignInParams = {
     shouldForceOffline: boolean | undefined;
 };
 
-function signOutAndRedirectToSignIn({
-    shouldResetToHome,
-    shouldStashSession,
-    shouldKillHybridApp = true,
-    shouldForceUseStashedSession,
-    isOffline,
-    shouldForceOffline,
-}: SignOutAndRedirectToSignInParams = { isOffline: undefined, shouldForceOffline: undefined }) {
+function signOutAndRedirectToSignIn(
+    {shouldResetToHome, shouldStashSession, shouldKillHybridApp = true, shouldForceUseStashedSession, isOffline, shouldForceOffline}: SignOutAndRedirectToSignInParams = {
+        isOffline: undefined,
+        shouldForceOffline: undefined,
+    },
+) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
 

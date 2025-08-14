@@ -1,9 +1,9 @@
+import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {signOutAndRedirectToSignIn} from '@libs/actions/Session';
 import {isOffline} from '@libs/Network/NetworkStore';
 import type {Middleware} from '@libs/Request';
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {Network} from '@src/types/onyx';
 
 let networkState: OnyxEntry<Network>;
