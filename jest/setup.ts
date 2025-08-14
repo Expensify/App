@@ -160,3 +160,17 @@ jest.mock('@src/hooks/useWorkletStateMachine/executeOnUIRuntimeSync', () => ({
 jest.mock('react-native-nitro-sqlite', () => ({
     open: jest.fn(),
 }));
+
+// Provide a default global fetch mock for tests that do not explicitly set it up
+// This avoids ReferenceError: fetch is not defined in CI when coverage is enabled
+if (typeof (global as unknown as {fetch?: unknown}).fetch !== 'function') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (global as any).fetch = jest.fn(async () => ({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: {get: () => null},
+        // Return a minimal shape our code expects
+        json: async () => ({jsonCode: 200}),
+    }));
+}

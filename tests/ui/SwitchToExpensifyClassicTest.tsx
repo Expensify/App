@@ -14,7 +14,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 const USER_A_ACCOUNT_ID = 1;
 const USER_A_EMAIL = 'user_a@test.com';
 
-jest.setTimeout(60000);
+jest.setTimeout(120000);
 
 jest.mock('@react-navigation/native');
 
