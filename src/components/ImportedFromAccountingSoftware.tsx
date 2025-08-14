@@ -3,17 +3,14 @@ import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openLink} from '@libs/actions/Link';
 import {getIntegrationIcon} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import Icon from './Icon';
-import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
 import TextBlock from './TextBlock';
-import TextLink from './TextLink';
 import TextLinkBlock from './TextLinkBlock';
 
 type ImportedFromAccountingSoftwareProps = {
@@ -45,30 +42,20 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
                 textStyles={[styles.textNormal, styles.colorMuted]}
                 text={`${translatedText} `}
             />
-            <PressableWithoutFeedback
-                onPress={() => openLink(`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`, environmentURL)}
-                role={CONST.ROLE.BUTTON}
-                accessibilityLabel={translate('common.close')}
-            >
-                {!!icon && (
-                    <Icon
-                        src={icon}
-                        height={variables.iconSizeMedium}
-                        width={variables.iconSizeMedium}
-                        additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.SMALLER, ''), styles.appBG]}
-                    />
-                )}
-            </PressableWithoutFeedback>
-            <TextLink
-                style={[styles.textNormal, styles.link]}
-                onPress={() => openLink(`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`, environmentURL)}
-            >
-                {' '}
-            </TextLink>
             <TextLinkBlock
                 style={[styles.textNormal, styles.link]}
                 href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                text={` ${currentConnectionName} ${translate('workspace.accounting.settings')}`}
+                text={`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
+                prefixIcon={
+                    icon ? (
+                        <Icon
+                            src={icon}
+                            height={variables.iconSizeMedium}
+                            width={variables.iconSizeMedium}
+                            additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.SMALLER, ''), styles.appBG]}
+                        />
+                    ) : undefined
+                }
             />
             <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
         </View>

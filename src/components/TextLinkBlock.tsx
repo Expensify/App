@@ -5,6 +5,7 @@
 import React, {memo, useMemo} from 'react';
 import type {MouseEventHandler} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
+import {View} from 'react-native-web';
 import TextLink from './TextLink';
 import type {LinkProps, PressProps} from './TextLink';
 
@@ -17,9 +18,12 @@ type TextLinkBlockProps = (LinkProps | PressProps) & {
 
     /** The full text to be split into words */
     text: string;
+
+    /** The full text to be split into words */
+    prefixIcon?: React.JSX.Element;
 };
 
-function TextLinkBlock({text, style, onMouseDown, ...rest}: TextLinkBlockProps) {
+function TextLinkBlock({text, style, onMouseDown, prefixIcon, ...rest}: TextLinkBlockProps) {
     const words = useMemo(() => text.match(/(\S+\s*)/g) ?? [], [text]);
 
     if ('href' in rest) {
@@ -27,15 +31,20 @@ function TextLinkBlock({text, style, onMouseDown, ...rest}: TextLinkBlockProps) 
         return (
             <>
                 {words.map((word, index) => (
-                    <TextLink
+                    <View
                         // eslint-disable-next-line react/no-array-index-key
                         key={`${word}-${index}`}
-                        style={style}
-                        onMouseDown={onMouseDown}
-                        href={href}
+                        style={{display: 'inline-flex', alignItems: 'center', flexDirection: 'row'}}
                     >
-                        {word}
-                    </TextLink>
+                        {prefixIcon && index === 0 && prefixIcon}
+                        <TextLink
+                            style={style}
+                            onMouseDown={onMouseDown}
+                            href={href}
+                        >
+                            {word}
+                        </TextLink>
+                    </View>
                 ))}
             </>
         );
@@ -45,15 +54,20 @@ function TextLinkBlock({text, style, onMouseDown, ...rest}: TextLinkBlockProps) 
     return (
         <>
             {words.map((word, index) => (
-                <TextLink
+                <View
                     // eslint-disable-next-line react/no-array-index-key
                     key={`${word}-${index}`}
-                    style={style}
-                    onMouseDown={onMouseDown}
-                    onPress={onPress}
+                    style={{display: 'inline-flex', alignItems: 'center', flexDirection: 'row'}}
                 >
-                    {word}
-                </TextLink>
+                    {prefixIcon && index === 0 && prefixIcon}
+                    <TextLink
+                        style={style}
+                        onMouseDown={onMouseDown}
+                        onPress={onPress}
+                    >
+                        {word}
+                    </TextLink>
+                </View>
             ))}
         </>
     );
