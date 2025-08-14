@@ -320,8 +320,6 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         isSubmittingAnimationRunning,
     } = params;
 
-
-
     if (isPaidAnimationRunning) {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
