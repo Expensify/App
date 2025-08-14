@@ -279,7 +279,7 @@ function MoneyRequestReceiptView({
                         }
                     }}
                     dismissError={dismissReceiptError}
-                    style={[shouldShowReceiptEmptyState ? styles.mv3 : styles.mv3, styles.flex1]}
+                    style={[styles.mb5, styles.flex1, styles.mt3]}
                     contentContainerStyle={styles.flex1}
                 >
                     {hasReceipt && (
