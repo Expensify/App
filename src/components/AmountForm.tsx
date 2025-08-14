@@ -44,7 +44,7 @@ type AmountFormProps = {
     hideCurrencySymbol?: boolean;
 
     /** Reference to the outer element */
-    forwardedRef: ForwardedRef<BaseTextInputRef>;
+    forwardedRef?: ForwardedRef<BaseTextInputRef>;
 } & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide'>;
 
 /**
