@@ -332,7 +332,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 )}
                 {shouldDisplayTransactionNavigation && <MoneyRequestReportTransactionsNavigation currentReportID={reportID} />}
             </HeaderWithBackButton>
-            {shouldUseNarrowLayout && (
+            {shouldUseNarrowLayout && (!!primaryAction || (!!applicableSecondaryActions.length && shouldDisplayWideRHPVersion)) && (
                 <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     {!!primaryAction && <View style={[styles.flexGrow4]}>{primaryActionImplementation[primaryAction]}</View>}
                     {!!applicableSecondaryActions.length && shouldDisplayWideRHPVersion && (
