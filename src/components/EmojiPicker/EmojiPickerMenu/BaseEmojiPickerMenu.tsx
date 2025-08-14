@@ -1,6 +1,6 @@
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItem} from '@shopify/flash-list';
-import {forwardRef} from 'react';
+import React, {forwardRef} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
