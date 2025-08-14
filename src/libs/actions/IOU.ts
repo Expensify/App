@@ -7563,6 +7563,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
+    const isManualDistanceRequest = isEmptyObject(validWaypoints);
 
     const optimisticReceipt: Receipt = {
         source: ReceiptGeneric as ReceiptSource,
@@ -7571,7 +7572,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
     let parameters: CreateDistanceRequestParams;
     let onyxData: OnyxData;
-    const sanitizedWaypoints = validWaypoints ? sanitizeRecentWaypoints(validWaypoints) : null;
+    const sanitizedWaypoints = !isManualDistanceRequest ? sanitizeRecentWaypoints(validWaypoints) : null;
     if (iouType === CONST.IOU.TYPE.SPLIT) {
         const {
             splitData,
@@ -7657,7 +7658,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 comment,
                 created,
                 merchant,
-                receipt: optimisticReceipt,
+                receipt: !isManualDistanceRequest ? optimisticReceipt : undefined,
                 category,
                 tag,
                 taxCode,
