@@ -8860,6 +8860,14 @@ function temporary_getMoneyRequestOptions(
 }
 
 /**
+ * Returns preferred scannable IOU option from a give IOU options
+ */
+function getPreferredScannableIOUType(iouOptions: IOUType[], report: OnyxEntry<Report>): IOUType | undefined {
+    const preferredOrder: IOUType[] = [CONST.IOU.TYPE.TRACK, CONST.IOU.TYPE.SUBMIT, CONST.IOU.TYPE.SPLIT];
+    return preferredOrder.find((type) => iouOptions.includes(type) && (type !== 'track' || isSelfDM(report)));
+}
+
+/**
  * Invoice sender, invoice receiver and auto-invited admins cannot leave
  */
 function canLeaveInvoiceRoom(report: OnyxEntry<Report>): boolean {
@@ -11654,6 +11662,7 @@ export {
     updateOptimisticParentReportAction,
     updateReportPreview,
     temporary_getMoneyRequestOptions,
+    getPreferredScannableIOUType,
     getTripIDFromTransactionParentReportID,
     buildOptimisticInvoiceReport,
     getInvoiceChatByParticipants,
