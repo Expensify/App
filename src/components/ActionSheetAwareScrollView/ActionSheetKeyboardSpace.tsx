@@ -32,7 +32,6 @@ const useAnimatedKeyboard = () => {
         {
             onStart: (e) => {
                 'worklet';
-
                 // Save the last keyboard height
                 if (e.height !== 0) {
                     heightWhenOpened.set(e.height);
@@ -136,10 +135,6 @@ function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
                 if (isClosedKeyboard || isOpeningKeyboard) {
                     return lastKeyboardHeight - keyboardHeight;
                 }
-                if (previous.state === States.KEYBOARD_CLOSING_POPOVER || (previous.state === States.KEYBOARD_OPEN && elementOffset < 0)) {
-                    const returnValue = Math.max(keyboard.heightWhenOpened.get() - keyboard.height.get() - paddingBottom, 0) + Math.max(elementOffset, 0);
-                    return returnValue;
-                }
                 return withSpring(0, SPRING_CONFIG);
             }
 
@@ -209,7 +204,7 @@ function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
                             return withSequence(withTiming(keyboardHeight, {duration: 0}), withSpring(targetOffset, SPRING_CONFIG));
                         }
 
-                        return withSpring(Math.max(elementOffset + lastKeyboardHeight, -popoverHeight), SPRING_CONFIG);
+                        return lastKeyboardHeight - keyboard.height.get();
                     }
 
                     if (hasWhiteGap && heightDifference > paddingTop) {
@@ -219,7 +214,7 @@ function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
                     return lastKeyboardHeight - keyboardHeight;
                 }
 
-                return lastKeyboardHeight;
+                return lastKeyboardHeight - keyboardHeight;
             }
 
             case States.KEYBOARD_CLOSING_POPOVER: {
@@ -235,7 +230,7 @@ function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
                 }
 
                 if (keyboard.height.get() > 0) {
-                    const returnValue = keyboard.heightWhenOpened.get() - keyboard.height.get() + elementOffset;
+                    const returnValue = keyboard.heightWhenOpened.get() - keyboard.height.get();
                     return returnValue;
                 }
 
