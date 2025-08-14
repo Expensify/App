@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
-import type {ForwardedRef, MutableRefObject, ReactNode, RefAttributes} from 'react';
-import React, {createRef, forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {ForwardedRef, MutableRefObject, ReactNode} from 'react';
+import React, {createRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
 import {useInputBlurContext} from '@components/InputBlurContext';
@@ -98,6 +98,9 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
 
     /** Prevents the submit button from triggering blur on mouse down. */
     shouldPreventDefaultFocusOnPressSubmit?: boolean;
+
+    /** Reference to the outer element */
+    forwardedRef?: ForwardedRef<FormRef>,
 };
 
 function FormProvider(
@@ -115,9 +118,9 @@ function FormProvider(
         shouldRenderFooterAboveSubmit = false,
         shouldUseStrictHtmlTagValidation = false,
         shouldPreventDefaultFocusOnPressSubmit = false,
+        forwardedRef,
         ...rest
     }: FormProviderProps,
-    forwardedRef: ForwardedRef<FormRef>,
 ) {
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
     const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`, {canBeMissing: true});
@@ -468,6 +471,6 @@ function FormProvider(
 
 FormProvider.displayName = 'Form';
 
-export default forwardRef(FormProvider) as <TFormID extends OnyxFormKey>(props: FormProviderProps<TFormID> & RefAttributes<FormRef>) => ReactNode;
+export default FormProvider as <TFormID extends OnyxFormKey>(props: FormProviderProps<TFormID>) => ReactNode;
 
 export type {FormProviderProps};
