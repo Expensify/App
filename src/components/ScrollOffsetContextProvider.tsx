@@ -1,4 +1,5 @@
 import type {ParamListBase} from '@react-navigation/native';
+import {findFocusedRoute} from '@react-navigation/native';
 import React, {createContext, useCallback, useEffect, useMemo, useRef} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -47,19 +48,14 @@ function getKey(route: PlatformStackRouteProp<ParamListBase> | NavigationPartial
         return `${route.name}-${route.params.policyID}`;
     }
 
-    // Handle SEARCH.ROOT screens where policyID might be embedded in the search query
+    // Handle SEARCH screens with query parameters
     if (route.name === SCREENS.SEARCH.ROOT && route.params && 'q' in route.params && typeof route.params.q === 'string') {
-        const policyIDMatch = route.params.q.match(/policyID:([^\\s]+)/);
-        if (policyIDMatch) {
-            return `${route.name}-${policyIDMatch[1]}`;
-        }
+        // Encode the query to handle spaces and special characters
+        const encodedQuery = encodeURIComponent(route.params.q);
+        return `${route.name}-${encodedQuery}`;
     }
 
-    // Handle other SEARCH screens with reportID parameter
-    if (route.params && 'reportID' in route.params && typeof route.params.reportID === 'string') {
-        return `${route.name}-${route.params.reportID}`;
-    }
-
+    // For other routes, just use route name
     return `${route.name}-global`;
 }
 
@@ -92,20 +88,49 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
         return scrollOffsetsRef.current[getKey(route)];
     }, []);
 
-    const cleanStaleScrollOffsets: ScrollOffsetContextValue['cleanStaleScrollOffsets'] = useCallback((state) => {
-        const sidebarRoutes = state.routes.filter((route) => isSidebarScreenName(route.name));
+    const cleanSearchScreenOffsets = useCallback((keys: string[], currentKey: string | null, isSearchMoneyRequestReport: boolean) => {
+        keys.forEach((key) => {
+            const shouldDeleteKey = key.startsWith(SCREENS.SEARCH.ROOT) && key !== currentKey && !isSearchMoneyRequestReport;
 
-        const searchRoutes = state.routes.filter((route) => route.name === SCREENS.SEARCH.ROOT);
-        const allRelevantRoutes = [...sidebarRoutes, ...searchRoutes];
-        const scrollOffsetKeysOfExistingScreens = allRelevantRoutes.map((route) => getKey(route));
-
-        for (const key of Object.keys(scrollOffsetsRef.current)) {
-            const isSearchRoute = key.startsWith('Search_Root-');
-            if (!isSearchRoute && !scrollOffsetKeysOfExistingScreens.includes(key)) {
+            if (shouldDeleteKey) {
                 delete scrollOffsetsRef.current[key];
             }
-        }
+        });
     }, []);
+
+    const cleanNonSearchScreenOffsets = useCallback((keys: string[], existingScreenKeys: string[]) => {
+        keys.forEach((key) => {
+            const shouldDeleteKey = !key.startsWith(SCREENS.SEARCH.ROOT) && !existingScreenKeys.includes(key);
+
+            if (shouldDeleteKey) {
+                delete scrollOffsetsRef.current[key];
+            }
+        });
+    }, []);
+
+    const cleanStaleScrollOffsets: ScrollOffsetContextValue['cleanStaleScrollOffsets'] = useCallback(
+        (state) => {
+            const sidebarRoutes = state.routes.filter((route) => isSidebarScreenName(route.name));
+            const existingScreenKeys = sidebarRoutes.map((route) => getKey(route));
+
+            const focusedRoute = findFocusedRoute(state);
+            const routeName = focusedRoute?.name;
+
+            const isSearchScreen = routeName === SCREENS.SEARCH.ROOT;
+            const isSearchMoneyRequestReport = routeName === SCREENS.SEARCH.MONEY_REQUEST_REPORT || routeName === SCREENS.SEARCH.REPORT_RHP;
+
+            const scrollOffsetKeys = Object.keys(scrollOffsetsRef.current);
+
+            if (isSearchScreen) {
+                const currentKey = focusedRoute ? getKey(focusedRoute) : null;
+                cleanSearchScreenOffsets(scrollOffsetKeys, currentKey, isSearchMoneyRequestReport);
+                return;
+            }
+
+            cleanNonSearchScreenOffsets(scrollOffsetKeys, existingScreenKeys);
+        },
+        [cleanSearchScreenOffsets, cleanNonSearchScreenOffsets],
+    );
 
     const saveScrollIndex: ScrollOffsetContextValue['saveScrollIndex'] = useCallback((route, scrollIndex) => {
         scrollOffsetsRef.current[getKey(route)] = scrollIndex;
@@ -115,6 +140,7 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
         if (!scrollOffsetsRef.current) {
             return;
         }
+
         return scrollOffsetsRef.current[getKey(route)];
     }, []);
 
