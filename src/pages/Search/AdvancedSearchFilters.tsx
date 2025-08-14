@@ -632,7 +632,8 @@ function AdvancedSearchFilters() {
     const shouldDisplayCardFilter = shouldDisplayFilter(Object.keys(allCards).length, areCardsEnabled);
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length !== 0);
-    const shouldDisplayGroupCurrencyFilter = !!groupBy;
+    const shouldDisplayGroupByFilter = !!groupBy;
+    const shouldDisplayGroupCurrencyFilter = groupBy === CONST.SEARCH.GROUP_BY.FROM || groupBy === CONST.SEARCH.GROUP_BY.CARD;
 
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
     if (!Object.keys(typeFiltersKeys).includes(currentType)) {
@@ -733,6 +734,9 @@ function AdvancedSearchFilters() {
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, currentType, groupBy, translate);
                     } else if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
+                        if (!shouldDisplayGroupByFilter) {
+                            return;
+                        }
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY) {
                         if (!shouldDisplayGroupCurrencyFilter) {
