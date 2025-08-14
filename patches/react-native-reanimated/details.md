@@ -15,7 +15,7 @@
 - E/App issue: 🛑
 - PR Introducing Patch:  [NR 0.75 upgrade](https://github.com/Expensify/App/pull/45289)
 
-### [react-native-reanimated+3.19.1+001+correctly-handle-Easing.bezier](react-native-reanimated+3.19.1+002+dontWhitelistTextProp.patch)
+### [react-native-reanimated+3.19.1+003+correctly-handle-Easing.bezier](react-native-reanimated+3.19.1+003+correctly-handle-Easing.bezier.patch)
 
 - Reason: The Easing.bezier animation doesn't work on web
 - Upstream PR/issue: https://github.com/software-mansion/react-native-reanimated/pull/8049
