@@ -22,7 +22,7 @@ import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OriginalMessageIOU, Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -88,8 +88,7 @@ function useSelectedTransactionsActions({
         const transactionsWithActions = selectedTransactionIDs.map((transactionID) => ({
             transactionID,
             action: iouActions.find((action) => {
-                // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-                const IOUTransactionID = (getOriginalMessage(action) as OriginalMessageIOU | undefined)?.IOUTransactionID;
+                const IOUTransactionID = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action)?.IOUTransactionID;
                 return transactionID === IOUTransactionID;
             }),
         }));
