@@ -5,12 +5,11 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo,
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
-import Animated, {FadeOutUp, LinearTransition} from 'react-native-reanimated';
+import Animated, {Easing, FadeOutUp, LinearTransition} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
-import {easing} from '@components/Modal/ReanimatedModal/utils';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
@@ -39,6 +38,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {createItemHeightCalculator} from './itemHeightCalculator';
 import ITEM_HEIGHTS from './itemHeights';
 import type {SearchQueryJSON} from './types';
+
+const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
 
 const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
 
