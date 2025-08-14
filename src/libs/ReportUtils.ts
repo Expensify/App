@@ -141,6 +141,7 @@ import {
     getActionableJoinRequestPendingReportAction,
     getAllReportActions,
     getCardIssuedMessage,
+    getChangedApproverActionMessage,
     getDismissedViolationMessageText,
     getExportIntegrationLastMessageText,
     getIntegrationSyncFailedMessage,
@@ -728,6 +729,12 @@ type OptimisticIOUReport = Pick<
     | 'fieldList'
     | 'parentReportActionID'
 >;
+
+type OptimisticChangedApproverReportAction = Pick<
+    ReportAction,
+    'actionName' | 'actorAccountID' | 'avatar' | 'created' | 'message' | 'originalMessage' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction'
+>;
+
 type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>>;
 
 type CustomIcon = {
@@ -5244,6 +5251,10 @@ function getReportNameInternal({
         return getPolicyChangeMessage(parentReportAction);
     }
 
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
+        return getChangedApproverActionMessage(parentReportAction);
+    }
+
     if (isMoneyRequestAction(parentReportAction)) {
         const originalMessage = getOriginalMessage(parentReportAction);
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
@@ -7583,6 +7594,38 @@ function buildOptimisticResolvedDuplicatesReportAction(): OptimisticDismissedVio
         ],
         reportActionID: rand64(),
         shouldShow: true,
+    };
+}
+
+function buildOptimisticChangeApproverReportAction(managerID: number): OptimisticChangedApproverReportAction {
+    const created = DateUtils.getDBTime();
+    return {
+        actionName: managerID === currentUserAccountID ? CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL : CONST.REPORT.ACTIONS.TYPE.ACTION_REROUTE,
+        actorAccountID: currentUserAccountID,
+        avatar: getCurrentUserAvatar(),
+        created: DateUtils.getDBTime(),
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                text: `changed the approver to ${getDisplayNameForParticipant({accountID: managerID})}`,
+                html: `changed the approver to <mention-user accountID="${managerID}"/>`,
+            },
+        ],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+            },
+        ],
+        originalMessage: {
+            isNewDot: true,
+            lastModified: created,
+            mentionedAccountIDs: [managerID],
+        },
+        shouldShow: false,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        reportActionID: rand64(),
     };
 }
 
@@ -11418,6 +11461,7 @@ export {
     buildOptimisticDetachReceipt,
     buildParticipantsFromAccountIDs,
     buildReportNameFromParticipantNames,
+    buildOptimisticChangeApproverReportAction,
     buildTransactionThread,
     canAccessReport,
     isReportNotFound,

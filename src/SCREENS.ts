@@ -226,6 +226,7 @@ const SCREENS = {
         DEBUG: 'Debug',
         ADD_UNREPORTED_EXPENSE: 'AddUnreportedExpense',
         SCHEDULE_CALL: 'ScheduleCall',
+        REPORT_CHANGE_APPROVER: 'Report_Change_Approver',
         MERGE_TRANSACTION: 'MergeTransaction',
     },
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
@@ -762,7 +763,10 @@ const SCREENS = {
         BOOK: 'ScheduleCall_Book',
         CONFIRMATION: 'ScheduleCall_Confirmation',
     },
-
+    REPORT_CHANGE_APPROVER: {
+        ROOT: 'Report_Change_Approver_Root',
+        ADD_APPROVER: 'Report_Change_Approver_Add_Approver',
+    },
     TEST_TOOLS_MODAL: {
         ROOT: 'TestToolsModal_Root',
     },

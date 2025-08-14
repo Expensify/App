@@ -850,6 +850,10 @@ type MergeFailureDescriptionGenericParams = {
     email: string;
 };
 
+type ChangedApproverMessageParams = {managerID: number};
+
+type WorkflowSettingsParam = {workflowSettingLink: string};
+
 type SubmittedWithMemoParams = {
     memo?: string;
 };
@@ -1143,5 +1147,7 @@ export type {
     MergeSuccessDescriptionParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
+    ChangedApproverMessageParams,
+    WorkflowSettingsParam,
     SubmittedWithMemoParams,
 };
