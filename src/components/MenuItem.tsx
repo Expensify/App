@@ -759,6 +759,7 @@ function MenuItem(
                                                                         width={iconWidth}
                                                                         height={iconHeight}
                                                                         fill={
+                                                                            // eslint-disable-next-line no-nested-ternary
                                                                             displayInDefaultIconColor
                                                                                 ? undefined
                                                                                 : typeof iconFill === 'function'
