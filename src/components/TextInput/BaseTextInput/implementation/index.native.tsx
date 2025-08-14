@@ -1,6 +1,5 @@
 import {Str} from 'expensify-common';
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, ViewStyle} from 'react-native';
 import {ActivityIndicator, StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -79,9 +78,9 @@ function BaseTextInput(
         onClearInput,
         iconContainerStyle,
         shouldUseDefaultLineHeightForPrefix = true,
+        ref,
         ...props
     }: BaseTextInputProps,
-    ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
     const isMarkdownEnabled = type === 'markdown';
@@ -367,7 +366,7 @@ function BaseTextInput(
                                 </View>
                             )}
                             <InputComponent
-                                ref={(element: AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null): void => {
+                                ref={(element: HTMLFormElement | AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null): void => {
                                     const baseTextInputRef = element as BaseTextInputRef | null;
                                     if (typeof ref === 'function') {
                                         ref(baseTextInputRef);
@@ -376,7 +375,8 @@ function BaseTextInput(
                                         ref.current = baseTextInputRef;
                                     }
 
-                                    input.current = element;
+                                    const elementRef = element as AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null
+                                    input.current = elementRef;
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
@@ -513,4 +513,4 @@ function BaseTextInput(
 
 BaseTextInput.displayName = 'BaseTextInput';
 
-export default forwardRef(BaseTextInput);
+export default BaseTextInput;
