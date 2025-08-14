@@ -72,6 +72,9 @@ type ReportActionItemImageProps = {
 
     /** The report associated with this image, if any. Used to pass report directly instead of relaying on context. */
     report?: OnyxEntry<Report>;
+
+    /** Whether to use the thumbnail image instead of the full image */
+    shouldUseThumbnailImage?: boolean;
 };
 
 /**
@@ -98,6 +101,7 @@ function ReportActionItemImage({
     onPress,
     shouldUseFullHeight,
     report: reportProp,
+    shouldUseThumbnailImage,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -120,7 +124,7 @@ function ReportActionItemImage({
         );
     }
 
-    const attachmentModalSource = tryResolveUrlFromApiRoot(image ?? '');
+    const originalImageSource = tryResolveUrlFromApiRoot(image ?? '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
 
@@ -130,8 +134,11 @@ function ReportActionItemImage({
         propsObj = {isEReceipt: true, transactionID: transaction.transactionID, iconSize: isSingleImage ? 'medium' : ('small' as IconSize)};
     } else if (thumbnail && !isLocalFile) {
         propsObj = {
-            shouldUseThumbnailImage: true,
-            source: thumbnailSource,
+            shouldUseThumbnailImage: shouldUseThumbnailImage ?? true,
+
+            // PDF won't have originalImage that we can use. Use thumbnail instead
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            source: shouldUseThumbnailImage || (filename && Str.isPDF(filename)) ? thumbnailSource : originalImageSource,
             fallbackIcon: Expensicons.Receipt,
             fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
             isAuthTokenRequired: true,
@@ -139,15 +146,15 @@ function ReportActionItemImage({
             // If the image is full height, use initial position to make sure it will grow properly to fill the container
             shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
         };
-    } else if (isLocalFile && filename && Str.isPDF(filename) && typeof attachmentModalSource === 'string') {
-        propsObj = {isPDFThumbnail: true, source: attachmentModalSource};
+    } else if (isLocalFile && filename && Str.isPDF(filename) && typeof originalImageSource === 'string') {
+        propsObj = {isPDFThumbnail: true, source: originalImageSource};
     } else {
         propsObj = {
             isThumbnail,
             ...(isThumbnail && {iconSize: (isSingleImage ? 'medium' : 'small') as IconSize, fileExtension}),
-            shouldUseThumbnailImage: true,
+            shouldUseThumbnailImage: shouldUseThumbnailImage ?? true,
             isAuthTokenRequired: false,
-            source: thumbnail ?? image ?? '',
+            source: shouldUseThumbnailImage ? (thumbnail ?? image ?? '') : originalImageSource,
 
             // If the image is full height, use initial position to make sure it will grow properly to fill the container
             shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
