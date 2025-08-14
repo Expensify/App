@@ -421,6 +421,9 @@ jobs:
         id: getIOSVersion
         run: echo "IOS_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')" >> "$GITHUB_OUTPUT"
 
+      - name: Install iOS 18.2 SDK
+        run: xcodebuild -downloadPlatform iOS
+
       - name: Build iOS HybridApp
         if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
         run: bundle exec fastlane ios build_hybrid
