@@ -6,7 +6,7 @@ import ROUTES from '@src/ROUTES';
 
 function CountrySelection() {
     const onCountrySelected = useCallback(() => {
-        navigateToBankAccountRoute(CONST.DEFAULT_NUMBER_ID.toString(), ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE);
+        navigateToBankAccountRoute(undefined, ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE);
     }, []);
 
     return (
