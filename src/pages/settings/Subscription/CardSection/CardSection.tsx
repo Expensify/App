@@ -59,8 +59,9 @@ function CardSection() {
     const {isOffline} = useNetwork();
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
     const cardMonth = useMemo(() => DateUtils.getMonthNames()[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth]);
-    const hasFailedBillingWithAuthenticationRequired = useMemo(
-        () => purchaseList?.[0]?.message.billingType === CONST.BILLING.TYPE_STRIPE_FAILED_AUTHENTICATION,
+    const hasFailedLastBilling = useMemo(
+        () => purchaseList?.[0]?.message.billingType === CONST.BILLING.TYPE_STRIPE_FAILED_AUTHENTICATION
+         || purchaseList?.[0]?.message.billingType === CONST.BILLING.TYPE_FAILED_2018,
         [purchaseList],
     );
 
@@ -108,12 +109,12 @@ function CardSection() {
     useEffect(() => {
         if (
             !authenticationLink ||
-            (privateStripeCustomerID?.status !== CONST.STRIPE_SCA_AUTH_STATUSES.CARD_AUTHENTICATION_REQUIRED && !hasFailedBillingWithAuthenticationRequired)
+            (privateStripeCustomerID?.status !== CONST.STRIPE_SCA_AUTH_STATUSES.CARD_AUTHENTICATION_REQUIRED && !hasFailedLastBilling)
         ) {
             return;
         }
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
-    }, [authenticationLink, privateStripeCustomerID?.status, hasFailedBillingWithAuthenticationRequired]);
+    }, [authenticationLink, privateStripeCustomerID?.status, hasFailedLastBilling]);
 
     const handleAuthenticatePayment = () => {
         verifySetupIntent(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, false);
