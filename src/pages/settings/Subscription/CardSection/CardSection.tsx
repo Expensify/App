@@ -60,7 +60,7 @@ function CardSection() {
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
     const cardMonth = useMemo(() => DateUtils.getMonthNames()[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth]);
     const hasFailedBillingWithAuthenticationRequired = useMemo(
-        () => purchaseList?.[0].message.billingType === CONST.BILLING.TYPE_STRIPE_FAILED_AUTHENTICATION,
+        () => purchaseList?.[0]?.message.billingType === CONST.BILLING.TYPE_STRIPE_FAILED_AUTHENTICATION,
         [purchaseList],
     );
 
