@@ -174,11 +174,16 @@ function SearchPage({route}: SearchPageProps) {
                         clearSelectedTransactions(undefined, true);
                     },
                     shouldCloseModalOnSelect: true,
+                    shouldCallAfterModalHide: true,
                 },
                 {
                     text: translate('export.expenseLevelExport'),
                     icon: Expensicons.Table,
                     onSelected: () => {
+                        if (isOffline) {
+                            setIsOfflineModalVisible(true);
+                            return;
+                        }
                         // The report level export template is not policy specific, so we don't need to pass a policyID
                         beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
                     },
