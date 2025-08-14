@@ -19,7 +19,6 @@ import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
-import useLastAccessedReport from '@hooks/useLastAccessedReport';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
@@ -44,6 +43,7 @@ import {
     getCombinedReportActions,
     getFilteredReportActionsForReportView,
     getOneTransactionThreadReportID,
+    getTransactionIDFromReportAction,
     isCreatedAction,
     isDeletedParentAction,
     isMoneyRequestAction,
@@ -53,6 +53,7 @@ import {
 import {
     canEditReportAction,
     canUserPerformWriteAction,
+    findLastAccessedReport,
     getParticipantsAccountIDsForDisplay,
     getReportOfflinePendingActionAndErrors,
     isChatThread,
@@ -166,8 +167,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
 
-    const {lastAccessReportID} = useLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), !!route.params.openOnAdminRoom);
-
     useEffect(() => {
         // Don't update if there is a reportID in the params already
         if (route.params.reportID) {
@@ -179,15 +178,17 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
+        const lastAccessedReportID = findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), !!route.params.openOnAdminRoom)?.reportID;
+
         // It's possible that reports aren't fully loaded yet
         // in that case the reportID is undefined
-        if (!lastAccessReportID) {
+        if (!lastAccessedReportID) {
             return;
         }
 
-        Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessReportID}`);
-        navigation.setParams({reportID: lastAccessReportID});
-    }, [lastAccessReportID, navigation, route]);
+        Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
+        navigation.setParams({reportID: lastAccessedReportID});
+    }, [isBetaEnabled, navigation, route]);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const chatWithAccountManagerText = useMemo(() => {
@@ -295,7 +296,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // If the count is too high (equal to or exceeds the web pagination size / 50) and there are no cached messages in the report,
     // OpenReport will be called each time the user scrolls up the report a bit, clicks on report preview, and then goes back.
     const isLinkedMessagePageReady = isLinkedMessageAvailable && (reportActions.length - indexOfLinkedMessage >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || doesCreatedActionExists());
-    const {transactions: allReportTransactions} = useTransactionsAndViolationsForReport(reportIDFromRoute);
+    const {transactions: allReportTransactions, violations: allReportViolations} = useTransactionsAndViolationsForReport(reportIDFromRoute);
 
     const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions), [allReportTransactions, reportActions]);
     // wrapping in useMemo because this is array operation and can cause performance issues
@@ -370,12 +371,16 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 
     if (isTransactionThreadView) {
+        const transactionID = getTransactionIDFromReportAction(parentReportAction);
+        const transactionViolations = transactionID && allReportViolations ? allReportViolations[transactionID] : undefined;
+
         headerView = (
             <MoneyRequestHeader
                 report={report}
                 policy={policy}
                 parentReportAction={parentReportAction}
                 onBackButtonPress={onBackButtonPress}
+                transactionViolations={transactionViolations}
             />
         );
     }
@@ -793,12 +798,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 >
                     <FullPageNotFoundView
                         shouldShow={shouldShowNotFoundPage}
-                        subtitleKey={shouldShowNotFoundLinkedAction ? '' : 'notFound.noAccess'}
+                        subtitleKey={shouldShowNotFoundLinkedAction ? 'notFound.commentYouLookingForCannotBeFound' : 'notFound.noAccess'}
                         subtitleStyle={[styles.textSupporting]}
                         shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={shouldShowNotFoundLinkedAction ? navigateToEndOfReport : Navigation.goBack}
                         shouldShowLink={shouldShowNotFoundLinkedAction}
-                        linkKey="notFound.noAccess"
+                        linkTranslationKey="notFound.goToChatInstead"
+                        subtitleKeyBelowLink={shouldShowNotFoundLinkedAction ? 'notFound.contactConcierge' : ''}
                         onLinkPress={navigateToEndOfReport}
                         shouldDisplaySearchRouter
                     >

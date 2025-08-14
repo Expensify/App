@@ -7,6 +7,8 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {createDraftTransaction, removeDraftTransaction} from '@libs/actions/TransactionEdit';
 import {convertToBackendAmount, isValidCurrencyCode} from '@libs/CurrencyUtils';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
@@ -61,13 +63,14 @@ type IOURequestStepAmountProps = WithCurrentUserPersonalDetailsProps &
 function IOURequestStepAmount({
     report,
     route: {
-        params: {iouType, reportID, transactionID = '-1', backTo, pageIndex, action, currency: selectedCurrency = '', backToReport},
+        params: {iouType, reportID, transactionID = '-1', backTo, pageIndex, action, currency: selectedCurrency = '', backToReport, reportActionID},
     },
     transaction,
     currentUserPersonalDetails,
     shouldKeepUserInput = false,
 }: IOURequestStepAmountProps) {
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const textInput = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isSaveButtonPressed = useRef(false);
@@ -92,6 +95,9 @@ function IOURequestStepAmount({
     const {amount: transactionAmount} = getTransactionDetails(currentTransaction) ?? {amount: 0};
     const {currency: originalCurrency} = getTransactionDetails(isEditing && !isEmptyObject(draftTransaction) ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
     const currency = isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
+    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
@@ -209,6 +215,7 @@ function IOURequestStepAmount({
                             attendees: transaction?.comment?.attendees,
                         },
                         backToReport,
+                        shouldGenerateTransactionThreadReport,
                     });
                     return;
                 }
@@ -315,6 +322,7 @@ function IOURequestStepAmount({
             testID={IOURequestStepAmount.displayName}
             shouldShowWrapper={!!backTo || isEditing}
             includeSafeAreaPaddingBottom
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             <MoneyRequestAmountForm
                 isEditing={!!backTo || isEditing}
