@@ -213,7 +213,7 @@ function SearchAutocompleteInput(
                         textInputContainerStyles={[styles.borderNone, styles.pb0, styles.pl3]}
                         inputStyle={[inputWidth, styles.lineHeightUndefined]}
                         placeholderTextColor={theme.textSupporting}
-                        loadingSpinnerStyle={[styles.mt0, styles.mr0, styles.justifyContentCenter]}
+                        loadingSpinnerStyle={[styles.mt0, styles.mr1, styles.justifyContentCenter]}
                         onFocus={() => {
                             onFocus?.();
                             autocompleteListRef?.current?.updateExternalTextInputFocus(true);
@@ -233,6 +233,7 @@ function SearchAutocompleteInput(
                         selection={selection}
                         shouldShowClearButton={!!value && !isSearchingForReports}
                         onClear={clearFilters}
+                        clearButtonStyle={styles.mr1}
                     />
                 </View>
             </Animated.View>
