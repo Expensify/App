@@ -4,7 +4,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import type TextWithTooltipProps from './types';
 
-function TextWithTooltip({text, style, numberOfLines = 1}: TextWithTooltipProps) {
+function TextWithTooltip({text, style, numberOfLines = 1, forwardedFSClass}: TextWithTooltipProps) {
     const styles = useThemeStyles();
     const processedTextArray = EmojiUtils.splitTextWithEmojis(text);
 
@@ -12,6 +12,7 @@ function TextWithTooltip({text, style, numberOfLines = 1}: TextWithTooltipProps)
         <Text
             style={style}
             numberOfLines={numberOfLines}
+            fsClass={forwardedFSClass}
         >
             {processedTextArray.length !== 0 ? EmojiUtils.getProcessedText(processedTextArray, [style, styles.emojisFontFamily]) : text}
         </Text>

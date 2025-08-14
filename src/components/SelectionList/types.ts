@@ -16,6 +16,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType, SearchGroupBy} from '@components/Search/types';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 import type SpendCategorySelectorListItem from '@pages/workspace/categories/SpendCategorySelectorListItem';
@@ -397,16 +398,17 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     shouldUseDefaultRightHandSideCheckmark?: boolean;
 };
 
-type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
-    /** Errors that this user may contain */
-    errors?: Errors | ReceiptErrors | null;
+type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
+    ForwardedFSClassProps & {
+        /** Errors that this user may contain */
+        errors?: Errors | ReceiptErrors | null;
 
-    /** The type of action that's pending  */
-    pendingAction?: PendingAction | null;
+        /** The type of action that's pending  */
+        pendingAction?: PendingAction | null;
 
-    /** The React element that will be shown as a footer */
-    FooterComponent?: ReactElement;
-};
+        /** The React element that will be shown as a footer */
+        FooterComponent?: ReactElement;
+    };
 
 type SplitListItemType = ListItem &
     SplitExpense & {
