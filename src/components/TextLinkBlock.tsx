@@ -5,7 +5,9 @@
 import React, {memo, useMemo} from 'react';
 import type {MouseEventHandler} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
-import {View} from 'react-native-web';
+import {View} from 'react-native';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Text from './Text';
 import TextLink from './TextLink';
 import type {LinkProps, PressProps} from './TextLink';
 
@@ -25,6 +27,7 @@ type TextLinkBlockProps = (LinkProps | PressProps) & {
 
 function TextLinkBlock({text, style, onMouseDown, prefixIcon, ...rest}: TextLinkBlockProps) {
     const words = useMemo(() => text.match(/(\S+\s*)/g) ?? [], [text]);
+    const styles = useThemeStyles();
 
     if ('href' in rest) {
         const {href} = rest as LinkProps;
@@ -34,9 +37,10 @@ function TextLinkBlock({text, style, onMouseDown, prefixIcon, ...rest}: TextLink
                     <View
                         // eslint-disable-next-line react/no-array-index-key
                         key={`${word}-${index}`}
-                        style={{display: 'inline-flex', alignItems: 'center', flexDirection: 'row'}}
+                        style={[styles.dInlineFlex, styles.alignItemsCenter, styles.flexRow]}
                     >
                         {prefixIcon && index === 0 && prefixIcon}
+                        {!!prefixIcon && index === 0 && <Text> </Text>}
                         <TextLink
                             style={style}
                             onMouseDown={onMouseDown}
@@ -57,7 +61,7 @@ function TextLinkBlock({text, style, onMouseDown, prefixIcon, ...rest}: TextLink
                 <View
                     // eslint-disable-next-line react/no-array-index-key
                     key={`${word}-${index}`}
-                    style={{display: 'inline-flex', alignItems: 'center', flexDirection: 'row'}}
+                    style={[styles.dInlineFlex, styles.alignItemsCenter, styles.flexRow]}
                 >
                     {prefixIcon && index === 0 && prefixIcon}
                     <TextLink
