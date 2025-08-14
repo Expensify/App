@@ -1,9 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalReportID} from '@libs/ReportUtils';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,6 +21,10 @@ type DuplicateTransactionItemProps = {
 
 function DuplicateTransactionItem({transaction, index, allReports, policies}: DuplicateTransactionItemProps) {
     const styles = useThemeStyles();
+    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: (wallet) => wallet?.tierName, canBeMissing: false});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const personalDetails = usePersonalDetails();
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {canBeMissing: false});
 
@@ -28,9 +34,27 @@ function DuplicateTransactionItem({transaction, index, allReports, policies}: Du
         return IOUTransactionID === transaction?.transactionID;
     });
 
+    const originalReportID = getOriginalReportID(report?.reportID, action);
+
+    const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {
+        canBeMissing: true,
+    });
+
+    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action?.reportActionID}`, {
+        canBeMissing: true,
+    });
+
+    const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID}`, {
+        canBeMissing: true,
+        selector: (transactionItem) => transactionItem?.errorFields?.route ?? null,
+    });
+
     if (!action || !report) {
         return null;
     }
+
+    const reportDraftMessage = draftMessage?.[action.reportActionID];
+    const matchingDraftMessage = typeof reportDraftMessage === 'string' ? reportDraftMessage : reportDraftMessage?.message;
 
     return (
         <View style={styles.pb2}>
@@ -47,6 +71,13 @@ function DuplicateTransactionItem({transaction, index, allReports, policies}: Du
                 isMostRecentIOUReportAction={false}
                 isFirstVisibleReportAction={false}
                 shouldDisplayContextMenu={false}
+                userWalletTierName={userWalletTierName}
+                isUserValidated={isUserValidated}
+                personalDetails={personalDetails}
+                draftMessage={matchingDraftMessage}
+                emojiReactions={emojiReactions}
+                linkedTransactionRouteError={linkedTransactionRouteError}
+                userBillingFundID={userBillingFundID}
             />
         </View>
     );

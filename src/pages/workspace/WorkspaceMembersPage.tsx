@@ -51,7 +51,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getAccountIDsByLogins, getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
-import {getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee, isExpensifyTeam, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminUtils} from '@libs/PolicyUtils';
+import {getDefaultApprover, getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee, isExpensifyTeam, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminUtils} from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
@@ -108,7 +108,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const prevPersonalDetails = usePrevious(personalDetails);
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const filterEmployees = useCallback(
         (employee?: PolicyEmployee) => {
@@ -145,15 +145,15 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const policyID = route.params.policyID;
 
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
-    const policyApproverEmail = policy?.approver;
     const {approvalWorkflows} = useMemo(
         () =>
             convertPolicyEmployeesToApprovalWorkflows({
                 employees: policy?.employeeList ?? {},
-                defaultApprover: policyApproverEmail ?? policy?.owner ?? '',
+                defaultApprover: getDefaultApprover(policy),
                 personalDetails: personalDetails ?? {},
+                localeCompare,
             }),
-        [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail],
+        [personalDetails, policy, localeCompare],
     );
 
     const canSelectMultiple = isPolicyAdmin && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
@@ -482,7 +482,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const normalizedSearchQuery = StringUtils.normalize(searchQuery);
         return memberText.includes(normalizedSearchQuery) || alternateText.includes(normalizedSearchQuery);
     }, []);
-    const sortMembers = useCallback((memberOptions: MemberOption[]) => sortAlphabetically(memberOptions, 'text'), []);
+    const sortMembers = useCallback((memberOptions: MemberOption[]) => sortAlphabetically(memberOptions, 'text', localeCompare), [localeCompare]);
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers);
 
     useEffect(() => {

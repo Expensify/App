@@ -1,6 +1,7 @@
 import cloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {
     ASTNode,
     QueryFilter,
@@ -11,6 +12,7 @@ import type {
     SearchQueryJSON,
     SearchQueryString,
     SearchStatus,
+    SearchWithdrawalType,
     UserFriendlyKey,
 } from '@components/Search/types';
 import CONST from '@src/CONST';
@@ -26,7 +28,6 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
-import localeCompare from './LocaleCompare';
 import Log from './Log';
 import {validateAmount} from './MoneyRequestUtils';
 import navigationRef from './Navigation/navigationRef';
@@ -39,6 +40,8 @@ import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
 
 type FilterKeys = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
+
+type TodoSearchType = typeof CONST.SEARCH.SEARCH_KEYS.SUBMIT | typeof CONST.SEARCH.SEARCH_KEYS.APPROVE | typeof CONST.SEARCH.SEARCH_KEYS.PAY | typeof CONST.SEARCH.SEARCH_KEYS.EXPORT;
 
 // This map contains chars that match each operator
 const operatorToCharMap = {
@@ -85,6 +88,8 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
     paid: 'paid',
     exported: 'exported',
     posted: 'posted',
+    withdrawalType: 'withdrawal-type',
+    withdrawn: 'withdrawn',
     groupBy: 'group-by',
     title: 'title',
     assignee: 'assignee',
@@ -273,24 +278,37 @@ function getUpdatedFilterValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FI
 
 /**
  * @private
+ * This is a custom collator only for getQueryHashes function.
+ * The reason for this is that the computation of hashes should not depend on the locale.
+ * This is used to ensure that hashes stay consistent.
+ */
+const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'});
+
+/**
+ * @private
  * Computes and returns a numerical hash for a given queryJSON.
  * Sorts the query keys and values to ensure that hashes stay consistent.
  */
-function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSearchHash: number} {
+function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSearchHash: number; similarSearchHash: number} {
     let orderedQuery = '';
     orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${query.type}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${Array.isArray(query.status) ? query.status.join(',') : query.status}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${query.groupBy}`;
 
+    let similarSearchHashInput = orderedQuery;
+
     query.flatFilters
         .map((filter) => {
+            similarSearchHashInput += filter.key;
+
             const filters = cloneDeep(filter.filters);
-            filters.sort((a, b) => localeCompare(a.value.toString(), b.value.toString()));
+            filters.sort((a, b) => customCollator.compare(a.value.toString(), b.value.toString()));
             return buildFilterValuesString(filter.key, filters);
         })
         .sort()
         .forEach((filterString) => (orderedQuery += ` ${filterString}`));
 
+    const similarSearchHash = hashText(similarSearchHashInput, 2 ** 32);
     const recentSearchHash = hashText(orderedQuery, 2 ** 32);
 
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${query.sortBy}`;
@@ -300,7 +318,7 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
     }
     const primaryHash = hashText(orderedQuery, 2 ** 32);
 
-    return {primaryHash, recentSearchHash};
+    return {primaryHash, recentSearchHash, similarSearchHash};
 }
 
 /**
@@ -331,9 +349,10 @@ function buildSearchQueryJSON(query: SearchQueryString) {
         // Add the full input and hash to the results
         result.inputQuery = query;
         result.flatFilters = flatFilters;
-        const {primaryHash, recentSearchHash} = getQueryHashes(result);
+        const {primaryHash, recentSearchHash, similarSearchHash} = getQueryHashes(result);
         result.hash = primaryHash;
         result.recentSearchHash = recentSearchHash;
+        result.similarSearchHash = similarSearchHash;
 
         if (result.policyID && typeof result.policyID === 'string') {
             // Ensure policyID is always an array for consistency
@@ -443,6 +462,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.BILLABLE ||
                     filterKey === FILTER_KEYS.TITLE ||
                     filterKey === FILTER_KEYS.PAYER ||
+                    filterKey === FILTER_KEYS.WITHDRAWAL_TYPE ||
                     filterKey === FILTER_KEYS.ACTION) &&
                 filterValue
             ) {
@@ -500,11 +520,11 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     filtersString.push(...mappedFilters);
 
     DATE_FILTER_KEYS.forEach((dateKey) => {
-        const dateFilter = buildDateFilterQuery(filterValues, dateKey);
+        const dateFilter = buildDateFilterQuery(supportedFilterValues, dateKey);
         filtersString.push(dateFilter);
     });
 
-    const amountFilter = buildAmountFilterQuery(filterValues);
+    const amountFilter = buildAmountFilterQuery(supportedFilterValues);
     filtersString.push(amountFilter);
 
     return filtersString.filter(Boolean).join(' ').trim();
@@ -558,6 +578,12 @@ function buildFilterFormValuesFromQuery(
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
             const validExpenseTypes = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
             filtersForm[filterKey] = filterValues.filter((expenseType) => validExpenseTypes.has(expenseType as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>));
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
+            const validWithdrawalTypes = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
+            filtersForm[filterKey] = filterValues
+                .filter((withdrawalType): withdrawalType is SearchWithdrawalType => validWithdrawalTypes.has(withdrawalType as ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>))
+                .at(0);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
             filtersForm[filterKey] = filterValues.filter((card) => cardList[card]);
@@ -711,7 +737,7 @@ function getFilterDisplayValue(
         if (Number.isNaN(cardID)) {
             return filterValue;
         }
-        return getCardDescription(cardID, cardList) || filterValue;
+        return getCardDescription(cardList?.[cardID]) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]) || filterValue;
@@ -811,7 +837,7 @@ function buildUserReadableQueryString(
                     if (Number.isNaN(cardID)) {
                         acc.push({operator: filter.operator, value: cardID});
                     } else {
-                        acc.push({operator: filter.operator, value: getCardDescription(cardID, cardList) || cardID});
+                        acc.push({operator: filter.operator, value: getCardDescription(cardList?.[cardID]) || cardID});
                     }
                 }
                 return acc;
@@ -881,7 +907,7 @@ function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
 /**
  * Always show `No category` and `No tag` as the first option
  */
-const sortOptionsWithEmptyValue = (a: string, b: string) => {
+const sortOptionsWithEmptyValue = (a: string, b: string, localeCompare: LocaleContextProps['localeCompare']) => {
     if (a === CONST.SEARCH.CATEGORY_EMPTY_VALUE || a === CONST.SEARCH.TAG_EMPTY_VALUE) {
         return -1;
     }
@@ -960,6 +986,43 @@ function getCurrentSearchQueryJSON() {
     return queryJSON;
 }
 
+function getTodoSearchQuery(action: TodoSearchType, userAccountID: number | undefined) {
+    switch (action) {
+        case CONST.SEARCH.SEARCH_KEYS.SUBMIT:
+            return buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+                from: [`${userAccountID}`],
+            });
+        case CONST.SEARCH.SEARCH_KEYS.APPROVE:
+            return buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
+                to: [`${userAccountID}`],
+            });
+        case CONST.SEARCH.SEARCH_KEYS.PAY:
+            return buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                action: CONST.SEARCH.ACTION_FILTERS.PAY,
+                reimbursable: CONST.SEARCH.BOOLEAN.YES,
+                payer: userAccountID?.toString(),
+            });
+        case CONST.SEARCH.SEARCH_KEYS.EXPORT:
+            return buildQueryStringFromFilterFormValues({
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
+                exporter: [`${userAccountID}`],
+                exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER,
+            });
+
+        default:
+            return '';
+    }
+}
+
 /**
  * Extracts the query text without the filter parts.
  * This is used to determine if a user's core search terms have changed,
@@ -1028,4 +1091,5 @@ export {
     sortOptionsWithEmptyValue,
     shouldHighlight,
     getAllPolicyValues,
+    getTodoSearchQuery,
 };

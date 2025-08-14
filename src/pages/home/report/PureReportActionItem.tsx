@@ -135,7 +135,6 @@ import {
     getDeletedTransactionMessage,
     getDisplayNamesWithTooltips,
     getDowngradeWorkspaceMessage,
-    getIconsForParticipants,
     getMovedTransactionMessage,
     getPolicyChangeMessage,
     getRejectedReportMessage,
@@ -224,9 +223,6 @@ type PureReportActionItemProps = {
 
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: boolean;
-
-    /** Determines if the avatar is displayed as a subscript (positioned lower than normal) */
-    shouldShowSubscriptAvatar?: boolean;
 
     /** Position index of the report action in the overall report FlatList view */
     index: number;
@@ -359,6 +355,9 @@ type PureReportActionItemProps = {
 
     /** Whether to show border for MoneyRequestReportPreviewContent */
     shouldShowBorder?: boolean;
+
+    /** Whether to highlight the action for a few seconds */
+    shouldHighlight?: boolean;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -386,7 +385,6 @@ function PureReportActionItem({
     parentReportAction,
     shouldDisplayNewMarker,
     shouldHideThreadDividerLine = false,
-    shouldShowSubscriptAvatar = false,
     onPress = undefined,
     isFirstVisibleReportAction = false,
     isThreadReportParentAction = false,
@@ -423,9 +421,10 @@ function PureReportActionItem({
     dismissTrackExpenseActionableWhisper = () => {},
     userBillingFundID,
     shouldShowBorder,
+    shouldHighlight = false,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
-    const {translate, datetimeToCalendarTime, formatPhoneNumber} = useLocalize();
+    const {translate, datetimeToCalendarTime, formatPhoneNumber, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
     const theme = useTheme();
@@ -450,8 +449,9 @@ function PureReportActionItem({
     const isReportArchived = useReportIsArchived(report?.reportID);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
-        () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
-        [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        () => (isReportActionLinked || shouldHighlight ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
+        [StyleUtils, isReportActionLinked, theme.messageHighlightBG, shouldHighlight],
     );
 
     const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, 1, undefined, undefined);
@@ -702,6 +702,7 @@ function PureReportActionItem({
             ];
         }
 
+        const reportActionReportID = originalReportID ?? reportID;
         if (isConciergeCategoryOptions(action)) {
             const options = getOriginalMessage(action)?.options;
             if (!options) {
@@ -712,7 +713,7 @@ function PureReportActionItem({
                 return [];
             }
 
-            if (!reportID) {
+            if (!reportActionReportID) {
                 return [];
             }
 
@@ -720,7 +721,7 @@ function PureReportActionItem({
                 text: `${i + 1} - ${option}`,
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
                 onPress: () => {
-                    resolveConciergeCategoryOptions(reportID, originalReportID, action.reportActionID, option);
+                    resolveConciergeCategoryOptions(reportActionReportID, action.reportActionID, option);
                 },
             }));
         }
@@ -736,7 +737,7 @@ function PureReportActionItem({
                     text: 'actionableMentionTrackExpense.submit',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-submit`,
                     onPress: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
+                        createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportActionReportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
                     },
                 },
             ];
@@ -747,14 +748,14 @@ function PureReportActionItem({
                         text: 'actionableMentionTrackExpense.categorize',
                         key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
                         onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
+                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportActionReportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
                         },
                     },
                     {
                         text: 'actionableMentionTrackExpense.share',
                         key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
                         onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
+                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportActionReportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
                         },
                     },
                 );
@@ -763,7 +764,7 @@ function PureReportActionItem({
                 text: 'actionableMentionTrackExpense.nothing',
                 key: `${action.reportActionID}-actionableMentionTrackExpense-nothing`,
                 onPress: () => {
-                    dismissTrackExpenseActionableWhisper(reportID, action);
+                    dismissTrackExpenseActionableWhisper(reportActionReportID, action);
                 },
             });
             return options;
@@ -774,13 +775,13 @@ function PureReportActionItem({
                 {
                     text: 'actionableMentionJoinWorkspaceOptions.accept',
                     key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT}`,
-                    onPress: () => acceptJoinRequest(reportID, action),
+                    onPress: () => acceptJoinRequest(reportActionReportID, action),
                     isPrimary: true,
                 },
                 {
                     text: 'actionableMentionJoinWorkspaceOptions.decline',
                     key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.DECLINE}`,
-                    onPress: () => declineJoinRequest(reportID, action),
+                    onPress: () => declineJoinRequest(reportActionReportID, action),
                 },
             ];
         }
@@ -790,13 +791,13 @@ function PureReportActionItem({
                 {
                     text: 'common.yes',
                     key: `${action.reportActionID}-actionableReportMentionWhisper-${CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE}`,
-                    onPress: () => resolveActionableReportMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE),
+                    onPress: () => resolveActionableReportMentionWhisper(reportActionReportID, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE),
                     isPrimary: true,
                 },
                 {
                     text: 'common.no',
                     key: `${action.reportActionID}-actionableReportMentionWhisper-${CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-                    onPress: () => resolveActionableReportMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING),
+                    onPress: () => resolveActionableReportMentionWhisper(reportActionReportID, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING),
                 },
             ];
         }
@@ -805,13 +806,13 @@ function PureReportActionItem({
             {
                 text: 'actionableMentionWhisperOptions.invite',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
-                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE),
+                onPress: () => resolveActionableMentionWhisper(reportActionReportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE),
                 isPrimary: true,
             },
             {
                 text: 'actionableMentionWhisperOptions.nothing',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING),
+                onPress: () => resolveActionableMentionWhisper(reportActionReportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING),
             },
         ];
     }, [
@@ -1011,7 +1012,7 @@ function PureReportActionItem({
                     </ReportActionItemBasicMessage>
                 );
             } else {
-                children = <ReportActionItemBasicMessage message={translate('iou.submitted')} />;
+                children = <ReportActionItemBasicMessage message={translate('iou.submitted', {memo: getOriginalMessage(action)?.message})} />;
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
             const wasAutoApproved = getOriginalMessage(action)?.automaticAction ?? false;
@@ -1027,8 +1028,23 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             const wasAutoPaid = getOriginalMessage(action)?.automaticAction ?? false;
             const paymentType = getOriginalMessage(action)?.paymentType;
+
             if (paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
                 children = <ReportActionItemBasicMessage message={translate('iou.paidElsewhere')} />;
+            } else if (paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
+                const last4Digits = policy?.achAccount?.accountNumber?.slice(-4) ?? '';
+
+                if (wasAutoPaid) {
+                    const translation = translate('iou.automaticallyPaidWithBusinessBankAccount', {amount: '', last4Digits});
+
+                    children = (
+                        <ReportActionItemBasicMessage>
+                            <RenderHTML html={`<comment><muted-text>${translation}</muted-text></comment>`} />
+                        </ReportActionItemBasicMessage>
+                    );
+                } else {
+                    children = <ReportActionItemBasicMessage message={translate('iou.businessBankAccount', {amount: '', last4Digits})?.toLowerCase()} />;
+                }
             } else if (wasAutoPaid) {
                 children = (
                     <ReportActionItemBasicMessage>
@@ -1174,7 +1190,7 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
-            children = <ReportActionItemBasicMessage message={translate('receipt.scanFailed')} />;
+            children = <ReportActionItemBasicMessage message={translate('iou.receiptScanningFailed')} />;
         } else if (isRenamedAction(action)) {
             const message = getRenamedAction(action, isExpenseReport(report));
             children = <ReportActionItemBasicMessage message={message} />;
@@ -1301,7 +1317,7 @@ function PureReportActionItem({
                             numberOfReplies={numberOfThreadReplies}
                             mostRecentReply={`${action.childLastVisibleActionCreated}`}
                             isHovered={hovered || isContextMenuActive}
-                            icons={getIconsForParticipants(oldestFourAccountIDs, personalDetails)}
+                            accountIDs={oldestFourAccountIDs}
                             onSecondaryInteraction={showPopover}
                             isActive={isReportActionActive && !isContextMenuActive}
                         />
@@ -1341,7 +1357,6 @@ function PureReportActionItem({
                         ...(isOnSearch && styles.p0),
                         ...(isWhisper && styles.pt1),
                     }}
-                    shouldShowSubscriptAvatar={shouldShowSubscriptAvatar}
                     report={report}
                     iouReport={iouReport}
                     isHovered={hovered || isContextMenuActive}
@@ -1349,7 +1364,6 @@ function PureReportActionItem({
                     hasBeenFlagged={
                         ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action)
                     }
-                    policies={policies}
                 >
                     {content}
                 </ReportActionItemSingle>
@@ -1411,7 +1425,7 @@ function PureReportActionItem({
         ? (Object.values(personalDetails ?? {}).filter((details) => whisperedTo.includes(details?.accountID ?? CONST.DEFAULT_NUMBER_ID)) as OnyxTypes.PersonalDetails[])
         : [];
     const isWhisperOnlyVisibleByUser = isWhisper && isCurrentUserTheOnlyParticipant(whisperedTo);
-    const displayNamesWithTooltips = isWhisper ? getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
+    const displayNamesWithTooltips = isWhisper ? getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant, localeCompare) : [];
 
     const renderSearchHeader = (children: React.ReactNode) => {
         if (!isOnSearch) {
@@ -1612,6 +1626,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         deepEqual(prevProps.missingPaymentMethod, nextProps.missingPaymentMethod) &&
         prevProps.reimbursementDeQueuedOrCanceledActionMessage === nextProps.reimbursementDeQueuedOrCanceledActionMessage &&
         prevProps.modifiedExpenseMessage === nextProps.modifiedExpenseMessage &&
+        prevProps.shouldHighlight === nextProps.shouldHighlight &&
         prevProps.userBillingFundID === nextProps.userBillingFundID
     );
 });

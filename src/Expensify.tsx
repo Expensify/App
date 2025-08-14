@@ -9,6 +9,7 @@ import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import GrowlNotification from './components/GrowlNotification';
+import {InitialURLContext} from './components/InitialURLContextProvider';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
@@ -18,6 +19,7 @@ import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
 import useOnyx from './hooks/useOnyx';
+import usePriorityMode from './hooks/usePriorityChange';
 import {updateLastRoute} from './libs/actions/App';
 import {disconnect} from './libs/actions/Delegate';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
@@ -101,11 +103,15 @@ function Expensify() {
     const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {canBeMissing: true});
     const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST, {canBeMissing: true});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
+    const [currentOnboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
+    const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
+    const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
 
     useDebugShortcut();
+    usePriorityMode();
 
     const [initialUrl, setInitialUrl] = useState<Route | null>(null);
-
+    const {setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
     useEffect(() => {
         if (isCheckingPublicRoom) {
             return;
@@ -201,15 +207,16 @@ function Expensify() {
 
         appStateChangeListener.current = AppState.addEventListener('change', initializeClient);
 
+        setIsAuthenticatedAtStartup(isAuthenticated);
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
             setInitialUrl(url as Route);
-            Report.openReportFromDeepLink(url ?? '');
+            Report.openReportFromDeepLink(url ?? '', currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath);
         });
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
-            Report.openReportFromDeepLink(state.url);
+            Report.openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath);
         });
         if (CONFIG.IS_HYBRID_APP) {
             HybridAppModule.onURLListenerAdded();
