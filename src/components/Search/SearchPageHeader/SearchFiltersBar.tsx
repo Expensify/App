@@ -30,7 +30,7 @@ import {updateAdvancedFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAllTaxRates} from '@libs/PolicyUtils';
+import {getAllTaxRates, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
     buildFilterFormValuesFromQuery,
     buildQueryStringFromFilterFormValues,
@@ -46,7 +46,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
-import type {CurrencyList} from '@src/types/onyx';
+import type {CurrencyList, Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
 
@@ -86,9 +86,9 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
     const hasMultipleOutputCurrency = useMemo(() => {
-        const policies = Object.values(allPolicies ?? {});
+        const policies = Object.values(allPolicies ?? {}).filter((policy): policy is Policy => isPaidGroupPolicy(policy));
         const outputCurrency = policies.at(0)?.outputCurrency;
-        return policies.some((policy) => policy?.outputCurrency !== outputCurrency);
+        return policies.some((policy) => policy.outputCurrency !== outputCurrency);
     }, [allPolicies]);
 
     const filterFormValues = useMemo(() => {
