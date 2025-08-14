@@ -2811,7 +2811,6 @@ const CONST = {
     },
 
     POLICY: {
-        POLICY_ROUTE_REGEX: /workspaces\/([A-Z0-9]{16})/,
         TYPE: {
             PERSONAL: 'personal',
 
