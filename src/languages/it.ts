@@ -5337,6 +5337,7 @@ const translations = {
             workspaceCurrencyNotSupported: "Valuta dell'area di lavoro non supportata",
             yourWorkspace: 'La tua area di lavoro è impostata su una valuta non supportata. Visualizza il',
             listOfSupportedCurrencies: 'elenco delle valute supportate',
+            chooseAnExisting: 'Scegli un conto bancario esistente per pagare le spese o aggiungine uno nuovo.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Trasferisci proprietario',
