@@ -64,8 +64,8 @@ describe('useSidebarOrderedReports', () => {
         } as unknown as OnyxMultiSetInput);
 
         // Default mock implementations
-        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue({});
-        mockSidebarUtils.updateReportsToDisplayInLHN.mockReturnValue({});
+        mockSidebarUtils.getReportsToDisplayInLHN.mockImplementation(() => ({}));
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation((prev) => prev);
         mockSidebarUtils.sortReportsToDisplayInLHN.mockReturnValue([]);
 
         return waitForBatchedUpdates();
@@ -91,17 +91,19 @@ describe('useSidebarOrderedReports', () => {
         return mockReports;
     };
 
+    let currentReportIDForTestsValue: string | undefined;
+
     function TestWrapper({children}: {children: React.ReactNode}) {
         return (
             <OnyxListItemProvider>
                 <CurrentReportIDContextProvider>
-                    <SidebarOrderedReportsContextProvider>{children}</SidebarOrderedReportsContextProvider>
+                    <SidebarOrderedReportsContextProvider currentReportIDForTests={currentReportIDForTestsValue}>{children}</SidebarOrderedReportsContextProvider>
                 </CurrentReportIDContextProvider>
             </OnyxListItemProvider>
         );
     }
 
-    it('should prevent unnecessary re-renders when reports have same content but different references', () => {
+    it('should prevent unnecessary re-renders when reports have same content but different references', async () => {
         // Given reports with same content but different object references
         const reportsContent = {
             report1: {reportName: 'Chat 1', lastVisibleActionCreated: '2024-01-01 10:00:00'},
@@ -111,6 +113,8 @@ describe('useSidebarOrderedReports', () => {
         // When the initial reports are set
         const initialReports = createMockReports(reportsContent);
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(initialReports);
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation((prev) => ({...prev}));
+        currentReportIDForTestsValue = '1';
 
         // When the hook is rendered
         const {rerender} = renderHook(() => useSidebarOrderedReports(), {
@@ -119,6 +123,10 @@ describe('useSidebarOrderedReports', () => {
 
         // Then the mock calls are cleared
         mockSidebarUtils.sortReportsToDisplayInLHN.mockClear();
+
+        // Then the report name value pairs are updated
+        // @ts-expect-error - we want to test the case where getUpdatedReports() is non-empty
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}`, {dummy: true});
 
         // When the reports are updated
         const newReportsWithSameContent = createMockReports(reportsContent);
@@ -183,7 +191,7 @@ describe('useSidebarOrderedReports', () => {
         );
     });
 
-    it('should optimize performance by avoiding unnecessary sorting when only report order changes', () => {
+    it('should optimize performance by avoiding unnecessary sorting when only report order changes', async () => {
         // Given the initial reports are set
         const reports = createMockReports({
             report1: {reportName: 'Chat A'},
@@ -194,6 +202,8 @@ describe('useSidebarOrderedReports', () => {
         // When the initial reports are set
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(reports);
         mockSidebarUtils.sortReportsToDisplayInLHN.mockReturnValue(['1', '2', '3']);
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation((prev) => ({...prev}));
+        currentReportIDForTestsValue = '1';
 
         // When the hook is rendered
         const {rerender} = renderHook(() => useSidebarOrderedReports(), {
@@ -205,6 +215,10 @@ describe('useSidebarOrderedReports', () => {
 
         // When the mock is updated
         mockSidebarUtils.sortReportsToDisplayInLHN.mockClear();
+
+        // Then the report name value pairs are updated
+        // @ts-expect-error - we want to test the case where getUpdatedReports() is non-empty
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}`, {dummy: true});
 
         // When the mock is updated
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(reports);
@@ -252,6 +266,8 @@ describe('useSidebarOrderedReports', () => {
         // When the initial reports are set
         const initialReports = createMockReports(reportsContent);
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(initialReports);
+        mockSidebarUtils.sortReportsToDisplayInLHN.mockReturnValue(['1']);
+        currentReportIDForTestsValue = '1';
 
         const {rerender} = renderHook(() => useSidebarOrderedReports(), {
             wrapper: TestWrapper,
@@ -262,12 +278,14 @@ describe('useSidebarOrderedReports', () => {
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(newReportsWithSameContent);
 
         rerender({});
+        currentReportIDForTestsValue = '2';
 
         // When the mock is updated
         const thirdReportsWithSameContent = createMockReports(reportsContent);
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(thirdReportsWithSameContent);
 
         rerender({});
+        currentReportIDForTestsValue = '3';
 
         // Then sortReportsToDisplayInLHN should be called only once (initial render)
         expect(mockSidebarUtils.sortReportsToDisplayInLHN).toHaveBeenCalledTimes(1);
@@ -281,6 +299,7 @@ describe('useSidebarOrderedReports', () => {
         });
 
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(reports);
+        currentReportIDForTestsValue = '1';
 
         // When the hook is rendered
         const {rerender} = renderHook(() => useSidebarOrderedReports(), {
@@ -291,6 +310,7 @@ describe('useSidebarOrderedReports', () => {
 
         // Then the mock calls are cleared
         mockSidebarUtils.sortReportsToDisplayInLHN.mockClear();
+        currentReportIDForTestsValue = '2';
 
         // When the priority mode is changed
         await Onyx.set(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
