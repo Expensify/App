@@ -1,4 +1,4 @@
-# Expensify App (NewDot) - Codebase Documentation
+# Expensify App (NewDot)
 
 ## Repository Overview
 
