@@ -6880,11 +6880,8 @@ const translations = {
             },
             requestSubmitted: {
                 title: 'Solicitação enviada',
-                subtitle: {
-                    part1: 'Obrigado por nos informar que você está interessado em cancelar sua assinatura. Estamos revisando sua solicitação e entraremos em contato em breve através do seu chat com',
-                    link: 'Concierge',
-                    part2: '.',
-                },
+                subtitle:
+                    'Obrigado por nos informar que você está interessado em cancelar sua assinatura. Estamos analisando sua solicitação e entraremos em contato em breve pelo chat com o <concierge-link>Concierge</concierge-link>.',
             },
             acknowledgement: `Ao solicitar o cancelamento antecipado, reconheço e concordo que a Expensify não tem obrigação de atender a tal solicitação sob a Expensify.<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Termos de Serviço</a>ou outro acordo de serviços aplicável entre mim e a Expensify e que a Expensify mantém a discrição exclusiva em relação à concessão de qualquer solicitação desse tipo.`,
         },

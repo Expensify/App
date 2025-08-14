@@ -6882,11 +6882,8 @@ const translations = {
             },
             requestSubmitted: {
                 title: 'Verzoek ingediend',
-                subtitle: {
-                    part1: 'Bedankt dat je ons hebt laten weten dat je geïnteresseerd bent in het annuleren van je abonnement. We bekijken je verzoek en nemen binnenkort contact met je op via je chat met',
-                    link: 'Concierge',
-                    part2: '.',
-                },
+                subtitle:
+                    'Bedankt dat u ons laat weten dat u uw abonnement wilt opzeggen. We bekijken uw verzoek en nemen binnenkort contact met u op via uw chat met <concierge-link>Concierge</concierge-link>.',
             },
             acknowledgement: `Door vroegtijdige annulering aan te vragen, erken en ga ik ermee akkoord dat Expensify geen verplichting heeft om een dergelijk verzoek in te willigen onder de Expensify <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Servicevoorwaarden</a>of een andere toepasselijke serviceovereenkomst tussen mij en Expensify en dat Expensify naar eigen goeddunken beslist over het al dan niet honoreren van een dergelijk verzoek.`,
         },

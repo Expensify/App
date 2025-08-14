@@ -6879,11 +6879,8 @@ const translations = {
             },
             requestSubmitted: {
                 title: 'Anfrage eingereicht',
-                subtitle: {
-                    part1: 'Vielen Dank, dass Sie uns mitgeteilt haben, dass Sie an der Kündigung Ihres Abonnements interessiert sind. Wir prüfen Ihre Anfrage und werden uns bald über Ihren Chat mit Ihnen in Verbindung setzen.',
-                    link: 'Concierge',
-                    part2: '.',
-                },
+                subtitle:
+                    'Vielen Dank, dass Sie uns mitgeteilt haben, dass Sie Ihr Abonnement kündigen möchten. Wir prüfen Ihre Anfrage und werden uns in Kürze über Ihren Chat mit <concierge-link>Concierge</concierge-link> bei Ihnen melden.',
             },
             acknowledgement: `Indem ich die vorzeitige Kündigung beantrage, erkenne ich an und stimme zu, dass Expensify keine Verpflichtung hat, einem solchen Antrag im Rahmen von Expensify stattzugeben.<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Nutzungsbedingungen</a>oder andere anwendbare Dienstleistungsvereinbarungen zwischen mir und Expensify und dass Expensify das alleinige Ermessen hinsichtlich der Gewährung eines solchen Antrags behält.`,
         },

@@ -6746,11 +6746,7 @@ const translations = {
             },
             requestSubmitted: {
                 title: '请求已提交',
-                subtitle: {
-                    part1: '感谢您告知我们您有意取消订阅。我们正在审核您的请求，并将很快通过您与Concierge的聊天与您联系。',
-                    link: 'Concierge',
-                    part2: '.',
-                },
+                subtitle: '感谢您告知我们您想取消订阅。我们正在审核您的请求，并将尽快通过您与 <concierge-link>Concierge</concierge-link> 的聊天与您联系。',
             },
             acknowledgement: `通过请求提前取消，我承认并同意Expensify在Expensify条款下没有义务批准此类请求。<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>服务条款</a>或我与Expensify之间的其他适用服务协议，并且Expensify保留对授予任何此类请求的唯一酌情权。`,
         },

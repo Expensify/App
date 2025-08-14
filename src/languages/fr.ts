@@ -6891,11 +6891,8 @@ const translations = {
             },
             requestSubmitted: {
                 title: 'Demande soumise',
-                subtitle: {
-                    part1: "Merci de nous avoir informés de votre intérêt pour l'annulation de votre abonnement. Nous examinons votre demande et vous contacterons bientôt via votre chat avec",
-                    link: 'Concierge',
-                    part2: '.',
-                },
+                subtitle:
+                    'Merci de nous avoir fait part de votre souhait de résilier votre abonnement. Nous examinons actuellement votre demande et vous contacterons prochainement via votre chat avec <concierge-link>Concierge</concierge-link>.',
             },
             acknowledgement: `En demandant une annulation anticipée, je reconnais et accepte qu'Expensify n'a aucune obligation d'accéder à cette demande en vertu d'Expensify.<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Conditions d'utilisation</a>ou tout autre accord de services applicable entre moi et Expensify et qu'Expensify conserve l'entière discrétion quant à l'octroi de toute demande de ce type.`,
         },
