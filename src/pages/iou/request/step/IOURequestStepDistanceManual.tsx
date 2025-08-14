@@ -83,9 +83,10 @@ function IOURequestStepDistanceManual({
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isCreatingNewRequest = !(backTo || isEditing);
 
-    const unit = DistanceRequestUtils.getDistanceUnit(transaction);
-    const distance = transaction?.comment?.customUnit?.quantity ? roundToTwoDecimalPlaces(transaction.comment.customUnit.quantity) : undefined;
     const customUnitRateID = getRateID(transaction);
+    const rate = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID, policy});
+    const unit = DistanceRequestUtils.getDistanceUnit(transaction, rate);
+    const distance = transaction?.comment?.customUnit?.quantity ? roundToTwoDecimalPlaces(transaction.comment.customUnit.quantity) : undefined;
 
     useEffect(() => {
         if (numberFormRef.current && numberFormRef.current?.getNumber() === distance?.toString()) {

@@ -1341,7 +1341,7 @@ function isPayAtEndExpense(transaction: Transaction | undefined | null): boolean
 /**
  * Get custom unit rate (distance rate) ID from the transaction object
  */
-function getRateID(transaction: OnyxInputOrEntry<Transaction>): string | undefined {
+function getRateID(transaction: OnyxInputOrEntry<Transaction>): string {
     return transaction?.comment?.customUnit?.customUnitRateID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 }
 
