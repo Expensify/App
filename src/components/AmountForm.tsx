@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef} from 'react';
+import React from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
@@ -42,6 +42,9 @@ type AmountFormProps = {
 
     /** Whether to hide the currency symbol */
     hideCurrencySymbol?: boolean;
+
+    /** Reference to the outer element */
+    forwardedRef: ForwardedRef<BaseTextInputRef>;
 } & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide'>;
 
 /**
@@ -63,8 +66,8 @@ function AmountForm(
         autoFocus,
         autoGrowExtraSpace,
         autoGrowMarginSide,
+        forwardedRef,
     }: AmountFormProps,
-    forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
     const styles = useThemeStyles();
     const decimals = decimalsProp ?? getCurrencyDecimals(currency);
@@ -77,11 +80,11 @@ function AmountForm(
             displayAsTextInput={displayAsTextInput}
             onInputChange={onInputChange}
             onSymbolButtonPress={onCurrencyButtonPress}
-            ref={(ref: BaseTextInputRef) => {
+            forwardedRef={(ref: BaseTextInputRef | null) => {
                 if (typeof forwardedRef === 'function') {
                     forwardedRef(ref);
                 } else if (forwardedRef && 'current' in forwardedRef) {
-                    // eslint-disable-next-line no-param-reassign
+                    // eslint-disable-next-line no-param-reassign, react-compiler/react-compiler
                     forwardedRef.current = ref;
                 }
             }}
@@ -103,5 +106,5 @@ function AmountForm(
 
 AmountForm.displayName = 'AmountForm';
 
-export default forwardRef(AmountForm);
+export default AmountForm;
 export type {AmountFormProps};
