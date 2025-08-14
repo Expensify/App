@@ -243,8 +243,17 @@ type TransactionListItemType = ListItem &
         /** final "date" value used for sorting */
         date: string;
 
+        /** Whether we should show the From column */
+        shouldShowFrom: boolean;
+
+        /** Whether we should show the to column */
+        shouldShowTo: boolean;
+
         /** Whether we should show the merchant column */
         shouldShowMerchant: boolean;
+
+        /** Whether the description column should be shown */
+        shouldShowDescription: boolean;
 
         /** Whether we should show the category column */
         shouldShowCategory: boolean;
@@ -457,6 +466,7 @@ type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Whether the item's action is loading */
     isLoading?: boolean;
+    columns?: SortableColumnName[];
 };
 
 type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -467,6 +477,7 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     groupBy?: SearchGroupBy;
     policies?: OnyxCollection<Policy>;
+    columns?: SortableColumnName[];
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {

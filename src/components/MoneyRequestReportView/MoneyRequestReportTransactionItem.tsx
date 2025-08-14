@@ -1,9 +1,11 @@
 import React, {useEffect, useRef} from 'react';
 import type {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {TableColumnSize} from '@components/Search/types';
+import type {SortableColumnName} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
@@ -60,6 +62,9 @@ type MoneyRequestReportTransactionItemProps = {
     /** The size of the tax amount column */
     taxAmountColumnSize: TableColumnSize;
 
+    /** Columns to show */
+    columns: SortableColumnName[];
+
     /** Callback function that scrolls to this transaction in case it is newly added */
     scrollToNewTransaction?: (offset: number) => void;
 };
@@ -72,6 +77,7 @@ function MoneyRequestReportTransactionItem({
     isSelected,
     handleOnPress,
     handleLongPress,
+    columns,
     dateColumnSize,
     amountColumnSize,
     taxAmountColumnSize,
@@ -138,7 +144,7 @@ function MoneyRequestReportTransactionItem({
                     shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
                     shouldShowCheckbox={!!isSelectionModeEnabled || !isSmallScreenWidth}
                     onCheckboxPress={toggleTransaction}
-                    columns={allReportColumns}
+                    columns={columns as Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>}
                     isDisabled={isPendingDelete}
                     style={[styles.p3]}
                 />
