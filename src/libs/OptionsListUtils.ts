@@ -781,7 +781,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         if (wasSubmittedViaHarvesting) {
             lastMessageTextFromReport = translateLocal('iou.automaticallySubmitted');
         } else {
-            lastMessageTextFromReport = translateLocal('iou.submitted');
+            lastMessageTextFromReport = translateLocal('iou.submitted', {memo: getOriginalMessage(lastReportAction)?.message});
         }
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};
@@ -1225,7 +1225,7 @@ function isReportSelected(reportOption: OptionData, selectedOptions: Array<Parti
 }
 
 function processReport(
-    report: OnyxEntry<Report>,
+    report: OnyxEntry<Report> | null,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     transactions?: SearchTransaction[],
