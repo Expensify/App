@@ -8,7 +8,7 @@ import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getSendMoneyFlowAction, isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import type {Report, ReportAction} from '../../src/types/onyx';
+import type {OriginalMessageIOU, Report, ReportAction} from '../../src/types/onyx';
 import {createRandomReport} from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -367,20 +367,22 @@ describe('ReportActionsUtils', () => {
             [mockChatReportID]: mockChatReport,
         };
 
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(mockIOUAction) as OriginalMessageIOU;
         const linkedCreateAction = {
             ...mockIOUAction,
-            originalMessage: {...getOriginalMessage(mockIOUAction), IOUTransactionID},
+            originalMessage: {...originalMessage, IOUTransactionID},
         };
 
         const unlinkedCreateAction = {
             ...mockIOUAction,
-            originalMessage: {...getOriginalMessage(mockIOUAction), IOUTransactionID: IOUExpenseTransactionID},
+            originalMessage: {...originalMessage, IOUTransactionID: IOUExpenseTransactionID},
         };
 
         const linkedDeleteAction = {
             ...mockIOUAction,
             originalMessage: {
-                ...getOriginalMessage(mockIOUAction),
+                ...originalMessage,
                 IOUTransactionID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.DELETE,
             },
@@ -389,7 +391,7 @@ describe('ReportActionsUtils', () => {
         const linkedPayAction = {
             ...mockIOUAction,
             originalMessage: {
-                ...getOriginalMessage(mockIOUAction),
+                ...originalMessage,
                 IOUTransactionID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
             },
@@ -398,11 +400,12 @@ describe('ReportActionsUtils', () => {
         const linkedPayActionWithIOUDetails = {
             ...mockIOUAction,
             originalMessage: {
-                ...getOriginalMessage(mockIOUAction),
+                ...originalMessage,
                 IOUTransactionID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 IOUDetails: {
-                    amount: mockIOUAction.originalMessage?.amount,
+                    amount: originalMessage?.amount,
+                    currency: originalMessage?.currency,
                 },
             },
         };
@@ -947,10 +950,12 @@ describe('ReportActionsUtils', () => {
             },
         };
 
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        const originalMessage = getOriginalMessage(mockIOUAction) as OriginalMessageIOU;
         const createAction = {
             ...mockIOUAction,
             childReportID,
-            originalMessage: {...getOriginalMessage(mockIOUAction), type: CONST.IOU.TYPE.CREATE},
+            originalMessage: {...originalMessage, type: CONST.IOU.TYPE.CREATE},
         };
 
         const nonIOUAction = {
@@ -962,7 +967,7 @@ describe('ReportActionsUtils', () => {
         const payAction = {
             ...mockIOUAction,
             childReportID,
-            originalMessage: {...getOriginalMessage(mockIOUAction), type: CONST.IOU.TYPE.PAY},
+            originalMessage: {...originalMessage, type: CONST.IOU.TYPE.PAY},
         };
 
         it('should return undefined for a single non-IOU action', () => {
