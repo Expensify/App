@@ -2280,9 +2280,9 @@ function getMemberInviteOptions(
     includeSelectedOptions = false,
     reports: Array<SearchOption<Report>> = [],
     includeRecentReports = false,
+    includeUserToInvite = false,
     searchString = '',
     maxElements?: number,
-    includeUserToInvite = false,
 ): Options {
     return getValidOptions(
         {reports, personalDetails},

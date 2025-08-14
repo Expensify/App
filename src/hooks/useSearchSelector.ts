@@ -163,9 +163,9 @@ function useSearchSelector({
                     false,
                     options.reports,
                     includeRecentReports,
+                    includeUserToInvite,
                     debouncedSearchTerm,
                     maxResults,
-                    includeUserToInvite,
                 );
                 break;
             case 'getAttendeeOptions':
