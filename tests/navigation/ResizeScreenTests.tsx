@@ -21,13 +21,6 @@ jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 
 jest.mock('@pages/settings/InitialSettingsPage');
 jest.mock('@pages/settings/Profile/ProfilePage');
-// Mock Fullstory library dependency
-jest.mock('@libs/Fullstory', () => ({
-    default: {
-        consentAndIdentify: jest.fn(),
-    },
-    parseFSAttributes: jest.fn(),
-}));
 
 const INITIAL_STATE = {
     index: 0,
