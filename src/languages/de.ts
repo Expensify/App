@@ -91,6 +91,7 @@ import type {
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
     DidSplitAmountMessageParams,
+    DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
     EarlyDiscountTitleParams,
@@ -2596,6 +2597,9 @@ const translations = {
         pageNotFound: 'Ups, diese Seite kann nicht gefunden werden.',
         noAccess: 'Dieser Chat oder diese Ausgabe wurde möglicherweise gelöscht oder Sie haben keinen Zugriff darauf.\n\nBei Fragen wenden Sie sich bitte an concierge@expensify.com',
         goBackHome: 'Zurück zur Startseite',
+        commentYouLookingForCannotBeFound: 'Der gesuchte Kommentar konnte nicht gefunden werden. Geh zurück zum Chat',
+        contactConcierge: 'Bei Fragen wenden Sie sich bitte an concierge@expensify.com',
+        goToChatInstead: 'Geh stattdessen zum Chat.',
     },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oops... ${isBreakLine ? '\n' : ''}Etwas ist schiefgelaufen`,
@@ -3346,11 +3350,9 @@ const translations = {
         },
         domainPermissionInfo: {
             title: 'Domain',
-            restrictionPrefix: `Sie haben keine Berechtigung, Expensify Travel für die Domain zu aktivieren.`,
-            restrictionSuffix: `Sie müssen stattdessen jemanden aus dieser Domäne bitten, Reisen zu aktivieren.`,
-            accountantInvitationPrefix: `Wenn Sie Buchhalter sind, sollten Sie dem`,
-            accountantInvitationLink: `ExpensifyApproved! Buchhalterprogramm`,
-            accountantInvitationSuffix: `um Reisen für diese Domain zu ermöglichen.`,
+            restriction: ({domain}: DomainPermissionInfoRestrictionParams) =>
+                `Sie haben nicht die Berechtigung, Expensify Travel für die Domain <strong>${domain}</strong>zu aktivieren. Sie müssen jemanden von dieser Domain bitten, stattdessen Reisen zu aktivieren.`,
+            accountantInvitation: `Wenn Sie Buchhalter sind, sollten Sie sich für das <a href="${CONST.OLD_DOT_PUBLIC_URLS.EXPENSIFY_APPROVED_PROGRAM_URL}">ExpensifyApproved!-Buchhalterprogramm</a> anmelden, um Reisen für diesen Bereich zu ermöglichen.`,
         },
         publicDomainError: {
             title: 'Erste Schritte mit Expensify Travel',
@@ -4358,8 +4360,8 @@ const translations = {
             chooseCard: 'Wählen Sie eine Karte',
             chooseCardFor: ({assignee, feed}: AssignCardParams) => `Wählen Sie eine Karte für ${assignee} aus dem ${feed} Karten-Feed.`,
             noActiveCards: 'Keine aktiven Karten in diesem Feed',
-            somethingMightBeBroken: 'Oder etwas könnte kaputt sein. So oder so, wenn Sie Fragen haben, einfach',
-            contactConcierge: 'Concierge kontaktieren',
+            somethingMightBeBroken:
+                '<muted-text><centered-text>Oder es ist etwas kaputt. Wie auch immer, wenn Sie Fragen haben, wenden Sie <concierge-link>sich an Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Wählen Sie ein Startdatum für die Transaktion',
             startDateDescription: 'Wir werden alle Transaktionen ab diesem Datum importieren. Wenn kein Datum angegeben ist, gehen wir so weit zurück, wie es Ihre Bank erlaubt.',
             fromTheBeginning: 'Von Anfang an',
@@ -4673,10 +4675,9 @@ const translations = {
         },
         reports: {
             reportsCustomTitleExamples: 'Beispiele:',
-            customReportNamesSubtitle: 'Passen Sie Berichtstitel mit unserem an',
+            customReportNamesSubtitle: `<muted-text>Passen Sie Berichtstitel mithilfe unserer <a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">umfangreichen Formeln an</a>.</muted-text>`,
             customNameTitle: 'Standardberichtstitel',
-            customNameDescription: 'Wählen Sie einen benutzerdefinierten Namen für Spesenabrechnungen mit unserem',
-            customNameDescriptionLink: 'umfassende Formeln',
+            customNameDescription: `Wählen Sie mithilfe unserer <a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">umfangreichen Formeln</a> einen benutzerdefinierten Namen für Spesenabrechnungen.`,
             customNameInputLabel: 'Name',
             customNameEmailPhoneExample: 'E-Mail oder Telefon des Mitglieds: {report:submit:from}',
             customNameStartDateExample: 'Berichtsstartdatum: {report:startdate}',
@@ -5320,8 +5321,7 @@ const translations = {
             updateToUSD: 'In USD aktualisieren',
             updateWorkspaceCurrency: 'Arbeitsbereichswährung aktualisieren',
             workspaceCurrencyNotSupported: 'Arbeitsbereichswährung wird nicht unterstützt',
-            yourWorkspace: 'Ihr Arbeitsbereich ist auf eine nicht unterstützte Währung eingestellt. Sehen Sie sich die',
-            listOfSupportedCurrencies: 'Liste der unterstützten Währungen',
+            yourWorkspace: `Ihr Arbeitsbereich ist auf eine nicht unterstützte Währung eingestellt. Sehen Sie sich die <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">Liste der unterstützten Währungen an</a>.`,
         },
         changeOwner: {
             changeOwnerPageTitle: 'Besitzer übertragen',
@@ -5335,8 +5335,7 @@ const translations = {
             addPaymentCardPciCompliant: 'PCI-DSS-konform',
             addPaymentCardBankLevelEncrypt: 'Verschlüsselung auf Bankniveau',
             addPaymentCardRedundant: 'Redundante Infrastruktur',
-            addPaymentCardLearnMore: 'Erfahren Sie mehr über unsere',
-            addPaymentCardSecurity: 'Sicherheit',
+            addPaymentCardLearnMore: `<muted-text>Erfahren Sie mehr über unsere <a href="${CONST.PERSONAL_DATA_PROTECTION_INFO_URL}">Sicherheit</a>.</muted-text>`,
             amountOwedTitle: 'Ausstehender Saldo',
             amountOwedButtonText: 'OK',
             amountOwedText:
@@ -5363,9 +5362,7 @@ const translations = {
             successTitle: 'Woohoo! Alles bereit.',
             successDescription: 'Sie sind jetzt der Besitzer dieses Arbeitsbereichs.',
             errorTitle: 'Hoppla! Nicht so schnell...',
-            errorDescriptionPartOne: 'Es gab ein Problem beim Übertragen der Inhaberschaft dieses Arbeitsbereichs. Versuchen Sie es erneut, oder',
-            errorDescriptionPartTwo: 'Wenden Sie sich an Concierge.',
-            errorDescriptionPartThree: 'für Hilfe.',
+            errorDescription: `<muted-text><centered-text>TBei der Übertragung des Eigentums an diesem Arbeitsbereich ist ein Problem aufgetreten. Versuchen Sie es erneut, oder <concierge-link>wenden Sie sich an Concierge</concierge-link>.</centered-text></muted-text>`,
         },
         exportAgainModal: {
             title: 'Vorsicht!',
@@ -5595,9 +5592,10 @@ const translations = {
                 autoPayApprovedReportsLockedSubtitle: 'Gehen Sie zu Weitere Funktionen und aktivieren Sie Workflows, dann fügen Sie Zahlungen hinzu, um diese Funktion freizuschalten.',
                 autoPayReportsUnderTitle: 'Berichte unter Auto-Zahlung',
                 autoPayReportsUnderDescription: 'Vollständig konforme Spesenabrechnungen unter diesem Betrag werden automatisch bezahlt.',
-                unlockFeatureGoToSubtitle: 'Gehe zu',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `und Workflows aktivieren, dann ${featureName} hinzufügen, um diese Funktion freizuschalten.`,
-                enableFeatureSubtitle: ({featureName}: FeatureNameParams) => `und aktivieren Sie ${featureName}, um diese Funktion freizuschalten.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
+                    `Gehen Sie zu [Mehr Funktionen](${moreFeaturesLink}) und aktivieren Sie Workflows. Fügen Sie dann ${featureName} hinzu, um diese Funktion freizuschalten.`,
+                enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
+                    `Gehen Sie zu [Mehr Funktionen](${moreFeaturesLink}) und aktivieren Sie ${featureName}, um diese Funktion freizuschalten.`,
             },
             categoryRules: {
                 title: 'Kategorienregeln',
@@ -6800,9 +6798,7 @@ const translations = {
         },
         compareModal: {
             comparePlans: 'Pläne vergleichen',
-            unlockTheFeatures: 'Schalten Sie die Funktionen frei, die Sie benötigen, mit dem Plan, der für Sie richtig ist.',
-            viewOurPricing: 'Sehen Sie sich unsere Preisseite an',
-            forACompleteFeatureBreakdown: 'für eine vollständige Funktionsübersicht unserer Pläne.',
+            subtitle: `<muted-text>Schalten Sie die Funktionen frei, die Sie benötigen, und wählen Sie den für Sie passenden Tarif. <a href="${CONST.PRICING}">Sehen Sie sich unsere Preisseite</a> oder eine vollständige Aufschlüsselung der Funktionen jedes unserer Tarife an.</muted-text>`,
         },
         details: {
             title: 'Abonnementdetails',
@@ -6879,11 +6875,8 @@ const translations = {
             },
             requestSubmitted: {
                 title: 'Anfrage eingereicht',
-                subtitle: {
-                    part1: 'Vielen Dank, dass Sie uns mitgeteilt haben, dass Sie an der Kündigung Ihres Abonnements interessiert sind. Wir prüfen Ihre Anfrage und werden uns bald über Ihren Chat mit Ihnen in Verbindung setzen.',
-                    link: 'Concierge',
-                    part2: '.',
-                },
+                subtitle:
+                    'Vielen Dank, dass Sie uns mitgeteilt haben, dass Sie Ihr Abonnement kündigen möchten. Wir prüfen Ihre Anfrage und werden uns in Kürze über Ihren Chat mit <concierge-link>Concierge</concierge-link> bei Ihnen melden.',
             },
             acknowledgement: `Indem ich die vorzeitige Kündigung beantrage, erkenne ich an und stimme zu, dass Expensify keine Verpflichtung hat, einem solchen Antrag im Rahmen von Expensify stattzugeben.<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Nutzungsbedingungen</a>oder andere anwendbare Dienstleistungsvereinbarungen zwischen mir und Expensify und dass Expensify das alleinige Ermessen hinsichtlich der Gewährung eines solchen Antrags behält.`,
         },
