@@ -285,6 +285,7 @@ function MoneyRequestReceiptView({
                     {hasReceipt && (
                         <View style={[styles.moneyRequestViewImage, receiptStyle]}>
                             <ReportActionItemImage
+                                shouldUseThumbnailImage={!fillSpace}
                                 shouldUseFullHeight={fillSpace}
                                 thumbnail={receiptURIs?.thumbnail}
                                 fileExtension={receiptURIs?.fileExtension}
