@@ -103,11 +103,26 @@ describe('canEditFieldOfMoneyRequest', () => {
                 return waitForBatchedUpdates();
             });
 
-            // Then the user should be able to move the invoice to the outstanding expense report
-            it('should return true for invoice report action given that there is a minimum of one outstanding report', async () => {
+            it('should return false for invoice report action if it is not outstanding report', async () => {
                 const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
 
                 const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
+                expect(canEditReportField).toBe(false);
+            });
+
+            it('should return true for invoice report action when there are outstanding reports', async () => {
+                const outstandingInvoiceReport = {
+                    ...invoiceReport,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, outstandingInvoiceReport);
+                await waitForBatchedUpdates();
+                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+
+                const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
+
                 expect(canEditReportField).toBe(true);
             });
         });
