@@ -299,6 +299,7 @@ type TrackExpenseInformation = {
 
 type TrackedExpenseTransactionParams = Omit<BaseTransactionParams, 'taxCode' | 'taxAmount'> & {
     waypoints?: string;
+    distance?: number;
     transactionID: string | undefined;
     receipt?: Receipt;
     taxCode: string;
@@ -395,6 +396,7 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     originalTransactionID?: string;
     isTestDrive?: boolean;
     source?: string;
+    distance?: number;
 };
 
 type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> & {
@@ -513,8 +515,9 @@ type BuildOnyxDataForMoneyRequestParams = {
 
 type DistanceRequestTransactionParams = BaseTransactionParams & {
     attendees?: Attendee[];
-    validWaypoints: WaypointCollection;
+    validWaypoints?: WaypointCollection;
     splitShares?: SplitShares;
+    distance?: number;
 };
 
 type CreateDistanceRequestInformation = {
@@ -549,6 +552,7 @@ type TrackExpenseTransactionParams = {
     created: string | undefined;
     merchant?: string;
     comment?: string;
+    distance?: number;
     receipt?: Receipt;
     category?: string;
     tag?: string;
@@ -625,6 +629,7 @@ type GetTrackExpenseInformationTransactionParams = {
     billable?: boolean;
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
     attendees?: Attendee[];
+    distance?: number;
 };
 
 type GetTrackExpenseInformationParticipantParams = {
@@ -954,15 +959,17 @@ function initMoneyRequest({reportID, policy, isFromGlobalCreate, currentIouReque
             const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
             comment.customUnit = {customUnitRateID};
         }
-
+        if (comment.customUnit) {
+            comment.customUnit.quantity = null;
+        }
         if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL) {
             comment.waypoints = undefined;
-            return;
+        } else {
+            comment.waypoints = {
+                waypoint0: {keyForList: 'start_waypoint'},
+                waypoint1: {keyForList: 'stop_waypoint'},
+            };
         }
-        comment.waypoints = {
-            waypoint0: {keyForList: 'start_waypoint'},
-            waypoint1: {keyForList: 'stop_waypoint'},
-        };
     }
 
     if (newIouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM) {
@@ -1280,6 +1287,10 @@ function addSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex:
     };
 
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
+}
+
+function setMoneyRequestDistance(transactionID: string, distanceAsFloat: number, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {customUnit: {quantity: distanceAsFloat}}});
 }
 
 /**
@@ -3335,6 +3346,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     const {
         attendees,
         amount,
+        distance,
         comment = '',
         currency,
         source = '',
@@ -3423,6 +3435,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         policy,
         transactionParams: {
             amount: isExpenseReport(iouReport) ? -amount : amount,
+            distance,
             currency,
             reportID: iouReport.reportID,
             comment,
@@ -3818,7 +3831,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     const {parentChatReport, moneyRequestReportID = '', existingTransactionID, participantParams, policyParams, transactionParams, retryParams} = params;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
-    const {comment, amount, currency, created, merchant, receipt, category, tag, taxCode, taxAmount, billable, linkedTrackedExpenseReportAction, attendees} = transactionParams;
+    const {comment, amount, currency, created, distance, merchant, receipt, category, tag, taxCode, taxAmount, billable, linkedTrackedExpenseReportAction, attendees} = transactionParams;
 
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -3918,6 +3931,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             currency,
             reportID: shouldUseMoneyReport && iouReport ? iouReport.reportID : CONST.REPORT.UNREPORTED_REPORT_ID,
             comment,
+            distance,
             created,
             merchant,
             receipt: receiptObject,
@@ -5065,6 +5079,7 @@ type AddTrackedExpenseToPolicyParam = {
     modifiedExpenseReportActionID: string;
     moneyRequestCreatedReportActionID: string | undefined;
     moneyRequestPreviewReportActionID: string;
+    distance: number | undefined;
 } & ConvertTrackedWorkspaceParams;
 
 type ConvertTrackedExpenseToRequestParams = {
@@ -5084,6 +5099,7 @@ type ConvertTrackedExpenseToRequestParams = {
         created: string;
         attendees?: Attendee[];
         transactionThreadReportID?: string;
+        distance?: number;
     };
     chatParams: {
         reportID: string;
@@ -5112,6 +5128,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
         amount,
+        distance,
         currency,
         comment,
         merchant,
@@ -5138,6 +5155,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
     if (workspaceParams) {
         const params = {
             amount,
+            distance,
             currency,
             comment,
             created,
@@ -5160,6 +5178,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
     const parameters = {
         attendees,
         amount,
+        distance,
         currency,
         comment,
         created,
@@ -5907,6 +5926,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         created = '',
         merchant = '',
         comment = '',
+        distance,
         receipt,
         category,
         tag,
@@ -5947,6 +5967,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             created,
             merchant,
             comment,
+            distance,
             receipt: undefined,
             category,
             tag,
@@ -5991,6 +6012,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             transactionParams: {
                 comment,
                 amount,
+                distance,
                 currency,
                 created,
                 merchant,
@@ -6034,6 +6056,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 amount,
                 currency,
                 comment,
+                distance,
                 merchant,
                 created,
                 taxCode,
@@ -6082,6 +6105,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 amount,
                 currency,
                 comment,
+                distance,
                 merchant,
                 created,
                 taxCode: taxCode ?? '',
@@ -6125,6 +6149,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 amount,
                 currency,
                 comment,
+                distance,
                 created,
                 merchant,
                 iouReportID: iouReport?.reportID,
@@ -7511,6 +7536,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     const {
         amount,
         comment,
+        distance,
         currency,
         created,
         category,
@@ -7538,7 +7564,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
     let parameters: CreateDistanceRequestParams;
     let onyxData: OnyxData;
-    const sanitizedWaypoints = sanitizeRecentWaypoints(validWaypoints);
+    const sanitizedWaypoints = validWaypoints ? sanitizeRecentWaypoints(validWaypoints) : null;
     if (iouType === CONST.IOU.TYPE.SPLIT) {
         const {
             splitData,
@@ -7619,6 +7645,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             },
             transactionParams: {
                 amount,
+                distance,
                 currency,
                 comment,
                 created,
@@ -7646,6 +7673,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             createdIOUReportActionID,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
             waypoints: JSON.stringify(sanitizedWaypoints),
+            distance,
             created,
             category,
             tag,
@@ -12290,6 +12318,7 @@ export {
     setMoneyRequestDateAttribute,
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
+    setMoneyRequestDistance,
     setMoneyRequestDistanceRate,
     setMoneyRequestMerchant,
     setMoneyRequestParticipants,

@@ -89,6 +89,7 @@ type TransactionParams = {
     customUnit?: TransactionCustomUnit;
     splitExpenses?: SplitExpense[];
     participants?: Participant[];
+    distance?: number;
 };
 
 type BuildOptimisticTransactionParams = {
@@ -158,6 +159,10 @@ function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     const type = transaction?.comment?.type;
     const customUnitName = transaction?.comment?.customUnit?.name;
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+}
+
+function isManualDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
 }
 
 function isScanRequest(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
@@ -255,6 +260,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         amount,
         currency,
         reportID,
+        distance,
         comment = '',
         attendees = [],
         created = '',
@@ -293,9 +299,11 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     }
 
     const isDistanceTransaction = !!pendingFields?.waypoints;
-    if (isDistanceTransaction) {
+    const isManualDistanceTransaction = isManualDistanceRequest(existingTransaction);
+    if (isDistanceTransaction || isManualDistanceTransaction) {
         // Set the distance unit, which comes from the policy distance unit or the P2P rate data
         lodashSet(commentJSON, 'customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy}));
+        lodashSet(commentJSON, 'customUnit.quantity', distance);
     }
 
     const isPerDiemTransaction = !!pendingFields?.subRates;
