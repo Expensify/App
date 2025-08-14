@@ -1,10 +1,9 @@
-import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListProps, ViewToken} from '@shopify/flash-list';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import Animated from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -12,15 +11,16 @@ import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
+import {createItemHeightCalculator} from '@components/Search/itemHeightCalculator';
+import ITEM_HEIGHTS from '@components/Search/itemHeights';
+import type {SearchQueryJSON} from '@components/Search/types';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import type TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ExtendedTargetedEvent, ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
-import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useInitialWindowDimensions from '@hooks/useInitialWindowDimensions';
-import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -28,15 +28,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {isMobileChrome} from '@libs/Browser';
-import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {createItemHeightCalculator} from './itemHeightCalculator';
-import ITEM_HEIGHTS from './itemHeights';
-import type {SearchQueryJSON} from './types';
 
 const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
 
@@ -155,9 +150,7 @@ function SearchList(
     );
 
     const {translate} = useLocalize();
-    const isFocused = useIsFocused();
     const listRef = useRef<FlashList<SearchListItem>>(null);
-    const hasKeyBeenPressed = useRef(false);
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const {isKeyboardShown} = useKeyboardState();
@@ -185,7 +178,7 @@ function SearchList(
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || !isFocused) {
+            if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox) {
                 return;
             }
             // disable long press for empty expense reports
@@ -199,7 +192,7 @@ function SearchList(
             setLongPressedItem(item);
             setIsModalVisible(true);
         },
-        [isFocused, isSmallScreenWidth, onCheckboxPress, isMobileSelectionModeEnabled, shouldPreventLongPressRow],
+        [isSmallScreenWidth, onCheckboxPress, isMobileSelectionModeEnabled, shouldPreventLongPressRow],
     );
 
     const turnOnSelectionMode = useCallback(() => {
@@ -231,49 +224,6 @@ function SearchList(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
-    const setHasKeyBeenPressed = useCallback(() => {
-        if (hasKeyBeenPressed.current) {
-            return;
-        }
-        // We need to track whether a key has been pressed to enable focus syncing only if a key has been pressed.
-        // This is to avoid the default behavior of web showing blue border on click of items after a page refresh.
-        hasKeyBeenPressed.current = true;
-    }, []);
-
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
-        initialFocusedIndex: -1,
-        maxIndex: flattenedItems.length - 1,
-        isActive: isFocused,
-        onFocusedIndexChange: (index: number) => {
-            scrollToIndex(index);
-        },
-        ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
-        isFocused,
-    });
-
-    const selectFocusedOption = useCallback(() => {
-        const focusedItem = data.at(focusedIndex);
-
-        if (!focusedItem) {
-            return;
-        }
-
-        onSelectRow(focusedItem);
-    }, [data, focusedIndex, onSelectRow]);
-
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
-        captureOnInputs: true,
-        shouldBubble: false,
-        shouldPreventDefault: false,
-        isActive: isFocused && focusedIndex >= 0,
-        shouldStopPropagation: true,
-    });
-
-    useEffect(() => {
-        addKeyDownPressListener(setHasKeyBeenPressed);
-
-        return () => removeKeyDownPressListener(setHasKeyBeenPressed);
-    }, [setHasKeyBeenPressed]);
 
     /**
      * Highlights the items and scrolls to the first item present in the items list.
@@ -306,30 +256,15 @@ function SearchList(
 
     const renderItem = useCallback(
         // eslint-disable-next-line react/no-unused-prop-types
-        ({item, index}: {item: SearchListItem; index: number}) => {
-            const isItemFocused = focusedIndex === index;
+        ({item}: {item: SearchListItem}) => {
             const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
             const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             return (
                 <ListItem
                     showTooltip
-                    isFocused={isItemFocused}
+                    isFocused={false}
                     onSelectRow={onSelectRow}
-                    onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
-                        // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
-                        if (isMobileChrome() && event.nativeEvent) {
-                            if (!event.nativeEvent.sourceCapabilities) {
-                                return;
-                            }
-                            // Ignore the focus if it's caused by a touch event on mobile chrome.
-                            // For example, a long press will trigger a focus event on mobile chrome
-                            if (event.nativeEvent.sourceCapabilities.firesTouchEvents) {
-                                return;
-                            }
-                        }
-                        setFocusedIndex(index);
-                    }}
                     onLongPressRow={handleLongPressRow}
                     onCheckboxPress={onCheckboxPress}
                     canSelectMultiple={canSelectMultiple}
@@ -353,7 +288,6 @@ function SearchList(
         [
             ListItem,
             canSelectMultiple,
-            focusedIndex,
             itemsToHighlight,
             handleLongPressRow,
             onCheckboxPress,
@@ -361,7 +295,6 @@ function SearchList(
             policies,
             hash,
             groupBy,
-            setFocusedIndex,
             shouldPreventDefaultFocusOnSelectRow,
             allReports,
             userWalletTierName,
@@ -460,7 +393,6 @@ function SearchList(
                 onScroll={onScroll}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
-                extraData={[focusedIndex, isFocused]}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}
