@@ -5131,6 +5131,12 @@ const CONST = {
             SHARE: 'ShareTab',
             SUBMIT: 'SubmitTab',
         },
+        RECEIPT_PARTNERS: {
+            NAVIGATOR_ID: 'ReceiptPartnersID',
+            ALL: 'ReceiptPartnersAllTab',
+            LINKED: 'ReceiptPartnersLinkedTab',
+            OUTSTANDING: 'ReceiptPartnersOutstandingTab',
+        },
     },
     TAB_REQUEST: {
         MANUAL: 'manual',
