@@ -1,4 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 import type {OnyxInputOrEntry, PersonalDetailsList, Report, UserMetadata} from '@src/types/onyx';
 
 type PropertiesWithoutPageName = Record<string, unknown> & {pageName?: never};
@@ -64,4 +66,11 @@ type Fullstory = {
     anonymize: () => void;
 };
 
-export type {FSPageLike, FSPageLikeConstructor, Fullstory, GetChatFSClass, PropertiesWithoutPageName};
+type ForwardedFSClassProps = {
+    /**
+     * Used to pass down `fsClass` prop to inner components that might need it for Fulstory masking.
+     */
+    forwardedFSClass?: ValueOf<typeof CONST.FULLSTORY.CLASS>;
+};
+
+export type {FSPageLike, FSPageLikeConstructor, Fullstory, GetChatFSClass, PropertiesWithoutPageName, ForwardedFSClassProps};
