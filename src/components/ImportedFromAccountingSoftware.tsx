@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -9,7 +10,10 @@ import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import Icon from './Icon';
 import Text from './Text';
+import TextBlock from './TextBlock';
 import TextLink from './TextLink';
+// import TextLink from './TextLink';
+import TextLinkBlock from './TextLinkBlock';
 
 type ImportedFromAccountingSoftwareProps = {
     /** The policy ID to link to */
@@ -35,10 +39,13 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
     const icon = getIntegrationIcon(connectedIntegration);
 
     return (
-        <Text style={[styles.alignItemsCenter, styles.dInlineFlex]}>
-            <Text style={[styles.textNormal, styles.colorMuted]}>{`${translatedText} `}</Text>
+        <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexWrap]}>
+            <TextBlock
+                textStyles={[styles.textNormal, styles.colorMuted]}
+                text={`${translatedText} `}
+            />
             <TextLink
-                style={[styles.textNormal, styles.link, styles.flexRow, styles.alignItemsCenter, styles.dInlineFlex, styles.gap1]}
+                style={[styles.textNormal, styles.link, styles.dInlineFlex, styles.justifyContentCenter]}
                 href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
             >
                 {!!icon && (
@@ -49,10 +56,15 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
                         additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.SMALLER, '')]}
                     />
                 )}
-                {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
             </TextLink>
+            <Text style={[styles.textNormal]}> </Text>
+            <TextLinkBlock
+                style={[styles.textNormal, styles.link]}
+                href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
+                text={` ${currentConnectionName} ${translate('workspace.accounting.settings')}`}
+            />
             <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
-        </Text>
+        </View>
     );
 }
 
