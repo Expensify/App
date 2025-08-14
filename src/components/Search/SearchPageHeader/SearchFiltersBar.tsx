@@ -148,12 +148,13 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         [translate],
     );
 
-    const [date, displayDate] = useMemo(() => 
-        createDateDisplayValue({
-            on: filterFormValues.dateOn,
-            after: filterFormValues.dateAfter,
-            before: filterFormValues.dateBefore,
-        }),
+    const [date, displayDate] = useMemo(
+        () =>
+            createDateDisplayValue({
+                on: filterFormValues.dateOn,
+                after: filterFormValues.dateAfter,
+                before: filterFormValues.dateBefore,
+            }),
         [filterFormValues.dateOn, filterFormValues.dateAfter, filterFormValues.dateBefore, createDateDisplayValue],
     );
 
@@ -283,15 +284,9 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         [translate, updateFilterForm],
     );
 
-    const datePickerComponent = useMemo(
-        () => createDatePickerComponent(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, date, 'common.date'),
-        [createDatePickerComponent, date],
-    );
+    const datePickerComponent = useMemo(() => createDatePickerComponent(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, date, 'common.date'), [createDatePickerComponent, date]);
 
-    const postedPickerComponent = useMemo(
-        () => createDatePickerComponent(CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED, posted, 'search.filters.posted'),
-        [createDatePickerComponent, posted],
-    );
+    const postedPickerComponent = useMemo(() => createDatePickerComponent(CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED, posted, 'search.filters.posted'), [createDatePickerComponent, posted]);
 
     const withdrawnPickerComponent = useMemo(
         () => createDatePickerComponent(CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN, withdrawn, 'search.filters.withdrawn'),
