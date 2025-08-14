@@ -314,6 +314,9 @@ type Reservation = {
 
     /** Type or category of purchased fare */
     fareType?: string;
+
+    /** leg id */
+    legId?: number;
 };
 
 /** Model of gate for flight reservation */

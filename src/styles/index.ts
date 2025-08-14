@@ -2570,6 +2570,9 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 0,
             borderBottomWidth: 0,
         },
+        borderTransparent: {
+            borderColor: 'transparent',
+        },
 
         borderRight: {
             borderRightWidth: 1,
@@ -2695,8 +2698,6 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.componentBG,
             borderColor: theme.transparent,
         },
-
-        modalContainer: {height: '100%'},
 
         modalAnimatedContainer: {width: '100%'},
 
@@ -3180,6 +3181,17 @@ const styles = (theme: ThemeColors) =>
             width: 28,
             borderColor: theme.border,
             borderWidth: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+
+        newRadioButtonContainer: {
+            backgroundColor: theme.componentBG,
+            borderRadius: variables.componentBorderRadiusRounded,
+            height: variables.iconSizeNormal,
+            width: variables.iconSizeNormal,
+            borderColor: theme.border,
+            borderWidth: 2,
             justifyContent: 'center',
             alignItems: 'center',
         },
@@ -4765,6 +4777,16 @@ const styles = (theme: ThemeColors) =>
             height: 'auto',
         },
 
+        mergeTransactionReceiptImage: {
+            overflow: 'hidden',
+            borderWidth: 1,
+            borderColor: theme.border,
+            borderRadius: variables.componentBorderRadiusNormal,
+            aspectRatio: 16 / 9,
+            height: 180,
+            maxWidth: '100%',
+        },
+
         pdfErrorPlaceholder: {
             overflow: 'hidden',
             borderWidth: 2,
@@ -4796,6 +4818,12 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.highlightBG,
             borderWidth: 2,
             borderRadius: '50%',
+        },
+
+        mergeTransactionReceiptThumbnail: {
+            backgroundColor: theme.highlightBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+            padding: 20,
         },
 
         mapViewContainer: {
