@@ -1,6 +1,5 @@
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
-import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -14,9 +13,11 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceConfirmationAvatar from '@hooks/useWorkspaceConfirmationAvatar';
 import {generatePolicyID, setDuplicateWorkspaceData} from '@libs/actions/Policy/Policy';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {addErrorMessage} from '@libs/ErrorUtils';
+import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
@@ -24,13 +25,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceDuplicateForm';
-
-function getFirstAlphaNumericCharacter(str = '') {
-    return str
-        .normalize('NFD')
-        .replace(/[^0-9a-z]/gi, '')
-        .toUpperCase()[0];
-}
 
 type WorkspaceDuplicateFormProps = {
     policyID?: string;
@@ -68,7 +62,7 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
             }
             const newPolicyID = generatePolicyID();
             setDuplicateWorkspaceData({policyID: newPolicyID, name, file: avatarFile});
-            Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE_SELECT_FEATURES.getRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE_SELECT_FEATURES.getRoute(policyID, ROUTES.WORKSPACES_LIST.route));
         },
         [policyID],
     );
@@ -84,22 +78,12 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
 
     const stashedLocalAvatarImage = workspaceAvatar?.avatarUri ?? undefined;
 
-    const DefaultAvatar = useCallback(
-        () => (
-            <Avatar
-                containerStyles={styles.avatarXLarge}
-                imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
-                source={workspaceAvatar?.avatarUri || getDefaultWorkspaceAvatar(workspaceNameFirstCharacter)}
-                fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                size={CONST.AVATAR_SIZE.X_LARGE}
-                name={workspaceNameFirstCharacter}
-                avatarID={policyID}
-                type={CONST.ICON_TYPE_WORKSPACE}
-            />
-        ),
-        [workspaceAvatar?.avatarUri, workspaceNameFirstCharacter, styles.alignSelfCenter, styles.avatarXLarge, policyID],
-    );
+    const DefaultAvatar = useWorkspaceConfirmationAvatar({
+        policyID,
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
+        source: stashedLocalAvatarImage || getDefaultWorkspaceAvatar(workspaceNameFirstCharacter),
+        name: workspaceNameFirstCharacter,
+    });
 
     return (
         <>

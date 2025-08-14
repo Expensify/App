@@ -2,8 +2,10 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {getCorrectedAutoReportingFrequency, getWorkflowApprovalsUnavailable, hasVBBA} from '@libs/PolicyUtils';
 import {getAutoReportingFrequencyDisplayNames} from '@pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage';
 import type {AutoReportingFrequencyKey} from '@pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage';
+import {isAuthenticationError} from '@userActions/connections';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 
 function getWorkspaceRules(policy: Policy | undefined, translate: LocaleContextProps['translate']) {
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
@@ -68,4 +70,10 @@ function getWorkflowRules(policy: Policy | undefined, translate: LocaleContextPr
     return total.length > 0 ? total : null;
 }
 
-export {getWorkspaceRules, getWorkflowRules};
+function getAllValidConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
+    return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).filter(
+        (integration) => !!policy?.connections?.[integration] && !isAuthenticationError(policy, integration),
+    );
+}
+
+export {getWorkspaceRules, getWorkflowRules, getAllValidConnectedIntegration};

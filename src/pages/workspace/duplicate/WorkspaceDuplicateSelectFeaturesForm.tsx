@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getAllValidConnectedIntegration, getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import {openPolicyCategoriesPage} from '@userActions/Policy/Category';
@@ -22,9 +22,10 @@ import {openPolicyReportFieldsPage} from '@userActions/Policy/ReportField';
 import {openPolicyTagsPage} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Rate} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getWorkflowRules, getWorkspaceRules} from './utils';
+import {getAllValidConnectedIntegration, getWorkflowRules, getWorkspaceRules} from './utils';
 
 type WorkspaceDuplicateFormProps = {
     policyID?: string;
@@ -64,7 +65,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const [street1, street2] = (policy?.address?.addressStreet ?? '').split('\n');
     const formattedAddress =
         !isEmptyObject(policy) && !isEmptyObject(policy.address)
-            ? `${street1?.trim()}, ${street2 ? `${street2.trim()}, ` : ''}${policy.address.city}, ${policy.address.state} ${policy.address.zipCode ?? ''}`
+            ? `, ${street1?.trim()}, ${street2 ? `${street2.trim()}, ` : ''}${policy.address.city}, ${policy.address.state} ${policy.address.zipCode ?? ''}`
             : '';
 
     const items = useMemo(() => {
@@ -150,7 +151,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 ? {
                       translation: translate('workspace.common.perDiem'),
                       value: 'perDiem',
-                      alternateText: allRates ? `${allRates}${translate('workspace.common.perDiem').toLowerCase()}` : undefined,
+                      alternateText: allRates ? `${allRates} ${translate('workspace.common.perDiem').toLowerCase()}` : undefined,
                   }
                 : undefined,
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -181,12 +182,15 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     ]);
 
     const listData: ListItem[] = useMemo(() => {
-        return items.map((option) => ({
-            text: option.translation,
-            keyForList: option.value,
-            isSelected: selectedItems.includes(option.value),
-            alternateText: option.alternateText,
-        }));
+        return items.map((option) => {
+            const alternateText = option?.alternateText ? option.alternateText.trim().replace(/,$/, '') : undefined;
+            return {
+                text: option.translation,
+                keyForList: option.value,
+                isSelected: selectedItems.includes(option.value),
+                alternateText,
+            };
+        });
     }, [items, selectedItems]);
 
     const fetchWorkspaceRelatedData = useCallback(() => {
@@ -203,14 +207,13 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         openPolicyWorkflowsPage(policyID);
     }, [policyID, allIds]);
 
-    const confirmDuplicateAndHideModal = useCallback(() => {
-        setIsDuplicateModalOpen(false);
+    const confirmDuplicate = useCallback(() => {
         if (!policy || !duplicateWorkspace?.name || !duplicateWorkspace?.policyID) {
             return;
         }
         duplicateWorkspaceAction(policy, {
             policyName: duplicateWorkspace.name,
-            policyID,
+            policyID: policy.id,
             targetPolicyID: duplicateWorkspace.policyID,
             welcomeNote: `${translate('workspace.duplicateWorkspace.welcomeNote')} ${duplicateWorkspace.name}`,
             parts: {
@@ -229,7 +232,23 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             file: duplicateWorkspace?.file,
         });
         Navigation.closeRHPFlow();
-    }, [duplicateWorkspace?.file, duplicateWorkspace?.name, duplicateWorkspace?.policyID, policy, policyID, selectedItems, translate]);
+    }, [duplicateWorkspace?.file, duplicateWorkspace?.name, duplicateWorkspace?.policyID, policy, selectedItems, translate]);
+
+    const confirmDuplicateAndHideModal = useCallback(() => {
+        setIsDuplicateModalOpen(false);
+        if (!policy || !duplicateWorkspace?.name || !duplicateWorkspace?.policyID) {
+            return;
+        }
+        confirmDuplicate();
+    }, [confirmDuplicate, duplicateWorkspace?.name, duplicateWorkspace?.policyID, policy]);
+
+    const onConfirmSelectList = useCallback(() => {
+        if (!totalMembers || totalMembers < 2 || !selectedItems.includes('members')) {
+            confirmDuplicate();
+            return;
+        }
+        setIsDuplicateModalOpen(true);
+    }, [confirmDuplicate, selectedItems, totalMembers]);
 
     const updateSelectedItems = useCallback(
         (listItem: ListItem) => {
@@ -280,7 +299,10 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
 
     return (
         <>
-            <HeaderWithBackButton title={translate('workspace.common.duplicateWorkspace')} />
+            <HeaderWithBackButton
+                onBackButtonPress={policyID ? () => Navigation.goBack(ROUTES.WORKSPACE_DUPLICATE.getRoute(policyID, ROUTES.WORKSPACES_LIST.route)) : undefined}
+                title={translate('workspace.common.duplicateWorkspace')}
+            />
             <>
                 <View style={[styles.ph5, styles.pv3]}>
                     <Text style={[styles.textHeadline]}>{translate('workspace.duplicateWorkspace.selectFeatures')}</Text>
@@ -296,7 +318,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                         addBottomSafeAreaPadding
                         showConfirmButton
                         confirmButtonText={translate('common.next')}
-                        onConfirm={() => setIsDuplicateModalOpen(true)}
+                        onConfirm={onConfirmSelectList}
                     />
                 </View>
             </>
