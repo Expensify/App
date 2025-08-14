@@ -6007,6 +6007,7 @@ const translations = {
         statements: 'Verklaringen',
         unapprovedCash: 'Niet goedgekeurd contant geld',
         unapprovedCard: 'Niet-goedgekeurde kaart',
+        reconciliation: 'Verzoening',
         saveSearch: 'Zoekopdracht opslaan',
         deleteSavedSearch: 'Verwijder opgeslagen zoekopdracht',
         deleteSavedSearchConfirm: 'Weet je zeker dat je deze zoekopdracht wilt verwijderen?',

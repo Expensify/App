@@ -5992,6 +5992,7 @@ const translations = {
         statements: 'Oświadczenia',
         unapprovedCash: 'Niezatwierdzone środki pieniężne',
         unapprovedCard: 'Niezatwierdzona karta',
+        reconciliation: 'Pojednanie',
         saveSearch: 'Zapisz wyszukiwanie',
         deleteSavedSearch: 'Usuń zapisaną wyszukiwarkę',
         deleteSavedSearchConfirm: 'Czy na pewno chcesz usunąć to wyszukiwanie?',
