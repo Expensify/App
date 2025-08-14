@@ -40,11 +40,26 @@ const defaultValue: ScrollOffsetContextValue = {
 
 const ScrollOffsetContext = createContext<ScrollOffsetContextValue>(defaultValue);
 
-/** This function is prepared to work with HOME screens. May need modification if we want to handle other types of screens. */
+/** This function is prepared to work with HOME and SEARCH screens. */
 function getKey(route: PlatformStackRouteProp<ParamListBase> | NavigationPartialRoute): string {
+    // Handle routes with direct policyID parameter (HOME screens)
     if (route.params && 'policyID' in route.params && typeof route.params.policyID === 'string') {
         return `${route.name}-${route.params.policyID}`;
     }
+
+    // Handle SEARCH.ROOT screens where policyID might be embedded in the search query
+    if (route.name === SCREENS.SEARCH.ROOT && route.params && 'q' in route.params && typeof route.params.q === 'string') {
+        const policyIDMatch = route.params.q.match(/policyID:([^\\s]+)/);
+        if (policyIDMatch) {
+            return `${route.name}-${policyIDMatch[1]}`;
+        }
+    }
+
+    // Handle other SEARCH screens with reportID parameter
+    if (route.params && 'reportID' in route.params && typeof route.params.reportID === 'string') {
+        return `${route.name}-${route.params.reportID}`;
+    }
+
     return `${route.name}-global`;
 }
 
@@ -58,9 +73,9 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
             return;
         }
 
-        // If the priority mode changes, we need to clear the scroll offsets for the home screens because it affects the size of the elements and scroll positions wouldn't be correct.
+        // If the priority mode changes, we need to clear the scroll offsets for the home and search screens because it affects the size of the elements and scroll positions wouldn't be correct.
         for (const key of Object.keys(scrollOffsetsRef.current)) {
-            if (key.includes(SCREENS.HOME)) {
+            if (key.includes(SCREENS.HOME) || key.includes(SCREENS.SEARCH.ROOT)) {
                 delete scrollOffsetsRef.current[key];
             }
         }
@@ -79,9 +94,14 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
 
     const cleanStaleScrollOffsets: ScrollOffsetContextValue['cleanStaleScrollOffsets'] = useCallback((state) => {
         const sidebarRoutes = state.routes.filter((route) => isSidebarScreenName(route.name));
-        const scrollOffsetKeysOfExistingScreens = sidebarRoutes.map((route) => getKey(route));
+
+        const searchRoutes = state.routes.filter((route) => route.name === SCREENS.SEARCH.ROOT);
+        const allRelevantRoutes = [...sidebarRoutes, ...searchRoutes];
+        const scrollOffsetKeysOfExistingScreens = allRelevantRoutes.map((route) => getKey(route));
+
         for (const key of Object.keys(scrollOffsetsRef.current)) {
-            if (!scrollOffsetKeysOfExistingScreens.includes(key)) {
+            const isSearchRoute = key.startsWith('Search_Root-');
+            if (!isSearchRoute && !scrollOffsetKeysOfExistingScreens.includes(key)) {
                 delete scrollOffsetsRef.current[key];
             }
         }
