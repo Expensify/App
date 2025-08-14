@@ -210,6 +210,7 @@ import type {
     StripePaidParams,
     SubmitsToParams,
     SubmittedToVacationDelegateParams,
+    SubmittedWithMemoParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -313,7 +314,7 @@ const translations = {
         no: 'いいえ',
         ok: 'OK',
         notNow: '今は無理',
-        learnMore: '詳しくはこちら。',
+        learnMore: '詳しくはこちら',
         buttonConfirm: '了解しました。',
         name: '名前',
         attachment: '添付ファイル',
@@ -1170,7 +1171,7 @@ const translations = {
         sendInvoice: ({amount}: RequestAmountParams) => `${amount} 請求書を送信`,
         submitAmount: ({amount}: RequestAmountParams) => `${amount}を提出`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `${comment} のために` : ''}`,
-        submitted: `提出済み`,
+        submitted: ({memo}: SubmittedWithMemoParams) => `提出済み${memo ? `、次のように言って ${memo}` : ''}`,
         automaticallySubmitted: `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">送信の遅延</a>を通じて送信されました`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `tracking ${formattedAmount}${comment ? `${comment} のために` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `${amount} を分割`,
@@ -2617,6 +2618,9 @@ const translations = {
         pageNotFound: 'おっと、このページは見つかりません',
         noAccess: 'このチャットまたは経費は削除されたか、アクセス権がありません。\n\nご質問がある場合は、concierge@expensify.com にお問い合わせください。',
         goBackHome: 'ホームページに戻る',
+        commentYouLookingForCannotBeFound: 'お探しのコメントが見つかりません。チャットに戻ってください',
+        contactConcierge: 'ご質問がある場合は、concierge@expensify.com にお問い合わせください。',
+        goToChatInstead: '代わりにチャットに移動してください。',
     },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `おっと... ${isBreakLine ? '\n' : ''}何かがうまくいきませんでした。`,
@@ -3499,7 +3503,7 @@ const translations = {
                 `以前に${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}に接続したことがあるので、既存の接続を再利用するか、新しい接続を作成することができます。`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - 最終同期日 ${formattedDate}`,
             authenticationError: ({connectionName}: AuthenticationErrorParams) => `認証エラーのため、${connectionName} に接続できません`,
-            learnMore: '詳しくはこちら。',
+            learnMore: '詳しくはこちら',
             memberAlternateText: 'メンバーはレポートを提出および承認できます。',
             adminAlternateText: '管理者は、すべてのレポートとワークスペース設定に対して完全な編集アクセス権を持っています。',
             auditorAlternateText: '監査人はレポートを閲覧し、コメントを残すことができます。',
@@ -6476,7 +6480,7 @@ const translations = {
         overTripLimit: ({formattedLimit}: ViolationsOverLimitParams) => `${formattedLimit}/回を超える金額`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `${formattedLimit}/人の制限を超えた金額`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `1日あたりのカテゴリ制限${formattedLimit}/人を超える金額`,
-        receiptNotSmartScanned: '領収書と経費の詳細を手動で追加しました。<a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">詳細を学ぶ。</a>',
+        receiptNotSmartScanned: '領収書と経費の詳細を手動で追加しました。<a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">詳細を学ぶ</a>。',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = '領収書が必要です';
             if (formattedLimit ?? category) {
