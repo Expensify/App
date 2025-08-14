@@ -941,6 +941,7 @@ function MenuItem(
                                                             StyleUtils.getMenuItemIconStyle(isCompact),
                                                             disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
                                                             hasSubMenuItems && styles.opacitySemiTransparent,
+                                                            hasSubMenuItems && styles.pl6,
                                                         ]}
                                                     >
                                                         <Icon
