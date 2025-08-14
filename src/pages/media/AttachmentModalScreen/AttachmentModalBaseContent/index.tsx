@@ -44,7 +44,6 @@ function AttachmentModalBaseContent({
     type,
     accountID,
     attachmentLink = '',
-    allowDownload = false,
     report,
     reportID,
     isWorkspaceAvatar = false,
@@ -53,7 +52,6 @@ function AttachmentModalBaseContent({
     isLoading = false,
     shouldShowNotFoundPage = false,
     shouldShowCarousel = true,
-    shouldShowDownloadButton: shouldShowDownloadButtonProp = true,
     shouldDisableSendButton = false,
     shouldDisplayHelpButton = true,
     submitRef,
@@ -205,8 +203,8 @@ function AttachmentModalBaseContent({
             return false;
         }
 
-        return allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource && shouldShowDownloadButtonProp;
-    }, [allowDownload, isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, report, shouldShowDownloadButtonProp, shouldShowNotFoundPage, source, type]);
+        return !!onDownloadAttachment && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource;
+    }, [isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, onDownloadAttachment, report, shouldShowNotFoundPage, source, type]);
 
     // We need to pass a shared value of type boolean to the context, so `falseSV` acts as a default value.
     const falseSV = useSharedValue(false);

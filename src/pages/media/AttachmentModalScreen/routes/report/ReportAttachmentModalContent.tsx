@@ -11,6 +11,7 @@ import {isReportNotFound} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
+import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment';
 import type {AttachmentModalScreenParams, AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -112,6 +113,10 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         ComposerFocusManager.setReadyToFocus();
     }, []);
 
+    const onDownloadAttachment = useDownloadAttachment({
+        isAuthTokenRequired,
+    });
+
     const source = useMemo(() => Number(sourceParam) || (typeof sourceParam === 'string' ? tryResolveUrlFromApiRoot(decodeURIComponent(sourceParam)) : undefined), [sourceParam]);
     const modalType = useReportAttachmentModalType(fileParam);
 
@@ -126,7 +131,6 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
                       type,
                       report,
                       shouldShowNotFoundPage: !isLoading && type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID,
-                      allowDownload: true,
                       isAuthTokenRequired: !!isAuthTokenRequired,
                       attachmentLink: attachmentLink ?? '',
                       originalFileName: originalFileName ?? '',
@@ -141,13 +145,14 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
             source,
             attachmentID,
             accountID,
-            onConfirm,
             headerTitle,
             shouldDisableSendButton,
             submitRef,
+            onConfirm,
+            onDownloadAttachment,
             onCarouselAttachmentChange,
         }),
-        [accountID, attachmentID, contentTypeProps, headerTitle, onCarouselAttachmentChange, onConfirm, shouldDisableSendButton, source],
+        [accountID, attachmentID, contentTypeProps, headerTitle, onCarouselAttachmentChange, onConfirm, onDownloadAttachment, shouldDisableSendButton, source],
     );
 
     return (

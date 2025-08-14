@@ -12,7 +12,7 @@ type UseDownloadAttachmentProps = {
     draftTransactionID?: string;
 };
 
-function useDownloadAttachment({isAuthTokenRequired, type, draftTransactionID}: UseDownloadAttachmentProps) {
+function useDownloadAttachment({isAuthTokenRequired, type, draftTransactionID}: UseDownloadAttachmentProps = {}) {
     /**
      * Download the currently viewed attachment.
      */

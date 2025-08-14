@@ -16,6 +16,7 @@ import {isReportNotFound} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import type {AttachmentContentProps, AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
+import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment';
 import type {AttachmentModalScreenParams, AttachmentModalScreenProps, FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -165,6 +166,10 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
         [onConfirmParam, validFilesToUpload],
     );
 
+    const onDownloadAttachment = useDownloadAttachment({
+        isAuthTokenRequired,
+    });
+
     const isLoading = useMemo(() => {
         if (isOffline || isReportNotFound(report) || !reportID) {
             return false;
@@ -219,14 +224,29 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
             originalFileName,
             attachmentID,
             accountID,
-            onConfirm,
             headerTitle,
             shouldDisableSendButton,
             submitRef,
+            onConfirm,
+            onDownloadAttachment,
             AttachmentContent: AddAttachmentModalCarouselView,
             ExtraModals,
         };
-    }, [ExtraModals, accountID, attachmentID, attachmentLink, headerTitle, isAuthTokenRequired, isLoading, onConfirm, originalFileName, shouldDisableSendButton, source, validFilesToUpload]);
+    }, [
+        ExtraModals,
+        accountID,
+        attachmentID,
+        attachmentLink,
+        headerTitle,
+        isAuthTokenRequired,
+        isLoading,
+        onConfirm,
+        onDownloadAttachment,
+        originalFileName,
+        shouldDisableSendButton,
+        source,
+        validFilesToUpload,
+    ]);
 
     return (
         <AttachmentModalContainer

@@ -54,9 +54,6 @@ type AttachmentModalBaseContentProps = {
     /** Whether source url requires authentication */
     isAuthTokenRequired?: boolean;
 
-    /** Determines if download Button should be shown or not */
-    allowDownload?: boolean;
-
     /** Title shown in the header of the modal */
     headerTitle?: string;
 

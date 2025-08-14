@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Routes} from '@src/types/onyx/Transaction';
+import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 type ProfileAvatarScreenParams = Omit<AttachmentModalScreenParams, 'accountID'> & {
     accountID: number;
@@ -27,6 +28,7 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
     const avatarURL = personalDetail?.avatar ?? '';
     const displayName = getDisplayNameOrDefault(personalDetail);
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+
     useEffect(() => {
         if (!isValidAccountRoute(Number(accountID))) {
             return;
@@ -34,16 +36,19 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
         openPublicProfilePage(accountID);
     }, [accountID]);
 
+    const onDownloadAttachment = useDownloadAttachment();
+
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
             source: getFullSizeAvatar(avatarURL, accountID),
-            isLoading: !!(personalDetailsMetadata?.[accountID]?.isLoading ?? (isLoadingApp && !Object.keys(personalDetail ?? {}).length)),
-            headerTitle: formatPhoneNumber(displayName),
             originalFileName: personalDetail?.originalFileName ?? '',
+            headerTitle: formatPhoneNumber(displayName),
+            isLoading: !!(personalDetailsMetadata?.[accountID]?.isLoading ?? (isLoadingApp && !Object.keys(personalDetail ?? {}).length)),
             shouldShowNotFoundPage: !avatarURL,
             maybeIcon: true,
+            onDownloadAttachment,
         }),
-        [accountID, avatarURL, displayName, formatPhoneNumber, isLoadingApp, personalDetail, personalDetailsMetadata],
+        [accountID, avatarURL, displayName, formatPhoneNumber, isLoadingApp, onDownloadAttachment, personalDetail, personalDetailsMetadata],
     );
 
     return (

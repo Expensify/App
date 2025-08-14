@@ -9,6 +9,7 @@ import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/Attachm
 import type {AttachmentModalScreenParams, AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 type WorkspaceAvatarScreenParams = Omit<AttachmentModalScreenParams, 'policyID'> & {
     policyID: string;
@@ -26,17 +27,20 @@ function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenP
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !Object.keys(policy ?? {}).length && !isLoadingApp && (!policyID || !fallbackLetter);
 
+    const onDownloadAttachment = useDownloadAttachment();
+
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
             source: getFullSizeAvatar(avatarURL, 0),
             headerTitle: policy?.name,
-            isWorkspaceAvatar: true,
             originalFileName: policy?.originalFileName ?? policy?.id,
             shouldShowNotFoundPage,
+            isWorkspaceAvatar: true,
             isLoading: !Object.keys(policy ?? {}).length && !!isLoadingApp,
             maybeIcon: true,
+            onDownloadAttachment,
         }),
-        [avatarURL, isLoadingApp, policy, shouldShowNotFoundPage],
+        [avatarURL, isLoadingApp, onDownloadAttachment, policy, shouldShowNotFoundPage],
     );
 
     return (

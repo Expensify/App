@@ -53,9 +53,11 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
     const isDraftTransaction = !!action;
     const transaction = isDraftTransaction ? transactionDraft : transactionMain;
+    const draftTransactionID = isDraftTransaction ? transactionID : undefined;
     const receiptURIs = getThumbnailAndImageURIs(transaction);
 
     const isLocalFile = receiptURIs.isLocalFile;
+    const isAuthTokenRequired = !isLocalFile && !isDraftTransaction;
     const readonly = !!readonlyProp;
     const isFromReviewDuplicates = !!isFromReviewDuplicatesProp;
     const source = isDraftTransaction ? transactionDraft?.receipt?.source : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
@@ -145,12 +147,11 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         [deleteReceiptAndClose, isDeleteReceiptConfirmModalVisible, translate],
     );
 
-    const downloadAttachment = useDownloadAttachment({
-        isAuthTokenRequired: !isLocalFile && !isDraftTransaction,
-        draftTransactionID: isDraftTransaction ? transactionID : undefined,
+    const onDownloadAttachment = useDownloadAttachment({
+        isAuthTokenRequired,
+        draftTransactionID,
     });
 
-    const draftTransactionID = isDraftTransaction ? transactionID : undefined;
     const allowDownload = !isEReceipt;
 
     const threeDotsMenuItems = useMemo(() => {
@@ -185,7 +186,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             return {
                 icon: Expensicons.Download,
                 text: translate('common.download'),
-                onSelected: () => downloadAttachment({source: sourceState, file}),
+                onSelected: () => onDownloadAttachment({source: sourceState, file}),
             };
         };
         menuItems.push(menuItemGenerator);
@@ -216,40 +217,38 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         report?.reportID,
         isOffline,
         allowDownload,
-        downloadAttachment,
+        onDownloadAttachment,
     ]);
 
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
             source,
-            isAuthTokenRequired: !isLocalFile && !isDraftTransaction,
+            originalFileName: isDraftTransaction ? transaction?.filename : receiptURIs?.filename,
             report,
             headerTitle: translate('common.receipt'),
             threeDotsMenuItems,
-            allowDownload,
+            isAuthTokenRequired,
             isTrackExpenseAction: isTrackExpenseActionValue,
-            originalFileName: isDraftTransaction ? transaction?.filename : receiptURIs?.filename,
             isLoading: !transaction && reportMetadata?.isLoadingInitialReportActions,
             shouldShowNotFoundPage,
-            shouldShowDownloadButton: false,
             shouldShowCarousel: false,
-            onDownloadAttachment: downloadAttachment,
+            onDownloadAttachment: allowDownload ? onDownloadAttachment : undefined,
             ExtraModals,
         }),
         [
             source,
-            isLocalFile,
-            isDraftTransaction,
+            isAuthTokenRequired,
             report,
             translate,
             threeDotsMenuItems,
             allowDownload,
+            onDownloadAttachment,
             isTrackExpenseActionValue,
+            isDraftTransaction,
             transaction,
             receiptURIs?.filename,
             reportMetadata?.isLoadingInitialReportActions,
             shouldShowNotFoundPage,
-            downloadAttachment,
             ExtraModals,
         ],
     );
