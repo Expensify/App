@@ -307,10 +307,10 @@ function MoneyRequestConfirmationListFooter({
 
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.
-    const availableOutstandingReports = getOutstandingReportsForUser(policyID, selectedParticipants?.at(0)?.ownerAccountID, allReports, reportNameValuePairs).sort((a, b) =>
+    const availableOutstandingReports = getOutstandingReportsForUser(policyID, selectedParticipants?.at(0)?.ownerAccountID, allReports, reportNameValuePairs, false).sort((a, b) =>
         localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''),
     );
-    const shouldReportBeEditable = availableOutstandingReports.length > (isFromGlobalCreate ? 0 : 1) && !isMoneyRequestReport(reportID, allReports);
+    const shouldReportBeEditable = availableOutstandingReports.length > 1 && !isMoneyRequestReport(reportID, allReports);
 
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
     const taxRates = policy?.taxRates ?? null;
