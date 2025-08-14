@@ -255,7 +255,15 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                     items={groupByOptions}
                     value={groupBy}
                     closeOverlay={closeOverlay}
-                    onChange={(item) => updateFilterForm({groupBy: item?.value})}
+                    onChange={(item) => {
+                        const newValue = item?.value;
+                        if (!newValue) {
+                            // groupCurrency depends on groupBy. Without groupBy groupCurrency makes no sense
+                            updateFilterForm({groupBy: undefined, groupCurrency: undefined});
+                        } else {
+                            updateFilterForm({groupBy: newValue});
+                        }
+                    }}
                 />
             );
         },
