@@ -14,7 +14,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as MemberActions from '@userActions/Policy/Member';
+import {clearWorkspaceOwnerChangeFlow} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -27,12 +27,17 @@ function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageP
 
     const accountID = Number(route.params.accountID) ?? -1;
     const policyID = route.params.policyID;
+    const backTo = route.params.backTo;
 
     const closePage = useCallback(() => {
-        MemberActions.clearWorkspaceOwnerChangeFlow(policyID);
-        Navigation.goBack();
-        Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
-    }, [accountID, policyID]);
+        clearWorkspaceOwnerChangeFlow(policyID);
+        if (backTo) {
+            Navigation.goBack(backTo);
+        } else {
+            Navigation.goBack();
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+        }
+    }, [accountID, backTo, policyID]);
 
     return (
         <AccessOrNotFoundWrapper

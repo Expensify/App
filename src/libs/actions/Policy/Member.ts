@@ -786,7 +786,11 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData});
 }
 
-function requestWorkspaceOwnerChange(policyID: string) {
+function requestWorkspaceOwnerChange(policyID: string | undefined) {
+    if (!policyID) {
+        return;
+    }
+
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
@@ -864,7 +868,11 @@ function requestWorkspaceOwnerChange(policyID: string) {
     API.write(WRITE_COMMANDS.REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
 }
 
-function clearWorkspaceOwnerChangeFlow(policyID: string) {
+function clearWorkspaceOwnerChangeFlow(policyID: string | undefined) {
+    if (!policyID) {
+        return;
+    }
+
     Onyx.merge(ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS, null);
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         errorFields: null,
