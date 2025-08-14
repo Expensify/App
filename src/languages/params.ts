@@ -850,6 +850,10 @@ type MergeFailureDescriptionGenericParams = {
     email: string;
 };
 
+type WorkspaceShareNoteParams = {
+    adminsRoomLink: string;
+};
+
 type RulesEnableWorkflowsParams = {
     moreFeaturesLink: string;
 };
@@ -1156,6 +1160,7 @@ export type {
     MergeSuccessDescriptionParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
+    WorkspaceShareNoteParams,
     RulesEnableWorkflowsParams,
     UpgradeSuccessMessageParams,
     DomainPermissionInfoRestrictionParams,
