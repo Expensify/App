@@ -4302,8 +4302,8 @@ const translations = {
             chooseCard: '选择一张卡片',
             chooseCardFor: ({assignee, feed}: AssignCardParams) => `从${feed}卡片源中为${assignee}选择一张卡片。`,
             noActiveCards: '此信息流中没有活跃的卡片',
-            somethingMightBeBroken: '或者可能出了问题。无论如何，如果您有任何问题，只需',
-            contactConcierge: '联系Concierge',
+            somethingMightBeBroken:
+                '<muted-text><centered-text>或者有什么东西坏了。无论如何，如果您有任何问题，请<concierge-link>联系 Concierge</concierge-link>。</centered-text></muted-text>',
             chooseTransactionStartDate: '选择交易开始日期',
             startDateDescription: '我们将从此日期开始导入所有交易。如果未指定日期，我们将根据您的银行允许的最早日期进行导入。',
             fromTheBeginning: '从头开始',

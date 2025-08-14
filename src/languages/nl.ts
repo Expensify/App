@@ -4380,8 +4380,8 @@ const translations = {
             chooseCard: 'Kies een kaart',
             chooseCardFor: ({assignee, feed}: AssignCardParams) => `Kies een kaart voor ${assignee} uit de ${feed} kaartenfeed.`,
             noActiveCards: 'Geen actieve kaarten in deze feed',
-            somethingMightBeBroken: 'Of er is iets kapot. Hoe dan ook, als je vragen hebt, gewoon',
-            contactConcierge: 'neem contact op met Concierge',
+            somethingMightBeBroken:
+                '<muted-text><centered-text>Of er is misschien iets kapot. Hoe dan ook, als u vragen heeft, neem dan <concierge-link>contact op met Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Kies een startdatum voor de transactie',
             startDateDescription: 'We importeren alle transacties vanaf deze datum. Als er geen datum is opgegeven, gaan we zo ver terug als uw bank toestaat.',
             fromTheBeginning: 'Vanaf het begin',
