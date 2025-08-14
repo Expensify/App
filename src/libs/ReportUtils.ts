@@ -1896,6 +1896,7 @@ function pushTransactionViolationsOnyxData(
               ...Object.entries(policyTagListsUpdate).reduce<PolicyTagLists>((acc, [tagName, tagUpdate]) => {
                   acc[tagName] = {
                       ...(policyTagLists?.[tagName] ?? {}),
+                      ...tagUpdate,
                       tags: {
                           ...(policyTagLists?.[tagName]?.tags ?? {}),
                           ...(tagUpdate?.tags ?? {}),
