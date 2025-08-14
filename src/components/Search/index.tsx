@@ -87,15 +87,22 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, report
     ];
 }
 
-function mapToTransactionItemWithAdditionalInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
-    return {...item, shouldAnimateInHighlight, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple};
+function mapToTransactionItemWithAdditionalInfo(
+    item: TransactionListItemType,
+    selectedTransactions: SelectedTransactions,
+    canSelectMultiple: boolean,
+    shouldAnimateInHighlight: boolean,
+    hash?: number,
+) {
+    return {...item, shouldAnimateInHighlight, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple, hash};
 }
 
-function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
+function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean, hash?: number) {
     if (isTaskListItemType(item)) {
         return {
             ...item,
             shouldAnimateInHighlight,
+            hash,
         };
     }
 
@@ -103,6 +110,7 @@ function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions:
         return {
             ...item,
             shouldAnimateInHighlight,
+            hash,
         };
     }
 
@@ -111,10 +119,13 @@ function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions:
         : {
               ...item,
               shouldAnimateInHighlight,
-              transactions: item.transactions?.map((transaction) => mapToTransactionItemWithAdditionalInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)),
+              transactions: item.transactions?.map((transaction) =>
+                  mapToTransactionItemWithAdditionalInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash),
+              ),
               isSelected:
                   item?.transactions?.length > 0 &&
                   item.transactions?.filter((t) => !isTransactionPendingDelete(t)).every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
+              hash,
           };
 }
 
@@ -624,9 +635,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 // Determine if either the base key or any transaction key matches
                 const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
 
-                return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
+                return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash);
             }),
-        [type, status, data, sortBy, sortOrder, groupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple, localeCompare],
+        [type, status, data, sortBy, sortOrder, groupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple, localeCompare, hash],
     );
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;

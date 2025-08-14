@@ -19,7 +19,7 @@ import {isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Po
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
-import {getActiveAdminWorkspaces, getPolicyEmployeeAccountIDs, hasVBBA} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     doesReportBelongToWorkspace,
@@ -144,7 +144,7 @@ function SettlementButton({
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
 
     function getLatestBankAccountItem() {
-        if (!hasVBBA(policy?.id)) {
+        if (!policy?.achAccount?.bankAccountID) {
             return;
         }
         const policyBankAccounts = formattedPaymentMethods.filter((method) => method.methodID === policy?.achAccount?.bankAccountID);
@@ -356,6 +356,7 @@ function SettlementButton({
         onlyShowPayElsewhere,
         latestBankItem,
         activeAdminPolicies,
+        latestBankItem,
     ]);
 
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType) => {
