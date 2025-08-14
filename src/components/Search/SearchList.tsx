@@ -426,7 +426,9 @@ function SearchList(
 
     const handleScroll = useCallback<NonNullable<FlashListProps<SearchListItem>['onScroll']>>(
         (e) => {
-            onScroll(e);
+            if (onScroll && typeof onScroll === 'function') {
+                onScroll(e);
+            }
 
             if (e.nativeEvent.layoutMeasurement.height > 0) {
                 saveScrollOffset(route, e.nativeEvent.contentOffset.y);
@@ -436,7 +438,9 @@ function SearchList(
     );
 
     const handleLayout = useCallback(() => {
-        onLayout?.();
+        if (onLayout && typeof onLayout === 'function') {
+            onLayout();
+        }
 
         const offset = getScrollOffset(route);
         if (!offset || !listRef.current) {
