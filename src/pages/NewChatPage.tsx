@@ -299,7 +299,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
                 singleExecution(() => navigateToAndOpenReport([login]))();
             });
         },
-        [selectedOptions, toggleOption],
+        [selectedOptions, toggleOption, singleExecution],
     );
 
     const itemRightSideComponent = useCallback(
