@@ -5377,9 +5377,7 @@ const translations = {
             successTitle: 'Woohoo! Alles klaar.',
             successDescription: 'Je bent nu de eigenaar van deze werkruimte.',
             errorTitle: 'Oeps! Niet zo snel...',
-            errorDescriptionPartOne: 'Er was een probleem met het overdragen van het eigendom van deze werkruimte. Probeer het opnieuw, of',
-            errorDescriptionPartTwo: 'neem contact op met Concierge',
-            errorDescriptionPartThree: 'voor hulp.',
+            errorDescription: `<muted-text><centered-text>Er is een probleem opgetreden bij het overdragen van het eigendom van deze werkruimte. Probeer het opnieuw of <concierge-link>neem contact op met Concierge</concierge-link> voor hulp.</centered-text></muted-text>`,
         },
         exportAgainModal: {
             title: 'Voorzichtig!',

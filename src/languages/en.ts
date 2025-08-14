@@ -5344,9 +5344,7 @@ const translations = {
             successTitle: 'Woohoo! All set.',
             successDescription: "You're now the owner of this workspace.",
             errorTitle: 'Oops! Not so fast...',
-            errorDescriptionPartOne: 'There was a problem transferring ownership of this workspace. Try again, or',
-            errorDescriptionPartTwo: 'reach out to Concierge',
-            errorDescriptionPartThree: 'for help.',
+            errorDescription: `<muted-text><centered-text>There was a problem transferring ownership of this workspace. Try again, or <concierge-link>reach out to Concierge</concierge-link> for help.</centered-text></muted-text>`,
         },
         exportAgainModal: {
             title: 'Careful!',

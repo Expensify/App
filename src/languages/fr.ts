@@ -5379,9 +5379,7 @@ const translations = {
             successTitle: 'Youpi ! Tout est prêt.',
             successDescription: 'Vous êtes maintenant le propriétaire de cet espace de travail.',
             errorTitle: 'Oups ! Pas si vite...',
-            errorDescriptionPartOne: 'Un problème est survenu lors du transfert de la propriété de cet espace de travail. Réessayez, ou',
-            errorDescriptionPartTwo: 'contactez Concierge',
-            errorDescriptionPartThree: "pour obtenir de l'aide.",
+            errorDescription: `<muted-text><centered-text>Un problème est survenu lors du transfert de propriété de cet espace de travail. Veuillez réessayer ou <concierge-link>contacter le Concierge</concierge-link> pour obtenir de l'aide.</centered-text></muted-text>`,
         },
         exportAgainModal: {
             title: 'Attention !',

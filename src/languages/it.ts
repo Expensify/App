@@ -5378,9 +5378,7 @@ const translations = {
             successTitle: 'Woohoo! Tutto pronto.',
             successDescription: 'Ora sei il proprietario di questo spazio di lavoro.',
             errorTitle: 'Ops! Non così in fretta...',
-            errorDescriptionPartOne: 'Si è verificato un problema nel trasferimento della proprietà di questo spazio di lavoro. Riprova, oppure',
-            errorDescriptionPartTwo: 'contatta Concierge',
-            errorDescriptionPartThree: 'per assistenza.',
+            errorDescription: `<muted-text><centered-text>Si è verificato un problema durante il trasferimento della proprietà di questo spazio di lavoro. Riprova o <concierge-link>contatta il Concierge</concierge-link> per assistenza.</centered-text></muted-text>`,
         },
         exportAgainModal: {
             title: 'Attento!',
