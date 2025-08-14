@@ -5,7 +5,7 @@ import type {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import useThemeStyles from './useThemeStyles';
 
-function useWorkspaceConfirmationAvatar({policyID, source, name}: {policyID: string; source: AvatarSource; name: string}) {
+function useWorkspaceConfirmationAvatar({policyID, source, name}: {policyID: string | undefined; source: AvatarSource; name: string}) {
     const styles = useThemeStyles();
 
     return useCallback(
