@@ -491,6 +491,19 @@ describe('actions/PolicyMember', () => {
                     },
                 });
             });
+            const successAdminRoom = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report);
+                    },
+                });
+            });
+            expect(successAdminRoom?.participants).toEqual({
+                [ownerAccountID]: {notificationPreference: 'always'},
+                [userAccountID]: {notificationPreference: 'always'},
+            });
             expect(successAdminRoomMetadata?.pendingChatMembers).toBeUndefined();
         });
 
