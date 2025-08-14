@@ -38,7 +38,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
-import {getDescriptionForPolicyDomainCard, hasActiveAdminWorkspaces, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getDescriptionForPolicyDomainCard, hasActiveAdminWorkspaces} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import variables from '@styles/variables';
