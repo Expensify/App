@@ -53,7 +53,7 @@ type NumberWithSymbolFormProps = {
     shouldWrapInputInContainer?: boolean;
 
     /** Reference to the outer element */
-    forwardedRef: ForwardedRef<BaseTextInputRef>;
+    forwardedRef?: ForwardedRef<BaseTextInputRef>;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
 
 type NumberWithSymbolFormRef = {
