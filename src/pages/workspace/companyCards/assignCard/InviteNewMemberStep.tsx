@@ -1,3 +1,4 @@
+import React from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -85,6 +86,7 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails, feed}: 
                 shouldShowBackButton={false}
                 isInviteNewMemberStep
                 goToNextStep={goToNextStep}
+                shouldShowTooltip={false}
             />
         </InteractiveStepWrapper>
     );

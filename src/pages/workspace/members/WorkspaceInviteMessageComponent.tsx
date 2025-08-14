@@ -43,6 +43,7 @@ type WorkspaceInviteMessageComponentProps = {
     policyID: string | undefined;
     backTo: Routes | undefined;
     currentUserPersonalDetails: OnyxEntry<PersonalDetails>;
+    shouldShowTooltip?: boolean;
     shouldShowBackButton?: boolean;
     isInviteNewMemberStep?: boolean;
     goToNextStep?: () => void;
@@ -53,6 +54,7 @@ function WorkspaceInviteMessageComponent({
     policyID,
     backTo,
     currentUserPersonalDetails,
+    shouldShowTooltip = true,
     shouldShowBackButton = true,
     isInviteNewMemberStep = false,
     goToNextStep,
@@ -209,6 +211,7 @@ function WorkspaceInviteMessageComponent({
                                 displayInRows: true,
                             }}
                             secondaryAvatarContainerStyle={styles.secondAvatarInline}
+                            shouldShowTooltip={shouldShowTooltip}
                         />
                     </View>
                     <View style={[styles.mb5]}>

@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setDraftInviteAccountID} from '@libs/actions/Card';
 import {getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
 import memoize from '@libs/memoize';
 import {filterAndOrderOptions, getHeaderMessage, getSearchValueForPhoneOrEmail, getValidOptions, sortAlphabetically} from '@libs/OptionsListUtils';
@@ -139,7 +140,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             return;
         }
 
-        if (!selectedMember) {
+        if (!selectedMember || (!searchValue && selectedMember !== policy?.employeeList?.[selectedMember]?.email)) {
             setShouldShowError(true);
             return;
         }
@@ -149,9 +150,10 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                 currentStep: CONST.COMPANY_CARD.STEP.INVITE_NEW_MEMBER,
                 data: {
                     email: selectedMember,
-                    assigneeAccountID: userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    assigneeAccountID: userToInvite?.accountID,
                 },
             });
+            setDraftInviteAccountID(selectedMember, userToInvite?.accountID, policy?.id);
             return;
         }
 
@@ -224,6 +226,23 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
         return membersList;
     }, [isOffline, policy?.employeeList, selectedMember, formatPhoneNumber, localeCompare]);
 
+    const membersDetailsWithInviteNewMember = useMemo(() => {
+        if (!userToInvite) {
+            return {};
+        }
+
+        const newMember: ListItem = {
+            keyForList: userToInvite?.login,
+            text: userToInvite?.login,
+            alternateText: userToInvite?.login,
+            login: userToInvite?.login,
+            isSelected: selectedMember === userToInvite?.login,
+            accountID: userToInvite?.accountID,
+        };
+
+        return newMember;
+    }, [selectedMember, userToInvite]);
+
     const sections = useMemo(() => {
         if (!debouncedSearchValue) {
             return [
@@ -245,7 +264,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             },
             {
                 title: undefined,
-                data: userToInvite ? [userToInvite] : [],
+                data: userToInvite ? [membersDetailsWithInviteNewMember] : [],
                 shouldShow: !!userToInvite,
             },
             ...(personalDetails
@@ -258,7 +277,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                   ]
                 : []),
         ];
-    }, [debouncedSearchValue, membersDetails, userToInvite, personalDetails]);
+    }, [debouncedSearchValue, membersDetails, userToInvite, membersDetailsWithInviteNewMember, personalDetails]);
 
     return (
         <InteractiveStepWrapper
