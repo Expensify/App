@@ -331,7 +331,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                         showDelegateNoAccessModal();
                         return;
                     }
-                    navigateToQuickAction(isValidReport, quickAction, selectOption);
+                    navigateToQuickAction(isValidReport, quickAction, selectOption, isManualDistanceTrackingEnabled);
                 });
             };
             return [
