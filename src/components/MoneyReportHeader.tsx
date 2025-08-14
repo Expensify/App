@@ -638,7 +638,7 @@ function MoneyReportHeader({
                     if (!moneyRequestReport) {
                         return;
                     }
-                    submitReport(moneyRequestReport);
+                    submitReport(moneyRequestReport, currentSearchHash, currentSearchKey);
                 }}
             />
         ),

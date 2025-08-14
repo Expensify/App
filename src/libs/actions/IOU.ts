@@ -10076,7 +10076,7 @@ function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
     API.write(WRITE_COMMANDS.UNAPPROVE_EXPENSE_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-function submitReport(expenseReport?: OnyxTypes.Report) {
+function submitReport(expenseReport?: OnyxTypes.Report, searchHash?: number, searchKey?: SearchKey) {
     if (!expenseReport) {
         return;
     }
@@ -10182,6 +10182,31 @@ function submitReport(expenseReport?: OnyxTypes.Report) {
             value: currentNextStep,
         },
     ];
+
+    if (searchHash) {
+        const createOnyxData = (update: Partial<SearchReport> | null): OnyxUpdate[] => [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+                value: {
+                    data: Object.fromEntries([expenseReport.reportID].map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, update])) as Partial<SearchReport>,
+                },
+            },
+        ];
+
+        const searchSubmitOptimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
+        const searchSubmitFailureData: OnyxUpdate[] = createOnyxData({isActionLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
+
+        // If we are on the 'Submit' suggested search, remove the report from the view once the action is taken, don't wait for the view to be re-fetched via Search
+        const submitActionSuggestedSearches: Partial<SearchKey[]> = [CONST.SEARCH.SEARCH_KEYS.SUBMIT];
+
+        const searchSubmitSuccessData: OnyxUpdate[] = submitActionSuggestedSearches.includes(searchKey) ? createOnyxData(null) : createOnyxData({isActionLoading: false});
+
+        optimisticData.push(...searchSubmitOptimisticData);
+        successData.push(...searchSubmitSuccessData);
+        failureData.push(...searchSubmitFailureData);
+    }
+
     if (!isSubmitAndClosePolicy) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
