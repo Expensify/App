@@ -81,7 +81,6 @@ function BaseTextInput(
         onClearInput,
         iconContainerStyle,
         shouldUseDefaultLineHeightForPrefix = true,
-        clearButtonStyle,
         ...inputProps
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -459,7 +458,7 @@ function BaseTextInput(
                                             setValue('');
                                             onClearInput?.();
                                         }}
-                                        style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), clearButtonStyle]}
+                                        style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}
                                     />
                                 </View>
                             )}

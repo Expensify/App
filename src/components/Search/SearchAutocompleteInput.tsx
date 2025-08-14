@@ -234,7 +234,6 @@ function SearchAutocompleteInput(
                         shouldShowClearButton={!!value && !isSearchingForReports}
                         shouldHideClearButton={false}
                         onClear={clearFilters}
-                        clearButtonStyle={styles.mr1}
                     />
                 </View>
             </Animated.View>
