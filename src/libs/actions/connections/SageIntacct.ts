@@ -912,8 +912,8 @@ function updateSageIntacctSyncReimbursedReports(policyID: string | undefined, en
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_REIMBURSED_REPORTS, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctSyncReimbursementAccountID(policyID: string | undefined, vendorID: string, oldVendorID?: string) {
-    if (!policyID) {
+function updateSageIntacctSyncReimbursementAccountID(policyID: string | undefined, vendorID: string | undefined, oldVendorID?: string) {
+    if (!policyID || !vendorID) {
         return;
     }
 
