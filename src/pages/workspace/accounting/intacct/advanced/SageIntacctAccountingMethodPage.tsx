@@ -25,7 +25,7 @@ type MenuListItem = ListItem & {
 
 type SageIntacctAccountingMethodPageRouteParams = {
     backTo?: Route;
-}
+};
 
 function SageIntacctAccountingMethodPage({policy, route}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -43,7 +43,8 @@ function SageIntacctAccountingMethodPage({policy, route}: WithPolicyConnectionsP
         isSelected: accountingMethod === accountingMethodType,
     }));
 
-    const pendingAction = settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC], config?.pendingFields) ?? settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
+    const pendingAction =
+        settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC], config?.pendingFields) ?? settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
 
     const headerContent = useMemo(
         () => (

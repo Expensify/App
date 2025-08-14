@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {ConnectPolicyToSageIntacctParams} from '@libs/API/parameters';
+import type UpdateSageIntacctAccountingMethodParams from '@libs/API/parameters/UpdateSageIntacctAccountingMethodParams';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
@@ -19,7 +20,6 @@ import type {
     SageIntacctMappingValue,
     SageIntacctOfflineStateKeys,
 } from '@src/types/onyx/Policy';
-import type UpdateSageIntacctAccountingMethodParams from '@libs/API/parameters/UpdateSageIntacctAccountingMethodParams';
 
 type SageIntacctCredentials = {companyID: string; userID: string; password: string};
 
@@ -916,7 +916,7 @@ function updateSageIntacctSyncReimbursementAccountID(policyID: string | undefine
     if (!policyID) {
         return;
     }
-    
+
     const {optimisticData, failureData, successData} = prepareOnyxDataForSyncUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID, vendorID, oldVendorID);
     const parameters = {
         policyID,
@@ -934,7 +934,11 @@ function updateSageIntacctEntity(policyID: string, entity: string, oldEntity: st
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_ENTITY, parameters, prepareOnyxDataForConfigUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.ENTITY, entity, oldEntity));
 }
 
-function updateSageIntacctAccountingMethod(policyID: string | undefined, accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>, oldAccountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>) {
+function updateSageIntacctAccountingMethod(
+    policyID: string | undefined,
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>,
+    oldAccountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>,
+) {
     if (!policyID) {
         return;
     }
@@ -942,7 +946,7 @@ function updateSageIntacctAccountingMethod(policyID: string | undefined, account
     const parameters: UpdateSageIntacctAccountingMethodParams = {
         policyID,
         accountingMethod,
-    }
+    };
 
     const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.ACCOUNTING_METHOD, accountingMethod, oldAccountingMethod);
 

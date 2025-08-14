@@ -62,7 +62,7 @@ function SageIntacctAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                     isActive={!!autoSync?.enabled}
                     wrapperStyle={[styles.pv2, styles.mh5]}
                     shouldPlaceSubtitleBelowSwitch
-                    onToggle={() =>updateSageIntacctAutoSync(policyID, !autoSync?.enabled)}
+                    onToggle={() => updateSageIntacctAutoSync(policyID, !autoSync?.enabled)}
                     pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED], pendingFields)}
                     errors={getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED)}
                     onCloseError={() => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED)}

@@ -2618,7 +2618,7 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC route');
             }
             return getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/advanced/autosync` as const, backTo);
-        }
+        },
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_ACCOUNTING_METHOD: {
         route: 'workspaces/:policyID/accounting/sage-intacct/advanced/autosync/accounting-method',
@@ -2627,7 +2627,7 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_ACCOUNTING_METHOD route');
             }
             return getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/advanced/autosync/accounting-method` as const, backTo);
-        }
+        },
     },
     ADD_UNREPORTED_EXPENSE: {
         route: 'search/r/:reportID/add-unreported-expense/:backToReport?',
