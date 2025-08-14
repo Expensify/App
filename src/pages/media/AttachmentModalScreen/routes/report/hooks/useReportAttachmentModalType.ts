@@ -5,6 +5,10 @@ import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type ModalType from '@src/types/utils/ModalType';
 
+function isPdfFile(sourceURL: string, fileObject: FileObject) {
+    return !!sourceURL && (Str.isPDF(sourceURL) || (fileObject && Str.isPDF(fileObject.name ?? translateLocal('attachmentView.unknownFilename'))));
+}
+
 function useReportAttachmentModalType(file: FileObject | FileObject[] | undefined) {
     const [modalType, setModalType] = useState<ModalType>(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     useEffect(() => {
@@ -12,25 +16,19 @@ function useReportAttachmentModalType(file: FileObject | FileObject[] | undefine
             return;
         }
 
+        let isPdf = false;
+
         if (Array.isArray(file)) {
-            const firstFile = file.at(0);
-            setModalType(getModalType(firstFile?.uri ?? '', firstFile ?? {}));
-            return;
+            isPdf = file.some((f) => isPdfFile(f.uri ?? '', f));
+        } else {
+            isPdf = isPdfFile(file?.uri ?? '', file ?? {});
         }
 
-        setModalType(getModalType(file?.uri ?? '', file ?? {}));
+        // If our attachment is a PDF, return the unswipeable Modal type.
+        setModalType(isPdf ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.CENTERED);
     }, [file]);
 
     return modalType;
-}
-
-/**
- * If our attachment is a PDF, return the unswipeable Modal type.
- */
-function getModalType(sourceURL: string, fileObject: FileObject): ModalType {
-    return sourceURL && (Str.isPDF(sourceURL) || (fileObject && Str.isPDF(fileObject.name ?? translateLocal('attachmentView.unknownFilename'))))
-        ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
-        : CONST.MODAL.MODAL_TYPE.CENTERED;
 }
 
 export default useReportAttachmentModalType;
