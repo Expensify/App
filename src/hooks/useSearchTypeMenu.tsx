@@ -142,6 +142,8 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                         text: translate(section.translationPath),
                         style: [styles.textSupporting],
                         disabled: true,
+                        interactive: false,
+                        shouldUseDefaultCursorWhenDisabled: true,
                     },
                 ];
 
