@@ -5602,9 +5602,10 @@ const translations = {
                 autoPayApprovedReportsLockedSubtitle: 'Ga naar meer functies en schakel workflows in, voeg vervolgens betalingen toe om deze functie te ontgrendelen.',
                 autoPayReportsUnderTitle: 'Automatisch rapporten betalen onder',
                 autoPayReportsUnderDescription: "Volledig conforme onkostennota's onder dit bedrag worden automatisch betaald.",
-                unlockFeatureGoToSubtitle: 'Ga naar',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `en workflows inschakelen, voeg vervolgens ${featureName} toe om deze functie te ontgrendelen.`,
-                enableFeatureSubtitle: ({featureName}: FeatureNameParams) => `en schakel ${featureName} in om deze functie te ontgrendelen.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
+                    `Ga naar [meer functies](${moreFeaturesLink}) en schakel workflows in, voeg vervolgens ${featureName} toe om deze functie te ontgrendelen.`,
+                enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
+                    `Ga naar [meer functies](${moreFeaturesLink}) en schakel ${featureName} in om deze functie te ontgrendelen.`,
             },
             categoryRules: {
                 title: 'Categoriewetten',

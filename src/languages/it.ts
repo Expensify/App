@@ -5606,9 +5606,10 @@ const translations = {
                 autoPayApprovedReportsLockedSubtitle: 'Vai su altre funzionalità e abilita i flussi di lavoro, quindi aggiungi i pagamenti per sbloccare questa funzione.',
                 autoPayReportsUnderTitle: 'Rapporti di pagamento automatico sotto',
                 autoPayReportsUnderDescription: 'I rapporti spese completamente conformi sotto questo importo verranno pagati automaticamente.',
-                unlockFeatureGoToSubtitle: 'Vai a',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `e abilita i flussi di lavoro, quindi aggiungi ${featureName} per sbloccare questa funzione.`,
-                enableFeatureSubtitle: ({featureName}: FeatureNameParams) => `e abilita ${featureName} per sbloccare questa funzione.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
+                    `Vai su [più funzionalità](${moreFeaturesLink}) e attiva i flussi di lavoro, quindi aggiungi ${featureName} per sbloccare questa funzionalità.`,
+                enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
+                    `Vai su [più funzionalità](${moreFeaturesLink}) e attiva ${featureName} per sbloccare questa funzionalità.`,
             },
             categoryRules: {
                 title: 'Regole di categoria',

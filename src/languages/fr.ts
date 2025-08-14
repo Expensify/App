@@ -5606,10 +5606,10 @@ const translations = {
                 autoPayApprovedReportsLockedSubtitle: 'Allez dans plus de fonctionnalités et activez les flux de travail, puis ajoutez des paiements pour débloquer cette fonctionnalité.',
                 autoPayReportsUnderTitle: 'Rapports de paiement automatique sous',
                 autoPayReportsUnderDescription: 'Les rapports de dépenses entièrement conformes en dessous de ce montant seront automatiquement payés.',
-                unlockFeatureGoToSubtitle: 'Aller à',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) =>
-                    `et activez les flux de travail, puis ajoutez ${featureName} pour débloquer cette fonctionnalité.`,
-                enableFeatureSubtitle: ({featureName}: FeatureNameParams) => `et activez ${featureName} pour débloquer cette fonctionnalité.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
+                    `Accédez à [plus de fonctionnalités](${moreFeaturesLink}) et activez les workflows, puis ajoutez ${featureName} pour débloquer cette fonctionnalité.`,
+                enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
+                    `Accédez à [plus de fonctionnalités](${moreFeaturesLink}) et activez ${featureName} pour débloquer cette fonctionnalité.`,
             },
             categoryRules: {
                 title: 'Règles de catégorie',
