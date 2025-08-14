@@ -850,6 +850,11 @@ type MergeFailureDescriptionGenericParams = {
     email: string;
 };
 
+type UpgradeSuccessMessageParams = {
+    policyName: string;
+    subscriptionLink: string;
+};
+
 type DomainPermissionInfoRestrictionParams = {
     domain: string;
 };
@@ -1147,6 +1152,7 @@ export type {
     MergeSuccessDescriptionParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
+    UpgradeSuccessMessageParams,
     DomainPermissionInfoRestrictionParams,
     SubmittedWithMemoParams,
 };
