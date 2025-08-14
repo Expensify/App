@@ -14,6 +14,11 @@ type CurrentReportIDContextValue = {
 type CurrentReportIDContextProviderProps = {
     /** Actual content wrapped by this component */
     children: React.ReactNode;
+    /** Optional callback invoked whenever `currentReportID` is explicitly updated.
+     * This is intended only for unit testing, to detect when the hook
+     * actually attempts to change the `currentReportID` value.
+     */
+    onSetCurrentReportID?: (reportID: string | undefined) => void;
 };
 
 const CurrentReportIDContext = createContext<CurrentReportIDContextValue | null>(null);
@@ -48,8 +53,12 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
             if (!currentReportID && !reportID) {
                 return;
             }
+
+            props.onSetCurrentReportID?.(reportID);
             setCurrentReportID(reportID);
         },
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to re-render when onSetCurrentReportID changes
         [setCurrentReportID, currentReportID],
     );
 

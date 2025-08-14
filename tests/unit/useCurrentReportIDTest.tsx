@@ -39,12 +39,17 @@ describe('useCurrentReportID', () => {
         await waitForBatchedUpdates();
     });
 
+    const onSetCurrentReportID = jest.fn();
+
+    function TestWrapper({children}: {children: React.ReactNode}) {
+        return <CurrentReportIDContextProvider onSetCurrentReportID={onSetCurrentReportID}>{children}</CurrentReportIDContextProvider>;
+    }
+
     it('should prevent updates when currentReportID === reportID', () => {
         // Given the hook is rendered
         const {result} = renderHook(() => useCurrentReportID(), {
-            wrapper: CurrentReportIDContextProvider,
+            wrapper: TestWrapper,
         });
-
         // Given the navigation state is set
         const navigationState = {
             index: 0,
@@ -66,9 +71,8 @@ describe('useCurrentReportID', () => {
 
         // Then the currentReportID is updated
         expect(result.current?.currentReportID).toBe('123');
-
-        // When the updateCurrentReportID is called with the same reportID
-        const setStateSpy = jest.spyOn(React, 'useState');
+        expect(onSetCurrentReportID).toHaveBeenCalledWith('123');
+        onSetCurrentReportID.mockClear();
 
         // When the updateCurrentReportID is called with the same reportID
         act(() => {
@@ -76,13 +80,13 @@ describe('useCurrentReportID', () => {
         });
 
         // Then the setState should not be called again
-        expect(setStateSpy).not.toHaveBeenCalled();
+        expect(onSetCurrentReportID).not.toHaveBeenCalled();
     });
 
     it('should prevent updates when both currentReportID and reportID are empty/undefined', () => {
         // Given the hook is rendered
         const {result} = renderHook(() => useCurrentReportID(), {
-            wrapper: CurrentReportIDContextProvider,
+            wrapper: TestWrapper,
         });
 
         // Given the navigation state is set
@@ -108,15 +112,12 @@ describe('useCurrentReportID', () => {
         expect(result.current?.currentReportID).toBe('');
 
         // When the updateCurrentReportID is called with the same navigation state
-        const setStateSpy = jest.spyOn(React, 'useState');
-
-        // When the updateCurrentReportID is called with the same navigation state
         act(() => {
             result.current?.updateCurrentReportID(navigationState);
         });
 
         // Then the setState should not be called again
-        expect(setStateSpy).not.toHaveBeenCalled();
+        expect(onSetCurrentReportID).not.toHaveBeenCalled();
     });
 
     it('should update when reportID changes', () => {
