@@ -17,7 +17,7 @@ import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPo
 import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchDateValues} from '@components/Search/SearchDatePresetFilterBase';
-import type {SearchDateFilterKeys, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
+import type {SearchDateFilterKeys, SearchGroupBy, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -40,7 +40,7 @@ import {
     isFilterSupported,
     isSearchDatePreset,
 } from '@libs/SearchQueryUtils';
-import {getDatePresets, getFeedOptions, getGroupByOptions, getStatusOptions, getTypeOptions} from '@libs/SearchUIUtils';
+import {getDatePresets, getFeedOptions, getGroupByOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -189,6 +189,12 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         [filterFormValues.withdrawnOn, filterFormValues.withdrawnAfter, filterFormValues.withdrawnBefore, createDateDisplayValue],
     );
 
+    const [withdrawalTypeOptions, withdrawalType] = useMemo(() => {
+        const options = getWithdrawalTypeOptions(translate);
+        const value = options.find((option) => option.value === filterFormValues.withdrawalType) ?? null;
+        return [options, value];
+    }, [translate, filterFormValues.withdrawalType]);
+
     const updateFilterForm = useCallback(
         (values: Partial<SearchAdvancedFiltersForm>) => {
             const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
@@ -213,7 +219,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     );
 
     const openAdvancedFilters = useCallback(() => {
-        updateAdvancedFilters(filterFormValues);
+        updateAdvancedFilters(filterFormValues, true);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     }, [filterFormValues]);
 
@@ -296,6 +302,21 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         [createDatePickerComponent, withdrawn],
     );
 
+    const withdrawalTypeComponent = useCallback(
+        ({closeOverlay}: PopoverComponentProps) => {
+            return (
+                <SingleSelectPopup
+                    label={translate('search.withdrawalType')}
+                    items={withdrawalTypeOptions}
+                    value={withdrawalType}
+                    closeOverlay={closeOverlay}
+                    onChange={(item) => updateFilterForm({withdrawalType: item?.value})}
+                />
+            );
+        },
+        [translate, withdrawalTypeOptions, withdrawalType, updateFilterForm],
+    );
+
     const statusComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
             const onChange = (selectedItems: Array<MultiSelectItem<SingularSearchStatus>>) => {
@@ -366,6 +387,8 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         const shouldDisplayGroupByFilter = isDevelopment;
         const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues.feed;
         const shouldDisplayPostedFilter = !!filterFormValues.feed && (!!filterFormValues.postedOn || !!filterFormValues.postedAfter || !!filterFormValues.postedBefore);
+        // We'll refactor this to use a const in https://github.com/Expensify/App/issues/68227
+        const shouldDisplayWithdrawalTypeFilter = groupBy?.value === ('withdrawalID' as SearchGroupBy) && !!filterFormValues.withdrawalType;
         const shouldDisplayWithdrawnFilter = !!filterFormValues.withdrawnOn || !!filterFormValues.withdrawnAfter || !!filterFormValues.withdrawnBefore;
 
         const filterList = [
@@ -405,6 +428,16 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                       },
                   ]
                 : []),
+            ...(shouldDisplayWithdrawalTypeFilter
+                ? [
+                      {
+                          label: translate('search.withdrawalType'),
+                          PopoverComponent: withdrawalTypeComponent,
+                          value: withdrawalType?.text ?? null,
+                          filterKey: FILTER_KEYS.WITHDRAWAL_TYPE,
+                      },
+                  ]
+                : []),
             ...(shouldDisplayWithdrawnFilter
                 ? [
                       {
@@ -439,6 +472,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     }, [
         type,
         groupBy,
+        withdrawalType,
         displayDate,
         displayPosted,
         displayWithdrawn,
@@ -447,6 +481,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         filterFormValues.postedOn,
         filterFormValues.postedAfter,
         filterFormValues.postedBefore,
+        filterFormValues.withdrawalType,
         filterFormValues.withdrawnOn,
         filterFormValues.withdrawnAfter,
         filterFormValues.withdrawnBefore,
@@ -457,6 +492,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         datePickerComponent,
         userPickerComponent,
         postedPickerComponent,
+        withdrawalTypeComponent,
         withdrawnPickerComponent,
         status,
         personalDetails,
