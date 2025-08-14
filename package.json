@@ -356,7 +356,7 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "type-fest": "4.35.0",
-    "typescript": "^5.4.5",
+    "typescript": "^5.9.2",
     "wait-port": "^0.2.9",
     "webpack": "^5.94.0",
     "webpack-bundle-analyzer": "^4.5.0",
