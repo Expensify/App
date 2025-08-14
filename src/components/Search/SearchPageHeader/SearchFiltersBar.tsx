@@ -58,6 +58,7 @@ type FilterItem = {
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
     value: string | string[] | null;
     filterKey: SearchAdvancedFiltersKey;
+    dateFilterKey?: SearchDateFilterKeys;
 };
 
 type SearchFiltersBarProps = {
@@ -434,6 +435,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                           PopoverComponent: postedPickerComponent,
                           value: displayPosted,
                           filterKey: FILTER_KEYS.POSTED_ON,
+                          dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
                       },
                   ]
                 : []),
@@ -454,6 +456,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                           PopoverComponent: withdrawnPickerComponent,
                           value: displayWithdrawn,
                           filterKey: FILTER_KEYS.WITHDRAWN_ON,
+                          dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
                       },
                   ]
                 : []),
@@ -468,6 +471,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                 PopoverComponent: datePickerComponent,
                 value: displayDate,
                 filterKey: FILTER_KEYS.DATE_ON,
+                dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             },
             {
                 label: translate('common.from'),
@@ -512,7 +516,9 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     ]);
 
     const hiddenSelectedFilters = useMemo(() => {
-        const exposedFilters = filters.map((filter) => filter.filterKey);
+        const exposedFilters = filters.flatMap((filter) =>
+            filter.dateFilterKey ? [`${filter.dateFilterKey}On`, `${filter.dateFilterKey}After`, `${filter.dateFilterKey}Before`] : filter.filterKey,
+        );
         return Object.entries(filterFormValues)
             .filter(([key, value]) => value && !exposedFilters.includes(key as SearchAdvancedFiltersKey))
             .map(([key]) => key);
