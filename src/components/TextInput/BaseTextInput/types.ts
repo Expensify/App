@@ -192,7 +192,7 @@ type CustomBaseTextInputProps = {
     shouldUseDefaultLineHeightForPrefix?: boolean;
 
     /** Reference to the outer element */
-    ref: ForwardedRef<BaseTextInputRef>,
+    ref?: ForwardedRef<BaseTextInputRef>,
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;
