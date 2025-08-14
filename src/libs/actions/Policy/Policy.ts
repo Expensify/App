@@ -31,6 +31,7 @@ import type {
     OpenPolicyInitialPageParams,
     OpenPolicyMoreFeaturesPageParams,
     OpenPolicyProfilePageParams,
+    OpenPolicyReceiptPartnersPageParams,
     OpenPolicyTaxesPageParams,
     OpenPolicyWorkflowsPageParams,
     OpenWorkspaceInvitePageParams,
@@ -60,6 +61,7 @@ import type {
     UpdateWorkspaceGeneralSettingsParams,
     UpgradeToCorporateParams,
 } from '@libs/API/parameters';
+import type SetPolicyCashExpenseModeParams from '@libs/API/parameters/SetPolicyCashExpenseModeParams';
 import type UpdatePolicyMembersCustomFieldsParams from '@libs/API/parameters/UpdatePolicyMembersCustomFieldsParams';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -111,6 +113,7 @@ import type {
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, ProhibitedExpenses, Rate, TaxRate} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
+import type {NotificationPreference} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {buildOptimisticMccGroup, buildOptimisticPolicyCategories} from './Category';
@@ -143,6 +146,8 @@ type WorkspaceFromIOUCreationData = {
     reportPreviewReportActionID?: string;
     adminsChatReportID: string;
 };
+
+type PolicyCashExpenseMode = ValueOf<typeof CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES>;
 
 type BuildPolicyDataOptions = {
     policyOwnerEmail?: string;
@@ -191,12 +196,6 @@ Onyx.connect({
 
         allPolicies[key] = val;
     },
-});
-
-let lastAccessedWorkspacePolicyID: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
-    callback: (value) => (lastAccessedWorkspacePolicyID = value),
 });
 
 let allReports: OnyxCollection<Report>;
@@ -345,7 +344,7 @@ function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>>
 /**
  * Delete the workspace
  */
-function deleteWorkspace(policyID: string, policyName: string, lastUsedPaymentMethods?: LastPaymentMethod) {
+function deleteWorkspace(policyID: string, policyName: string, lastAccessedWorkspacePolicyID: string | undefined, lastUsedPaymentMethods?: LastPaymentMethod) {
     if (!allPolicies) {
         return;
     }
@@ -1160,7 +1159,12 @@ function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string) {
  *
  * @returns - object with onyxSuccessData, onyxOptimisticData, and optimisticReportIDs (map login to reportID)
  */
-function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs, hasOutstandingChildRequest = false): WorkspaceMembersChats {
+function createPolicyExpenseChats(
+    policyID: string,
+    invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
+    hasOutstandingChildRequest = false,
+    notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+): WorkspaceMembersChats {
     const workspaceMembersChats: WorkspaceMembersChats = {
         onyxSuccessData: [],
         onyxOptimisticData: [],
@@ -1223,7 +1227,7 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             policyID,
             ownerAccountID: cleanAccountID,
-            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            notificationPreference,
         });
 
         // Set correct notification preferences: visible for the submitter, hidden for others until there's activity
@@ -1899,7 +1903,8 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 },
                 areWorkflowsEnabled: shouldEnableWorkflowsByDefault,
                 defaultBillable: false,
-                disabledFields: {defaultBillable: true},
+                defaultReimbursable: true,
+                disabledFields: {defaultBillable: true, reimbursable: false},
                 requiresCategory: true,
             },
         },
@@ -2022,7 +2027,8 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
                     areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
                 defaultBillable: false,
-                disabledFields: {defaultBillable: true},
+                defaultReimbursable: true,
+                disabledFields: {defaultBillable: true, reimbursable: false},
                 avatarURL: file?.uri,
                 originalFileName: file?.name,
                 ...optimisticMccGroupData.optimisticData,
@@ -2497,6 +2503,17 @@ function openPolicyWorkflowsPage(policyID: string) {
     const params: OpenPolicyWorkflowsPageParams = {policyID};
 
     API.read(READ_COMMANDS.OPEN_POLICY_WORKFLOWS_PAGE, params, onyxData);
+}
+
+function openPolicyReceiptPartnersPage(policyID?: string) {
+    if (!policyID) {
+        Log.warn('openPolicyReceiptPartnersPage invalid params', {policyID});
+        return;
+    }
+
+    const params: OpenPolicyReceiptPartnersPageParams = {policyID};
+
+    API.read(READ_COMMANDS.OPEN_POLICY_RECEIPT_PARTNERS_PAGE, params);
 }
 
 /**
@@ -4533,6 +4550,99 @@ function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
     API.write(WRITE_COMMANDS.SET_POLICY_BILLABLE_MODE, parameters, onyxData);
 }
 
+function getCashExpenseReimbursableMode(policyID: string): PolicyCashExpenseMode | undefined {
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    if (!policy) {
+        return undefined;
+    }
+
+    if (policy.defaultReimbursable && !policy.disabledFields?.reimbursable) {
+        return CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.REIMBURSABLE_DEFAULT;
+    }
+
+    if (!policy.disabledFields?.reimbursable && !policy.defaultReimbursable) {
+        return CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.NON_REIMBURSABLE_DEFAULT;
+    }
+
+    if (policy.defaultReimbursable && policy.disabledFields?.reimbursable) {
+        return CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_REIMBURSABLE;
+    }
+
+    return CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_NON_REIMBURSABLE;
+}
+
+/**
+ * Call the API to enable or disable the reimbursable mode for the given policy
+ * @param policyID - id of the policy to enable or disable the reimbursable mode
+ * @param reimbursableMode - reimbursable mode to set for the given policy
+ */
+function setPolicyReimbursableMode(policyID: string, reimbursableMode: PolicyCashExpenseMode) {
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+
+    const originalDefaultReimbursable = policy?.defaultReimbursable;
+    const originalDefaultReimbursableDisabled = policy?.disabledFields?.reimbursable;
+
+    const defaultReimbursable =
+        reimbursableMode === CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.REIMBURSABLE_DEFAULT || reimbursableMode === CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_REIMBURSABLE;
+    const reimbursableDisabled =
+        reimbursableMode === CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_REIMBURSABLE ||
+        reimbursableMode === CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_NON_REIMBURSABLE;
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    defaultReimbursable,
+                    disabledFields: {
+                        reimbursable: reimbursableDisabled,
+                    },
+                    pendingFields: {
+                        defaultReimbursable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        disabledFields: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        defaultReimbursable: null,
+                        disabledFields: null,
+                    },
+                    errorFields: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    disabledFields: {reimbursable: originalDefaultReimbursableDisabled},
+                    defaultReimbursable: originalDefaultReimbursable,
+                    pendingFields: {defaultReimbursable: null, disabledFields: null},
+                    errorFields: {defaultReimbursable: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyCashExpenseModeParams = {
+        policyID,
+        defaultReimbursable,
+        disabledFields: JSON.stringify({
+            reimbursable: reimbursableDisabled,
+        }),
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_REIMBURSABLE_MODE, parameters, onyxData);
+}
+
 /**
  * Call the API to disable the billable mode for the given policy
  * @param policyID - id of the policy to enable or disable the billable mode
@@ -5737,8 +5847,11 @@ export {
     clearBillingReceiptDetailsErrors,
     clearQuickbooksOnlineAutoSyncErrorField,
     setIsForcedToChangeCurrency,
+    openPolicyReceiptPartnersPage,
     setIsComingFromGlobalReimbursementsFlow,
     setPolicyAttendeeTrackingEnabled,
+    setPolicyReimbursableMode,
+    getCashExpenseReimbursableMode,
     updateInterestedFeatures,
     clearPolicyTitleFieldError,
 };
