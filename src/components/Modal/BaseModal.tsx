@@ -149,6 +149,7 @@ function BaseModal(
         backdropOpacity,
         shouldUseReanimatedModal = false,
         shouldDisableBottomSafeAreaPadding = false,
+        forwardedFSClass,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -463,6 +464,7 @@ function BaseModal(
                             onLayout={onViewLayout}
                             style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone, sidePanelAnimatedStyle]}
                             ref={ref}
+                            fsClass={forwardedFSClass ?? CONST.FULLSTORY.CLASS.UNMASK}
                         >
                             <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
                         </Animated.View>
