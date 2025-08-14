@@ -178,7 +178,7 @@ const ROUTES = {
         route: 'bank-account/:stepToOpen?',
         getRoute: (policyID: string | undefined, stepToOpen: ReimbursementAccountStepToOpen = '', backTo?: string) => {
             if (!policyID) {
-                Log.warn('Invalid policyID is used to build the BANK_ACCOUNT_WITH_STEP_TO_OPEN route');
+                return getUrlWithBackToParam(`bank-account/${stepToOpen}`, backTo);
             }
             return getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}`, backTo);
         },

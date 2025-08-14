@@ -33,13 +33,16 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
     const styles = useThemeStyles();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const isConnectedToPolicy = !!policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const currency = policy?.outputCurrency ?? '';
+    // TODO: change this after introducing Global Reimbursements
+    const currency = !isConnectedToPolicy ? CONST.CURRENCY.USD : (policy?.outputCurrency ?? '');
 
     const shouldAllowChange = currency === CONST.CURRENCY.EUR;
     const currencyMappedToCountry = mapCurrencyToCountry(currency);
 
-    const countryDefaultValue = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
+    // TODO: change this after introducing Global Reimbursements
+    const countryDefaultValue = !isConnectedToPolicy ? CONST.COUNTRY.US : (reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY]) ?? '';
     const [selectedCountry, setSelectedCountry] = useState<string>(countryDefaultValue);
 
     const disableSubmit = !(currency in CONST.CURRENCY);
