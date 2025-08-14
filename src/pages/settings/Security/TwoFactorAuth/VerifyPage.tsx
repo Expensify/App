@@ -1,5 +1,7 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useEffect, useRef} from 'react';
+import {InteractionManager, View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -33,8 +35,9 @@ type VerifyPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList,
 function VerifyPage({route}: VerifyPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const contactMethod = getContactMethod();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const contactMethod = getContactMethod(account?.primaryLogin, session?.email);
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
 
     useEffect(() => {
@@ -70,6 +73,15 @@ function VerifyPage({route}: VerifyPageProps) {
         return `otpauth://totp/Expensify:${contactMethod}?secret=${account?.twoFactorAuthSecretKey}&issuer=Expensify`;
     }
 
+    const scrollViewRef = useRef<RNScrollView>(null);
+    const handleInputFocus = useCallback(() => {
+        InteractionManager.runAfterInteractions(() => {
+            requestAnimationFrame(() => {
+                scrollViewRef.current?.scrollToEnd({animated: true});
+            });
+        });
+    }, []);
+
     return (
         <TwoFactorAuthWrapper
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.VERIFY}
@@ -80,12 +92,14 @@ function VerifyPage({route}: VerifyPageProps) {
                 total: 3,
             }}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_2FA_ROOT.getRoute(route.params?.backTo, route.params?.forwardTo))}
+            shouldEnableViewportOffsetTop
         >
             <ScrollView
+                ref={scrollViewRef}
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={styles.flexGrow1}
             >
-                <View style={[styles.ph5, styles.mt3, styles.flexGrow1]}>
+                <View style={[styles.ph5, styles.mt3]}>
                     <Text>
                         {translate('twoFactorAuth.scanCode')}
                         <TextLink href={TROUBLESHOOTING_LINK}> {translate('twoFactorAuth.authenticatorApp')}</TextLink>.
@@ -116,27 +130,28 @@ function VerifyPage({route}: VerifyPageProps) {
                     </View>
                     <Text style={styles.mt11}>{translate('twoFactorAuth.enterCode')}</Text>
                 </View>
-                <FixedFooter style={[styles.mt2, styles.pt2]}>
-                    <View style={[styles.mh5, styles.mb4]}>
-                        <TwoFactorAuthForm
-                            innerRef={formRef}
-                            shouldAutoFocusOnMobile={false}
-                        />
-                    </View>
-                    <Button
-                        success
-                        large
-                        text={translate('common.next')}
-                        isLoading={account?.isLoading}
-                        onPress={() => {
-                            if (!formRef.current) {
-                                return;
-                            }
-                            formRef.current.validateAndSubmitForm();
-                        }}
+                <View style={[styles.mh5, styles.mb4, styles.mt3]}>
+                    <TwoFactorAuthForm
+                        innerRef={formRef}
+                        shouldAutoFocusOnMobile={false}
+                        onFocus={handleInputFocus}
                     />
-                </FixedFooter>
+                </View>
             </ScrollView>
+            <FixedFooter style={[styles.mt2, styles.pt2]}>
+                <Button
+                    success
+                    large
+                    text={translate('common.next')}
+                    isLoading={account?.isLoading}
+                    onPress={() => {
+                        if (!formRef.current) {
+                            return;
+                        }
+                        formRef.current.validateAndSubmitForm();
+                    }}
+                />
+            </FixedFooter>
         </TwoFactorAuthWrapper>
     );
 }
