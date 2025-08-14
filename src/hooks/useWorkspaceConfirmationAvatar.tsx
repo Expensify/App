@@ -1,10 +1,11 @@
 import React, {useCallback} from 'react';
 import Avatar from '@components/Avatar';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import useThemeStyles from './useThemeStyles';
 
-function useWorkspaceConfirmationAvatar({policyID, source, name}: {policyID: string; source: string; name: string}) {
+function useWorkspaceConfirmationAvatar({policyID, source, name}: {policyID: string; source: AvatarSource; name: string}) {
     const styles = useThemeStyles();
 
     return useCallback(
