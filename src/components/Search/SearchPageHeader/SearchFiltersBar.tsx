@@ -516,9 +516,9 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     ]);
 
     const hiddenSelectedFilters = useMemo(() => {
-        const exposedFilters = filters.flatMap((filter) =>
-            filter.dateFilterKey ? [`${filter.dateFilterKey}On`, `${filter.dateFilterKey}After`, `${filter.dateFilterKey}Before`] : filter.filterKey,
-        );
+        const exposedFilters = filters
+            .flatMap((filter) => (filter.dateFilterKey ? [`${filter.dateFilterKey}On`, `${filter.dateFilterKey}After`, `${filter.dateFilterKey}Before`] : filter.filterKey))
+            .concat(FILTER_KEYS.ACTION);
         return Object.entries(filterFormValues)
             .filter(([key, value]) => value && !exposedFilters.includes(key as SearchAdvancedFiltersKey))
             .map(([key]) => key);
