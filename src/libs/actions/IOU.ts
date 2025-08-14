@@ -11834,7 +11834,10 @@ function getSearchOnyxUpdate({
     }
 }
 
-function initSplitExpenseItemData(transaction: OnyxEntry<OnyxTypes.Transaction>, amount?: number, transactionID?: string): SplitExpense {
+function initSplitExpenseItemData(
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    {amount, transactionID, reportID}: {amount?: number; transactionID?: string; reportID?: string} = {},
+): SplitExpense {
     const transactionDetails = getTransactionDetails(transaction);
     const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
 
@@ -11847,6 +11850,7 @@ function initSplitExpenseItemData(transaction: OnyxEntry<OnyxTypes.Transaction>,
         created: transactionDetails?.created ?? DateUtils.formatWithUTCTimeZone(DateUtils.getDBTime(), CONST.DATE.FNS_FORMAT_STRING),
         merchant: transactionDetails?.merchant ?? '',
         statusNum: currentReport?.statusNum ?? 0,
+        reportID: reportID ?? transaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
     };
 }
 
@@ -11895,8 +11899,8 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>) {
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
 
     const splitExpenses = [
-        initSplitExpenseItemData(transaction, Math.floor(transactionDetailsAmount / 2), NumberUtils.rand64()),
-        initSplitExpenseItemData(transaction, Math.ceil(transactionDetailsAmount / 2), NumberUtils.rand64()),
+        initSplitExpenseItemData(transaction, {amount: Math.floor(transactionDetailsAmount / 2), transactionID: NumberUtils.rand64()}),
+        initSplitExpenseItemData(transaction, {amount: Math.floor(transactionDetailsAmount / 2), transactionID: NumberUtils.rand64()}),
     ];
 
     const draftTransaction = buildOptimisticTransaction({
@@ -11964,7 +11968,14 @@ function addSplitExpenseField(transaction: OnyxEntry<OnyxTypes.Transaction>, dra
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`, {
         comment: {
-            splitExpenses: [...(draftTransaction.comment?.splitExpenses ?? []), initSplitExpenseItemData(transaction, 0, NumberUtils.rand64())],
+            splitExpenses: [
+                ...(draftTransaction.comment?.splitExpenses ?? []),
+                initSplitExpenseItemData(transaction, {
+                    amount: 0,
+                    transactionID: NumberUtils.rand64(),
+                    reportID: draftTransaction?.reportID,
+                }),
+            ],
         },
     });
 }
@@ -12157,7 +12168,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             parentChatReport,
             policyParams,
             transactionParams,
-            moneyRequestReportID: expenseReport?.reportID,
+            moneyRequestReportID: splitExpense?.reportID,
             existingTransaction,
             existingTransactionID,
             newReportTotal: reportTotal - changesInReportTotal,
@@ -12195,14 +12206,14 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             if (Object.keys(transactionChanges).length > 0) {
                 const {onyxData: moneyRequestParamsOnyxData} = getUpdateMoneyRequestParams(
                     existingTransactionID,
-                    isReverseSplitOperation ? expenseReport?.reportID : transactionThreadReportID,
+                    isReverseSplitOperation ? splitExpense?.reportID : transactionThreadReportID,
                     transactionChanges,
                     policy,
                     policyTags ?? null,
                     policyCategories ?? null,
                     undefined,
                     undefined,
-                    expenseReport?.reportID,
+                    splitExpense?.reportID,
                 );
                 updateMoneyRequestParamsOnyxData = moneyRequestParamsOnyxData;
             }
