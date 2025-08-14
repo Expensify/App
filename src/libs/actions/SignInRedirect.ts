@@ -5,7 +5,12 @@ import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {clearAllPolicies} from './Policy/Policy';
 
-function clearStorageAndRedirect(errorMessage?: string, isOffline?: boolean, shouldForceOffline?: boolean): Promise<void> {
+function clearStorageAndRedirect(
+    {errorMessage, isOffline, shouldForceOffline}: {errorMessage?: string; isOffline: boolean | undefined; shouldForceOffline: boolean | undefined} = {
+        isOffline: undefined,
+        shouldForceOffline: undefined,
+    },
+): Promise<void> {
     // Under certain conditions, there are key-values we'd like to keep in storage even when a user is logged out.
     // We pass these into the clear() method in order to avoid having to reset them on a delayed tick and getting
     // flashes of unwanted default state.
@@ -40,12 +45,18 @@ function clearStorageAndRedirect(errorMessage?: string, isOffline?: boolean, sho
  *
  * Normally this method would live in Session.js, but that would cause a circular dependency with Network.js.
  *
- * @param [errorMessage] error message to be displayed on the sign in page
- * @param [isOffline] current offline status
- * @param [shouldForceOffline] whether offline mode is being forced
+ * @param params - Object containing redirect parameters
+ * @param [params.errorMessage] error message to be displayed on the sign in page
+ * @param [params.isOffline] current offline status
+ * @param [params.shouldForceOffline] whether offline mode is being forced
  */
-function redirectToSignIn(errorMessage?: string, isOffline?: boolean, shouldForceOffline?: boolean): Promise<void> {
-    return clearStorageAndRedirect(errorMessage, isOffline, shouldForceOffline).then(() => {
+function redirectToSignIn(
+    {errorMessage, isOffline, shouldForceOffline}: {errorMessage?: string; isOffline: boolean | undefined; shouldForceOffline: boolean | undefined} = {
+        isOffline: undefined,
+        shouldForceOffline: undefined,
+    },
+): Promise<void> {
+    return clearStorageAndRedirect({errorMessage, isOffline, shouldForceOffline}).then(() => {
         clearSessionStorage();
     });
 }

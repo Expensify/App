@@ -133,7 +133,7 @@ async function testRedirectToSignInWithNetworkState(isOffline: boolean, shouldFo
     jest.clearAllMocks();
     await setNetworkOffline();
 
-    await redirectToSignIn(undefined, isOffline, shouldForceOffline);
+    await redirectToSignIn({errorMessage: undefined, isOffline, shouldForceOffline});
     await waitForBatchedUpdates();
 
     const networkObserver = createNetworkObserver();
@@ -381,7 +381,7 @@ describe('Session', () => {
         await setNetworkOffline();
 
         // Call redirectToSignIn with offline parameters (isOffline=true, shouldForceOffline=false)
-        await redirectToSignIn(undefined, true, false);
+        await redirectToSignIn({errorMessage: undefined, isOffline: true, shouldForceOffline: false});
         await waitForBatchedUpdates();
 
         // Check that network state was preserved
@@ -401,7 +401,7 @@ describe('Session', () => {
         await setNetworkOffline();
 
         // Call redirectToSignIn with forced offline (isOffline=true, shouldForceOffline=true)
-        await redirectToSignIn(undefined, true, true);
+        await redirectToSignIn({errorMessage: undefined, isOffline: true, shouldForceOffline: true});
         await waitForBatchedUpdates();
 
         // Check that network state was not preserved (cleared when forcing offline)
@@ -463,7 +463,7 @@ describe('Session', () => {
         const ERROR_MESSAGE = 'Authentication failed';
 
         // Should complete without throwing when called with only error message
-        await expect(redirectToSignIn(ERROR_MESSAGE)).resolves.toBeUndefined();
+        await expect(redirectToSignIn({errorMessage: ERROR_MESSAGE})).resolves.toBeUndefined();
         await waitForBatchedUpdates();
 
         // Verify error was processed

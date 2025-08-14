@@ -65,7 +65,7 @@ function UnlinkLoginForm() {
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <PressableWithFeedback
                     accessibilityLabel={translate('common.back')}
-                    onPress={() => redirectToSignIn(undefined, isOffline, shouldForceOffline)}
+                    onPress={() => redirectToSignIn({isOffline, shouldForceOffline})}
                 >
                     <Text style={[styles.link]}>{translate('common.back')}</Text>
                 </PressableWithFeedback>

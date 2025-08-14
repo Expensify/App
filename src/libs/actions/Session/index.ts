@@ -250,8 +250,8 @@ type SignOutAndRedirectToSignInParams = {
     shouldSignOutFromOldDot?: boolean;
     shouldKillHybridApp?: boolean;
     shouldForceUseStashedSession?: boolean;
-    isOffline?: boolean;
-    shouldForceOffline?: boolean;
+    isOffline: boolean | undefined;
+    shouldForceOffline: boolean | undefined;
 };
 
 function signOutAndRedirectToSignIn({
@@ -261,7 +261,7 @@ function signOutAndRedirectToSignIn({
     shouldForceUseStashedSession,
     isOffline,
     shouldForceOffline,
-}: SignOutAndRedirectToSignInParams = {}) {
+}: SignOutAndRedirectToSignInParams = { isOffline: undefined, shouldForceOffline: undefined }) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
 
@@ -348,7 +348,7 @@ function signOutAndRedirectToSignIn({
             if (response?.hasOldDotAuthCookies) {
                 Log.info('Redirecting to OldDot sign out');
                 asyncOpenURL(
-                    redirectToSignIn(undefined, isOffline, shouldForceOffline).then(() => {
+                    redirectToSignIn({isOffline, shouldForceOffline}).then(() => {
                         Onyx.multiSet(onyxSetParams);
                     }),
                     `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`,
@@ -356,7 +356,7 @@ function signOutAndRedirectToSignIn({
                     true,
                 );
             } else {
-                redirectToSignIn(undefined, isOffline, shouldForceOffline).then(() => {
+                redirectToSignIn({isOffline, shouldForceOffline}).then(() => {
                     Onyx.multiSet(onyxSetParams);
 
                     if (hasSwitchedAccountInHybridMode) {

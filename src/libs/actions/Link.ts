@@ -15,10 +15,14 @@ import ROUTES from '@src/ROUTES';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn} from './Session';
 
 let isNetworkOffline = false;
+let networkShouldForceOffline: boolean | undefined;
 // Use connectWithoutView since this is to open an external link and doesn't affect any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
-    callback: (value) => (isNetworkOffline = value?.isOffline ?? false),
+    callback: (value) => {
+        isNetworkOffline = value?.isOffline ?? false;
+        networkShouldForceOffline = value?.shouldForceOffline;
+    },
 });
 
 let currentUserEmail = '';
@@ -178,7 +182,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
     if (internalNewExpensifyPath && hasSameOrigin) {
         if (isAnonymousUser() && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
-            signOutAndRedirectToSignIn();
+            signOutAndRedirectToSignIn({isOffline: isNetworkOffline, shouldForceOffline: networkShouldForceOffline});
             return;
         }
         Navigation.navigate(internalNewExpensifyPath as Route);
