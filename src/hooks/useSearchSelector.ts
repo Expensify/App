@@ -4,13 +4,13 @@ import type {PermissionStatus} from 'react-native-permissions';
 import {RESULTS} from 'react-native-permissions';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import getPlatform from '@libs/getPlatform';
-import useContactImport from './useContactImport';
 import type {GetOptionsConfig, Options, SearchOption} from '@libs/OptionsListUtils';
 import {getEmptyOptions, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
+import useContactImport from './useContactImport';
 import useDebouncedState from './useDebouncedState';
 import useOnyx from './useOnyx';
 
