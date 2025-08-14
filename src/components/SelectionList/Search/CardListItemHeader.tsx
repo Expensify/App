@@ -1,22 +1,15 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {ListItem, TransactionCardGroupListItemType} from '@components/SelectionList/types';
-import SubscriptAvatar from '@components/SubscriptAvatar';
-import type {SubIcon} from '@components/SubscriptAvatar';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
-import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedIcon} from '@libs/CardUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 type CardListItemHeaderProps<TItem extends ListItem> = {
     /** The card currently being looked at */
@@ -28,9 +21,6 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
 
-    /** Whether the item is hovered */
-    isHovered?: boolean;
-
     /** Whether the item is focused */
     isFocused?: boolean;
 
@@ -38,35 +28,16 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
     canSelectMultiple: boolean | undefined;
 };
 
-function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxPress, isDisabled, isHovered, isFocused, canSelectMultiple}: CardListItemHeaderProps<TItem>) {
+function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxPress, isDisabled, isFocused, canSelectMultiple}: CardListItemHeaderProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
-    const illustrations = useThemeIllustrations();
+    const {translate, formatPhoneNumber} = useLocalize();
 
-    const formattedDisplayName = useMemo(() => formatPhoneNumber(getDisplayNameOrDefault(cardItem)), [cardItem]);
-
-    const [memberAvatar, cardIcon] = useMemo(() => {
-        const avatar: Icon = {
-            source: cardItem.avatar,
-            type: CONST.ICON_TYPE_AVATAR,
-            name: formattedDisplayName,
-            id: cardItem.accountID,
-        };
-
-        const icon: SubIcon = {
-            source: getCardFeedIcon(cardItem.bank as CompanyCardFeed, illustrations),
-            width: variables.cardAvatarWidth,
-            height: variables.cardAvatarHeight,
-        };
-
-        return [avatar, icon];
-    }, [formattedDisplayName, illustrations, cardItem]);
+    const formattedDisplayName = useMemo(() => formatPhoneNumber(getDisplayNameOrDefault(cardItem)), [cardItem, formatPhoneNumber]);
 
     const backgroundColor =
-        StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
-        theme.highlightBG;
+        StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
     // s77rt add total cell, action cell and collapse/expand button
 
@@ -83,11 +54,11 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxP
                         />
                     )}
                     <View style={[styles.flexRow, styles.gap3]}>
-                        <SubscriptAvatar
-                            mainAvatar={memberAvatar}
-                            subscriptIcon={cardIcon}
-                            backgroundColor={backgroundColor}
-                            noMargin
+                        <ReportActionAvatars
+                            subscriptCardFeed={cardItem.bank as CompanyCardFeed}
+                            subscriptAvatarBorderColor={backgroundColor}
+                            noRightMarginOnSubscriptContainer
+                            reportID={cardItem.reportID}
                         />
                         <View style={[styles.gapHalf]}>
                             <TextWithTooltip

@@ -74,11 +74,13 @@ function finalizeUpdatesAndResumeQueue() {
 
 /**
  * Triggers the fetching process of either pending or missing updates.
+ *
  * @param onyxUpdatesFromServer the current update that is supposed to be applied
  * @param clientLastUpdateID an optional override for the lastUpdateIDAppliedToClient
- * @returns
+ *
+ * @returns a promise that resolves when all Onyx updates are done being processed
  */
-function handleMissingOnyxUpdates(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer>, clientLastUpdateID?: number) {
+function handleMissingOnyxUpdates(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer>, clientLastUpdateID?: number): Promise<void> {
     // If isLoadingApp is positive it means that OpenApp command hasn't finished yet, and in that case
     // we don't have base state of the app (reports, policies, etc.) setup. If we apply this update,
     // we'll only have them overwritten by the openApp response. So let's skip it and return.
@@ -87,18 +89,18 @@ function handleMissingOnyxUpdates(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFr
         // it so the app is not stuck forever without processing requests.
         unpauseSequentialQueue();
         console.debug(`[OnyxUpdateManager] Ignoring Onyx updates while OpenApp hasn't finished yet.`);
-        return;
+        return Promise.resolve();
     }
     // This key is shared across clients, thus every client/tab will have a copy and try to execute this method.
     // It is very important to only process the missing onyx updates from leader client otherwise requests we'll execute
     // several duplicated requests that are not controlled by the SequentialQueue.
     if (!isClientTheLeader()) {
-        return;
+        return Promise.resolve();
     }
 
     // When there is no value or an invalid value, there's nothing to process, so let's return early.
     if (!isValidOnyxUpdateFromServer(onyxUpdatesFromServer)) {
-        return;
+        return Promise.resolve();
     }
 
     // Check if one of these onyx updates is for the authToken. If it is, let's update our authToken now because our
@@ -189,8 +191,10 @@ function handleMissingOnyxUpdates(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFr
     const shouldFinalizeAndResume = checkIfClientNeedsToBeUpdated();
 
     if (shouldFinalizeAndResume) {
-        getMissingOnyxUpdatesQueryPromise()?.finally(finalizeUpdatesAndResumeQueue);
+        return getMissingOnyxUpdatesQueryPromise()?.finally(finalizeUpdatesAndResumeQueue) as Promise<void>;
     }
+
+    return Promise.resolve();
 }
 
 function updateAuthTokenIfNecessary(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer>): void {
@@ -220,7 +224,9 @@ export default () => {
     console.debug('[OnyxUpdateManager] Listening for updates from the server');
     Onyx.connect({
         key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
-        callback: (value) => handleMissingOnyxUpdates(value),
+        callback: (value) => {
+            handleMissingOnyxUpdates(value);
+        },
     });
 };
 

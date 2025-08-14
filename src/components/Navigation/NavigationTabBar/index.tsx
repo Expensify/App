@@ -15,26 +15,33 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import {getLastVisitedTabPath, getSettingsTabStateFromSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import navigateToWorkspacesPage, {getWorkspaceNavigationRouteState} from '@libs/Navigation/helpers/navigateToWorkspacesPage';
+import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
+import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
-import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import type {RootNavigatorParamList, SearchFullscreenNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import NavigationTabBarAvatar from '@pages/home/sidebar/NavigationTabBarAvatar';
 import NavigationTabBarFloatingActionButton from '@pages/home/sidebar/NavigationTabBarFloatingActionButton';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 
 type NavigationTabBarProps = {
@@ -49,13 +56,15 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const {translate, preferredLocale} = useLocalize();
     const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
     const {orderedReports} = useSidebarOrderedReports();
-
+    const subscriptionPlan = useSubscriptionPlan();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const navigationState = useNavigationState(findFocusedRoute);
     const initialNavigationRouteState = getWorkspaceNavigationRouteState();
     const [lastWorkspacesTabNavigatorRoute, setLastWorkspacesTabNavigatorRoute] = useState(initialNavigationRouteState.lastWorkspacesTabNavigatorRoute);
     const [workspacesTabState, setWorkspacesTabState] = useState(initialNavigationRouteState.workspacesTabState);
     const params = workspacesTabState?.routes?.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
+    const {typeMenuSections} = useSearchTypeMenuSections();
 
     const [lastViewedPolicy] = useOnyx(
         ONYXKEYS.COLLECTION.POLICY,
@@ -110,8 +119,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
         }
 
         hideInboxTooltip();
-        // We use dispatch here because the correct screens and params are preloaded and set up in usePreloadFullScreenNavigators.
-        navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.PUSH, payload: {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}});
+        Navigation.navigate(ROUTES.HOME);
     }, [hideInboxTooltip, selectedTab]);
 
     const navigateToSearch = useCallback(() => {
@@ -120,20 +128,53 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
         }
         clearSelectedText();
         interceptAnonymousUser(() => {
-            // We use dispatch here because the correct screens and params are preloaded and set up in usePreloadFullScreenNavigators.
-            navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.PUSH, payload: {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}});
+            const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
+            const lastSearchNavigator = rootState.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+            const lastSearchNavigatorState = lastSearchNavigator && lastSearchNavigator.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
+            const lastSearchRoute = lastSearchNavigatorState?.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
+
+            if (lastSearchRoute) {
+                const {q, ...rest} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
+                const queryJSON = buildSearchQueryJSON(q);
+                if (queryJSON) {
+                    const query = buildSearchQueryString(queryJSON);
+                    Navigation.navigate(
+                        ROUTES.SEARCH_ROOT.getRoute({
+                            query,
+                            ...rest,
+                        }),
+                    );
+                    return;
+                }
+            }
+
+            const nonExploreTypeQuery = typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
+            const savedSearchQuery = Object.values(savedSearches ?? {}).at(0)?.query;
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: nonExploreTypeQuery ?? savedSearchQuery ?? buildCannedSearchQuery()}));
         });
-    }, [selectedTab]);
+    }, [selectedTab, typeMenuSections, savedSearches]);
 
     const navigateToSettings = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.SETTINGS) {
             return;
         }
         interceptAnonymousUser(() => {
-            // We use dispatch here because the correct screens and params are preloaded and set up in usePreloadFullScreenNavigators.
-            navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.PUSH, payload: {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}});
+            const settingsTabState = getSettingsTabStateFromSessionStorage();
+            if (settingsTabState && !shouldUseNarrowLayout) {
+                const stateRoute = findFocusedRoute(settingsTabState);
+                if (!subscriptionPlan && stateRoute?.name === SCREENS.SETTINGS.SUBSCRIPTION.ROOT) {
+                    Navigation.navigate(ROUTES.SETTINGS_PROFILE.route);
+                    return;
+                }
+                const lastVisitedSettingsRoute = getLastVisitedTabPath(settingsTabState);
+                if (lastVisitedSettingsRoute) {
+                    Navigation.navigate(lastVisitedSettingsRoute);
+                    return;
+                }
+            }
+            Navigation.navigate(ROUTES.SETTINGS);
         });
-    }, [selectedTab]);
+    }, [selectedTab, subscriptionPlan, shouldUseNarrowLayout]);
 
     /**
      * The settings tab is related to SettingsSplitNavigator and WorkspaceSplitNavigator.
