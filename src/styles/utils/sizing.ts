@@ -13,6 +13,10 @@ export default {
         height: '100%',
     },
 
+    h7: {
+        height: 28,
+    },
+
     h10: {
         height: 40,
     },
