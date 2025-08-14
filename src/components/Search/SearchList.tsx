@@ -5,7 +5,7 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo,
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
-import Animated, {FadeOutUp, LinearTransition} from 'react-native-reanimated';
+import Animated, {FadeOutUp, Keyframe, LinearTransition} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -312,6 +312,16 @@ function SearchList(
 
     useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex}), [scrollAndHighlightItem, scrollToIndex]);
 
+    const Exiting = new Keyframe({
+        from: {
+            height: '100%',
+        },
+        to: {
+            height: '0%',
+            easing
+        }
+    })
+
     const renderItem = useCallback(
         // eslint-disable-next-line react/no-unused-prop-types
         ({item, index}: {item: SearchListItem; index: number}) => {
@@ -321,7 +331,7 @@ function SearchList(
 
             return (
                 <Animated.View
-                    exiting={shouldAnimate ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
+                    exiting={shouldAnimate ? Exiting.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION) : undefined}
                     entering={undefined}
                     style={styles.overflowHidden}
                     layout={shouldAnimate && hasItemsBeingRemoved ? LinearTransition.easing(easing).duration(CONST.SEARCH.EXITING_ANIMATION_DURATION) : undefined}
