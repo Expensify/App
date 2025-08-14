@@ -62,7 +62,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion, bac
     const hideNextButton = !lastSearchQuery?.hasMoreResults && currentIndex === allReports.length - 1;
     const hidePrevButton = currentIndex === 0;
     const styles = useThemeStyles();
-    const shouldDisplayNavigationArrows = allReports && allReports.length > 0;
+    const shouldDisplayNavigationArrows = allReports && allReports.length > 1;
 
     useEffect(() => {
         if (!lastSearchQuery?.queryJSON) {
