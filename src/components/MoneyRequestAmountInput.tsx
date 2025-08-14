@@ -182,7 +182,7 @@ function MoneyRequestAmountInput(
             onSymbolButtonPress={onCurrencyButtonPress}
             onInputChange={onAmountChange}
             onBlur={formatAmount}
-            ref={(ref) => {
+            forwardedRef={(ref) => {
                 if (typeof forwardedRef === 'function') {
                     forwardedRef(ref);
                 } else if (forwardedRef?.current) {
