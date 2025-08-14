@@ -449,16 +449,16 @@ function MoneyRequestReportPreviewContent({
     }, [iouReportID]);
 
     const reportPreviewAction = useMemo(() => {
-        // It's necessary to allow payment animation to finish before button is changed
-        if (isPaidAnimationRunning) {
-            return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
-        }
-
-        if (isSubmittingAnimationRunning) {
-            return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
-        }
-
-        return getReportPreviewAction(violations, isIouReportArchived || isChatReportArchived, iouReport, policy, transactions, invoiceReceiverPolicy);
+        return getReportPreviewAction(
+            violations,
+            isIouReportArchived || isChatReportArchived,
+            iouReport,
+            policy,
+            transactions,
+            invoiceReceiverPolicy,
+            isPaidAnimationRunning,
+            isSubmittingAnimationRunning,
+        );
     }, [isPaidAnimationRunning, isSubmittingAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, invoiceReceiverPolicy, isChatReportArchived]);
 
     const addExpenseDropdownOptions = useMemo(
