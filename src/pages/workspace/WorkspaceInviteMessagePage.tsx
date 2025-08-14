@@ -181,19 +181,6 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
-                    footerContent={
-                        <PressableWithoutFeedback
-                            onPress={openPrivacyURL}
-                            role={CONST.ROLE.LINK}
-                            accessibilityLabel={translate('common.privacy')}
-                            href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
-                            style={[styles.mv2, styles.alignSelfStart]}
-                        >
-                            <View style={[styles.flexRow]}>
-                                <Text style={[styles.mr1, styles.label, styles.link]}>{translate('common.privacy')}</Text>
-                            </View>
-                        </PressableWithoutFeedback>
-                    }
                 >
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <ReportActionAvatars
@@ -240,7 +227,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                                 }}
                             />
                         </View>
-                        <View style={[styles.mb5]}>
+                        <View style={[styles.mb3]}>
                             <Text style={[styles.textSupportingNormal]}>{translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>
                         </View>
                         <InputWrapper
@@ -269,6 +256,17 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                             }}
                             shouldSaveDraft
                         />
+                                                <PressableWithoutFeedback
+                            onPress={openPrivacyURL}
+                            role={CONST.ROLE.LINK}
+                            accessibilityLabel={translate('common.privacy')}
+                            href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
+                            style={[styles.mt5, styles.alignSelfStart]}
+                        >
+                            <View style={[styles.flexRow]}>
+                                <Text style={[styles.mr1, styles.label, styles.link]}>{translate('common.privacy')}</Text>
+                            </View>
+                        </PressableWithoutFeedback>
                     </View>
                 </FormProvider>
             </ScreenWrapper>
