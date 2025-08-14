@@ -1,8 +1,9 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
+// import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import SelectionListSingle from '@components/SelectionListSingle';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -71,7 +72,7 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
                 }}
             />
 
-            <SelectionList
+            {/* <SelectionList
                 headerMessage={headerMessage}
                 textInputLabel={translate('common.country')}
                 textInputValue={searchValue}
@@ -82,6 +83,20 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
                 onChangeText={setSearchValue}
                 initiallyFocusedOptionKey={currentCountry}
                 shouldUseDynamicMaxToRenderPerBatch
+                addBottomSafeAreaPadding
+            /> */}
+            <SelectionListSingle
+                headerMessage={headerMessage}
+                textInputOptions={{
+                    textInputLabel: translate('common.country'),
+                    textInputValue: searchValue,
+                    onChangeText: setSearchValue,
+                }}
+                data={searchResults}
+                ListItem={RadioListItem}
+                onSelectRow={selectCountry}
+                shouldSingleExecuteRowSelect
+                initiallyFocusedItemKey={currentCountry}
                 addBottomSafeAreaPadding
             />
         </ScreenWrapper>
