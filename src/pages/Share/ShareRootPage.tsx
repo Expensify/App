@@ -14,7 +14,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
-import {checkNesesarityOfFileValidation} from '@libs/ReceiptUtils';
+import {shouldValidateFile} from '@libs/ReceiptUtils';
 import ShareActionHandler from '@libs/ShareActionHandlerModule';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
@@ -43,7 +43,7 @@ function ShareRootPage() {
     const isTextShared = currentAttachment?.mimeType === 'txt';
 
     const validateFileIfNecessary = (file: ShareTempFile) => {
-        if (!file || isTextShared || !checkNesesarityOfFileValidation(file)) {
+        if (!file || isTextShared || !shouldValidateFile(file)) {
             return;
         }
 

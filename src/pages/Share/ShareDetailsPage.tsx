@@ -22,7 +22,7 @@ import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getReportDisplayOption} from '@libs/OptionsListUtils';
-import {checkNesesarityOfFileValidation} from '@libs/ReceiptUtils';
+import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {getReportOrDraftReport, isDraftReport} from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import variables from '@styles/variables';
@@ -52,7 +52,7 @@ function ShareDetailsPage({
 
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const isTextShared = currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.TXT;
-    const shouldUsePreValidatedFile = checkNesesarityOfFileValidation(currentAttachment);
+    const shouldUsePreValidatedFile = shouldValidateFile(currentAttachment);
     const [message, setMessage] = useState(isTextShared ? (currentAttachment?.content ?? '') : '');
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);

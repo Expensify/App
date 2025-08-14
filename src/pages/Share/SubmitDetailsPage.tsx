@@ -22,7 +22,7 @@ import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction'
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {checkNesesarityOfFileValidation} from '@libs/ReceiptUtils';
+import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {getReportOrDraftReport, isSelfDM} from '@libs/ReportUtils';
 import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -53,7 +53,7 @@ function SubmitDetailsPage({
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const [validFilesToUpload] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
-    const shouldUsePreValidatedFile = checkNesesarityOfFileValidation(currentAttachment);
+    const shouldUsePreValidatedFile = shouldValidateFile(currentAttachment);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
