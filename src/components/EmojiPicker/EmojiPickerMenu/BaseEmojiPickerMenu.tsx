@@ -1,6 +1,6 @@
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItem} from '@shopify/flash-list';
-import React, {forwardRef} from 'react';
+import React from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -123,4 +123,4 @@ function BaseEmojiPickerMenu(
 
 BaseEmojiPickerMenu.displayName = 'BaseEmojiPickerMenu';
 
-export default forwardRef(BaseEmojiPickerMenu);
+export default React.forwardRef(BaseEmojiPickerMenu);
