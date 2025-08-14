@@ -755,6 +755,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                             isAmountColumnWide={shouldShowAmountInWideColumn}
                             isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
                             shouldShowSorting={shouldShowSorting}
+                            groupBy={groupBy}
                         />
                     )
                 }
