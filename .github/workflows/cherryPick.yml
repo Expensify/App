@@ -257,6 +257,7 @@ jobs:
               "channel": "#deployer",
               "attachments": [{
                 "color": "#DB4545",
+                "pretext": "<!subteam^S4TJJ3PSL>",
                 "text": "🚨 Cherry-pick to ${{ inputs.TARGET }} has conflicts and requires manual resolution.\nOriginal PR: ${{ inputs.PULL_REQUEST_URL }}\nConflict PR: ${{ steps.createPullRequest.outputs.PR_URL }}"
               }]
             }
