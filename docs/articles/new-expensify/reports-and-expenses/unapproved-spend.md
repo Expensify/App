@@ -1,5 +1,5 @@
 ---
-title: Unapproved-Spend.md
+title: Unapproved Spend
 description: See all unapproved cash and card spend in one place so you can close the books without missing anything.
 keywords: [unapproved spend, unapproved cash, unapproved card, accounting, liabilities, month-end close, New Expensify, workspace admin, approvals, reimbursements, card feed]
 ---
@@ -27,10 +27,10 @@ Go to:
 
 These views come with filters already applied:
 
-### Unapproved Cash
+**Unapproved Cash**
 `type:expense group-by:from status:drafts,outstanding reimbursable:yes`
 
-### Unapproved Card
+**Unapproved Card**
 `type:expense group-by:from status:drafts,outstanding feed:"Your Bank"`
 
 
