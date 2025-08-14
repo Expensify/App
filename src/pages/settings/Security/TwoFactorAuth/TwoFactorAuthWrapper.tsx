@@ -96,7 +96,7 @@ function TwoFactorAuthWrapper({
         >
             <FullPageNotFoundView
                 shouldShow={shouldShowNotFound}
-                linkKey="securityPage.goToSecurity"
+                linkTranslationKey="securityPage.goToSecurity"
                 onLinkPress={defaultGoBack}
             >
                 <HeaderWithBackButton

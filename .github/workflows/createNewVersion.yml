@@ -124,7 +124,12 @@ jobs:
           git commit -m "Update Mobile-Expensify submodule version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
           if ! git push origin main; then
             echo "Race condition! E/App main was updated while this workflow was running, so push failed. Fetching remote, rebasing, and retrying push once."
-            git fetch origin main
+            if ! git fetch origin main; then
+              echo "::error:: ❌ Unable to fetch main"
+              echo "::error:: This can happen when Mobile-Expensify and E/App repos got out of sync."
+              echo "::error:: We likely need to manually bump the version in E/App to match Mobile-Expensify."
+              exit 1
+            fi
             if ! git rebase origin/main; then
               echo "::error:: Rebase failed while retrying E/App push"
               exit 1
