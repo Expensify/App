@@ -798,12 +798,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 >
                     <FullPageNotFoundView
                         shouldShow={shouldShowNotFoundPage}
-                        subtitleKey={shouldShowNotFoundLinkedAction ? '' : 'notFound.noAccess'}
+                        subtitleKey={shouldShowNotFoundLinkedAction ? 'notFound.commentYouLookingForCannotBeFound' : 'notFound.noAccess'}
                         subtitleStyle={[styles.textSupporting]}
                         shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={shouldShowNotFoundLinkedAction ? navigateToEndOfReport : Navigation.goBack}
                         shouldShowLink={shouldShowNotFoundLinkedAction}
-                        linkKey="notFound.noAccess"
+                        linkTranslationKey="notFound.goToChatInstead"
+                        subtitleKeyBelowLink={shouldShowNotFoundLinkedAction ? 'notFound.contactConcierge' : ''}
                         onLinkPress={navigateToEndOfReport}
                         shouldDisplaySearchRouter
                     >
@@ -865,6 +866,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         isComposerFullSize={!!isComposerFullSize}
                                         lastReportAction={lastReportAction}
                                         reportTransactions={reportTransactions}
+                                        transactionThreadReportID={transactionThreadReportID}
                                     />
                                 ) : null}
                             </View>
