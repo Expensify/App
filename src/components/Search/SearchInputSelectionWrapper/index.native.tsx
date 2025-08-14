@@ -10,7 +10,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
-// we need to delay the first render of the SearchAutocompleteInput on native because initialization takes especially long, web doesn't have this issue
+// We need to delay the first render of the SearchAutocompleteInput on native because initialization takes especially long, web doesn't have this issue
 let isAutocompleteInputInitialized = false;
 function SearchInputSelectionWrapper(props: SearchAutocompleteInputProps, ref: ForwardedRef<BaseTextInputRef>) {
     const [delayFirstRender, setDelayFirstRender] = useState(!isAutocompleteInputInitialized);
