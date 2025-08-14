@@ -4669,10 +4669,9 @@ const translations = {
         },
         reports: {
             reportsCustomTitleExamples: 'Ejemplos:',
-            customReportNamesSubtitle: 'Personaliza los títulos de los informes usando nuestras amplias fórmulas.',
+            customReportNamesSubtitle: `<muted-text>Personaliza los títulos de los informes usando nuestras <a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">amplias fórmulas</a>.</muted-text>`,
             customNameTitle: 'Título de informe predeterminado',
-            customNameDescription: 'Elige un nombre personalizado para los informes de gastos usando nuestras ',
-            customNameDescriptionLink: 'fórmulas variadas',
+            customNameDescription: `Elige un nombre personalizado para los informes de gastos usando nuestras <a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">fórmulas variadas</a>.`,
             customNameInputLabel: 'Nombre',
             customNameEmailPhoneExample: 'Correo electrónico o teléfono del miembro: {report:submit:from}',
             customNameStartDateExample: 'Fecha de inicio del informe: {report:startdate}',

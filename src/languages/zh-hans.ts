@@ -4606,10 +4606,9 @@ const translations = {
         },
         reports: {
             reportsCustomTitleExamples: '示例：',
-            customReportNamesSubtitle: '使用我们的自定义报告标题',
+            customReportNamesSubtitle: `<muted-text>使用我们<a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">丰富的公式</a>自定义报告标题。</muted-text>`,
             customNameTitle: '默认报告标题',
-            customNameDescription: '使用我们的功能为费用报告选择一个自定义名称',
-            customNameDescriptionLink: '广泛的公式',
+            customNameDescription: `使用我们的<a href="${CONST.CUSTOM_REPORT_NAME_HELP_URL}">丰富公式</a>，为费用报告选择自定义名称。`,
             customNameInputLabel: '名称',
             customNameEmailPhoneExample: '成员的电子邮件或电话：{report:submit:from}',
             customNameStartDateExample: '报告开始日期：{report:startdate}',
