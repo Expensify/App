@@ -1928,6 +1928,7 @@ export {
     getValidWaypoints,
     getValidDuplicateTransactionIDs,
     isDistanceRequest,
+    isManualDistanceRequest,
     isFetchingWaypointsFromServer,
     isExpensifyCardTransaction,
     isCardTransaction,

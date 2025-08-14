@@ -232,6 +232,7 @@ function SubmitDetailsPage({
                         reportID={reportOrAccountID}
                         shouldShowSmartScanFields={false}
                         isDistanceRequest={false}
+                        isManualDistanceRequest={false}
                         onPDFLoadError={() => {
                             if (errorTitle) {
                                 return;

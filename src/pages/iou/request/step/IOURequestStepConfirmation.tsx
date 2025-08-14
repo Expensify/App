@@ -599,6 +599,7 @@ function IOURequestStepConfirmation({
                     },
                     transactionParams: {
                         amount: item.amount,
+                        distance: item.comment?.customUnit?.quantity ?? undefined,
                         currency: item.currency,
                         created: item.created,
                         merchant: item.merchant,
@@ -662,6 +663,7 @@ function IOURequestStepConfirmation({
                 transactionParams: {
                     amount: transaction.amount,
                     comment: trimmedComment,
+                    distance: transaction.comment?.customUnit?.quantity ?? undefined,
                     created: transaction.created,
                     currency: transaction.currency,
                     merchant: transaction.merchant,
