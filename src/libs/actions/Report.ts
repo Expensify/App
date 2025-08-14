@@ -1824,7 +1824,7 @@ function handleReportChanged(report: OnyxEntry<Report>) {
             const currCallback = callback;
             callback = () => {
                 currCallback();
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(preexistingReportID), {forceReplace: true});
+                Navigation.setParams({reportID: preexistingReportID});
             };
 
             // The report screen will listen to this event and transfer the draft comment to the existing report
