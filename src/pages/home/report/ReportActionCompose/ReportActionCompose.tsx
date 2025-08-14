@@ -99,17 +99,11 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
     /** The type of action that's pending  */
     pendingAction?: OnyxCommon.PendingAction;
 
-    /** Whether the report is ready for display */
-    isReportReadyForDisplay?: boolean;
-
     /** A method to call when the input is focus */
     onComposerFocus?: () => void;
 
     /** A method to call when the input is blur */
     onComposerBlur?: () => void;
-
-    /** Should the input be disabled  */
-    disabled?: boolean;
 
     /** Whether the main composer was hidden */
     didHideComposerInput?: boolean;
@@ -125,13 +119,11 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 let onSubmitAction = noop;
 
 function ReportActionCompose({
-    disabled = false,
     isComposerFullSize = false,
     onSubmit,
     pendingAction,
     report,
     reportID,
-    isReportReadyForDisplay = true,
     lastReportAction,
     onComposerFocus,
     onComposerBlur,
@@ -393,11 +385,11 @@ function ReportActionCompose({
     const isGroupPolicyReport = useMemo(() => !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE, [report]);
     const reportRecipientAccountIDs = getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
     const reportRecipient = personalDetails?.[reportRecipientAccountIDs[0]];
-    const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
+    const shouldUseFocusedColor = !isBlockedFromConcierge && isFocused;
 
     const hasReportRecipient = !isEmptyObject(reportRecipient);
 
-    const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || !!disabled || !!exceededMaxLength;
+    const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || !!exceededMaxLength;
 
     // Note: using JS refs is not well supported in reanimated, thus we need to store the function in a shared value
     // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
@@ -413,13 +405,13 @@ function ReportActionCompose({
             throw new Error('The composerRefShared.clear function is not set yet. This should never happen, and indicates a developer error.');
         }
 
-        if (isSendDisabled || !isReportReadyForDisplay) {
+        if (isSendDisabled) {
             return;
         }
 
         // This will cause onCleared to be triggered where we actually send the message
         clearComposer();
-    }, [isSendDisabled, isReportReadyForDisplay, composerRefShared]);
+    }, [isSendDisabled, composerRefShared]);
 
     const measureComposer = useCallback(
         (e: LayoutChangeEvent) => {
@@ -621,8 +613,7 @@ function ReportActionCompose({
                                             reportParticipantIDs={reportParticipantIDs}
                                             isFullComposerAvailable={isFullComposerAvailable}
                                             isComposerFullSize={isComposerFullSize}
-                                            isBlockedFromConcierge={isBlockedFromConcierge}
-                                            disabled={disabled}
+                                            disabled={isBlockedFromConcierge}
                                             setMenuVisibility={setMenuVisibility}
                                             isMenuVisible={isMenuVisible}
                                             onTriggerAttachmentPicker={onTriggerAttachmentPicker}
@@ -660,8 +651,7 @@ function ReportActionCompose({
                                             setIsFullComposerAvailable={setIsFullComposerAvailable}
                                             displayFilesInModal={displayFilesInModal}
                                             onCleared={submitForm}
-                                            isBlockedFromConcierge={isBlockedFromConcierge}
-                                            disabled={disabled}
+                                            disabled={isBlockedFromConcierge}
                                             setIsCommentEmpty={setIsCommentEmpty}
                                             handleSendMessage={handleSendMessage}
                                             shouldShowComposeInput={shouldShowComposeInput}
@@ -696,7 +686,7 @@ function ReportActionCompose({
                         </AttachmentComposerModal>
                         {canUseTouchScreen() && isMediumScreenWidth ? null : (
                             <EmojiPickerButton
-                                isDisabled={isBlockedFromConcierge || disabled}
+                                isDisabled={isBlockedFromConcierge}
                                 onModalHide={(isNavigating) => {
                                     if (isNavigating) {
                                         return;

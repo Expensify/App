@@ -77,6 +77,7 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                                 >
                                     {translate('common.learnMore')}
                                 </TextLink>
+                                .
                             </>
                         </Text>
                     }

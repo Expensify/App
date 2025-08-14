@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
@@ -40,6 +40,7 @@ import type {BaseValidateCodeFormRef} from './ValidateCodeForm/BaseValidateCodeF
 
 type SignInPageInnerProps = {
     shouldEnableMaxHeight?: boolean;
+    ref?: ForwardedRef<SignInPageRef>;
 };
 
 type SignInPageRef = {
@@ -142,7 +143,7 @@ function getRenderOptions({
     };
 }
 
-function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: ForwardedRef<SignInPageRef>) {
+function SignInPage({shouldEnableMaxHeight = true, ref}: SignInPageInnerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -342,9 +343,9 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
 }
 
 type SignInPageProps = SignInPageInnerProps;
-const SignInPageWithRef = forwardRef(SignInPage);
+const SignInPageWithRef = SignInPage;
 
-function SignInPageWrapper(props: SignInPageProps, ref: ForwardedRef<SignInPageRef>) {
+function SignInPageWrapper({ref, ...props}: SignInPageProps) {
     return (
         <ThemeProvider theme={CONST.THEME.DARK}>
             <ThemeStylesProvider>
@@ -365,6 +366,6 @@ function SignInPageWrapper(props: SignInPageProps, ref: ForwardedRef<SignInPageR
 
 SignInPageWrapper.displayName = 'SignInPage';
 
-export default forwardRef(SignInPageWrapper);
+export default SignInPageWrapper;
 
 export type {SignInPageRef};

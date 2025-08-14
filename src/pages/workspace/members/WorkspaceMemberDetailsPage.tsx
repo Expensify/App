@@ -32,7 +32,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
-import {isControlPolicy} from '@libs/PolicyUtils';
+import {getDefaultApprover, isControlPolicy} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import Navigation from '@navigation/Navigation';
@@ -104,16 +104,15 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const phoneNumber = getPhoneNumber(details);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
-    const policyApproverEmail = policy?.approver;
     const {approvalWorkflows} = useMemo(
         () =>
             convertPolicyEmployeesToApprovalWorkflows({
                 employees: policy?.employeeList ?? {},
-                defaultApprover: policyApproverEmail ?? policy?.owner ?? '',
+                defaultApprover: getDefaultApprover(policy),
                 personalDetails: personalDetails ?? {},
                 localeCompare,
             }),
-        [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail, localeCompare],
+        [personalDetails, policy, localeCompare],
     );
 
     useEffect(() => {

@@ -200,7 +200,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             <ScreenWrapper testID={ContactMethodDetailsPage.displayName}>
                 <FullPageNotFoundView
                     shouldShow
-                    linkKey="contacts.goBackContactMethods"
+                    linkTranslationKey="contacts.goBackContactMethods"
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
                     onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
                 />

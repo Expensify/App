@@ -32,20 +32,18 @@ export default function useDeleteSavedSearch() {
         }
     };
 
-    function DeleteConfirmModal() {
-        return (
-            <ConfirmModal
-                title={translate('search.deleteSavedSearch')}
-                onConfirm={handleDelete}
-                onCancel={() => setIsDeleteModalVisible(false)}
-                isVisible={isDeleteModalVisible}
-                prompt={translate('search.deleteSavedSearchConfirm')}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                danger
-            />
-        );
-    }
+    const DeleteConfirmModal = (
+        <ConfirmModal
+            title={translate('search.deleteSavedSearch')}
+            onConfirm={handleDelete}
+            onCancel={() => setIsDeleteModalVisible(false)}
+            isVisible={isDeleteModalVisible}
+            prompt={translate('search.deleteSavedSearchConfirm')}
+            confirmText={translate('common.delete')}
+            cancelText={translate('common.cancel')}
+            danger
+        />
+    );
 
     return {showDeleteModal, DeleteConfirmModal};
 }

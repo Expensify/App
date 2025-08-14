@@ -1,7 +1,7 @@
 ---
 title: Edit Expenses
-description: Learn how to edit expenses in Expensify, including restrictions and permissions.
-keywords: [Expensify Classic, edit expenses, merge expenses, split expenses, delete expenses]
+description: Learn how to edit, split, merge, or delete expenses in Expensify, including permissions, limitations, and helpful tips for SmartScan or company cards.
+keywords: edit expenses, split expenses, merge expenses, delete expenses, Expensify Classic, expense permissions, company card, SmartScan, Workspace Admin
 ---
 
 <div id="expensify-classic" markdown="1">
@@ -97,7 +97,7 @@ Each split becomes its own expense, and the image of the same receipt is attache
 You can merge two duplicate expenses into one consolidated entry. This is useful when the same purchase appears twice—once as a SmartScanned receipt and once as an imported credit card transaction.
 
 💡 **Things to know before merging expenses:** 💡
-- Merging expenses cannot be undone
+- Merging expenses cannot be undone.
 - You cannot merge two credit card expenses.
 - Ideally, credit card expenses also include a SmartScanned receipt. If your admin has enabled eReceipts (U.S. only), low-value expenses may show a QR code as the receipt image.
 
@@ -166,29 +166,37 @@ Yes. The same image will appear on all the split expenses for easy reference and
 ## Can I apply different categories or tags to each split?
 Absolutely! That's one of the main benefits of splitting an expense — you can customize each part individually.
 
-## Can Expensify automatically merge a cash expense with a credit card expense?
+## Can Expensify automatically merge cash and card expenses?
 
-Yes! When a SmartScanned receipt matches an imported credit card transaction by date and amount, Expensify merges them automatically.
+Yes. Expensify auto-merges SmartScanned receipts with matching card transactions by date and amount.
 
-- If the SmartScan comes first, the card import will merge.
-- If the card transaction comes first, the SmartScan will merge once complete.
-- Expensify uses the SmartScanned merchant name over the one from the card feed.
+- If the receipt comes first, the card transaction merges into the receipt.
+- If the card comes first, the receipt merges into the card.
+- Merchant names from SmartScan will override merchant names from the card.
+- Merging can occur even after reports are submitted, approved, or reimbursed.
 
 **Merging won't happen automatically:**
-- If you manually stop SmartScan.
-- If the expenses were created via the [Expense Importer API](https://integrations.expensify.com/Integration-Server/doc/#expense-creator).
+- SmartScan is skipped.
+- Expenses were created via the [Expense Importer API](https://integrations.expensify.com/Integration-Server/doc/#expense-creator).
+- Currencies differ and the report is submitted.
+
+## Should I wait for merging before submitting reports?
+No need to wait. Matching expenses can still merge post-submission.
+
+- **Personal cards**: Will merge if reimbursable status matches, or only when the report is Open.
+- **Company cards**: Merge regardless of status, unless it changes the reimbursable total of a submitted report. To prevent issues, default cash expenses to non-reimbursable.
 
 ## Why didn’t my expenses merge automatically?
 
 **Here are some common reasons:**
-- The cash receipt was not SmartScanned.
-- The transaction dates are different.
-- Amounts differ (in the same currency).
-- Amounts exceed a 5% difference in foreign exchange (FX) rates.
-- The transaction is over 90 days old.
-- One of the duplicates already merged with a third entry.
-- The cash expense was already submitted, reimbursed, or exported before the card import.
-- The card and receipt are in different Expensify accounts.
+- Receipt wasn’t SmartScanned.
+- Transaction dates don’t closely match.
+- Amounts differ (for expenses in the same currency).
+- Foreign exchange difference exceeds 5% (for expenses in different currencies)
+- The transaction is older than 90 days.
+- One of the expenses was already merged with another expense. 
+- Receipt is reimbursable and report is submitted.
+- Expenses are in different Expensify accounts.
 
 You can still merge expenses manually if both are **Unreported** or **Open** and exist in the same account.
 

@@ -1,15 +1,12 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {LastSelectedDistanceRates, OnyxInputOrEntry, Report, Transaction} from '@src/types/onyx';
+import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getCurrencySymbol} from './CurrencyUtils';
-import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getPersonalPolicy, getPolicy, getUnitRateValue} from './PolicyUtils';
-import {isPolicyExpenseChat} from './ReportUtils';
+import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getPersonalPolicy, getUnitRateValue} from './PolicyUtils';
 import {getCurrency, getRateID, isCustomUnitRateIDForP2P} from './TransactionUtils';
 
 type MileageRate = {
@@ -20,23 +17,6 @@ type MileageRate = {
     name?: string;
     enabled?: boolean;
 };
-
-let lastSelectedDistanceRates: OnyxEntry<LastSelectedDistanceRates> = {};
-Onyx.connect({
-    key: ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
-    callback: (value) => {
-        lastSelectedDistanceRates = value;
-    },
-});
-
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allReports = value;
-    },
-});
 
 const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
 const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 miles in a meter
@@ -298,23 +278,28 @@ function convertToDistanceInMeters(distance: number, unit: Unit): number {
 /**
  * Returns custom unit rate ID for the distance transaction
  */
-function getCustomUnitRateID(reportID?: string) {
+function getCustomUnitRateID({
+    reportID,
+    isPolicyExpenseChat,
+    policy,
+    lastSelectedDistanceRates,
+}: {
+    reportID: string | undefined;
+    isPolicyExpenseChat: boolean;
+    policy: OnyxEntry<Policy> | undefined;
+    lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
+}): string {
     let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
     if (!reportID) {
         return customUnitRateID;
     }
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
-    const policy = getPolicy(report?.policyID ?? parentReport?.policyID);
 
     if (isEmptyObject(policy)) {
         return customUnitRateID;
     }
 
-    if (isPolicyExpenseChat(report) || isPolicyExpenseChat(parentReport)) {
+    if (isPolicyExpenseChat) {
         const distanceUnit = Object.values(policy.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy.id];
         const lastSelectedDistanceRate = lastSelectedDistanceRateID ? distanceUnit?.rates[lastSelectedDistanceRateID] : undefined;

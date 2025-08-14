@@ -363,6 +363,7 @@ function SecuritySettingsPage() {
                                             >
                                                 {translate('common.learnMore')}
                                             </TextLink>
+                                            .
                                         </Text>
                                     )}
                                     isCentralPane

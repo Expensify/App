@@ -157,7 +157,7 @@ function IOURequestStepConfirmation({
     const [selectedParticipantList, setSelectedParticipantList] = useState<Participant[]>([]);
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
-    const [receiptFiles, setReceiptFiles] = useState<Record<string, Receipt | undefined>>({});
+    const [receiptFiles, setReceiptFiles] = useState<Record<string, Receipt>>({});
     const requestType = getRequestType(transaction);
     const isDistanceRequest = requestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
