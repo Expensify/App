@@ -91,7 +91,7 @@ async function detectReactComponentInFile(filename: string): Promise<boolean | u
     };
     try {
         const {data} = await GithubUtils.octokit.repos.getContent(params);
-        const content = nodeBase64ToUtf8('content' in data ? data?.content ?? '' : '');
+        const content = nodeBase64ToUtf8('content' in data ? (data?.content ?? '') : '');
         return detectReactComponent(content, filename);
     } catch (error) {
         console.error('An unknown error occurred with the GitHub API: ', error, params);

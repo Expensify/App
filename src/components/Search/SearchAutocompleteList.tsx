@@ -1,9 +1,7 @@
-import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import SelectionList from '@components/SelectionList';
@@ -11,18 +9,16 @@ import type {SearchQueryItem, SearchQueryListItemProps} from '@components/Select
 import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SectionListDataType, SelectionListHandle, UserListItemProps} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
-import useFastSearchFromOptions from '@hooks/useFastSearchFromOptions';
+import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
-import usePolicy from '@hooks/usePolicy';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {searchInServer} from '@libs/actions/Report';
-import {getCardFeedKey, getCardFeedNamesWithType} from '@libs/CardFeedUtils';
-import {getCardDescription, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
-import memoize from '@libs/memoize';
-import type {Options, SearchOption} from '@libs/OptionsListUtils';
-import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidPersonalDetailOptions} from '@libs/OptionsListUtils';
+import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
+import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
+import Log from '@libs/Log';
+import type {Options} from '@libs/OptionsListUtils';
+import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -35,12 +31,14 @@ import {
     getQueryWithoutAutocompletedPart,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
+import {getDatePresets} from '@libs/SearchUIUtils';
 import StringUtils from '@libs/StringUtils';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type PersonalDetails from '@src/types/onyx/PersonalDetails';
+import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from './types';
 
@@ -56,6 +54,9 @@ type GetAdditionalSectionsCallback = (options: Options) => Array<SectionListData
 type SearchAutocompleteListProps = {
     /** Value of TextInput */
     autocompleteQueryValue: string;
+
+    /** Callback to trigger search action * */
+    handleSearch: (value: string) => void;
 
     /** An optional item to always display on the top of the router list  */
     searchQueryItem?: SearchQueryItem;
@@ -79,7 +80,19 @@ type SearchAutocompleteListProps = {
     onHighlightFirstItem?: () => void;
 
     /** Ref for textInput */
-    textInputRef?: React.RefObject<AnimatedTextInputRef>;
+    textInputRef?: React.RefObject<AnimatedTextInputRef | null>;
+
+    /** Personal details */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+
+    /** Reports */
+    reports: OnyxCollection<Report>;
+
+    /** All feeds */
+    allFeeds: Record<string, CardFeeds | undefined> | undefined;
+
+    /** All cards */
+    allCards: CardList;
 };
 
 const defaultListOptions = {
@@ -133,6 +146,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
 function SearchAutocompleteList(
     {
         autocompleteQueryValue,
+        handleSearch,
         searchQueryItem,
         getAdditionalSections,
         onListItemPress,
@@ -141,19 +155,19 @@ function SearchAutocompleteList(
         shouldSubscribeToArrowKeyEvents = true,
         onHighlightFirstItem,
         textInputRef,
+        personalDetails,
+        reports,
+        allFeeds,
+        allCards,
     }: SearchAutocompleteListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const {activeWorkspaceID} = useActiveWorkspace();
-    const policy = usePolicy(activeWorkspaceID);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
-    const personalDetails = usePersonalDetails();
-    const [reports = {}] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const taxRates = getAllTaxRates();
 
     const {options, areOptionsInitialized} = useOptionsList();
@@ -161,76 +175,57 @@ function SearchAutocompleteList(
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
-        return getSearchOptions(options, betas ?? []);
-    }, [areOptionsInitialized, betas, options]);
+        return getSearchOptions(options, betas ?? [], true, true, autocompleteQueryValue, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS, true);
+    }, [areOptionsInitialized, betas, options, autocompleteQueryValue]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
 
     const typeAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
     const groupByAutocompleteList = Object.values(CONST.SEARCH.GROUP_BY);
-    const statusAutocompleteList = Object.values({
-        ...CONST.SEARCH.STATUS.EXPENSE,
-        ...CONST.SEARCH.STATUS.INVOICE,
-        ...CONST.SEARCH.STATUS.CHAT,
-        ...CONST.SEARCH.STATUS.TRIP,
-        ...CONST.SEARCH.STATUS.TASK,
-    });
+
+    const statusAutocompleteList = useMemo(() => {
+        const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
+        const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
+        const currentType = typeFilter?.value;
+
+        switch (currentType) {
+            case CONST.SEARCH.DATA_TYPES.EXPENSE:
+                return Object.values(CONST.SEARCH.STATUS.EXPENSE);
+            case CONST.SEARCH.DATA_TYPES.INVOICE:
+                return Object.values(CONST.SEARCH.STATUS.INVOICE);
+            case CONST.SEARCH.DATA_TYPES.CHAT:
+                return Object.values(CONST.SEARCH.STATUS.CHAT);
+            case CONST.SEARCH.DATA_TYPES.TRIP:
+                return Object.values(CONST.SEARCH.STATUS.TRIP);
+            case CONST.SEARCH.DATA_TYPES.TASK:
+                return Object.values(CONST.SEARCH.STATUS.TASK);
+            default:
+                return Object.values({...CONST.SEARCH.STATUS.EXPENSE, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP, ...CONST.SEARCH.STATUS.TASK});
+        }
+    }, [autocompleteQueryValue]);
+
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
     const booleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
 
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
-    const cardAutocompleteList = Object.values(allCards);
-    const cardFeedNamesWithType = useMemo(() => {
-        return getCardFeedNamesWithType({workspaceCardFeeds, translate});
-    }, [translate, workspaceCardFeeds]);
-    const feedAutoCompleteList = useMemo(() => Object.entries(cardFeedNamesWithType).map(([cardFeedKey, cardFeedName]) => ({cardFeedKey, cardFeedName})), [cardFeedNamesWithType]);
+    const cardAutocompleteList = useMemo(() => Object.values(allCards), [allCards]);
+    const feedAutoCompleteList = useMemo(() => {
+        // We don't want to show the "Expensify Card" feeds in the autocomplete suggestion list as they don't have real "Statements"
+        // Thus passing an empty object to the `allCards` parameter.
+        return Object.values(getCardFeedsForDisplay(allFeeds, {}));
+    }, [allFeeds]);
 
-    const getParticipantsAutocompleteList = useMemo(
-        () =>
-            memoize(() => {
-                if (!areOptionsInitialized) {
-                    return [];
-                }
-
-                const currentUserRef = {
-                    current: undefined as OptionData | undefined,
-                };
-                const filteredOptions = getValidPersonalDetailOptions(options.personalDetails, {
-                    loginsToExclude: CONST.EXPENSIFY_EMAILS_OBJECT,
-                    shouldBoldTitleByDefault: false,
-                    currentUserRef,
-                });
-
-                // This cast is needed as something is incorrect in types OptionsListUtils.getOptions around l1490 and includeRecentReports types
-                const personalDetailsFromOptions = filteredOptions.map((option) => (option as SearchOption<PersonalDetails>).item);
-                const autocompleteOptions = Object.values(personalDetailsFromOptions)
-                    .filter((details): details is NonNullable<PersonalDetails> => !!details?.login)
-                    .map((details) => {
-                        return {
-                            name: details.displayName ?? Str.removeSMSDomain(details.login ?? ''),
-                            accountID: details.accountID.toString(),
-                        };
-                    });
-
-                return autocompleteOptions;
-            }),
-        [areOptionsInitialized, options.personalDetails],
-    );
-
-    const taxAutocompleteList = useMemo(() => getAutocompleteTaxList(taxRates, policy), [policy, taxRates]);
+    const taxAutocompleteList = useMemo(() => getAutocompleteTaxList(taxRates), [taxRates]);
 
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES, {canBeMissing: true});
     const categoryAutocompleteList = useMemo(() => {
-        return getAutocompleteCategories(allPolicyCategories, activeWorkspaceID);
-    }, [activeWorkspaceID, allPolicyCategories]);
+        return getAutocompleteCategories(allPolicyCategories);
+    }, [allPolicyCategories]);
     const recentCategoriesAutocompleteList = useMemo(() => {
-        return getAutocompleteRecentCategories(allRecentCategories, activeWorkspaceID);
-    }, [activeWorkspaceID, allRecentCategories]);
+        return getAutocompleteRecentCategories(allRecentCategories);
+    }, [allRecentCategories]);
 
-    const [policies = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
 
     const workspaceList = useMemo(
@@ -247,12 +242,17 @@ function SearchAutocompleteList(
     const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
     const [allRecentTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS, {canBeMissing: true});
     const tagAutocompleteList = useMemo(() => {
-        return getAutocompleteTags(allPoliciesTags, activeWorkspaceID);
-    }, [activeWorkspaceID, allPoliciesTags]);
-    const recentTagsAutocompleteList = getAutocompleteRecentTags(allRecentTags, activeWorkspaceID);
+        return getAutocompleteTags(allPoliciesTags);
+    }, [allPoliciesTags]);
+    const recentTagsAutocompleteList = getAutocompleteRecentTags(allRecentTags);
+
+    const [autocompleteParsedQuery, autocompleteQueryWithoutFilters] = useMemo(() => {
+        const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
+        const queryWithoutFilters = getQueryWithoutFilters(autocompleteQueryValue);
+        return [parsedQuery, queryWithoutFilters];
+    }, [autocompleteQueryValue]);
 
     const autocompleteSuggestions = useMemo<AutocompleteItemData[]>(() => {
-        const autocompleteParsedQuery = parseForAutocomplete(autocompleteQueryValue);
         const {autocomplete, ranges = []} = autocompleteParsedQuery ?? {};
         const autocompleteKey = autocomplete?.key;
         const autocompleteValue = autocomplete?.value ?? '';
@@ -265,7 +265,7 @@ function SearchAutocompleteList(
 
         switch (autocompleteKey) {
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG: {
-                const autocompleteList = autocompleteValue ? tagAutocompleteList : recentTagsAutocompleteList ?? [];
+                const autocompleteList = autocompleteValue ? tagAutocompleteList : (recentTagsAutocompleteList ?? []);
                 const filteredTags = autocompleteList
                     .filter(
                         (tag) => getCleanedTagName(tag).toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(getCleanedTagName(tag).toLowerCase()),
@@ -283,7 +283,7 @@ function SearchAutocompleteList(
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY: {
                 const autocompleteList = autocompleteValue ? categoryAutocompleteList : recentCategoriesAutocompleteList;
                 const filteredCategories = autocompleteList
-                    .filter((category) => category.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(category.toLowerCase()))
+                    .filter((category) => category?.toLowerCase()?.includes(autocompleteValue?.toLowerCase()) && !alreadyAutocompletedKeys.includes(category?.toLowerCase()))
                     .sort()
                     .slice(0, 10);
 
@@ -293,7 +293,7 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY: {
-                const autocompleteList = autocompleteValue ? currencyAutocompleteList : recentCurrencyAutocompleteList ?? [];
+                const autocompleteList = autocompleteValue ? currencyAutocompleteList : (recentCurrencyAutocompleteList ?? []);
                 const filteredCurrencies = autocompleteList
                     .filter((currency) => currency.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(currency.toLowerCase()))
                     .sort()
@@ -317,29 +317,26 @@ function SearchAutocompleteList(
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
                 }));
             }
-            case CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
-            case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM: {
-                const filterKey = autocompleteKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY ? CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CREATED_BY : autocompleteKey;
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER: {
+                const participants = getSearchOptions(options, betas ?? [], true, true, autocompleteValue, 10, false, false).personalDetails.filter(
+                    (participant) => participant.text && !alreadyAutocompletedKeys.includes(participant.text.toLowerCase()),
+                );
 
-                const filteredParticipants = getParticipantsAutocompleteList()
-                    .filter((participant) => participant.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
-                    .slice(0, 10);
-
-                return filteredParticipants.map((participant) => ({
-                    filterKey,
-                    text: participant.name,
-                    autocompleteID: participant.accountID,
+                return participants.map((participant) => ({
+                    filterKey: autocompleteKey,
+                    text: participant.text ?? '',
+                    autocompleteID: String(participant.accountID),
                     mapKey: autocompleteKey,
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
-                const filteredChats = searchOptions.recentReports
-                    .filter((chat) => chat.text?.toLowerCase()?.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(chat.text.toLowerCase()))
-                    .slice(0, 10);
+                const filteredReports = getSearchOptions(options, betas ?? [], true, true, autocompleteValue, 10, false, true).recentReports;
 
-                return filteredChats.map((chat) => ({
+                return filteredReports.map((chat) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN,
                     text: chat.text ?? '',
                     autocompleteID: chat.reportID,
@@ -379,15 +376,13 @@ function SearchAutocompleteList(
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED: {
                 const filteredFeeds = feedAutoCompleteList
-                    .filter(
-                        (feed) => feed.cardFeedName.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(feed.cardFeedName.name.toLowerCase()),
-                    )
+                    .filter((feed) => feed.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(feed.name.toLowerCase()))
                     .sort()
                     .slice(0, 10);
                 return filteredFeeds.map((feed) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.FEED,
-                    text: feed.cardFeedName.name,
-                    autocompleteID: feed.cardFeedName.type === 'domain' ? feed.cardFeedKey : getCardFeedKey(workspaceCardFeeds, feed.cardFeedKey),
+                    text: feed.name,
+                    autocompleteID: feed.id,
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
                 }));
             }
@@ -397,14 +392,14 @@ function SearchAutocompleteList(
                     .filter(
                         (card) =>
                             (card.bank.toLowerCase().includes(autocompleteValue.toLowerCase()) || card.lastFourPAN?.includes(autocompleteValue)) &&
-                            !alreadyAutocompletedKeys.includes(getCardDescription(card.cardID).toLowerCase()),
+                            !alreadyAutocompletedKeys.includes(getCardDescription(card).toLowerCase()),
                     )
                     .sort()
                     .slice(0, 10);
 
                 return filteredCards.map((card) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CARD_ID,
-                    text: getCardDescription(card.cardID, allCards),
+                    text: getCardDescription(card),
                     autocompleteID: card.cardID.toString(),
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
                 }));
@@ -431,12 +426,27 @@ function SearchAutocompleteList(
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
                 }));
             }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION: {
+                return Object.values(CONST.SEARCH.ACTION_FILTERS).map((status) => ({
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ACTION,
+                    text: status,
+                }));
+            }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED: {
+                const filteredDatePresets = (getDatePresets(autocompleteKey, true) ?? [])
+                    .filter((datePreset) => datePreset.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(datePreset.toLowerCase()))
+                    .sort()
+                    .slice(0, 10);
+                return filteredDatePresets.map((datePreset) => ({filterKey: autocompleteKey, text: datePreset}));
+            }
             default: {
                 return [];
             }
         }
     }, [
-        autocompleteQueryValue,
+        autocompleteParsedQuery,
         tagAutocompleteList,
         recentTagsAutocompleteList,
         categoryAutocompleteList,
@@ -444,28 +454,26 @@ function SearchAutocompleteList(
         currencyAutocompleteList,
         recentCurrencyAutocompleteList,
         taxAutocompleteList,
-        getParticipantsAutocompleteList,
-        searchOptions.recentReports,
+        options,
+        betas,
         typeAutocompleteList,
         groupByAutocompleteList,
         statusAutocompleteList,
         expenseTypes,
         feedAutoCompleteList,
-        workspaceCardFeeds,
         cardAutocompleteList,
-        allCards,
         booleanTypes,
         workspaceList,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
-        return Object.values(recentSearches ?? {}).sort((a, b) => b.timestamp.localeCompare(a.timestamp));
-    }, [recentSearches]);
+        return Object.values(recentSearches ?? {}).sort((a, b) => localeCompare(b.timestamp, a.timestamp));
+    }, [recentSearches, localeCompare]);
 
     const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(({query, timestamp}) => {
         const searchQueryJSON = buildSearchQueryJSON(query);
         return {
-            text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, policies) : query,
+            text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies) : query,
             singleIcon: Expensicons.History,
             searchQuery: query,
             keyForList: timestamp,
@@ -473,34 +481,127 @@ function SearchAutocompleteList(
         };
     });
 
-    /**
-     * Builds a suffix tree and returns a function to search in it.
-     */
-    const filterOptions = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
-
     const recentReportsOptions = useMemo(() => {
-        if (autocompleteQueryValue.trim() === '') {
-            return searchOptions.recentReports.slice(0, 20);
-        }
+        const actionId = `filter_options_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        const startTime = Date.now();
 
         Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
-        const filteredOptions = filterOptions(autocompleteQueryValue);
-        const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filteredOptions, autocompleteQueryValue, {
-            sortByReportTypeInSearch: true,
-            preferChatRoomsOverThreads: true,
+        Performance.markStart(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+        Log.info('[CMD_K_DEBUG] Filter options started', false, {
+            actionId,
+            queryLength: autocompleteQueryValue.length,
+            queryTrimmed: autocompleteQueryValue.trim(),
+            recentReportsCount: searchOptions.recentReports.length,
+            timestamp: startTime,
         });
-        Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
-        const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];
-        if (filteredOptions.userToInvite) {
-            reportOptions.push(filteredOptions.userToInvite);
+        try {
+            if (autocompleteQueryValue.trim() === '') {
+                const endTime = Date.now();
+                Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+                Performance.markEnd(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+                Log.info('[CMD_K_DEBUG] Filter options completed (empty query path)', false, {
+                    actionId,
+                    duration: endTime - startTime,
+                    timestamp: endTime,
+                });
+
+                return searchOptions.recentReports;
+            }
+
+            const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, autocompleteQueryValue, {
+                sortByReportTypeInSearch: true,
+                preferChatRoomsOverThreads: true,
+            });
+
+            const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];
+            if (searchOptions.userToInvite) {
+                reportOptions.push(searchOptions.userToInvite);
+            }
+
+            const finalOptions = reportOptions.slice(0, 20);
+            const endTime = Date.now();
+            Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+            Performance.markEnd(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+            Log.info('[CMD_K_DEBUG] Filter options completed (search path)', false, {
+                actionId,
+                duration: endTime - startTime,
+                recentReportsFiltered: orderedOptions.recentReports.length,
+                personalDetailsFiltered: orderedOptions.personalDetails.length,
+                hasUserToInvite: !!searchOptions.userToInvite,
+                finalResultCount: finalOptions.length,
+                timestamp: endTime,
+            });
+
+            return finalOptions;
+        } catch (error) {
+            const endTime = Date.now();
+            Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+            Performance.markEnd(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+            Log.alert('[CMD_K_FREEZE] Filter options failed', {
+                actionId,
+                error: String(error),
+                duration: endTime - startTime,
+                queryLength: autocompleteQueryValue.length,
+                timestamp: endTime,
+            });
+            throw error;
         }
-        return reportOptions.slice(0, 20);
-    }, [autocompleteQueryValue, filterOptions, searchOptions]);
+    }, [autocompleteQueryValue, searchOptions]);
+
+    const debounceHandleSearch = useDebounce(
+        useCallback(() => {
+            const actionId = `debounce_search_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+            const startTime = Date.now();
+
+            Performance.markStart(CONST.TIMING.DEBOUNCE_HANDLE_SEARCH);
+            Log.info('[CMD_K_DEBUG] Debounced search started', false, {
+                actionId,
+                queryLength: autocompleteQueryWithoutFilters?.length ?? 0,
+                hasHandleSearch: !!handleSearch,
+                timestamp: startTime,
+            });
+
+            try {
+                if (!handleSearch || !autocompleteQueryWithoutFilters) {
+                    Log.info('[CMD_K_DEBUG] Debounced search skipped - missing dependencies', false, {
+                        actionId,
+                        hasHandleSearch: !!handleSearch,
+                        hasQuery: !!autocompleteQueryWithoutFilters,
+                        timestamp: Date.now(),
+                    });
+                    return;
+                }
+
+                handleSearch(autocompleteQueryWithoutFilters);
+
+                const endTime = Date.now();
+                Performance.markEnd(CONST.TIMING.DEBOUNCE_HANDLE_SEARCH);
+                Log.info('[CMD_K_DEBUG] Debounced search completed', false, {
+                    actionId,
+                    duration: endTime - startTime,
+                    queryLength: autocompleteQueryWithoutFilters.length,
+                    timestamp: endTime,
+                });
+            } catch (error) {
+                const endTime = Date.now();
+                Performance.markEnd(CONST.TIMING.DEBOUNCE_HANDLE_SEARCH);
+                Log.alert('[CMD_K_FREEZE] Debounced search failed', {
+                    actionId,
+                    error: String(error),
+                    duration: endTime - startTime,
+                    queryLength: autocompleteQueryWithoutFilters?.length ?? 0,
+                    timestamp: endTime,
+                });
+                throw error;
+            }
+        }, [handleSearch, autocompleteQueryWithoutFilters]),
+        CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
+    );
 
     useEffect(() => {
-        searchInServer(autocompleteQueryValue.trim());
-    }, [autocompleteQueryValue]);
+        debounceHandleSearch();
+    }, [autocompleteQueryWithoutFilters, debounceHandleSearch]);
 
     /* Sections generation */
     const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];
@@ -600,6 +701,7 @@ function SearchAutocompleteList(
                 shouldScrollToFocusedIndex={!isInitialRender}
                 shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
                 disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
+                addBottomSafeAreaPadding
             />
         )
     );

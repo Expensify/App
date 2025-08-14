@@ -124,7 +124,7 @@ function AutoGrowSupportInput(props: BaseTextInputProps) {
 
 const AutoGrowInput: TextInputStory = AutoGrowSupportInput.bind({});
 AutoGrowInput.args = {
-    label: 'Autogrow input',
+    label: 'Auto grow input',
     name: 'AutoGrow',
     placeholder: 'My placeholder text',
     autoGrow: true,
@@ -139,7 +139,7 @@ AutoGrowInput.args = {
 
 const AutoGrowHeightInput: TextInputStory = AutoGrowSupportInput.bind({});
 AutoGrowHeightInput.args = {
-    label: 'Autogrowheight input',
+    label: 'Auto grow height input',
     name: 'AutoGrowHeight',
     placeholder: 'My placeholder text',
     autoGrowHeight: true,

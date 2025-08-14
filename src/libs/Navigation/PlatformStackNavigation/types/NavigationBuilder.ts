@@ -3,8 +3,8 @@ import type {
     DefaultNavigatorOptions,
     Descriptor,
     EventMapBase,
-    NavigationBuilderOptions,
     NavigationHelpers,
+    NavigationListBase,
     NavigationProp,
     ParamListBase,
     RouteProp,
@@ -19,13 +19,12 @@ type PlatformNavigationBuilderOptions<
     EventMap extends PlatformSpecificEventMap & EventMapBase,
     ParamList extends ParamListBase = ParamListBase,
     RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions,
-> = DefaultNavigatorOptions<ParamList, PlatformStackNavigationState<ParamList>, NavigationOptions, EventMap> &
-    NavigationBuilderOptions<NavigationOptions> &
+> = DefaultNavigatorOptions<ParamList, string | undefined, PlatformStackNavigationState<ParamList>, NavigationOptions, EventMap, NavigationListBase<ParamList>, keyof ParamList> &
     RouterOptions & {
         persistentScreens?: Array<Extract<keyof ParamList, string>>;
         defaultCentralScreen?: Extract<keyof ParamList, string>;
         sidebarScreen?: Extract<keyof ParamList, string>;
-        parentRoute?: RouteProp<ParamListBase>;
+        parentRoute?: RouteProp<ParamList>;
     };
 
 // Represents the type of the navigation object returned by useNavigationBuilder
@@ -35,7 +34,7 @@ type PlatformNavigationBuilderNavigation<
     ActionHelpers extends StackActionHelpers<ParamList> = StackActionHelpers<ParamList>,
 > = NavigationHelpers<ParamList, EventMap> & ActionHelpers;
 
-// Represents the type of a single descripter returned by useNavigationBuilder
+// Represents the type of a single descriptor returned by useNavigationBuilder
 type PlatformNavigationBuilderDescriptor<
     NavigationOptions extends PlatformSpecificNavigationOptions,
     EventMap extends PlatformSpecificEventMap & EventMapBase,

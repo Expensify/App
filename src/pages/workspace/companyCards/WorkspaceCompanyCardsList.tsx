@@ -1,13 +1,13 @@
 import React, {useCallback, useMemo} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,11 +33,14 @@ type WorkspaceCompanyCardsListProps = {
 
     /** Whether to disable assign card button */
     isDisabledAssignCardButton?: boolean;
+
+    /** Whether to show GB disclaimer */
+    shouldShowGBDisclaimer?: boolean;
 };
 
-function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDisabledAssignCardButton}: WorkspaceCompanyCardsListProps) {
+function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDisabledAssignCardButton, shouldShowGBDisclaimer}: WorkspaceCompanyCardsListProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
     const policy = usePolicy(policyID);
@@ -48,8 +51,8 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
     }, [cardsList, policy?.employeeList]);
 
     const filterCard = useCallback((card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails), [personalDetails]);
-    const sortCards = useCallback((cards: Card[]) => sortCardsByCardholderName(cards, personalDetails), [personalDetails]);
-    const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards);
+    const sortCards = useCallback((cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare), [personalDetails, localeCompare]);
+    const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards, true);
 
     const renderItem = useCallback(
         ({item, index}: ListRenderItemInfo<Card>) => {
@@ -87,40 +90,11 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
         [cardsList, customCardNames, personalDetails, policyID, styles],
     );
 
-    const renderListHeader = useCallback(
-        () => (
-            <View style={[styles.flexRow, styles.appBG, styles.justifyContentBetween, styles.mh5, styles.gap5, styles.p4]}>
-                <Text
-                    numberOfLines={1}
-                    style={[styles.textMicroSupporting, styles.lh16]}
-                >
-                    {translate('common.name')}
-                </Text>
-                <Text
-                    numberOfLines={1}
-                    style={[styles.textMicroSupporting, styles.lh16]}
-                >
-                    {translate('workspace.expensifyCard.lastFour')}
-                </Text>
-            </View>
-        ),
-        [styles, translate],
-    );
-
-    if (allCards.length === 0) {
-        return (
-            <WorkspaceCompanyCardsFeedAddedEmptyPage
-                handleAssignCard={handleAssignCard}
-                isDisabledAssignCardButton={isDisabledAssignCardButton}
-            />
-        );
-    }
-
     const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
 
-    return (
+    const renderListHeader = (
         <>
-            {allCards.length > 0 && (
+            {allCards.length > CONST.SEARCH_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.companyCards.findCard')}
                     inputValue={inputValue}
@@ -129,14 +103,43 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
                     style={[styles.mt5]}
                 />
             )}
-            <FlatList
-                contentContainerStyle={styles.flexGrow1}
-                data={filteredSortedCards}
-                renderItem={renderItem}
-                ListHeaderComponent={!isSearchEmpty ? renderListHeader : null}
-                stickyHeaderIndices={[0]}
-            />
+            {!isSearchEmpty && (
+                <View style={[styles.flexRow, styles.appBG, styles.justifyContentBetween, styles.mh5, styles.gap5, styles.p4]}>
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.textMicroSupporting, styles.lh16]}
+                    >
+                        {translate('common.name')}
+                    </Text>
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.textMicroSupporting, styles.lh16]}
+                    >
+                        {translate('workspace.expensifyCard.lastFour')}
+                    </Text>
+                </View>
+            )}
         </>
+    );
+
+    if (allCards.length === 0) {
+        return (
+            <WorkspaceCompanyCardsFeedAddedEmptyPage
+                shouldShowGBDisclaimer={shouldShowGBDisclaimer}
+                handleAssignCard={handleAssignCard}
+                isDisabledAssignCardButton={isDisabledAssignCardButton}
+            />
+        );
+    }
+
+    return (
+        <FlatList
+            contentContainerStyle={styles.flexGrow1}
+            data={filteredSortedCards}
+            renderItem={renderItem}
+            ListHeaderComponent={renderListHeader}
+            keyboardShouldPersistTaps="handled"
+        />
     );
 }
 

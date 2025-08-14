@@ -177,7 +177,7 @@ function ConfirmContent({
                         <View style={[shouldCenterIcon ? styles.justifyContentCenter : null, styles.flexRow, styles.mb3]}>
                             <Icon
                                 src={iconSource}
-                                fill={iconFill === false ? undefined : iconFill ?? theme.icon}
+                                fill={iconFill === false ? undefined : (iconFill ?? theme.icon)}
                                 width={iconWidth}
                                 height={iconHeight}
                                 additionalStyles={iconAdditionalStyles}

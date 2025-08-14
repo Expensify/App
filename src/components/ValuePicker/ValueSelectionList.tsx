@@ -18,6 +18,7 @@ function ValueSelectionList({items = [], selectedItem, onItemSelected, shouldSho
             shouldShowTooltips={shouldShowTooltips}
             shouldUpdateFocusedIndex
             ListItem={RadioListItem}
+            addBottomSafeAreaPadding
         />
     );
 }

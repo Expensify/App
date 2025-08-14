@@ -1,30 +1,34 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
+import DragAndDropProvider from '@components/DragAndDrop/Provider';
+import DropZoneUI from '@components/DropZone/DropZoneUI';
 import * as Expensicons from '@components/Icon/Expensicons';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TopBar from '@components/Navigation/TopBar';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
+import SearchPageFooter from '@components/Search/SearchPageFooter';
+import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
-import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
-import type {PaymentData} from '@components/Search/types';
+import type {PaymentData, SearchParams} from '@components/Search/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {confirmReadyToOpenApp} from '@libs/actions/App';
+import {searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
     deleteMoneyRequestOnSearch,
@@ -32,22 +36,29 @@ import {
     getLastPolicyPaymentMethod,
     payMoneyRequestOnSearch,
     queueExportSearchItemsToCSV,
+    queueExportSearchWithTemplate,
+    search,
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
+import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {hasVBBA} from '@libs/PolicyUtils';
+import {hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {generateReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import variables from '@styles/variables';
+import {initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
+import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {SearchResults} from '@src/types/onyx';
+import type {SearchResults, Transaction} from '@src/types/onyx';
 import SearchPageNarrow from './SearchPageNarrow';
-import SearchTypeMenu from './SearchTypeMenu';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
@@ -59,23 +70,30 @@ function SearchPage({route}: SearchPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const {activeWorkspaceID} = useActiveWorkspace();
-    const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, isExportMode, setExportMode} = useSearchContext();
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
-    const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
-
+    const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems} = useSearchContext();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const newReportID = generateReportID();
+    const [newReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReportID}`, {canBeMissing: true});
+    const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReport?.parentReportID}`, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
-
-    const {q, name} = route.params;
-
-    const queryJSON = useMemo(() => buildSearchQueryJSON(q), [q]);
+    const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
+    const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
 
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
-    const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
+    const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
+
+    useEffect(() => {
+        confirmReadyToOpenApp();
+    }, []);
 
     useEffect(() => {
         if (!currentSearchResults?.search?.type) {
@@ -84,57 +102,142 @@ function SearchPage({route}: SearchPageProps) {
 
         setLastSearchType(currentSearchResults.search.type);
         if (currentSearchResults.data) {
-            setLastNonEmptySearchResults(currentSearchResults);
+            lastNonEmptySearchResults.current = currentSearchResults;
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
 
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
+    const beginExportWithTemplate = useCallback(
+        (templateName: string, templateType: string, policyID: string | undefined) => {
+            // If the user has selected a large number of items, we'll use the queryJSON to search for the reportIDs and transactionIDs necessary for the export
+            if (areAllMatchingItemsSelected) {
+                queueExportSearchWithTemplate({templateName, templateType, jsonQuery: JSON.stringify(queryJSON), reportIDList: [], transactionIDList: [], policyID});
+            } else {
+                // Otherwise, we will use the selected transactionIDs and reportIDs directly
+                const selectedTransactionReportIDs = [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.reportID))];
+                queueExportSearchWithTemplate({
+                    templateName,
+                    templateType,
+                    jsonQuery: '{}',
+                    reportIDList: selectedTransactionReportIDs,
+                    transactionIDList: selectedTransactionsKeys,
+                    policyID,
+                });
+            }
+
+            setIsExportWithTemplateModalVisible(true);
+        },
+        [queryJSON, selectedTransactions, selectedTransactionsKeys, areAllMatchingItemsSelected],
+    );
+
     const headerButtonsOptions = useMemo(() => {
-        if (selectedTransactionsKeys.length === 0 || !status || !hash) {
-            return [];
+        if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
+            return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
         }
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
 
-        const downloadButtonOption: DropdownOption<SearchHeaderOptionValue> = {
-            icon: Expensicons.Download,
-            text: translate('common.download'),
-            value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
-            shouldCloseModalOnSelect: true,
-            onSelected: () => {
-                if (isOffline) {
-                    setIsOfflineModalVisible(true);
-                    return;
-                }
+        // Gets the list of options for the export sub-menu
+        const getExportOptions = () => {
+            // We provide the basic and expense level export options by default
+            const exportOptions: PopoverMenuItem[] = [
+                {
+                    text: translate('export.basicExport'),
+                    icon: Expensicons.Table,
+                    onSelected: () => {
+                        if (isOffline) {
+                            setIsOfflineModalVisible(true);
+                            return;
+                        }
 
-                if (isExportMode) {
-                    setIsDownloadExportModalVisible(true);
-                    return;
-                }
+                        if (areAllMatchingItemsSelected) {
+                            setIsDownloadExportModalVisible(true);
+                            return;
+                        }
 
-                const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
-                exportSearchItemsToCSV(
-                    {
-                        query: status,
-                        jsonQuery: JSON.stringify(queryJSON),
-                        reportIDList,
-                        transactionIDList: selectedTransactionsKeys,
-                        policyIDs: activeWorkspaceID ? [activeWorkspaceID] : [''],
+                        exportSearchItemsToCSV(
+                            {
+                                query: status,
+                                jsonQuery: JSON.stringify(queryJSON),
+                                reportIDList: selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [],
+                                transactionIDList: selectedTransactionsKeys,
+                            },
+                            () => {
+                                setIsDownloadErrorModalVisible(true);
+                            },
+                        );
+                        clearSelectedTransactions(undefined, true);
                     },
-                    () => {
-                        setIsDownloadErrorModalVisible(true);
+                    shouldCloseModalOnSelect: true,
+                },
+                {
+                    text: translate('export.expenseLevelExport'),
+                    icon: Expensicons.Table,
+                    onSelected: () => {
+                        // The report level export template is not policy specific, so we don't need to pass a policyID
+                        beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
                     },
-                );
-            },
+                    shouldCloseModalOnSelect: true,
+                    shouldCallAfterModalHide: true,
+                },
+            ];
+
+            // Determine if only full reports are selected by comparing the reportIDs of the selected transactions and the reportIDs of the selected reports
+            const selectedTransactionReportIDs = [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.reportID))];
+            const selectedReportIDs = Object.values(selectedReports).map((report) => report.reportID);
+            const areFullReportsSelected = selectedTransactionReportIDs.length === selectedReportIDs.length && selectedTransactionReportIDs.every((id) => selectedReportIDs.includes(id));
+            const groupByReports = queryJSON?.groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
+
+            // Add the report level export if fully reports are selected and we're on the report page
+            if (groupByReports && areFullReportsSelected) {
+                exportOptions.push({
+                    text: translate('export.reportLevelExport'),
+                    icon: Expensicons.Table,
+                    onSelected: () => {
+                        // The report level export template is not policy specific, so we don't need to pass a policyID
+                        beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
+                    },
+                    shouldCloseModalOnSelect: true,
+                    shouldCallAfterModalHide: true,
+                });
+            }
+
+            // If the user has any custom integration export templates, add them as export options
+            if (integrationsExportTemplates && integrationsExportTemplates.length > 0) {
+                for (const template of integrationsExportTemplates) {
+                    exportOptions.push({
+                        text: template.name,
+                        icon: Expensicons.Table,
+                        onSelected: () => {
+                            // Custom IS templates are not policy specific, so we don't need to pass a policyID
+                            beginExportWithTemplate(template.name, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
+                        },
+                    });
+                }
+            }
+
+            return exportOptions;
         };
 
-        if (isExportMode) {
-            return [downloadButtonOption];
+        const exportButtonOption: DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'rightIcon'> = {
+            icon: Expensicons.Export,
+            rightIcon: Expensicons.ArrowRight,
+            text: translate('common.export'),
+            backButtonText: translate('common.export'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
+            shouldCloseModalOnSelect: true,
+            subMenuItems: getExportOptions(),
+        };
+
+        // If all matching items are selected, we don't give the user additional options, we only allow them to export the selected items
+        if (areAllMatchingItemsSelected) {
+            return [exportButtonOption];
         }
 
+        // Otherwise, we provide the full set of options depending on the state of the selected transactions and reports
         const shouldShowApproveOption =
             !isOffline &&
             !isAnyTransactionOnHold &&
@@ -157,8 +260,11 @@ function SearchPage({route}: SearchPageProps) {
                     const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
                     const reportIDList = !selectedReports.length
                         ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
-                        : selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
+                        : (selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? []);
                     approveMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
+                    InteractionManager.runAfterInteractions(() => {
+                        clearSelectedTransactions();
+                    });
                 },
             });
         }
@@ -196,14 +302,24 @@ function SearchPage({route}: SearchPageProps) {
                         const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(itemPolicyID, lastPaymentMethods);
 
                         if (!lastPolicyPaymentMethod) {
-                            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: activeRoute}));
+                            Navigation.navigate(
+                                ROUTES.SEARCH_REPORT.getRoute({
+                                    reportID: item.reportID,
+                                    backTo: activeRoute,
+                                }),
+                            );
                             return;
                         }
 
                         const hasPolicyVBBA = hasVBBA(itemPolicyID);
 
                         if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !hasPolicyVBBA) {
-                            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: activeRoute}));
+                            Navigation.navigate(
+                                ROUTES.SEARCH_REPORT.getRoute({
+                                    reportID: item.reportID,
+                                    backTo: activeRoute,
+                                }),
+                            );
                             return;
                         }
                     }
@@ -223,11 +339,14 @@ function SearchPage({route}: SearchPageProps) {
                     ) as PaymentData[];
 
                     payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
+                    InteractionManager.runAfterInteractions(() => {
+                        clearSelectedTransactions();
+                    });
                 },
             });
         }
 
-        options.push(downloadButtonOption);
+        options.push(exportButtonOption);
 
         const shouldShowHoldOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold);
 
@@ -263,7 +382,22 @@ function SearchPage({route}: SearchPageProps) {
                     }
 
                     unholdMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+                    InteractionManager.runAfterInteractions(() => {
+                        clearSelectedTransactions();
+                    });
                 },
+            });
+        }
+
+        const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
+
+        if (canAllTransactionsBeMoved) {
+            options.push({
+                text: translate('iou.moveExpenses', {count: selectedTransactionsKeys.length}),
+                icon: Expensicons.DocumentMerge,
+                value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP),
             });
         }
 
@@ -275,7 +409,6 @@ function SearchPage({route}: SearchPageProps) {
                 text: translate('search.bulkActions.delete'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
                 shouldCloseModalOnSelect: true,
-                shouldPreserveSelectionAfterHideModal: true,
                 onSelected: () => {
                     if (isOffline) {
                         setIsOfflineModalVisible(true);
@@ -311,16 +444,18 @@ function SearchPage({route}: SearchPageProps) {
         hash,
         selectedTransactions,
         translate,
-        isExportMode,
+        areAllMatchingItemsSelected,
         isOffline,
         selectedReports,
         queryJSON,
-        activeWorkspaceID,
+        clearSelectedTransactions,
         lastPaymentMethods,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
         styles.textWrap,
+        beginExportWithTemplate,
+        integrationsExportTemplates,
     ]);
 
     const handleDeleteExpenses = () => {
@@ -338,8 +473,72 @@ function SearchPage({route}: SearchPageProps) {
         });
     };
 
+    const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
+        const initialTransaction = initMoneyRequest({
+            isFromGlobalCreate: true,
+            reportID: newReportID,
+            newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            report: newReport,
+            parentReport: newParentReport,
+        });
+
+        const newReceiptFiles: ReceiptFile[] = [];
+
+        files.forEach((file, index) => {
+            const source = URL.createObjectURL(file as Blob);
+            const transaction =
+                index === 0
+                    ? (initialTransaction as Partial<Transaction>)
+                    : buildOptimisticTransactionAndCreateDraft({
+                          initialTransaction: initialTransaction as Partial<Transaction>,
+                          currentUserPersonalDetails,
+                          reportID: newReportID,
+                      });
+            const transactionID = transaction.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+            newReceiptFiles.push({
+                file,
+                source,
+                transactionID,
+            });
+            setMoneyRequestReceipt(transactionID, source, file.name ?? '', true);
+        });
+
+        if (isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
+            const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
+            const setParticipantsPromises = newReceiptFiles.map((receiptFile) => setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat));
+            Promise.all(setParticipantsPromises).then(() =>
+                Navigation.navigate(
+                    ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                        CONST.IOU.ACTION.CREATE,
+                        CONST.IOU.TYPE.SUBMIT,
+                        initialTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                        activePolicyExpenseChat?.reportID,
+                    ),
+                ),
+            );
+        } else {
+            navigateToParticipantPage(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID);
+        }
+    };
+
+    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(saveFileAndInitMoneyRequest);
+
+    const initScanRequest = (e: DragEvent) => {
+        const files = Array.from(e?.dataTransfer?.files ?? []);
+
+        if (files.length === 0) {
+            return;
+        }
+        files.forEach((file) => {
+            // eslint-disable-next-line no-param-reassign
+            file.uri = URL.createObjectURL(file);
+        });
+
+        validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
+    };
+
     const createExportAll = useCallback(() => {
-        if (selectedTransactionsKeys.length === 0 || !status || !hash) {
+        if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
             return [];
         }
 
@@ -350,21 +549,26 @@ function SearchPage({route}: SearchPageProps) {
             jsonQuery: JSON.stringify(queryJSON),
             reportIDList,
             transactionIDList: selectedTransactionsKeys,
-            policyIDs: activeWorkspaceID ? [activeWorkspaceID] : [''],
         });
-        setExportMode(false);
+        selectAllMatchingItems(false);
         clearSelectedTransactions();
-    }, [selectedTransactionsKeys, status, hash, selectedReports, queryJSON, activeWorkspaceID, setExportMode, clearSelectedTransactions]);
+    }, [selectedTransactionsKeys, status, hash, selectedReports, queryJSON, selectAllMatchingItems, clearSelectedTransactions]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {resetVideoPlayerData} = usePlaybackContext();
-    const shouldShowOfflineIndicator = currentSearchResults?.data ?? lastNonEmptySearchResults;
 
-    const isSearchNameModified = name === q;
-    const searchName = isSearchNameModified ? undefined : name;
+    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults.current;
+    const metadata = searchResults?.search;
+    const shouldShowOfflineIndicator = !!searchResults?.data;
+    const shouldShowFooter = !!metadata?.count;
 
-    const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
-    const shouldShowLoadingState = !isOffline && !isDataLoaded;
+    const offlineIndicatorStyle = useMemo(() => {
+        if (shouldShowFooter) {
+            return [styles.mtAuto, styles.pAbsolute, styles.h10, styles.b0];
+        }
+
+        return [styles.mtAuto];
+    }, [shouldShowFooter, styles]);
 
     // Handles video player cleanup:
     // 1. On mount: Resets player if navigating from report screen
@@ -385,17 +589,38 @@ function SearchPage({route}: SearchPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const handleSearchAction = useCallback((value: SearchParams | string) => {
+        if (typeof value === 'string') {
+            searchInServer(value);
+        } else {
+            search(value);
+        }
+    }, []);
+
     if (shouldUseNarrowLayout) {
         return (
             <>
-                <SearchPageNarrow
-                    queryJSON={queryJSON}
-                    searchName={searchName}
-                    headerButtonsOptions={headerButtonsOptions}
-                    lastNonEmptySearchResults={lastNonEmptySearchResults}
-                    currentSearchResults={currentSearchResults}
-                />
-                {!!selectionMode && selectionMode?.isEnabled && (
+                <DragAndDropProvider>
+                    {PDFValidationComponent}
+                    <SearchPageNarrow
+                        queryJSON={queryJSON}
+                        headerButtonsOptions={headerButtonsOptions}
+                        searchResults={searchResults}
+                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                    />
+                    <DragAndDropConsumer onDrop={initScanRequest}>
+                        <DropZoneUI
+                            icon={Expensicons.SmartScan}
+                            dropTitle={translate('dropzone.scanReceipts')}
+                            dropStyles={styles.receiptDropOverlay(true)}
+                            dropTextStyles={styles.receiptDropText}
+                            dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
+                            dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)}
+                        />
+                    </DragAndDropConsumer>
+                    {ErrorModal}
+                </DragAndDropProvider>
+                {!!isMobileSelectionModeEnabled && (
                     <View>
                         <ConfirmModal
                             isVisible={isDeleteExpensesConfirmModalVisible}
@@ -427,6 +652,17 @@ function SearchPage({route}: SearchPageProps) {
                             isVisible={isDownloadErrorModalVisible}
                             onClose={() => setIsDownloadErrorModalVisible(false)}
                         />
+                        <ConfirmModal
+                            isVisible={isExportWithTemplateModalVisible}
+                            onConfirm={() => {
+                                setIsExportWithTemplateModalVisible(false);
+                                clearSelectedTransactions(undefined, true);
+                            }}
+                            title={translate('export.exportInProgress')}
+                            prompt={translate('export.conciergeWillSend')}
+                            confirmText={translate('common.buttonConfirm')}
+                            shouldShowCancelButton={false}
+                        />
                     </View>
                 )}
             </>
@@ -447,48 +683,44 @@ function SearchPage({route}: SearchPageProps) {
             >
                 {!!queryJSON && (
                     <View style={styles.searchSplitContainer}>
-                        <View style={styles.searchSidebar}>
-                            {queryJSON ? (
-                                <View style={styles.flex1}>
-                                    <TopBar
-                                        shouldShowLoadingBar={shouldShowLoadingState}
-                                        breadcrumbLabel={translate('common.reports')}
-                                        shouldDisplaySearch={false}
-                                        shouldDisplayHelpButton={false}
-                                    />
-                                    <SearchTypeMenu queryJSON={queryJSON} />
-                                </View>
-                            ) : (
-                                <HeaderWithBackButton
-                                    title={translate('common.selectMultiple')}
-                                    onBackButtonPress={() => {
-                                        clearSelectedTransactions();
-                                        turnOffMobileSelectionMode();
-                                    }}
-                                />
-                            )}
-                            <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
-                        </View>
                         <ScreenWrapper
                             testID={Search.displayName}
                             shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}
-                            offlineIndicatorStyle={styles.mtAuto}
+                            offlineIndicatorStyle={offlineIndicatorStyle}
                         >
-                            <SearchPageHeader
-                                queryJSON={queryJSON}
-                                headerButtonsOptions={headerButtonsOptions}
-                            />
-                            <SearchStatusBar
-                                queryJSON={queryJSON}
-                                headerButtonsOptions={headerButtonsOptions}
-                            />
-                            <Search
-                                key={queryJSON.hash}
-                                queryJSON={queryJSON}
-                                currentSearchResults={currentSearchResults}
-                                lastNonEmptySearchResults={lastNonEmptySearchResults}
-                            />
+                            <DragAndDropProvider>
+                                {PDFValidationComponent}
+                                <SearchPageHeader
+                                    queryJSON={queryJSON}
+                                    headerButtonsOptions={headerButtonsOptions}
+                                    handleSearch={handleSearchAction}
+                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                />
+                                <SearchFiltersBar
+                                    queryJSON={queryJSON}
+                                    headerButtonsOptions={headerButtonsOptions}
+                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                />
+                                <Search
+                                    key={queryJSON.hash}
+                                    queryJSON={queryJSON}
+                                    searchResults={searchResults}
+                                    handleSearch={handleSearchAction}
+                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                />
+                                {shouldShowFooter && <SearchPageFooter metadata={metadata} />}
+                                <DragAndDropConsumer onDrop={initScanRequest}>
+                                    <DropZoneUI
+                                        icon={Expensicons.SmartScan}
+                                        dropTitle={translate('dropzone.scanReceipts')}
+                                        dropStyles={styles.receiptDropOverlay(true)}
+                                        dropTextStyles={styles.receiptDropText}
+                                        dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)}
+                                    />
+                                </DragAndDropConsumer>
+                            </DragAndDropProvider>
                         </ScreenWrapper>
+                        {ErrorModal}
                     </View>
                 )}
                 <ConfirmModal
@@ -513,6 +745,17 @@ function SearchPage({route}: SearchPageProps) {
                     prompt={translate('search.exportSearchResults.description')}
                     confirmText={translate('search.exportSearchResults.title')}
                     cancelText={translate('common.cancel')}
+                />
+                <ConfirmModal
+                    isVisible={isExportWithTemplateModalVisible}
+                    onConfirm={() => {
+                        setIsExportWithTemplateModalVisible(false);
+                        clearSelectedTransactions(undefined, true);
+                    }}
+                    title={translate('export.exportInProgress')}
+                    prompt={translate('export.conciergeWillSend')}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
                 />
                 <DecisionModal
                     title={translate('common.youAppearToBeOffline')}

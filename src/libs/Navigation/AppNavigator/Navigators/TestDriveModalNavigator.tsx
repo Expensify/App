@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
-import TestDriveModal from '@components/TestDriveModal';
+import TestDriveModal from '@components/TestDrive/Modal';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {TestDriveModalNavigatorParamList} from '@libs/Navigation/types';

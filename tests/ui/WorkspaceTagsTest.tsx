@@ -5,7 +5,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
@@ -21,7 +21,6 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 TestHelper.setupGlobalFetchMock();
-jest.mock('@components/ConfirmedRoute.tsx');
 
 jest.unmock('react-native-reanimated');
 
@@ -29,7 +28,7 @@ const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.TAGS, initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.TAGS]) => {
     return render(
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
@@ -45,17 +44,38 @@ const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.TAGS, initialPara
     );
 };
 
-describe('WorkspaceTags', () => {
-    const FIRST_TAG = 'Tag One';
-    const SECOND_TAG = 'Tag Two';
+const FIRST_TAG = 'Tag One';
+const SECOND_TAG = 'Tag Two';
 
+const tags = {
+    TagListOne: {
+        name: 'TagListOne',
+        required: true,
+        orderWeight: 1,
+        tags: {
+            [FIRST_TAG]: {
+                name: FIRST_TAG,
+                enabled: true,
+            },
+            [SECOND_TAG]: {
+                name: SECOND_TAG,
+                enabled: true,
+            },
+        },
+    },
+};
+
+describe('WorkspaceTags', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
         });
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
+        });
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
             isSmallScreenWidth: true,
             shouldUseNarrowLayout: true,
@@ -77,24 +97,6 @@ describe('WorkspaceTags', () => {
             role: CONST.POLICY.ROLE.ADMIN,
             areTagsEnabled: true,
             requiresTag: true,
-        };
-
-        const tags = {
-            TagListOne: {
-                name: 'TagListOne',
-                required: true,
-                orderWeight: 1,
-                tags: {
-                    [FIRST_TAG]: {
-                        name: FIRST_TAG,
-                        enabled: true,
-                    },
-                    [SECOND_TAG]: {
-                        name: SECOND_TAG,
-                        enabled: true,
-                    },
-                },
-            },
         };
 
         await act(async () => {
@@ -122,6 +124,59 @@ describe('WorkspaceTags', () => {
         // Wait for the "Select" option to appear
         await waitFor(() => {
             expect(screen.getByText(translateLocal('common.select'))).toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should show a blocking modal when trying to disable the only enabled tag when policy has requiresTag set to true', async () => {
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
+            isSmallScreenWidth: false,
+            shouldUseNarrowLayout: false,
+        } as ResponsiveLayoutResult);
+
+        await TestHelper.signInWithTestUser();
+
+        const policy = {
+            ...LHNTestUtils.getFakePolicy(),
+            role: CONST.POLICY.ROLE.ADMIN,
+            areTagsEnabled: true,
+            requiresTag: true,
+        };
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`, tags);
+        });
+
+        const {unmount} = renderPage(SCREENS.WORKSPACE.TAGS, {policyID: policy.id});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText(FIRST_TAG)).toBeOnTheScreen();
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText(SECOND_TAG)).toBeOnTheScreen();
+        });
+
+        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${FIRST_TAG}`));
+        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${SECOND_TAG}`));
+
+        const dropdownMenuButtonTestID = `${WorkspaceTagsPage.displayName}-header-dropdown-menu-button`;
+
+        fireEvent.press(screen.getByTestId(dropdownMenuButtonTestID));
+        await waitFor(() => {
+            expect(screen.getByText(translateLocal('workspace.tags.disableTags'))).toBeOnTheScreen();
+        });
+
+        const disableMenuItem = screen.getByTestId('PopoverMenuItem-Disable tags');
+        const mockEvent = {nativeEvent: {}, type: 'press', target: disableMenuItem, currentTarget: disableMenuItem};
+        fireEvent.press(disableMenuItem, mockEvent);
+
+        await waitFor(() => {
+            expect(screen.getByText(translateLocal('workspace.tags.cannotDeleteOrDisableAllTags.title'))).toBeOnTheScreen();
         });
 
         unmount();

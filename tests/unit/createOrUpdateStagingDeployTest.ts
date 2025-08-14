@@ -1,8 +1,4 @@
-/**
- * @jest-environment node
- */
-
-/* eslint-disable @typescript-eslint/naming-convention */
+import * as core from '@actions/core';
 import * as fns from 'date-fns';
 import {vol} from 'memfs';
 import path from 'path';
@@ -12,6 +8,26 @@ import type {InternalOctokit} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 import GitUtils from '@github/libs/GitUtils';
 
+/**
+ * @jest-environment node
+ */
+
+/* eslint-disable @typescript-eslint/naming-convention */
+
+// Mock fs
+jest.mock('fs');
+
+// Mock @actions/core for input handling and logging in tests
+jest.mock('@actions/core', () => ({
+    getInput: jest.fn(),
+    info: jest.fn(),
+    startGroup: jest.fn(),
+    endGroup: jest.fn(),
+    setFailed: jest.fn(),
+}));
+
+const mockGetInput = core.getInput as jest.MockedFunction<typeof core.getInput>;
+
 type Arguments = {
     issue_number?: number;
     labels?: string;
@@ -19,22 +35,12 @@ type Arguments = {
 
 const PATH_TO_PACKAGE_JSON = path.resolve(__dirname, '../../package.json');
 
-jest.mock('fs');
-const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();
 const mockGetPullRequestsDeployedBetween = jest.fn();
-const mockIssuesUpdate = jest.fn();
-let mockFetchAllPullRequests: jest.SpyInstance;
-let mockGetPullRequestMergerLogin: jest.SpyInstance;
 
 beforeAll(() => {
-    // Mock core module
-    jest.mock('@actions/core', () => ({
-        getInput: mockGetInput,
-    }));
-
     // Mock octokit module
-    const moctokit = {
+    const mockOctokit = {
         rest: {
             issues: {
                 create: jest.fn().mockImplementation((arg: Arguments) =>
@@ -45,7 +51,7 @@ beforeAll(() => {
                         },
                     }),
                 ),
-                update: mockIssuesUpdate.mockImplementation((arg: Arguments) =>
+                update: jest.fn().mockImplementation((arg: Arguments) =>
                     Promise.resolve({
                         data: {
                             ...arg,
@@ -61,16 +67,15 @@ beforeAll(() => {
                 list: jest.fn().mockResolvedValue([]),
             },
         },
-        paginate: jest.fn().mockImplementation((objectMethod: () => Promise<{data: unknown}>) => objectMethod().then(({data}) => data)),
+        paginate: jest
+            .fn()
+            .mockImplementation((objectMethod: (args: Record<string, unknown>) => Promise<{data: unknown}>, args: Record<string, unknown>) => objectMethod(args).then(({data}) => data)),
     } as unknown as InternalOctokit;
-    GithubUtils.internalOctokit = moctokit;
+    GithubUtils.internalOctokit = mockOctokit;
 
     // Mock GitUtils
     GitUtils.getPullRequestsDeployedBetween = mockGetPullRequestsDeployedBetween;
-
-    // Mock internal GithubUtils methods used by generateStagingDeployCashBodyAndAssignees
-    mockFetchAllPullRequests = jest.spyOn(GithubUtils, 'fetchAllPullRequests');
-    mockGetPullRequestMergerLogin = jest.spyOn(GithubUtils, 'getPullRequestMergerLogin');
+    mockGetInput.mockImplementation((arg) => (arg === 'GITHUB_TOKEN' ? 'fake_token' : ''));
 
     vol.reset();
     vol.fromJSON({
@@ -82,9 +87,6 @@ afterEach(() => {
     mockGetInput.mockClear();
     mockListIssues.mockClear();
     mockGetPullRequestsDeployedBetween.mockClear();
-    mockIssuesUpdate.mockClear();
-    mockFetchAllPullRequests.mockClear();
-    mockGetPullRequestMergerLogin.mockClear();
 });
 
 afterAll(() => {
@@ -94,6 +96,7 @@ afterAll(() => {
 const LABELS = {
     STAGING_DEPLOY_CASH: {
         id: 2783847782,
+        // cspell:disable-next-line
         node_id: 'MDU6TGFiZWwyNzgzODQ3Nzgy',
         url: `https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/labels/StagingDeployCash`,
         name: CONST.LABELS.STAGING_DEPLOY,
@@ -103,6 +106,7 @@ const LABELS = {
     },
     DEPLOY_BLOCKER_CASH: {
         id: 2810597462,
+        // cspell:disable-next-line
         node_id: 'MDU6TGFiZWwyODEwNTk3NDYy',
         url: `https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/labels/DeployBlockerCash`,
         name: CONST.LABELS.DEPLOY_BLOCKER,
@@ -128,13 +132,12 @@ const basePRList = [
 const baseIssueList = [`https://github.com/${process.env.GITHUB_REPOSITORY}/issues/11`, `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/12`];
 // eslint-disable-next-line max-len
 const baseExpectedOutput = (version = '1.0.2-1') =>
-    `**Release Version:** \`${version}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
+    // cspell:disable
+    `**Release Version:** \`${version}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n> 💡 **Deployer FYI:** This checklist was generated using a new process. PR list from original method and detail logging can be found in the most recent [deploy workflow](https://github.com/Expensify/App/actions/workflows/deploy.yml) labeled \`staging\`, in the \`createChecklist\` action. Please tag @Julesssss with any issues.\r\n\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
+// cspell:enable
 const openCheckbox = '- [ ] ';
 const closedCheckbox = '- [x] ';
 const deployerVerificationsHeader = '**Deployer verifications:**';
-// eslint-disable-next-line max-len
-const timingDashboardVerification =
-    'I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.';
 // eslint-disable-next-line max-len
 const firebaseVerificationCurrentRelease =
     'I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/ios:com.expensify.expensifylite/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).';
@@ -148,7 +151,7 @@ const deployBlockerHeader = '**Deploy Blockers:**';
 const lineBreak = '\r\n';
 const lineBreakDouble = '\r\n\r\n';
 
-describe('createOrUpdateStagingDeploy', () => {
+describe('createOrUpdateStagingDeployCash', () => {
     const closedStagingDeployCash = {
         url: `https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/issues/28`,
         title: 'Test StagingDeployCash',
@@ -175,12 +178,6 @@ describe('createOrUpdateStagingDeploy', () => {
         vol.fromJSON({
             [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.2-1'}),
         });
-        mockGetInput.mockImplementation((arg) => {
-            if (arg !== 'GITHUB_TOKEN') {
-                return;
-            }
-            return 'fake_token';
-        });
 
         mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef) => {
             if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
@@ -191,10 +188,10 @@ describe('createOrUpdateStagingDeploy', () => {
 
         mockListIssues.mockImplementation((args: Arguments) => {
             if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
-                return {data: [closedStagingDeployCash]};
+                return Promise.resolve({data: [closedStagingDeployCash]});
             }
 
-            return {data: []};
+            return Promise.resolve({data: []});
         });
 
         const result = await run();
@@ -211,7 +208,6 @@ describe('createOrUpdateStagingDeploy', () => {
                 `${lineBreak}${openCheckbox}${basePRList.at(6)}` +
                 `${lineBreak}${openCheckbox}${basePRList.at(7)}${lineBreak}` +
                 `${lineBreakDouble}${deployerVerificationsHeader}` +
-                `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                 `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
                 `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
                 `${lineBreak}${openCheckbox}${ghVerification}` +
@@ -236,7 +232,6 @@ describe('createOrUpdateStagingDeploy', () => {
                 `${lineBreak}${openCheckbox}${basePRList.at(8)}` +
                 `${lineBreak}${closedCheckbox}${basePRList.at(9)}${lineBreak}` +
                 `${lineBreakDouble}${deployerVerificationsHeader}` +
-                `${lineBreak}${closedCheckbox}${timingDashboardVerification}` +
                 `${lineBreak}${closedCheckbox}${firebaseVerificationCurrentRelease}` +
                 `${lineBreak}${closedCheckbox}${firebaseVerificationPreviousRelease}` +
                 `${lineBreak}${closedCheckbox}${ghVerification}` +
@@ -270,12 +265,6 @@ describe('createOrUpdateStagingDeploy', () => {
             vol.fromJSON({
                 [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.2-2'}),
             });
-            mockGetInput.mockImplementation((arg) => {
-                if (arg !== 'GITHUB_TOKEN') {
-                    return;
-                }
-                return 'fake_token';
-            });
 
             // New pull requests to add to open StagingDeployCash
             const newPullRequests = [9, 10];
@@ -288,11 +277,11 @@ describe('createOrUpdateStagingDeploy', () => {
 
             mockListIssues.mockImplementation((args: Arguments) => {
                 if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return {data: [openStagingDeployCashBefore, closedStagingDeployCash]};
+                    return Promise.resolve({data: [openStagingDeployCashBefore, closedStagingDeployCash]});
                 }
 
                 if (args.labels === CONST.LABELS.DEPLOY_BLOCKER) {
-                    return {
+                    return Promise.resolve({
                         data: [
                             ...currentDeployBlockers,
                             {
@@ -308,17 +297,16 @@ describe('createOrUpdateStagingDeploy', () => {
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
                             },
                         ],
-                    };
+                    });
                 }
 
-                return {data: []};
+                return Promise.resolve({data: []});
             });
 
             const result = await run();
             expect(result).toStrictEqual({
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 issue_number: openStagingDeployCashBefore.number,
                 // eslint-disable-next-line max-len, @typescript-eslint/naming-convention
                 html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openStagingDeployCashBefore.number}`,
@@ -338,7 +326,6 @@ describe('createOrUpdateStagingDeploy', () => {
                     `${lineBreak}${openCheckbox}${baseIssueList.at(1)}${lineBreak}` +
                     `${lineBreakDouble}${deployerVerificationsHeader}` +
                     // Note: these will be unchecked with a new app version, and that's intentional
-                    `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                     `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
                     `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
                     `${lineBreak}${openCheckbox}${ghVerification}` +
@@ -351,12 +338,6 @@ describe('createOrUpdateStagingDeploy', () => {
             vol.fromJSON({
                 [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.2-1'}),
             });
-            mockGetInput.mockImplementation((arg) => {
-                if (arg !== 'GITHUB_TOKEN') {
-                    return;
-                }
-                return 'fake_token';
-            });
             mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef) => {
                 if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
                     return [...baseNewPullRequests];
@@ -365,11 +346,11 @@ describe('createOrUpdateStagingDeploy', () => {
             });
             mockListIssues.mockImplementation((args: Arguments) => {
                 if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return {data: [openStagingDeployCashBefore, closedStagingDeployCash]};
+                    return Promise.resolve({data: [openStagingDeployCashBefore, closedStagingDeployCash]});
                 }
 
                 if (args.labels === CONST.LABELS.DEPLOY_BLOCKER) {
-                    return {
+                    return Promise.resolve({
                         data: [
                             // Suppose the first deploy blocker is demoted, it should not be removed from the checklist and instead just be checked off
                             ...currentDeployBlockers.slice(1),
@@ -386,10 +367,10 @@ describe('createOrUpdateStagingDeploy', () => {
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
                             },
                         ],
-                    };
+                    });
                 }
 
-                return {data: []};
+                return Promise.resolve({data: []});
             });
 
             const result = await run();
@@ -412,7 +393,6 @@ describe('createOrUpdateStagingDeploy', () => {
                     `${lineBreak}${openCheckbox}${baseIssueList.at(0)}` +
                     `${lineBreak}${openCheckbox}${baseIssueList.at(1)}${lineBreak}` +
                     `${lineBreakDouble}${deployerVerificationsHeader}` +
-                    `${lineBreak}${closedCheckbox}${timingDashboardVerification}` +
                     `${lineBreak}${closedCheckbox}${firebaseVerificationCurrentRelease}` +
                     `${lineBreak}${closedCheckbox}${firebaseVerificationPreviousRelease}` +
                     `${lineBreak}${closedCheckbox}${ghVerification}` +
@@ -421,92 +401,66 @@ describe('createOrUpdateStagingDeploy', () => {
         });
     });
 
-    test('PRs that were cherry-picked to previous checklist should be filtered out from new checklist PRs', async () => {
-        vol.reset();
-        vol.fromJSON({
-            [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.3-0'}),
+    describe('cherry-pick filtering', () => {
+        test('filters out PRs that were already included in previous checklist', async () => {
+            vol.reset();
+            vol.fromJSON({
+                [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.3-0'}),
+            });
+
+            mockGetInput.mockImplementation((arg) => (arg === 'GITHUB_TOKEN' ? 'fake_token' : ''));
+            mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef) => {
+                if (fromRef === '1.0.2-1-staging' && toRef === '1.0.3-0-staging') {
+                    return [6, 8, 10, 11];
+                }
+                return [];
+            });
+
+            // Mock previous checklist containing PRs 6,8
+            const mockGetStagingDeployCashData = jest.spyOn(GithubUtils, 'getStagingDeployCashData');
+            mockGetStagingDeployCashData.mockImplementation(() => ({
+                title: 'Previous Checklist',
+                url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+                number: 29,
+                labels: [LABELS.STAGING_DEPLOY_CASH],
+                PRList: [
+                    {url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6`, number: 6, isVerified: true},
+                    {url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/8`, number: 8, isVerified: true},
+                ],
+                deployBlockers: [],
+                internalQAPRList: [],
+                isTimingDashboardChecked: true,
+                isFirebaseChecked: true,
+                isGHStatusChecked: true,
+                version: '1.0.2-1',
+                tag: '1.0.2-1-staging',
+            }));
+
+            // Mock list of issues to return a closed previous checklist
+            mockListIssues.mockImplementation((args: Arguments) => {
+                if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
+                    return Promise.resolve({
+                        data: [
+                            {
+                                number: 29,
+                                state: 'closed',
+                                labels: [LABELS.STAGING_DEPLOY_CASH],
+                            },
+                        ],
+                    });
+                }
+                return Promise.resolve({data: []});
+            });
+
+            const result = await run();
+
+            // Verify that only new PRs (10, 11) are included, not the previously included ones (6, 8)
+            expect(result?.body).toContain('https://github.com/Expensify/App/pull/10');
+            expect(result?.body).toContain('https://github.com/Expensify/App/pull/11');
+            expect(result?.body).not.toContain('https://github.com/Expensify/App/pull/6');
+            expect(result?.body).not.toContain('https://github.com/Expensify/App/pull/8');
+
+            mockGetStagingDeployCashData.mockRestore();
         });
-        mockGetInput.mockImplementation((arg) => {
-            if (arg !== 'GITHUB_TOKEN') {
-                return;
-            }
-            return 'fake_token';
-        });
-
-        // Mock the response from GitUtils to include value PRs and some which were cherry-picked to prior release (9, 11)
-        mockGetPullRequestsDeployedBetween.mockResolvedValue([9, 10, 11, 12]);
-
-        // Mock the previous checklist data directly, including the PRs we want to filter out (9, 11)
-        const mockGetStagingDeployCashData = jest.spyOn(GithubUtils, 'getStagingDeployCashData');
-        // @ts-expect-error this is a simplified mock implementation
-        mockGetStagingDeployCashData.mockImplementation((issue) => {
-            if (issue.number === 29) {
-                return {
-                    title: 'Previous Checklist',
-                    url: 'url1',
-                    number: 29,
-                    labels: [LABELS.STAGING_DEPLOY_CASH],
-                    PRList: [
-                        {url: 'url6', number: 6, isVerified: true},
-                        {url: 'url7', number: 7, isVerified: true},
-                        {url: 'url8', number: 8, isVerified: true},
-                        {url: 'url9', number: 9, isVerified: true},
-                        {url: 'url11', number: 11, isVerified: true},
-                    ],
-                    deployBlockers: [],
-                    internalQAPRList: [],
-                    isTimingDashboardChecked: true,
-                    isFirebaseChecked: true,
-                    isGHStatusChecked: true,
-                    version: '1.0.2-1',
-                    tag: '1.0.2-1-staging',
-                };
-            }
-            // Mock response for the current checklist
-            if (issue.number === 30) {
-                return {
-                    title: 'Current Checklist',
-                    url: 'url2',
-                    number: 30,
-                    labels: [LABELS.STAGING_DEPLOY_CASH],
-                    PRList: [
-                        {url: 'url9', number: 9, isVerified: false},
-                        {url: 'url10', number: 10, isVerified: false},
-                        {url: 'url11', number: 11, isVerified: false},
-                        {url: 'url12', number: 12, isVerified: false},
-                    ],
-                    deployBlockers: [],
-                    internalQAPRList: [],
-                    isTimingDashboardChecked: false,
-                    isFirebaseChecked: false,
-                    isGHStatusChecked: false,
-                    version: '1.0.3-1',
-                    tag: '1.0.3-1-staging',
-                };
-            }
-            return {PRList: [], deployBlockers: [], internalQAPRList: []};
-        });
-
-        // Mock the listIssues response to provide the current and previous checklists
-        const openChecklistForFiltering = {number: 30, state: 'open', labels: [LABELS.STAGING_DEPLOY_CASH]};
-        const previousChecklistForFiltering = {number: 29, state: 'closed', labels: [LABELS.STAGING_DEPLOY_CASH]};
-
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        mockListIssues.mockImplementation((_args: Arguments) => {
-            return {data: [openChecklistForFiltering, previousChecklistForFiltering]};
-        });
-
-        // Run the createOrUpdateStagingDeploy function
-        const consoleSpy = jest.spyOn(console, 'info');
-        await run();
-
-        // Verify that the previously cherry-picked PRs are filtered out from the current checklist (9, 11)
-        // Use type assertion to assure TypeScript call[0] is a string
-        const finalLogCall = consoleSpy.mock.calls.find((call) => (call[0] as string)?.startsWith('Created final list of PRs for current checklist:'));
-        expect(finalLogCall?.[0]).toBe('Created final list of PRs for current checklist: [10,12]');
-
-        // Restore mocks
-        mockGetStagingDeployCashData.mockRestore();
-        consoleSpy.mockRestore();
     });
 });

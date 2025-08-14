@@ -11,7 +11,7 @@ Lost in the app?  Let this map guide you!
     * Chat selector
         * Special chats:
             * Concierge
-            * Workspace chat
+            * Expense chat
             * #announce
             * #admins
             * Personal chat

@@ -1,8 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useImperativeHandle, useRef} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
-import {useOnyx} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -11,7 +10,8 @@ import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
+import useOnboardingMessages from '@hooks/useOnboardingMessages';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,6 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnboardingPurpose} from '@src/types/onyx';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {BaseOnboardingPurposeProps} from './types';
 
@@ -50,10 +51,10 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const {canUsePrivateDomainOnboarding} = usePermissions();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const {onboardingMessages} = useOnboardingMessages();
 
-    const isPrivateDomainAndHasAccesiblePolicies = canUsePrivateDomainOnboarding && !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
+    const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
 
     const theme = useTheme();
     const [onboardingErrorMessage, onboardingErrorMessageResult] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, {canBeMissing: true});
@@ -63,7 +64,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
 
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
-    const [customChoices = []] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, {canBeMissing: true});
+    const [customChoices = getEmptyArray<OnboardingPurpose>()] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, {canBeMissing: true});
 
     const onboardingChoices = getOnboardingChoices(customChoices);
 
@@ -87,15 +88,20 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                     return;
                 }
 
-                if (isPrivateDomainAndHasAccesiblePolicies && personalDetailsForm?.firstName && personalDetailsForm?.lastName) {
+                if (isPrivateDomainAndHasAccessiblePolicies && personalDetailsForm?.firstName) {
                     completeOnboarding({
                         engagementChoice: choice,
-                        onboardingMessage: CONST.ONBOARDING_MESSAGES[choice],
+                        onboardingMessage: onboardingMessages[choice],
                         firstName: personalDetailsForm.firstName,
                         lastName: personalDetailsForm.lastName,
                         adminsChatReportID: onboardingAdminsChatReportID ?? undefined,
                         onboardingPolicyID,
                     });
+
+                    InteractionManager.runAfterInteractions(() => {
+                        Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
+                    });
+
                     return;
                 }
 
@@ -126,7 +132,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 <HeaderWithBackButton
                     shouldShowBackButton={false}
                     iconFill={theme.iconColorfulBackground}
-                    progressBarPercentage={isPrivateDomainAndHasAccesiblePolicies ? 60 : 20}
+                    progressBarPercentage={isPrivateDomainAndHasAccessiblePolicies ? 60 : 20}
                 />
             </View>
             <ScrollView style={[styles.flex1, styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, paddingHorizontal]}>

@@ -9,6 +9,7 @@ function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cov
     return (
         <Image
             onLoadEnd={onLoadEnd}
+            cachePolicy="memory-disk"
             contentFit={contentFit}
             source={src as ImageSourcePropType}
             style={[{width, height}, style]}

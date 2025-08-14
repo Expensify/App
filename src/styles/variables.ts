@@ -35,10 +35,12 @@ export default {
     avatarSizeLargeBordered: 88,
     avatarSizeXLarge: 100,
     avatarSizeLarge: 80,
+    avatarSizeMediumLarge: 60,
     avatarSizeMedium: 52,
     avatarSizeHeader: 40,
     avatarSizeNormal: 40,
     avatarSizeSmallNormal: 32,
+    avatarSizeLargeNormal: 48,
     avatarSizeSmall: 28,
     avatarSizeSmaller: 24,
     avatarSizeSubscript: 20,
@@ -83,6 +85,7 @@ export default {
     iconSizeExtraLarge: 40,
     iconSizeSuperLarge: 60,
     iconSizeUltraLarge: 80,
+    iconSizeMegaLarge: 105,
     iconSizeMenuItem: 32,
     iconBottomBar: 24,
     sidebarAvatarSize: 28,
@@ -97,10 +100,12 @@ export default {
     iosSafeAreaInsetsPercentage: 0.7,
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
-    sideBarWithLHBWidth: 344,
+    minScanTooltipWidth: 320,
+    uploadViewMargin: 20,
+    sideBarWithLHBWidth: 320,
     navigationTabBarSize: 72,
     pdfPageMaxWidth: 992,
-    tooltipzIndex: 10050,
+    tooltipZIndex: 10050,
     gutterWidth: 12,
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
@@ -113,16 +118,20 @@ export default {
     lineHeightXLarge: getValueUsingPixelRatio(20, 24),
     lineHeightXXLarge: getValueUsingPixelRatio(27, 32),
     lineHeightXXXLarge: getValueUsingPixelRatio(32, 37),
-    lineHeightSizeh1: getValueUsingPixelRatio(28, 32),
-    lineHeightSizeh2: getValueUsingPixelRatio(24, 28),
+    lineHeightSizeH1: getValueUsingPixelRatio(28, 32),
+    lineHeightSizeH2: getValueUsingPixelRatio(24, 28),
     lineHeighTaskTitle: getValueUsingPixelRatio(26, 30),
     lineHeightSignInHeroXSmall: getValueUsingPixelRatio(32, 37),
     inputHeight: getValueUsingPixelRatio(52, 72),
+    inputPaddingTop: getValueUsingPixelRatio(15, 21),
+    inputPaddingBottom: getValueUsingPixelRatio(8, 11),
     inputHeightSmall: 28,
+    inputIconMarginTopSmall: getValueUsingPixelRatio(8, 11),
+    inputIconMarginTopLarge: getValueUsingPixelRatio(16, 21),
     formErrorLineHeight: getValueUsingPixelRatio(18, 23),
     communicationsLinkHeight: getValueUsingPixelRatio(20, 30),
     alternateTextHeight: getValueUsingPixelRatio(20, 24),
-    INACTIVE_LABEL_TRANSLATE_Y: getValueUsingPixelRatio(16, 21),
+    INACTIVE_LABEL_TRANSLATE_Y: getValueUsingPixelRatio(17, 22),
     sliderBarHeight: 8,
     sliderKnobSize: 26,
     checkboxLabelActiveOpacity: 0.7,
@@ -217,7 +226,8 @@ export default {
     sectionIllustrationHeight: 220,
     restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
-    onboardingModalWidth: 500,
+    featureTrainingModalWidth: 500,
+    onboardingModalWidth: 640,
     holdEducationModalWidth: 400,
     changePolicyEducationModalWidth: 400,
     changePolicyEducationModalIconWidth: 147.69,
@@ -255,6 +265,9 @@ export default {
     cardMiniatureHeight: 13,
     cardMiniatureBorderRadius: 2,
 
+    cardAvatarWidth: 20,
+    cardAvatarHeight: 13,
+
     cardNameWidth: 156,
     updateAnimationW: 390,
     updateAnimationH: 240,
@@ -277,12 +290,9 @@ export default {
     savedSearchShiftHorizontal: -10,
     savedSearchShiftVertical: 6,
     navigationTabBarInboxTooltipShiftHorizontal: 36,
-    navigationTabBarSettingsTooltipShiftHorizontal: -36,
     accountSwitcherTooltipShiftVertical: 7,
     accountSwitcherTooltipShiftHorizontal: 4,
     expenseReportsTypeTooltipShiftHorizontal: 10,
-    workspacesSettingsTooltipShiftHorizontal: 8,
-    workspacesSettingsTooltipShiftVertical: -8,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
@@ -293,6 +303,8 @@ export default {
     searchTopBarZIndex: 9,
     searchTopBarHeight: 52,
     searchRouterInputMargin: 52,
+
+    scrollToNewTransactionOffset: 300,
 
     errorPageIconWidth: 116,
     errorPageIconHeight: 168,
@@ -315,6 +327,44 @@ export default {
     w80: 80,
     w92: 92,
     w96: 96,
+    w130: 130,
     w184: 184,
     w191: 191,
+
+    // Transaction item row heights based on layout types
+    // Wide screen (desktop) layout
+    optionRowWideItemHeight: 64,
+
+    // Narrow screen with drawer layout
+    optionRowNarrowWithDrawerItemHeight: 100,
+    optionRowNarrowWithDrawerItemHeightWithButton: 124,
+
+    // Narrow screen without drawer (mobile-like) layout
+    optionRowNarrowWithoutDrawerItemHeight: 92,
+    optionRowNarrowWithoutDrawerItemHeightWithButton: 104,
+
+    optionRowListItemPadding: 8,
+    optionRowSearchHeaderHeight: 54,
+
+    // SearchList item heights
+    searchListItemHeightLargeScreen: 72,
+    searchListItemHeightSmallScreen: 96,
+    searchListItemHeightChat: 351,
+    searchListItemHeightChatCompact: 105,
+    searchOptionRowTransactionHeightSmallScreen: 60,
+    searchOptionRowTransactionHeightLargeScreen: 52,
+    searchOptionRowBaseHeight: 52,
+    searchOptionRowSmallFooterHeight: 28,
+    searchOptionRowLargeFooterHeight: 17,
+    searchOptionRowMargin: 8,
+
+    // Search item violation warning mark height
+    searchViolationWarningMarkHeight: 22,
+
+    // Search item base padding/margin
+    searchItemBasePadding: 8,
+
+    // Chat-specific item heights (rounded to nearest integer). The values was measured on the screen
+    searchChatReportPreviewHeight: 434,
+    searchChatStandardItemHeight: 97,
 } as const;

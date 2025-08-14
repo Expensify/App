@@ -1,14 +1,13 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -17,6 +16,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {clearDraftValues} from '@libs/actions/FormActions';
@@ -26,7 +26,6 @@ import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -48,7 +47,7 @@ type WorkspaceInviteMessagePageProps = WithPolicyAndFullscreenLoadingProps &
 
 function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}: WorkspaceInviteMessagePageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT, {canBeMissing: true});
 
     const viewportOffsetTop = useViewportOffsetTop();
@@ -63,7 +62,6 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         canBeMissing: true,
     });
     const [workspaceInviteRoleDraft = CONST.POLICY.ROLE.USER] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${route.params.policyID.toString()}`, {canBeMissing: true});
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
 
     const welcomeNoteSubject = useMemo(
@@ -101,7 +99,14 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         Keyboard.dismiss();
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
-        addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID, policyMemberAccountIDs, workspaceInviteRoleDraft);
+        addMembersToWorkspace(
+            invitedEmailsToAccountIDsDraft ?? {},
+            `${welcomeNoteSubject}\n\n${welcomeNote}`,
+            route.params.policyID,
+            policyMemberAccountIDs,
+            workspaceInviteRoleDraft,
+            formatPhoneNumber,
+        );
         setWorkspaceInviteMessageDraft(route.params.policyID, welcomeNote ?? null);
         clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
         if ((route.params?.backTo as string)?.endsWith('members')) {
@@ -187,12 +192,13 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                     }
                 >
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                        <MultipleAvatars
+                        <ReportActionAvatars
                             size={CONST.AVATAR_SIZE.LARGE}
-                            icons={getAvatarsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {}, invitedEmailsToAccountIDsDraft ?? {})}
-                            shouldStackHorizontally
-                            shouldDisplayAvatarsInRows
-                            secondAvatarStyle={[styles.secondAvatarInline]}
+                            accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
+                            horizontalStacking={{
+                                displayInRows: true,
+                            }}
+                            secondaryAvatarContainerStyle={styles.secondAvatarInline}
                         />
                     </View>
                     <View style={[styles.mb5]}>
@@ -216,6 +222,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                             label={translate('workspace.inviteMessage.personalMessagePrompt')}
                             accessibilityLabel={translate('workspace.inviteMessage.personalMessagePrompt')}
                             autoCompleteType="off"
+                            type="markdown"
                             autoCorrect={false}
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}

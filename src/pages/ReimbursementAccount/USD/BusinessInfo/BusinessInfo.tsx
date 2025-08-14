@@ -1,9 +1,9 @@
 import {Str} from 'expensify-common';
 import lodashPick from 'lodash/pick';
 import React, {useCallback, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import BankAccount from '@libs/models/BankAccount';
@@ -48,8 +48,8 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [
 
 function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
     const {translate} = useLocalize();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
 
     const getBankAccountFields = useCallback(
         (fieldNames: string[]) => ({
@@ -114,7 +114,7 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
             shouldEnableMaxHeight
             headerTitle={translate('businessInfoStep.businessInfo')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={3}
+            startStepIndex={4}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
             <SubStep

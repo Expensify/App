@@ -78,6 +78,7 @@ function AddressSearch(
         shouldSaveDraft = false,
         value,
         locationBias,
+        caretHidden,
     }: AddressSearchProps,
     ref: ForwardedRef<HTMLElement>,
 ) {
@@ -444,6 +445,7 @@ function AddressSearch(
                             maxLength: maxInputLength,
                             spellCheck: false,
                             selectTextOnFocus: true,
+                            caretHidden,
                         }}
                         styles={{
                             textInputContainer: [styles.flexColumn],

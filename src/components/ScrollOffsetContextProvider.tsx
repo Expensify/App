@@ -1,6 +1,6 @@
 import type {ParamListBase} from '@react-navigation/native';
 import React, {createContext, useCallback, useEffect, useMemo, useRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import {isSidebarScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -49,7 +49,7 @@ function getKey(route: PlatformStackRouteProp<ParamListBase> | NavigationPartial
 }
 
 function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProps) {
-    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: false});
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
     const scrollOffsetsRef = useRef<Record<string, number>>({});
     const previousPriorityMode = usePrevious(priorityMode);
 

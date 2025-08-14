@@ -1,15 +1,17 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {memo, useEffect, useRef} from 'react';
-import type {GestureResponderEvent} from 'react-native';
+import React, {memo, useContext, useEffect, useRef} from 'react';
+import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type PressableProps from '@components/Pressable/GenericPressable/types';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
-import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
+import {emojiPickerRef, resetEmojiPopoverAnchor, showEmojiPicker} from '@userActions/EmojiPickerAction';
+import type {OnEmojiSelected, OnModalHideValue} from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
 
 type EmojiPickerButtonProps = {
@@ -20,24 +22,53 @@ type EmojiPickerButtonProps = {
     emojiPickerID?: string;
 
     /** A callback function when the button is pressed */
-    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
+    onPress?: PressableProps['onPress'];
 
     /** Emoji popup anchor offset shift vertical */
     shiftVertical?: number;
 
-    onModalHide: EmojiPickerAction.OnModalHideValue;
+    onModalHide: OnModalHideValue;
 
-    onEmojiSelected: EmojiPickerAction.OnEmojiSelected;
+    onEmojiSelected: OnEmojiSelected;
 };
 
 function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertical = 0, onPress, onModalHide, onEmojiSelected}: EmojiPickerButtonProps) {
+    const actionSheetContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
     const {translate} = useLocalize();
     const isFocused = useIsFocused();
 
-    useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
+    const openEmojiPicker: PressableProps['onPress'] = (e) => {
+        if (!isFocused) {
+            return;
+        }
+
+        actionSheetContext.transitionActionSheetState({
+            type: ActionSheetAwareScrollView.Actions.CLOSE_KEYBOARD,
+        });
+
+        if (!emojiPickerRef?.current?.isEmojiPickerVisible) {
+            showEmojiPicker(
+                onModalHide,
+                onEmojiSelected,
+                emojiPopoverAnchor,
+                {
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    shiftVertical,
+                },
+                () => {},
+                emojiPickerID,
+            );
+        } else {
+            emojiPickerRef.current.hideEmojiPicker();
+        }
+        onPress?.(e);
+    };
+
+    useEffect(() => resetEmojiPopoverAnchor, []);
 
     return (
         <Tooltip text={translate('reportActionCompose.emoji')}>
@@ -45,28 +76,7 @@ function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertica
                 ref={emojiPopoverAnchor}
                 style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
                 disabled={isDisabled}
-                onPress={(e) => {
-                    if (!isFocused) {
-                        return;
-                    }
-                    if (!EmojiPickerAction.emojiPickerRef?.current?.isEmojiPickerVisible) {
-                        EmojiPickerAction.showEmojiPicker(
-                            onModalHide,
-                            onEmojiSelected,
-                            emojiPopoverAnchor,
-                            {
-                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                shiftVertical,
-                            },
-                            () => {},
-                            emojiPickerID,
-                        );
-                    } else {
-                        EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
-                    }
-                    onPress?.(e);
-                }}
+                onPress={openEmojiPicker}
                 id={CONST.EMOJI_PICKER_BUTTON_NATIVE_ID}
                 accessibilityLabel={translate('reportActionCompose.emoji')}
             >

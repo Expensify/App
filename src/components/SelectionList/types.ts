@@ -12,20 +12,20 @@ import type {
     TextStyle,
     ViewStyle,
 } from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
-import type {SearchColumnType} from '@components/Search/types';
+import type {SearchColumnType, SearchGroupBy} from '@components/Search/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 import type SpendCategorySelectorListItem from '@pages/workspace/categories/SpendCategorySelectorListItem';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
-import type {Policy, Report} from '@src/types/onyx';
-import type {Attendee} from '@src/types/onyx/IOU';
+import type {PersonalDetailsList, Policy, Report, TransactionViolation} from '@src/types/onyx';
+import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchCard, SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -33,8 +33,8 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type ChatListItem from './ChatListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
-import type ReportListItem from './Search/ReportListItem';
 import type SearchQueryListItem from './Search/SearchQueryListItem';
+import type TransactionGroupListItem from './Search/TransactionGroupListItem';
 import type TransactionListItem from './Search/TransactionListItem';
 import type TableListItem from './TableListItem';
 import type TravelDomainListItem from './TravelDomainListItem';
@@ -108,7 +108,7 @@ type ExtendedTargetedEvent = TargetedEvent & {
     };
 };
 
-type ListItem = {
+type ListItem<K extends string | number = string> = {
     /** Text to display */
     text?: string;
 
@@ -116,7 +116,7 @@ type ListItem = {
     alternateText?: string | null;
 
     /** Key used internally by React */
-    keyForList?: string | null;
+    keyForList?: K | null;
 
     /** Whether this option is selected */
     isSelected?: boolean;
@@ -212,10 +212,16 @@ type ListItem = {
 
     /** Boolean whether to display the right icon */
     shouldShowRightIcon?: boolean;
+
+    /** Whether product training tooltips can be displayed */
+    canShowProductTrainingTooltip?: boolean;
 };
 
 type TransactionListItemType = ListItem &
     SearchTransaction & {
+        /** Report to which the transaction belongs */
+        report: Report;
+
         /** The personal details of the user requesting money */
         from: SearchPersonalDetails;
 
@@ -254,11 +260,18 @@ type TransactionListItemType = ListItem &
          */
         shouldShowYear: boolean;
 
+        isAmountColumnWide: boolean;
+
+        isTaxAmountColumnWide: boolean;
+
         /** Key used internally by React */
         keyForList: string;
 
         /** Attendees in the transaction */
         attendees?: Attendee[];
+
+        /** Precomputed violations */
+        violations?: TransactionViolation[];
     };
 
 type ReportActionListItemType = ListItem &
@@ -309,17 +322,22 @@ type TaskListItemType = ListItem &
         shouldShowYear: boolean;
     };
 
-type ReportListItemType = ListItem &
-    SearchReport & {
+type TransactionGroupListItemType = ListItem & {
+    /** List of grouped transactions */
+    transactions: TransactionListItemType[];
+};
+
+type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.REPORTS} & SearchReport & {
         /** The personal details of the user requesting money */
         from: SearchPersonalDetails;
 
         /** The personal details of the user paying the request */
         to: SearchPersonalDetails;
-
-        /** List of transactions that belong to this report */
-        transactions: TransactionListItemType[];
     };
+
+type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MEMBERS} & SearchPersonalDetails;
+
+type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARDS} & SearchPersonalDetails & SearchCard;
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
@@ -354,6 +372,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Styles applied for the title container of the list item */
     titleContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Whether to show the default right hand side checkmark */
+    shouldUseDefaultRightHandSideCheckmark?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -372,6 +393,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     shouldDisplayRBR?: boolean;
     /** Test ID of the component. Used to locate this view in end-to-end tests. */
     testID?: string;
+    /** Whether to show the default right hand side checkmark */
+    shouldUseDefaultRightHandSideCheckmark?: boolean;
 };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -385,11 +408,49 @@ type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     FooterComponent?: ReactElement;
 };
 
+type SplitListItemType = ListItem &
+    SplitExpense & {
+        /** Item header text */
+        headerText: string;
+
+        /** Merchant or vendor name */
+        merchant: string;
+
+        /** Currency code */
+        currency: string;
+
+        /** ID of split expense */
+        transactionID: string;
+
+        /** Currency symbol */
+        currencySymbol: string;
+
+        /** Original amount before split */
+        originalAmount: number;
+
+        /** Indicates whether a split was opened through this transaction */
+        isTransactionLinked: boolean;
+
+        /** Function for updating amount */
+        onSplitExpenseAmountChange: (currentItemTransactionID: string, value: number) => void;
+    };
+
+type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
 type TransactionSelectionListItem<TItem extends ListItem> = ListItemProps<TItem> & Transaction;
 
-type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
+type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem> & {
+    /** Whether product training tooltips can be displayed */
+    canShowProductTrainingTooltip?: boolean;
+};
+
+type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type MultiSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
@@ -403,9 +464,9 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     isLoading?: boolean;
 };
 
-type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
-    /** Callback to fire when the item is pressed */
-    onSelectRow: (item: TItem, isOpenedAsReport?: boolean) => void;
+type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    groupBy?: SearchGroupBy;
+    policies?: OnyxCollection<Policy>;
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -413,6 +474,24 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
     /** The policies which the user has access to */
     policies?: OnyxCollection<Policy>;
+
+    /** All the data of the report collection */
+    allReports?: OnyxCollection<Report>;
+
+    /** The report data */
+    report?: Report;
+
+    /** The user wallet tierName */
+    userWalletTierName: string | undefined;
+
+    /** Whether the user is validated */
+    isUserValidated: boolean | undefined;
+
+    /** Personal details list */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+
+    /** User billing fund ID */
+    userBillingFundID: number | undefined;
 };
 
 type ValidListItem =
@@ -421,7 +500,7 @@ type ValidListItem =
     | typeof TableListItem
     | typeof InviteMemberListItem
     | typeof TransactionListItem
-    | typeof ReportListItem
+    | typeof TransactionGroupListItem
     | typeof ChatListItem
     | typeof SearchQueryListItem
     | typeof SearchRouterItem
@@ -443,6 +522,12 @@ type Section<TItem extends ListItem> = {
     shouldShow?: boolean;
 };
 
+type LoadingPlaceholderComponentProps = {
+    shouldStyleAsTable?: boolean;
+    fixedNumItems?: number;
+    speed?: number;
+};
+
 type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
     /** The initial index of this section given the total number of options in each section's data array */
     indexOffset?: number;
@@ -451,6 +536,12 @@ type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
 type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
     sections: Array<SectionListDataType<TItem>> | typeof CONST.EMPTY_ARRAY;
+
+    /** List of selected items */
+    selectedItems?: string[];
+
+    /** Whether the item is selected */
+    isSelected?: (item: TItem) => boolean;
 
     /** Default renderer for every item in the list */
     ListItem: ValidListItem;
@@ -481,6 +572,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      */
     getItemHeight?: (item: TItem) => number;
 
+    /** Whether autoCorrect functionality should enable  */
+    autoCorrect?: boolean;
+
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
 
@@ -489,6 +583,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Label for the text input */
     textInputLabel?: string;
+
+    /** Style for the text input */
+    textInputStyle?: StyleProp<ViewStyle>;
 
     /** Placeholder for the text input */
     textInputPlaceholder?: string;
@@ -556,6 +653,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to show the loading placeholder */
     showLoadingPlaceholder?: boolean;
 
+    /** The component to show when the list is loading */
+    LoadingPlaceholderComponent?: React.ComponentType<LoadingPlaceholderComponentProps>;
+
     /** Whether to show the default confirm button */
     showConfirmButton?: boolean;
 
@@ -592,6 +692,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Custom content to display in the footer of list component. If present ShowMore button won't be displayed */
     listFooterContent?: React.JSX.Element | null;
 
+    /** Custom content to display above the pagination */
+    footerContentAbovePagination?: React.JSX.Element | null;
+
     /** Custom content to display when the list is empty after finish loading */
     listEmptyContent?: React.JSX.Element | null;
 
@@ -612,6 +715,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether focus event should be delayed */
     shouldDelayFocus?: boolean;
+
+    /** Whether we should clear the search input when an item is selected */
+    shouldClearInputOnSelect?: boolean;
 
     /** Callback to fire when the text input changes */
     onArrowFocus?: (focusedItem: TItem) => void;
@@ -641,6 +747,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     alternateTextNumberOfLines?: number;
 
     /** Ref for textInput */
+    // eslint-disable-next-line deprecation/deprecation
     textInputRef?: MutableRefObject<TextInput | null> | ((ref: TextInput | null) => void);
 
     /** Styles for the section title */
@@ -711,6 +818,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to scroll to the focused index */
     shouldScrollToFocusedIndex?: boolean;
 
+    /** Whether the layout is narrow */
+    isSmallScreenWidth?: boolean;
+
     /** Called when scrollable content view of the ScrollView changes */
     onContentSizeChange?: (w: number, h: number) => void;
 
@@ -734,6 +844,15 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Error text to display */
     errorText?: string;
+
+    /** Whether to show the default right hand side checkmark */
+    shouldUseDefaultRightHandSideCheckmark?: boolean;
+
+    /** Whether product training tooltips can be displayed */
+    canShowProductTrainingTooltip?: boolean;
+
+    /** Whether to hide the keyboard when scrolling a list */
+    shouldHideKeyboardOnScroll?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -761,6 +880,12 @@ type FlattenedSectionsReturn<TItem extends ListItem> = {
     someSelected: boolean;
 };
 
+type UnreportedExpenseListItemType = Transaction & {
+    isDisabled: boolean;
+    keyForList: string;
+    errors?: Errors;
+};
+
 type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
 
 type ExtendedSectionListData<TItem extends ListItem, TSection extends SectionWithIndexOffset<TItem>> = SectionListData<TItem, TSection> & {
@@ -771,7 +896,7 @@ type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem
 
 type SortableColumnName = SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS;
 
-type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType;
+type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
 
 export type {
     BaseListItemProps,
@@ -784,8 +909,13 @@ export type {
     ListItemProps,
     ListItemFocusEventHandler,
     RadioListItemProps,
-    ReportListItemProps,
-    ReportListItemType,
+    SingleSelectListItemProps,
+    MultiSelectListItemProps,
+    TransactionGroupListItemProps,
+    TransactionGroupListItemType,
+    TransactionReportGroupListItemType,
+    TransactionMemberGroupListItemType,
+    TransactionCardGroupListItemType,
     Section,
     SectionListDataType,
     SectionWithIndexOffset,
@@ -797,8 +927,12 @@ export type {
     TransactionListItemType,
     TransactionSelectionListItem,
     UserListItemProps,
+    UserSelectionListItemProps,
     ReportActionListItemType,
     ChatListItemProps,
     SortableColumnName,
+    SplitListItemProps,
+    SplitListItemType,
     SearchListItem,
+    UnreportedExpenseListItemType,
 };

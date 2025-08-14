@@ -1,5 +1,5 @@
 import {useContext} from 'react';
-import {ScreenWrapperStatusContext} from '@components/ScreenWrapper';
+import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 
 /**
  * Hook to get the transition status of a screen inside a ScreenWrapper.
@@ -7,11 +7,11 @@ import {ScreenWrapperStatusContext} from '@components/ScreenWrapper';
  * @returns `didScreenTransitionEnd` flag to indicate if navigation transition ended.
  */
 export default function useScreenWrapperTransitionStatus() {
-    const value = useContext(ScreenWrapperStatusContext);
+    const context = useContext(ScreenWrapperStatusContext);
 
-    if (value === undefined) {
+    if (context === undefined) {
         throw new Error("Couldn't find values for screen ScreenWrapper transition status. Are you inside a screen in ScreenWrapper?");
     }
 
-    return value;
+    return {didScreenTransitionEnd: context.didScreenTransitionEnd};
 }

@@ -34,8 +34,14 @@ jobs:
     uses: ./.github/workflows/createNewVersion.yml
     secrets: inherit
     with:
-      # In order to submit a new build for production review, it must have a higher PATCH version than the previously-submitted build
-      SEMVER_LEVEL: ${{ inputs.TARGET == 'staging' && 'BUILD' || 'PATCH' }}
+      # In order to submit a new build for production review, it must have a higher PATCH version than the previously-submitted build.
+      # The typical case is that with each staging deploy, we bump the BUILD version, and with each prod deploy we bump the PATCH version.
+      # However, if PULL_REQUEST_URL is empty, we assume we want to do a PATCH version bump.
+      # The reason we assume that is because the use-case for a no-PR CP is after a CP to Production.
+      # In that case, we need to bump the staging version to be higher than prod.
+      # We use a patch version so that there's a diff in both `CFBundleVersion` and `CFBundleShortVersion` on iOS,
+      # so that when we later CP that version bump to staging, the `CFBundleShortVersion` diff is picked up as well.
+      SEMVER_LEVEL: ${{ (inputs.TARGET == 'production' || inputs.PULL_REQUEST_URL == '') && 'PATCH' || 'BUILD' }}
 
   cherryPick:
     needs: createNewVersion
@@ -231,7 +237,7 @@ jobs:
           gh pr create \
             --title "🍒 Cherry pick PR #${{ steps.getPRInfo.outputs.PR_NUMBER }} to ${{ inputs.TARGET }} 🍒" \
             --body "$PR_DESCRIPTION" \
-            --label "Engineering,Hourly" \
+            --label "Engineering,Hourly,${{ inputs.TARGET == 'staging' && 'CP Staging' || 'CP Production' }}" \
             --base "${{ inputs.TARGET }}"
           sleep 5
         env:

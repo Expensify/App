@@ -1,6 +1,7 @@
 import type {CustomTagRendererRecord} from 'react-native-render-html';
 import AnchorRenderer from './AnchorRenderer';
 import CodeRenderer from './CodeRenderer';
+import ConciergeLinkRenderer from './ConciergeLinkRenderer';
 import DeletedActionRenderer from './DeletedActionRenderer';
 import EditedRenderer from './EditedRenderer';
 import EmojiRenderer from './EmojiRenderer';
@@ -10,6 +11,7 @@ import MentionReportRenderer from './MentionReportRenderer';
 import MentionUserRenderer from './MentionUserRenderer';
 import NextStepEmailRenderer from './NextStepEmailRenderer';
 import PreRenderer from './PreRenderer';
+import RBRRenderer from './RBRRenderer';
 import ShortMentionRenderer from './ShortMentionRenderer';
 import TaskTitleRenderer from './TaskTitleRenderer';
 import VideoRenderer from './VideoRenderer';
@@ -29,6 +31,7 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     pre: PreRenderer,
     /* eslint-disable @typescript-eslint/naming-convention */
     'task-title': TaskTitleRenderer,
+    rbr: RBRRenderer,
     'mention-user': MentionUserRenderer,
     'mention-report': MentionReportRenderer,
     'mention-here': MentionHereRenderer,
@@ -36,6 +39,7 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     emoji: EmojiRenderer,
     'next-step-email': NextStepEmailRenderer,
     'deleted-action': DeletedActionRenderer,
+    'concierge-link': ConciergeLinkRenderer,
     /* eslint-enable @typescript-eslint/naming-convention */
 };
 

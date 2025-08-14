@@ -1,6 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -8,7 +7,8 @@ import {ReservationView} from '@components/ReportActionItem/TripDetailsView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
+import useOnyx from '@hooks/useOnyx';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import CONFIG from '@src/CONFIG';
 import * as TripReservationUtils from '@src/libs/TripReservationUtils';
@@ -19,10 +19,10 @@ type TripSummaryPageProps = StackScreenProps<TravelNavigatorParamList, typeof SC
 
 function TripSummaryPage({route}: TripSummaryPageProps) {
     const {translate} = useLocalize();
-    const {canUseSpotnanaTravel} = usePermissions();
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`);
-    const reservationsData: TripReservationUtils.ReservationData[] = TripReservationUtils.getReservationsFromTripTransactions(transaction ? [transaction] : []);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`, {canBeMissing: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(route.params.transactionID)}`, {canBeMissing: true});
+    const reservationsData: TripReservationUtils.ReservationData[] = TripReservationUtils.getReservationsFromTripReport(report, transaction ? [transaction] : []);
 
     return (
         <ScreenWrapper
@@ -34,21 +34,21 @@ function TripSummaryPage({route}: TripSummaryPageProps) {
         >
             <FullPageNotFoundView
                 shouldForceFullScreen
-                shouldShow={reservationsData.length === 0 || (!canUseSpotnanaTravel && !CONFIG.IS_HYBRID_APP)}
+                shouldShow={reservationsData.length === 0 || !CONFIG.IS_HYBRID_APP}
             >
                 <HeaderWithBackButton
                     title={translate(`travel.tripDetails`)}
                     shouldShowBackButton
                 />
                 <ScrollView>
-                    {reservationsData.map(({reservation, transactionID, reservationIndex}) => {
+                    {reservationsData.map(({reservation, transactionID, sequenceIndex}) => {
                         return (
-                            <OfflineWithFeedback>
+                            <OfflineWithFeedback key={`${transactionID}-${sequenceIndex}`}>
                                 <ReservationView
                                     reservation={reservation}
                                     transactionID={transactionID}
                                     tripRoomReportID={route.params.reportID}
-                                    reservationIndex={reservationIndex}
+                                    sequenceIndex={sequenceIndex}
                                 />
                             </OfflineWithFeedback>
                         );

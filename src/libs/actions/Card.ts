@@ -18,6 +18,8 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {getReportActionFromExpensifyCard} from '@libs/ReportActionsUtils';
+import {findReportIDForAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CompanyCardFeed} from '@src/types/onyx';
@@ -38,6 +40,9 @@ type IssueNewCardFlowData = {
 
     /** ID of the policy */
     policyID: string | undefined;
+
+    /** Whether the changing assignee is disabled. E.g., The assignee is auto selected from workspace members page */
+    isChangeAssigneeDisabled?: boolean;
 };
 
 function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
@@ -99,6 +104,13 @@ function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReas
             value: {
                 isLoading: true,
                 errors: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
+            value: {
+                validateCodeSent: null,
             },
         },
     ];
@@ -354,12 +366,13 @@ function getCardDefaultName(userName?: string) {
     return `${userName}'s Card`;
 }
 
-function setIssueNewCardStepAndData({data, isEditing, step, policyID}: IssueNewCardFlowData) {
+function setIssueNewCardStepAndData({data, isEditing, step, policyID, isChangeAssigneeDisabled}: IssueNewCardFlowData) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
         data,
         isEditing,
         currentStep: step,
         errors: null,
+        isChangeAssigneeDisabled,
     });
 }
 
@@ -368,6 +381,10 @@ function clearIssueNewCardFlow(policyID: string | undefined) {
         currentStep: null,
         data: {},
     });
+}
+
+function clearIssueNewCardFormData() {
+    Onyx.set(ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM, {});
 }
 
 function clearIssueNewCardError(policyID: string | undefined) {
@@ -589,6 +606,8 @@ function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number
 function deactivateCard(workspaceAccountID: number, card?: Card) {
     const authToken = NetworkStore.getAuthToken();
     const cardID = card?.cardID ?? CONST.DEFAULT_NUMBER_ID;
+    const reportAction = getReportActionFromExpensifyCard(cardID);
+    const reportID = findReportIDForAction(reportAction) ?? reportAction?.reportID;
 
     if (!authToken) {
         return;
@@ -633,6 +652,28 @@ function deactivateCard(workspaceAccountID: number, card?: Card) {
             },
         },
     ];
+
+    if (reportAction?.reportActionID && reportID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    ...reportAction,
+                    originalMessage: {
+                        cardID: null,
+                    },
+                },
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.reportID}`,
+            value: {
+                [reportAction.reportActionID]: reportAction,
+            },
+        });
+    }
 
     const parameters: CardDeactivateParams = {
         authToken,
@@ -934,5 +975,6 @@ export {
     deactivateCard,
     getCardDefaultName,
     queueExpensifyCardForBilling,
+    clearIssueNewCardFormData,
 };
 export type {ReplacementReason};

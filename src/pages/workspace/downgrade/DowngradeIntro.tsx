@@ -53,7 +53,7 @@ function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID, backTo}
                         key={benefit}
                         style={[styles.pl2, styles.flexRow]}
                     >
-                        <Text style={[styles.textNormal, styles.textSupporting]}>• </Text>
+                        <Text style={[styles.textNormal, styles.textSupporting, styles.mr1]}>•</Text>
                         <Text style={[styles.textNormal, styles.textSupporting]}>{benefit}</Text>
                     </View>
                 ))}
@@ -95,7 +95,7 @@ function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID, backTo}
                 <Button
                     text={translate('workspace.common.goToWorkspaces')}
                     success
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.getRoute(backTo ?? Navigation.getActiveRoute()), {forceReplace: true})}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute(backTo ?? Navigation.getActiveRoute()), {forceReplace: true})}
                     large
                 />
             )}

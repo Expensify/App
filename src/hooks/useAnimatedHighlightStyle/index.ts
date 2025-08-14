@@ -1,5 +1,4 @@
 import React, {useState} from 'react';
-import {InteractionManager} from 'react-native';
 import {Easing, interpolate, interpolateColor, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming} from 'react-native-reanimated';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useTheme from '@hooks/useTheme';
@@ -7,7 +6,7 @@ import CONST from '@src/CONST';
 
 type Props = {
     /** Border radius of the wrapper */
-    borderRadius: number;
+    borderRadius?: number;
 
     /** Height of the item that is to be faded */
     height?: number;
@@ -44,7 +43,7 @@ type Props = {
 };
 
 /**
- * Returns a highlight style that interpolates the colour, height and opacity giving a fading effect.
+ * Returns a highlight style that interpolates the color, height and opacity giving a fading effect.
  */
 export default function useAnimatedHighlightStyle({
     borderRadius,
@@ -65,12 +64,19 @@ export default function useAnimatedHighlightStyle({
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const theme = useTheme();
 
-    const highlightBackgroundStyle = useAnimatedStyle(() => ({
-        backgroundColor: interpolateColor(repeatableProgress.get(), [0, 1], [backgroundColor ?? theme.appBG, highlightColor ?? theme.border]),
-        height: height ? interpolate(nonRepeatableProgress.get(), [0, 1], [0, height]) : 'auto',
-        opacity: interpolate(nonRepeatableProgress.get(), [0, 1], [0, 1]),
-        borderRadius,
-    }));
+    const highlightBackgroundStyle = useAnimatedStyle(() => {
+        'worklet';
+
+        const repeatableValue = repeatableProgress.get();
+        const nonRepeatableValue = nonRepeatableProgress.get();
+
+        return {
+            backgroundColor: interpolateColor(repeatableValue, [0, 1], [backgroundColor ?? theme.appBG, highlightColor ?? theme.border]),
+            height: height ? interpolate(nonRepeatableValue, [0, 1], [0, height]) : 'auto',
+            opacity: interpolate(nonRepeatableValue, [0, 1], [0, 1]),
+            borderRadius,
+        };
+    }, [borderRadius, height, backgroundColor, highlightColor, theme.appBG, theme.border]);
 
     React.useEffect(() => {
         if (!shouldHighlight || startHighlight) {
@@ -88,27 +94,25 @@ export default function useAnimatedHighlightStyle({
             return;
         }
         setStartHighlight(false);
-        InteractionManager.runAfterInteractions(() => {
-            runOnJS(() => {
-                nonRepeatableProgress.set(
-                    withDelay(
-                        itemEnterDelay,
-                        withTiming(1, {duration: itemEnterDuration, easing: Easing.inOut(Easing.ease)}, (finished) => {
-                            if (!finished) {
-                                return;
-                            }
+        runOnJS(() => {
+            nonRepeatableProgress.set(
+                withDelay(
+                    itemEnterDelay,
+                    withTiming(1, {duration: itemEnterDuration, easing: Easing.inOut(Easing.ease)}, (finished) => {
+                        if (!finished) {
+                            return;
+                        }
 
-                            repeatableProgress.set(
-                                withSequence(
-                                    withDelay(highlightStartDelay, withTiming(1, {duration: highlightStartDuration, easing: Easing.inOut(Easing.ease)})),
-                                    withDelay(highlightEndDelay, withTiming(0, {duration: highlightEndDuration, easing: Easing.inOut(Easing.ease)})),
-                                ),
-                            );
-                        }),
-                    ),
-                );
-            })();
-        });
+                        repeatableProgress.set(
+                            withSequence(
+                                withDelay(highlightStartDelay, withTiming(1, {duration: highlightStartDuration, easing: Easing.inOut(Easing.ease)})),
+                                withDelay(highlightEndDelay, withTiming(0, {duration: highlightEndDuration, easing: Easing.inOut(Easing.ease)})),
+                            ),
+                        );
+                    }),
+                ),
+            );
+        })();
     }, [
         didScreenTransitionEnd,
         startHighlight,

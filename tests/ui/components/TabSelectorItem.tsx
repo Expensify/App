@@ -35,7 +35,7 @@ describe('TabSelectorItem Component', () => {
                 shouldRender: true,
                 text: title,
             }),
-            expect.any(Object),
+            undefined,
         );
     });
 
@@ -56,7 +56,7 @@ describe('TabSelectorItem Component', () => {
                 shouldRender: false,
                 text: title,
             }),
-            expect.any(Object),
+            undefined,
         );
     });
 
@@ -77,7 +77,7 @@ describe('TabSelectorItem Component', () => {
                 shouldRender: false,
                 text: title,
             }),
-            expect.any(Object),
+            undefined,
         );
     });
 });

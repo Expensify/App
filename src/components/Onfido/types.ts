@@ -15,8 +15,8 @@ type OnfidoProps = {
     /** Token used to initialize the Onfido SDK */
     sdkToken: string;
 
-    /** Called when the user intentionally exits the flow without completing it */
-    onUserExit: () => void;
+    /** Called when the user exits the flow without completing it */
+    onUserExit: (isUserInitiated?: boolean) => void;
 
     /** Called when the user is totally done with Onfido */
     onSuccess: (data: OnfidoData) => void;

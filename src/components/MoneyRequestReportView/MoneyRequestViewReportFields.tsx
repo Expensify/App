@@ -1,9 +1,9 @@
 import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearReportFieldKeyErrors} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
@@ -61,8 +61,7 @@ function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEnt
                 onPress={() => {
                     Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report?.reportID, report?.policyID, reportField.fieldID, Navigation.getActiveRoute()));
                 }}
-                shouldShowRightIcon
-                disabled={reportField.isFieldDisabled}
+                shouldShowRightIcon={!reportField.isFieldDisabled}
                 wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                 shouldGreyOutWhenDisabled={false}
                 numberOfLinesTitle={0}

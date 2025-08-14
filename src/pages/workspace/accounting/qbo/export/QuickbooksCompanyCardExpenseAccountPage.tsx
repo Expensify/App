@@ -94,7 +94,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                                 {
                                     [CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR]: isOn,
                                     [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: isOn
-                                        ? policy?.connections?.quickbooksOnline?.data?.vendors?.[0]?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE
+                                        ? (policy?.connections?.quickbooksOnline?.data?.vendors?.[0]?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE)
                                         : CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
                                 },
                                 {

@@ -1,7 +1,7 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type Navigation from '@libs/Navigation/Navigation';
 import DebugReportActions from '@pages/Debug/Report/DebugReportActions';
 import CONST from '@src/CONST';
@@ -9,7 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native', () => {
@@ -25,14 +25,13 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
 }));
 
-jest.mock('@components/ConfirmedRoute.tsx');
-
 describe('DebugReportActions', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
+        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
     });
 
     afterEach(async () => {
@@ -62,17 +61,17 @@ describe('DebugReportActions', () => {
         });
 
         render(
-            <OnyxProvider>
+            <OnyxListItemProvider>
                 <LocaleContextProvider>
                     <DebugReportActions reportID={reportID} />
                 </LocaleContextProvider>
-            </OnyxProvider>,
+            </OnyxListItemProvider>,
         );
 
         await waitForBatchedUpdatesWithAct();
 
         const input = screen.getByTestId('selection-list-text-input');
-        fireEvent.changeText(input, 'testtesttesttest');
+        fireEvent.changeText(input, 'Should show no results found');
         expect(await screen.findByText('No results found')).toBeOnTheScreen();
     });
 });

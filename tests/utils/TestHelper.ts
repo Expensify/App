@@ -4,6 +4,7 @@ import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {ConnectOptions, OnyxKey} from 'react-native-onyx/dist/types';
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
+import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translateLocal} from '@libs/Localize';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
@@ -38,6 +39,10 @@ type QueueItem = {
 type FormData = {
     entries: () => Array<[string, string | Blob]>;
 };
+
+function formatPhoneNumber(phoneNumber: string) {
+    return formatPhoneNumberWithCountryCode(phoneNumber, 1);
+}
 
 function setupApp() {
     beforeAll(() => {
@@ -86,6 +91,7 @@ function getOnyxData<TKey extends OnyxKey>(options: ConnectOptions<TKey>) {
  * Simulate signing in and make sure all API calls in this flow succeed. Every time we add
  * a mockImplementationOnce() we are altering what Network.post() will return.
  */
+// cspell:disable-next-line
 function signInWithTestUser(accountID = 1, login = 'test@user.com', password = 'Password1', authToken = 'asdfqwerty', firstName = 'Test') {
     const originalXhr = HttpUtils.xhr;
 
@@ -320,10 +326,13 @@ function assertFormDataMatchesObject(obj: Report, formData?: FormData) {
     expect(formData).not.toBeUndefined();
     if (formData) {
         expect(
-            Array.from(formData.entries()).reduce((acc, [key, val]) => {
-                acc[key] = val;
-                return acc;
-            }, {} as Record<string, string | Blob>),
+            Array.from(formData.entries()).reduce(
+                (acc, [key, val]) => {
+                    acc[key] = val;
+                    return acc;
+                },
+                {} as Record<string, string | Blob>,
+            ),
         ).toEqual(expect.objectContaining(obj));
     }
 }
@@ -342,11 +351,22 @@ async function navigateToSidebarOption(index: number): Promise<void> {
     await waitForBatchedUpdatesWithAct();
 }
 
+/**
+ * @private
+ * This is a custom collator only for testing purposes.
+ */
+const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'});
+
+function localeCompare(a: string, b: string): number {
+    return customCollator.compare(a, b);
+}
+
 export type {MockFetch, FormData};
 export {
     assertFormDataMatchesObject,
     buildPersonalDetails,
     buildTestReportComment,
+    getFetchMockCalls,
     getGlobalFetchMock,
     setPersonalDetails,
     signInWithTestUser,
@@ -358,4 +378,6 @@ export {
     navigateToSidebarOption,
     getOnyxData,
     getNavigateToChatHintRegex,
+    formatPhoneNumber,
+    localeCompare,
 };

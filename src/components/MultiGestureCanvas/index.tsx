@@ -1,8 +1,8 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import type {GestureType} from 'react-native-gesture-handler';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import type {GestureType} from 'react-native-gesture-handler';
 import type {GestureRef} from 'react-native-gesture-handler/lib/typescript/handlers/gestures/gesture';
 import type PagerView from 'react-native-pager-view';
 import type {SharedValue} from 'react-native-reanimated';
@@ -57,6 +57,9 @@ type MultiGestureCanvasProps = ChildrenProps & {
 
     /** Handles swipe down event */
     onSwipeDown?: OnSwipeDownCallback;
+
+    /** We need to ensure that any native gesture handlers in this component tree is working simultaneously with panning and do not get blocked. */
+    externalGestureHandler?: GestureType;
 };
 
 const defaultContentSize = {width: 1, height: 1};
@@ -74,6 +77,7 @@ function MultiGestureCanvas({
     onTap,
     onScaleChanged,
     onSwipeDown,
+    externalGestureHandler,
 }: MultiGestureCanvasProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -264,12 +268,14 @@ function MultiGestureCanvas({
 
     const containerStyles = useMemo(() => [styles.flex1, StyleUtils.getMultiGestureCanvasContainerStyle(canvasSize.width)], [StyleUtils, canvasSize.width, styles.flex1]);
 
+    const panGestureWrapper = externalGestureHandler ? panGesture.simultaneousWithExternalGesture(externalGestureHandler) : panGesture;
+
     return (
         <View
             collapsable={false}
             style={containerStyles}
         >
-            <GestureDetector gesture={Gesture.Simultaneous(pinchGesture, Gesture.Race(singleTapGesture, doubleTapGesture, panGesture))}>
+            <GestureDetector gesture={Gesture.Simultaneous(pinchGesture, Gesture.Race(singleTapGesture, doubleTapGesture, panGestureWrapper))}>
                 <View
                     collapsable={false}
                     onTouchEnd={(e) => e.preventDefault()}

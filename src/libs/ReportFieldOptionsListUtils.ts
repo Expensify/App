@@ -1,6 +1,7 @@
-import * as Localize from './Localize';
+import {translateLocal} from './Localize';
 import type {Option} from './OptionsListUtils';
-import type * as ReportUtils from './ReportUtils';
+import type {OptionData} from './ReportUtils';
+import tokenizedSearch from './tokenizedSearch';
 
 /**
  * Transforms the provided report field options into option objects.
@@ -28,7 +29,7 @@ function getReportFieldOptionsSection({
 }: {
     options: string[];
     recentlyUsedOptions: string[];
-    selectedOptions: Array<Partial<ReportUtils.OptionData>>;
+    selectedOptions: Array<Partial<OptionData>>;
     searchValue: string;
 }) {
     const reportFieldOptionsSections = [];
@@ -36,7 +37,7 @@ function getReportFieldOptionsSection({
     let indexOffset = 0;
 
     if (searchValue) {
-        const searchOptions = options.filter((option) => option.toLowerCase().includes(searchValue.toLowerCase()));
+        const searchOptions = tokenizedSearch(options, searchValue, (option) => [option]);
 
         reportFieldOptionsSections.push({
             // "Search" section
@@ -67,7 +68,7 @@ function getReportFieldOptionsSection({
     if (filteredRecentlyUsedOptions.length > 0) {
         reportFieldOptionsSections.push({
             // "Recent" section
-            title: Localize.translateLocal('common.recent'),
+            title: translateLocal('common.recent'),
             shouldShow: true,
             indexOffset,
             data: getReportFieldOptions(filteredRecentlyUsedOptions),
@@ -78,7 +79,7 @@ function getReportFieldOptionsSection({
 
     reportFieldOptionsSections.push({
         // "All" section when items amount more than the threshold
-        title: Localize.translateLocal('common.all'),
+        title: translateLocal('common.all'),
         shouldShow: true,
         indexOffset,
         data: getReportFieldOptions(filteredOptions),

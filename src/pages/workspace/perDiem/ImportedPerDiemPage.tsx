@@ -1,5 +1,4 @@
 import React, {useCallback, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
@@ -7,6 +6,7 @@ import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import {generateCustomUnitID, importPerDiemRates} from '@libs/actions/Policy/PerDiem';
 import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
@@ -39,7 +39,8 @@ function generatePerDiemUnits(perDiemDestination: string[], perDiemSubRate: stri
         perDiemUnits[perDiemDestination[i]].subRates?.push({
             id: generateCustomUnitID(),
             name: perDiemSubRate.at(i) ?? '',
-            rate: (Number(perDiemAmount.at(i)) ?? 0) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
+            // Use Math.round to avoid floating point errors when converting decimal amounts to cents (e.g., 16.4 * 100 = 1639.9999...)
+            rate: Math.round((Number(perDiemAmount.at(i)) ?? 0) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET),
         });
     }
     return Object.values(perDiemUnits);

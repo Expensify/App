@@ -2,10 +2,12 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {GetGuideCallAvailabilityScheduleParams} from '@libs/API/parameters';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, ScheduleCallDraft} from '@src/types/onyx';
+import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
+import type {CalendlyCall} from '@src/types/onyx/ReportNameValuePairs';
 import {openExternalLink} from './Link';
 
 function getGuideCallAvailabilitySchedule(reportID: string) {
@@ -55,7 +57,7 @@ function getGuideCallAvailabilitySchedule(reportID: string) {
         reportID,
     };
 
-    API.write(WRITE_COMMANDS.GET_GUIDE_CALL_AVAILABILITY_SCHEDULE, params, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.GET_GUIDE_CALL_AVAILABILITY_SCHEDULE, params, {optimisticData, successData, failureData});
 }
 
 function saveBookingDraft(data: ScheduleCallDraft) {
@@ -66,13 +68,30 @@ function clearBookingDraft() {
     Onyx.set(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`, null);
 }
 
-function confirmBooking(data: Required<ScheduleCallDraft>, currentUser: PersonalDetails) {
+function confirmBooking(data: Required<ScheduleCallDraft>, currentUser: PersonalDetails, timezone?: SelectedTimezone) {
     const scheduleURL = `${data.guide.scheduleURL}?name=${encodeURIComponent(currentUser.displayName ?? '')}&email=${encodeURIComponent(
         currentUser?.login ?? '',
-    )}&utm_source=newDot&utm_medium=report&utm_content=${data.reportID}`;
+    )}&utm_source=newDot&utm_medium=report&utm_content=${data.reportID}&timezone=${timezone}`;
 
     openExternalLink(scheduleURL);
     clearBookingDraft();
     Navigation.dismissModal();
 }
-export {getGuideCallAvailabilitySchedule, saveBookingDraft, clearBookingDraft, confirmBooking};
+
+function getEventIDFromURI(eventURI: string) {
+    const parts = eventURI.split('/');
+    // Last path in the URI is ID
+    return parts.slice(-1).at(0);
+}
+
+function rescheduleBooking(call: CalendlyCall) {
+    const rescheduleURL = `https://calendly.com/reschedulings/${getEventIDFromURI(call.eventURI)}`;
+    openExternalLink(rescheduleURL);
+}
+
+function cancelBooking(call: CalendlyCall) {
+    const cancelURL = `https://calendly.com/cancellations/${getEventIDFromURI(call.eventURI)}`;
+    openExternalLink(cancelURL);
+}
+
+export {getGuideCallAvailabilitySchedule, saveBookingDraft, clearBookingDraft, confirmBooking, rescheduleBooking, cancelBooking};

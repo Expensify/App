@@ -1,20 +1,20 @@
 import CONST from '@src/CONST';
 
 type NeededDocumentsStatusForBeneficialOwner = {
-    isProofOfDirecorsNeeded: boolean;
+    isProofOfDirectorsNeeded: boolean;
     isCopyOfIDNeeded: boolean;
     isAddressProofNeeded: boolean;
     isCodiceFiscaleNeeded: boolean;
-    isPRDandFSGNeeded: boolean;
+    isPRDAndFSGNeeded: boolean;
 };
 
 function getNeededDocumentsStatusForSignerInfo(workspaceCurrency: string, accountCountry: string): NeededDocumentsStatusForBeneficialOwner {
     return {
-        isProofOfDirecorsNeeded: accountCountry === CONST.COUNTRY.CA || accountCountry === CONST.COUNTRY.AU,
+        isProofOfDirectorsNeeded: accountCountry === CONST.COUNTRY.CA || accountCountry === CONST.COUNTRY.AU,
         isCopyOfIDNeeded: workspaceCurrency === CONST.CURRENCY.EUR || workspaceCurrency === CONST.CURRENCY.GBP || accountCountry === CONST.COUNTRY.AU,
         isAddressProofNeeded: workspaceCurrency === CONST.CURRENCY.EUR || accountCountry === CONST.COUNTRY.GB || accountCountry === CONST.COUNTRY.AU,
         isCodiceFiscaleNeeded: accountCountry === CONST.COUNTRY.IT,
-        isPRDandFSGNeeded: accountCountry === CONST.COUNTRY.AU,
+        isPRDAndFSGNeeded: accountCountry === CONST.COUNTRY.AU,
     };
 }
 

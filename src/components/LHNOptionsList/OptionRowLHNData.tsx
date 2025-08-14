@@ -1,6 +1,9 @@
 import {deepEqual} from 'fast-equals';
 import React, {useMemo, useRef} from 'react';
 import useCurrentReportID from '@hooks/useCurrentReportID';
+import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
+import {getSortedReportActions, shouldReportActionBeVisibleAsLastAction} from '@libs/ReportActionsUtils';
+import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
@@ -14,7 +17,7 @@ import type {OptionRowLHNDataProps} from './types';
  * re-render if the data really changed.
  */
 function OptionRowLHNData({
-    isFocused = false,
+    isOptionFocused = false,
     fullReport,
     reportAttributes,
     oneTransactionThreadReport,
@@ -31,13 +34,31 @@ function OptionRowLHNData({
     lastReportActionTransaction,
     transactionViolations,
     lastMessageTextFromReport,
+    localeCompare,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
     const currentReportIDValue = useCurrentReportID();
-    const isReportFocused = isFocused && currentReportIDValue?.currentReportID === reportID;
+    const isReportFocused = isOptionFocused && currentReportIDValue?.currentReportID === reportID;
 
     const optionItemRef = useRef<OptionData | undefined>(undefined);
+
+    const lastAction = useMemo(() => {
+        if (!reportActions || !fullReport) {
+            return undefined;
+        }
+
+        const canUserPerformWriteAction = canUserPerformWriteActionUtil(fullReport);
+        const actionsArray = getSortedReportActions(Object.values(reportActions));
+
+        const reportActionsForDisplay = actionsArray.filter(
+            (reportAction) => shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
+        );
+
+        return reportActionsForDisplay.at(-1);
+    }, [reportActions, fullReport]);
+
+    const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
         const item = SidebarUtils.getOptionData({
@@ -45,13 +66,13 @@ function OptionRowLHNData({
             reportAttributes,
             oneTransactionThreadReport,
             reportNameValuePairs,
-            reportActions,
             personalDetails,
-            preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
             policy,
             parentReportAction,
             lastMessageTextFromReport,
             invoiceReceiverPolicy,
+            card,
+            localeCompare,
         });
         // eslint-disable-next-line react-compiler/react-compiler
         if (deepEqual(item, optionItemRef.current)) {
@@ -84,14 +105,17 @@ function OptionRowLHNData({
         invoiceReceiverPolicy,
         lastMessageTextFromReport,
         reportAttributes,
+        card,
+        localeCompare,
     ]);
 
     return (
         <OptionRowLHN
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsToForward}
-            isFocused={isReportFocused}
+            isOptionFocused={isReportFocused}
             optionItem={optionItem}
+            report={fullReport}
         />
     );
 }

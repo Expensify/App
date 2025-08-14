@@ -1,6 +1,7 @@
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {
     OpenPublicProfilePageParams,
@@ -75,7 +76,7 @@ function updatePronouns(pronouns: string) {
     });
 }
 
-function setDisplayName(firstName: string, lastName: string) {
+function setDisplayName(firstName: string, lastName: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
     if (!currentUserAccountID) {
         return;
     }
@@ -84,15 +85,19 @@ function setDisplayName(firstName: string, lastName: string) {
         [currentUserAccountID]: {
             firstName,
             lastName,
-            displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
-                firstName,
-                lastName,
-            }),
+            displayName: PersonalDetailsUtils.createDisplayName(
+                currentUserEmail ?? '',
+                {
+                    firstName,
+                    lastName,
+                },
+                formatPhoneNumber,
+            ),
         },
     });
 }
 
-function updateDisplayName(firstName: string, lastName: string) {
+function updateDisplayName(firstName: string, lastName: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
     if (!currentUserAccountID) {
         return;
     }
@@ -108,10 +113,14 @@ function updateDisplayName(firstName: string, lastName: string) {
                     [currentUserAccountID]: {
                         firstName,
                         lastName,
-                        displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
-                            firstName,
-                            lastName,
-                        }),
+                        displayName: PersonalDetailsUtils.createDisplayName(
+                            currentUserEmail ?? '',
+                            {
+                                firstName,
+                                lastName,
+                            },
+                            formatPhoneNumber,
+                        ),
                     },
                 },
             },
@@ -119,7 +128,7 @@ function updateDisplayName(firstName: string, lastName: string) {
     });
 }
 
-function updateLegalName(legalFirstName: string, legalLastName: string) {
+function updateLegalName(legalFirstName: string, legalLastName: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
     const parameters: UpdateLegalNameParams = {legalFirstName, legalLastName};
     const optimisticData: OnyxUpdate[] = [
         {
@@ -138,10 +147,14 @@ function updateLegalName(legalFirstName: string, legalLastName: string) {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
                 [currentUserAccountID]: {
-                    displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
-                        firstName: legalFirstName,
-                        lastName: legalLastName,
-                    }),
+                    displayName: PersonalDetailsUtils.createDisplayName(
+                        currentUserEmail ?? '',
+                        {
+                            firstName: legalFirstName,
+                            lastName: legalLastName,
+                        },
+                        formatPhoneNumber,
+                    ),
                     firstName: legalFirstName,
                     lastName: legalLastName,
                 },
@@ -175,7 +188,7 @@ function updateDateOfBirth({dob}: DateOfBirthForm) {
     Navigation.goBack();
 }
 
-function updatePhoneNumber(phoneNumber: string, currenPhoneNumber: string) {
+function updatePhoneNumber(phoneNumber: string, currentPhoneNumber: string) {
     const parameters: UpdatePhoneNumberParams = {phoneNumber};
     API.write(WRITE_COMMANDS.UPDATE_PHONE_NUMBER, parameters, {
         optimisticData: [
@@ -192,7 +205,7 @@ function updatePhoneNumber(phoneNumber: string, currenPhoneNumber: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
                 value: {
-                    phoneNumber: currenPhoneNumber,
+                    phoneNumber: currentPhoneNumber,
                     errorFields: {
                         phoneNumber: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('privatePersonalDetails.error.invalidPhoneNumber'),
                     },
@@ -260,9 +273,9 @@ function updateAutomaticTimezone(timezone: Timezone) {
         return;
     }
 
-    const formatedTimezone = DateUtils.formatToSupportedTimezone(timezone);
+    const formattedTimezone = DateUtils.formatToSupportedTimezone(timezone);
     const parameters: UpdateAutomaticTimezoneParams = {
-        timezone: JSON.stringify(formatedTimezone),
+        timezone: JSON.stringify(formattedTimezone),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_AUTOMATIC_TIMEZONE, parameters, {
@@ -272,7 +285,7 @@ function updateAutomaticTimezone(timezone: Timezone) {
                 key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                 value: {
                     [currentUserAccountID]: {
-                        timezone: formatedTimezone,
+                        timezone: formattedTimezone,
                     },
                 },
             },

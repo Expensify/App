@@ -122,9 +122,9 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
             ))}
             {reimbursable === CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK && (
                 <ToggleSettingOptionRow
-                    key={translate('workspace.qbd.exportOutOfPocketExpensesCheckToogle')}
-                    title={translate('workspace.qbd.exportOutOfPocketExpensesCheckToogle')}
-                    switchAccessibilityLabel={translate('workspace.qbd.exportOutOfPocketExpensesCheckToogle')}
+                    key={translate('workspace.qbd.exportOutOfPocketExpensesCheckToggle')}
+                    title={translate('workspace.qbd.exportOutOfPocketExpensesCheckToggle')}
+                    switchAccessibilityLabel={translate('workspace.qbd.exportOutOfPocketExpensesCheckToggle')}
                     shouldPlaceSubtitleBelowSwitch
                     wrapperStyle={[styles.mv3, styles.ph5]}
                     isActive={!!qbdConfig?.markChecksToBePrinted}

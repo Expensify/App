@@ -1,11 +1,10 @@
 import React, {useCallback} from 'react';
-import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,11 +12,12 @@ import {updatePolicyTaxValue, validateTaxValue} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getTaxByID} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -35,10 +35,10 @@ function ValuePage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const currentTaxRate = PolicyUtils.getTaxByID(policy, taxID);
+    const currentTaxRate = getTaxByID(policy, taxID);
     const defaultValue = currentTaxRate?.value?.replace('%', '');
 
-    const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID ?? '-1', taxID)), [policyID, taxID]);
+    const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, taxID)), [policyID, taxID]);
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM>) => {
@@ -86,16 +86,20 @@ function ValuePage({
                     addBottomSafeAreaPadding
                 >
                     <InputWrapper
-                        InputComponent={AmountForm}
+                        InputComponent={NumberWithSymbolForm}
                         inputID={INPUT_IDS.VALUE}
                         defaultValue={defaultValue}
-                        hideCurrencySymbol
-                        // The default currency uses 2 decimal places, so we substract it
-                        extraDecimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES - 2}
+                        decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
                         // We increase the amount max length to support the extra decimals.
-                        amountMaxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
-                        extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
+                        maxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
+                        symbol="%"
+                        symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX}
                         ref={inputCallbackRef}
+                        autoGrowExtraSpace={variables.w80}
+                        isSymbolPressable={false}
+                        autoGrowMarginSide="left"
+                        style={[styles.iouAmountTextInput, styles.textAlignRight]}
+                        containerStyle={styles.iouAmountTextInputContainer}
                     />
                 </FormProvider>
             </ScreenWrapper>

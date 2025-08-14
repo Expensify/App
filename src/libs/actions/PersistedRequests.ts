@@ -1,4 +1,4 @@
-import isEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -7,7 +7,8 @@ import type {Request} from '@src/types/onyx';
 let persistedRequests: Request[] = [];
 let ongoingRequest: Request | null = null;
 
-Onyx.connect({
+// We have opted for connectWithoutView here as this module is strictly non-UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.PERSISTED_REQUESTS,
     callback: (val) => {
         Log.info('[PersistedRequests] hit Onyx connect callback', false, {isValNullish: val == null});
@@ -18,13 +19,14 @@ Onyx.connect({
 
             // We try to remove the next request from the persistedRequests if it is the same as ongoingRequest
             // so we don't process it twice.
-            if (isEqual(nextRequestToProcess, ongoingRequest)) {
+            if (deepEqual(nextRequestToProcess, ongoingRequest)) {
                 persistedRequests = persistedRequests.slice(1);
             }
         }
     },
 });
-Onyx.connect({
+// We have opted for connectWithoutView here as this module is strictly non-UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.PERSISTED_ONGOING_REQUESTS,
     callback: (val) => {
         ongoingRequest = val ?? null;
@@ -61,7 +63,7 @@ function endRequestAndRemoveFromQueue(requestToRemove: Request) {
      * If we were to remove all matching requests, we can end up with a final state that is different than what the user intended.
      */
     const requests = [...persistedRequests];
-    const index = requests.findIndex((persistedRequest) => isEqual(persistedRequest, requestToRemove));
+    const index = requests.findIndex((persistedRequest) => deepEqual(persistedRequest, requestToRemove));
 
     if (index !== -1) {
         requests.splice(index, 1);
@@ -134,7 +136,7 @@ function rollbackOngoingRequest() {
     }
 
     // Prepend ongoingRequest to persistedRequests
-    persistedRequests.unshift({...ongoingRequest, isRollbacked: true});
+    persistedRequests.unshift({...ongoingRequest, isRollback: true});
 
     // Clear the ongoingRequest
     ongoingRequest = null;

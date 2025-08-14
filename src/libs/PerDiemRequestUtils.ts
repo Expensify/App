@@ -1,31 +1,21 @@
 import {addDays, differenceInDays, differenceInMinutes, format, isSameDay, startOfDay} from 'date-fns';
 import lodashSortBy from 'lodash/sortBy';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import {translateLocal} from './Localize';
 import type {OptionTree, SectionBase} from './OptionsListUtils';
 import {getPolicy} from './PolicyUtils';
 import {isPolicyExpenseChat} from './ReportUtils';
-
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allReports = value;
-    },
-});
+import tokenizedSearch from './tokenizedSearch';
 
 /**
  * Returns custom unit ID for the per diem transaction
  */
-function getCustomUnitID(reportID: string) {
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
+function getCustomUnitID(report: OnyxEntry<Report>, parentReport: OnyxEntry<Report>) {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(report?.policyID ?? parentReport?.policyID);
     let customUnitID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
     let category: string | undefined;
@@ -109,17 +99,10 @@ function getDestinationListSections({
     const destinationSections: DestinationTreeSection[] = [];
 
     if (searchValue) {
-        const searchDestinations: Destination[] = [];
-
-        sortedDestinations.forEach((destination) => {
-            if (!destination.name.toLowerCase().includes(searchValue.toLowerCase())) {
-                return;
-            }
-            searchDestinations.push({
-                ...destination,
-                isSelected: selectedOptions.some((selectedOption) => selectedOption.rateID === destination.rateID),
-            });
-        });
+        const searchDestinations: Destination[] = tokenizedSearch(sortedDestinations, searchValue, (destination) => [destination.name]).map((destination) => ({
+            ...destination,
+            isSelected: selectedOptions.some((selectedOption) => selectedOption.rateID === destination.rateID),
+        }));
 
         const data = getDestinationOptionTree(searchDestinations);
         destinationSections.push({
@@ -278,6 +261,6 @@ function getTimeDifferenceIntervals(transaction: OnyxEntry<Transaction>) {
     };
 }
 
-export type {Destination};
+export type {Destination, DestinationTreeSection};
 
 export {getCustomUnitID, getDestinationListSections, getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeForDisplay, getTimeDifferenceIntervals};

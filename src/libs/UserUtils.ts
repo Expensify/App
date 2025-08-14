@@ -6,8 +6,9 @@ import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import {ConciergeAvatar, NotificationsAvatar} from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account, LoginList, PrivatePersonalDetails, Session} from '@src/types/onyx';
+import type {Account, LoginList, PrivatePersonalDetails, Session, VacationDelegate} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import hashCode from './hashCode';
 
@@ -97,9 +98,13 @@ function getLoginListBrickRoadIndicator(loginList: OnyxEntry<LoginList>): LoginL
  * Gets the appropriate brick road indicator status for the Profile section.
  * Error status is higher priority, so we check for that first.
  */
-function getProfilePageBrickRoadIndicator(loginList: OnyxEntry<LoginList>, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): LoginListIndicator {
+function getProfilePageBrickRoadIndicator(
+    loginList: OnyxEntry<LoginList>,
+    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>,
+    vacationDelegate: OnyxEntry<VacationDelegate>,
+): LoginListIndicator {
     const hasPhoneNumberError = !!privatePersonalDetails?.errorFields?.phoneNumber;
-    if (hasLoginListError(loginList) || hasPhoneNumberError) {
+    if (hasLoginListError(loginList) || hasPhoneNumberError || !isEmptyObject(vacationDelegate?.errors)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
     if (hasLoginListInfo(loginList)) {

@@ -14,14 +14,7 @@ type ScrollViewProps = RNScrollViewProps & {
 };
 
 function ScrollView(
-    {
-        children,
-        scrollIndicatorInsets,
-        contentContainerStyle: contentContainerStyleProp,
-        addBottomSafeAreaPadding = false,
-        addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
-        ...props
-    }: ScrollViewProps,
+    {children, scrollIndicatorInsets, contentContainerStyle: contentContainerStyleProp, addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, ...props}: ScrollViewProps,
     ref: ForwardedRef<RNScrollView>,
 ) {
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({

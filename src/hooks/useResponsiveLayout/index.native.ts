@@ -9,7 +9,7 @@ import type ResponsiveLayoutResult from './types';
 
 /**
  * Hook to determine if we are on mobile devices or in the Modal Navigator. It also provides booleans for our breakpoints
- * Use "shouldUseNarrowLayout" for "on mobile or in RHP/LHP", "isSmallScreenWidth" for "on mobile", "isInNarrowPaneModal" for "in RHP/LHP".
+ * Use "shouldUseNarrowLayout" for "on mobile or in RHP", "isSmallScreenWidth" for "on mobile", "isInNarrowPaneModal" for "in RHP".
  *
  * There are two kinds of modals in this app:
  *     1. Modal stack navigators from react-navigation
@@ -48,12 +48,7 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const navigator = useContext(NavigationContext);
     const currentNavigator = navigator ?? navigationContainerRef;
 
-    const isDisplayedInNarrowModalNavigator = useMemo(
-        () =>
-            !!currentNavigator?.getParent?.(NAVIGATORS.RIGHT_MODAL_NAVIGATOR as unknown as undefined) ||
-            !!currentNavigator?.getParent?.(NAVIGATORS.LEFT_MODAL_NAVIGATOR as unknown as undefined),
-        [currentNavigator],
-    );
+    const isDisplayedInNarrowModalNavigator = useMemo(() => !!currentNavigator?.getParent?.(NAVIGATORS.RIGHT_MODAL_NAVIGATOR as unknown as undefined), [currentNavigator]);
 
     // The component calling this hook is in a "narrow pane modal" if:
     const isInNarrowPaneModal =

@@ -9,7 +9,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getWorkflowApprovalsUnavailable} from '@libs/PolicyUtils';
+import {getWorkflowApprovalsUnavailable, hasVBBA} from '@libs/PolicyUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {enableAutoApprovalOptions, enablePolicyAutoReimbursementLimit, setPolicyPreventSelfApproval} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -24,22 +24,22 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
-    const autoPayApprovedReportsUnavailable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+    const autoPayApprovedReportsUnavailable = !policy?.areWorkflowsEnabled || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || !hasVBBA(policyID);
 
     const renderFallbackSubtitle = ({featureName, variant = 'unlock'}: {featureName: string; variant?: 'unlock' | 'enable'}) => {
         return (
             <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
-                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.expenseReportRules.unlockFeatureGoToSubtitle')}</Text>{' '}
+                <Text style={styles.mutedNormalTextLabel}>{translate('workspace.rules.expenseReportRules.unlockFeatureGoToSubtitle')}</Text>{' '}
                 <TextLink
-                    style={styles.link}
+                    style={[styles.mutedNormalTextLabel, styles.link]}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID))}
                 >
                     {translate('workspace.common.moreFeatures').toLowerCase()}
                 </TextLink>{' '}
                 {variant === 'unlock' ? (
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.expenseReportRules.unlockFeatureEnableWorkflowsSubtitle', {featureName})}</Text>
+                    <Text style={styles.mutedNormalTextLabel}>{translate('workspace.rules.expenseReportRules.unlockFeatureEnableWorkflowsSubtitle', {featureName})}</Text>
                 ) : (
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.expenseReportRules.enableFeatureSubtitle', {featureName})}</Text>
+                    <Text style={styles.mutedNormalTextLabel}>{translate('workspace.rules.expenseReportRules.enableFeatureSubtitle', {featureName})}</Text>
                 )}
             </Text>
         );

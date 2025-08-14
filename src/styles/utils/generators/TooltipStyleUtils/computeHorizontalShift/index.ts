@@ -14,8 +14,14 @@ const GUTTER_WIDTH = variables.gutterWidth;
  *                           and the left edge of the wrapped component.
  * @param tooltipWidth - The width of the tooltip itself.
  */
-const computeHorizontalShift: ComputeHorizontalShift = (windowWidth, tooltipLeftEdge, tooltipWidth) => {
+const computeHorizontalShift: ComputeHorizontalShift = (windowWidth, tooltipLeftEdge, tooltipWidth, tooltipWrapperLeft, tooltipWrapperWidth) => {
     const tooltipRightEdge = tooltipLeftEdge + tooltipWidth;
+    const tooltipWrapperRight = tooltipWrapperLeft + tooltipWrapperWidth;
+
+    if (tooltipWrapperLeft < 0 || tooltipWrapperRight > windowWidth) {
+        return 0;
+    }
+
     if (tooltipLeftEdge < GUTTER_WIDTH) {
         // Tooltip is in left gutter, shift right by a multiple of four.
         return roundToNearestMultipleOfFour(GUTTER_WIDTH - tooltipLeftEdge);

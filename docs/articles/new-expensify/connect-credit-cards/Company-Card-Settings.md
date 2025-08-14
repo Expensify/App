@@ -1,54 +1,82 @@
 ---
 title: Company Card Settings
-description: Learn how to manage company card settings, export transactions to accounting software, and enable eReceipts for efficient expense tracking in Expensify
+description: Learn how to manage company card settings, export transactions to accounting software, and enable eReceipts for efficient expense tracking in Expensify.
+keywords: [New Expensify, company cards, card feed settings, accounting exports, ereceipts, expense automation, card management]
+---
+<div id="new-expensify" markdown="1">
+
+Workspace Admins can manage company card settings, export logic, and eReceipt functionality at the workspace level. This guide outlines how to configure your company card connection, route expenses to accounting systems, and automate receipt handling.
+
 ---
 
-Workspace admins can easily manage the company card settings at the workspace level. This guide walks you through adjusting the settings, exporting transactions to your accounting system, and enabling eReceipts for efficient expense tracking.
+# Manage Company Card Settings
 
----
-# Managing Company Card Settings
-To make changes to the settings:
+To adjust your card feed configuration:
 
-1. Go to **Settings > Workspaces > [Workspace Name] > Company cards**.
-2. Click **Settings**, where you can:
-   - Change the name of the company card connection.
-   - Adjust whether cardholders can delete transactions (changes to this setting only apply to new card transactions).
-   - Remove the card connection (removing the connection unassigns all its cards and deletes unsubmitted expenses on draft reports in cardholder accounts).
+1. Go to **Workspaces > [Workspace Name] > Company Cards**.
+2. Click **Settings** in the top-right corner.
+
+**Available actions include:**
+
+- **Rename the card feed connection**
+- **Control whether cardholders can delete transactions:** Only affects **new** transactions going forward
+- **Remove the card connection:** Unassigns all cards and deletes unsubmitted expenses in draft reports
 
 ![Tap settings to open the card feed settings page]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_12.png){:width="100%"}
 
 ---
-# Exporting Transactions to an Accounting System
-If you’ve connected accounting software (e.g., QuickBooks, NetSuite, Xero), you can export card transactions to either:
 
-- A central account (default setting).
-- Separate individual accounts.
+# Export Transactions to Your Accounting System
 
-## Exporting to a Central Account 
-To adjust the export type for the central account head to **Settings > Workspaces > [Workspace Name] > Accounting > Connections > Export > Export company card expenses as**.
+If you’ve connected accounting software (like **QuickBooks**, **NetSuite**, or **Xero**), you can export company card expenses either to a **central account** or **individual accounts**.
 
-## Exporting to Individual Accounts
-1. Go to **Settings > Workspaces > [Workspace Name] > Company cards**.
-2. Click an assigned card to open the **Card details** page.
-3. Select an individual card account manually to override the central export account.
-   - If left as **Default card**, the central account is used.
----
-# Using eReceipts
-Expensify provides eReceipts as digital substitutes for paper receipts, eliminating the need for SmartScanned physical receipts. eReceipts are automatically generated for many USD purchases of $75 or less on both commercial and direct credit card connections.
+## Export to a Central Account
 
-To enable eReceipts:
-1. Go to **Settings > Workspaces > [Workspace Name] > More features**, and enable **Rules**.
-2. Navigate to **Rules**, and enable **eReceipts**.
+To adjust this workspace-level setting:
 
-**Note**:
-- eReceipts are not generated for some expense categories, such as lodging.
-- Incomplete or inaccurate category information from some banks or re-categorizing expenses may invalidate eReceipts.
+1. Go to **Workspaces > [Workspace Name] > Accounting > Connections > Export**.
+2. Under **Export company card expenses as**, choose **Central account**.
+
+## Export to Individual Accounts
+
+To override the central export account per card:
+
+1. Go to **Workspaces > [Workspace Name] > Company Cards**.
+2. Click on an assigned card to open the **Card Details** page.
+3. Select a specific **export account** for that card.
+
+**Note:** If left set to **Default Card**, the central export account will be used.
 
 ---
+
+# Use eReceipts
+
+**eReceipts** are digital receipts that replace paper ones for many **USD transactions of $75 or less**. They’re available on both commercial and direct card feeds.
+
+1. Go to **Workspaces > [Workspace Name] > More Features** and toggle on **Rules**.
+2. Navigate to the **Rules** section.
+3. Enable **eReceipts**.
+
+**Things to Note:**
+- eReceipts are not generated for certain categories, like **lodging**.
+- Missing or incorrect category data may prevent eReceipts from being applied.
+- Manually re-categorizing an expense can invalidate an existing eReceipt.
+
+---
+
 # FAQ
 
-## Are company cards limited to a certain plan?
-You can add one [commercial](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Commercial-feeds) or [direct feed](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Direct-feeds) on the Collect plan. Upgrading to the Control plan allows you to add unlimited company cards. The [Expensify Card](https://use.expensify.com/company-credit-card) is also always available on both the Collect and Control plans.
+## Are Company Cards Limited by Plan?
 
-## When do card transactions import into Expensify?
-Card transactions start importing after a card is assigned. Expensify imports transactions as soon as they post, typically within 1-3 business days. Pending transactions will not appear in your account.
+Yes, below is a breakdown:  
+- On the **Collect plan**, you can connect one [commercial](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Commercial-feeds) or [direct feed](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Direct-feeds).
+- The **Control plan** supports **unlimited** card connections.
+- The [Expensify Card](https://use.expensify.com/company-credit-card) is available on **both plans**.
+
+## When Do Card Transactions Import?
+
+Transactions import **after a card is assigned**. Once a purchase **posts** (typically within 1–3 business days), it will appear in the cardholder’s account.
+
+**Note:** Pending transactions are not imported.
+
+</div>

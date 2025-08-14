@@ -3,12 +3,12 @@ import type {RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
 import {InteractionManager, Keyboard, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormElement from '@components/FormElement';
 import ScrollView from '@components/ScrollView';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -58,6 +58,12 @@ type FormWrapperProps = ChildrenProps &
          * This is needed for buttons that allow content to display under them.
          */
         shouldSubmitButtonBlendOpacity?: boolean;
+
+        /** Fires at most once per frame during scrolling. */
+        onScroll?: () => void;
+
+        /** Prevents the submit button from triggering blur on mouse down. */
+        shouldPreventDefaultFocusOnPressSubmit?: boolean;
     };
 
 function FormWrapper({
@@ -78,14 +84,17 @@ function FormWrapper({
     scrollContextEnabled = false,
     shouldHideFixErrorsAlert = false,
     disablePressOnEnter = false,
+    enterKeyEventListenerPriority = 1,
     isSubmitDisabled = false,
     shouldRenderFooterAboveSubmit = false,
     isLoading = false,
     shouldScrollToEnd = false,
     addBottomSafeAreaPadding,
-    addOfflineIndicatorBottomSafeAreaPadding: addOfflineIndicatorBottomSafeAreaPaddingProp,
+    addOfflineIndicatorBottomSafeAreaPadding,
     shouldSubmitButtonStickToBottom: shouldSubmitButtonStickToBottomProp,
     shouldSubmitButtonBlendOpacity = false,
+    shouldPreventDefaultFocusOnPressSubmit = false,
+    onScroll = () => {},
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<RNScrollView>(null);
@@ -96,7 +105,7 @@ function FormWrapper({
     const errorMessage = useMemo(() => (formState ? getLatestErrorMessage(formState) : undefined), [formState]);
 
     const onFixTheErrorsLinkPressed = useCallback(() => {
-        const errorFields = !isEmptyObject(errors) ? errors : formState?.errorFields ?? {};
+        const errorFields = !isEmptyObject(errors) ? errors : (formState?.errorFields ?? {});
         const focusKey = Object.keys(inputRefs.current ?? {}).find((key) => Object.keys(errorFields).includes(key));
 
         if (!focusKey) {
@@ -137,13 +146,13 @@ function FormWrapper({
     // If the paddingBottom is 0, it has already been applied to a parent component and we don't want to apply the padding again.
     const isLegacyBottomSafeAreaPaddingAlreadyApplied = paddingBottom === 0;
     const shouldApplyBottomSafeAreaPadding = addBottomSafeAreaPadding ?? !isLegacyBottomSafeAreaPaddingAlreadyApplied;
-    const addOfflineIndicatorBottomSafeAreaPadding = addOfflineIndicatorBottomSafeAreaPaddingProp ?? addBottomSafeAreaPadding === true;
 
     // We need to add bottom safe area padding to the submit button when we don't use a scroll view or
     // when the submit button is sticking to the bottom.
     const addSubmitButtonBottomSafeAreaPadding = addBottomSafeAreaPadding && (!shouldUseScrollView || shouldSubmitButtonStickToBottom);
     const submitButtonStylesWithBottomSafeAreaPadding = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: addSubmitButtonBottomSafeAreaPadding,
+        addOfflineIndicatorBottomSafeAreaPadding,
         styleProperty: shouldSubmitButtonStickToBottom ? 'bottom' : 'paddingBottom',
         additionalPaddingBottom: shouldSubmitButtonStickToBottom ? styles.pb5.paddingBottom : 0,
         style: submitButtonStyles,
@@ -171,13 +180,15 @@ function FormWrapper({
                     enabledWhenOffline={enabledWhenOffline}
                     isSubmitActionDangerous={isSubmitActionDangerous}
                     disablePressOnEnter={disablePressOnEnter}
-                    enterKeyEventListenerPriority={1}
+                    enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
                     shouldBlendOpacity={shouldSubmitButtonBlendOpacity}
+                    shouldPreventDefaultFocusOnPress={shouldPreventDefaultFocusOnPressSubmit}
                 />
             ),
         [
             disablePressOnEnter,
+            enterKeyEventListenerPriority,
             enabledWhenOffline,
             errorMessage,
             errors,
@@ -202,6 +213,7 @@ function FormWrapper({
             submitButtonText,
             submitFlexEnabled,
             shouldRenderFooterAboveSubmit,
+            shouldPreventDefaultFocusOnPressSubmit,
         ],
     );
 
@@ -263,6 +275,7 @@ function FormWrapper({
                     addBottomSafeAreaPadding={shouldApplyBottomSafeAreaPadding}
                     addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
                     ref={formRef}
+                    onScroll={onScroll}
                 >
                     {scrollViewContent()}
                 </ScrollView>

@@ -1,6 +1,7 @@
-import {useContext, useEffect, useRef} from 'react';
-import {NetworkContext} from '@components/OnyxProvider';
+import {useEffect, useRef} from 'react';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import useOnyx from './useOnyx';
 
 type UseNetworkProps = {
     onReconnect?: () => void;
@@ -13,7 +14,26 @@ export default function useNetwork({onReconnect = () => {}}: UseNetworkProps = {
     // eslint-disable-next-line react-compiler/react-compiler
     callback.current = onReconnect;
 
-    const {isOffline, networkStatus, lastOfflineAt} = useContext(NetworkContext) ?? {...CONST.DEFAULT_NETWORK_DATA, networkStatus: CONST.NETWORK.NETWORK_STATUS.UNKNOWN};
+    const [network] = useOnyx(ONYXKEYS.NETWORK, {
+        selector: (networkData) => {
+            if (!networkData) {
+                return {...CONST.DEFAULT_NETWORK_DATA, networkStatus: CONST.NETWORK.NETWORK_STATUS.UNKNOWN};
+            }
+
+            return {
+                isOffline: networkData.isOffline,
+                networkStatus: networkData.networkStatus,
+                lastOfflineAt: networkData.lastOfflineAt,
+            };
+        },
+        canBeMissing: true,
+    });
+
+    // Extract values with proper defaults
+    const isOffline = network?.isOffline ?? false;
+    const networkStatus = network?.networkStatus;
+    const lastOfflineAt = network?.lastOfflineAt;
+
     const prevOfflineStatusRef = useRef(isOffline);
     useEffect(() => {
         // If we were offline before and now we are not offline then we just reconnected

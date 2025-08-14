@@ -1,9 +1,9 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
@@ -47,11 +47,11 @@ function Website({onNext, onMove, isEditing}: WebsiteProps) {
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext: (values) => {
-            const website = Str.sanitizeURL((values as {website: string})?.website, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
+            const website = Str.sanitizeURL((values as {websiteUrl: string})?.websiteUrl, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
             setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COMPANY_WEBSITE]: website});
             onNext();
         },
-        shouldSaveDraft: isEditing,
+        shouldSaveDraft: true,
     });
 
     return (
@@ -60,7 +60,7 @@ function Website({onNext, onMove, isEditing}: WebsiteProps) {
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={translate('businessInfoStep.enterYourCompanysWebsite')}
+            formTitle={translate('businessInfoStep.enterYourCompanyWebsite')}
             formDisclaimer={translate('common.websiteExample')}
             validate={validate}
             onSubmit={handleSubmit}

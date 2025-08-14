@@ -38,29 +38,6 @@ export default (env) => ({
         },
         rules: [
             ...Repack.getJsTransformRules({swc: {lazyImports: true}}),
-            {
-                test: /\.(js|jsx|ts|tsx)$/,
-                use: [
-                    {
-                        loader: 'babel-loader',
-                        options: {
-                            babelrc: false,
-                            configFile: path.resolve(__dirname, './babel.config.js'),
-                            plugins: ['babel-plugin-syntax-hermes-parser', ['@babel/plugin-syntax-typescript', false], '@react-native/babel-plugin-codegen'],
-                            overrides: [
-                                {
-                                    test: /\.ts$/,
-                                    plugins: [['@babel/plugin-syntax-typescript', {isTSX: false, allowNamespaces: true}]],
-                                },
-                                {
-                                    test: /\.tsx$/,
-                                    plugins: [['@babel/plugin-syntax-typescript', {isTSX: true, allowNamespaces: true}]],
-                                },
-                            ],
-                        },
-                    },
-                ],
-            },
             ...Repack.getAssetTransformRules(),
             {
                 test: /\.lottie$/,
@@ -74,5 +51,19 @@ export default (env) => ({
         /Module not found: Can't resolve '@shopify\/react-native-skia'/,
         /Module not found: Can't resolve 'react-native-reanimated\/src\/reanimated2\/core'/,
     ],
-    plugins: [new Repack.RepackPlugin(), new ReanimatedPlugin(), new ExpoModulesPlugin()],
+    plugins: [
+        new Repack.RepackPlugin({
+            extraChunks: [
+                {
+                    // Matches locale files like es.ts, fr.ts, pt-BR.ts,
+                    // Excludes en.ts and anything not a 2-letter (or 2-letter + region) code
+                    test: /src[\\/]languages[\\/](?!en(?:\.ts)$)[a-z]{2}(?:-[A-Z]{2})?\.ts$/,
+                    type: 'remote',
+                    outputPath: path.join('remotes', 'languages'),
+                },
+            ],
+        }),
+        new ReanimatedPlugin(),
+        new ExpoModulesPlugin(),
+    ],
 });

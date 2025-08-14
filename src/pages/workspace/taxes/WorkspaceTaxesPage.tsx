@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceTaxRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
@@ -22,6 +21,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
@@ -32,7 +32,6 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearTaxRateError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getLatestErrorFieldForAnyField} from '@libs/ErrorUtils';
-import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
@@ -66,11 +65,11 @@ function WorkspaceTaxesPage({
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {environmentURL} = useEnvironment();
     const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    const {selectionMode} = useMobileSelectionMode();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
@@ -81,7 +80,7 @@ function WorkspaceTaxesPage({
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
-    const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
+    const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
 
     const enabledRatesCount = selectedTaxesIDs.filter((taxID) => !policy?.taxRates?.taxes[taxID]?.isDisabled).length;
     const disabledRatesCount = selectedTaxesIDs.length - enabledRatesCount;
@@ -167,7 +166,6 @@ function WorkspaceTaxesPage({
                 text: value.name,
                 alternateText: textForDefault(key, value),
                 keyForList: key,
-                isSelected: !!selectedTaxesIDs.includes(key) && canSelectMultiple,
                 isDisabledCheckbox: !canEditTaxRatePolicyUtils(policy, key),
                 isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 pendingAction: value.pendingAction ?? (Object.keys(value.pendingFields ?? {}).length > 0 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null),
@@ -182,7 +180,7 @@ function WorkspaceTaxesPage({
                 ),
             };
         });
-    }, [policy, textForDefault, selectedTaxesIDs, canSelectMultiple, translate, updateWorkspaceTaxEnabled]);
+    }, [policy, textForDefault, translate, updateWorkspaceTaxEnabled]);
 
     const filterTax = useCallback((tax: ListItem, searchInput: string) => {
         const taxName = StringUtils.normalize(tax.text?.toLowerCase() ?? '');
@@ -190,13 +188,16 @@ function WorkspaceTaxesPage({
         const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase() ?? '');
         return taxName.includes(normalizedSearchInput) || taxAlternateText.includes(normalizedSearchInput);
     }, []);
-    const sortTaxes = useCallback((taxes: ListItem[]) => {
-        return taxes.sort((a, b) => {
-            const aText = a.text ?? a.keyForList ?? '';
-            const bText = b.text ?? b.keyForList ?? '';
-            return aText.localeCompare(bText);
-        });
-    }, []);
+    const sortTaxes = useCallback(
+        (taxes: ListItem[]) => {
+            return taxes.sort((a, b) => {
+                const aText = a.text ?? a.keyForList ?? '';
+                const bText = b.text ?? b.keyForList ?? '';
+                return localeCompare(aText, bText);
+            });
+        },
+        [localeCompare],
+    );
     const [inputValue, setInputValue, filteredTaxesList] = useSearchResults(taxesList, filterTax, sortTaxes);
 
     const isLoading = !isOffline && taxesList === undefined;
@@ -228,6 +229,9 @@ function WorkspaceTaxesPage({
     };
 
     const getCustomListHeader = () => {
+        if (filteredTaxesList.length === 0) {
+            return null;
+        }
         return (
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
@@ -241,10 +245,13 @@ function WorkspaceTaxesPage({
         if (!policy?.id) {
             return;
         }
-        deletePolicyTaxes(policy, selectedTaxesIDs);
-        setSelectedTaxesIDs([]);
+        deletePolicyTaxes(policy, selectedTaxesIDs, localeCompare);
         setIsDeleteModalVisible(false);
-    }, [policy, selectedTaxesIDs]);
+
+        InteractionManager.runAfterInteractions(() => {
+            setSelectedTaxesIDs([]);
+        });
+    }, [policy, selectedTaxesIDs, localeCompare]);
 
     const toggleTaxes = useCallback(
         (isEnabled: boolean) => {
@@ -261,7 +268,7 @@ function WorkspaceTaxesPage({
         if (!taxRate.keyForList) {
             return;
         }
-        if (isSmallScreenWidth && selectionMode?.isEnabled) {
+        if (isSmallScreenWidth && isMobileSelectionModeEnabled) {
             toggleTax(taxRate);
             return;
         }
@@ -302,7 +309,20 @@ function WorkspaceTaxesPage({
         return options;
     }, [hasAccountingConnections, policy?.taxRates?.taxes, selectedTaxesIDs, toggleTaxes, translate, enabledRatesCount, disabledRatesCount]);
 
-    const shouldShowBulkActionsButton = shouldUseNarrowLayout ? selectionMode?.isEnabled : selectedTaxesIDs.length > 0;
+    const shouldShowBulkActionsButton = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : selectedTaxesIDs.length > 0;
+
+    const secondaryActions = useMemo(
+        () => [
+            {
+                icon: Expensicons.Gear,
+                text: translate('common.settings'),
+                onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID)),
+                value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+            },
+        ],
+        [policyID, translate],
+    );
+
     const headerButtons = !shouldShowBulkActionsButton ? (
         <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
             {!hasAccountingConnections && (
@@ -314,11 +334,14 @@ function WorkspaceTaxesPage({
                     style={[shouldUseNarrowLayout && styles.flex1]}
                 />
             )}
-            <Button
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID))}
-                icon={Expensicons.Gear}
-                text={translate('common.settings')}
-                style={[shouldUseNarrowLayout && styles.flex1]}
+            <ButtonWithDropdownMenu
+                success={false}
+                onPress={() => {}}
+                shouldUseOptionIcon
+                customText={translate('common.more')}
+                options={secondaryActions}
+                isSplitButton={false}
+                wrapperStyle={hasAccountingConnections ? styles.flexGrow1 : styles.flexGrow0}
             />
         </View>
     ) : (
@@ -328,33 +351,42 @@ function WorkspaceTaxesPage({
             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
             customText={translate('workspace.common.selected', {count: selectedTaxesIDs.length})}
             shouldAlwaysShowDropdownMenu
-            pressOnEnter
             isSplitButton={false}
             style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
             isDisabled={!selectedTaxesIDs.length}
         />
     );
 
-    const getHeaderText = () => (
-        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-            {!hasSyncError && isConnectionVerified ? (
-                <Text>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.taxes.importedFromAccountingSoftware')} `}</Text>
-                    <TextLink
-                        style={[styles.textNormal, styles.link]}
-                        href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                    >
-                        {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
-                    </TextLink>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
-                </Text>
-            ) : (
-                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
-            )}
-        </View>
-    );
+    const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
-    const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
+    const headerContent = (
+        <>
+            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                {!hasSyncError && isConnectionVerified ? (
+                    <Text>
+                        <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.taxes.importedFromAccountingSoftware')} `}</Text>
+                        <TextLink
+                            style={[styles.textNormal, styles.link]}
+                            href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
+                        >
+                            {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
+                        </TextLink>
+                        <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
+                    </Text>
+                ) : (
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
+                )}
+            </View>
+            {taxesList.length > CONST.SEARCH_ITEM_LIMIT && (
+                <SearchBar
+                    label={translate('workspace.taxes.findTaxRate')}
+                    inputValue={inputValue}
+                    onChangeText={setInputValue}
+                    shouldShowEmptyState={filteredTaxesList.length === 0}
+                />
+            )}
+        </>
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -374,27 +406,17 @@ function WorkspaceTaxesPage({
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.taxes')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => {
-                        if (selectionMode?.isEnabled) {
+                        if (isMobileSelectionModeEnabled) {
                             setSelectedTaxesIDs([]);
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        goBackFromWorkspaceCentralScreen(policyID);
+                        Navigation.popToSidebar();
                     }}
                 >
                     {!shouldUseNarrowLayout && headerButtons}
                 </HeaderWithBackButton>
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
-
-                {getHeaderText()}
-                {taxesList.length > CONST.SEARCH_ITEM_LIMIT && (
-                    <SearchBar
-                        label={translate('workspace.taxes.findTaxRate')}
-                        inputValue={inputValue}
-                        onChangeText={setInputValue}
-                        shouldShowEmptyState={filteredTaxesList.length === 0}
-                    />
-                )}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -407,10 +429,14 @@ function WorkspaceTaxesPage({
                     turnOnSelectionModeOnLongPress
                     onTurnOnSelectionMode={(item) => item && toggleTax(item)}
                     sections={[{data: filteredTaxesList, isDisabled: false}]}
+                    shouldUseDefaultRightHandSideCheckmark={false}
+                    selectedItems={selectedTaxesIDs}
                     onCheckboxPress={toggleTax}
                     onSelectRow={navigateToEditTaxRate}
-                    onSelectAll={toggleAllTaxes}
+                    onSelectAll={filteredTaxesList.length > 0 ? toggleAllTaxes : undefined}
                     ListItem={TableListItem}
+                    listHeaderContent={headerContent}
+                    shouldShowListEmptyContent={false}
                     customListHeader={getCustomListHeader()}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}

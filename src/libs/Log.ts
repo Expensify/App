@@ -18,7 +18,7 @@ import requireParameters from './requireParameters';
 let timeout: NodeJS.Timeout;
 let shouldCollectLogs = false;
 
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.SHOULD_STORE_LOGS,
     callback: (val) => {
         if (!val) {
@@ -79,6 +79,7 @@ const Log = new Logger({
             }
         });
     },
+    maxLogLinesBeforeFlush: 150,
     isDebug: true,
 });
 timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);

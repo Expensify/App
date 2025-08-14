@@ -1,7 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -11,17 +10,16 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {createTaskAndNavigate, dismissModalAndClearOutTaskInfo, getAssignee, getShareDestination, setShareDestinationValue} from '@libs/actions/Task';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNamesWithTooltips, isAllowedToComment} from '@libs/ReportUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -31,16 +29,20 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type NewTaskPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.ROOT>;
 
 function NewTaskPage({route}: NewTaskPageProps) {
-    const [task] = useOnyx(ONYXKEYS.TASK);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [task] = useOnyx(ONYXKEYS.TASK, {canBeMissing: true});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const assignee = useMemo(() => getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails), [task?.assigneeAccountID, personalDetails]);
-    const assigneeTooltipDetails = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(task?.assigneeAccountID ? [task.assigneeAccountID] : [], personalDetails), false);
+    const assigneeTooltipDetails = getDisplayNamesWithTooltips(
+        getPersonalDetailsForAccountIDs(task?.assigneeAccountID ? [task.assigneeAccountID] : [], personalDetails),
+        false,
+        localeCompare,
+    );
     const shareDestination = useMemo(
-        () => (task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails) : undefined),
-        [task?.shareDestination, reports, personalDetails],
+        () => (task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails, localeCompare) : undefined),
+        [task?.shareDestination, reports, personalDetails, localeCompare],
     );
     const parentReport = useMemo(() => (task?.shareDestination ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${task.shareDestination}`] : undefined), [reports, task?.shareDestination]);
     const [errorMessage, setErrorMessage] = useState('');
@@ -93,7 +95,6 @@ function NewTaskPage({route}: NewTaskPageProps) {
             return;
         }
 
-        playSound(SOUNDS.DONE);
         createTaskAndNavigate(parentReport?.reportID, task.title, task?.description ?? '', task?.assignee ?? '', task.assigneeAccountID, task.assigneeChatReport, parentReport?.policyID);
     };
 
@@ -125,7 +126,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
                 <ScrollView
                     contentContainerStyle={styles.flexGrow1}
                     // on iOS, navigation animation sometimes cause the scrollbar to appear
-                    // on middle/left side of scrollview. scrollIndicatorInsets with right
+                    // on middle/left side of ScrollView. scrollIndicatorInsets with right
                     // to closest value to 0 fixes this issue, 0 (default) doesn't work
                     // See: https://github.com/Expensify/App/issues/31441
                     scrollIndicatorInsets={{right: Number.MIN_VALUE}}
@@ -154,7 +155,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
                                 label={assignee?.displayName ? translate('task.assignee') : ''}
                                 title={assignee?.displayName ?? ''}
                                 description={assignee?.displayName ? formatPhoneNumber(assignee?.subtitle) : translate('task.assignee')}
-                                icon={assignee?.icons}
+                                iconAccountID={task?.assigneeAccountID}
                                 onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE.getRoute(backTo))}
                                 shouldShowRightIcon
                                 titleWithTooltips={assigneeTooltipDetails}
@@ -163,7 +164,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
                                 label={shareDestination?.displayName ? translate('common.share') : ''}
                                 title={shareDestination?.displayName ?? ''}
                                 description={shareDestination?.displayName ? shareDestination.subtitle : translate('common.share')}
-                                icon={shareDestination?.icons}
+                                iconReportID={task?.shareDestination}
                                 onPress={() => Navigation.navigate(ROUTES.NEW_TASK_SHARE_DESTINATION)}
                                 interactive={!task?.parentReportID}
                                 shouldShowRightIcon={!task?.parentReportID}

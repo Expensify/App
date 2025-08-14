@@ -5,13 +5,11 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPinMenuItem, getShareMenuItem} from '@libs/HeaderUtils';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {changeMoneyRequestHoldStatus} from '@libs/ReportUtils';
 import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
-import type {ReportAction} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
 import type OnyxReport from '@src/types/onyx/Report';
 import Button from './Button';
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
@@ -27,15 +25,6 @@ type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => P
     [CONST.PROMOTED_ACTIONS.SHARE]: (report: OnyxReport, backTo?: string) => PromotedAction;
 } & {
     [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {reportID?: string; accountID?: number; login?: string}) => PromotedAction;
-} & {
-    [CONST.PROMOTED_ACTIONS.HOLD]: (params: {
-        isTextHold: boolean;
-        reportAction: ReportAction | undefined;
-        reportID?: string;
-        isDelegateAccessRestricted: boolean;
-        setIsNoDelegateAccessMenuVisible: (isVisible: boolean) => void;
-        currentSearchHash?: number;
-    }) => PromotedAction;
 };
 
 const PromotedActions = {
@@ -62,7 +51,7 @@ const PromotedActions = {
         translationKey: 'common.message',
         onSelected: () => {
             if (reportID) {
-                Navigation.navigateToReportWithPolicyCheck({reportID});
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
                 return;
             }
 
@@ -74,28 +63,6 @@ const PromotedActions = {
             if (accountID) {
                 navigateToAndOpenReportWithAccountIDs([accountID]);
             }
-        },
-    }),
-    hold: ({isTextHold, reportAction, isDelegateAccessRestricted, setIsNoDelegateAccessMenuVisible, currentSearchHash}) => ({
-        key: CONST.PROMOTED_ACTIONS.HOLD,
-        icon: Expensicons.Stopwatch,
-        translationKey: `iou.${isTextHold ? 'hold' : 'unhold'}`,
-        onSelected: () => {
-            if (isDelegateAccessRestricted) {
-                setIsNoDelegateAccessMenuVisible(true); // Show the menu
-                return;
-            }
-
-            if (!isTextHold) {
-                Navigation.goBack();
-            }
-
-            if (!isSearchTopmostFullScreenRoute()) {
-                changeMoneyRequestHoldStatus(reportAction);
-                return;
-            }
-
-            changeMoneyRequestHoldStatus(reportAction, currentSearchHash);
         },
     }),
 } satisfies PromotedActionsType;

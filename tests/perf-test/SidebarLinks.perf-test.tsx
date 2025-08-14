@@ -10,7 +10,6 @@ import wrapInAct from '../utils/wrapInActHelper';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 jest.mock('@libs/Permissions');
-jest.mock('@hooks/useActiveWorkspace', () => jest.fn(() => ({activeWorkspaceID: undefined})));
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     isActiveRoute: jest.fn(),
@@ -33,7 +32,6 @@ jest.mock('@components/Icon/Expensicons');
 
 jest.mock('@react-navigation/native');
 jest.mock('@src/hooks/useLHNEstimatedListSize/index.native.ts');
-jest.mock('@components/ConfirmedRoute.tsx');
 
 const getMockedReportsMap = (length = 100) => {
     const mockReports = Object.fromEntries(
@@ -96,9 +94,11 @@ describe('SidebarLinks', () => {
 
     test('[SidebarLinks] should click on list item', async () => {
         const scenario = async () => {
-            await wrapInAct(async () => {
+            await waitFor(async () => {
                 const button = await screen.findByTestId('1');
-                fireEvent.press(button);
+                await wrapInAct(() => {
+                    fireEvent.press(button);
+                });
             });
         };
 

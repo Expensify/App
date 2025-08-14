@@ -32,7 +32,6 @@ const shouldShowColumnConfig: Record<SortableColumnName, ShouldShowSearchColumnF
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.TITLE]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: () => true,
-    [CONST.SEARCH.TABLE_COLUMNS.CREATED_BY]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.IN]: () => true,
     // This column is never displayed on Search
     [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: () => false,
@@ -107,8 +106,8 @@ const taskHeaders: SearchColumnConfig[] = [
         translationKey: 'common.description',
     },
     {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.CREATED_BY,
-        translationKey: 'common.createdBy',
+        columnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
+        translationKey: 'common.from',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.IN,
@@ -141,11 +140,24 @@ type SearchTableHeaderProps = {
     sortOrder?: SortOrder;
     onSortPress: (column: SearchColumnType, order: SortOrder) => void;
     shouldShowYear: boolean;
+    isAmountColumnWide: boolean;
+    isTaxAmountColumnWide: boolean;
     shouldShowSorting: boolean;
     canSelectMultiple: boolean;
 };
 
-function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shouldShowYear, shouldShowSorting, canSelectMultiple}: SearchTableHeaderProps) {
+function SearchTableHeader({
+    data,
+    metadata,
+    sortBy,
+    sortOrder,
+    onSortPress,
+    shouldShowYear,
+    shouldShowSorting,
+    canSelectMultiple,
+    isAmountColumnWide,
+    isTaxAmountColumnWide,
+}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
@@ -174,6 +186,8 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shou
             columns={columnConfig}
             shouldShowColumn={shouldShowColumn}
             dateColumnSize={shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+            amountColumnSize={isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+            taxAmountColumnSize={isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             shouldShowSorting={shouldShowSorting}
             sortBy={sortBy}
             sortOrder={sortOrder}

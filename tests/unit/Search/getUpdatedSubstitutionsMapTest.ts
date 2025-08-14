@@ -37,6 +37,7 @@ describe('getUpdatedSubstitutionsMap should return updated and cleaned substitut
     });
 
     test('when query has multiple substitutions and some changed but some stayed', () => {
+        // cspell:disable-next-line
         const userTypedQuery = 'from:Johnny to:Steven category:Fruitzzzz';
         const substitutionsMock = {
             'from:Johnny': '@johnny',

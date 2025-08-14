@@ -1,9 +1,9 @@
+import {FlashList} from '@shopify/flash-list';
 import lodashSortBy from 'lodash/sortBy';
 import type {ReactElement, Ref} from 'react';
 import React, {useCallback, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import {FlatList, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
 import type {SvgProps} from 'react-native-svg/lib/typescript/ReactNativeSVG';
 import type {ValueOf} from 'type-fest';
 import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSuggestions/types';
@@ -15,12 +15,13 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import type {FormattedSelectedPaymentMethodIcon} from '@hooks/usePaymentMethodState/types';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAddPaymentMethodError, clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
-import {getCardFeedIcon, isExpensifyCard, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getCardFeedIcon, getPlaidInstitutionIconUrl, isExpensifyCard, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
@@ -29,12 +30,12 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {AccountData, Card, CompanyCardFeed} from '@src/types/onyx';
+import type {AccountData, BankAccount, BankAccountList, Card, CardList, CompanyCardFeed} from '@src/types/onyx';
 import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type PaymentMethodPressHandler = (
@@ -71,9 +72,6 @@ type PaymentMethodListProps = {
     /** React ref being forwarded to the PaymentMethodList Button */
     buttonRef?: Ref<View>;
 
-    /** To enable/disable scrolling */
-    shouldEnableScroll?: boolean;
-
     /** List container style */
     style?: StyleProp<ViewStyle>;
 
@@ -106,6 +104,9 @@ type PaymentMethodListProps = {
 
     /** The policy invoice's transfer bank accountID */
     invoiceTransferBankAccountID?: number;
+
+    /** Whether the bank accounts should be displayed in private and business sections */
+    shouldShowBankAccountSections?: boolean;
 };
 
 type PaymentMethodItem = PaymentMethod & {
@@ -123,6 +124,7 @@ type PaymentMethodItem = PaymentMethod & {
     iconRight?: React.FC<SvgProps>;
     isMethodActive?: boolean;
     cardID?: number;
+    plaidUrl?: string;
 } & BankIcon;
 
 function dismissError(item: PaymentMethodItem) {
@@ -157,17 +159,20 @@ function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], isDefau
     if (!isDefault) {
         return false;
     }
-    const defaultablePaymentMethodCount = filteredPaymentMethods.filter(
+    const defaultPaymentMethodCount = filteredPaymentMethods.filter(
         (method) => method.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || method.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD,
     ).length;
-    return defaultablePaymentMethodCount > 1;
+    return defaultPaymentMethodCount > 1;
 }
 
 function isPaymentMethodActive(actionPaymentMethodType: string, activePaymentMethodID: string | number, paymentMethod: PaymentMethod) {
     return paymentMethod.accountType === actionPaymentMethodType && paymentMethod.methodID === activePaymentMethodID;
 }
 
-function keyExtractor(item: PaymentMethod) {
+function keyExtractor(item: PaymentMethod | string) {
+    if (typeof item === 'string') {
+        return item;
+    }
     return item.key ?? '';
 }
 
@@ -186,11 +191,11 @@ function PaymentMethodList({
     shouldShowAssignedCards = false,
     selectedMethodID = '',
     onListContentSizeChange = () => {},
-    shouldEnableScroll = true,
     style = {},
     listItemStyle = {},
     shouldShowRightIcon = true,
     invoiceTransferBankAccountID,
+    shouldShowBankAccountSections = false,
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -199,33 +204,35 @@ function PaymentMethodList({
     const illustrations = useThemeIllustrations();
 
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
-    const [bankAccountList = {}, bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
-    const [cardList = {}, cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
     // Temporarily disabled because P2P debit cards are disabled.
-    // const [fundList = {}] = useOnyx(ONYXKEYS.FUND_LIST);
+    // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
     const [isLoadingPaymentMethods = true, isLoadingPaymentMethodsResult] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {canBeMissing: true});
     const isLoadingPaymentMethodsOnyx = isLoadingOnyxValue(isLoadingPaymentMethodsResult);
 
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
-            const assignedCards = Object.values(isLoadingCardList ? {} : cardList ?? {})
+            const assignedCards = Object.values(isLoadingCardList ? {} : (cardList ?? {}))
                 // Filter by active cards associated with a domain
                 .filter((card) => !!card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0));
-            const assignedCardsSorted = lodashSortBy(assignedCards, (card) => !isExpensifyCard(card.cardID));
+            const assignedCardsSorted = lodashSortBy(assignedCards, (card) => !isExpensifyCard(card));
 
             const assignedCardsGrouped: PaymentMethodItem[] = [];
             assignedCardsSorted.forEach((card) => {
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !!card.errors;
                 const icon = getCardFeedIcon(card.bank as CompanyCardFeed, illustrations);
 
-                if (!isExpensifyCard(card.cardID)) {
+                if (!isExpensifyCard(card)) {
                     const pressHandler = onPress as CardPressHandler;
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
+                    const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
+                        plaidUrl,
                         title: maskCardNumber(card.cardName, card.bank),
                         description: lastFourPAN
                             ? `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`
@@ -288,7 +295,7 @@ function PaymentMethodList({
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     title: isTravelCard ? translate('cardPage.expensifyTravelCard') : card?.nameValuePairs?.cardTitle || card.bank,
                     description: isTravelCard ? translate('cardPage.expensifyTravelCard') : cardDescription,
-                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(String(card.cardID))),
+                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(card.cardID))),
                     cardID: card.cardID,
                     isGroupedCardDomain: !isAdminIssuedVirtualCard && !isTravelCard,
                     shouldShowRightIcon: true,
@@ -315,7 +322,7 @@ function PaymentMethodList({
         // const paymentCardList = fundList ?? {};
         // const filteredCardList = Object.values(paymentCardList).filter((card) => !!card.accountData?.additionalData?.isP2PDebitCard);
         const filteredCardList = {};
-        let combinedPaymentMethods = formatPaymentMethods(isLoadingBankAccountList ? {} : bankAccountList ?? {}, filteredCardList, styles);
+        let combinedPaymentMethods = formatPaymentMethods(isLoadingBankAccountList ? {} : (bankAccountList ?? {}), filteredCardList, styles);
 
         if (filterType !== '') {
             combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => paymentMethod.accountType === filterType);
@@ -380,7 +387,7 @@ function PaymentMethodList({
 
     const onPressItem = useCallback(() => {
         if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route));
             return;
         }
         onPress();
@@ -392,7 +399,7 @@ function PaymentMethodList({
                 <Button
                     ref={buttonRef}
                     key="addBankAccountButton"
-                    text={translate('walletPage.addBankAccount')}
+                    text={translate('bankAccount.addBankAccount')}
                     large
                     success
                     onPress={onPress}
@@ -400,7 +407,7 @@ function PaymentMethodList({
             ) : (
                 <MenuItem
                     onPress={onPressItem}
-                    title={translate('walletPage.addBankAccount')}
+                    title={translate('bankAccount.addBankAccount')}
                     icon={Expensicons.Plus}
                     wrapperStyle={[styles.paymentMethod, listItemStyle]}
                     ref={buttonRef}
@@ -410,74 +417,107 @@ function PaymentMethodList({
         [shouldShowAddBankAccountButton, onPressItem, translate, onPress, buttonRef, styles.paymentMethod, listItemStyle],
     );
 
+    const itemsToRender = useMemo(() => {
+        if (!shouldShowBankAccountSections) {
+            return filteredPaymentMethods;
+        }
+        if (
+            filteredPaymentMethods.find((method) => (method as BankAccount).accountData?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL) &&
+            filteredPaymentMethods.find((method) => (method as BankAccount).accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS)
+        ) {
+            return [
+                translate('walletPage.personalBankAccounts'),
+                ...filteredPaymentMethods.filter((method) => (method as BankAccount).accountData?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL),
+                translate('walletPage.businessBankAccounts'),
+                ...filteredPaymentMethods.filter((method) => (method as BankAccount).accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS),
+            ];
+        }
+        return filteredPaymentMethods;
+    }, [filteredPaymentMethods, shouldShowBankAccountSections, translate]);
+
     /**
      * Create a menuItem for each passed paymentMethod
      */
     const renderItem = useCallback(
-        ({item}: RenderSuggestionMenuItemProps<PaymentMethodItem>) => (
-            <OfflineWithFeedback
-                onClose={() => dismissError(item)}
-                pendingAction={item.pendingAction}
-                errors={item.errors}
-                errorRowStyles={styles.ph6}
-                canDismissError={item.canDismissError}
-            >
-                <MenuItem
-                    onPress={item.onPress}
-                    title={item.title}
-                    description={item.description}
-                    icon={item.icon}
-                    disabled={item.disabled}
-                    displayInDefaultIconColor
-                    iconHeight={item.iconHeight ?? item.iconSize}
-                    iconWidth={item.iconWidth ?? item.iconSize}
-                    iconStyles={item.iconStyles}
-                    badgeText={
-                        shouldShowDefaultBadge(
-                            filteredPaymentMethods,
-                            invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.methodID === userWallet?.walletLinkedAccountID,
-                        )
-                            ? translate('paymentMethodList.defaultPaymentMethod')
-                            : undefined
-                    }
-                    wrapperStyle={[styles.paymentMethod, listItemStyle]}
-                    iconRight={item.iconRight}
-                    badgeStyle={styles.badgeBordered}
-                    shouldShowRightIcon={item.shouldShowRightIcon}
-                    shouldShowSelectedState={shouldShowSelectedState}
-                    isSelected={selectedMethodID.toString() === item.methodID?.toString()}
-                    interactive={item.interactive}
-                    brickRoadIndicator={item.brickRoadIndicator}
-                    success={item.isMethodActive}
-                />
-            </OfflineWithFeedback>
-        ),
-
+        ({item, index}: RenderSuggestionMenuItemProps<PaymentMethodItem | string>) => {
+            if (typeof item === 'string') {
+                return (
+                    <View style={[listItemStyle, index === 0 ? styles.mt4 : styles.mt6, styles.mb1]}>
+                        <Text style={[styles.textLabel, styles.colorMuted]}>{item}</Text>
+                    </View>
+                );
+            }
+            return (
+                <OfflineWithFeedback
+                    onClose={() => dismissError(item)}
+                    pendingAction={item.pendingAction}
+                    errors={item.errors}
+                    errorRowStyles={styles.ph6}
+                    canDismissError={item.canDismissError}
+                >
+                    <MenuItem
+                        onPress={item.onPress}
+                        title={item.title}
+                        description={item.description}
+                        icon={item.icon}
+                        plaidUrl={item.plaidUrl}
+                        disabled={item.disabled}
+                        iconType={item.plaidUrl ? CONST.ICON_TYPE_PLAID : CONST.ICON_TYPE_ICON}
+                        displayInDefaultIconColor
+                        iconHeight={item.iconHeight ?? item.iconSize}
+                        iconWidth={item.iconWidth ?? item.iconSize}
+                        iconStyles={item.iconStyles}
+                        badgeText={
+                            shouldShowDefaultBadge(
+                                filteredPaymentMethods,
+                                invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.methodID === userWallet?.walletLinkedAccountID,
+                            )
+                                ? translate('paymentMethodList.defaultPaymentMethod')
+                                : undefined
+                        }
+                        wrapperStyle={[styles.paymentMethod, listItemStyle]}
+                        iconRight={item.iconRight}
+                        badgeStyle={styles.badgeBordered}
+                        shouldShowRightIcon={item.shouldShowRightIcon}
+                        shouldShowSelectedState={shouldShowSelectedState}
+                        isSelected={selectedMethodID.toString() === item.methodID?.toString()}
+                        interactive={item.interactive}
+                        brickRoadIndicator={item.brickRoadIndicator}
+                        success={item.isMethodActive}
+                    />
+                </OfflineWithFeedback>
+            );
+        },
         [
             styles.ph6,
             styles.paymentMethod,
             styles.badgeBordered,
+            styles.mt4,
+            styles.mt6,
+            styles.mb1,
+            styles.textLabel,
+            styles.colorMuted,
             filteredPaymentMethods,
             invoiceTransferBankAccountID,
+            userWallet?.walletLinkedAccountID,
             translate,
             listItemStyle,
             shouldShowSelectedState,
             selectedMethodID,
-            userWallet?.walletLinkedAccountID,
         ],
     );
 
     return (
         <>
             <View style={[style, {minHeight: (filteredPaymentMethods.length + (shouldShowAddBankAccount ? 1 : 0)) * variables.optionRowHeight}]}>
-                <FlatList
-                    data={filteredPaymentMethods}
+                <FlashList<PaymentMethod | string>
+                    estimatedItemSize={variables.optionRowHeight}
+                    data={itemsToRender}
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}
                     ListEmptyComponent={shouldShowEmptyListMessage ? renderListEmptyComponent : null}
                     ListHeaderComponent={listHeaderComponent}
                     onContentSizeChange={onListContentSizeChange}
-                    scrollEnabled={shouldEnableScroll}
                 />
                 {shouldShowAddBankAccount && renderListFooterComponent()}
             </View>

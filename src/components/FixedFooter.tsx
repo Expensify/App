@@ -22,13 +22,7 @@ type FixedFooterProps = {
     shouldStickToBottom?: boolean;
 };
 
-function FixedFooter({
-    style,
-    children,
-    addBottomSafeAreaPadding = false,
-    addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
-    shouldStickToBottom = false,
-}: FixedFooterProps) {
+function FixedFooter({style, children, addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, shouldStickToBottom = false}: FixedFooterProps) {
     const styles = useThemeStyles();
 
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({

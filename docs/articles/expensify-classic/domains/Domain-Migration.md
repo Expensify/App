@@ -6,7 +6,7 @@ keywords: [Expensify Classic, domain migration, change email address, update com
 
 <div id="expensify-classic" markdown="1">
 
-If your company updates its email domain (e.g., from `@olddomain.com` to `@newdomain.com`), Expensify offers two migration options: **automatic** and **manual**. This guide walks you through both.
+If your company updates its email domain (e.g., from `@old-domain.com` to `@new-domain.com`), Expensify offers two migration options: **automatic** and **manual**. This guide walks you through both.
 
 **Important:**  If your company uses the Expensify Card, do not request cards or create a new domain manually. Contact the Concierge or your Account Manager to have Expensify handle the migration.
 

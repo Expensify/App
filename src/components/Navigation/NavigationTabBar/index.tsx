@@ -1,6 +1,6 @@
+import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderGap from '@components/HeaderGap';
 import Icon from '@components/Icon';
@@ -11,22 +11,25 @@ import {PressableWithFeedback} from '@components/Pressable';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import Text from '@components/Text';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {useSidebarOrderedReportIDs} from '@hooks/useSidebarOrderedReportIDs';
+import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import {getLastVisitedSettingsPath, getLastVisitedWorkspaceScreen, getSettingsTabStateFromSessionStorage} from '@libs/Navigation/helpers/getLastVisitedWorkspace';
+import {getLastVisitedTabPath, getSettingsTabStateFromSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
+import navigateToWorkspacesPage, {getWorkspaceNavigationRouteState} from '@libs/Navigation/helpers/navigateToWorkspacesPage';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
-import {isFullScreenName, isSettingsTabScreenName} from '@navigation/helpers/isNavigatorName';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
 import type {RootNavigatorParamList, SearchFullscreenNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -49,15 +52,34 @@ type NavigationTabBarProps = {
 function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar = false}: NavigationTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const {activeWorkspaceID} = useActiveWorkspace();
-    const {orderedReportIDs} = useSidebarOrderedReportIDs();
+    const {translate, preferredLocale} = useLocalize();
+    const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
+    const {orderedReports} = useSidebarOrderedReports();
+    const subscriptionPlan = useSubscriptionPlan();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
-    const [reports = []] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: (values) => orderedReportIDs.map((reportID) => values?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]),
-        canBeMissing: true,
-    });
+    const navigationState = useNavigationState(findFocusedRoute);
+    const initialNavigationRouteState = getWorkspaceNavigationRouteState();
+    const [lastWorkspacesTabNavigatorRoute, setLastWorkspacesTabNavigatorRoute] = useState(initialNavigationRouteState.lastWorkspacesTabNavigatorRoute);
+    const [workspacesTabState, setWorkspacesTabState] = useState(initialNavigationRouteState.workspacesTabState);
+    const params = workspacesTabState?.routes?.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
+
+    const [lastViewedPolicy] = useOnyx(
+        ONYXKEYS.COLLECTION.POLICY,
+        {
+            canBeMissing: true,
+            selector: (val) => {
+                if (!lastWorkspacesTabNavigatorRoute || lastWorkspacesTabNavigatorRoute.name !== NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || !params?.policyID) {
+                    return undefined;
+                }
+
+                return val?.[`${ONYXKEYS.COLLECTION.POLICY}${params.policyID}`];
+            },
+        },
+        [navigationState],
+    );
+
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(undefined);
     const platform = getPlatform();
@@ -67,16 +89,26 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
         shouldShowProductTrainingTooltip: shouldShowInboxTooltip,
         hideProductTrainingTooltip: hideInboxTooltip,
     } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP, isTooltipAllowed && selectedTab !== NAVIGATION_TABS.HOME);
+
     const StyleUtils = useStyleUtils();
+
+    useEffect(() => {
+        const newWorkspacesTabState = getWorkspaceNavigationRouteState();
+        const newLastRoute = newWorkspacesTabState.lastWorkspacesTabNavigatorRoute;
+        const newTabState = newWorkspacesTabState.workspacesTabState;
+
+        setLastWorkspacesTabNavigatorRoute(newLastRoute);
+        setWorkspacesTabState(newTabState);
+    }, [navigationState]);
 
     // On a wide layout DebugTabView should be rendered only within the navigation tab bar displayed directly on screens.
     const shouldRenderDebugTabViewOnWideLayout = !!account?.isDebugModeEnabled && !isTopLevelBar;
 
     useEffect(() => {
-        setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, reports));
-        // We need to get a new brick road state when report actions are updated, otherwise we'll be showing an outdated brick road.
-        // That's why reportActions is added as a dependency here
-    }, [activeWorkspaceID, reports, reportActions]);
+        setChatTabBrickRoad(getChatTabBrickRoad(orderedReports));
+        // We need to get a new brick road state when report attributes are updated, otherwise we'll be showing an outdated brick road.
+        // That's why reportAttributes is added as a dependency here
+    }, [orderedReports, reportAttributes]);
 
     const navigateToChats = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.HOME) {
@@ -117,82 +149,37 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
         });
     }, [selectedTab]);
 
+    const navigateToSettings = useCallback(() => {
+        if (selectedTab === NAVIGATION_TABS.SETTINGS) {
+            return;
+        }
+        interceptAnonymousUser(() => {
+            const settingsTabState = getSettingsTabStateFromSessionStorage();
+            if (settingsTabState && !shouldUseNarrowLayout) {
+                const stateRoute = findFocusedRoute(settingsTabState);
+                if (!subscriptionPlan && stateRoute?.name === SCREENS.SETTINGS.SUBSCRIPTION.ROOT) {
+                    Navigation.navigate(ROUTES.SETTINGS_PROFILE.route);
+                    return;
+                }
+                const lastVisitedSettingsRoute = getLastVisitedTabPath(settingsTabState);
+                if (lastVisitedSettingsRoute) {
+                    Navigation.navigate(lastVisitedSettingsRoute);
+                    return;
+                }
+            }
+            Navigation.navigate(ROUTES.SETTINGS);
+        });
+    }, [selectedTab, subscriptionPlan, shouldUseNarrowLayout]);
+
     /**
      * The settings tab is related to SettingsSplitNavigator and WorkspaceSplitNavigator.
      * If the user opens this tab from another tab, it is necessary to check whether it has not been opened before.
      * If so, all previously opened screens have be pushed to the navigation stack to maintain the order of screens within the tab.
      * If the user clicks on the settings tab while on this tab, this button should go back to the previous screen within the tab.
      */
-    const showSettingsPage = useCallback(() => {
-        const rootState = navigationRef.getRootState();
-        const topmostFullScreenRoute = rootState.routes.findLast((route) => isFullScreenName(route.name));
-        if (!topmostFullScreenRoute) {
-            return;
-        }
-
-        const lastRouteOfTopmostFullScreenRoute = 'state' in topmostFullScreenRoute ? topmostFullScreenRoute.state?.routes.at(-1) : undefined;
-
-        if (lastRouteOfTopmostFullScreenRoute && lastRouteOfTopmostFullScreenRoute.name === SCREENS.SETTINGS.WORKSPACES && shouldUseNarrowLayout) {
-            Navigation.goBack(ROUTES.SETTINGS);
-            return;
-        }
-
-        if (topmostFullScreenRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-            Navigation.goBack(ROUTES.SETTINGS);
-            return;
-        }
-
-        interceptAnonymousUser(() => {
-            const state = getSettingsTabStateFromSessionStorage() ?? rootState;
-            const lastSettingsOrWorkspaceNavigatorRoute = state.routes.findLast((route) => isSettingsTabScreenName(route.name));
-            // If there is no settings or workspace navigator route, then we should open the settings navigator.
-            if (!lastSettingsOrWorkspaceNavigatorRoute) {
-                Navigation.navigate(ROUTES.SETTINGS);
-                return;
-            }
-
-            let settingsTabState = lastSettingsOrWorkspaceNavigatorRoute.state;
-            if (!settingsTabState && lastSettingsOrWorkspaceNavigatorRoute.key) {
-                settingsTabState = getPreservedNavigatorState(lastSettingsOrWorkspaceNavigatorRoute.key);
-            }
-
-            // If there is a workspace navigator route, then we should open the workspace initial screen as it should be "remembered".
-            if (lastSettingsOrWorkspaceNavigatorRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-                const params = settingsTabState?.routes.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
-                // Screens of this navigator should always have policyID
-                if (params.policyID) {
-                    const workspaceScreenName = !shouldUseNarrowLayout ? getLastVisitedWorkspaceScreen() : SCREENS.WORKSPACE.INITIAL;
-                    // This action will put settings split under the workspace split to make sure that we can swipe back to settings split.
-                    navigationRef.dispatch({
-                        type: CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT,
-                        payload: {
-                            policyID: params.policyID,
-                            screenName: workspaceScreenName,
-                        },
-                    });
-                }
-                return;
-            }
-
-            // If the path stored in the session storage leads to a settings screen, we just navigate to it on a wide layout.
-            // On a small screen, we want to go to the page containing the bottom tab bar (ROUTES.SETTINGS or ROUTES.SETTINGS_WORKSPACES) when changing tabs
-            if (settingsTabState && !shouldUseNarrowLayout) {
-                const lastVisitedSettingsRoute = getLastVisitedSettingsPath(settingsTabState);
-                if (lastVisitedSettingsRoute) {
-                    Navigation.navigate(lastVisitedSettingsRoute);
-                    return;
-                }
-            }
-            // If there is settings workspace screen in the settings navigator, then we should open the settings workspaces as it should be "remembered".
-            if (settingsTabState?.routes?.at(-1)?.name === SCREENS.SETTINGS.WORKSPACES) {
-                Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route);
-                return;
-            }
-
-            // Otherwise we should simply open the settings navigator.
-            Navigation.navigate(ROUTES.SETTINGS);
-        });
-    }, [shouldUseNarrowLayout]);
+    const showWorkspaces = useCallback(() => {
+        navigateToWorkspacesPage({shouldUseNarrowLayout, currentUserLogin, policy: lastViewedPolicy});
+    }, [shouldUseNarrowLayout, currentUserLogin, lastViewedPolicy]);
 
     if (!shouldUseNarrowLayout) {
         return (
@@ -201,7 +188,6 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                     <DebugTabView
                         selectedTab={selectedTab}
                         chatTabBrickRoad={chatTabBrickRoad}
-                        activeWorkspaceID={activeWorkspaceID}
                     />
                 )}
                 <View style={styles.leftNavigationTabBarContainer}>
@@ -252,6 +238,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                     )}
                                 </View>
                                 <Text
+                                    numberOfLines={2}
                                     style={[
                                         styles.textSmall,
                                         styles.textAlignCenter,
@@ -279,6 +266,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                 />
                             </View>
                             <Text
+                                numberOfLines={2}
                                 style={[
                                     styles.textSmall,
                                     styles.textAlignCenter,
@@ -290,12 +278,38 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                 {translate('common.reports')}
                             </Text>
                         </PressableWithFeedback>
+                        <PressableWithFeedback
+                            onPress={showWorkspaces}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('common.workspacesTabTitle')}
+                            style={styles.leftNavigationTabBarItem}
+                        >
+                            <View>
+                                <Icon
+                                    src={Expensicons.Buildings}
+                                    fill={selectedTab === NAVIGATION_TABS.WORKSPACES ? theme.iconMenu : theme.icon}
+                                    width={variables.iconBottomBar}
+                                    height={variables.iconBottomBar}
+                                />
+                                {!!workspacesTabIndicatorStatus && <View style={styles.navigationTabBarStatusIndicator(workspacesTabIndicatorColor)} />}
+                            </View>
+                            <Text
+                                numberOfLines={preferredLocale === CONST.LOCALES.DE || preferredLocale === CONST.LOCALES.NL ? 1 : 2}
+                                style={[
+                                    styles.textSmall,
+                                    styles.textAlignCenter,
+                                    styles.mt1Half,
+                                    selectedTab === NAVIGATION_TABS.WORKSPACES ? styles.textBold : styles.textSupporting,
+                                    styles.navigationTabBarLabel,
+                                ]}
+                            >
+                                {translate('common.workspacesTabTitle')}
+                            </Text>
+                        </PressableWithFeedback>
                         <NavigationTabBarAvatar
                             style={styles.leftNavigationTabBarItem}
                             isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
-                            onPress={showSettingsPage}
-                            isWebOrDesktop={isWebOrDesktop}
-                            isTooltipAllowed={isTooltipAllowed}
+                            onPress={navigateToSettings}
                         />
                     </View>
                     <View style={styles.leftNavigationTabBarItem}>
@@ -312,7 +326,6 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                 <DebugTabView
                     selectedTab={selectedTab}
                     chatTabBrickRoad={chatTabBrickRoad}
-                    activeWorkspaceID={activeWorkspaceID}
                 />
             )}
             <View style={styles.navigationTabBarContainer}>
@@ -347,6 +360,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                             )}
                         </View>
                         <Text
+                            numberOfLines={1}
                             style={[
                                 styles.textSmall,
                                 styles.textAlignCenter,
@@ -375,6 +389,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                         />
                     </View>
                     <Text
+                        numberOfLines={1}
                         style={[
                             styles.textSmall,
                             styles.textAlignCenter,
@@ -386,16 +401,43 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                         {translate('common.reports')}
                     </Text>
                 </PressableWithFeedback>
-                <NavigationTabBarAvatar
-                    style={styles.navigationTabBarItem}
-                    isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
-                    onPress={showSettingsPage}
-                    isWebOrDesktop={isWebOrDesktop}
-                    isTooltipAllowed={isTooltipAllowed}
-                />
                 <View style={[styles.flex1, styles.navigationTabBarItem]}>
                     <NavigationTabBarFloatingActionButton isTooltipAllowed={isTooltipAllowed} />
                 </View>
+                <PressableWithFeedback
+                    onPress={showWorkspaces}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={translate('common.workspacesTabTitle')}
+                    wrapperStyle={styles.flex1}
+                    style={styles.navigationTabBarItem}
+                >
+                    <View>
+                        <Icon
+                            src={Expensicons.Buildings}
+                            fill={selectedTab === NAVIGATION_TABS.WORKSPACES ? theme.iconMenu : theme.icon}
+                            width={variables.iconBottomBar}
+                            height={variables.iconBottomBar}
+                        />
+                        {!!workspacesTabIndicatorStatus && <View style={styles.navigationTabBarStatusIndicator(workspacesTabIndicatorColor)} />}
+                    </View>
+                    <Text
+                        numberOfLines={1}
+                        style={[
+                            styles.textSmall,
+                            styles.textAlignCenter,
+                            styles.mt1Half,
+                            selectedTab === NAVIGATION_TABS.WORKSPACES ? styles.textBold : styles.textSupporting,
+                            styles.navigationTabBarLabel,
+                        ]}
+                    >
+                        {translate('common.workspacesTabTitle')}
+                    </Text>
+                </PressableWithFeedback>
+                <NavigationTabBarAvatar
+                    style={styles.navigationTabBarItem}
+                    isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
+                    onPress={navigateToSettings}
+                />
             </View>
         </>
     );

@@ -1,45 +1,54 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as SearchActions from '@userActions/Search';
+import {updateAdvancedFilters} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {PolicyCategory} from '@src/types/onyx';
 
 function SearchFiltersCategoryPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const selectedCategoriesItems = searchAdvancedFiltersForm?.category?.map((category) => {
-        if (category === CONST.SEARCH.EMPTY_VALUE) {
+        if (category === CONST.SEARCH.CATEGORY_EMPTY_VALUE) {
             return {name: translate('search.noCategory'), value: category};
         }
         return {name: category, value: category};
     });
-    const policyID = searchAdvancedFiltersForm?.policyID ?? '-1';
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const singlePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
+    const policyIDs = searchAdvancedFiltersForm?.policyID ?? [];
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: true});
+    const selectedPoliciesCategories: PolicyCategory[] = Object.keys(allPolicyCategories ?? {})
+        .filter((key) => policyIDs?.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`)?.includes(key))
+        ?.map((key) => Object.values(allPolicyCategories?.[key] ?? {}))
+        .flat();
 
     const categoryItems = useMemo(() => {
-        const items = [{name: translate('search.noCategory'), value: CONST.SEARCH.EMPTY_VALUE as string}];
-        if (!singlePolicyCategories) {
-            const uniqueCategoryNames = new Set<string>();
-            Object.values(allPolicyCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
-            items.push(...Array.from(uniqueCategoryNames).map((categoryName) => ({name: categoryName, value: categoryName})));
-        } else {
-            items.push(...Object.values(singlePolicyCategories ?? {}).map((category) => ({name: category.name, value: category.name})));
-        }
-        return items;
-    }, [allPolicyCategories, singlePolicyCategories, translate]);
+        const items = [{name: translate('search.noCategory'), value: CONST.SEARCH.CATEGORY_EMPTY_VALUE as string}];
+        const uniqueCategoryNames = new Set<string>();
 
-    const onSaveSelection = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({category: values}), []);
+        if (!selectedPoliciesCategories || selectedPoliciesCategories.length === 0) {
+            Object.values(allPolicyCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
+        } else {
+            selectedPoliciesCategories.forEach((category) => uniqueCategoryNames.add(category.name));
+        }
+        items.push(
+            ...Array.from(uniqueCategoryNames)
+                .filter(Boolean)
+                .map((categoryName) => ({name: categoryName, value: categoryName})),
+        );
+        return items;
+    }, [allPolicyCategories, selectedPoliciesCategories, translate]);
+
+    const onSaveSelection = useCallback((values: string[]) => updateAdvancedFilters({category: values}), []);
 
     return (
         <ScreenWrapper

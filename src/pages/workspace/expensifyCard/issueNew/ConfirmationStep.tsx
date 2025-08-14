@@ -1,6 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -11,6 +10,7 @@ import useBeforeRemove from '@hooks/useBeforeRemove';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
@@ -31,9 +31,15 @@ type ConfirmationStepProps = {
 
     /** Route to navigate to */
     backTo?: Route;
+
+    /** Array of step names */
+    stepNames: readonly string[];
+
+    /** Start from step index */
+    startStepIndex: number;
 };
 
-function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
+function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -58,7 +64,12 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
         if (!isSuccessful) {
             return;
         }
-        Navigation.goBack(backTo ?? ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+        if (backTo) {
+            Navigation.goBack(backTo);
+        } else {
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+        }
+
         clearIssueNewCardFlow(policyID);
     }, [backTo, policyID, isSuccessful]);
 
@@ -85,8 +96,8 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={5}
-            stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
+            startStepIndex={startStepIndex}
+            stepNames={stepNames}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScrollView
@@ -99,7 +110,8 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.cardholder')}
                     title={getUserNameByEmail(data?.assigneeEmail ?? '', 'displayName')}
-                    shouldShowRightIcon
+                    shouldShowRightIcon={!issueNewCard?.isChangeAssigneeDisabled}
+                    interactive={!issueNewCard?.isChangeAssigneeDisabled}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE)}
                 />
                 <MenuItemWithTopDescription
@@ -143,7 +155,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                     handleSubmitForm={submit}
                     isLoading={issueNewCard?.isLoading}
                     sendValidateCode={requestValidateCodeAction}
-                    validateCodeActionErrorField="createAdminIssuedVirtualCard"
+                    validateCodeActionErrorField={data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL ? 'createExpensifyCard' : 'createAdminIssuedVirtualCard'}
                     validateError={validateError}
                     clearError={() => clearIssueNewCardError(policyID)}
                     onClose={() => setIsValidateCodeActionModalVisible(false)}

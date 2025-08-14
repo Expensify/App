@@ -130,7 +130,7 @@ const getMockForStatus = (status: IndicatorStatus, isAdmin = true) =>
         },
         [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: status === CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO,
         [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED]: status === CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS,
-    } as OnyxMultiSetInput);
+    }) as OnyxMultiSetInput;
 
 type TestCase = {
     name: string;

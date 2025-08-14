@@ -33,7 +33,7 @@ const useSearchState = (): SearchStateResult => {
         const isSearchAttachmentModal = route?.name === SCREENS.ATTACHMENTS && type === CONST.ATTACHMENT_TYPE.SEARCH;
         const queryJSON = q ? buildSearchQueryJSON(q) : ({} as Partial<SearchQueryJSON>);
         // for attachment modal the hashKey is passed through route params, fallback to it if not found in queryJSON
-        const hashKey = queryJSON?.hash ? queryJSON.hash : hashKeyFromRoute ?? undefined;
+        const hashKey = queryJSON?.hash ? queryJSON.hash : (hashKeyFromRoute ?? undefined);
         const isOnSearch = (route?.name === SCREENS.SEARCH.ROOT && !!hashKey) || isSearchAttachmentModal;
 
         return {hashKey, isOnSearch};

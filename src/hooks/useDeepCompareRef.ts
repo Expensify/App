@@ -1,4 +1,4 @@
-import isEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import {useRef} from 'react';
 
 /**
@@ -18,7 +18,7 @@ import {useRef} from 'react';
 export default function useDeepCompareRef<T>(value: T): T | undefined {
     const ref = useRef<T | undefined>(undefined);
     // eslint-disable-next-line react-compiler/react-compiler
-    if (!isEqual(value, ref.current)) {
+    if (!deepEqual(value, ref.current)) {
         // eslint-disable-next-line react-compiler/react-compiler
         ref.current = value;
     }

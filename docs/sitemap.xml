@@ -7,6 +7,9 @@ layout:
   {% for page in pages %}
     <url>
       <loc>{{ page.url | replace:'/index.html','/' | absolute_url | xml_escape | replace:'.html','' }}</loc>
+      {% if page.date %}
+        <lastmod>{{ page.date | date_to_xmlschema }}</lastmod>
+      {% endif %}
     </url>
   {% endfor %}
 </urlset>

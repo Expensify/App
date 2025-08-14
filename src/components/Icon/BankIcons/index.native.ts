@@ -1,4 +1,4 @@
-import GenericBank from '@assets/images/bankicons/generic-bank-account.svg';
+import GenericBank from '@assets/images/bank-icons/generic-bank-account.svg';
 import GenericBankCard from '@assets/images/cardicons/generic-bank-card.svg';
 import type {BankIconParams} from '@components/Icon/BankIconsUtils';
 import {getBankIconAsset, getBankNameKey} from '@components/Icon/BankIconsUtils';

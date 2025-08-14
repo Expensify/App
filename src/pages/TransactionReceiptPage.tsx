@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
+import useOnyx from '@hooks/useOnyx';
 import {navigateToStartStepIfScanFileCannotBeRead} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,7 +25,14 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [transactionMain] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
-    const [reportMetadata = {isLoadingInitialReportActions: true}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: true});
+    const [reportMetadata = CONST.DEFAULT_REPORT_METADATA] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: true});
+
+    // If we have a merge transaction, we need to use the receipt from the merge transaction
+    const mergeTransactionID = route.params.mergeTransactionID;
+    const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, {canBeMissing: true});
+    if (mergeTransactionID && mergeTransaction && transactionMain) {
+        transactionMain.receipt = mergeTransaction.receipt;
+    }
 
     const isDraftTransaction = !!action;
     const transaction = isDraftTransaction ? transactionDraft : transactionMain;
@@ -91,7 +98,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
-        isTrackExpenseReport || isDraftTransaction || transaction?.reportID === CONST.REPORT.SPLIT_REPORTID || isFromReviewDuplicates
+        isTrackExpenseReport || isDraftTransaction || transaction?.reportID === CONST.REPORT.SPLIT_REPORT_ID || isFromReviewDuplicates
             ? !transaction
             : moneyRequestReportID !== transaction?.reportID;
 
@@ -101,8 +108,8 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
             isAuthTokenRequired={!isLocalFile && !isDraftTransaction}
             report={report}
             isReceiptAttachment
-            canEditReceipt={(canEditReceipt && !readonly) || isDraftTransaction}
-            canDeleteReceipt={canDeleteReceipt && !readonly && !isDraftTransaction}
+            canEditReceipt={((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt}
+            canDeleteReceipt={canDeleteReceipt && !readonly && !isDraftTransaction && !transaction?.receipt?.isTestDriveReceipt}
             allowDownload={!isEReceipt}
             isTrackExpenseAction={isTrackExpenseAction}
             originalFileName={isDraftTransaction ? transaction?.filename : receiptURIs?.filename}

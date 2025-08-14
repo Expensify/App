@@ -80,9 +80,6 @@ type Account = {
     /** Is this account having trouble receiving emails? */
     hasEmailDeliveryFailure?: boolean;
 
-    /** URL to the assigned guide's appointment booking calendar */
-    guideCalendarLink?: string;
-
     /** User recovery codes for setting up 2-FA */
     recoveryCodes?: string;
 
@@ -202,9 +199,6 @@ type Account = {
         errors: OnyxCommon.Errors;
     };
 
-    /// All of the fields/attributes after this comment are currently being migrated from the User model into this Account model
-    /// Please do not use any of it until the list of action tasks in the table at https://github.com/Expensify/App/issues/59277#issuecomment-2818283478 is fully completed
-
     /** Whether or not the user is subscribed to news updates */
     isSubscribedToNewsletter?: boolean;
 
@@ -232,8 +226,14 @@ type Account = {
     /** Whether the debug mode is currently enabled */
     isDebugModeEnabled?: boolean;
 
-    /** If user has accesible policies on a private domain */
+    /** If user has accessible policies on a private domain */
     hasAccessibleDomainPolicies?: boolean;
+
+    /** Errors for lock account */
+    lockAccount?: {
+        /** API errors when locking an account */
+        errors: OnyxCommon.Errors;
+    };
 };
 
 export default Account;

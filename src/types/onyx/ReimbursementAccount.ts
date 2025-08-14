@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountProps, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
@@ -106,6 +107,10 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: boolean;
     /** Stringified array of owners data */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]?: string;
+    /** Indicates that the PDS and FSD document has been downloaded */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.DOWNLOADED_PDS_AND_FSG]?: boolean;
+    /** Powerform required for US and CA workspaces */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACH_AUTHORIZATION_FORM]?: FileObject[];
 };
 
 /** Model of ACH data */
@@ -194,6 +199,12 @@ type ACHDataReimbursementAccount = Omit<ACHData, 'subStep' | 'currentStep'> & {
 
     /** Optional subStep we would like the user to start back on */
     subStep?: ReimbursementAccountSubStep;
+
+    /** The reportActionID of the ACH request message in the Concierge chat.
+     *  That message asks the user to provide additional information to validate the bank account.
+     *  The ID is used to link to this exact message when the user clicks the link in the bank account flow to finish in chat
+     * */
+    ACHRequestReportActionID: string;
 };
 
 /** Model of reimbursement account data */

@@ -1,13 +1,15 @@
 import React, {useCallback, useRef} from 'react';
+import type {MouseEvent} from 'react';
 import {View} from 'react-native';
-import type {GestureResponderEvent} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import TestToolsModalPage from '@components/TestToolsModalPage';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {TestToolsModalModalNavigatorParamList} from '@libs/Navigation/types';
 import toggleTestToolsModal from '@userActions/TestTool';
@@ -24,29 +26,33 @@ function TestToolsModalNavigator() {
     const isAuthenticated = useIsAuthenticated();
 
     const handleOuterClick = useCallback(() => {
-        toggleTestToolsModal();
+        // Release focus from any focused element before closing the modal
+        blurActiveElement();
+        requestAnimationFrame(() => {
+            toggleTestToolsModal();
+        });
     }, []);
 
-    const handleInnerPress = useCallback((e: GestureResponderEvent) => {
+    const handleInnerClick = useCallback((e: MouseEvent) => {
         e.stopPropagation();
     }, []);
 
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleOuterClick, {shouldBubble: true});
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => toggleTestToolsModal(), {shouldBubble: false});
 
     return (
         <NoDropZone>
             <Overlay />
-            <View
+            <PressableWithoutFeedback
                 ref={outerViewRef}
-                onClick={handleOuterClick}
-                onTouchEnd={handleOuterClick}
-                style={styles.TestToolsNavigatorOuterView(shouldUseNarrowLayout)}
+                onPress={handleOuterClick}
+                style={[styles.getTestToolsNavigatorOuterView(shouldUseNarrowLayout)]}
+                accessible={false}
             >
                 <FocusTrapForScreens>
                     <View
-                        onClick={(e) => e.stopPropagation()}
-                        onTouchEnd={handleInnerPress}
-                        style={styles.TestToolsNavigatorInnerView(shouldUseNarrowLayout, isAuthenticated)}
+                        onStartShouldSetResponder={() => true}
+                        onClick={handleInnerClick}
+                        style={styles.getTestToolsNavigatorInnerView(shouldUseNarrowLayout, isAuthenticated)}
                     >
                         <Stack.Navigator screenOptions={{headerShown: false}}>
                             <Stack.Screen
@@ -56,7 +62,7 @@ function TestToolsModalNavigator() {
                         </Stack.Navigator>
                     </View>
                 </FocusTrapForScreens>
-            </View>
+            </PressableWithoutFeedback>
         </NoDropZone>
     );
 }

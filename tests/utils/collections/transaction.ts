@@ -34,7 +34,6 @@ export default function createRandomTransaction(index: number): Transaction {
         modifiedMerchant: randWord(),
         originalAmount: randAmount(),
         originalCurrency: rand(Object.values(CONST.CURRENCY)),
-        pendingAction: rand(Object.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
         reportID: index.toString(),
         transactionID: index.toString(),
         tag: randWord(),

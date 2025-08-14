@@ -30,7 +30,7 @@
 {
   const defaultValues = {
     type: "expense",
-    status: "all",
+    status: "",
     sortBy: "date",
     sortOrder: "desc",
   };
@@ -123,18 +123,22 @@ key "key"
       / taxRate
       / cardID
       / from
+      / payer
+      / exporter
       / expenseType
       / submitted
       / approved
       / paid
       / exported
       / posted
+      / withdrawn
       / feed
       / title
       / assignee
       / createdBy
       / reimbursable
       / billable
+      / action
     )
 
 filterKey

@@ -8,6 +8,7 @@ const createUpdate = (lastUpdateID: number, successData: OnyxUpdate[] = [], prev
     previousUpdateID: previousUpdateID ?? lastUpdateID - 1,
     request: {
         command: 'TestCommand',
+        data: {apiRequestType: 'TestType'},
         successData,
         failureData: [],
         finallyData: [],

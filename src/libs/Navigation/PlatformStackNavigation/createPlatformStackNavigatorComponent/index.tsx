@@ -3,11 +3,11 @@ import {StackRouter, useNavigationBuilder} from '@react-navigation/native';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import {StackView} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
+import {addCustomHistoryRouterExtension} from '@libs/Navigation/AppNavigator/customHistory';
 import convertToWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/navigationOptions/convertToWebNavigationOptions';
 import type {
     CreatePlatformStackNavigatorComponentOptions,
     CustomCodeProps,
-    PlatformNavigationBuilderOptions,
     PlatformStackNavigationOptions,
     PlatformStackNavigationState,
     PlatformStackNavigatorProps,
@@ -18,7 +18,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
     displayName: string,
     options?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>,
 ) {
-    const createRouter = options?.createRouter ?? StackRouter;
+    const createRouter = addCustomHistoryRouterExtension(options?.createRouter ?? StackRouter);
     const useCustomState = options?.useCustomState ?? (() => undefined);
     const defaultScreenOptions = options?.defaultScreenOptions;
     const ExtraContent = options?.ExtraContent;
@@ -41,6 +41,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
             navigation,
             state: originalState,
             descriptors,
+            describe,
             NavigationContent,
         } = useNavigationBuilder<
             PlatformStackNavigationState<ParamListBase>,
@@ -54,15 +55,14 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
             {
                 id,
                 children,
-                screenOptions,
-                defaultScreenOptions,
+                screenOptions: {...defaultScreenOptions, ...screenOptions},
                 screenListeners,
                 initialRouteName,
                 defaultCentralScreen,
                 sidebarScreen,
                 parentRoute,
                 persistentScreens,
-            } as PlatformNavigationBuilderOptions<PlatformStackNavigationOptions, StackNavigationEventMap, ParamListBase, RouterOptions>,
+            },
             convertToWebNavigationOptions,
         );
 
@@ -106,9 +106,11 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                     <StackView
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
+                        direction="ltr"
                         state={mappedState}
                         descriptors={descriptors}
                         navigation={navigation}
+                        describe={describe}
                     />
 
                     {!!ExtraContent && (
@@ -117,7 +119,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                     )}
                 </NavigationContent>
             ),
-            [NavigationContent, customCodePropsWithCustomState, descriptors, mappedState, navigation, props],
+            [NavigationContent, customCodePropsWithCustomState, describe, descriptors, mappedState, navigation, props],
         );
 
         // eslint-disable-next-line react/jsx-props-no-spreading

@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
+import {clearSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {clearAllPolicies} from './Policy/Policy';
@@ -20,6 +21,7 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
     // flashes of unwanted default state.
     const keysToPreserve: OnyxKey[] = [];
     keysToPreserve.push(ONYXKEYS.NVP_PREFERRED_LOCALE);
+    keysToPreserve.push(ONYXKEYS.ARE_TRANSLATIONS_LOADING);
     keysToPreserve.push(ONYXKEYS.PREFERRED_THEME);
     keysToPreserve.push(ONYXKEYS.ACTIVE_CLIENTS);
     keysToPreserve.push(ONYXKEYS.DEVICE_ID);
@@ -50,7 +52,9 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
  * @param [errorMessage] error message to be displayed on the sign in page
  */
 function redirectToSignIn(errorMessage?: string): Promise<void> {
-    return clearStorageAndRedirect(errorMessage);
+    return clearStorageAndRedirect(errorMessage).then(() => {
+        clearSessionStorage();
+    });
 }
 
 export default redirectToSignIn;

@@ -3,10 +3,8 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
-import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import SubscriptAvatar from '@components/SubscriptAvatar';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
@@ -15,16 +13,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import CONST from '@src/CONST';
-import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import BaseListItem from './BaseListItem';
 import type {ListItem, UserListItemProps} from './types';
-
-const fallbackIcon: IconType = {
-    source: FallbackAvatar,
-    type: CONST.ICON_TYPE_AVATAR,
-    name: '',
-    id: -1,
-};
 
 function UserListItem<TItem extends ListItem>({
     item,
@@ -41,6 +31,7 @@ function UserListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     pressableStyle,
+    shouldUseDefaultRightHandSideCheckmark,
 }: UserListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -87,7 +78,7 @@ function UserListItem<TItem extends ListItem>({
         >
             {(hovered?: boolean) => (
                 <>
-                    {!!canSelectMultiple && (
+                    {!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
@@ -108,25 +99,22 @@ function UserListItem<TItem extends ListItem>({
                             </View>
                         </PressableWithFeedback>
                     )}
-                    {!!item.icons &&
-                        (item.shouldShowSubscript ? (
-                            <SubscriptAvatar
-                                mainAvatar={item.icons.at(0) ?? fallbackIcon}
-                                secondaryAvatar={item.icons.at(1)}
-                                showTooltip={showTooltip}
-                                backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                            />
-                        ) : (
-                            <MultipleAvatars
-                                icons={item.icons}
-                                shouldShowTooltip={showTooltip}
-                                secondAvatarStyle={[
-                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                    isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                    hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                                ]}
-                            />
-                        ))}
+                    {(!!item.reportID || !!item.accountID || !!item.policyID) && (
+                        <ReportActionAvatars
+                            subscriptAvatarBorderColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                            shouldShowTooltip={showTooltip}
+                            secondaryAvatarContainerStyle={[
+                                StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                            ]}
+                            reportID={item.reportID}
+                            accountIDs={[Number(item.accountID)]}
+                            policyID={!item.reportID && !item.accountID ? item.policyID : undefined}
+                            singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
+                            fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
+                        />
+                    )}
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
@@ -155,6 +143,27 @@ function UserListItem<TItem extends ListItem>({
                                 fill={StyleUtils.getIconFillColor(getButtonState(hovered, false, false, !!isDisabled, item.isInteractive !== false))}
                             />
                         </View>
+                    )}
+                    {!!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
+                        <PressableWithFeedback
+                            accessibilityLabel={item.text ?? ''}
+                            role={CONST.ROLE.BUTTON}
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            disabled={isDisabled || item.isDisabledCheckbox}
+                            onPress={handleCheckboxPress}
+                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.ml3]}
+                        >
+                            <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
+                                {!!item.isSelected && (
+                                    <Icon
+                                        src={Expensicons.Checkmark}
+                                        fill={theme.textLight}
+                                        height={14}
+                                        width={14}
+                                    />
+                                )}
+                            </View>
+                        </PressableWithFeedback>
                     )}
                 </>
             )}

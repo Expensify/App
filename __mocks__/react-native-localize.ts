@@ -1,4 +1,8 @@
-// eslint-disable-next-line import/no-import-module-exports
-import mockRNLocalize from 'react-native-localize/mock';
+// use a provided translation, or return undefined to test your fallback
+const findBestAvailableLanguage = () => ({
+    languageTag: 'en',
+    isRTL: false,
+});
 
-module.exports = mockRNLocalize;
+// eslint-disable-next-line import/prefer-default-export
+export {findBestAvailableLanguage};
