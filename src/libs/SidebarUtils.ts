@@ -353,8 +353,8 @@ function categorizeReportsForLHN(
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     for (const report of Object.values(reportsToDisplay)) {
         const reportID = report.reportID;
-        const isPinned = report.isPinned ?? false;
-        const hasErrors = report.hasErrorsOtherThanFailedReceipt;
+        const isPinned = !!report.isPinned;
+        const hasErrors = !!report.hasErrorsOtherThanFailedReceipt;
         const hasDraft = reportID ? hasValidDraftComment(reportID) : false;
         const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
         const rNVPs = reportNameValuePairs?.[reportNameValuePairsKey];
