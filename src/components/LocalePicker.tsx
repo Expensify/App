@@ -37,13 +37,7 @@ function LocalePicker({size = 'normal'}: LocalePickerProps) {
     return (
         <Picker
             label={size === 'normal' ? translate('languagePage.language') : null}
-            onInputChange={(locale) => {
-                if (locale === preferredLocale) {
-                    return;
-                }
-
-                setLocale(locale);
-            }}
+            onInputChange={(locale) => setLocale(locale, preferredLocale)}
             isDisabled={shouldDisablePicker}
             items={locales}
             shouldAllowDisabledStyle={false}
