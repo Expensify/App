@@ -341,7 +341,7 @@ jobs:
     needs: prep
     runs-on: macos-15-xlarge
     env:
-      DEVELOPER_DIR: /Applications/Xcode_16.2.0.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_16.4.0.app/Contents/Developer
       SHOULD_BUILD_APP: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     steps:
       - name: Checkout
@@ -420,9 +420,6 @@ jobs:
       - name: Get iOS native version
         id: getIOSVersion
         run: echo "IOS_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')" >> "$GITHUB_OUTPUT"
-
-      - name: Install iOS 18.2 SDK
-        run: xcodebuild -downloadPlatform iOS
 
       - name: Build iOS HybridApp
         if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
