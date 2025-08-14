@@ -1,7 +1,6 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
-import type {SelectionListHandle} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,7 +24,6 @@ type SearchSingleSelectionPickerProps = {
 function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle, onSaveSelection, shouldShowTextInput = true}: SearchSingleSelectionPickerProps) {
     const {translate} = useLocalize();
 
-    const selectionListRef = useRef<SelectionListHandle>(null);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedItem, setSelectedItem] = useState<SearchSingleSelectionPickerItem | undefined>(initiallySelectedItem);
 
@@ -34,38 +32,45 @@ function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle,
     }, [initiallySelectedItem]);
 
     const {sections, noResultsFound} = useMemo(() => {
-        const selectedItemSection = selectedItem?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase())
-            ? [{text: selectedItem.name, keyForList: selectedItem.value, isSelected: true, value: selectedItem.value}]
+        const initiallySelectedItemSection = initiallySelectedItem?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase())
+            ? [
+                  {
+                      text: initiallySelectedItem.name,
+                      keyForList: initiallySelectedItem.value,
+                      isSelected: selectedItem?.value === initiallySelectedItem.value,
+                      value: initiallySelectedItem.value,
+                  },
+              ]
             : [];
         const remainingItemsSection = items
-            .filter((item) => item?.value !== selectedItem?.value && item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
+            .filter((item) => item?.value !== initiallySelectedItem?.value && item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
             .map((item) => ({
                 text: item.name,
                 keyForList: item.value,
-                isSelected: false,
+                isSelected: selectedItem?.value === item.value,
                 value: item.value,
             }));
-        const isEmpty = !selectedItemSection.length && !remainingItemsSection.length;
+        const isEmpty = !initiallySelectedItemSection.length && !remainingItemsSection.length;
         return {
             sections: isEmpty
                 ? []
                 : [
                       {
                           title: undefined,
-                          data: selectedItemSection,
-                          shouldShow: selectedItemSection.length > 0,
+                          data: initiallySelectedItemSection,
+                          shouldShow: initiallySelectedItemSection.length > 0,
                           indexOffset: 0,
                       },
                       {
                           title: pickerTitle,
                           data: remainingItemsSection,
                           shouldShow: remainingItemsSection.length > 0,
-                          indexOffset: selectedItemSection.length,
+                          indexOffset: initiallySelectedItemSection.length,
                       },
                   ],
             noResultsFound: isEmpty,
         };
-    }, [selectedItem, items, pickerTitle, debouncedSearchTerm]);
+    }, [initiallySelectedItem, selectedItem, items, pickerTitle, debouncedSearchTerm]);
 
     const onSelectItem = useCallback((item: Partial<OptionData & SearchSingleSelectionPickerItem>) => {
         if (!item.text || !item.keyForList || !item.value) {
@@ -73,7 +78,6 @@ function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle,
         }
         if (!item.isSelected) {
             setSelectedItem({name: item.text, value: item.value});
-            selectionListRef?.current?.updateAndScrollToFocusedIndex(0);
         }
     }, []);
 
@@ -97,7 +101,6 @@ function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle,
     );
     return (
         <SelectionList
-            ref={selectionListRef}
             sections={sections}
             initiallyFocusedOptionKey={initiallySelectedItem?.value}
             textInputValue={searchTerm}
@@ -110,7 +113,6 @@ function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle,
             showLoadingPlaceholder={!noResultsFound}
             shouldShowTooltips
             ListItem={SingleSelectListItem}
-            shouldDebounceScrolling
             shouldUpdateFocusedIndex
         />
     );
