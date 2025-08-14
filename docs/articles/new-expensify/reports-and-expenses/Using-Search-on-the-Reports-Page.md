@@ -22,6 +22,8 @@ The **To-do** section surfaces key report actions so you can:
 
 These shortcuts are personalized based on your role and workspace configuration, helping you process reports in batches without manually building advanced searches.
 
+![An image of the Search function on the Reports page on New Expensify]({{site.url}}/assets/images/export.png){:width="100%"}
+
 ---
 
 # How to Use Search Shortcuts
