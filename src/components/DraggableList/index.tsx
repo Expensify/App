@@ -24,8 +24,8 @@ function DraggableList<T>(
         onDragEnd: onDragEndCallback,
         // eslint-disable-next-line @typescript-eslint/naming-convention
         ListFooterComponent,
-    }: DraggableListProps<T>,
-    ref: React.ForwardedRef<RNScrollView>,
+        ref,
+    }: DraggableListProps<T> & {ref?: React.ForwardedRef<RNScrollView>},
 ) {
     const styles = useThemeStyles();
 
@@ -103,4 +103,4 @@ function DraggableList<T>(
 
 DraggableList.displayName = 'DraggableList';
 
-export default React.forwardRef(DraggableList);
+export default DraggableList;

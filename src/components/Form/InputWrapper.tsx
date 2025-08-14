@@ -1,5 +1,5 @@
 import type {ComponentPropsWithoutRef, ComponentType, ForwardedRef} from 'react';
-import React, {forwardRef, useContext} from 'react';
+import React, {useContext} from 'react';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
 import type RoomNameInputProps from '@components/RoomNameInput/types';
@@ -69,9 +69,12 @@ type InputWrapperProps<TInput extends ValidInputs, TValue extends ValueTypeKey =
          * Currently, meaningful only for text inputs.
          */
         shouldSubmitForm?: boolean;
+
+        /** Reference to the outer element */
+        ref?: ForwardedRef<AnimatedTextInputRef>
     };
 
-function InputWrapper<TInput extends ValidInputs, TValue extends ValueTypeKey>(props: InputWrapperProps<TInput, TValue>, ref: ForwardedRef<AnimatedTextInputRef>) {
+function InputWrapper<TInput extends ValidInputs, TValue extends ValueTypeKey>({ref, ...props}: InputWrapperProps<TInput, TValue>) {
     const {InputComponent, inputID, valueType = 'string', shouldSubmitForm: propShouldSubmitForm, ...rest} = props as InputComponentBaseProps;
     const {registerInput} = useContext(FormContext);
 
@@ -91,4 +94,4 @@ function InputWrapper<TInput extends ValidInputs, TValue extends ValueTypeKey>(p
 
 InputWrapper.displayName = 'InputWrapper';
 
-export default forwardRef(InputWrapper);
+export default InputWrapper;

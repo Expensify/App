@@ -178,7 +178,7 @@ function AccountDetailsPage() {
                     validate={validate}
                     submitButtonText={translate('common.next')}
                     isSubmitButtonVisible={false}
-                    ref={formRef}
+                    forwardedRef={formRef}
                 >
                     <View style={[styles.flexGrow1, styles.mt3]}>
                         <View>

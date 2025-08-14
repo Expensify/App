@@ -1,10 +1,9 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import BaseTextInput from './implementation';
-import type {BaseTextInputProps, BaseTextInputRef} from './types';
+import type {BaseTextInputProps} from './types';
 
-function BaseTextInputE2E(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef>) {
+function BaseTextInputE2E({ref, ...props}: BaseTextInputProps) {
     useEffect(() => {
         const testId = props.testID;
         if (!testId) {
@@ -24,4 +23,4 @@ function BaseTextInputE2E(props: BaseTextInputProps, ref: ForwardedRef<BaseTextI
     );
 }
 
-export default forwardRef(BaseTextInputE2E);
+export default BaseTextInputE2E;
