@@ -1,4 +1,6 @@
 import Onyx from 'react-native-onyx';
+// eslint-disable-next-line no-restricted-syntax
+import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getSecondaryExportReportActions, getSecondaryReportActions, getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
 import CONST from '@src/CONST';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
@@ -30,6 +32,15 @@ const PERSONAL_DETAILS = {
 const REPORT_ID = 1;
 const POLICY_ID = 'POLICY_ID';
 const OLD_POLICY_ID = 'OLD_POLICY_ID';
+
+jest.mock('@libs/PolicyUtils', () => ({
+    ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    isPreferredExporter: jest.fn().mockReturnValue(true),
+    hasAccountingConnections: jest.fn().mockReturnValue(true),
+    isPolicyAdmin: jest.fn().mockReturnValue(true),
+    getValidConnectedIntegration: jest.fn().mockReturnValue('netsuite'),
+}));
+
 describe('getSecondaryAction', () => {
     beforeAll(() => {
         Onyx.init({
