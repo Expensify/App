@@ -32,6 +32,7 @@ import type {
     BeginningOfChatHistoryInvoiceRoomParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
+    BillableDefaultDescriptionParams,
     BillingBannerCardAuthenticationRequiredParams,
     BillingBannerCardExpiredParams,
     BillingBannerCardOnDisputeParams,
@@ -109,6 +110,7 @@ import type {
     ImportPerDiemRatesSuccessfulDescriptionParams,
     ImportTagsSuccessfulDescriptionParams,
     IncorrectZipFormatParams,
+    IndividualExpenseRulesSubtitleParams,
     InstantSummaryParams,
     IntacctMappingTitleParams,
     IntegrationExportParams,
@@ -282,6 +284,7 @@ import type {
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
+    WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
@@ -3474,11 +3477,8 @@ const translations = {
             appliedOnExport: 'Not imported into Expensify, applied on export',
             shareNote: {
                 header: 'Share your workspace with other members',
-                content: {
-                    firstPart:
-                        'Share this QR code or copy the link below to make it easy for members to request access to your workspace. All requests to join the workspace will show up in the',
-                    secondPart: 'room for your review.',
-                },
+                content: ({adminsRoomLink}: WorkspaceShareNoteParams) =>
+                    `Share this QR code or copy the link below to make it easy for members to request access to your workspace. All requests to join the workspace will show up in the <a href="${adminsRoomLink}">${CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}</a> room for your review.`,
             },
             connectTo: ({connectionName}: ConnectionNameParams) => `Connect to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             createNewConnection: 'Create new connection',
@@ -5508,7 +5508,8 @@ const translations = {
         rules: {
             individualExpenseRules: {
                 title: 'Expenses',
-                subtitle: 'Set spend controls and defaults for individual expenses. You can also create rules for',
+                subtitle: ({categoriesPageLink, tagsPageLink}: IndividualExpenseRulesSubtitleParams) =>
+                    `<muted-text>Set spend controls and defaults for individual expenses. You can also create rules for <a href="${categoriesPageLink}">categories</a> and <a href="${tagsPageLink}">tags</a>.</muted-text>`,
                 receiptRequiredAmount: 'Receipt required amount',
                 receiptRequiredAmountDescription: 'Require receipts when spend exceeds this amount, unless overridden by a category rule.',
                 maxExpenseAmount: 'Max expense amount',
@@ -5532,7 +5533,8 @@ const translations = {
                 alwaysNonReimbursable: 'Always non-reimbursable',
                 alwaysNonReimbursableDescription: 'Expenses are never paid back to employees',
                 billableDefault: 'Billable default',
-                billableDefaultDescription: 'Choose whether cash and credit card expenses should be billable by default. Billable expenses are enabled or disabled in',
+                billableDefaultDescription: ({tagsPageLink}: BillableDefaultDescriptionParams) =>
+                    `<muted-text>Choose whether cash and credit card expenses should be billable by default. Billable expenses are enabled or disabled in <a href="${tagsPageLink}">tags</a>.</muted-text>`,
                 billable: 'Billable',
                 billableDescription: 'Expenses are most often re-billed to clients',
                 nonBillable: 'Non-billable',

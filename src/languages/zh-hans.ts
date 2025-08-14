@@ -43,6 +43,7 @@ import type {
     BeginningOfChatHistoryInvoiceRoomParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
+    BillableDefaultDescriptionParams,
     BillingBannerCardAuthenticationRequiredParams,
     BillingBannerCardExpiredParams,
     BillingBannerCardOnDisputeParams,
@@ -120,6 +121,7 @@ import type {
     ImportPerDiemRatesSuccessfulDescriptionParams,
     ImportTagsSuccessfulDescriptionParams,
     IncorrectZipFormatParams,
+    IndividualExpenseRulesSubtitleParams,
     InstantSummaryParams,
     IntacctMappingTitleParams,
     IntegrationExportParams,
@@ -293,6 +295,7 @@ import type {
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
+    WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
@@ -3448,10 +3451,8 @@ const translations = {
             appliedOnExport: '未导入Expensify，已在导出时应用',
             shareNote: {
                 header: '与其他成员共享您的工作区',
-                content: {
-                    firstPart: '分享此二维码或复制下面的链接，以便成员轻松请求访问您的工作区。所有加入工作区的请求将显示在',
-                    secondPart: '供您审阅的空间。',
-                },
+                content: ({adminsRoomLink}: WorkspaceShareNoteParams) =>
+                    `分享此二维码或复制下面的链接，方便成员申请加入您的工作区。所有加入工作区的请求都将显示在 <a href="${adminsRoomLink}">${CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}</a> room 中供您查看。`,
             },
             connectTo: ({connectionName}: ConnectionNameParams) => `连接到${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             createNewConnection: '创建新连接',
@@ -5444,7 +5445,8 @@ const translations = {
         rules: {
             individualExpenseRules: {
                 title: '费用',
-                subtitle: '为单个费用设置支出控制和默认值。您还可以创建规则以',
+                subtitle: ({categoriesPageLink, tagsPageLink}: IndividualExpenseRulesSubtitleParams) =>
+                    `<muted-text>为单项支出设置支出控制和默认值。您还可以为<a href="${categoriesPageLink}">类别</a>和<a href="${tagsPageLink}">标签</a>创建规则。</muted-text>`,
                 receiptRequiredAmount: '所需收据金额',
                 receiptRequiredAmountDescription: '当支出超过此金额时需要收据，除非被类别规则覆盖。',
                 maxExpenseAmount: '最大报销金额',
@@ -5467,7 +5469,8 @@ const translations = {
                 alwaysNonReimbursable: '始终不可报销',
                 alwaysNonReimbursableDescription: '支出永远不会报销给员工',
                 billableDefault: '默认计费',
-                billableDefaultDescription: '选择现金和信用卡费用是否应默认可计费。可计费用在中启用或禁用。',
+                billableDefaultDescription: ({tagsPageLink}: BillableDefaultDescriptionParams) =>
+                    `<muted-text>C选择现金和信用卡支出是否默认可计费。可计费支出可在<a href="${tagsPageLink}">标签</a>中启用或禁用。</muted-text>`,
                 billable: '可计费的',
                 billableDescription: '费用通常会重新计费给客户。',
                 nonBillable: '非计费',

@@ -30,6 +30,7 @@ import type {
     BeginningOfChatHistoryInvoiceRoomParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
+    BillableDefaultDescriptionParams,
     BillingBannerCardAuthenticationRequiredParams,
     BillingBannerCardExpiredParams,
     BillingBannerCardOnDisputeParams,
@@ -107,6 +108,7 @@ import type {
     ImportPerDiemRatesSuccessfulDescriptionParams,
     ImportTagsSuccessfulDescriptionParams,
     IncorrectZipFormatParams,
+    IndividualExpenseRulesSubtitleParams,
     InstantSummaryParams,
     IntacctMappingTitleParams,
     IntegrationExportParams,
@@ -281,6 +283,7 @@ import type {
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
+    WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
@@ -3461,11 +3464,8 @@ const translations = {
             appliedOnExport: 'No se importa en Expensify, se aplica en la exportación',
             shareNote: {
                 header: 'Comparte tu espacio de trabajo con otros miembros',
-                content: {
-                    firstPart:
-                        'Comparte este código QR o copia el enlace de abajo para facilitar que los miembros soliciten acceso a tu espacio de trabajo. Todas las solicitudes para unirse al espacio de trabajo aparecerán en la sala',
-                    secondPart: 'para tu revisión.',
-                },
+                content: ({adminsRoomLink}: WorkspaceShareNoteParams) =>
+                    `Comparte este código QR o copia el enlace de abajo para facilitar que los miembros soliciten acceso a tu espacio de trabajo. Todas las solicitudes para unirse al espacio de trabajo aparecerán en la sala <a href="${adminsRoomLink}">${CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}</a> para tu revisión.`,
             },
             connectTo: ({connectionName}: ConnectionNameParams) => `Conéctate a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             createNewConnection: 'Crear una nueva conexión',
@@ -5542,7 +5542,8 @@ const translations = {
         rules: {
             individualExpenseRules: {
                 title: 'Gastos',
-                subtitle: 'Establece controles y valores predeterminados para gastos individuales. También puedes crear reglas para',
+                subtitle: ({categoriesPageLink, tagsPageLink}: IndividualExpenseRulesSubtitleParams) =>
+                    `<muted-text>Establece controles y valores predeterminados para gastos individuales. También puedes crear reglas para <a href="${categoriesPageLink}">categorías</a> y <a href="${tagsPageLink}">etiquetas</a>.</muted-text>`,
                 receiptRequiredAmount: 'Cantidad requerida para los recibos',
                 receiptRequiredAmountDescription: 'Exige recibos cuando los gastos superen este importe, a menos que lo anule una regla de categoría.',
                 maxExpenseAmount: 'Importe máximo del gasto',
@@ -5566,7 +5567,8 @@ const translations = {
                 alwaysNonReimbursable: 'Siempre no reembolsable',
                 alwaysNonReimbursableDescription: 'Los gastos nunca son reembolsados a los empleados',
                 billableDefault: 'Valor predeterminado facturable',
-                billableDefaultDescription: 'Elige si los gastos en efectivo y con tarjeta de crédito deben ser facturables por defecto. Los gastos facturables se activan o desactivan en',
+                billableDefaultDescription: ({tagsPageLink}: BillableDefaultDescriptionParams) =>
+                    `<muted-text>Elige si los gastos en efectivo y con tarjeta de crédito deben ser facturables por defecto. Los gastos facturables se activan o desactivan en <a href="${tagsPageLink}">etiquetas</a>.</muted-text>`,
                 billable: 'Facturable',
                 billableDescription: 'Los gastos se vuelven a facturar a los clientes en la mayoría de los casos',
                 nonBillable: 'No facturable',

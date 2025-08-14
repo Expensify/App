@@ -43,6 +43,7 @@ import type {
     BeginningOfChatHistoryInvoiceRoomParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
+    BillableDefaultDescriptionParams,
     BillingBannerCardAuthenticationRequiredParams,
     BillingBannerCardExpiredParams,
     BillingBannerCardOnDisputeParams,
@@ -120,6 +121,7 @@ import type {
     ImportPerDiemRatesSuccessfulDescriptionParams,
     ImportTagsSuccessfulDescriptionParams,
     IncorrectZipFormatParams,
+    IndividualExpenseRulesSubtitleParams,
     InstantSummaryParams,
     IntacctMappingTitleParams,
     IntegrationExportParams,
@@ -293,6 +295,7 @@ import type {
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
+    WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
@@ -3490,11 +3493,8 @@ const translations = {
             appliedOnExport: 'Nie zaimportowane do Expensify, zastosowane przy eksporcie',
             shareNote: {
                 header: 'Udostępnij swoje miejsce pracy innym członkom',
-                content: {
-                    firstPart:
-                        'Udostępnij ten kod QR lub skopiuj poniższy link, aby ułatwić członkom żądanie dostępu do Twojego miejsca pracy. Wszystkie prośby o dołączenie do miejsca pracy pojawią się w',
-                    secondPart: 'pokój do Twojej recenzji.',
-                },
+                content: ({adminsRoomLink}: WorkspaceShareNoteParams) =>
+                    `Udostępnij ten kod QR lub skopiuj poniższy link, aby ułatwić członkom uzyskanie dostępu do Twojej przestrzeni roboczej. Wszystkie prośby o dołączenie do przestrzeni roboczej będą wyświetlane w pokoju <a href="${adminsRoomLink}">${CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}</a>, gdzie będziesz mógł je przejrzeć.`,
             },
             connectTo: ({connectionName}: ConnectionNameParams) => `Połącz z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             createNewConnection: 'Utwórz nowe połączenie',
@@ -5529,7 +5529,8 @@ const translations = {
         rules: {
             individualExpenseRules: {
                 title: 'Wydatki',
-                subtitle: 'Ustaw limity wydatków i domyślne wartości dla poszczególnych wydatków. Możesz także tworzyć zasady dla',
+                subtitle: ({categoriesPageLink, tagsPageLink}: IndividualExpenseRulesSubtitleParams) =>
+                    `<muted-text>Ustaw limity wydatków i domyślne wartości dla poszczególnych wydatków. Możesz również tworzyć reguły dla <a href="${categoriesPageLink}">kategorie</a> i <a href="${tagsPageLink}">tagi</a>.</muted-text>`,
                 receiptRequiredAmount: 'Wymagana kwota paragonu',
                 receiptRequiredAmountDescription: 'Wymagaj paragonów, gdy wydatki przekraczają tę kwotę, chyba że zostanie to zmienione przez regułę kategorii.',
                 maxExpenseAmount: 'Maksymalna kwota wydatku',
@@ -5553,7 +5554,8 @@ const translations = {
                 alwaysNonReimbursable: 'Nigdy nie zwracany',
                 alwaysNonReimbursableDescription: 'Wydatki nigdy nie są zwracane pracownikom',
                 billableDefault: 'Domyślne do rozliczenia',
-                billableDefaultDescription: 'Wybierz, czy wydatki gotówkowe i na kartę kredytową powinny być domyślnie fakturowalne. Wydatki fakturowalne są włączane lub wyłączane w',
+                billableDefaultDescription: ({tagsPageLink}: BillableDefaultDescriptionParams) =>
+                    `<muted-text>Wybierz, czy wydatki gotówkowe i kartą kredytową powinny być domyślnie rozliczane. Rozliczane wydatki można włączyć lub wyłączyć w <a href="${tagsPageLink}">tagi</a>.</muted-text>`,
                 billable: 'Podlegające fakturowaniu',
                 billableDescription: 'Wydatki są najczęściej ponownie fakturowane klientom',
                 nonBillable: 'Niepodlegające fakturowaniu',

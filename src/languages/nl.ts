@@ -43,6 +43,7 @@ import type {
     BeginningOfChatHistoryInvoiceRoomParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
+    BillableDefaultDescriptionParams,
     BillingBannerCardAuthenticationRequiredParams,
     BillingBannerCardExpiredParams,
     BillingBannerCardOnDisputeParams,
@@ -120,6 +121,7 @@ import type {
     ImportPerDiemRatesSuccessfulDescriptionParams,
     ImportTagsSuccessfulDescriptionParams,
     IncorrectZipFormatParams,
+    IndividualExpenseRulesSubtitleParams,
     InstantSummaryParams,
     IntacctMappingTitleParams,
     IntegrationExportParams,
@@ -293,6 +295,7 @@ import type {
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
+    WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
@@ -3497,11 +3500,8 @@ const translations = {
             appliedOnExport: 'Niet geïmporteerd in Expensify, toegepast bij exporteren',
             shareNote: {
                 header: 'Deel je werkruimte met andere leden',
-                content: {
-                    firstPart:
-                        'Deel deze QR-code of kopieer de onderstaande link om het voor leden gemakkelijk te maken toegang tot je werkruimte aan te vragen. Alle verzoeken om lid te worden van de werkruimte verschijnen in de',
-                    secondPart: 'ruimte voor uw beoordeling.',
-                },
+                content: ({adminsRoomLink}: WorkspaceShareNoteParams) =>
+                    `Deel deze QR-code of kopieer de onderstaande link om het voor leden gemakkelijk te maken om toegang tot uw werkruimte aan te vragen. Alle verzoeken om lid te worden van de werkruimte worden weergegeven in de <a href="${adminsRoomLink}">${CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}</a>-ruimte, zodat u ze kunt beoordelen.`,
             },
             connectTo: ({connectionName}: ConnectionNameParams) => `Verbinden met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             createNewConnection: 'Nieuwe verbinding maken',
@@ -5541,7 +5541,8 @@ const translations = {
         rules: {
             individualExpenseRules: {
                 title: 'Uitgaven',
-                subtitle: 'Stel uitgavenlimieten en standaarden in voor individuele uitgaven. Je kunt ook regels maken voor',
+                subtitle: ({categoriesPageLink, tagsPageLink}: IndividualExpenseRulesSubtitleParams) =>
+                    `<muted-text>Stel uitgavenbeperkingen en standaardinstellingen in voor individuele uitgaven. U kunt ook regels voor <a href="${categoriesPageLink}">categorieën</a> en <a href="${tagsPageLink}">tags</a> maken.</muted-text>`,
                 receiptRequiredAmount: 'Vereist bedrag voor bon',
                 receiptRequiredAmountDescription: 'Vereis bonnen wanneer de uitgaven dit bedrag overschrijden, tenzij dit wordt overschreven door een categoriewaarde.',
                 maxExpenseAmount: 'Maximale uitgavebedrag',
@@ -5565,7 +5566,8 @@ const translations = {
                 alwaysNonReimbursable: 'Nooit vergoedbaar',
                 alwaysNonReimbursableDescription: 'Uitgaven worden nooit terugbetaald aan medewerkers',
                 billableDefault: 'Factureerbaar standaardwaarde',
-                billableDefaultDescription: 'Kies of contante en creditcarduitgaven standaard factureerbaar moeten zijn. Factureerbare uitgaven worden in- of uitgeschakeld in',
+                billableDefaultDescription: ({tagsPageLink}: BillableDefaultDescriptionParams) =>
+                    `<muted-text>Kies of contante en creditcarduitgaven standaard factureerbaar moeten zijn. Factureerbare uitgaven worden in <a href="${tagsPageLink}">tags</a> in- of uitgeschakeld.</muted-text>`,
                 billable: 'Factureerbaar',
                 billableDescription: 'Uitgaven worden meestal doorberekend aan klanten.',
                 nonBillable: 'Niet-factureerbaar',

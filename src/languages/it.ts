@@ -43,6 +43,7 @@ import type {
     BeginningOfChatHistoryInvoiceRoomParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
+    BillableDefaultDescriptionParams,
     BillingBannerCardAuthenticationRequiredParams,
     BillingBannerCardExpiredParams,
     BillingBannerCardOnDisputeParams,
@@ -120,6 +121,7 @@ import type {
     ImportPerDiemRatesSuccessfulDescriptionParams,
     ImportTagsSuccessfulDescriptionParams,
     IncorrectZipFormatParams,
+    IndividualExpenseRulesSubtitleParams,
     InstantSummaryParams,
     IntacctMappingTitleParams,
     IntegrationExportParams,
@@ -293,6 +295,7 @@ import type {
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
+    WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
@@ -3490,11 +3493,8 @@ const translations = {
             appliedOnExport: "Non importato in Expensify, applicato all'esportazione",
             shareNote: {
                 header: 'Condividi il tuo spazio di lavoro con altri membri',
-                content: {
-                    firstPart:
-                        'Condividi questo codice QR o copia il link qui sotto per facilitare ai membri la richiesta di accesso al tuo spazio di lavoro. Tutte le richieste di adesione allo spazio di lavoro appariranno nella',
-                    secondPart: 'spazio per la tua recensione.',
-                },
+                content: ({adminsRoomLink}: WorkspaceShareNoteParams) =>
+                    `Condividi questo codice QR o copia il link sottostante per consentire ai membri di richiedere facilmente l'accesso al tuo spazio di lavoro. Tutte le richieste di accesso allo spazio di lavoro verranno visualizzate nella stanza <a href="${adminsRoomLink}">${CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}</a> per la tua revisione.`,
             },
             connectTo: ({connectionName}: ConnectionNameParams) => `Connettiti a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             createNewConnection: 'Crea nuova connessione',
@@ -5544,7 +5544,8 @@ const translations = {
         rules: {
             individualExpenseRules: {
                 title: 'Spese',
-                subtitle: 'Imposta controlli di spesa e predefiniti per le singole spese. Puoi anche creare regole per',
+                subtitle: ({categoriesPageLink, tagsPageLink}: IndividualExpenseRulesSubtitleParams) =>
+                    `<muted-text>Imposta controlli di spesa e valori predefiniti per le singole spese. Puoi anche creare regole per <a href="${categoriesPageLink}">categorie</a> e <a href="${tagsPageLink}">tag</a>.</muted-text>`,
                 receiptRequiredAmount: 'Importo richiesto della ricevuta',
                 receiptRequiredAmountDescription: 'Richiedi ricevute quando la spesa supera questo importo, a meno che non sia derogato da una regola di categoria.',
                 maxExpenseAmount: 'Importo massimo spesa',
@@ -5568,8 +5569,8 @@ const translations = {
                 alwaysNonReimbursable: 'Mai rimborsabile',
                 alwaysNonReimbursableDescription: 'Le spese non sono mai rimborsate ai dipendenti',
                 billableDefault: 'Predefinito fatturabile',
-                billableDefaultDescription:
-                    'Scegli se le spese in contanti e con carta di credito devono essere fatturabili per impostazione predefinita. Le spese fatturabili sono abilitate o disabilitate in',
+                billableDefaultDescription: ({tagsPageLink}: BillableDefaultDescriptionParams) =>
+                    `<muted-text>Scegli se le spese in contanti e con carta di credito devono essere fatturabili per impostazione predefinita. Le spese fatturabili possono essere abilitate o disabilitate nei <a href="${tagsPageLink}">tag</a>.</muted-text>`,
                 billable: 'Fatturabile',
                 billableDescription: 'Le spese sono più spesso riaddebitate ai clienti.',
                 nonBillable: 'Non-fatturabile',
