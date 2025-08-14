@@ -9,6 +9,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -29,7 +30,10 @@ type EditTagPageProps =
 
 function EditTagPage({route}: EditTagPageProps) {
     const policyID = route.params.policyID;
+    const policy = usePolicy(policyID);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [allTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`, {canBeMissing: true});
     const backTo = route.params.backTo;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -63,8 +67,8 @@ function EditTagPage({route}: EditTagPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             const tagName = values.tagName.trim();
             // Do not call the API if the edited tag name is the same as the current tag name
-            if (currentTagName !== tagName) {
-                renamePolicyTag(policyID, {oldName: route.params.tagName, newName: values.tagName.trim()}, route.params.orderWeight);
+            if (policy !== undefined && currentTagName !== tagName) {
+                renamePolicyTag(policy, {oldName: route.params.tagName, newName: values.tagName.trim()}, route.params.orderWeight, policyCategories, allTransactionViolations);
             }
             Keyboard.dismiss();
             Navigation.goBack(
@@ -73,7 +77,7 @@ function EditTagPage({route}: EditTagPageProps) {
                     : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, route.params.orderWeight, route.params.tagName),
             );
         },
-        [currentTagName, policyID, route.params.tagName, route.params.orderWeight, isQuickSettingsFlow, backTo],
+        [allTransactionViolations, currentTagName, policyID, policy, policyCategories, route.params.tagName, route.params.orderWeight, isQuickSettingsFlow, backTo],
     );
 
     return (

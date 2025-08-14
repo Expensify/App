@@ -51,6 +51,8 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const policy = usePolicy(policyID);
     const {environmentURL} = useEnvironment();
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [allTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`, {canBeMissing: true});
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
     const [isCannotDeleteOrDisableLastTagModalVisible, setIsCannotDeleteOrDisableLastTagModalVisible] = useState(false);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_SETTINGS;
@@ -79,7 +81,9 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     }
 
     const deleteTagAndHideModal = () => {
-        deletePolicyTags(policyID, [currentPolicyTag.name]);
+        if (policy !== undefined) {
+            deletePolicyTags(policy, [currentPolicyTag.name], policyCategories, allTransactionViolations);
+        }
         setIsDeleteTagModalOpen(false);
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
     };
@@ -89,7 +93,10 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
             setIsCannotDeleteOrDisableLastTagModalVisible(true);
             return;
         }
-        setWorkspaceTagEnabled(policyID, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, policyTag.orderWeight);
+        if (policy === undefined) {
+            return;
+        }
+        setWorkspaceTagEnabled(policy, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, policyTag.orderWeight);
     };
 
     const navigateToEditTag = () => {
