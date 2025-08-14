@@ -33,6 +33,7 @@ const shouldShowColumnConfig: Record<SortableColumnName, ShouldShowSearchColumnF
     [CONST.SEARCH.TABLE_COLUMNS.TITLE]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.IN]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.CARD]: () => false,
     // This column is never displayed on Search
     [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: () => false,
 };
@@ -67,6 +68,10 @@ const expenseHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TO,
         translationKey: 'common.to',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.CARD,
+        translationKey: 'common.card',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
@@ -167,38 +172,24 @@ function SearchTableHeader({
 
     const shouldShowColumn = useCallback(
         (columnName: SortableColumnName) => {
+            if (groupBy === CONST.SEARCH.GROUP_BY.FROM) {
+                return columnName === CONST.SEARCH.TABLE_COLUMNS.FROM || columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION;
+            }
+            if (groupBy === CONST.SEARCH.GROUP_BY.CARD) {
+                return columnName === CONST.SEARCH.TABLE_COLUMNS.CARD || columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION;
+            }
+
             const shouldShowFun = shouldShowColumnConfig[columnName];
             return shouldShowFun(data, metadata);
         },
-        [data, metadata],
+        [data, metadata, groupBy],
     );
-
-    const columnConfig = useMemo(() => {
-        // s77rt transactions grouped by from/card does not return transactions yet and only total and action columns should be displayed
-        if (groupBy === CONST.SEARCH.GROUP_BY.FROM || groupBy === CONST.SEARCH.GROUP_BY.CARD) {
-            return [
-                // The description column is added to fill the initial width but without translationKey not to display column name
-                {
-                    columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
-                },
-                {
-                    columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
-                    translationKey: 'common.total',
-                },
-                {
-                    columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
-                    translationKey: 'common.action',
-                    isColumnSortable: false,
-                },
-            ] as SearchColumnConfig[];
-        }
-
-        return SearchColumns[metadata.type];
-    }, [metadata.type, groupBy]);
 
     if (displayNarrowVersion) {
         return;
     }
+
+    const columnConfig = SearchColumns[metadata.type];
 
     if (!columnConfig) {
         return;

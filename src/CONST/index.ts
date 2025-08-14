@@ -6365,6 +6365,7 @@ const CONST = {
             TITLE: 'title',
             ASSIGNEE: 'assignee',
             IN: 'in',
+            CARD: 'card',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
