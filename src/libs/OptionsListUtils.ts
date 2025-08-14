@@ -2272,6 +2272,7 @@ function formatMemberForList(member: OptionData): MemberForList {
 
 /**
  * Build the options for the Workspace Member Invite view
+ * This method will be removed. See https://github.com/Expensify/App/issues/66615 for more information.
  */
 function getMemberInviteOptions(
     personalDetails: Array<SearchOption<PersonalDetails>>,
@@ -2280,7 +2281,6 @@ function getMemberInviteOptions(
     includeSelectedOptions = false,
     reports: Array<SearchOption<Report>> = [],
     includeRecentReports = false,
-    includeUserToInvite = false,
     searchString = '',
     maxElements?: number,
 ): Options {
@@ -2294,7 +2294,6 @@ function getMemberInviteOptions(
             includeRecentReports,
             searchString,
             maxElements,
-            includeUserToInvite,
         },
     );
 }

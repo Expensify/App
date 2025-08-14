@@ -56,7 +56,7 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
     const {searchTerm, setSearchTerm, availableOptions, selectedOptions, toggleOption, areOptionsInitialized} = useSearchSelector({
         selectionMode: 'multi',
         maxResults: 50,
-        getOptionsFunction: 'getMemberInviteOptions',
+        searchContext: 'memberInvite',
         includeUserToInvite: true,
         excludeLogins: excludedUsers,
         includeRecentReports: true,

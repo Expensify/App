@@ -1,7 +1,7 @@
 import {useCallback, useMemo, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import {RESULTS} from 'react-native-permissions';
 import type {PermissionStatus} from 'react-native-permissions';
+import {RESULTS} from 'react-native-permissions';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import contactImport from '@libs/ContactImport';
 import type {ContactImportResult} from '@libs/ContactImport/types';
@@ -9,7 +9,7 @@ import useContactPermissions from '@libs/ContactPermission/useContactPermissions
 import getContacts from '@libs/ContactUtils';
 import getPlatform from '@libs/getPlatform';
 import type {GetOptionsConfig, Options, SearchOption} from '@libs/OptionsListUtils';
-import {getAttendeeOptions, getEmptyOptions, getMemberInviteOptions, getSearchOptions, getShareDestinationOptions, getShareLogOptions, getValidOptions} from '@libs/OptionsListUtils';
+import {getEmptyOptions, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,15 +17,15 @@ import type {PersonalDetails} from '@src/types/onyx';
 import useDebouncedState from './useDebouncedState';
 import useOnyx from './useOnyx';
 
-type GetOptionsFunction = 'getSearchOptions' | 'getMemberInviteOptions' | 'getAttendeeOptions' | 'getShareLogOptions' | 'getShareDestinationOptions' | 'getValidOptions';
+type SearchSelectorContext = 'general' | 'search' | 'memberInvite';
 
 type UseSearchSelectorConfig = {
     /** Selection mode - single or multiple selection */
     selectionMode: 'single' | 'multi';
     /** Maximum number of results to return (for heap optimization) */
     maxResults?: number;
-    /** Which options function to use for filtering */
-    getOptionsFunction?: GetOptionsFunction;
+    /** What is the context that we are using this hook for */
+    searchContext?: SearchSelectorContext;
     /** Whether to include user to invite option */
     includeUserToInvite?: boolean;
     /** Logins to exclude from results */
@@ -90,7 +90,7 @@ type UseSearchSelectorReturn = {
 function useSearchSelector({
     selectionMode,
     maxResults = 20,
-    getOptionsFunction = 'getSearchOptions',
+    searchContext = 'search',
     includeUserToInvite = true,
     excludeLogins = {},
     includeRecentReports = false,
@@ -151,43 +151,24 @@ function useSearchSelector({
         };
 
         let baseOptions: Options;
-        switch (getOptionsFunction) {
-            case 'getSearchOptions':
+        switch (searchContext) {
+            case 'search':
                 baseOptions = getSearchOptions(optionsWithContacts, betas ?? [], true, true, debouncedSearchTerm, maxResults, includeUserToInvite);
                 break;
-            case 'getMemberInviteOptions':
-                baseOptions = getMemberInviteOptions(
-                    personalDetailsWithContacts,
-                    betas ?? [],
+            case 'memberInvite':
+                baseOptions = getValidOptions(optionsWithContacts, {
+                    betas: betas ?? [],
+                    includeP2P: true,
+                    includeSelectedOptions: false,
                     excludeLogins,
-                    false,
-                    options.reports,
                     includeRecentReports,
-                    includeUserToInvite,
-                    debouncedSearchTerm,
-                    maxResults,
-                );
+                    maxElements: maxResults,
+                    searchString: debouncedSearchTerm,
+                });
+                // baseOptions = getMemberInviteOptions(personalDetailsWithContacts,
+                // betas ?? [], excludeLogins, false, options.reports, includeRecentReports, debouncedSearchTerm, maxResults);
                 break;
-            case 'getAttendeeOptions':
-                baseOptions = getAttendeeOptions(options.reports, personalDetailsWithContacts, betas ?? [], [], [], false, undefined, debouncedSearchTerm, maxResults, includeUserToInvite);
-                break;
-            case 'getShareLogOptions':
-                baseOptions = getShareLogOptions(optionsWithContacts, betas ?? [], debouncedSearchTerm, maxResults, includeUserToInvite);
-                break;
-            case 'getShareDestinationOptions':
-                baseOptions = getShareDestinationOptions(
-                    options.reports,
-                    personalDetailsWithContacts,
-                    betas ?? [],
-                    [],
-                    excludeLogins,
-                    true,
-                    debouncedSearchTerm,
-                    maxResults,
-                    includeUserToInvite,
-                );
-                break;
-            case 'getValidOptions':
+            case 'general':
                 baseOptions = getValidOptions(optionsWithContacts, {
                     ...getValidOptionsConfig,
                     betas: betas ?? [],
@@ -233,7 +214,7 @@ function useSearchSelector({
         betas,
         debouncedSearchTerm,
         maxResults,
-        getOptionsFunction,
+        searchContext,
         includeUserToInvite,
         excludeLogins,
         includeRecentReports,
@@ -319,4 +300,4 @@ function useSearchSelector({
 }
 
 export default useSearchSelector;
-export type {GetOptionsFunction, UseSearchSelectorConfig, UseSearchSelectorReturn, ContactState};
+export type {ContactState};
