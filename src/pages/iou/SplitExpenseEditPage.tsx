@@ -41,6 +41,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const report = getReportOrDraftReport(reportID);
 
     const [splitExpenseDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: false});
+
     const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(splitExpenseDraftTransaction) ?? {}, [splitExpenseDraftTransaction]);
 
     const policy = usePolicy(report?.policyID);
@@ -197,7 +198,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                         />
                     </ScrollView>
                     <FixedFooter style={styles.mtAuto}>
-                        {Number(splitExpensesList?.length) > 2 && (
+                        {Number(splitExpensesList?.length) > 1 && (
                             <Button
                                 danger
                                 large
