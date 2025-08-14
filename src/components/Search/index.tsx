@@ -54,7 +54,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {ReportAction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, ReportAction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {useSearchContext} from './SearchContext';
@@ -71,7 +71,11 @@ type SearchProps = {
     isMobileSelectionModeEnabled: boolean;
 };
 
-function mapTransactionItemToSelectedEntry(item: TransactionListItemType, reportActions: ReportAction[]): [string, SelectedTransactionInfo] {
+function mapTransactionItemToSelectedEntry(
+    item: TransactionListItemType,
+    reportActions: ReportAction[],
+    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+): [string, SelectedTransactionInfo] {
     return [
         item.keyForList,
         {
@@ -80,7 +84,13 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, report
             canHold: item.canHold,
             isHeld: isOnHold(item),
             canUnhold: item.canUnhold,
-            canChangeReport: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActions, item.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
+            canChangeReport: canEditFieldOfMoneyRequest(
+                getIOUActionForTransactionID(reportActions, item.transactionID),
+                CONST.EDIT_REQUEST_FIELD.REPORT,
+                undefined,
+                undefined,
+                outstandingReportsByPolicyID,
+            ),
             action: item.action,
             reportID: item.reportID,
             policyID: item.policyID,
@@ -120,7 +130,12 @@ function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions:
           };
 }
 
-function prepareTransactionsList(item: TransactionListItemType, selectedTransactions: SelectedTransactions, reportActions: ReportAction[]) {
+function prepareTransactionsList(
+    item: TransactionListItemType,
+    selectedTransactions: SelectedTransactions,
+    reportActions: ReportAction[],
+    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
 
@@ -135,7 +150,13 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
             canHold: item.canHold,
             isHeld: isOnHold(item),
             canUnhold: item.canUnhold,
-            canChangeReport: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActions, item.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
+            canChangeReport: canEditFieldOfMoneyRequest(
+                getIOUActionForTransactionID(reportActions, item.transactionID),
+                CONST.EDIT_REQUEST_FIELD.REPORT,
+                undefined,
+                undefined,
+                outstandingReportsByPolicyID,
+            ),
             action: item.action,
             reportID: item.reportID,
             policyID: item.policyID,
@@ -170,6 +191,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
+    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
 
     const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
@@ -388,7 +410,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         canHold: transaction.canHold,
                         isHeld: isOnHold(transaction),
                         canUnhold: transaction.canUnhold,
-                        canChangeReport: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActionsArray, transaction.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
+                        canChangeReport: canEditFieldOfMoneyRequest(
+                            getIOUActionForTransactionID(reportActionsArray, transaction.transactionID),
+                            CONST.EDIT_REQUEST_FIELD.REPORT,
+                            undefined,
+                            undefined,
+                            outstandingReportsByPolicyID,
+                        ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transaction.transactionID].isSelected,
                         canDelete: transaction.canDelete,
@@ -411,7 +439,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     canHold: transaction.canHold,
                     isHeld: isOnHold(transaction),
                     canUnhold: transaction.canUnhold,
-                    canChangeReport: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActionsArray, transaction.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
+                    canChangeReport: canEditFieldOfMoneyRequest(
+                        getIOUActionForTransactionID(reportActionsArray, transaction.transactionID),
+                        CONST.EDIT_REQUEST_FIELD.REPORT,
+                        undefined,
+                        undefined,
+                        outstandingReportsByPolicyID,
+                    ),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transaction.transactionID].isSelected,
                     canDelete: transaction.canDelete,
@@ -429,7 +463,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
         isRefreshingSelection.current = true;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [data, setSelectedTransactions, areAllMatchingItemsSelected, isFocused]);
+    }, [data, setSelectedTransactions, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID]);
 
     useEffect(() => {
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
@@ -489,7 +523,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 if (isTransactionPendingDelete(item)) {
                     return;
                 }
-                setSelectedTransactions(prepareTransactionsList(item, selectedTransactions, reportActionsArray), data);
+                setSelectedTransactions(prepareTransactionsList(item, selectedTransactions, reportActionsArray, outstandingReportsByPolicyID), data);
                 return;
             }
 
@@ -508,13 +542,15 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 {
                     ...selectedTransactions,
                     ...Object.fromEntries(
-                        item.transactions.filter((t) => !isTransactionPendingDelete(t)).map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray)),
+                        item.transactions
+                            .filter((t) => !isTransactionPendingDelete(t))
+                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID)),
                     ),
                 },
                 data,
             );
         },
-        [data, reportActionsArray, selectedTransactions, setSelectedTransactions],
+        [data, reportActionsArray, selectedTransactions, outstandingReportsByPolicyID, setSelectedTransactions],
     );
 
     const openReport = useCallback(
@@ -663,7 +699,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             setSelectedTransactions(
                 Object.fromEntries(
                     (data as TransactionGroupListItemType[]).flatMap((item) =>
-                        item.transactions.filter((t) => !isTransactionPendingDelete(t)).map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray)),
+                        item.transactions
+                            .filter((t) => !isTransactionPendingDelete(t))
+                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID)),
                     ),
                 ),
                 data,
@@ -676,11 +714,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             Object.fromEntries(
                 (data as TransactionListItemType[])
                     .filter((t) => !isTransactionPendingDelete(t))
-                    .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray)),
+                    .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID)),
             ),
             data,
         );
-    }, [clearSelectedTransactions, data, groupBy, reportActionsArray, selectedTransactions, setSelectedTransactions]);
+    }, [clearSelectedTransactions, data, groupBy, reportActionsArray, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID]);
 
     const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
 
@@ -688,7 +726,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         return (
             <SearchRowSkeleton
                 shouldAnimate
-                containerStyle={shouldUseNarrowLayout && styles.searchListContentContainerStyles}
+                containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3}
             />
         );
     }
