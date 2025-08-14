@@ -1,7 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {getReportPrimaryAction, getTransactionThreadPrimaryAction, isReviewDuplicatesAction} from '@libs/ReportPrimaryActionUtils';
+import {getReportPrimaryAction, getTransactionThreadPrimaryAction, isMarkAsResolvedAction, isMarkAsResolvedReportAction, isReviewDuplicatesAction} from '@libs/ReportPrimaryActionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -890,5 +890,311 @@ describe('getTransactionThreadPrimaryAction', () => {
                 isChatReportArchived: false,
             }),
         ).toBe('');
+    });
+
+    describe('isMarkAsResolvedAction', () => {
+        const submitterAccountID = 1;
+        const otherUserAccountID = 3;
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            Onyx.clear();
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: submitterAccountID});
+        });
+
+        it('should return true for submitter with pending auto rejected expense violation', () => {
+            const report = {
+                reportID: REPORT_ID,
+                ownerAccountID: submitterAccountID,
+            } as unknown as Report;
+
+            const violations: TransactionViolation[] = [
+                {
+                    name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                },
+            ];
+
+            const result = isMarkAsResolvedAction(report, violations);
+            expect(result).toBe(true);
+        });
+
+        it('should return true for admin with pending auto rejected expense violation', () => {
+            const policy = {
+                role: CONST.POLICY.ROLE.ADMIN,
+            } as Policy;
+
+            const report = {
+                reportID: REPORT_ID,
+                ownerAccountID: otherUserAccountID, // Different from current user
+            } as unknown as Report;
+
+            const violations: TransactionViolation[] = [
+                {
+                    name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                },
+            ];
+
+            const result = isMarkAsResolvedAction(report, violations, policy);
+            expect(result).toBe(true);
+        });
+
+        it('should return false for non-submitter non-admin user', () => {
+            const policy = {
+                role: CONST.POLICY.ROLE.USER,
+            } as Policy;
+
+            const report = {
+                reportID: REPORT_ID,
+                ownerAccountID: otherUserAccountID, // Different from current user
+            } as unknown as Report;
+
+            const violations: TransactionViolation[] = [
+                {
+                    name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                },
+            ];
+
+            const result = isMarkAsResolvedAction(report, violations, policy);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when no violations are present', () => {
+            const report = {
+                reportID: REPORT_ID,
+                ownerAccountID: submitterAccountID,
+            } as unknown as Report;
+
+            const violations: TransactionViolation[] = [];
+
+            const result = isMarkAsResolvedAction(report, violations);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when no auto rejected expense violation is present', () => {
+            const report = {
+                reportID: REPORT_ID,
+                ownerAccountID: submitterAccountID,
+            } as unknown as Report;
+
+            const violations: TransactionViolation[] = [
+                {
+                    name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                },
+            ];
+
+            const result = isMarkAsResolvedAction(report, violations);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when report or violations are undefined', () => {
+            const result1 = isMarkAsResolvedAction(undefined, []);
+            const result2 = isMarkAsResolvedAction({} as Report, undefined);
+
+            expect(result1).toBe(false);
+            expect(result2).toBe(false);
+        });
+    });
+
+    describe('isMarkAsResolvedReportAction', () => {
+        const submitterAccountID = 1;
+        const otherUserAccountID = 3;
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            Onyx.clear();
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: submitterAccountID});
+        });
+
+        it('should return true for submitter with pending auto rejected expense violation in transactions', () => {
+            const report = {
+                reportID: REPORT_ID,
+                ownerAccountID: submitterAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            } as unknown as Report;
+
+            const transactions = [
+                {
+                    transactionID: '1',
+                    reportID: REPORT_ID.toString(),
+                    amount: 1000,
+                    created: '2023-01-01',
+                    currency: 'USD',
+                    merchant: 'Test Merchant',
+                } as Transaction,
+            ];
+
+            const violations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1`]: [
+                    {
+                        name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                        type: CONST.VIOLATION_TYPES.WARNING,
+                    },
+                ],
+            };
+
+            const reportActions = [
+                {
+                    reportActionID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: CURRENT_USER_ACCOUNT_ID,
+                    created: '2023-01-01',
+                    message: [{type: 'COMMENT', text: 'Test message'}],
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: '1',
+                    },
+                    childReportID: '1',
+                } as ReportAction,
+            ];
+
+            const result = isMarkAsResolvedReportAction(report, chatReport, transactions, violations, undefined, reportActions);
+            expect(result).toBe(true);
+        });
+
+        it('should return true for admin with pending auto rejected expense violation', () => {
+            const policy = {
+                role: CONST.POLICY.ROLE.ADMIN,
+            } as Policy;
+
+            const report = {
+                reportID: REPORT_ID,
+                ownerAccountID: otherUserAccountID, // Different from current user
+                type: CONST.REPORT.TYPE.EXPENSE,
+            } as unknown as Report;
+
+            const transactions = [
+                {
+                    transactionID: '1',
+                    reportID: REPORT_ID.toString(),
+                    amount: 1000,
+                    created: '2023-01-01',
+                    currency: 'USD',
+                    merchant: 'Test Merchant',
+                } as Transaction,
+            ];
+
+            const violations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1`]: [
+                    {
+                        name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                        type: CONST.VIOLATION_TYPES.WARNING,
+                    },
+                ],
+            };
+
+            const reportActions = [
+                {
+                    reportActionID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: CURRENT_USER_ACCOUNT_ID,
+                    created: '2023-01-01',
+                    message: [{type: 'COMMENT', text: 'Test message'}],
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: '1',
+                    },
+                    childReportID: '1',
+                } as ReportAction,
+            ];
+
+            const result = isMarkAsResolvedReportAction(report, chatReport, transactions, violations, policy, reportActions);
+            expect(result).toBe(true);
+        });
+
+        it('should return false for non-submitter non-admin user', () => {
+            const policy = {
+                role: CONST.POLICY.ROLE.USER,
+            } as Policy;
+
+            const report = {
+                reportID: REPORT_ID,
+                ownerAccountID: otherUserAccountID, // Different from current user
+            } as unknown as Report;
+
+            const transactions = [
+                {
+                    transactionID: '1',
+                    reportID: REPORT_ID.toString(),
+                    amount: 1000,
+                    created: '2023-01-01',
+                    currency: 'USD',
+                    merchant: 'Test Merchant',
+                } as Transaction,
+            ];
+
+            const violations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1`]: [
+                    {
+                        name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                        type: CONST.VIOLATION_TYPES.WARNING,
+                    },
+                ],
+            };
+
+            const reportActions = [
+                {
+                    reportActionID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: CURRENT_USER_ACCOUNT_ID,
+                    created: '2023-01-01',
+                    message: [{type: 'COMMENT', text: 'Test message'}],
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: '1',
+                    },
+                } as ReportAction,
+            ];
+
+            const result = isMarkAsResolvedReportAction(report, chatReport, transactions, violations, policy, reportActions);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when no auto rejected expense violations are present', () => {
+            const report = {
+                reportID: REPORT_ID,
+                ownerAccountID: submitterAccountID,
+            } as unknown as Report;
+
+            const transactions = [
+                {
+                    transactionID: '1',
+                    reportID: REPORT_ID.toString(),
+                    amount: 1000,
+                    created: '2023-01-01',
+                    currency: 'USD',
+                    merchant: 'Test Merchant',
+                } as Transaction,
+            ];
+
+            const violations = {
+                transactionViolation1: [
+                    {
+                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                    },
+                ],
+            };
+
+            const reportActions = [
+                {
+                    reportActionID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: CURRENT_USER_ACCOUNT_ID,
+                    created: '2023-01-01',
+                    message: [{type: 'COMMENT', text: 'Test message'}],
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: '1',
+                    },
+                } as ReportAction,
+            ];
+
+            const result = isMarkAsResolvedReportAction(report, chatReport, transactions, violations, undefined, reportActions);
+            expect(result).toBe(false);
+        });
     });
 });

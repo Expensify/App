@@ -496,6 +496,12 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Are all allEnabled report field options enabled */
     allEnabled?: string;
+
+    /** The amount of the transaction */
+    amount?: number;
+
+    /** The ID of the transaction thread report */
+    transactionThreadReportID?: string;
 };
 
 /** Model of `join policy` report action */
@@ -616,6 +622,27 @@ type OriginalMessageDeletedTransaction = {
 
     /** The currency of the transaction */
     currency?: string;
+};
+
+/** Model of `declined transaction` report action */
+type OriginalMessageDeclinedTransaction = {
+    /** The amount of the declined transaction */
+    amount: number;
+
+    /** The currency of the declined transaction */
+    currency?: string;
+
+    /** The merchant of the declined transaction */
+    merchant: string;
+
+    /** The old report ID */
+    oldReportID?: number;
+
+    /** The transaction ID */
+    transactionID?: string;
+
+    /** The transaction thread report ID */
+    transactionThreadReportID?: number;
 };
 
 /** Model of `concierge category options` report action */
@@ -847,7 +874,7 @@ type OriginalMessageIntegrationSyncFailed = {
 };
 
 /**
- * Model of CARD_ISSUED, CARD_MISSING_ADDRESS, and CARD_ISSUED_VIRTUAL actions
+ * Model of CARD_ISSUED, CARD_MISSING_ADDRESS, CARD_ISSUED_VIRTUAL actions
  */
 type OriginalMessageCard = {
     /** The id of the user the card was assigned to */
@@ -902,6 +929,10 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.HOLD]: never;
     [CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT]: never;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE]: OriginalMessageIntegrationMessage;
+    [CONST.REPORT.ACTIONS.TYPE.DECLINED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.DECLINEDTRANSACTION_THREAD]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.DECLINED_TRANSACTION]: OriginalMessageDeclinedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.IOU]: OriginalMessageIOU;
     [CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT]: never;
     [CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT]: never;
@@ -984,4 +1015,5 @@ export type {
     OriginalMessageChangePolicy,
     OriginalMessageUnreportedTransaction,
     OriginalMessageMovedTransaction,
+    OriginalMessageDeclinedTransaction,
 };

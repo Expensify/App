@@ -268,7 +268,6 @@ import type {
     UserIsAlreadyMemberParams,
     UserSplitParams,
     VacationDelegateParams,
-    ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
     ViolationsCustomRulesParams,
@@ -1371,6 +1370,26 @@ const translations = {
         rates: 'Tarifs',
         submitsTo: ({name}: SubmitsToParams) => `Soumet à ${name}`,
         moveExpenses: () => ({one: 'Déplacer la dépense', other: 'Déplacer les dépenses'}),
+        decline: {
+            educationalTitle: 'Devriez-vous mettre en attente ou refuser ?',
+            educationalText: "Si vous n'êtes pas prêt à approuver ou payer une dépense, vous pouvez la mettre en attente ou la refuser.",
+            holdExpenseTitle: "Mettez une dépense en attente pour demander plus de détails avant l'approbation ou le paiement.",
+            heldExpenseLeftBehindTitle: 'Les dépenses en attente sont laissées derrière lorsque vous approuvez un rapport entier.',
+            declineExpenseTitle: "Refusez une dépense que vous n'avez pas l'intention d'approuver ou de payer.",
+            reasonPageTitle: 'Refuser la dépense',
+            reasonPageDescription1:
+                'Refusez une dépense si vous ne prévoyez jamais de l\'approuver ou de la payer. Sinon, utilisez "mettre en attente" pour suspendre la dépense et demander plus de contexte.',
+            reasonPageDescription2: 'Si vous allez refuser la dépense, veuillez ajouter un commentaire pour expliquer pourquoi :',
+            declineReason: 'Raison du refus',
+            markAsResolved: 'Marquer comme résolu',
+            declinedStatus: 'Cette dépense a été refusée. En attente que vous corrigiez le(s) problème(s) et marquiez comme résolu pour permettre la soumission.',
+            reportActions: {
+                removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
+                    `supprimé <a href="${linkToReport}">${amount}${merchant ? ` de ${merchant}` : ''}</a>`,
+                declinedExpense: 'refusé cette dépense',
+                markedAsResolved: 'marqué la raison du refus comme résolue',
+            },
+        },
     },
     transactionMerge: {
         listPage: {
@@ -6483,8 +6502,7 @@ const translations = {
     },
     violations: {
         allTagLevelsRequired: 'Tous les tags requis',
-        autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) =>
-            `${rejectedBy} a rejeté cette dépense avec le commentaire "${rejectReason}"`,
+        autoReportedRejectedExpense: 'Cette dépense a été refusée.',
         billableExpense: "Facturable n'est plus valide",
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Receipt required${formattedLimit ? `au-delà de ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Catégorie non valide',

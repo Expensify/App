@@ -1217,4 +1217,69 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.getRenamedAction(reportAction, isExpenseReport(report), 'John')).toBe('John renamed to "New name" (previously "Old name")');
         });
     });
+
+    describe('getDeclinedTransactionRemoveMessage', () => {
+        it('should return correct message for declined transaction with merchant', () => {
+            const reportAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DECLINED,
+                actorAccountID: 1,
+                created: '2023-01-01',
+                message: [],
+                originalMessage: {
+                    amount: 10000,
+                    currency: 'USD',
+                    merchant: 'Test Merchant',
+                    transactionThreadReportID: 123,
+                },
+                person: [],
+                reportActionID: '1',
+                shouldShow: true,
+            };
+
+            const result = ReportActionsUtils.getDeclinedTransactionRemoveMessage(reportAction);
+            expect(result).toContain('$100.00');
+            expect(result).toContain('from Test Merchant');
+            expect(result).toContain('/r/123');
+        });
+
+        it('should return correct message for declined transaction without merchant', () => {
+            const reportAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DECLINED,
+                actorAccountID: 1,
+                created: '2023-01-01',
+                message: [],
+                originalMessage: {
+                    amount: 5000,
+                    currency: 'EUR',
+                    merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                    transactionThreadReportID: 456,
+                },
+                person: [],
+                reportActionID: '2',
+                shouldShow: true,
+            };
+
+            const result = ReportActionsUtils.getDeclinedTransactionRemoveMessage(reportAction);
+            expect(result).toContain('€50.00');
+            expect(result).not.toContain('from');
+            expect(result).toContain('/r/456');
+        });
+
+        it('should handle missing originalMessage properties gracefully', () => {
+            const reportAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DECLINED,
+                actorAccountID: 1,
+                created: '2023-01-01',
+                message: [],
+                originalMessage: {},
+                person: [],
+                reportActionID: '3',
+                shouldShow: true,
+            };
+
+            const result = ReportActionsUtils.getDeclinedTransactionRemoveMessage(reportAction);
+            expect(result).toContain('$0.00');
+            expect(result).not.toContain('from');
+        });
+    });
 });

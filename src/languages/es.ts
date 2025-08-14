@@ -255,7 +255,6 @@ import type {
     UserIsAlreadyMemberParams,
     UserSplitParams,
     VacationDelegateParams,
-    ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
     ViolationsCustomRulesParams,
@@ -1348,6 +1347,26 @@ const translations = {
         dates: 'Fechas',
         rates: 'Tasas',
         submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
+
+        decline: {
+            educationalTitle: '¿Deberías Retener o Rechazar?',
+            educationalText: 'Si no estás listo para aprobar o pagar un gasto, puedes retenerlo o rechazarlo:',
+            holdExpenseTitle: 'Retener un gasto para pedir más detalles antes de aprobarlo o pagarlo.',
+            heldExpenseLeftBehindTitle: 'Los gastos retenidos se dejan atrás cuando apruebas un informe completo.',
+            declineExpenseTitle: 'Rechazar un gasto que no piensas aprobar o pagar.',
+            reasonPageTitle: 'Rechazar gasto',
+            reasonPageDescription1: 'Rechaza un gasto si no piensas aprobarlo o pagarlo en ningún momento. De lo contrario, utiliza "Retener" para pausar el gasto y pedir más contexto.',
+            reasonPageDescription2: 'Si vas a rechazar el gasto, por favor añade un comentario para explicar el motivo:',
+            declineReason: 'Motivo del rechazo',
+            markAsResolved: 'Marcar como resuelto',
+            declinedStatus: 'Este gasto fue rechazado. Estamos esperando que soluciones el/los problema(s) y lo marques como resuelto para poder enviarlo.',
+            reportActions: {
+                removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
+                    `eliminado <a href="${linkToReport}">${amount}${merchant ? ` de ${merchant}` : ''}</a>`,
+                declinedExpense: `rechazó este gasto`,
+                markedAsResolved: `marcó el motivo del rechazo como resuelto`,
+            },
+        },
         moveExpenses: () => ({one: 'Mover gasto', other: 'Mover gastos'}),
     },
     transactionMerge: {
@@ -6927,7 +6946,7 @@ const translations = {
     },
     violations: {
         allTagLevelsRequired: 'Todas las etiquetas son obligatorias',
-        autoReportedRejectedExpense: ({rejectedBy, rejectReason}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rechazó la solicitud y comentó "${rejectReason}"`,
+        autoReportedRejectedExpense: 'Este gasto fue rechazado.',
         billableExpense: 'La opción facturable ya no es válida',
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Recibo obligatorio para cantidades mayores de ${formattedLimit}`,
         categoryOutOfPolicy: 'La categoría ya no es válida',
