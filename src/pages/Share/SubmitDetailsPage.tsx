@@ -22,6 +22,7 @@ import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction'
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import {checkNesesarityOfFileValidation} from '@libs/ReceiptUtils';
 import {getReportOrDraftReport, isSelfDM} from '@libs/ReportUtils';
 import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -52,7 +53,7 @@ function SubmitDetailsPage({
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const [validFilesToUpload] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
-    const shouldUsePreValidatedFile = currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.HEIC || currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.IMG;
+    const shouldUsePreValidatedFile = checkNesesarityOfFileValidation(currentAttachment);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -64,8 +65,8 @@ function SubmitDetailsPage({
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
 
     const fileUri = shouldUsePreValidatedFile ? (validFilesToUpload?.uri ?? '') : (currentAttachment?.content ?? '');
-    const fileName = shouldUsePreValidatedFile ? getFileName(validFilesToUpload?.uri ?? 'shared_image.png') : getFileName(currentAttachment?.content ?? '');
-    const fileType = shouldUsePreValidatedFile ? (validFilesToUpload?.type ?? 'image/jpeg') : (currentAttachment?.mimeType ?? '');
+    const fileName = shouldUsePreValidatedFile ? getFileName(validFilesToUpload?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
+    const fileType = shouldUsePreValidatedFile ? (validFilesToUpload?.type ?? CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG) : (currentAttachment?.mimeType ?? '');
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {

@@ -22,6 +22,7 @@ import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getReportDisplayOption} from '@libs/OptionsListUtils';
+import {checkNesesarityOfFileValidation} from '@libs/ReceiptUtils';
 import {getReportOrDraftReport, isDraftReport} from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import variables from '@styles/variables';
@@ -50,8 +51,8 @@ function ShareDetailsPage({
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
 
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
-    const isTextShared = currentAttachment?.mimeType === 'txt';
-    const shouldUsePreValidatedFile = currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.HEIC || currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.IMG;
+    const isTextShared = currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.TXT;
+    const shouldUsePreValidatedFile = checkNesesarityOfFileValidation(currentAttachment);
     const [message, setMessage] = useState(isTextShared ? (currentAttachment?.content ?? '') : '');
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
@@ -60,8 +61,8 @@ function ShareDetailsPage({
     const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails, reportAttributesDerived), [report, unknownUserDetails, reportAttributesDerived]);
 
     const fileUri = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');
-    const validateFileName = shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? 'shared_image.png') : getFileName(currentAttachment?.content ?? '');
-    const fileType = shouldUsePreValidatedFile ? (validatedFile?.type ?? 'image/jpeg') : (currentAttachment?.mimeType ?? '');
+    const validateFileName = shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
+    const fileType = shouldUsePreValidatedFile ? (validatedFile?.type ?? CONST.SHARE_FILE_MIMETYPE.JPEG) : (currentAttachment?.mimeType ?? '');
 
     useEffect(() => {
         if (!currentAttachment?.content || errorTitle) {
@@ -97,7 +98,7 @@ function ShareDetailsPage({
     const shouldShowAttachment = !isTextShared;
 
     const handleShare = () => {
-        if (!currentAttachment || !validatedFile) {
+        if (!currentAttachment || (shouldUsePreValidatedFile && !validatedFile)) {
             return;
         }
 

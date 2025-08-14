@@ -3,7 +3,7 @@ import findLast from 'lodash/findLast';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Transaction} from '@src/types/onyx';
+import type {ShareTempFile, Transaction} from '@src/types/onyx';
 import type {ReceiptError, ReceiptSource} from '@src/types/onyx/Transaction';
 import * as FileUtils from './fileDownload/FileUtils';
 import * as TransactionUtils from './TransactionUtils';
@@ -65,6 +65,10 @@ function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPa
     return {isThumbnail: true, fileExtension: Object.values(CONST.IOU.FILE_TYPES).find((type) => type === fileExtension), image: path, isLocalFile, filename};
 }
 
+const checkNesesarityOfFileValidation = (file: ShareTempFile | undefined) => {
+    return file?.mimeType === CONST.SHARE_FILE_MIMETYPE.HEIC || file?.mimeType === CONST.SHARE_FILE_MIMETYPE.IMG;
+};
+
 // eslint-disable-next-line import/prefer-default-export
-export {getThumbnailAndImageURIs};
+export {getThumbnailAndImageURIs, checkNesesarityOfFileValidation};
 export type {ThumbnailAndImageURI};

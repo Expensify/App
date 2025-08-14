@@ -14,6 +14,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import {checkNesesarityOfFileValidation} from '@libs/ReceiptUtils';
 import ShareActionHandler from '@libs/ShareActionHandlerModule';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
@@ -41,13 +42,8 @@ function ShareRootPage() {
     const {validateFiles} = useFilesValidation(addValidatedShareFile);
     const isTextShared = currentAttachment?.mimeType === 'txt';
 
-    // Currently, we use the pre-validated format for HEIC/other IMG files. If this changes,
-    // we need to ensure that in ShareDetailsPage and SubmitDetailsPage,
-    // the shouldUsePreValidatedFile condition is consistent with the one below.
-    const willNeedValidatedFiles = currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.HEIC || currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.IMG;
-
     const validateFileIfNecessary = (file: ShareTempFile) => {
-        if (!file || isTextShared || !willNeedValidatedFiles) {
+        if (!file || isTextShared || !checkNesesarityOfFileValidation(file)) {
             return;
         }
 
