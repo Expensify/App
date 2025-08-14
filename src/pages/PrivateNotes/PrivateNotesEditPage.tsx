@@ -167,7 +167,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
                             debouncedSavePrivateNote(text);
                             setPrivateNote(text);
                         }}
-                        ref={(el: AnimatedTextInputRef) => {
+                        ref={(el: AnimatedTextInputRef | null) => {
                             if (!el) {
                                 return;
                             }
