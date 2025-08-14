@@ -173,15 +173,11 @@ function SearchTableHeader({
         [data, metadata],
     );
 
-    if (displayNarrowVersion) {
-        return;
-    }
-
     const columnConfig = useMemo(() => {
         // s77rt transactions grouped by from/card does not return transactions yet and only total and action columns should be displayed
         if (groupBy === CONST.SEARCH.GROUP_BY.FROM || groupBy === CONST.SEARCH.GROUP_BY.CARD) {
             return [
-                // The description column is added to fill the initial width but without tranlsationKey not to display column name
+                // The description column is added to fill the initial width but without translationKey not to display column name
                 {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
                 },
@@ -199,6 +195,10 @@ function SearchTableHeader({
 
         return SearchColumns[metadata.type];
     }, [metadata.type, groupBy]);
+
+    if (displayNarrowVersion) {
+        return;
+    }
 
     if (!columnConfig) {
         return;
