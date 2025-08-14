@@ -3,11 +3,8 @@ import {InteractionManager} from 'react-native';
 import type {PermissionStatus} from 'react-native-permissions';
 import {RESULTS} from 'react-native-permissions';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import contactImport from '@libs/ContactImport';
-import type {ContactImportResult} from '@libs/ContactImport/types';
-import useContactPermissions from '@libs/ContactPermission/useContactPermissions';
-import getContacts from '@libs/ContactUtils';
 import getPlatform from '@libs/getPlatform';
+import useContactImport from './useContactImport';
 import type {GetOptionsConfig, Options, SearchOption} from '@libs/OptionsListUtils';
 import {getEmptyOptions, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -106,35 +103,16 @@ function useSearchSelector({
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelected);
 
     // Phone contacts logic
-    const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);
-    const [contacts, setContacts] = useState<Array<SearchOption<PersonalDetails>>>([]);
+    const {contacts, contactPermissionState, importAndSaveContacts, setContactPermissionState} = useContactImport();
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
     const shouldEnableContacts = enablePhoneContacts && isNative;
     const showImportContacts = shouldEnableContacts && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
 
-    const importAndSaveContacts = useCallback(() => {
-        if (!shouldEnableContacts) {
-            return;
-        }
-        contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
-            setContactPermissionState(permissionStatus);
-            const usersFromContact = getContacts(contactList);
-            setContacts(usersFromContact);
-        });
-    }, [shouldEnableContacts]);
-
     const initiateContactImportAndSetState = useCallback(() => {
         setContactPermissionState(RESULTS.GRANTED);
         InteractionManager.runAfterInteractions(importAndSaveContacts);
-    }, [importAndSaveContacts]);
-
-    useContactPermissions({
-        importAndSaveContacts,
-        setContacts,
-        contactPermissionState,
-        setContactPermissionState,
-    });
+    }, [importAndSaveContacts, setContactPermissionState]);
 
     // Get optimized options with heap filtering and mark selection state
     const searchOptions = useMemo(() => {
