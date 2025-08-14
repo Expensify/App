@@ -302,6 +302,7 @@ function IOURequestStepDistanceManual({
             testID={IOURequestStepDistanceManual.displayName}
             shouldShowNotFoundPage={false}
             shouldShowWrapper={!isCreatingNewRequest}
+            includeSafeAreaPaddingBottom
         >
             <NumberWithSymbolForm
                 ref={textInput}
@@ -320,7 +321,6 @@ function IOURequestStepDistanceManual({
                 symbolTextStyle={styles.textSupporting}
                 style={styles.iouAmountTextInput}
                 containerStyle={styles.iouAmountTextInputContainer}
-                touchableInputWrapperStyle={styles.heightUndefined}
                 autoGrowExtraSpace={variables.w80}
                 errorText={formError}
                 footer={
