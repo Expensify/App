@@ -33,13 +33,13 @@ type SingleSelectPopupProps<T> = {
     onChange: (item: SingleSelectItem<T> | null) => void;
 
     /** Whether the search input should be displayed */
-    searchable?: boolean;
+    isSearchable?: boolean;
 
     /** Search input place holder */
     searchPlaceholder?: string;
 };
 
-function SingleSelectPopup<T extends string>({label, value, items, closeOverlay, onChange, searchable, searchPlaceholder}: SingleSelectPopupProps<T>) {
+function SingleSelectPopup<T extends string>({label, value, items, closeOverlay, onChange, isSearchable, searchPlaceholder}: SingleSelectPopupProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -50,7 +50,7 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
 
     const {sections, noResultsFound} = useMemo(() => {
         // If the selection is searchable, we push the initially selected item into its own section and display it at the top
-        if (searchable) {
+        if (isSearchable) {
             const initiallySelectedItemSection = value?.text.toLowerCase().includes(debouncedSearchTerm?.toLowerCase())
                 ? [{text: value.text, keyForList: value.value, isSelected: selectedItem?.value === value.value}]
                 : [];
@@ -93,7 +93,7 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
             ],
             noResultsFound: false,
         };
-    }, [searchable, items, value, selectedItem, debouncedSearchTerm]);
+    }, [isSearchable, items, value, selectedItem, debouncedSearchTerm]);
 
     const updateSelectedItem = useCallback(
         (item: ListItem) => {
@@ -125,9 +125,9 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
                     onSelectRow={updateSelectedItem}
                     textInputValue={searchTerm}
                     onChangeText={setSearchTerm}
-                    textInputLabel={searchable ? (searchPlaceholder ?? translate('common.search')) : undefined}
-                    shouldUpdateFocusedIndex={searchable}
-                    initiallyFocusedOptionKey={searchable ? value?.value : undefined}
+                    textInputLabel={isSearchable ? (searchPlaceholder ?? translate('common.search')) : undefined}
+                    shouldUpdateFocusedIndex={isSearchable}
+                    initiallyFocusedOptionKey={isSearchable ? value?.value : undefined}
                     headerMessage={noResultsFound ? translate('common.noResultsFound') : undefined}
                     showLoadingPlaceholder={!noResultsFound}
                 />
