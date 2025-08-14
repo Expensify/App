@@ -3427,7 +3427,11 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
 
     // STEP 3: Build an optimistic transaction with the receipt
     const isDistanceRequest =
-        existingTransaction && (existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE || existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+        existingTransaction &&
+        (existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ||
+            existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
+            existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL);
+    const isManualDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
     let optimisticTransaction = buildOptimisticTransaction({
         existingTransactionID,
         existingTransaction,
@@ -3450,7 +3454,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             taxAmount: isExpenseReport(iouReport) ? -(taxAmount ?? 0) : taxAmount,
             billable,
             reimbursable,
-            pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
+            pendingFields: isDistanceRequest && !isManualDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
         },
         isDemoTransactionParam: isSelectedManagerMcTest(participant.login) || transactionParams.receipt?.isTestDriveReceipt,
     });
@@ -7662,6 +7666,12 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         });
 
         onyxData = moneyRequestOnyxData;
+
+        onyxData?.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
+            value: transaction.iouRequestType,
+        });
 
         parameters = {
             comment,

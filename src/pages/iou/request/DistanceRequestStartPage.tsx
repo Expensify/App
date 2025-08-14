@@ -47,7 +47,8 @@ function DistanceRequestStartPage({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
-    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_DISTANCE_REQUEST_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, {canBeMissing: true});
+    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`, {canBeMissing: true});
+    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const [transaction, transactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`, {canBeMissing: true});
     const isLoadingTransaction = isLoadingOnyxValue(transactionResult);
@@ -70,15 +71,11 @@ function DistanceRequestStartPage({
 
     const transactionRequestType = useMemo(() => {
         if (!transaction?.iouRequestType) {
-            if (selectedTab) {
-                return selectedTab;
-            }
-
-            return CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
+            return lastDistanceExpenseType ?? selectedTab ?? CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
         }
 
         return transaction.iouRequestType;
-    }, [transaction?.iouRequestType, selectedTab]);
+    }, [transaction?.iouRequestType, selectedTab, lastDistanceExpenseType]);
 
     const prevTransactionReportID = usePrevious(transaction?.reportID);
 
@@ -172,7 +169,7 @@ function DistanceRequestStartPage({
                         />
                     </FocusTrapContainerElement>
                     <OnyxTabNavigator
-                        id={CONST.TAB.IOU_REQUEST_TYPE}
+                        id={CONST.TAB.DISTANCE_REQUEST_TYPE}
                         defaultSelectedTab={defaultSelectedTab}
                         onTabSelected={resetIOUTypeIfChanged}
                         tabBar={TabSelector}
