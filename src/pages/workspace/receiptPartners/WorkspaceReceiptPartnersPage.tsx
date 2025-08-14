@@ -11,7 +11,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
-import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
@@ -26,7 +25,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {MenuItemData} from '@pages/workspace/accounting/types';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {openExternalLink} from '@userActions/Link';
-import {openPolicyReceiptPartnersPage, togglePolicyUberAutoInvite, togglePolicyUberAutoRemove} from '@userActions/Policy/Policy';
+import {openPolicyReceiptPartnersPage, removePolicyReceiptPartnersConnection, togglePolicyUberAutoInvite, togglePolicyUberAutoRemove} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type {AnchorPosition} from '@src/styles';
@@ -46,6 +45,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const threeDotsMenuContainerRef = useRef<View>(null);
     const policy = usePolicy(policyID);
     const theme = useTheme();
+    const [selectedPartner, setSelectedPartner] = useState<string | null>(null);
     const isLoading = policy?.isLoading;
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const integrations = policy?.receiptPartners;
@@ -55,6 +55,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
 
     const startIntegrationFlow = useCallback(
         ({name}: {name: string}) => {
+            // TODO remove this when integration flow will be ready
             setIsConnected(true);
             switch (name) {
                 case CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER: {
@@ -106,25 +107,49 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         togglePolicyUberAutoRemove(policyID, !isAutoRemove);
     }, [isAutoRemove, policyID]);
 
-    const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
-        () => [
-            {
-                icon: Expensicons.Key,
-                text: translate('workspace.accounting.enterCredentials'),
-                onSelected: () => startIntegrationFlow({name: CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER}),
-                shouldCallAfterModalHide: true,
-                disabled: isOffline,
-                iconRight: Expensicons.NewWindow,
-            },
-            {
-                icon: Expensicons.Trashcan,
-                text: translate('workspace.accounting.disconnect'),
-                onSelected: () => setIsDisconnectModalOpen(true),
-                shouldCallAfterModalHide: true,
-            },
-        ],
+    const getOverflowMenu = useCallback(
+        (integration: string) => {
+            switch (integration) {
+                case CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER:
+                    return [
+                        {
+                            icon: Expensicons.Key,
+                            text: translate('workspace.accounting.enterCredentials'),
+                            onSelected: () => startIntegrationFlow({name: CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER}),
+                            shouldCallAfterModalHide: true,
+                            disabled: isOffline,
+                            iconRight: Expensicons.NewWindow,
+                        },
+                        {
+                            icon: Expensicons.Trashcan,
+                            text: translate('workspace.accounting.disconnect'),
+                            onSelected: () => {
+                                setIsDisconnectModalOpen(true);
+                                setSelectedPartner(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER);
+                            },
+                            shouldCallAfterModalHide: true,
+                        },
+                    ];
+                default:
+                    return [];
+            }
+        },
         [translate, isOffline, startIntegrationFlow],
     );
+
+    const onCloseModal = useCallback(() => {
+        setIsDisconnectModalOpen(false);
+        setSelectedPartner(null);
+    }, []);
+
+    const onDisconnectPartner = useCallback(() => {
+        if (!policyID || !selectedPartner) {
+            return;
+        }
+        removePolicyReceiptPartnersConnection(policyID, selectedPartner);
+        setIsConnected(false);
+        onCloseModal();
+    }, [policyID, selectedPartner, onCloseModal]);
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
         if (policyID) {
@@ -134,6 +159,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                     if (!integrationData) {
                         return undefined;
                     }
+                    const overflowMenu = getOverflowMenu(integration);
 
                     const iconProps = integrationData?.icon
                         ? {
@@ -179,9 +205,9 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         return [];
     }, [
         calculateAndSetThreeDotsMenuPosition,
+        getOverflowMenu,
         isConnected,
         isOffline,
-        overflowMenu,
         policyID,
         receiptPartnerIntegrations,
         startIntegrationFlow,
@@ -267,10 +293,11 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                             </View>
                                         </OfflineWithFeedback>
                                         <MenuItem
-                                            style={[styles.mt2, styles.pl0, styles.pr0]}
                                             title={translate('workspace.receiptPartners.uber.manageInvites')}
                                             shouldShowRightIcon
                                             icon={Expensicons.Mail}
+                                            style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                                            // TODO add correct navigation when receipt members page will be ready
                                             onPress={() => {}}
                                         />
                                     </>
@@ -281,12 +308,8 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                     <ConfirmModal
                         title={translate('workspace.moreFeatures.receiptPartnersWarningModal.featureEnabledTitle')}
                         isVisible={isDisconnectModalOpen}
-                        onConfirm={() => {
-                            // TODO: add disconnect API logic
-                            setIsConnected(false);
-                            setIsDisconnectModalOpen(false);
-                        }}
-                        onCancel={() => setIsDisconnectModalOpen(false)}
+                        onConfirm={onDisconnectPartner}
+                        onCancel={onCloseModal}
                         prompt={translate('workspace.moreFeatures.receiptPartnersWarningModal.description')}
                         confirmText={translate('workspace.accounting.disconnect')}
                         cancelText={translate('common.cancel')}
