@@ -28,7 +28,7 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
     const displayName = getDisplayNameOrDefault(personalDetail);
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     useEffect(() => {
-        if (!isValidAccountRoute(accountID)) {
+        if (!isValidAccountRoute(Number(accountID))) {
             return;
         }
         openPublicProfilePage(accountID);

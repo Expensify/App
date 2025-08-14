@@ -21,10 +21,7 @@ function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenP
     const policy = usePolicy(policyID);
     const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true, initWithStoredValues: false});
 
-    const policyAvatarURL = policy?.avatarURL;
-
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const avatarURL = policyAvatarURL || getDefaultWorkspaceAvatar(policy?.name ?? fallbackLetter);
+    const avatarURL = policy?.avatarURL ?? getDefaultWorkspaceAvatar(policy?.name ?? fallbackLetter);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !Object.keys(policy ?? {}).length && !isLoadingApp && (!policyID || !fallbackLetter);
