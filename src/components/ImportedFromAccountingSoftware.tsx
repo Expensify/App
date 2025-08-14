@@ -3,9 +3,9 @@ import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openLink} from '@libs/actions/Link';
 import {getIntegrationIcon} from '@libs/ReportUtils';
 import variables from '@styles/variables';
-import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -46,7 +46,7 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
                 text={`${translatedText} `}
             />
             <PressableWithoutFeedback
-                onPress={() => Link.openLink(`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`, environmentURL)}
+                onPress={() => openLink(`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`, environmentURL)}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('common.close')}
             >
@@ -61,7 +61,7 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
             </PressableWithoutFeedback>
             <TextLink
                 style={[styles.textNormal, styles.link]}
-                onPress={() => Link.openLink(`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`, environmentURL)}
+                onPress={() => openLink(`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`, environmentURL)}
             >
                 {' '}
             </TextLink>
