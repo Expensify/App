@@ -24,7 +24,7 @@ import {
     findSelfDMReportID,
     getReportTransactions,
 } from '@libs/ReportUtils';
-import {getAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
+import {getAmount, getReimbursable, waypointHasValidAddress} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -619,6 +619,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
     const transactions = transactionIDs.map((id) => allTransactions?.[id]).filter((t): t is NonNullable<typeof t> => t !== undefined);
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
     const updatedReportTotals: Record<string, number> = {};
+    const updatedNonReimbursableTotals: Record<string, number> = {};
 
     // Store current violations for each transaction to restore on failure
     const currentTransactionViolations: Record<string, TransactionViolation[]> = {};
@@ -817,12 +818,18 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
         const isUnreported = reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         const targetReportID = isUnreported ? selfDMReportID : reportID;
         const transactionAmount = getAmount(transaction);
+        const isTransactionReimbursable = getReimbursable(transaction);
+        const nonReimbursableAmount = isTransactionReimbursable ? 0 : transactionAmount;
 
         if (oldReport) {
             updatedReportTotals[oldReportID] = (updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : (oldReport?.total ?? 0)) + transactionAmount;
+            updatedNonReimbursableTotals[oldReportID] =
+                (updatedNonReimbursableTotals[oldReportID] ? updatedNonReimbursableTotals[oldReportID] : (oldReport?.nonReimbursableTotal ?? 0)) + nonReimbursableAmount;
         }
         if (reportID && newReport) {
             updatedReportTotals[targetReportID] = (updatedReportTotals[targetReportID] ? updatedReportTotals[targetReportID] : (newReport.total ?? 0)) - transactionAmount;
+            updatedNonReimbursableTotals[targetReportID] =
+                (updatedNonReimbursableTotals[targetReportID] ? updatedNonReimbursableTotals[targetReportID] : (newReport.nonReimbursableTotal ?? 0)) - nonReimbursableAmount;
         }
 
         // 4. Optimistically update the IOU action reportID
@@ -1052,6 +1059,20 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
             value: {total: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.total},
+        });
+    });
+
+    Object.entries(updatedNonReimbursableTotals).forEach(([reportIDToUpdate, nonReimbursableTotal]) => {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {nonReimbursableTotal},
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {nonReimbursableTotal: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.nonReimbursableTotal},
         });
     });
 
