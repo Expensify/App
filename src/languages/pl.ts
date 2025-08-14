@@ -2466,7 +2466,7 @@ const translations = {
             onboardingEmployerOrSubmitMessage: 'Terugbetaald krijgen is net zo eenvoudig als een bericht sturen. Laten we de basis doornemen.',
             onboardingPersonalSpendMessage: 'Zo volgt u uw uitgaven in een paar klikken.',
             onboardingManageTeamMessage:
-                '# Twój bezpłatny okres próbny właśnie się rozpoczął! Zacznijmy konfigurację.\n👋 Cześć! Jestem Twoim specjalistą ds. konfiguracji Expensify. Jesteś gotowy(-a), aby skonfigurować ten workspace i zarządzać paragonami oraz wydatkami swojego zespołu. Aby w pełni wykorzystać 30-dniowy okres próbny, wykonaj kolejne kroki poniżej!',
+                '# Twój bezpłatny okres próbny właśnie się rozpoczął! Zacznijmy konfigurację.\n👋 Cześć, jestem Twoim specjalistą ds. konfiguracji Expensify. Teraz, gdy utworzyłeś przestrzeń roboczą, wykorzystaj w pełni swoje 30 dni bezpłatnego okresu próbnego, postępując zgodnie z poniższymi krokami!',
             onboardingTrackWorkspaceMessage:
                 '# Laten we u instellen\n👋 Ik ben hier om te helpen! Om u op weg te helpen, heb ik uw werkruimte-instellingen afgestemd op eenmanszaken en soortgelijke bedrijven. U kunt uw werkruimte aanpassen door op de onderstaande link te klikken!\n\nZo volgt u uw uitgaven in een paar klikken:',
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo eenvoudig als een bericht sturen. Zo doet u dat.',

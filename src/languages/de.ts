@@ -2448,7 +2448,7 @@ const translations = {
             onboardingEmployerOrSubmitMessage: 'Erstattungen zu erhalten ist so einfach wie eine Nachricht zu senden. Lass uns die Grundlagen durchgehen.',
             onboardingPersonalSpendMessage: 'So verfolgst du deine Ausgaben mit nur wenigen Klicks.',
             onboardingManageTeamMessage:
-                '# Deine kostenlose Testversion hat begonnen! Lass uns mit der Einrichtung loslegen.\n👋 Hallo, ich bin dein Expensify-Einrichtungsassistent. Du bist bereit, diesen Workspace einzurichten, um die Belege und Ausgaben deines Teams zu verwalten. Um das Beste aus deiner 30-tägigen Testphase herauszuholen, folge einfach den restlichen Einrichtungsschritten unten!',
+                '# Deine kostenlose Testversion hat begonnen! Lass uns mit der Einrichtung loslegen.\n👋 Hallo, ich bin dein Expensify-Einrichtungsassistent. Jetzt, da du einen Workspace erstellt hast, hole das Beste aus deiner 30-tägigen kostenlosen Testphase heraus, indem du die folgenden Schritte befolgst!',
             onboardingTrackWorkspaceMessage:
                 '# Lass uns loslegen\n👋 Ich helfe dir! Ich habe deine Workspace-Einstellungen für Einzelunternehmer und ähnliche Unternehmen angepasst. Du kannst sie über den folgenden Link anpassen!\n\nSo verfolgst du deine Ausgaben mit nur wenigen Klicks:',
             onboardingChatSplitMessage: 'Rechnungen mit Freunden zu teilen ist so einfach wie eine Nachricht zu senden. So funktioniert’s.',
