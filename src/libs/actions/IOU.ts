@@ -8879,7 +8879,8 @@ function getReportFromHoldRequestsOnyxData(
     const optimisticHoldReportExpenseActionIDs: OptimisticHoldReportExpenseActionID[] = [];
 
     holdReportActions.forEach((holdReportAction) => {
-        const originalMessage = getOriginalMessage(holdReportAction);
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        const originalMessage = getOriginalMessage(holdReportAction) as OnyxTypes.OriginalMessageIOU;
 
         deleteHoldReportActions[holdReportAction.reportActionID] = {
             message: [
