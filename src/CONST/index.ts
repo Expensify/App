@@ -1861,7 +1861,6 @@ const CONST = {
         MSWORD: 'application/msword',
         ZIP: 'application/zip',
         RFC822: 'message/rfc822',
-        HEIC: 'image/heic',
     },
 
     SHARE_FILE_MIMETYPE: {
@@ -1872,7 +1871,6 @@ const CONST = {
         WEBP: 'image/webp',
         TIF: 'image/tif',
         TIFF: 'image/tiff',
-        HEIC: 'image/heic',
         IMG: 'image/*',
         PDF: 'application/pdf',
         MSWORD: 'application/msword',
@@ -1998,17 +1996,28 @@ const CONST = {
     EXPENSIFY_MERCHANT: 'Expensify, Inc.',
     EMAIL,
 
-    FULL_STORY: {
-        MASK: 'fs-mask',
-        UNMASK: 'fs-unmask',
-        CUSTOMER: 'customer',
-        CONCIERGE: 'concierge',
-        OTHER: 'other',
-        WEB_PROP_ATTR: 'data-testid',
-        SHUTDOWN: 'shutdown',
-        RESTART: 'restart',
-        SET_IDENTITY: 'setIdentity',
-        OBSERVE: 'observe',
+    FULLSTORY: {
+        CLASS: {
+            MASK: 'fs-mask',
+            UNMASK: 'fs-unmask',
+            EXCLUDE: 'fs-exclude',
+        },
+        OPERATION: {
+            TRACK_EVENT: 'trackEvent',
+            GET_SESSION: 'getSession',
+            INIT: 'init',
+            LOG: 'log',
+            SOURCE: 'source',
+            OBSERVE: 'observe',
+            RESTART: 'restart',
+            SET_IDENTITY: 'setIdentity',
+            SET_CONFIG: 'setConfig',
+            SET_PAGE: 'setPage',
+            SET_PROPERTIES: 'setProperties',
+            SHUTDOWN: 'shutdown',
+            START: 'start',
+            STAT: 'stat',
+        },
     },
 
     CONCIERGE_DISPLAY_NAME: 'Concierge',
@@ -2871,6 +2880,12 @@ const CONST = {
             REIMBURSEMENT_YES: 'reimburseYes', // Direct
             REIMBURSEMENT_NO: 'reimburseNo', // None
             REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
+        },
+        CASH_EXPENSE_REIMBURSEMENT_CHOICES: {
+            REIMBURSABLE_DEFAULT: 'reimbursableDefault', // Reimbursable by default
+            NON_REIMBURSABLE_DEFAULT: 'nonReimbursableDefault', // Non-reimbursable by default
+            ALWAYS_REIMBURSABLE: 'alwaysReimbursable', // Always Reimbursable
+            ALWAYS_NON_REIMBURSABLE: 'alwaysNonReimbursable', // Always Non Reimbursable
         },
         ID_FAKE: '_FAKE_',
         EMPTY: 'EMPTY',
@@ -3738,6 +3753,7 @@ const CONST = {
         TAG: 'tag',
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
+        REIMBURSABLE: 'reimbursable',
         REPORT: 'report',
     },
     FOOTER: {

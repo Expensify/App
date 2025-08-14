@@ -1941,7 +1941,7 @@ describe('ReportUtils', () => {
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
 
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                currentUserAccountID: {
+                [currentUserAccountID]: {
                     accountID: currentUserAccountID,
                     displayName: currentUserEmail,
                     login: currentUserEmail,
@@ -3009,6 +3009,33 @@ describe('ReportUtils', () => {
             };
 
             expect(canDeleteReportAction(moneyRequestAction, '1', transaction)).toBe(true);
+        });
+
+        it("should return false for ADD_COMMENT report action the current user (admin of the personal policy) didn't comment", async () => {
+            const adminPolicy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.PERSONAL};
+
+            const report = {...LHNTestUtils.getFakeReport(), policyID: adminPolicy.id};
+            const reportAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: currentUserAccountID + 1,
+                parentReportID: report.reportID,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'hey',
+                        text: 'hey',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                    },
+                ],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${adminPolicy.id}`, adminPolicy);
+
+            expect(canDeleteReportAction(reportAction, report.reportID, undefined)).toBe(false);
         });
     });
 
@@ -5276,6 +5303,30 @@ describe('ReportUtils', () => {
             expect(getReportStatusTranslation(undefined, undefined)).toBe('');
             expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.OPEN, undefined)).toBe('');
             expect(getReportStatusTranslation(undefined, CONST.REPORT.STATUS_NUM.OPEN)).toBe('');
+        });
+    });
+
+    describe('buildOptimisticReportPreview', () => {
+        it('should include childOwnerAccountID and childManagerAccountID that matches with iouReport data', () => {
+            const chatReport: Report = {
+                ...createRandomReport(100),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: undefined,
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(200),
+                parentReportID: '1',
+                type: CONST.REPORT.TYPE.IOU,
+                chatType: undefined,
+                ownerAccountID: 1,
+                managerID: 2,
+            };
+
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport);
+
+            expect(reportPreviewAction.childOwnerAccountID).toBe(iouReport.ownerAccountID);
+            expect(reportPreviewAction.childManagerAccountID).toBe(iouReport.managerID);
         });
     });
     describe('canSeeDefaultRoom', () => {
