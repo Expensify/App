@@ -190,6 +190,7 @@ import type {
     RoleNamesParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    RulesEnableWorkflowsParams,
     SecondaryLoginParams,
     SetTheDistanceMerchantParams,
     SetTheRequestParams,
@@ -5631,8 +5632,8 @@ const translations = {
                     always: 'Altijd bonnen vereisen',
                 },
                 defaultTaxRate: 'Standaard belastingtarief',
-                goTo: 'Ga naar',
-                andEnableWorkflows: 'en activeer workflows, voeg vervolgens goedkeuringen toe om deze functie te ontgrendelen.',
+                enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
+                    `Ga naar [Meer functies](${moreFeaturesLink}) en schakel workflows in. Voeg vervolgens goedkeuringen toe om deze functie te ontgrendelen.`,
             },
             customRules: {
                 title: 'Aangepaste regels',

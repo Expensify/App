@@ -190,6 +190,7 @@ import type {
     RoleNamesParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    RulesEnableWorkflowsParams,
     SecondaryLoginParams,
     SetTheDistanceMerchantParams,
     SetTheRequestParams,
@@ -5530,8 +5531,7 @@ const translations = {
                     always: '始终要求收据',
                 },
                 defaultTaxRate: '默认税率',
-                goTo: '前往',
-                andEnableWorkflows: '并启用工作流程，然后添加审批以解锁此功能。',
+                enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) => `转到[更多功能](${moreFeaturesLink})并启用工作流程，然后添加审批以解锁此功能。`,
             },
             customRules: {
                 title: '自定义规则',
