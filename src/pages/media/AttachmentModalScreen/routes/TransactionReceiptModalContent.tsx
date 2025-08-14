@@ -37,7 +37,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
-    const {reportID = '', transactionID = '', action, iouType: iouTypeParam, readonly: readonlyProp, isFromReviewDuplicates: isFromReviewDuplicatesProp} = route.params;
+    const {reportID = '', transactionID = '', action, iouType: iouTypeParam, readonly: readonlyParam, isFromReviewDuplicates: isFromReviewDuplicatesProp} = route.params;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [transactionMain] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
@@ -58,7 +58,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
     const isLocalFile = receiptURIs.isLocalFile;
     const isAuthTokenRequired = !isLocalFile && !isDraftTransaction;
-    const readonly = !!readonlyProp;
+    const readonly = readonlyParam === 'true';
     const isFromReviewDuplicates = !!isFromReviewDuplicatesProp;
     const source = isDraftTransaction ? transactionDraft?.receipt?.source : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
 
@@ -163,6 +163,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 icon: Expensicons.Camera,
                 text: translate('common.replace'),
                 onSelected: () => {
+                    Navigation.dismissModal();
                     InteractionManager.runAfterInteractions(() => {
                         Navigation.navigate(
                             ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
@@ -178,7 +179,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             });
         }
 
-        const menuItemGenerator: ThreeDotsMenuItemGenerator = ({source: sourceState, file, isLocalSource}) => {
+        menuItems.push((({source: sourceState, file, isLocalSource}) => {
             if (!((!isOffline && allowDownload && !isLocalSource) || !!draftTransactionID)) {
                 return;
             }
@@ -188,8 +189,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 text: translate('common.download'),
                 onSelected: () => onDownloadAttachment({source: sourceState, file}),
             };
-        };
-        menuItems.push(menuItemGenerator);
+        }) satisfies ThreeDotsMenuItemGenerator);
 
         const hasOnlyEReceipt = hasEReceipt(transaction) && !hasReceiptSource(transaction);
         const canDelete = canDeleteReceipt && !readonly && !isDraftTransaction && !transaction?.receipt?.isTestDriveReceipt;
@@ -232,7 +232,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             isLoading: !transaction && reportMetadata?.isLoadingInitialReportActions,
             shouldShowNotFoundPage,
             shouldShowCarousel: false,
-            onDownloadAttachment: allowDownload ? onDownloadAttachment : undefined,
+            onDownloadAttachment: allowDownload ? undefined : onDownloadAttachment,
             ExtraModals,
         }),
         [
