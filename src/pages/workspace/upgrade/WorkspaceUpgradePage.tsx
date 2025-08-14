@@ -80,7 +80,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
                 switch (route.params.featureName) {
                     case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias:
-                        return Navigation.goBack(ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID));
+                        return Navigation.goBack(ROUTES.WORKSPACE_REPORTS.getRoute(policyID));
                     default: {
                         Navigation.goBack();
                         if (route.params.backTo) {
