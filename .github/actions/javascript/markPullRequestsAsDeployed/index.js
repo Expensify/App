@@ -12814,7 +12814,7 @@ async function commentStagingDeployPRs(prList, repoName, recentTags, getDeployMe
             if (error.status === 404) {
                 console.log(`Unable to comment on ${repoName} PR #${prNumber}. GitHub responded with 404.`);
             }
-            else if (repoName === CONST_1.default.MOBILE_EXPENSIFY_REPO && process.env.GITHUB_REPOSITORY !== CONST_1.default.APP_REPO) {
+            else if (repoName === CONST_1.default.MOBILE_EXPENSIFY_REPO && process.env.GITHUB_REPOSITORY !== `${CONST_1.default.GITHUB_OWNER}/${CONST_1.default.APP_REPO}`) {
                 console.warn(`Unable to comment on ${repoName} PR #${prNumber} from forked repository. This is expected.`);
             }
             else {
@@ -12874,9 +12874,13 @@ async function run() {
         for (const pr of prList) {
             await commentPR(pr, deployMessage);
         }
+        console.log(`✅ Added production deploy comment on ${prList.length} App PRs`);
         // Comment on Mobile-Expensify PRs as well
         for (const pr of mobileExpensifyPRList) {
             await commentPR(pr, deployMessage, CONST_1.default.MOBILE_EXPENSIFY_REPO);
+        }
+        if (mobileExpensifyPRList.length > 0) {
+            console.log(`✅ Added production deploy comment on ${mobileExpensifyPRList.length} Mobile-Expensify PRs`);
         }
         return;
     }
@@ -12897,7 +12901,7 @@ async function run() {
             mobileExpensifyRecentTags = response.data;
         }
         catch (error) {
-            if (process.env.GITHUB_REPOSITORY !== CONST_1.default.APP_REPO) {
+            if (process.env.GITHUB_REPOSITORY !== `${CONST_1.default.GITHUB_OWNER}/${CONST_1.default.APP_REPO}`) {
                 console.warn('Unable to fetch Mobile-Expensify tags from forked repository. This is expected.');
             }
             else {
@@ -12907,7 +12911,11 @@ async function run() {
     }
     // Comment on the PRs
     await commentStagingDeployPRs(prList, CONST_1.default.APP_REPO, appRecentTags, getDeployMessage);
-    await commentStagingDeployPRs(mobileExpensifyPRList, CONST_1.default.MOBILE_EXPENSIFY_REPO, mobileExpensifyRecentTags, getDeployMessage);
+    console.log(`✅ Added staging deploy comment ${prList.length} App PRs`);
+    if (mobileExpensifyPRList.length > 0) {
+        await commentStagingDeployPRs(mobileExpensifyPRList, CONST_1.default.MOBILE_EXPENSIFY_REPO, mobileExpensifyRecentTags, getDeployMessage);
+        console.log(`✅ Completed staging deploy comment on ${mobileExpensifyPRList.length} Mobile-Expensify PRs`);
+    }
 }
 if (require.main === require.cache[eval('__filename')]) {
     run();
