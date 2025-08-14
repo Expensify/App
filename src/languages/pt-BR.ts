@@ -314,7 +314,7 @@ const translations = {
         no: 'Não',
         ok: 'OK',
         notNow: 'Agora não',
-        learnMore: 'Saiba mais.',
+        learnMore: 'Saiba mais',
         buttonConfirm: 'Entendi',
         name: 'Nome',
         attachment: 'Anexo',
@@ -2616,6 +2616,9 @@ const translations = {
         pageNotFound: 'Ops, esta página não pode ser encontrada.',
         noAccess: 'Este chat ou despesa pode ter sido excluído ou você não tem acesso a ele.\n\nPara qualquer dúvida, entre em contato com concierge@expensify.com',
         goBackHome: 'Voltar para a página inicial',
+        commentYouLookingForCannotBeFound: 'O comentário que você está procurando não foi encontrado. Volte para o chat',
+        contactConcierge: 'Para qualquer dúvida, entre em contato com concierge@expensify.com',
+        goToChatInstead: 'Vá para o chat em vez disso.',
     },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Ops... ${isBreakLine ? '\n' : ''}Algo deu errado`,
@@ -3505,7 +3508,7 @@ const translations = {
                 `Como você já se conectou ao ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} antes, você pode optar por reutilizar uma conexão existente ou criar uma nova.`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Última sincronização em ${formattedDate}`,
             authenticationError: ({connectionName}: AuthenticationErrorParams) => `Não é possível conectar a ${connectionName} devido a um erro de autenticação.`,
-            learnMore: 'Saiba mais.',
+            learnMore: 'Saiba mais',
             memberAlternateText: 'Os membros podem enviar e aprovar relatórios.',
             adminAlternateText: 'Os administradores têm acesso total de edição a todos os relatórios e configurações do espaço de trabalho.',
             auditorAlternateText: 'Os auditores podem visualizar e comentar nos relatórios.',
@@ -6517,7 +6520,7 @@ const translations = {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Quantia acima do limite de ${formattedLimit}/pessoa`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Quantia acima do limite diário de ${formattedLimit}/pessoa para a categoria`,
         receiptNotSmartScanned:
-            'Recibo e detalhes da despesa adicionados manualmente. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Saiba mais.</a>',
+            'Recibo e detalhes da despesa adicionados manualmente. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Saiba mais</a>.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Recibo necessário';
             if (formattedLimit ?? category) {
