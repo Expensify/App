@@ -190,6 +190,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.MEMBERS_IMPORTED]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
         policyID: string;
         backTo?: Routes;

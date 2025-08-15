@@ -117,6 +117,7 @@ import type {
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
+    ImportMemberConfirmationParams,
     ImportMembersSuccessfulDescriptionParams,
     ImportPerDiemRatesSuccessfulDescriptionParams,
     ImportTagsSuccessfulDescriptionParams,
@@ -644,6 +645,8 @@ const translations = {
         getTheApp: 'Obtenha o aplicativo',
         scanReceiptsOnTheGo: 'Digitalize recibos com seu celular',
         headsUp: 'Atenção!',
+        submitTo: 'Enviar para',
+        forwardTo: 'Encaminhar para',
         merge: 'Mesclar',
         unstableInternetConnection: 'Conexão de internet instável. Verifique sua rede e tente novamente.',
     },
@@ -987,6 +990,8 @@ const translations = {
             'O arquivo que você enviou está vazio ou contém dados inválidos. Por favor, certifique-se de que o arquivo está formatado corretamente e contém as informações necessárias antes de enviá-lo novamente.',
         importSpreadsheet: 'Importar planilha',
         downloadCSV: 'Baixar CSV',
+        importMemberConfirmation: ({newMembers}: ImportMemberConfirmationParams) =>
+            `Por favor, confirme os detalhes abaixo para o(s) ${newMembers} novo(s) membro(s) do espaço de trabalho que será(ão) adicionado(s) como parte deste envio. Membros existentes não receberão atualizações de função nem mensagens de convite.`,
     },
     receipt: {
         upload: 'Fazer upload de recibo',

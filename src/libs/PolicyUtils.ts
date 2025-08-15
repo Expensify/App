@@ -284,6 +284,17 @@ function isPolicyMember(currentUserLogin: string | undefined, policyID: string |
     return !!currentUserLogin && !!policyID && !!allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList?.[currentUserLogin];
 }
 
+function isPolicyMemberWithoutPendingDelete(currentUserLogin: string | undefined, policyID: string | undefined): boolean {
+    if (!currentUserLogin || !policyID) {
+        return false;
+    }
+
+    return (
+        isPolicyMember(currentUserLogin, policyID) &&
+        allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList?.[currentUserLogin]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+    );
+}
+
 function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean {
     if (!policy) {
         return false;
@@ -1664,6 +1675,7 @@ export {
     getPolicyRole,
     hasIndependentTags,
     getLengthOfTag,
+    isPolicyMemberWithoutPendingDelete,
     getPolicyEmployeeAccountIDs,
 };
 
