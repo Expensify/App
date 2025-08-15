@@ -646,6 +646,7 @@ const translations = {
         headsUp: 'ご注意ください！',
         merge: 'マージ',
         unstableInternetConnection: 'インターネット接続が不安定です。ネットワークを確認してもう一度お試しください。',
+        enableGlobalReimbursements: 'グローバル払い戻しを有効にする',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',

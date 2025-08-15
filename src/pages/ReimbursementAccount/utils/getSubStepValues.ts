@@ -16,7 +16,7 @@ function getSubStepValues<TProps extends keyof ReimbursementAccountForm>(
         acc[value] = (reimbursementAccountDraft?.[value] ??
             reimbursementAccount?.achData?.[value as keyof ACHData] ??
             reimbursementAccount?.achData?.corpay?.[value as keyof Corpay] ??
-            '') as ReimbursementAccountForm[TProps];
+            (value === 'achAuthorizationForm' ? [] : '')) as ReimbursementAccountForm[TProps];
         return acc;
     }, {} as SubStepValues<TProps>);
 }

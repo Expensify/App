@@ -385,6 +385,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         !isCurrentPaymentMethodDefault() &&
         !(paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
 
+    const shouldShowEnableGlobalReimbursementsButton =
+        paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && !paymentMethod.selectedPaymentMethod?.additionalData?.corpay?.achAuthorizationForm;
+
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
     const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || shouldUseNarrowLayout;
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
@@ -693,6 +696,28 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 }}
                                 wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
                             />
+                            {shouldShowEnableGlobalReimbursementsButton && (
+                                <MenuItem
+                                    title={translate('common.enableGlobalReimbursements')}
+                                    icon={Expensicons.Globe}
+                                    onPress={() => {
+                                        if (isActingAsDelegate) {
+                                            closeModal(() => {
+                                                showDelegateNoAccessModal();
+                                            });
+                                            return;
+                                        }
+                                        if (isAccountLocked) {
+                                            closeModal(() => showLockedAccountModal());
+                                            return;
+                                        }
+                                        closeModal(() =>
+                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)),
+                                        );
+                                    }}
+                                    wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
+                                />
+                            )}
                         </View>
                     )}
                 </Popover>

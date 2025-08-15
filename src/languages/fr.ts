@@ -646,6 +646,7 @@ const translations = {
         headsUp: 'Attention !',
         merge: 'Fusionner',
         unstableInternetConnection: 'Connexion Internet instable. Veuillez vérifier votre réseau et réessayer.',
+        enableGlobalReimbursements: 'Activer les remboursements globaux',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
