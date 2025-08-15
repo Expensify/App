@@ -316,6 +316,16 @@ function removeOptimisticRoomMembers(
             pendingChatMembers: reportMetadata?.pendingChatMembers ?? null,
         },
     });
+    roomMembers.successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+        value: {
+            participants: accountIDs.reduce<Record<number, null>>((acc, curr) => {
+                acc[curr] = null;
+                return acc;
+            }, {}),
+        },
+    });
 
     return roomMembers;
 }
