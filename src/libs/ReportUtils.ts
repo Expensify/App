@@ -1782,11 +1782,35 @@ function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
 
 function findSelfDMReportID(): string | undefined {
     if (!allReports) {
+        Log.hmmm('[findSelfDMReportID] allReports is null/undefined - reports not loaded yet', {
+            allReports: !!allReports,
+        });
         return;
     }
 
     const selfDMReport = Object.values(allReports).find((report) => isSelfDM(report) && !isThread(report));
-    return selfDMReport?.reportID;
+    const reportID = selfDMReport?.reportID;
+
+    if (!reportID) {
+        const allReportsCount = Object.keys(allReports).length;
+        const selfDMReports = Object.values(allReports).filter((report) => isSelfDM(report));
+        const selfDMThreads = Object.values(allReports).filter((report) => isSelfDM(report) && isThread(report));
+
+        Log.hmmm('[findSelfDMReportID] Self-DM report not found in allReports collection', {
+            allReportsCount,
+            selfDMReportsCount: selfDMReports.length,
+            selfDMThreadsCount: selfDMThreads.length,
+            selfDMReportsExampleKeys: selfDMReports.slice(0, 3).map((r) => r?.reportID).filter(Boolean),
+            allReportTypes: Object.values(allReports).slice(0, 10).map((r) => ({
+                reportID: r?.reportID,
+                chatType: r?.chatType,
+                type: r?.type,
+                isThread: isThread(r),
+            })).filter((item) => !!item.reportID),
+        });
+    }
+
+    return reportID;
 }
 
 /**
