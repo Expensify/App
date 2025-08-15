@@ -1,9 +1,9 @@
 import React, {memo, useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
-import {isChatThread, isInvoiceRoom, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {isChatThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, Transaction, UserWallet} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, ReportActionsDrafts, Transaction} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
@@ -63,14 +63,17 @@ type ReportActionsListItemRendererProps = {
     /** If the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
 
+    /** Animate highlight action in few seconds */
+    shouldHighlight?: boolean;
+
     /** Draft messages for the report */
     draftMessage?: string;
 
     /** Emoji reactions for the report action */
     emojiReactions?: OnyxEntry<ReportActionReactions>;
 
-    /** User wallet */
-    userWallet: OnyxEntry<UserWallet>;
+    /** User wallet tierName */
+    userWalletTierName: string | undefined;
 
     /** Linked transaction route error */
     linkedTransactionRouteError?: OnyxEntry<Errors>;
@@ -83,6 +86,12 @@ type ReportActionsListItemRendererProps = {
 
     /** User billing fund ID */
     userBillingFundID: number | undefined;
+
+    /** All draft messages collection */
+    allDraftMessages?: OnyxCollection<ReportActionsDrafts>;
+
+    /** All emoji reactions collection */
+    allEmojiReactions?: OnyxCollection<ReportActionReactions>;
 };
 
 function ReportActionsListItemRenderer({
@@ -103,14 +112,17 @@ function ReportActionsListItemRenderer({
     shouldDisplayReplyDivider,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
+    shouldHighlight = false,
     parentReportActionForTransactionThread,
     draftMessage,
     emojiReactions,
-    userWallet,
+    userWalletTierName,
     linkedTransactionRouteError,
     isUserValidated,
     userBillingFundID,
     personalDetails,
+    allDraftMessages,
+    allEmojiReactions,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -200,11 +212,11 @@ function ReportActionsListItemRenderer({
                 index={index}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                userWallet={userWallet}
+                userWalletTierName={userWalletTierName}
                 isUserValidated={isUserValidated}
                 personalDetails={personalDetails}
-                draftMessage={draftMessage}
-                emojiReactions={emojiReactions}
+                allDraftMessages={allDraftMessages}
+                allEmojiReactions={allEmojiReactions}
                 linkedTransactionRouteError={linkedTransactionRouteError}
                 userBillingFundID={userBillingFundID}
             />
@@ -226,21 +238,12 @@ function ReportActionsListItemRenderer({
             displayAsGroup={displayAsGroup}
             transactions={transactions}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
-            shouldShowSubscriptAvatar={
-                (isPolicyExpenseChat(report) || isInvoiceRoom(report)) &&
-                [
-                    CONST.REPORT.ACTIONS.TYPE.IOU,
-                    CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                    CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                    CONST.REPORT.ACTIONS.TYPE.APPROVED,
-                    CONST.REPORT.ACTIONS.TYPE.FORWARDED,
-                ].some((type) => type === reportAction.actionName)
-            }
             isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
             index={index}
             isFirstVisibleReportAction={isFirstVisibleReportAction}
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-            userWallet={userWallet}
+            shouldHighlight={shouldHighlight}
+            userWalletTierName={userWalletTierName}
             isUserValidated={isUserValidated}
             personalDetails={personalDetails}
             draftMessage={draftMessage}

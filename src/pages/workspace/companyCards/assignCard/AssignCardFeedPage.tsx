@@ -94,6 +94,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
             return (
                 <ConfirmationStep
                     policyID={policyID}
+                    feed={feed}
                     backTo={shouldUseBackToParam ? backTo : undefined}
                 />
             );
