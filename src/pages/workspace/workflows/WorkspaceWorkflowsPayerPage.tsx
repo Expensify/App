@@ -160,6 +160,17 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         [policy, isLoadingReportData],
     );
 
+    const totalNumberOfEmployeesEitherOwnerOrAdmin = useMemo(() => {
+        return Object.entries(policy?.employeeList ?? {}).filter(([email, policyEmployee]) => {
+            const isOwner = policy?.owner === email;
+            const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
+            return !isDeletedPolicyEmployee(policyEmployee) && (isOwner || isAdmin);
+        });
+    }, [isDeletedPolicyEmployee, policy?.employeeList, policy?.owner]);
+
+    const shouldShowSearchInput = totalNumberOfEmployeesEitherOwnerOrAdmin.length > 8;
+    const textInputLabel = shouldShowSearchInput ? translate('selectionList.findMember') : undefined;
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -182,7 +193,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                     />
                     <SelectionList
                         sections={sections}
-                        textInputLabel={translate('selectionList.findMember')}
+                        textInputLabel={textInputLabel}
                         textInputValue={searchTerm}
                         onChangeText={setSearchTerm}
                         headerMessage={headerMessage}
