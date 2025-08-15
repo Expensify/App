@@ -37,25 +37,6 @@ jobs:
         with:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
 
-      # Pin Xcode to a version that includes iOS 18 simulator runtimes
-      - name: Select Xcode 16.2 (iOS 18)
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: '16.2'
-
-      - name: Verify Xcode and SDKs
-        run: |
-          xcodebuild -version
-          xcodebuild -showsdks
-          xcrun simctl list runtimes | sed -n '1,120p'
-
-      - name: Ensure iOS 18 simulator runtime is installed
-        run: |
-          if ! xcrun simctl list runtimes | grep -q "iOS 18"; then
-            sudo xcodebuild -downloadPlatform iOS
-          fi
-          xcrun simctl list runtimes | sed -n '1,120p'
-
       - name: RNEF Remote Build - iOS
         # rnef v2
         uses: callstackincubator/ios@838758ebdbc467492e7e7f31e3ad67eb0decc8ed
