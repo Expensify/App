@@ -14,6 +14,7 @@ import type {
     SearchStatus,
     SearchWithdrawalType,
     UserFriendlyKey,
+    UserFriendlyValue,
 } from '@components/Search/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -55,48 +56,74 @@ const operatorToCharMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.OR]: ' ' as const,
 };
 
-/**
- * A mapping object that maps filter names from the internal codebase format to user-friendly names.
- */
-const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER, UserFriendlyKey> = {
-    type: 'type',
-    status: 'status',
-    sortBy: 'sort-by',
-    sortOrder: 'sort-order',
-    policyID: 'workspace',
-    date: 'date',
-    amount: 'amount',
-    expenseType: 'expense-type',
-    currency: 'currency',
-    merchant: 'merchant',
-    description: 'description',
-    from: 'from',
-    to: 'to',
-    payer: 'payer',
-    exporter: 'exporter',
-    category: 'category',
-    tag: 'tag',
-    taxRate: 'tax-rate',
-    cardID: 'card',
-    feed: 'feed',
-    // cspell:disable-next-line
-    reportID: 'reportid',
-    keyword: 'keyword',
-    in: 'in',
-    submitted: 'submitted',
-    approved: 'approved',
-    paid: 'paid',
-    exported: 'exported',
-    posted: 'posted',
-    withdrawalType: 'withdrawal-type',
-    withdrawn: 'withdrawn',
-    groupBy: 'group-by',
-    title: 'title',
-    assignee: 'assignee',
-    billable: 'billable',
-    reimbursable: 'reimbursable',
-    action: 'action',
+// Create reverse lookup maps for O(1) performance
+const createKeyToUserFriendlyMap = () => {
+    const map = new Map<string, string>();
+
+    // Map SYNTAX_FILTER_KEYS values to their user-friendly names
+    Object.entries(CONST.SEARCH.SYNTAX_FILTER_KEYS).forEach(([keyName, keyValue]) => {
+        if (!(keyName in CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS)) {
+            return;
+        }
+        map.set(keyValue, CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS[keyName as keyof typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS]);
+    });
+
+    // Map SYNTAX_ROOT_KEYS values to their user-friendly names
+    Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS).forEach(([keyName, keyValue]) => {
+        if (!(keyName in CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS)) {
+            return;
+        }
+        map.set(keyValue, CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS[keyName as keyof typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS]);
+    });
+
+    return map;
 };
+
+const createDisplayTextToValueMap = () => {
+    const map = new Map<string, string>();
+
+    // Create reverse mapping from user-friendly values to backend keys
+    Object.entries(CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP).forEach(([backendKey, userFriendlyValue]) => {
+        map.set(userFriendlyValue, backendKey);
+    });
+
+    return map;
+};
+
+// Create the maps once at module initialization for performance
+const keyToUserFriendlyMap = createKeyToUserFriendlyMap();
+const displayTextToValueMap = createDisplayTextToValueMap();
+
+/**
+ * Lookup a key in the keyToUserFriendlyMap and return the user-friendly key.
+ *
+ * @example
+ * getUserFriendlyKey("taxRate") // returns "tax-rate"
+ */
+function getUserFriendlyKey(keyName: SearchFilterKey | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER): UserFriendlyKey {
+    return (keyToUserFriendlyMap.get(keyName) ?? keyName) as UserFriendlyKey;
+}
+
+/**
+ * Lookup a value in the displayTextToValueMap and return the backend value.
+ *
+ * @example
+ * getFilterValueFromText("per-diem") // returns "perDiem"
+ */
+function getFilterValueFromText(searchText: string): string {
+    return displayTextToValueMap.get(searchText) ?? searchText;
+}
+
+/**
+ * Converts a filter value from backend value to user friendly display text.
+ *
+ * @example
+ * getUserFriendlyValues("perDiem") // returns "per-diem"
+ */
+function getUserFriendlyValue(value: string | undefined): UserFriendlyValue {
+    return CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP[value as keyof typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP] ?? value;
+}
+
 /**
  * @private
  * Returns string value wrapped in quotes "", if the value contains space or &nbsp; (no-breaking space).
@@ -167,11 +194,11 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
             index !== 0 &&
             ((queryFilter.operator === 'eq' && queryFilters?.at(index - 1)?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters.at(index - 1)?.operator === 'neq'))
         ) {
-            filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
+            filterValueString += `${delimiter}${sanitizeSearchValue(getUserFriendlyValue(queryFilter.value.toString()))}`;
         } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
-            filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
+            filterValueString += `${delimiter}${sanitizeSearchValue(getUserFriendlyValue(queryFilter.value.toString()))}`;
         } else {
-            filterValueString += ` ${filterName}${operatorToCharMap[queryFilter.operator]}${sanitizeSearchValue(queryFilter.value.toString())}`;
+            filterValueString += ` ${filterName}${operatorToCharMap[queryFilter.operator]}${sanitizeSearchValue(getUserFriendlyValue(queryFilter.value.toString()))}`;
         }
     });
 
@@ -208,13 +235,13 @@ function getFilters(queryJSON: SearchQueryJSON) {
         if (!Array.isArray(node.right)) {
             filterArray.push({
                 operator: node.operator,
-                value: node.right as string | number,
+                value: getFilterValueFromText(String(node.right)) as string | number,
             });
         } else {
             node.right.forEach((element) => {
                 filterArray.push({
                     operator: node.operator,
-                    value: element,
+                    value: getFilterValueFromText(String(element)),
                 });
             });
         }
@@ -381,9 +408,9 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
 
         if (queryFieldValue) {
             if (Array.isArray(queryFieldValue)) {
-                queryParts.push(`${key}:${queryFieldValue.join(',')}`);
+                queryParts.push(`${key}:${getUserFriendlyValue(queryFieldValue.join(','))}`);
             } else {
-                queryParts.push(`${key}:${queryFieldValue}`);
+                queryParts.push(`${key}:${getUserFriendlyValue(queryFieldValue)}`);
             }
         }
     }
@@ -439,18 +466,18 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     if (groupBy) {
-        const sanitizedGroupBy = sanitizeSearchValue(groupBy);
+        const sanitizedGroupBy = getUserFriendlyValue(sanitizeSearchValue(groupBy));
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${sanitizedGroupBy}`);
     }
 
     if (status && typeof status === 'string') {
-        const sanitizedStatus = sanitizeSearchValue(status);
+        const sanitizedStatus = getUserFriendlyValue(sanitizeSearchValue(status));
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizedStatus}`);
     }
 
     if (status && Array.isArray(status)) {
         const filterValueArray = [...new Set<string>(status)];
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${filterValueArray.map(sanitizeSearchValue).join(',')}`);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${filterValueArray.map(sanitizeSearchValue).map(getUserFriendlyValue).join(',')}`);
     }
 
     const mappedFilters = Object.entries(otherFilters)
@@ -777,10 +804,10 @@ function buildUserReadableQueryString(
     const {type, status, groupBy, policyID} = queryJSON;
     const filters = queryJSON.flatFilters;
 
-    let title = status ? `type:${type} status:${Array.isArray(status) ? status.join(',') : status}` : `type:${type}`;
+    let title = status ? `type:${getUserFriendlyValue(type)} status:${Array.isArray(status) ? status.map(getUserFriendlyValue).join(',') : getUserFriendlyValue(status)}` : `type:${getUserFriendlyValue(type)}`;
 
     if (groupBy) {
-        title += ` group-by:${groupBy}`;
+        title += ` group-by:${getUserFriendlyValue(groupBy)}`;
     }
 
     if (policyID && policyID.length > 0) {
@@ -845,7 +872,7 @@ function buildUserReadableQueryString(
         } else {
             displayQueryFilters = queryFilter.map((filter) => ({
                 operator: filter.operator,
-                value: getFilterDisplayValue(key, filter.value.toString(), PersonalDetails, reports, cardList, cardFeeds, policies),
+                value: getFilterDisplayValue(key, getUserFriendlyValue(filter.value.toString()), PersonalDetails, reports, cardList, cardFeeds, policies),
             }));
         }
         title += buildFilterValuesString(getUserFriendlyKey(key), displayQueryFilters);
@@ -1042,21 +1069,6 @@ function getQueryWithoutFilters(searchQuery: string) {
     return keywordFilter?.filters.map((filter) => filter.value).join(' ') ?? '';
 }
 
-/**
- * Converts a filter key from old naming (camelCase) to user friendly naming (kebab-case).
- *
- * There are two types of keys used in the context of Search.
- * The `camelCase` naming (ex: `sortBy`, `taxRate`) is more friendly to developers, but not nice to show to people. This was the default key naming in the past.
- * The "user friendly" naming (ex: `sort-by`, `tax-rate`) was introduced at a later point, to offer better experience for the users.
- * Currently search parsers support both versions as an input, but output the `camelCase` form. Whenever we display some query to the user however, we always do it in the newer pretty format.
- *
- * @example
- * getUserFriendlyKey("taxRate") // returns "tax-rate"
- */
-function getUserFriendlyKey(keyName: SearchFilterKey | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER): UserFriendlyKey {
-    return UserFriendlyKeyMap[keyName];
-}
-
 function shouldHighlight(referenceText: string, searchText: string) {
     if (!referenceText || !searchText) {
         return false;
@@ -1086,10 +1098,10 @@ export {
     getQueryWithUpdatedValues,
     getCurrentSearchQueryJSON,
     getQueryWithoutFilters,
-    getUserFriendlyKey,
     isDefaultExpensesQuery,
     sortOptionsWithEmptyValue,
     shouldHighlight,
     getAllPolicyValues,
     getTodoSearchQuery,
+    getUserFriendlyValue,
 };

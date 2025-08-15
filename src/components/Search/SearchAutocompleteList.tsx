@@ -31,7 +31,7 @@ import {
     getQueryWithoutAutocompletedPart,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, getUserFriendlyValue, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
 import {getDatePresets} from '@libs/SearchUIUtils';
 import StringUtils from '@libs/StringUtils';
 import Timing from '@userActions/Timing';
@@ -181,7 +181,7 @@ function SearchAutocompleteList(
     const [isInitialRender, setIsInitialRender] = useState(true);
 
     const typeAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
-    const groupByAutocompleteList = Object.values(CONST.SEARCH.GROUP_BY);
+    const groupByAutocompleteList = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
 
     const statusAutocompleteList = useMemo(() => {
         const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
@@ -190,21 +190,21 @@ function SearchAutocompleteList(
 
         switch (currentType) {
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
-                return Object.values(CONST.SEARCH.STATUS.EXPENSE);
+                return Object.values(CONST.SEARCH.STATUS.EXPENSE).map((value) => getUserFriendlyValue(value));
             case CONST.SEARCH.DATA_TYPES.INVOICE:
-                return Object.values(CONST.SEARCH.STATUS.INVOICE);
+                return Object.values(CONST.SEARCH.STATUS.INVOICE).map((value) => getUserFriendlyValue(value));
             case CONST.SEARCH.DATA_TYPES.CHAT:
-                return Object.values(CONST.SEARCH.STATUS.CHAT);
+                return Object.values(CONST.SEARCH.STATUS.CHAT).map((value) => getUserFriendlyValue(value));
             case CONST.SEARCH.DATA_TYPES.TRIP:
-                return Object.values(CONST.SEARCH.STATUS.TRIP);
+                return Object.values(CONST.SEARCH.STATUS.TRIP).map((value) => getUserFriendlyValue(value));
             case CONST.SEARCH.DATA_TYPES.TASK:
-                return Object.values(CONST.SEARCH.STATUS.TASK);
+                return Object.values(CONST.SEARCH.STATUS.TASK).map((value) => getUserFriendlyValue(value));
             default:
-                return Object.values({...CONST.SEARCH.STATUS.EXPENSE, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP, ...CONST.SEARCH.STATUS.TASK});
+                return Object.values({...CONST.SEARCH.STATUS.EXPENSE, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP, ...CONST.SEARCH.STATUS.TASK}).map((value) => getUserFriendlyValue(value));
         }
     }, [autocompleteQueryValue]);
 
-    const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
+    const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
     const withdrawalTypes = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
     const booleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
 
