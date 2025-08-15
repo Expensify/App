@@ -18,7 +18,6 @@ function TaskListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
-    shouldAnimateInHighlight,
 }: TaskListItemProps<TItem>) {
     const taskItem = item as unknown as TaskListItemType;
     const styles = useThemeStyles();
@@ -44,7 +43,7 @@ function TaskListItem<TItem extends ListItem>({
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
-        shouldHighlight: shouldAnimateInHighlight ?? false,
+        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
     });

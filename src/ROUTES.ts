@@ -4,6 +4,7 @@
  * Refer to ./contributingGuides/philosophies/ROUTING.md for information on how to construct routes.
  */
 import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {SearchQueryString} from './components/Search/types';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
@@ -73,6 +74,7 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_CARD: 'search/filters/card',
     SEARCH_ADVANCED_FILTERS_TAX_RATE: 'search/filters/taxRate',
     SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE: 'search/filters/expenseType',
+    SEARCH_ADVANCED_FILTERS_WITHDRAWAL_TYPE: 'search/filters/withdrawal-type',
     SEARCH_ADVANCED_FILTERS_TAG: 'search/filters/tag',
     SEARCH_ADVANCED_FILTERS_FROM: 'search/filters/from',
     SEARCH_ADVANCED_FILTERS_TO: 'search/filters/to',
@@ -82,6 +84,7 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_PAID: 'search/filters/paid',
     SEARCH_ADVANCED_FILTERS_EXPORTED: 'search/filters/exported',
     SEARCH_ADVANCED_FILTERS_POSTED: 'search/filters/posted',
+    SEARCH_ADVANCED_FILTERS_WITHDRAWN: 'search/filters/withdrawn',
     SEARCH_ADVANCED_FILTERS_TITLE: 'search/filters/title',
     SEARCH_ADVANCED_FILTERS_ASSIGNEE: 'search/filters/assignee',
     SEARCH_ADVANCED_FILTERS_REIMBURSABLE: 'search/filters/reimbursable',
@@ -210,6 +213,10 @@ const ROUTES = {
     SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY: 'settings/subscription/add-payment-card/change-payment-currency',
     SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY: 'settings/subscription/disable-auto-renew-survey',
     SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION: 'settings/subscription/request-early-cancellation-survey',
+    SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED: {
+        route: 'settings/subscription/downgrade-blocked',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/subscription/downgrade-blocked', backTo),
+    },
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
     SETTINGS_PAYMENT_CURRENCY: 'setting/preferences/payment-currency',
@@ -615,12 +622,12 @@ const ROUTES = {
             ),
     },
     MONEY_REQUEST_STEP_AMOUNT: {
-        route: ':action/:iouType/amount/:transactionID/:reportID/:pageIndex?/:backToReport?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, pageIndex: string, backTo = '') => {
+        route: ':action/:iouType/amount/:transactionID/:reportID/:reportActionID?/:pageIndex?/:backToReport?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string, pageIndex?: string, backTo = '') => {
             if (!transactionID || !reportID) {
                 Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_AMOUNT route');
             }
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/amount/${transactionID}/${reportID}/${pageIndex}`, backTo);
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/amount/${transactionID}/${reportID}/${reportActionID ? `${reportActionID}/` : ''}${pageIndex}`, backTo);
         },
     },
     MONEY_REQUEST_STEP_TAX_RATE: {
@@ -704,9 +711,9 @@ const ROUTES = {
             getUrlWithBackToParam(`${action as string}/${iouType as string}/subrate/${transactionID}/${reportID}/edit/${pageIndex}`, backTo),
     },
     MONEY_REQUEST_STEP_REPORT: {
-        route: ':action/:iouType/report/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/report/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '', reportActionID?: string) =>
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
     },
     MONEY_REQUEST_EDIT_REPORT: {
         route: ':action/:iouType/report/:reportID/edit',
@@ -714,7 +721,7 @@ const ROUTES = {
             if (!reportID) {
                 Log.warn('Invalid reportID while building route MONEY_REQUEST_EDIT_REPORT');
             }
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${reportID}/edit${shouldTurnOffSelectionMode ? `?shouldTurnOffSelectionMode=true` : ``}`, backTo);
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${reportID}/edit${shouldTurnOffSelectionMode ? '?shouldTurnOffSelectionMode=true' : ''}`, backTo);
         },
     },
     SETTINGS_TAGS_ROOT: {
@@ -832,30 +839,30 @@ const ROUTES = {
         },
     },
     MONEY_REQUEST_STEP_DISTANCE: {
-        route: ':action/:iouType/distance/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '') => {
+        route: ':action/:iouType/distance/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', reportActionID?: string) => {
             if (!transactionID || !reportID) {
                 Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_DISTANCE route');
             }
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/distance/${transactionID}/${reportID}`, backTo);
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/distance/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
         },
     },
     MONEY_REQUEST_STEP_DISTANCE_RATE: {
-        route: ':action/:iouType/distanceRate/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '') => {
+        route: ':action/:iouType/distanceRate/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', reportActionID?: string) => {
             if (!transactionID || !reportID) {
                 Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_DISTANCE_RATE route');
             }
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/distanceRate/${transactionID}/${reportID}`, backTo);
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/distanceRate/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
         },
     },
     MONEY_REQUEST_STEP_MERCHANT: {
-        route: ':action/:iouType/merchant/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '') => {
+        route: ':action/:iouType/merchant/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', reportActionID?: string) => {
             if (!transactionID || !reportID) {
                 Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_MERCHANT route');
             }
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/merchant/${transactionID}/${reportID}`, backTo);
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/merchant/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
         },
     },
     MONEY_REQUEST_STEP_PARTICIPANTS: {
@@ -1260,7 +1267,7 @@ const ROUTES = {
     },
     WORKSPACE_AVATAR: {
         route: 'workspaces/:policyID/avatar',
-        getRoute: (policyID: string) => `workspaces/${policyID}/avatar` as const,
+        getRoute: (policyID: string, fallbackLetter?: UpperCaseCharacters) => `workspaces/${policyID}/avatar${fallbackLetter ? `?letter=${fallbackLetter}` : ''}` as const,
     },
     WORKSPACE_JOIN_USER: {
         route: 'workspaces/:policyID/join',
@@ -1630,43 +1637,43 @@ const ROUTES = {
         route: 'workspaces/:policyID/tax/:taxID/tax-code',
         getRoute: (policyID: string, taxID: string) => `workspaces/${policyID}/tax/${encodeURIComponent(taxID)}/tax-code` as const,
     },
-    WORKSPACE_REPORT_FIELDS: {
-        route: 'workspaces/:policyID/reportFields',
+    WORKSPACE_REPORTS: {
+        route: 'workspaces/:policyID/reports',
         getRoute: (policyID: string | undefined) => {
             if (!policyID) {
-                Log.warn('Invalid policyID is used to build the WORKSPACE_REPORT_FIELDS route');
+                Log.warn('Invalid policyID is used to build the WORKSPACE_REPORTS route');
             }
-            return `workspaces/${policyID}/reportFields` as const;
+            return `workspaces/${policyID}/reports` as const;
         },
     },
     WORKSPACE_CREATE_REPORT_FIELD: {
-        route: 'workspaces/:policyID/reportFields/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/reportFields/new` as const,
+        route: 'workspaces/:policyID/reports/newReportField',
+        getRoute: (policyID: string) => `workspaces/${policyID}/reports/newReportField` as const,
     },
     WORKSPACE_REPORT_FIELDS_SETTINGS: {
-        route: 'workspaces/:policyID/reportFields/:reportFieldID/edit',
-        getRoute: (policyID: string, reportFieldID: string) => `workspaces/${policyID}/reportFields/${encodeURIComponent(reportFieldID)}/edit` as const,
+        route: 'workspaces/:policyID/reports/:reportFieldID/edit',
+        getRoute: (policyID: string, reportFieldID: string) => `workspaces/${policyID}/reports/${encodeURIComponent(reportFieldID)}/edit` as const,
     },
     WORKSPACE_REPORT_FIELDS_LIST_VALUES: {
-        route: 'workspaces/:policyID/reportFields/listValues/:reportFieldID?',
-        getRoute: (policyID: string, reportFieldID?: string) => `workspaces/${policyID}/reportFields/listValues/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
+        route: 'workspaces/:policyID/reports/listValues/:reportFieldID?',
+        getRoute: (policyID: string, reportFieldID?: string) => `workspaces/${policyID}/reports/listValues/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
     },
     WORKSPACE_REPORT_FIELDS_ADD_VALUE: {
-        route: 'workspaces/:policyID/reportFields/addValue/:reportFieldID?',
-        getRoute: (policyID: string, reportFieldID?: string) => `workspaces/${policyID}/reportFields/addValue/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
+        route: 'workspaces/:policyID/reports/addValue/:reportFieldID?',
+        getRoute: (policyID: string, reportFieldID?: string) => `workspaces/${policyID}/reports/addValue/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
     },
     WORKSPACE_REPORT_FIELDS_VALUE_SETTINGS: {
-        route: 'workspaces/:policyID/reportFields/:valueIndex/:reportFieldID?',
+        route: 'workspaces/:policyID/reports/:valueIndex/:reportFieldID?',
         getRoute: (policyID: string, valueIndex: number, reportFieldID?: string) =>
-            `workspaces/${policyID}/reportFields/${valueIndex}/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
+            `workspaces/${policyID}/reports/${valueIndex}/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
     },
     WORKSPACE_REPORT_FIELDS_EDIT_VALUE: {
-        route: 'workspaces/:policyID/reportFields/new/:valueIndex/edit',
-        getRoute: (policyID: string, valueIndex: number) => `workspaces/${policyID}/reportFields/new/${valueIndex}/edit` as const,
+        route: 'workspaces/:policyID/reports/newReportField/:valueIndex/edit',
+        getRoute: (policyID: string, valueIndex: number) => `workspaces/${policyID}/reports/newReportField/${valueIndex}/edit` as const,
     },
     WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE: {
-        route: 'workspaces/:policyID/reportFields/:reportFieldID/edit/initialValue',
-        getRoute: (policyID: string, reportFieldID: string) => `workspaces/${policyID}/reportFields/${encodeURIComponent(reportFieldID)}/edit/initialValue` as const,
+        route: 'workspaces/:policyID/reports/:reportFieldID/edit/initialValue',
+        getRoute: (policyID: string, reportFieldID: string) => `workspaces/${policyID}/reports/${encodeURIComponent(reportFieldID)}/edit/initialValue` as const,
     },
     WORKSPACE_COMPANY_CARDS: {
         route: 'workspaces/:policyID/company-cards',
@@ -1852,6 +1859,15 @@ const ROUTES = {
             return getUrlWithBackToParam(`workspaces/${policyID}/per-diem`, backTo);
         },
     },
+    WORKSPACE_RECEIPT_PARTNERS: {
+        route: 'workspaces/:policyID/receipt-partners',
+        getRoute: (policyID: string | undefined, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_RECEIPT_PARTNERS route');
+            }
+            return getUrlWithBackToParam(`workspaces/${policyID}/receipt-partners`, backTo);
+        },
+    },
     WORKSPACE_PER_DIEM_IMPORT: {
         route: 'workspaces/:policyID/per-diem/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/per-diem/import` as const,
@@ -1884,9 +1900,9 @@ const ROUTES = {
         route: 'workspaces/:policyID/per-diem/edit/currency/:rateID/:subRateID',
         getRoute: (policyID: string, rateID: string, subRateID: string) => `workspaces/${policyID}/per-diem/edit/currency/${rateID}/${subRateID}` as const,
     },
-    RULES_CUSTOM_NAME: {
-        route: 'workspaces/:policyID/rules/name',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/name` as const,
+    REPORTS_DEFAULT_TITLE: {
+        route: 'workspaces/:policyID/reports/name',
+        getRoute: (policyID: string) => `workspaces/${policyID}/reports/name` as const,
     },
     RULES_AUTO_APPROVE_REPORTS_UNDER: {
         route: 'workspaces/:policyID/rules/auto-approve',
@@ -2072,7 +2088,15 @@ const ROUTES = {
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt/:action?/:iouType?',
-        getRoute: (reportID: string | undefined, transactionID: string | undefined, readonly = false, isFromReviewDuplicates = false, action?: IOUAction, iouType?: IOUType) => {
+        getRoute: (
+            reportID: string | undefined,
+            transactionID: string | undefined,
+            readonly = false,
+            isFromReviewDuplicates = false,
+            action?: IOUAction,
+            iouType?: IOUType,
+            mergeTransactionID?: string,
+        ) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the TRANSACTION_RECEIPT route');
             }
@@ -2081,7 +2105,7 @@ const ROUTES = {
             }
             return `r/${reportID}/transaction/${transactionID}/receipt${action ? `/${action}` : ''}${iouType ? `/${iouType}` : ''}?readonly=${readonly}${
                 isFromReviewDuplicates ? '&isFromReviewDuplicates=true' : ''
-            }` as const;
+            }${mergeTransactionID ? `&mergeTransactionID=${mergeTransactionID}` : ''}` as const;
         },
     },
 
@@ -2120,6 +2144,22 @@ const ROUTES = {
     TRANSACTION_DUPLICATE_CONFIRMATION_PAGE: {
         route: 'r/:threadReportID/duplicates/confirm',
         getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/confirm` as const, backTo),
+    },
+    MERGE_TRANSACTION_LIST_PAGE: {
+        route: 'r/:transactionID/merge',
+        getRoute: (transactionID: string | undefined, backTo?: string) => getUrlWithBackToParam(`r/${transactionID}/merge` as const, backTo),
+    },
+    MERGE_TRANSACTION_RECEIPT_PAGE: {
+        route: 'r/:transactionID/merge/receipt',
+        getRoute: (transactionID: string, backTo?: string) => getUrlWithBackToParam(`r/${transactionID}/merge/receipt` as const, backTo),
+    },
+    MERGE_TRANSACTION_DETAILS_PAGE: {
+        route: 'r/:transactionID/merge/details',
+        getRoute: (transactionID: string, backTo?: string) => getUrlWithBackToParam(`r/${transactionID}/merge/details` as const, backTo),
+    },
+    MERGE_TRANSACTION_CONFIRMATION_PAGE: {
+        route: 'r/:transactionID/merge/confirmation',
+        getRoute: (transactionID: string, backTo?: string) => getUrlWithBackToParam(`r/${transactionID}/merge/confirmation` as const, backTo),
     },
     POLICY_ACCOUNTING_XERO_IMPORT: {
         route: 'workspaces/:policyID/accounting/xero/import',
