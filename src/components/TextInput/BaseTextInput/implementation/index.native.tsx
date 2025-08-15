@@ -432,16 +432,16 @@ function BaseTextInput(
                                     </Text>
                                 </View>
                             )}
-                            {((isFocused && !isReadOnly && shouldShowClearButton) || !shouldHideClearButton) && !!value && (
+                            {((isFocused && !isReadOnly && shouldShowClearButton) || !shouldHideClearButton) && !!value && !inputProps.isLoading && (
                                 <TextInputClearButton
-                                    style={StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)}
                                     onPressButton={() => {
                                         setValue('');
                                         onClearInput?.();
                                     }}
+                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}
                                 />
                             )}
-                            {inputProps.isLoading !== undefined && (
+                            {inputProps.isLoading !== undefined && !shouldShowClearButton && (
                                 <ActivityIndicator
                                     size="small"
                                     color={theme.iconSuccessFill}
