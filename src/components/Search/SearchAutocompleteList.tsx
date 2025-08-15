@@ -31,7 +31,15 @@ import {
     getQueryWithoutAutocompletedPart,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, getUserFriendlyKey, getUserFriendlyValue, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
+import {
+    buildSearchQueryJSON,
+    buildUserReadableQueryString,
+    getQueryWithoutFilters,
+    getUserFriendlyKey,
+    getUserFriendlyValue,
+    sanitizeSearchValue,
+    shouldHighlight,
+} from '@libs/SearchQueryUtils';
 import {getDatePresets} from '@libs/SearchUIUtils';
 import StringUtils from '@libs/StringUtils';
 import Timing from '@userActions/Timing';
