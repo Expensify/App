@@ -199,6 +199,7 @@ function MoneyRequestReportActionsList({
         allTransactionsLength: transactions.length,
         session,
         onExportFailed: () => setIsDownloadErrorModalVisible(true),
+        policy,
         beginExportWithTemplate: (templateName, templateType, transactionIDList) => beginExportWithTemplate(templateName, templateType, transactionIDList),
     });
 
@@ -294,6 +295,9 @@ function MoneyRequestReportActionsList({
     }, []);
 
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
         if (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction, visibleReportActions))) {
             // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
@@ -737,7 +741,10 @@ function MoneyRequestReportActionsList({
                 onClose={() => setIsDownloadErrorModalVisible(false)}
             />
             <ConfirmModal
-                onConfirm={() => setIsExportWithTemplateModalVisible(false)}
+                onConfirm={() => {
+                    setIsExportWithTemplateModalVisible(false);
+                    clearSelectedTransactions(undefined, true);
+                }}
                 isVisible={isExportWithTemplateModalVisible}
                 title={translate('export.exportInProgress')}
                 prompt={translate('export.conciergeWillSend')}
