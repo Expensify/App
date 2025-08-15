@@ -62,6 +62,12 @@ function addCustomHistoryRouterExtension<RouterOptions extends PlatformStackRout
                 return stateWithInitialHistory;
             }
 
+            // Custom history param used to show the side panel is handled here
+            if (state.history?.at(-1) === CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL) {
+                stateWithInitialHistory.history = [...stateWithInitialHistory.history, CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL];
+                return stateWithInitialHistory;
+            }
+
             // @ts-expect-error focusedRoute.key is always defined because it is a route from a rehydrated state. Find focused route isn't correctly typed in this case.
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             const customHistoryEntry = getCustomHistoryEntry(focusedRoute.key);
