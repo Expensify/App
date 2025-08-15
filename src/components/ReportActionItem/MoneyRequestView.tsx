@@ -69,6 +69,7 @@ import {
     hasRoute as hasRouteTransactionUtils,
     isCardTransaction as isCardTransactionTransactionUtils,
     isDistanceRequest as isDistanceRequestTransactionUtils,
+    isExpenseSplit,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isScanning,
     shouldShowAttendees as shouldShowAttendeesTransactionUtils,
@@ -177,18 +178,6 @@ function MoneyRequestView({
 
     const originalTransactionIDFromComment = transaction?.comment?.originalTransactionID;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionIDFromComment ?? ''}`, {canBeMissing: true});
-    const isExpenseSplit = useMemo(() => {
-        const {originalTransactionID, source, splits} = transaction?.comment ?? {};
-
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if ((splits && splits.length > 0) || !originalTransactionID || source !== CONST.IOU.TYPE.SPLIT) {
-            return false;
-        }
-
-        // To determine if it’s a split expense, we check for the presence of `comment.splits` on the original transaction.
-        // Split expenses won’t have `comment.splits`, while split bills will have them.
-        return !originalTransaction?.comment?.splits;
-    }, [transaction, originalTransaction]);
 
     const {
         created: transactionDate,
@@ -341,7 +330,7 @@ function MoneyRequestView({
         if (formattedOriginalAmount) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.original')} ${formattedOriginalAmount}`;
         }
-        if (isExpenseSplit) {
+        if (isExpenseSplit(transaction, originalTransaction)) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
         }
         if (isCancelled) {
@@ -351,7 +340,7 @@ function MoneyRequestView({
         if (!isDistanceRequest && !isPerDiemRequest) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.cash')}`;
         }
-        if (isExpenseSplit) {
+        if (isExpenseSplit(transaction, originalTransaction)) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
         }
         if (isCancelled) {
