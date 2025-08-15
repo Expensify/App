@@ -17,7 +17,6 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
