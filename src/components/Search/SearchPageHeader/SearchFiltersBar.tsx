@@ -47,7 +47,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS, { DATE_FILTER_KEYS } from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {CurrencyList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -58,7 +58,6 @@ type FilterItem = {
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
     value: string | string[] | null;
     filterKey: SearchAdvancedFiltersKey;
-    dateFilterKey?: SearchDateFilterKeys;
 };
 
 type SearchFiltersBarProps = {
@@ -435,7 +434,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                           PopoverComponent: postedPickerComponent,
                           value: displayPosted,
                           filterKey: FILTER_KEYS.POSTED_ON,
-                          dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
                       },
                   ]
                 : []),
@@ -456,7 +454,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                           PopoverComponent: withdrawnPickerComponent,
                           value: displayWithdrawn,
                           filterKey: FILTER_KEYS.WITHDRAWN_ON,
-                          dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
                       },
                   ]
                 : []),
@@ -471,7 +468,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                 PopoverComponent: datePickerComponent,
                 value: displayDate,
                 filterKey: FILTER_KEYS.DATE_ON,
-                dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             },
             {
                 label: translate('common.from'),
@@ -517,7 +513,13 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
 
     const hiddenSelectedFilters = useMemo(() => {
         const exposedFilters = filters
-            .flatMap((filter) => (filter.dateFilterKey ? [`${filter.dateFilterKey}On`, `${filter.dateFilterKey}After`, `${filter.dateFilterKey}Before`] : filter.filterKey))
+            .flatMap((filter) => {
+                const dateFilterKey = DATE_FILTER_KEYS.find((key) => filter.filterKey.startsWith(key));
+                if (dateFilterKey) {
+                    return [`${dateFilterKey}On`, `${dateFilterKey}After`, `${dateFilterKey}Before`];
+                }
+                return filter.filterKey;
+            })
             .concat(FILTER_KEYS.ACTION);
         return Object.entries(filterFormValues)
             .filter(([key, value]) => value && !exposedFilters.includes(key as SearchAdvancedFiltersKey))
