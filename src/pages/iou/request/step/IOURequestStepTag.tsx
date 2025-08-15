@@ -104,11 +104,9 @@ function IOURequestStepTag({
             }
 
             updatedTag = tagParts.join(':');
-        } else if (!policy?.hasMultipleTagLists) {
-            updatedTag = isSelectedTag ? '' : searchText;
         } else {
             // Independent tags (fallback): use comma-separated list
-            updatedTag = insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : searchText, tagListIndex);
+            updatedTag = insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : searchText, tagListIndex, policy?.hasMultipleTagLists);
         }
 
         if (isEditingSplit) {

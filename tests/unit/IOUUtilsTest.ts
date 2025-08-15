@@ -169,6 +169,14 @@ describe('IOUUtils', () => {
         test('Remove a tag from tagString', () => {
             expect(IOUUtils.insertTagIntoTransactionTagsString('East:City \\: \\::California', '', 1)).toBe('East::California');
         });
+
+        test('Return single tag directly when hasMultipleTagLists is false', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY:California', 'NewTag', 1, false)).toBe('NewTag');
+        });
+
+        test('Return multiple tags when hasMultipleTagLists is true', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY:California', 'NewTag', 1, true)).toBe('East:NewTag:California');
+        });
     });
 });
 
