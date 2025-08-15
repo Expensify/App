@@ -4284,6 +4284,10 @@ function canEditFieldOfMoneyRequest(
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
+        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID)) {
+            return false;
+        }
+
         const isRequestIOU = isIOUReport(moneyRequestReport);
         if (isRequestIOU) {
             return false;
