@@ -306,6 +306,9 @@ export default {
 
     scrollToNewTransactionOffset: 300,
 
+    searchAutocompleteInputSkeletonHeight: 8,
+    searchAutocompleteInputSkeletonWidth: 145,
+
     errorPageIconWidth: 116,
     errorPageIconHeight: 168,
 
