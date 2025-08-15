@@ -482,6 +482,14 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the transaction thread created yet
         // so we have to call OpenReport in a way that the transaction thread will be created and attached to the parentReportAction
         if (transactionID && currentUserEmail) {
+            Log.hmmm('[ReportScreen] Creating transaction thread with single user emailList - potential backend validation issue', {
+                transactionID,
+                reportID: reportIDFromRoute,
+                moneyRequestReportActionID,
+                currentUserEmail,
+                participantLoginList: [currentUserEmail],
+                warningMessage: 'This call may fail backend validation requiring >=2 accounts for DM creation',
+            });
             openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID, false, [], undefined, transactionID);
             return;
         }
