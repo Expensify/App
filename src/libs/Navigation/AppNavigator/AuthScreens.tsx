@@ -179,23 +179,16 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         canBeMissing: true,
     });
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [lastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, {canBeMissing: true});
-    const currentAccountID = useMemo(() => {
-        if (!(session && 'accountID' in session)) {
-            return -1;
-        }
-        return session.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    }, [session]);
 
     const timezone = useMemo(() => {
-        const timezoneObject = personalDetailsList?.[currentAccountID]?.timezone ?? {};
-        if (!personalDetailsList || !isEmptyObject(timezoneObject)) {
+        const timezoneObject = currentUserPersonalDetails?.timezone ?? {};
+        if (!currentUserPersonalDetails || !isEmptyObject(timezoneObject)) {
             return;
         }
         return timezoneObject;
-    }, [currentAccountID, personalDetailsList]);
+    }, [currentUserPersonalDetails]);
 
     useEffect(() => {
         if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
@@ -213,7 +206,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 selected: currentTimezone,
             });
         }
-    }, [session, personalDetailsList, timezone?.automatic, timezone?.selected]);
+    }, [session, timezone?.automatic, timezone?.selected]);
 
     const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
