@@ -27,6 +27,9 @@ import type {MergeFieldKey, MergeValue} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
+import Parser from '@libs/Parser';
+import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 import {getCurrency} from '@libs/TransactionUtils';
 import {openReport} from '@userActions/Report';
 import type {TranslationPaths} from '@src/languages/types';
@@ -160,19 +163,21 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
                         const formatValue = (mergeValue: MergeValue) => {
                             const {value, currency} = mergeValue;
-
                             if (isEmptyMergeValue(value)) {
                                 return '';
                             }
-
                             if (typeof value === 'boolean') {
                                 return value ? translate('common.yes') : translate('common.no');
                             }
-
                             if (field === 'amount') {
                                 return convertToDisplayString(Math.abs(Number(value)), currency);
                             }
-
+                            if (field === 'description') {
+                                return StringUtils.lineBreaksToSpaces(Parser.htmlToText(value.toString()));
+                            }
+                            if (field === 'tag') {
+                                return getCommaSeparatedTagNameWithSanitizedColons(value.toString());
+                            }
                             return String(value);
                         };
 
