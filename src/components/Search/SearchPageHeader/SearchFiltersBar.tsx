@@ -20,7 +20,6 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchDateValues} from '@components/Search/SearchDatePresetFilterBase';
 import type {SearchDateFilterKeys, SearchGroupBy, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -32,7 +31,7 @@ import {updateAdvancedFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAllTaxRates} from '@libs/PolicyUtils';
+import {getAllTaxRates, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
     buildFilterFormValuesFromQuery,
     buildQueryStringFromFilterFormValues,
@@ -41,7 +40,7 @@ import {
     isFilterSupported,
     isSearchDatePreset,
 } from '@libs/SearchQueryUtils';
-import {getDatePresets, getFeedOptions, getGroupByOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
+import {getDatePresets, getFeedOptions, getGroupByOptions, getGroupCurrencyOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,7 +48,7 @@ import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {CurrencyList} from '@src/types/onyx';
+import type {CurrencyList, Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
 
@@ -75,7 +74,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isDevelopment} = useEnvironment();
 
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -96,6 +94,15 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     const taxRates = getAllTaxRates();
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
+    const hasMultipleOutputCurrency = useMemo(() => {
+        const policies = Object.values(allPolicies ?? {}).filter((policy): policy is Policy => isPaidGroupPolicy(policy));
+        const outputCurrency = policies.at(0)?.outputCurrency;
+        return policies.some((policy) => policy.outputCurrency !== outputCurrency);
+    }, [allPolicies]);
+
+    const filterFormValues = useMemo(() => {
+        return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
+    }, [allCards, currencyList, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
 
     const hasErrors = Object.keys(searchResultsErrors ?? {}).length > 0 && !isOffline;
     const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || isMobileSelectionModeEnabled);
@@ -112,6 +119,12 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         return [options, value];
     }, [unsafeGroupBy]);
 
+    const [groupCurrencyOptions, groupCurrency] = useMemo(() => {
+        const options = getGroupCurrencyOptions(currencyList);
+        const value = options.find((option) => option.value === filterFormValues.groupCurrency) ?? null;
+        return [options, value];
+    }, [filterFormValues.groupCurrency, currencyList]);
+
     const [feedOptions, feed] = useMemo(() => {
         const feedFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)?.filters?.map((filter) => filter.value);
         const options = getFeedOptions(allFeeds, allCards);
@@ -126,10 +139,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         ].flat();
         return [options, value];
     }, [unsafeStatus, type, groupBy]);
-
-    const filterFormValues = useMemo(() => {
-        return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
-    }, [allCards, currencyList, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
 
     const [date, displayDate] = useMemo(() => {
         const value: SearchDateValues = {
@@ -255,11 +264,36 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                     items={groupByOptions}
                     value={groupBy}
                     closeOverlay={closeOverlay}
-                    onChange={(item) => updateFilterForm({groupBy: item?.value})}
+                    onChange={(item) => {
+                        const newValue = item?.value;
+                        if (!newValue) {
+                            // groupCurrency depends on groupBy. Without groupBy groupCurrency makes no sense
+                            updateFilterForm({groupBy: undefined, groupCurrency: undefined});
+                        } else {
+                            updateFilterForm({groupBy: newValue});
+                        }
+                    }}
                 />
             );
         },
         [translate, groupByOptions, groupBy, updateFilterForm],
+    );
+
+    const groupCurrencyComponent = useCallback(
+        ({closeOverlay}: PopoverComponentProps) => {
+            return (
+                <SingleSelectPopup
+                    label={translate('common.groupCurrency')}
+                    items={groupCurrencyOptions}
+                    value={groupCurrency}
+                    closeOverlay={closeOverlay}
+                    onChange={(item) => updateFilterForm({groupCurrency: item?.value})}
+                    isSearchable
+                    searchPlaceholder={translate('common.groupCurrency')}
+                />
+            );
+        },
+        [translate, groupCurrencyOptions, groupCurrency, updateFilterForm],
     );
 
     const feedComponent = useCallback(
@@ -392,8 +426,8 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     const filters = useMemo<FilterItem[]>(() => {
         const fromValue = filterFormValues.from?.map((accountID) => personalDetails?.[accountID]?.displayName ?? accountID) ?? [];
 
-        // s77rt remove DEV lock
-        const shouldDisplayGroupByFilter = isDevelopment;
+        const shouldDisplayGroupByFilter = groupBy?.value === CONST.SEARCH.GROUP_BY.FROM || groupBy?.value === CONST.SEARCH.GROUP_BY.CARD;
+        const shouldDisplayGroupCurrencyFilter = (groupBy?.value === CONST.SEARCH.GROUP_BY.FROM || groupBy?.value === CONST.SEARCH.GROUP_BY.CARD) && hasMultipleOutputCurrency;
         const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues.feed;
         const shouldDisplayPostedFilter = !!filterFormValues.feed && (!!filterFormValues.postedOn || !!filterFormValues.postedAfter || !!filterFormValues.postedBefore);
         // We'll refactor this to use a const in https://github.com/Expensify/App/issues/68227
@@ -414,6 +448,16 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                           PopoverComponent: groupByComponent,
                           value: groupBy?.text ?? null,
                           filterKey: FILTER_KEYS.GROUP_BY,
+                      },
+                  ]
+                : []),
+            ...(shouldDisplayGroupCurrencyFilter
+                ? [
+                      {
+                          label: translate('common.groupCurrency'),
+                          PopoverComponent: groupCurrencyComponent,
+                          value: groupCurrency?.value ?? null,
+                          filterKey: FILTER_KEYS.GROUP_CURRENCY,
                       },
                   ]
                 : []),
@@ -481,6 +525,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     }, [
         type,
         groupBy,
+        groupCurrency,
         withdrawalType,
         displayDate,
         displayPosted,
@@ -497,6 +542,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         translate,
         typeComponent,
         groupByComponent,
+        groupCurrencyComponent,
         statusComponent,
         datePickerComponent,
         userPickerComponent,
@@ -505,10 +551,10 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         withdrawnPickerComponent,
         status,
         personalDetails,
-        isDevelopment,
         feed,
         feedComponent,
         feedOptions.length,
+        hasMultipleOutputCurrency,
     ]);
 
     const hiddenSelectedFilters = useMemo(() => {
