@@ -167,7 +167,7 @@ function getTagViolationsForMultiLevelTags(
 /**
  * Returns a period-separated string of violation messages for missing tag levels in a multi-level tag, based on error indexes.
  */
-function getTagViolationMessagesForMultiLevelTags(tagName: string, errorIndexes: number[], tags: PolicyTagLists, translate: LocaleContextProps['translate']): string {
+function getTagViolationMessagesForMultiLevelTags(tagName: string | undefined, errorIndexes: number[], tags: PolicyTagLists, translate: LocaleContextProps['translate']): string {
     if (isEmpty(errorIndexes) || isEmpty(tags)) {
         return translate('violations.someTagLevelsRequired', {tagName});
     }
@@ -464,7 +464,7 @@ const ViolationsUtils = {
             surcharge = 0,
             invoiceMarkup = 0,
             maxAge = 0,
-            tagName = '',
+            tagName,
             taxName,
             type,
             rterType,
