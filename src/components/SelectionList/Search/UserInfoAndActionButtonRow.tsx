@@ -48,6 +48,10 @@ function UserInfoAndActionButtonRow({
                     goToItem={handleActionButtonPress}
                     isSelected={item.isSelected}
                     isLoading={item.isActionLoading}
+                    policyID={item.policyID}
+                    reportID={item.reportID}
+                    hash={item.hash}
+                    amount={(item as TransactionListItemType)?.amount}
                 />
             </View>
         </View>
