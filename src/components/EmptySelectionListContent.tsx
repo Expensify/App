@@ -40,7 +40,6 @@ function EmptySelectionListContent({contentType}: EmptySelectionListContentProps
                     iconWidth={variables.emptySelectionListIconWidth}
                     iconHeight={variables.emptySelectionListIconHeight}
                     title={translate(`emptyList.${translationKeyContentType}.title`)}
-                    shouldShowLink={false}
                     CustomSubtitle={EmptySubtitle}
                     containerStyle={[styles.mb8, styles.ph15]}
                 />
