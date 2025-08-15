@@ -2,12 +2,19 @@ import React, {useMemo} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import {getDefaultGroupAvatar, getPolicyName, getReportName, getWorkspaceIcon, isGroupChat, isThread} from '@libs/ReportUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
-import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
+import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
-import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
+import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment';
+import type {AttachmentModalScreenParams, AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 
-function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProps) {
+type ReportAvatarScreenParams = Omit<AttachmentModalScreenParams, 'reportID'> & {
+    reportID: string;
+    policyID?: string;
+};
+
+function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.REPORT_AVATAR>) {
     const {reportID, policyID} = route.params;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
@@ -32,14 +39,16 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
         };
     }, [policy, report]);
 
-    const contentProps = useMemo(
-        () =>
-            ({
-                ...attachment,
-                shouldShowNotFoundPage: !report?.reportID && !isLoadingApp,
-                isLoading: (!report?.reportID || !policy?.id) && !!isLoadingApp,
-            }) satisfies Partial<AttachmentModalBaseContentProps>,
-        [attachment, isLoadingApp, policy?.id, report?.reportID],
+    const onDownloadAttachment = useDownloadAttachment();
+
+    const contentProps = useMemo<AttachmentModalBaseContentProps>(
+        () => ({
+            ...attachment,
+            shouldShowNotFoundPage: !report?.reportID && !isLoadingApp,
+            isLoading: (!report?.reportID || !policy?.id) && !!isLoadingApp,
+            onDownloadAttachment,
+        }),
+        [attachment, isLoadingApp, policy?.id, report?.reportID, onDownloadAttachment],
     );
 
     return (
@@ -52,3 +61,4 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
 ReportAvatarModalContent.displayName = 'ReportAvatarModalContent';
 
 export default ReportAvatarModalContent;
+export type {ReportAvatarScreenParams};

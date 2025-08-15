@@ -6,8 +6,8 @@ import type {AttachmentModalScreenParams} from './types';
 type AttachmentModalContextValue = {
     isAttachmentHidden: (reportActionID: string) => boolean;
     updateHiddenAttachments: (reportActionID: string, isHidden: boolean) => void;
-    setCurrentAttachment: (attachmentProps: AttachmentModalScreenParams | undefined) => void;
-    getCurrentAttachment: () => AttachmentModalScreenParams | undefined;
+    setCurrentAttachment: <RouteParams extends AttachmentModalScreenParams>(attachmentParams: RouteParams | undefined) => void;
+    getCurrentAttachment: <RouteParams extends AttachmentModalScreenParams>() => RouteParams | undefined;
 };
 
 const AttachmentModalContext = React.createContext<AttachmentModalContextValue>({
@@ -28,10 +28,10 @@ function AttachmentModalContextProvider({children}: ChildrenProps) {
     }, [currentReportID?.currentReportID]);
 
     const currentAttachment = useRef<AttachmentModalScreenParams | undefined>(undefined);
-    const setCurrentAttachment = useCallback((attachmentProps: AttachmentModalScreenParams | undefined) => {
+    const setCurrentAttachment = useCallback(<RouteParams extends AttachmentModalScreenParams>(attachmentProps: RouteParams | undefined) => {
         currentAttachment.current = attachmentProps;
     }, []);
-    const getCurrentAttachment = useCallback(() => currentAttachment.current, []);
+    const getCurrentAttachment = useCallback(<RouteParams extends AttachmentModalScreenParams>() => currentAttachment.current as RouteParams | undefined, []);
     const contextValue = useMemo(
         () => ({
             isAttachmentHidden: (reportActionID: string) => hiddenAttachments.current[reportActionID],
