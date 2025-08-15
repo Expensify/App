@@ -878,7 +878,7 @@ type GetReportNameParams = {
     transactions?: SearchTransaction[];
     reports?: SearchReport[];
     draftReports?: OnyxCollection<Report>;
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
+    isReportArchived?: boolean;
     policies?: SearchPolicy[];
 };
 
@@ -5153,7 +5153,7 @@ function getReportNameInternal({
     invoiceReceiverPolicy,
     transactions,
     reports,
-    reportNameValuePairs = allReportNameValuePair,
+    isReportArchived = false,
     policies,
 }: GetReportNameParams): string {
     let formattedName: string | undefined;
@@ -5165,10 +5165,7 @@ function getReportNameInternal({
         parentReportAction = isThread(report) ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] : undefined;
     }
     const parentReportActionMessage = getReportActionMessageReportUtils(parentReportAction);
-    const isArchivedNonExpense = isArchivedNonExpenseReport(
-        report,
-        !!reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)}`]?.private_isArchived,
-    );
+    const isArchivedNonExpense = isArchivedNonExpenseReport(report, isReportArchived);
 
     if (
         isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
