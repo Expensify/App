@@ -616,6 +616,20 @@ const keywordTests = [
             },
         },
     },
+    {
+        query: 'expense-type:per-diem',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: {
+                operator: 'eq',
+                left: 'expenseType',
+                right: 'perDiem',
+            },
+        },
+    },
 ];
 
 describe('search parser', () => {
