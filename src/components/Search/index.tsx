@@ -42,7 +42,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
+import type {ArchivedReportsIDSet, SearchKey} from '@libs/SearchUIUtils';
 import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -227,49 +227,19 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (s) => s?.accountID});
     const suggestedSearches = useMemo(() => getSuggestedSearches(defaultCardFeed?.id, accountID), [defaultCardFeed?.id, accountID]);
 
-    const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
-    const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.hash === hash)?.key, [suggestedSearches, hash]);
+    const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
+    const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.similarSearchHash === similarSearchHash)?.key, [suggestedSearches, similarSearchHash]);
 
     const shouldCalculateTotals = useMemo(() => {
         if (offset !== 0) {
             return false;
         }
-        if (queryJSON.type !== CONST.SEARCH.DATA_TYPES.EXPENSE) {
+        if (!searchKey) {
             return false;
         }
-
-        let hasFeedFilter = false;
-        let hasPostedFilter = false;
-        let isReimbursable = false;
-
-        queryJSON.flatFilters.forEach((filter) => {
-            if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
-                hasFeedFilter = true;
-            } else if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED) {
-                hasPostedFilter = true;
-            } else if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE && filter.filters.at(0)?.value === CONST.SEARCH.BOOLEAN.YES) {
-                isReimbursable = true;
-            }
-        });
-
-        /**
-         * The total should be calculated for all accounting queries (statements, unapprovedCash and unapprovedCard)
-         * We can't use `searchKey` directly because we want to also match similar queries e.g. the statements suggested search query with a custom feed should be matched too.
-         */
-        const isStatementsLikeQuery = queryJSON.flatFilters.length === 2 && hasFeedFilter && hasPostedFilter;
-        const isUnapprovedCashLikeQuery =
-            queryJSON.flatFilters.length === 1 &&
-            isReimbursable &&
-            queryJSON.status[0] === CONST.SEARCH.STATUS.EXPENSE.DRAFTS &&
-            queryJSON.status[1] === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
-        const isUnapprovedCardLikeQuery =
-            queryJSON.flatFilters.length === 1 &&
-            hasFeedFilter &&
-            queryJSON.status[0] === CONST.SEARCH.STATUS.EXPENSE.DRAFTS &&
-            queryJSON.status[1] === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
-
-        return isStatementsLikeQuery || isUnapprovedCashLikeQuery || isUnapprovedCardLikeQuery;
-    }, [offset, queryJSON.flatFilters, queryJSON.type, queryJSON.status]);
+        const eligibleSearchKeys: Partial<SearchKey[]> = [CONST.SEARCH.SEARCH_KEYS.STATEMENTS, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD];
+        return eligibleSearchKeys.includes(searchKey);
+    }, [offset, searchKey]);
 
     const previousReportActions = usePrevious(reportActions);
     const reportActionsArray = useMemo(

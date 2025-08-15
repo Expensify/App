@@ -186,12 +186,6 @@ type MoneyRequestConfirmationListProps = {
     /** The PDF password callback */
     onPDFPassword?: () => void;
 
-    /** Function to toggle reimbursable */
-    onToggleReimbursable?: (isOn: boolean) => void;
-
-    /** Flag indicating if the IOU is reimbursable */
-    iouIsReimbursable?: boolean;
-
     /** Show remove expense confirmation modal */
     showRemoveExpenseConfirmModal?: () => void;
 };
@@ -235,8 +229,6 @@ function MoneyRequestConfirmationList({
     isConfirming,
     onPDFLoadError,
     onPDFPassword,
-    iouIsReimbursable = true,
-    onToggleReimbursable,
     showRemoveExpenseConfirmModal,
 }: MoneyRequestConfirmationListProps) {
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
@@ -1167,8 +1159,6 @@ function MoneyRequestConfirmationList({
             unit={unit}
             onPDFLoadError={onPDFLoadError}
             onPDFPassword={onPDFPassword}
-            iouIsReimbursable={iouIsReimbursable}
-            onToggleReimbursable={onToggleReimbursable}
             isReceiptEditable={isReceiptEditable}
         />
     );
