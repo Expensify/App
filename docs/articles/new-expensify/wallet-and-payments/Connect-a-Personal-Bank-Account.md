@@ -1,11 +1,11 @@
 ---
 title: Connect a Personal Bank Account
 description: Learn how to connect your personal bank account to receive reimbursements in Expensify, including support for both US and international accounts.
-keywords: [New Expensify, bank account, personal bank account, reimbursements, wallet, US bank account, non-US bank account]
+keywords: [New Expensify, bank account, personal bank account, reimbursements, wallet, US bank account, non-US bank account, global reimbursements]
 ---
 <div id="new-expensify" markdown="1">
 
-You can add a personal bank account to receive reimbursements in over **190 countries**. All personal accounts are managed under **Settings > Wallet > Bank Accounts**. The steps differ depending on whether you're connecting a **US** or **non-US** account.
+You can add a personal bank account to receive reimbursements in over **190 countries**. All personal accounts are managed under **Account > Wallet > Bank Accounts**. The steps differ depending on whether you're connecting a **US** or **non-US** account.
 
 ---
 
@@ -15,7 +15,7 @@ For U.S. accounts, Expensify uses **Plaid**, a secure third-party provider that 
 
 To connect a U.S. bank account:
 
-1. Go to **Settings > Wallet > Bank Accounts**.
+1. Go to **Account > Wallet > Bank Accounts**.
 2. Click **Add Bank Account**.
 3. Select **United States** as your country.
 4. Follow the **Plaid** connection flow:
@@ -33,11 +33,11 @@ To connect a U.S. bank account:
 
 # Add a Non-U.S. Bank Account
 
-Non-U.S. accounts are added manually by entering your bank details. The fields vary depending on your country and currency.
+You can add a non-U.S. bank account by manually entering your bank details. The fields vary depending on your country and currency.
 
 To connect a non-U.S. bank account:
 
-1. Go to **Settings > Wallet > Bank Accounts**.
+1. Go to **Account > Wallet > Bank Accounts**.
 2. Click **Add Bank Account**.
 3. Select your **country**.
 4. Confirm or update the **currency** (defaults to local currency).
