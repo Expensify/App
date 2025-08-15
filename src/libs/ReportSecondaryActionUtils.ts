@@ -2,7 +2,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {IntegrationServerExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {
@@ -15,7 +15,6 @@ import {
     isInstantSubmitEnabled,
     isPolicyMember,
     isPreferredExporter,
-    isSubmitAndClose,
 } from './PolicyUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
 import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
@@ -25,7 +24,6 @@ import {
     canHoldUnholdReportAction,
     getTransactionDetails,
     hasOnlyHeldExpenses,
-    hasOnlyNonReimbursableTransactions,
     hasReportBeenReopened as hasReportBeenReopenedUtils,
     hasReportBeenRetracted as hasReportBeenRetractedUtils,
     isArchivedReport,
@@ -98,10 +96,6 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
     }
 
     if (report.stateNum && report.stateNum >= CONST.REPORT.STATE_NUM.APPROVED) {
-        return false;
-    }
-
-    if (hasOnlyNonReimbursableTransactions(report.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
         return false;
     }
 
@@ -553,10 +547,6 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
         return true;
     }
 
-    if (hasOnlyNonReimbursableTransactions(parentReport.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
-        return false;
-    }
-
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     return isMoneyRequestReportEligibleForMerge(parentReport.reportID, isAdmin);
@@ -692,7 +682,8 @@ function getSecondaryExportReportActions(
     report: Report,
     policy?: Policy,
     reportActions?: ReportAction[],
-    integrationsExportTemplates?: IntegrationServerExportTemplate[],
+    integrationsExportTemplates?: ExportTemplate[],
+    customInAppTemplates?: ExportTemplate[],
 ): Array<ValueOf<string>> {
     const options: Array<ValueOf<string>> = [];
     if (isExportAction(report, policy, reportActions)) {
@@ -705,8 +696,16 @@ function getSecondaryExportReportActions(
 
     options.push(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV, CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT);
 
+    // Add any custom IS templates that have been added to the user's account as export options
     if (integrationsExportTemplates && integrationsExportTemplates.length > 0) {
         for (const template of integrationsExportTemplates) {
+            options.push(template.name);
+        }
+    }
+
+    // Add any in-app export templates that the user has created as export options
+    if (customInAppTemplates && customInAppTemplates.length > 0) {
+        for (const template of customInAppTemplates) {
             options.push(template.name);
         }
     }

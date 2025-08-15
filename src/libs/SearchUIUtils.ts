@@ -212,8 +212,10 @@ type SearchTypeMenuItem = {
     translationPath: TranslationPaths;
     type: SearchDataTypes;
     icon: IconAsset;
-    hash: number;
     searchQuery: string;
+    searchQueryJSON: SearchQueryJSON | undefined;
+    hash: number;
+    similarSearchHash: number;
     emptyState?: {
         headerMedia: DotLottieAnimation;
         title: TranslationPaths;
@@ -252,8 +254,14 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.Receipt,
             searchQuery: buildCannedSearchQuery(),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
             get hash() {
-                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
         [CONST.SEARCH.SEARCH_KEYS.REPORTS]: {
@@ -262,8 +270,14 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.Document,
             searchQuery: buildCannedSearchQuery({groupBy: CONST.SEARCH.GROUP_BY.REPORTS}),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
             get hash() {
-                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
         [CONST.SEARCH.SEARCH_KEYS.CHATS]: {
@@ -272,8 +286,14 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             type: CONST.SEARCH.DATA_TYPES.CHAT,
             icon: Expensicons.ChatBubbles,
             searchQuery: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT}),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
             get hash() {
-                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
         [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: {
@@ -282,8 +302,14 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.Pencil,
             searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_KEYS.SUBMIT, accountID),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
             get hash() {
-                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
         [CONST.SEARCH.SEARCH_KEYS.APPROVE]: {
@@ -292,8 +318,14 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.ThumbsUp,
             searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_KEYS.APPROVE, accountID),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
             get hash() {
-                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
         [CONST.SEARCH.SEARCH_KEYS.PAY]: {
@@ -302,8 +334,14 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.MoneyBag,
             searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_KEYS.PAY, accountID),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
             get hash() {
-                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
         [CONST.SEARCH.SEARCH_KEYS.EXPORT]: {
@@ -312,8 +350,14 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.CheckCircle,
             searchQuery: getTodoSearchQuery(CONST.SEARCH.SEARCH_KEYS.EXPORT, accountID),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
             get hash() {
-                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
         [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: {
@@ -326,8 +370,14 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 feed: defaultFeedID ? [defaultFeedID] : [''],
                 postedOn: CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT,
             }),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
             get hash() {
-                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
         [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: {
@@ -340,8 +390,14 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
                 reimbursable: CONST.SEARCH.BOOLEAN.YES,
             }),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
             get hash() {
-                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
         [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]: {
@@ -354,8 +410,14 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
                 feed: defaultFeedID ? [defaultFeedID] : [''],
                 status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
             }),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
             get hash() {
-                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
     };
