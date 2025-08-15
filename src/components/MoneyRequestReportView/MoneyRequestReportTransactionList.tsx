@@ -14,7 +14,6 @@ import Text from '@components/Text';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
-import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -102,7 +101,6 @@ function MoneyRequestReportTransactionList({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, localeCompare} = useLocalize();
-    const [, , violations] = useReportWithTransactionsAndViolations(report.reportID);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -161,9 +159,8 @@ function MoneyRequestReportTransactionList({
             .map((transaction) => ({
                 ...transaction,
                 shouldBeHighlighted: newTransactions?.includes(transaction),
-                violations: violations?.[transaction.transactionID] ?? [],
             }));
-    }, [newTransactions, sortBy, sortOrder, transactions, localeCompare, violations]);
+    }, [newTransactions, sortBy, sortOrder, transactions, localeCompare]);
 
     const columnsToShow = useMemo(() => {
         const columns = getColumnsToShow(session?.accountID, transactions, true);

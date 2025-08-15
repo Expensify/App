@@ -66,6 +66,7 @@ describe('useSearchHighlightAndScroll', () => {
             flatFilters: [],
             hash: 123,
             recentSearchHash: 456,
+            similarSearchHash: 789,
         },
         searchKey: undefined,
         shouldCalculateTotals: false,

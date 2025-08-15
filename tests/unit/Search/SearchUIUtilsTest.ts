@@ -2,7 +2,13 @@ import Onyx from 'react-native-onyx';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ReportActionListItemType, TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
+import type {
+    ReportActionListItemType,
+    TransactionCardGroupListItemType,
+    TransactionListItemType,
+    TransactionMemberGroupListItemType,
+    TransactionReportGroupListItemType,
+} from '@components/SelectionList/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -33,6 +39,8 @@ const transactionID = '1';
 const transactionID2 = '2';
 const transactionID3 = '3';
 const transactionID4 = '4';
+const cardID = 20202020;
+const cardID2 = 30303030;
 
 const report1 = {
     accountID: adminAccountID,
@@ -444,6 +452,113 @@ const searchResults: OnyxTypes.SearchResults = {
     },
 };
 
+const searchResultsGroupByFrom: OnyxTypes.SearchResults = {
+    data: {
+        personalDetailsList: {
+            [adminAccountID]: {
+                accountID: adminAccountID,
+                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                displayName: 'Zara',
+                login: adminEmail,
+            },
+            [approverAccountID]: {
+                accountID: approverAccountID,
+                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                displayName: 'Andrew',
+                login: approverEmail,
+            },
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}${adminAccountID}` as const]: {
+            accountID: adminAccountID,
+            count: 3,
+            currency: 'USD',
+            total: 70,
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}${approverAccountID}` as const]: {
+            accountID: approverAccountID,
+            count: 2,
+            currency: 'USD',
+            total: 30,
+        },
+    },
+    search: {
+        columnsToShow: {
+            shouldShowCategoryColumn: false,
+            shouldShowFromColumn: false,
+            shouldShowTagColumn: false,
+            shouldShowTaxColumn: false,
+            shouldShowToColumn: false,
+        },
+        count: 5,
+        currency: 'USD',
+        hasMoreResults: false,
+        hasResults: true,
+        offset: 0,
+        status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+        total: 100,
+        isLoading: false,
+        type: 'expense',
+    },
+};
+
+const searchResultsGroupByCard: OnyxTypes.SearchResults = {
+    data: {
+        personalDetailsList: {
+            [adminAccountID]: {
+                accountID: adminAccountID,
+                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                displayName: 'Zara',
+                login: adminEmail,
+            },
+            [approverAccountID]: {
+                accountID: approverAccountID,
+                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                displayName: 'Andrew',
+                login: approverEmail,
+            },
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}${cardID}` as const]: {
+            accountID: adminAccountID,
+            bank: CONST.BANK_NAMES.CHASE,
+            cardID,
+            cardName: "Zara's card",
+            count: 4,
+            currency: 'USD',
+            lastFourPAN: '1234',
+            total: 40,
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}${cardID2}` as const]: {
+            accountID: approverAccountID,
+            bank: CONST.BANK_NAMES.AMERICAN_EXPRESS,
+            cardID: cardID2,
+            cardName: "Andrew's card",
+            count: 6,
+            currency: 'USD',
+            lastFourPAN: '1234',
+            total: 20,
+        },
+    },
+    search: {
+        columnsToShow: {
+            shouldShowCategoryColumn: false,
+            shouldShowFromColumn: false,
+            shouldShowTagColumn: false,
+            shouldShowTaxColumn: false,
+            shouldShowToColumn: false,
+            shouldShowDescriptionColumn: false,
+        },
+        count: 10,
+        currency: 'USD',
+        hasMoreResults: false,
+        hasResults: true,
+        offset: 0,
+        status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+        total: 60,
+        isLoading: false,
+        type: 'expense',
+    },
+};
+
 const reportActionListItems = [
     {
         accountID: 18439984,
@@ -834,6 +949,8 @@ const transactionReportGroupListItems = [
                 shouldShowMerchant: true,
                 shouldShowTag: false,
                 shouldShowTax: false,
+                shouldShowFrom: true,
+                shouldShowTo: true,
                 shouldShowYear: true,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
@@ -941,6 +1058,8 @@ const transactionReportGroupListItems = [
                 shouldShowMerchant: true,
                 shouldShowTag: false,
                 shouldShowTax: false,
+                shouldShowFrom: true,
+                shouldShowTo: true,
                 shouldShowYear: true,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
@@ -1044,6 +1163,123 @@ const transactionReportGroupListItems = [
         unheldTotal: 0,
     },
 ] as TransactionReportGroupListItemType[];
+
+const transactionMemberGroupListItems: TransactionMemberGroupListItemType[] = [
+    {
+        accountID: 18439984,
+        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+        count: 3,
+        currency: 'USD',
+        displayName: 'Zara',
+        groupedBy: 'from',
+        login: 'admin@policy.com',
+        total: 70,
+        transactions: [],
+    },
+    {
+        accountID: 1111111,
+        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+        count: 2,
+        currency: 'USD',
+        displayName: 'Andrew',
+        groupedBy: 'from',
+        login: 'approver@policy.com',
+        total: 30,
+        transactions: [],
+    },
+];
+
+const transactionMemberGroupListItemsSorted: TransactionMemberGroupListItemType[] = [
+    {
+        accountID: 1111111,
+        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+        count: 2,
+        currency: 'USD',
+        displayName: 'Andrew',
+        groupedBy: 'from',
+        login: 'approver@policy.com',
+        total: 30,
+        transactions: [],
+    },
+
+    {
+        accountID: 18439984,
+        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+        count: 3,
+        currency: 'USD',
+        displayName: 'Zara',
+        groupedBy: 'from',
+        login: 'admin@policy.com',
+        total: 70,
+        transactions: [],
+    },
+];
+
+const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
+    {
+        accountID: 18439984,
+        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+        bank: CONST.BANK_NAMES.CHASE,
+        cardID: 20202020,
+        cardName: "Zara's card",
+        count: 4,
+        currency: 'USD',
+        displayName: 'Zara',
+        groupedBy: 'card',
+        lastFourPAN: '1234',
+        login: 'admin@policy.com',
+        total: 40,
+        transactions: [],
+    },
+    {
+        accountID: 1111111,
+        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+        bank: CONST.BANK_NAMES.AMERICAN_EXPRESS,
+        cardID: 30303030,
+        cardName: "Andrew's card",
+        count: 6,
+        currency: 'USD',
+        displayName: 'Andrew',
+        groupedBy: 'card',
+        lastFourPAN: '1234',
+        login: 'approver@policy.com',
+        total: 20,
+        transactions: [],
+    },
+];
+
+const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = [
+    {
+        accountID: 1111111,
+        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+        bank: CONST.BANK_NAMES.AMERICAN_EXPRESS,
+        cardID: 30303030,
+        cardName: "Andrew's card",
+        count: 6,
+        currency: 'USD',
+        displayName: 'Andrew',
+        groupedBy: 'card',
+        lastFourPAN: '1234',
+        login: 'approver@policy.com',
+        total: 20,
+        transactions: [],
+    },
+    {
+        accountID: 18439984,
+        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+        bank: CONST.BANK_NAMES.CHASE,
+        cardID: 20202020,
+        cardName: "Zara's card",
+        count: 4,
+        currency: 'USD',
+        displayName: 'Zara',
+        groupedBy: 'card',
+        lastFourPAN: '1234',
+        login: 'admin@policy.com',
+        total: 40,
+        transactions: [],
+    },
+];
 
 describe('SearchUIUtils', () => {
     beforeAll(async () => {
@@ -1301,15 +1537,15 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return TransactionGroupListItem when type is EXPENSE and groupBy is member', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.MEMBERS)).toStrictEqual(TransactionGroupListItem);
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.FROM)).toStrictEqual(TransactionGroupListItem);
         });
 
         it('should return TransactionGroupListItem when type is TRIP and groupBy is member', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.MEMBERS)).toStrictEqual(TransactionGroupListItem);
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.FROM)).toStrictEqual(TransactionGroupListItem);
         });
 
         it('should return TransactionGroupListItem when type is INVOICE and groupBy is member', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.MEMBERS)).toStrictEqual(TransactionGroupListItem);
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.FROM)).toStrictEqual(TransactionGroupListItem);
         });
     });
 
@@ -1340,25 +1576,31 @@ describe('SearchUIUtils', () => {
             ).toStrictEqual(transactionReportGroupListItems);
         });
 
-        it('should return getMemberSections result when type is EXPENSE and groupBy is member', () => {
+        it('should return getMemberSections result when type is EXPENSE and groupBy is from', () => {
             expect(
-                SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, searchResults.search, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.MEMBERS),
-            ).toStrictEqual([]); // s77rt update test
+                SearchUIUtils.getSections(
+                    CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    searchResultsGroupByFrom.data,
+                    searchResultsGroupByFrom.search,
+                    2074551,
+                    formatPhoneNumber,
+                    CONST.SEARCH.GROUP_BY.FROM,
+                ),
+            ).toStrictEqual(transactionMemberGroupListItems);
         });
 
-        it('should return getMemberSections result when type is TRIP and groupBy is member', () => {
+        it('should return getCardSections result when type is EXPENSE and groupBy is card', () => {
             expect(
-                SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.TRIP, searchResults.data, searchResults.search, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.MEMBERS),
-            ).toStrictEqual([]); // s77rt update test
+                SearchUIUtils.getSections(
+                    CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    searchResultsGroupByCard.data,
+                    searchResultsGroupByCard.search,
+                    2074551,
+                    formatPhoneNumber,
+                    CONST.SEARCH.GROUP_BY.CARD,
+                ),
+            ).toStrictEqual(transactionCardGroupListItems);
         });
-
-        it('should return getMemberSections result when type is INVOICE and groupBy is member', () => {
-            expect(
-                SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.INVOICE, searchResults.data, searchResults.search, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.MEMBERS),
-            ).toStrictEqual([]); // s77rt update test
-        });
-
-        // s77rt add test for group by card
     });
 
     describe('Test getSortedSections', () => {
@@ -1421,23 +1663,15 @@ describe('SearchUIUtils', () => {
 
         it('should return getSortedMemberData result when type is EXPENSE and groupBy is member', () => {
             expect(
-                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.MEMBERS),
-            ).toStrictEqual([]); // s77rt update test
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionMemberGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.FROM),
+            ).toStrictEqual(transactionMemberGroupListItemsSorted);
         });
 
-        it('should return getSortedMemberData result when type is TRIP and groupBy is member', () => {
+        it('should return getSortedCardData result when type is EXPENSE and groupBy is card', () => {
             expect(
-                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.MEMBERS),
-            ).toStrictEqual([]); // s77rt update test
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionCardGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.CARD),
+            ).toStrictEqual(transactionCardGroupListItemsSorted);
         });
-
-        it('should return getSortedMemberData result when type is INVOICE and groupBy is member', () => {
-            expect(
-                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.INVOICE, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.MEMBERS),
-            ).toStrictEqual([]); // s77rt update test
-        });
-
-        // s77rt add test for group by card
     });
 
     describe('Test createTypeMenuItems', () => {
