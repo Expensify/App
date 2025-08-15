@@ -4,6 +4,7 @@ import {FallbackAvatar} from '@components/Icon/Expensicons';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import RandomAvatarUtils from '@libs/RandomAvatarUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     getDefaultWorkspaceAvatar,
@@ -104,6 +105,7 @@ function useReportActionAvatars({
         type: CONST.ICON_TYPE_AVATAR,
         source: personalDetails?.[id]?.avatar ?? FallbackAvatar,
         name: personalDetails?.[id]?.[shouldUseActorAccountID ? 'displayName' : 'login'] ?? '',
+        fallbackIcon: RandomAvatarUtils.getAvatarForContact(String(id)),
     }));
 
     const fallbackWorkspaceAvatar: IconType = {
