@@ -22,7 +22,11 @@ function NameBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID;
 
     const bankAccountState = reimbursementAccount?.achData?.state ?? '';
-    const shouldDisableCompanyName = !!(bankAccountID && defaultCompanyName && ![CONST.BANK_ACCOUNT.STATE.SETUP, CONST.BANK_ACCOUNT.STATE.VERIFYING].includes(bankAccountState));
+    const shouldDisableCompanyName = !!(
+        bankAccountID &&
+        defaultCompanyName &&
+        ![CONST.BANK_ACCOUNT.STATE.SETUP, CONST.BANK_ACCOUNT.STATE.VERIFYING].includes(bankAccountState as typeof CONST.BANK_ACCOUNT.STATE.SETUP | typeof CONST.BANK_ACCOUNT.STATE.VERIFYING)
+    );
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
