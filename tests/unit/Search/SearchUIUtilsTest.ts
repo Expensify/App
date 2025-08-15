@@ -1595,6 +1595,8 @@ describe('SearchUIUtils', () => {
                 ),
             ).toStrictEqual(transactionCardGroupListItems);
         });
+
+        // s77rt add test for group by withdrawal ID
     });
 
     describe('Test getSortedSections', () => {
@@ -1666,6 +1668,8 @@ describe('SearchUIUtils', () => {
                 SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionCardGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.CARD),
             ).toStrictEqual(transactionCardGroupListItemsSorted);
         });
+
+        // s77rt add test for group by withdrawal ID
     });
 
     describe('Test createTypeMenuItems', () => {

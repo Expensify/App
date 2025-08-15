@@ -6063,9 +6063,10 @@ const translations = {
             billable: 'Fatturabile',
             reimbursable: 'Rimborsabile',
             groupBy: {
-                reports: 'Rapporto',
-                from: 'Da',
-                card: 'Carta',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Rapporto',
+                [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
+                [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID di prelievo',
             },
             feed: 'Feed',
             withdrawalType: {

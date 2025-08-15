@@ -17,7 +17,7 @@ import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPo
 import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchDateValues} from '@components/Search/SearchDatePresetFilterBase';
-import type {SearchDateFilterKeys, SearchGroupBy, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
+import type {SearchDateFilterKeys, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -417,12 +417,14 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     const filters = useMemo(() => {
         const fromValue = filterFormValues.from?.map((accountID) => personalDetails?.[accountID]?.displayName ?? accountID) ?? [];
 
-        const shouldDisplayGroupByFilter = groupBy?.value === CONST.SEARCH.GROUP_BY.FROM || groupBy?.value === CONST.SEARCH.GROUP_BY.CARD;
-        const shouldDisplayGroupCurrencyFilter = (groupBy?.value === CONST.SEARCH.GROUP_BY.FROM || groupBy?.value === CONST.SEARCH.GROUP_BY.CARD) && hasMultipleOutputCurrency;
+        const shouldDisplayGroupByFilter =
+            groupBy?.value === CONST.SEARCH.GROUP_BY.FROM || groupBy?.value === CONST.SEARCH.GROUP_BY.CARD || groupBy?.value === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
+        const shouldDisplayGroupCurrencyFilter =
+            (groupBy?.value === CONST.SEARCH.GROUP_BY.FROM || groupBy?.value === CONST.SEARCH.GROUP_BY.CARD || groupBy?.value === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID) &&
+            hasMultipleOutputCurrency;
         const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues.feed;
         const shouldDisplayPostedFilter = !!filterFormValues.feed && (!!filterFormValues.postedOn || !!filterFormValues.postedAfter || !!filterFormValues.postedBefore);
-        // We'll refactor this to use a const in https://github.com/Expensify/App/issues/68227
-        const shouldDisplayWithdrawalTypeFilter = groupBy?.value === ('withdrawalID' as SearchGroupBy) && !!filterFormValues.withdrawalType;
+        const shouldDisplayWithdrawalTypeFilter = groupBy?.value === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID && !!filterFormValues.withdrawalType;
         const shouldDisplayWithdrawnFilter = !!filterFormValues.withdrawnOn || !!filterFormValues.withdrawnAfter || !!filterFormValues.withdrawnBefore;
 
         const filterList = [
