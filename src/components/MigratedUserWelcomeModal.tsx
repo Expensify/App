@@ -8,6 +8,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import convertToLTR from '@libs/convertToLTR';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WelcomeVideoModalNavigatorParamList} from '@libs/Navigation/types';
@@ -62,9 +63,16 @@ function OnboardingWelcomeVideo() {
         }
         const {hasBeenAddedToNudgeMigration} = tryNewDot ?? {};
 
+        Log.hmmm(
+            `[MigratedUserWelcomeModal] useEffect triggered - hasBeenAddedToNudgeMigration: ${hasBeenAddedToNudgeMigration}, hasDismissedTraining: ${!!dismissedProductTraining?.migratedUserWelcomeModal}, shouldOpenSearch: ${shouldOpenSearch}`,
+        );
+
         if (!!(hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal) || !shouldOpenSearch) {
+            Log.hmmm('[MigratedUserWelcomeModal] Conditions not met, keeping modal disabled');
             return;
         }
+
+        Log.hmmm('[MigratedUserWelcomeModal] Enabling modal and navigating to search');
         setIsModalDisabled(false);
         const defaultCannedQuery = buildCannedSearchQuery();
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultCannedQuery}));
@@ -79,6 +87,7 @@ function OnboardingWelcomeVideo() {
             confirmText={translate('migratedUserWelcomeModal.confirmText')}
             animation={LottieAnimations.WorkspacePlanet}
             onClose={() => {
+                Log.hmmm('[MigratedUserWelcomeModal] onClose called, dismissing product training');
                 dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
             }}
             animationStyle={[styles.emptyWorkspaceIllustrationStyle]}
