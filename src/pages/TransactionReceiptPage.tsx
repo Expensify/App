@@ -21,15 +21,16 @@ type TransactionReceiptProps = PlatformStackScreenProps<AuthScreensParamList, ty
 function TransactionReceipt({route}: TransactionReceiptProps) {
     const reportID = route.params.reportID;
     const transactionID = route.params.transactionID;
-    const {action, iouType} = 'action' in route.params ? {action: route.params.action, iouType: route.params.iouType} : {};
+    const action = 'action' in route.params ? route.params.action : undefined;
+    const iouType = 'iouType' in route.params ? route.params.iouType : undefined;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [transactionMain] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [reportMetadata = CONST.DEFAULT_REPORT_METADATA] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: true});
 
     // If we have a merge transaction, we need to use the receipt from the merge transaction
-    const {mergeTransactionID, isFromReviewDuplicates} =
-        'mergeTransactionID' in route.params ? {mergeTransactionID: route.params.mergeTransactionID, isFromReviewDuplicates: route.params.isFromReviewDuplicates === 'true'} : {};
+    const mergeTransactionID = 'mergeTransactionID' in route.params ? route.params.mergeTransactionID : undefined;
+    const isFromReviewDuplicates = 'isFromReviewDuplicates' in route.params ? route.params.isFromReviewDuplicates === 'true' : undefined;
     const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, {canBeMissing: true});
     if (mergeTransactionID && mergeTransaction && transactionMain) {
         transactionMain.receipt = mergeTransaction.receipt;
