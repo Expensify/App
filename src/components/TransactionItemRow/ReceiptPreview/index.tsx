@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import type {LayoutChangeEvent} from 'react-native';
 import {ActivityIndicator, StyleSheet, View} from 'react-native';
-import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceiptWithSizeCalculation from '@components/EReceiptWithSizeCalculation';
 import type {ImageOnLoadEvent} from '@components/Image/types';
@@ -43,11 +43,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
     const hasMeasured = useRef(false);
     const {windowHeight} = useWindowDimensions();
     const [isLoading, setIsLoading] = useState(true);
-    const containerHeight = useSharedValue(150);
 
-    const animatedContainerStyle = useAnimatedStyle(() => ({
-        height: containerHeight.get(),
-    }));
     const handleDistanceEReceiptLayout = (e: LayoutChangeEvent) => {
         if (hasMeasured.current) {
             return;
@@ -62,10 +58,8 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
         }
         if (height * eReceiptScaleFactor > windowHeight - CONST.RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN) {
             setDistanceEReceiptAspectRatio(variables.eReceiptBGHWidth / (windowHeight - CONST.RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN));
-            containerHeight.set(withTiming(windowHeight - CONST.RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN, {duration: 300}));
             return;
         }
-        containerHeight.set(withTiming(height, {duration: 300}));
         setDistanceEReceiptAspectRatio(variables.eReceiptBGHWidth / height);
         setEReceiptScaleFactor(width / variables.eReceiptBGHWidth);
     };
@@ -86,13 +80,8 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
             const {width, height} = e.nativeEvent;
             updateImageAspectRatio(width, height);
             setIsLoading(false);
-
-            if (width && height) {
-                const scaledHeight = (height / width) * 380;
-                containerHeight.set(withTiming(scaledHeight, {duration: 300}));
-            }
         },
-        [updateImageAspectRatio, containerHeight],
+        [updateImageAspectRatio],
     );
 
     const handleError = () => {
@@ -114,18 +103,12 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
         <Animated.View
             entering={FadeIn.duration(CONST.TIMING.SHOW_HOVER_PREVIEW_ANIMATION_DURATION)}
             exiting={FadeOut.duration(CONST.TIMING.SHOW_HOVER_PREVIEW_ANIMATION_DURATION)}
-            style={[
-                styles.receiptPreview,
-                styles.flexColumn,
-                styles.alignItemsCenter,
-                styles.justifyContentStart,
-                animatedContainerStyle, // smoothly animated height
-            ]}
+            style={[styles.receiptPreview, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentStart]}
         >
             {shouldShowImage ? (
                 <View style={[styles.w100]}>
                     {isLoading && (
-                        <View style={[StyleSheet.absoluteFillObject, {top: 75}]}>
+                        <View style={[StyleSheet.absoluteFillObject, styles.justifyContentCenter, styles.alignItemsCenter]}>
                             <ActivityIndicator
                                 color={theme.spinner}
                                 size="large"
@@ -170,16 +153,10 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                             />
                         </View>
                     ) : (
-                        <View
-                            onLayout={() => {
-                                containerHeight.set(withTiming(variables.eReceiptBGHeight, {duration: 300}));
-                            }}
-                        >
-                            <EReceiptWithSizeCalculation
-                                transactionID={transactionItem.transactionID}
-                                transactionItem={transactionItem}
-                            />
-                        </View>
+                        <EReceiptWithSizeCalculation
+                            transactionID={transactionItem.transactionID}
+                            transactionItem={transactionItem}
+                        />
                     )}
                 </View>
             )}
