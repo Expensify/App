@@ -721,7 +721,7 @@ function PureReportActionItem({
                 text: `${i + 1} - ${option}`,
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
                 onPress: () => {
-                    resolveConciergeCategoryOptions(reportActionReportID, action.reportActionID, option);
+                    resolveConciergeCategoryOptions(reportActionReportID, reportID, action.reportActionID, option);
                 },
             }));
         }

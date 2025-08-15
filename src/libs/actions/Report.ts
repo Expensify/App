@@ -5868,15 +5868,16 @@ function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, 
 /**
  * Resolves Concierge category options by adding a comment and updating the report action
  * @param reportID - The report ID where the comment should be added and the report action should be updated
+ * @param notifyReportID - The report ID we should notify for new actions. This is usually the same as reportID, except when adding a comment to an expense report with a single transaction thread, in which case we want to notify the parent expense report.
  * @param reportActionID - The specific report action ID to update
  * @param selectedCategory - The category selected by the user
  */
-function resolveConciergeCategoryOptions(reportID: string | undefined, reportActionID: string | undefined, selectedCategory: string) {
+function resolveConciergeCategoryOptions(reportID: string | undefined, notifyReportID: string | undefined, reportActionID: string | undefined, selectedCategory: string) {
     if (!reportID || !reportActionID) {
         return;
     }
 
-    addComment(reportID, selectedCategory);
+    addComment(reportID, notifyReportID ?? reportID, selectedCategory);
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         [reportActionID]: {
