@@ -535,6 +535,7 @@ const translations = {
         auditor: 'Auditor',
         role: 'Role',
         currency: 'Divisa',
+        groupCurrency: 'Moneda del grupo',
         rate: 'Tarifa',
         emptyLHN: {
             title: 'Woohoo! Todo al día.',
@@ -6043,8 +6044,8 @@ const translations = {
             reimbursable: 'Reembolsable',
             groupBy: {
                 reports: 'Informe',
-                members: 'Miembro',
-                cards: 'Tarjeta',
+                from: 'De',
+                card: 'Tarjeta',
             },
             feed: 'Feed',
             withdrawalType: {
