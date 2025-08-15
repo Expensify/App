@@ -27,7 +27,7 @@ function parseForAutocomplete(text: string) {
  */
 function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists>) {
     const uniqueTagNames = new Set<string>();
-    const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item) as PolicyTagLists[];
+    const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item);
     tagListsUnpacked
         .map(getTagNamesFromTagsLists)
         .flat()
@@ -156,6 +156,7 @@ function filterOutRangesWithCorrectValue(
             return substitutionMap[`${range.key}:${range.value}`] !== undefined || userLogins.get().includes(range.value);
 
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY:
             return currencyList.get().includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE:
             return typeList.includes(range.value);
