@@ -1783,7 +1783,7 @@ function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
 function findSelfDMReportID(): string | undefined {
     if (!allReports) {
         Log.hmmm('[findSelfDMReportID] allReports is null/undefined - reports not loaded yet', {
-            allReports: !!allReports,
+            allReports,
         });
         return;
     }
