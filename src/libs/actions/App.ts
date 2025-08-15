@@ -58,14 +58,6 @@ Onyx.connect({
     },
 });
 
-let preservedUserSession: OnyxTypes.Session | undefined;
-Onyx.connect({
-    key: ONYXKEYS.PRESERVED_USER_SESSION,
-    callback: (value) => {
-        preservedUserSession = value;
-    },
-});
-
 let preservedShouldUseStagingServer: boolean | undefined;
 Onyx.connect({
     key: ONYXKEYS.ACCOUNT,
@@ -596,7 +588,7 @@ function setPreservedUserSession(session: OnyxTypes.Session) {
     Onyx.set(ONYXKEYS.PRESERVED_USER_SESSION, session);
 }
 
-function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
+function clearOnyxAndResetApp(preservedUserSession: OnyxEntry<OnyxTypes.Session> | undefined, shouldNavigateToHomepage?: boolean) {
     // The value of isUsingImportedState will be lost once Onyx is cleared, so we need to store it
     const isStateImported = isUsingImportedState;
     const shouldUseStagingServer = preservedShouldUseStagingServer;
