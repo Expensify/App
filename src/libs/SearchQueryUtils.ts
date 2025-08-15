@@ -80,8 +80,7 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
     taxRate: 'tax-rate',
     cardID: 'card',
     feed: 'feed',
-    // cspell:disable-next-line
-    reportID: 'reportid',
+    reportID: 'report-id',
     keyword: 'keyword',
     in: 'in',
     submitted: 'submitted',
