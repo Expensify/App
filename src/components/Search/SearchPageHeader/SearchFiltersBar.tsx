@@ -567,6 +567,11 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                 return filter.filterKey;
             })
             .concat(FILTER_KEYS.ACTION);
+
+        if (!exposedFilters.includes(FILTER_KEYS.GROUP_BY)) {
+            exposedFilters.push(FILTER_KEYS.GROUP_BY);
+        }
+
         return Object.entries(filterFormValues)
             .filter(([key, value]) => value && !exposedFilters.includes(key as SearchAdvancedFiltersKey))
             .map(([key]) => key);
