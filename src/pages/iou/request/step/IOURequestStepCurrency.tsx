@@ -5,6 +5,7 @@ import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {isValidCurrencyCode} from '@libs/CurrencyUtils';
+import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {appendParam} from '@libs/Url';
@@ -29,6 +30,8 @@ function IOURequestStepCurrency({
     const [recentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const {currency: originalCurrency = ''} = getTransactionDetails(draftTransaction) ?? {};
     const currency = isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
+    const platform = getPlatform();
+    const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
 
     const navigateBack = (selectedCurrencyValue = '') => {
         // If the currency selection was done from the confirmation step (eg. + > submit expense > manual > confirm > amount > currency)
@@ -57,7 +60,7 @@ function IOURequestStepCurrency({
 
     return (
         <StepScreenWrapper
-            shouldEnableKeyboardAvoidingView={false}
+            shouldEnableKeyboardAvoidingView={!isNative}
             headerTitle={translate('common.selectCurrency')}
             onBackButtonPress={() => navigateBack()}
             shouldShowWrapper
@@ -72,7 +75,11 @@ function IOURequestStepCurrency({
                         if (!didScreenTransitionEnd) {
                             return;
                         }
-                        KeyboardUtils.dismiss().then(() => confirmCurrencySelection(option));
+                        if (isNative) {
+                            KeyboardUtils.dismiss().then(() => confirmCurrencySelection(option));
+                        } else {
+                            confirmCurrencySelection(option);
+                        }
                     }}
                     initiallySelectedCurrencyCode={currency.toUpperCase()}
                 />
