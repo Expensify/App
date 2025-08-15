@@ -18,6 +18,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import type {PromotedAction} from '@components/PromotedActionsBar';
 import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBar';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -568,6 +569,16 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     ) : null;
 
     const renderedAvatar = useMemo(() => {
+        if (isChatRoom) {
+            return (
+                <View style={styles.mb3}>
+                    <RoomHeaderAvatars
+                        icons={icons}
+                        report={report}
+                    />
+                </View>
+            );
+        }
         if (!isGroupChat || isThread) {
             return (
                 <View style={styles.mb3}>
