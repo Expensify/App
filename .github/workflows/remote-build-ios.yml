@@ -49,9 +49,16 @@ jobs:
           xcodebuild -showsdks
           xcrun simctl list runtimes | sed -n '1,120p'
 
+      - name: Ensure iOS 18 simulator runtime is installed
+        run: |
+          if ! xcrun simctl list runtimes | grep -q "iOS 18"; then
+            sudo xcodebuild -downloadPlatform iOS
+          fi
+          xcrun simctl list runtimes | sed -n '1,120p'
+
       - name: RNEF Remote Build - iOS
         # rnef v2
-        uses: callstackincubator/ios@7847e0676242cefa801cba8ede6736140b7bae91 
+        uses: callstackincubator/ios@838758ebdbc467492e7e7f31e3ad67eb0decc8ed
         env:
           GITHUB_TOKEN: ${{ github.token }}
           IS_HYBRID_APP: ${{ matrix.is_hybrid_build }}
