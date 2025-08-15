@@ -29,6 +29,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            backToRoute={route.params.backTo}
         >
             <WorkspacePageWithSections
                 testID={PolicyRulesPage.displayName}
@@ -40,6 +41,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 shouldShowNotFoundPage={false}
                 shouldShowLoading={false}
                 addBottomSafeAreaPadding
+                backButtonRoute={route.params.backTo}
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <IndividualExpenseRulesSection policyID={policyID} />

@@ -1864,9 +1864,11 @@ type WorkspaceSplitNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
         policyID: string;
@@ -1885,6 +1887,7 @@ type WorkspaceSplitNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.WORKFLOWS]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW]: {
         policyID: string;
@@ -1911,9 +1914,11 @@ type WorkspaceSplitNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.INVOICES]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.MEMBERS]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.CATEGORIES]: {
         policyID: string;
@@ -1925,6 +1930,7 @@ type WorkspaceSplitNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.MORE_FEATURES]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.TAGS]: {
         policyID: string;
@@ -1936,12 +1942,15 @@ type WorkspaceSplitNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.TAXES]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.REPORTS]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {
         policyID: string;
@@ -1964,11 +1973,9 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.RULES]: {
         policyID: string;
+        backTo?: Routes;
     };
 };
 

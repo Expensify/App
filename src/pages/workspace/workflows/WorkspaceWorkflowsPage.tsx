@@ -374,6 +374,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
+            backToRoute={route.params.backTo}
         >
             <WorkspacePageWithSections
                 headerText={translate('workspace.common.workflows')}
@@ -385,6 +386,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 shouldShowLoading={isLoading}
                 shouldUseScrollView
                 addBottomSafeAreaPadding
+                backButtonRoute={route.params.backTo}
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {optionItems.map(renderOptionItem)}

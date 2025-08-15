@@ -90,6 +90,7 @@ import type {OnboardingCompanySize, OnboardingPurpose} from '@userActions/Welcom
 import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import type {
     IntroSelected,
     InvitedEmailsToAccountIDs,
@@ -3176,7 +3177,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
     return {policyID, workspaceChatReportID: memberData.workspaceChatReportID, reportPreviewReportActionID: reportPreview?.reportActionID, adminsChatReportID};
 }
 
-function enablePolicyConnections(policyID: string, enabled: boolean) {
+function enablePolicyConnections(policyID: string, enabled: boolean, backTo?: Route) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -3220,7 +3221,7 @@ function enablePolicyConnections(policyID: string, enabled: boolean) {
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
-        goBackWhenEnableFeature(policyID);
+        goBackWhenEnableFeature(policyID, backTo);
     }
 }
 
@@ -3277,7 +3278,7 @@ function savePreferredExportMethod(policyID: string, exportMethod: ReportExportT
     Onyx.merge(`${ONYXKEYS.LAST_EXPORT_METHOD}`, {[policyID]: exportMethod});
 }
 
-function enableExpensifyCard(policyID: string, enabled: boolean, shouldNavigateToExpensifyCardPage = false) {
+function enableExpensifyCard(policyID: string, enabled: boolean, shouldNavigateToExpensifyCardPage = false, backTo: Route | undefined = undefined) {
     const authToken = NetworkStore.getAuthToken();
     if (!authToken) {
         return;
@@ -3330,11 +3331,11 @@ function enableExpensifyCard(policyID: string, enabled: boolean, shouldNavigateT
     }
 
     if (enabled && getIsNarrowLayout()) {
-        goBackWhenEnableFeature(policyID);
+        goBackWhenEnableFeature(policyID, backTo);
     }
 }
 
-function enableCompanyCards(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enableCompanyCards(policyID: string, enabled: boolean, shouldGoBack = true, backTo: Route | undefined = undefined) {
     const authToken = NetworkStore.getAuthToken();
 
     const onyxData: OnyxData = {
@@ -3380,7 +3381,7 @@ function enableCompanyCards(policyID: string, enabled: boolean, shouldGoBack = t
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature(policyID);
+        goBackWhenEnableFeature(policyID, backTo);
     }
 }
 
@@ -3428,7 +3429,7 @@ function enablePolicyReportFields(policyID: string, enabled: boolean) {
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, parameters, onyxData);
 }
 
-function enablePolicyTaxes(policyID: string, enabled: boolean) {
+function enablePolicyTaxes(policyID: string, enabled: boolean, backTo?: Route) {
     const defaultTaxRates: TaxRatesWithDefault = CONST.DEFAULT_TAX;
     const taxRatesData: OnyxData = {
         optimisticData: [
@@ -3546,11 +3547,11 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
-        goBackWhenEnableFeature(policyID);
+        goBackWhenEnableFeature(policyID, backTo);
     }
 }
 
-function enablePolicyWorkflows(policyID: string, enabled: boolean) {
+function enablePolicyWorkflows(policyID: string, enabled: boolean, backTo?: Route) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
@@ -3649,7 +3650,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
-        goBackWhenEnableFeature(policyID);
+        goBackWhenEnableFeature(policyID, backTo);
     }
 }
 
@@ -3659,7 +3660,7 @@ const DISABLED_MAX_EXPENSE_VALUES: Pick<Policy, 'maxExpenseAmountNoReceipt' | 'm
     maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE,
 };
 
-function enablePolicyRules(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyRules(policyID: string, enabled: boolean, shouldGoBack = true, backTo: Route | undefined = undefined) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
@@ -3722,7 +3723,7 @@ function enablePolicyRules(policyID: string, enabled: boolean, shouldGoBack = tr
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.SET_POLICY_RULES_ENABLED, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature(policyID);
+        goBackWhenEnableFeature(policyID, backTo);
     }
 }
 
@@ -3791,7 +3792,7 @@ function enableDistanceRequestTax(policyID: string, customUnitName: string, cust
     API.write(WRITE_COMMANDS.ENABLE_DISTANCE_REQUEST_TAX, params, onyxData);
 }
 
-function enablePolicyInvoicing(policyID: string, enabled: boolean) {
+function enablePolicyInvoicing(policyID: string, enabled: boolean, backTo?: Route) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -3835,7 +3836,7 @@ function enablePolicyInvoicing(policyID: string, enabled: boolean) {
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_INVOICING, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
-        goBackWhenEnableFeature(policyID);
+        goBackWhenEnableFeature(policyID, backTo);
     }
 }
 

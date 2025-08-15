@@ -330,7 +330,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         protectedMenuItems.push({
             translationKey: 'workspace.common.moreFeatures',
             icon: Gear,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID, route.params.backTo)))),
             screenName: SCREENS.WORKSPACE.MORE_FEATURES,
         });
 
@@ -368,6 +368,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         allFeedsCards,
         cardsDomainIDs,
         workspaceAccountID,
+        route.params.backTo,
     ]);
 
     // We only update feature states if they aren't pending.
