@@ -51,6 +51,18 @@ type NumberWithSymbolFormProps = {
 
     /** Whether to wrap the input in a container */
     shouldWrapInputInContainer?: boolean;
+
+    /** Whether the amount is negative */
+    isNegative?: boolean;
+
+    /** Function to toggle the amount to negative */
+    toggleNegative?: () => void;
+
+    /** Function to clear the negative amount */
+    clearNegative?: () => void;
+
+    /** Whether to allow flipping amount */
+    allowFlippingAmount?: boolean;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
 
 type NumberWithSymbolFormRef = {
@@ -106,6 +118,10 @@ function NumberWithSymbolForm(
         shouldApplyPaddingToContainer = false,
         shouldUseDefaultLineHeightForPrefix = true,
         shouldWrapInputInContainer = true,
+        isNegative = false,
+        allowFlippingAmount = false,
+        toggleNegative,
+        clearNegative,
         ...props
     }: NumberWithSymbolFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -399,6 +415,10 @@ function NumberWithSymbolForm(
             prefixStyle={props.prefixStyle}
             prefixContainerStyle={props.prefixContainerStyle}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
+            isNegative={isNegative}
+            allowFlippingAmount={allowFlippingAmount}
+            toggleNegative={toggleNegative}
+            clearNegative={clearNegative}
         />
     );
 

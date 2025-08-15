@@ -165,14 +165,6 @@ function MoneyRequestAmountInput(
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
     const decimals = getCurrencyDecimals(currency);
 
-    const setNewAmout = useCallback((newAmount: string) => {
-        if (allowFlippingAmount && newAmount.startsWith('-') && toggleNegative) {
-            toggleNegative();
-        }
-
-        onAmountChange?.(newAmount);
-    }, [allowFlippingAmount, onAmountChange, toggleNegative]);
-
     useEffect(() => {
         if ((!currency || typeof amount !== 'number' || (formatAmountOnBlur && isTextInputFocused(textInput))) ?? shouldKeepUserInput) {
             return;
@@ -204,7 +196,7 @@ function MoneyRequestAmountInput(
             value={onFormatAmount(amount, currency)}
             decimals={decimals}
             onSymbolButtonPress={onCurrencyButtonPress}
-            onInputChange={setNewAmout}
+            onInputChange={onAmountChange}
             onBlur={formatAmount}
             ref={(ref) => {
                 if (typeof forwardedRef === 'function') {
@@ -249,6 +241,9 @@ function MoneyRequestAmountInput(
             footer={props.footer}
             autoGrowExtraSpace={autoGrowExtraSpace}
             submitBehavior={submitBehavior}
+            allowFlippingAmount={allowFlippingAmount}
+            toggleNegative={toggleNegative}
+            clearNegative={clearNegative}
         />
     );
 }

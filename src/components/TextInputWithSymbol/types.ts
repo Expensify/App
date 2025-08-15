@@ -89,6 +89,15 @@ type BaseTextInputWithSymbolProps = {
     /** Whether the amount is negative */
     isNegative?: boolean;
 
+    /** Function to toggle the amount to negative */
+    toggleNegative?: () => void;
+
+    /** Function to clear the negative amount */
+    clearNegative?: () => void;
+
+    /** Whether to allow flipping amount */
+    allowFlippingAmount?: boolean;
+
     /** The test ID of TextInput. Used to locate the view in end-to-end tests. */
     testID?: string;
 } & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrow' | 'autoGrowExtraSpace' | 'autoGrowMarginSide' | 'contentWidth' | 'onPress' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix'>;
