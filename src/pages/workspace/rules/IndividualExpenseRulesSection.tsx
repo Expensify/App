@@ -3,10 +3,12 @@ import {View} from 'react-native';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,6 +32,7 @@ type IndividualExpenseRulesSectionSubtitleProps = {
     policy?: Policy;
     translate: LocaleContextProps['translate'];
     styles: ThemeStyles;
+    environmentURL: string;
 };
 
 type IndividualExpenseRulesMenuItem = {
@@ -39,45 +42,29 @@ type IndividualExpenseRulesMenuItem = {
     pendingAction?: PendingAction;
 };
 
-function IndividualExpenseRulesSectionSubtitle({policy, translate, styles}: IndividualExpenseRulesSectionSubtitleProps) {
+function IndividualExpenseRulesSectionSubtitle({policy, translate, styles, environmentURL}: IndividualExpenseRulesSectionSubtitleProps) {
     const policyID = policy?.id;
 
-    const handleOnPressCategoriesLink = () => {
+    const categoriesPageLink = useMemo(() => {
         if (policy?.areCategoriesEnabled) {
-            Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
-            return;
+            return `${environmentURL}/${ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID)}`;
         }
 
-        Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
-    };
+        return `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`;
+    }, [policy?.areCategoriesEnabled, policyID, environmentURL]);
 
-    const handleOnPressTagsLink = () => {
+    const tagsPageLink = useMemo(() => {
         if (policy?.areTagsEnabled) {
-            Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
-            return;
+            return `${environmentURL}/${ROUTES.WORKSPACE_TAGS.getRoute(policyID)}`;
         }
 
-        Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
-    };
+        return `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`;
+    }, [policy?.areTagsEnabled, policyID, environmentURL]);
 
     return (
-        <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
-            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.subtitle')}</Text>{' '}
-            <TextLink
-                style={styles.link}
-                onPress={handleOnPressCategoriesLink}
-            >
-                {translate('workspace.common.categories').toLowerCase()}
-            </TextLink>{' '}
-            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('common.and')}</Text>{' '}
-            <TextLink
-                style={styles.link}
-                onPress={handleOnPressTagsLink}
-            >
-                {translate('workspace.common.tags').toLowerCase()}
-            </TextLink>
-            .
-        </Text>
+        <View style={[styles.flexRow, styles.renderHTML, styles.w100, styles.mt2]}>
+            <RenderHTML html={translate('workspace.rules.individualExpenseRules.subtitle', {categoriesPageLink, tagsPageLink})} />
+        </View>
     );
 }
 
@@ -85,6 +72,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
+    const {environmentURL} = useEnvironment();
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -194,9 +182,9 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     policy={policy}
                     translate={translate}
                     styles={styles}
+                    environmentURL={environmentURL}
                 />
             )}
-            subtitle={translate('workspace.rules.individualExpenseRules.subtitle')}
             titleStyles={styles.accountSettingsSectionTitle}
         >
             <View style={[styles.mt3, styles.gap3]}>
