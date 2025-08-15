@@ -31,7 +31,7 @@ import {
     getQueryWithoutAutocompletedPart,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, getUserFriendlyKey, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
 import {getDatePresets} from '@libs/SearchUIUtils';
 import StringUtils from '@libs/StringUtils';
 import Timing from '@userActions/Timing';
@@ -307,7 +307,8 @@ function SearchAutocompleteList(
                     text: categoryName,
                 }));
             }
-            case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY: {
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY: {
                 const autocompleteList = autocompleteValue ? currencyAutocompleteList : (recentCurrencyAutocompleteList ?? []);
                 const filteredCurrencies = autocompleteList
                     .filter((currency) => currency.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(currency.toLowerCase()))
@@ -315,7 +316,7 @@ function SearchAutocompleteList(
                     .slice(0, 10);
 
                 return filteredCurrencies.map((currencyName) => ({
-                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CURRENCY,
+                    filterKey: getUserFriendlyKey(autocompleteKey),
                     text: currencyName,
                 }));
             }
@@ -464,7 +465,7 @@ function SearchAutocompleteList(
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED: {
-                const filteredDatePresets = (getDatePresets(autocompleteKey, true) ?? [])
+                const filteredDatePresets = getDatePresets(autocompleteKey, true)
                     .filter((datePreset) => datePreset.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(datePreset.toLowerCase()))
                     .sort()
                     .slice(0, 10);
@@ -722,7 +723,7 @@ function SearchAutocompleteList(
         // will fail because the list will be empty on first render so we only render after options are initialized.
         areOptionsInitialized && (
             <SelectionList<OptionData | SearchQueryItem>
-                showLoadingPlaceholder={!areOptionsInitialized}
+                showLoadingPlaceholder
                 fixedNumItemsForLoader={4}
                 loaderSpeed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
                 sections={sections}

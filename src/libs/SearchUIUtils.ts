@@ -44,7 +44,9 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import type {
     ListItemDataType,
     ListItemType,
+    SearchCardGroup,
     SearchDataTypes,
+    SearchMemberGroup,
     SearchPersonalDetails,
     SearchPolicy,
     SearchReport,
@@ -57,7 +59,7 @@ import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {createNewReport} from './actions/Report';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
-import {convertToDisplayString} from './CurrencyUtils';
+import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import {translateLocal} from './Localize';
@@ -192,6 +194,8 @@ type ReportActionKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
 type PolicyKey = `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`;
 
 type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
+
+type SearchGroupKey = `${typeof CONST.SEARCH.GROUP_PREFIX}${string}`;
 
 type SearchKey = ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>;
 
@@ -547,8 +551,8 @@ function isReportEntry(key: string): key is ReportKey {
 /**
  * @private
  */
-function isTransactionEntry(key: string): key is TransactionKey {
-    return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
+function isGroupEntry(key: string): key is SearchGroupKey {
+    return key.startsWith(CONST.SEARCH.GROUP_PREFIX);
 }
 
 /**
@@ -567,6 +571,13 @@ function isViolationEntry(key: string): key is ViolationKey {
  */
 function isReportActionEntry(key: string): key is ReportActionKey {
     return key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+}
+
+/**
+ * @private
+ */
+function isTransactionEntry(key: string): key is TransactionKey {
+    return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
 }
 
 /**
@@ -601,14 +612,14 @@ function isTransactionReportGroupListItemType(item: ListItem): item is Transacti
  * Type guard that checks if something is a TransactionMemberGroupListItemType
  */
 function isTransactionMemberGroupListItemType(item: ListItem): item is TransactionMemberGroupListItemType {
-    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.MEMBERS;
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.FROM;
 }
 
 /**
  * Type guard that checks if something is a TransactionCardGroupListItemType
  */
 function isTransactionCardGroupListItemType(item: ListItem): item is TransactionCardGroupListItemType {
-    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.CARDS;
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.CARD;
 }
 
 /**
@@ -803,6 +814,8 @@ function getTransactionsSections(
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
 
+    const shouldShowFrom = metadata?.columnsToShow?.shouldShowFromColumn;
+    const shouldShowTo = metadata?.columnsToShow?.shouldShowToColumn;
     const shouldShowCategory = metadata?.columnsToShow?.shouldShowCategoryColumn;
     const shouldShowTag = metadata?.columnsToShow?.shouldShowTagColumn;
     const shouldShowTax = metadata?.columnsToShow?.shouldShowTaxColumn;
@@ -840,6 +853,8 @@ function getTransactionsSections(
             formattedTotal,
             formattedMerchant,
             date,
+            shouldShowFrom,
+            shouldShowTo,
             shouldShowMerchant,
             shouldShowCategory,
             shouldShowTag,
@@ -1286,6 +1301,8 @@ function getReportSections(
                 formattedMerchant,
                 date,
                 shouldShowMerchant,
+                shouldShowFrom: metadata?.columnsToShow?.shouldShowFromColumn,
+                shouldShowTo: metadata?.columnsToShow?.shouldShowToColumn,
                 shouldShowCategory: metadata?.columnsToShow?.shouldShowCategoryColumn,
                 shouldShowTag: metadata?.columnsToShow?.shouldShowTagColumn,
                 shouldShowTax: metadata?.columnsToShow?.shouldShowTaxColumn,
@@ -1314,8 +1331,24 @@ function getReportSections(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getMemberSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): TransactionMemberGroupListItemType[] {
-    return data && metadata ? [] : []; // s77rt TODO
+function getMemberSections(data: OnyxTypes.SearchResults['data']): TransactionMemberGroupListItemType[] {
+    const memberSections: Record<string, TransactionMemberGroupListItemType> = {};
+
+    for (const key in data) {
+        if (isGroupEntry(key)) {
+            const memberGroup = data[key] as SearchMemberGroup;
+            const personalDetails = data.personalDetailsList[memberGroup.accountID];
+
+            memberSections[key] = {
+                groupedBy: CONST.SEARCH.GROUP_BY.FROM,
+                transactions: [],
+                ...personalDetails,
+                ...memberGroup,
+            };
+        }
+    }
+
+    return Object.values(memberSections);
 }
 
 /**
@@ -1324,8 +1357,24 @@ function getMemberSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getCardSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): TransactionCardGroupListItemType[] {
-    return data && metadata ? [] : []; // s77rt TODO
+function getCardSections(data: OnyxTypes.SearchResults['data']): TransactionCardGroupListItemType[] {
+    const cardSections: Record<string, TransactionCardGroupListItemType> = {};
+
+    for (const key in data) {
+        if (isGroupEntry(key)) {
+            const cardGroup = data[key] as SearchCardGroup;
+            const personalDetails = data.personalDetailsList[cardGroup.accountID];
+
+            cardSections[key] = {
+                groupedBy: CONST.SEARCH.GROUP_BY.CARD,
+                transactions: [],
+                ...personalDetails,
+                ...cardGroup,
+            };
+        }
+    }
+
+    return Object.values(cardSections);
 }
 
 /**
@@ -1371,10 +1420,10 @@ function getSections(
         switch (groupBy) {
             case CONST.SEARCH.GROUP_BY.REPORTS:
                 return getReportSections(data, metadata, currentSearch, currentAccountID, formatPhoneNumber, reportActions);
-            case CONST.SEARCH.GROUP_BY.MEMBERS:
-                return getMemberSections(data, metadata);
-            case CONST.SEARCH.GROUP_BY.CARDS:
-                return getCardSections(data, metadata);
+            case CONST.SEARCH.GROUP_BY.FROM:
+                return getMemberSections(data);
+            case CONST.SEARCH.GROUP_BY.CARD:
+                return getCardSections(data);
         }
     }
 
@@ -1406,10 +1455,10 @@ function getSortedSections(
         switch (groupBy) {
             case CONST.SEARCH.GROUP_BY.REPORTS:
                 return getSortedReportData(data as TransactionReportGroupListItemType[], localeCompare);
-            case CONST.SEARCH.GROUP_BY.MEMBERS:
-                return getSortedMemberData(data as TransactionMemberGroupListItemType[]);
-            case CONST.SEARCH.GROUP_BY.CARDS:
-                return getSortedCardData(data as TransactionCardGroupListItemType[]);
+            case CONST.SEARCH.GROUP_BY.FROM:
+                return getSortedMemberData(data as TransactionMemberGroupListItemType[], localeCompare);
+            case CONST.SEARCH.GROUP_BY.CARD:
+                return getSortedCardData(data as TransactionCardGroupListItemType[], localeCompare);
         }
     }
 
@@ -1506,16 +1555,16 @@ function getSortedReportData(data: TransactionReportGroupListItemType[], localeC
  * @private
  * Sorts report sections based on a specified column and sort order.
  */
-function getSortedMemberData(data: TransactionMemberGroupListItemType[]) {
-    return data ? [] : []; // s77rt TODO
+function getSortedMemberData(data: TransactionMemberGroupListItemType[], localeCompare: LocaleContextProps['localeCompare']) {
+    return data.sort((a, b) => localeCompare(a.displayName ?? a.login ?? '', b.displayName ?? b.login ?? ''));
 }
 
 /**
  * @private
  * Sorts report sections based on a specified column and sort order.
  */
-function getSortedCardData(data: TransactionCardGroupListItemType[]) {
-    return data ? [] : []; // s77rt TODO
+function getSortedCardData(data: TransactionCardGroupListItemType[], localeCompare: LocaleContextProps['localeCompare']) {
+    return data.sort((a, b) => localeCompare(a.displayName ?? a.login ?? '', b.displayName ?? b.login ?? ''));
 }
 
 /**
@@ -1830,7 +1879,7 @@ function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefi
             return getTaskStatusOptions();
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         default:
-            return groupBy === CONST.SEARCH.GROUP_BY.REPORTS || groupBy === CONST.SEARCH.GROUP_BY.MEMBERS ? getExpenseReportedStatusOptions() : getExpenseStatusOptions();
+            return groupBy === CONST.SEARCH.GROUP_BY.REPORTS ? getExpenseReportedStatusOptions() : getExpenseStatusOptions();
     }
 }
 
@@ -1852,6 +1901,19 @@ function getGroupByOptions() {
     return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({text: translateLocal(`search.filters.groupBy.${value}`), value}));
 }
 
+function getGroupCurrencyOptions(currencyList: OnyxTypes.CurrencyList) {
+    return Object.keys(currencyList).reduce(
+        (options, currencyCode) => {
+            if (!currencyList?.[currencyCode]?.retired) {
+                options.push({text: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode});
+            }
+
+            return options;
+        },
+        [] as Array<SingleSelectItem<string>>,
+    );
+}
+
 function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCards: OnyxTypes.CardList) {
     return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards)).map<SingleSelectItem<string>>((cardFeed) => ({
         text: cardFeed.name,
@@ -1859,8 +1921,8 @@ function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCa
     }));
 }
 
-function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): SearchDatePreset[] | undefined {
-    const defaultPresets = [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH];
+function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): SearchDatePreset[] {
+    const defaultPresets = [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH] as SearchDatePreset[];
 
     switch (filterKey) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
@@ -1904,6 +1966,7 @@ export {
     getStatusOptions,
     getTypeOptions,
     getGroupByOptions,
+    getGroupCurrencyOptions,
     getFeedOptions,
     getWideAmountIndicators,
     isTransactionAmountTooLong,
