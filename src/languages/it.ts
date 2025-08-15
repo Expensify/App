@@ -11,7 +11,7 @@
  */
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
-import type {OnboardingCompanySize, OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -551,6 +551,7 @@ const translations = {
         auditor: 'Revisore dei conti',
         role: 'Ruolo',
         currency: 'Valuta',
+        groupCurrency: 'Valuta di gruppo',
         rate: 'Valuta',
         emptyLHN: {
             title: 'Woohoo! Tutto aggiornato.',
@@ -2469,8 +2470,8 @@ const translations = {
         messages: {
             onboardingEmployerOrSubmitMessage: 'Ricevere un rimborso è facile come inviare un messaggio. Vediamo le basi.',
             onboardingPersonalSpendMessage: 'Ecco come monitorare le tue spese in pochi clic.',
-            onboardingMangeTeamMessage: ({onboardingCompanySize}: {onboardingCompanySize?: OnboardingCompanySize}) =>
-                `Ecco un elenco di attività che consiglio per un’azienda delle tue dimensioni con ${onboardingCompanySize} persone che inviano spese:`,
+            onboardingManageTeamMessage:
+                '# La tua prova gratuita è iniziata! Procediamo con la configurazione.\n👋 Ciao, sono il tuo specialista di configurazione Expensify. Ora che hai creato uno spazio di lavoro, sfrutta al massimo i tuoi 30 giorni di prova gratuita seguendo i passaggi indicati di seguito!',
             onboardingTrackWorkspaceMessage:
                 '# Iniziamo\n👋 Sono qui per aiutarti! Per iniziare, ho personalizzato le impostazioni dello spazio di lavoro per ditte individuali e aziende simili. Puoi modificarle cliccando il link qui sotto!\n\nEcco come monitorare le tue spese in pochi clic:',
             onboardingChatSplitMessage: 'Dividere le spese con gli amici è facile come inviare un messaggio. Ecco come.',
@@ -5557,17 +5558,6 @@ const translations = {
                     one: '1 giorno',
                     other: (count: number) => `${count} giorni`,
                 }),
-                cashExpenseDefault: 'Spesa in contanti predefinita',
-                cashExpenseDefaultDescription:
-                    'Scegli come devono essere create le spese in contanti. Una spesa è considerata in contanti se non è una transazione su carta aziendale importata. Ciò include spese create manualmente, ricevute, diarie, chilometraggi e spese di tempo.',
-                reimbursableDefault: 'Rimborsabile',
-                reimbursableDefaultDescription: 'Le spese sono solitamente rimborsate ai dipendenti',
-                nonReimbursableDefault: 'Non rimborsabile',
-                nonReimbursableDefaultDescription: 'Le spese sono occasionalmente rimborsate ai dipendenti',
-                alwaysReimbursable: 'Sempre rimborsabile',
-                alwaysReimbursableDescription: 'Le spese sono sempre rimborsate ai dipendenti',
-                alwaysNonReimbursable: 'Mai rimborsabile',
-                alwaysNonReimbursableDescription: 'Le spese non sono mai rimborsate ai dipendenti',
                 billableDefault: 'Predefinito fatturabile',
                 billableDefaultDescription: ({tagsPageLink}: BillableDefaultDescriptionParams) =>
                     `<muted-text>Scegli se le spese in contanti e con carta di credito devono essere fatturabili per impostazione predefinita. Le spese fatturabili possono essere abilitate o disabilitate nei <a href="${tagsPageLink}">tag</a>.</muted-text>`,
@@ -5860,8 +5850,6 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `aggiornato "Riaddebita le spese ai clienti" a "${newValue}" (precedentemente "${oldValue}")`,
-        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `aggiornato "Spesa in contanti predefinita" a "${newValue}" (precedentemente "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `trasformato "Imponi titoli di report predefiniti" ${value ? 'su' : 'spento'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) =>
             `ha aggiornato il nome di questo spazio di lavoro in "${newName}" (precedentemente "${oldName}")`,
@@ -6076,8 +6064,8 @@ const translations = {
             reimbursable: 'Rimborsabile',
             groupBy: {
                 reports: 'Rapporto',
-                members: 'Membro',
-                cards: 'Carta',
+                from: 'Da',
+                card: 'Carta',
             },
             feed: 'Feed',
             withdrawalType: {

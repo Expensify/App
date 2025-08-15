@@ -11,7 +11,7 @@
  */
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
-import type {OnboardingCompanySize, OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -551,6 +551,7 @@ const translations = {
         auditor: 'Audytor',
         role: 'Rola',
         currency: 'Waluta',
+        groupCurrency: 'Waluta grupy',
         rate: 'Oceń',
         emptyLHN: {
             title: 'Hurra! Wszystko nadrobione.',
@@ -2471,8 +2472,8 @@ const translations = {
         messages: {
             onboardingEmployerOrSubmitMessage: 'Terugbetaald krijgen is net zo eenvoudig als een bericht sturen. Laten we de basis doornemen.',
             onboardingPersonalSpendMessage: 'Zo volgt u uw uitgaven in een paar klikken.',
-            onboardingMangeTeamMessage: ({onboardingCompanySize}: {onboardingCompanySize?: OnboardingCompanySize}) =>
-                `Hier is een takenlijst die ik zou aanraden voor een bedrijf van uw grootte met ${onboardingCompanySize} inzenders:`,
+            onboardingManageTeamMessage:
+                '# Twój bezpłatny okres próbny właśnie się rozpoczął! Zacznijmy konfigurację.\n👋 Cześć, jestem Twoim specjalistą ds. konfiguracji Expensify. Teraz, gdy utworzyłeś przestrzeń roboczą, wykorzystaj w pełni swoje 30 dni bezpłatnego okresu próbnego, postępując zgodnie z poniższymi krokami!',
             onboardingTrackWorkspaceMessage:
                 '# Laten we u instellen\n👋 Ik ben hier om te helpen! Om u op weg te helpen, heb ik uw werkruimte-instellingen afgestemd op eenmanszaken en soortgelijke bedrijven. U kunt uw werkruimte aanpassen door op de onderstaande link te klikken!\n\nZo volgt u uw uitgaven in een paar klikken:',
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo eenvoudig als een bericht sturen. Zo doet u dat.',
@@ -5542,17 +5543,6 @@ const translations = {
                     one: '1 dzień',
                     other: (count: number) => `${count} dni`,
                 }),
-                cashExpenseDefault: 'Domyślny wydatek gotówkowy',
-                cashExpenseDefaultDescription:
-                    'Wybierz, jak powinny być tworzone wydatki gotówkowe. Wydatek jest uznawany za gotówkowy, jeśli nie jest importowaną transakcją kartą firmową. Obejmuje to ręcznie tworzone wydatki, paragony, diety, odległości i czas pracy.',
-                reimbursableDefault: 'Zwracany',
-                reimbursableDefaultDescription: 'Wydatki są zazwyczaj zwracane pracownikom',
-                nonReimbursableDefault: 'Niezwracany',
-                nonReimbursableDefaultDescription: 'Wydatki są czasami zwracane pracownikom',
-                alwaysReimbursable: 'Zawsze zwracany',
-                alwaysReimbursableDescription: 'Wydatki są zawsze zwracane pracownikom',
-                alwaysNonReimbursable: 'Nigdy nie zwracany',
-                alwaysNonReimbursableDescription: 'Wydatki nigdy nie są zwracane pracownikom',
                 billableDefault: 'Domyślne do rozliczenia',
                 billableDefaultDescription: ({tagsPageLink}: BillableDefaultDescriptionParams) =>
                     `<muted-text>Wybierz, czy wydatki gotówkowe i kartą kredytową powinny być domyślnie rozliczane. Rozliczane wydatki można włączyć lub wyłączyć w <a href="${tagsPageLink}">tagi</a>.</muted-text>`,
@@ -5841,8 +5831,6 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `zaktualizowano "Ponowne obciążenie klientów kosztami" na "${newValue}" (wcześniej "${oldValue}")`,
-        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `zaktualizowano "Domyślny wydatek gotówkowy" na "${newValue}" (wcześniej "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `zmieniono "Wymuś domyślne tytuły raportów" ${value ? 'na' : 'wyłączony'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `zaktualizował nazwę tego miejsca pracy na "${newName}" (wcześniej "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -6054,8 +6042,8 @@ const translations = {
             reimbursable: 'Podlegające zwrotowi',
             groupBy: {
                 reports: 'Raport',
-                members: 'Członek',
-                cards: 'Karta',
+                from: 'Od',
+                card: 'Karta',
             },
             feed: 'Kanal',
             withdrawalType: {

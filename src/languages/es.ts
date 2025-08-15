@@ -1,5 +1,5 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
-import type {OnboardingCompanySize, OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type en from './en';
@@ -535,6 +535,7 @@ const translations = {
         auditor: 'Auditor',
         role: 'Role',
         currency: 'Divisa',
+        groupCurrency: 'Moneda del grupo',
         rate: 'Tarifa',
         emptyLHN: {
             title: 'Woohoo! Todo al día.',
@@ -2426,8 +2427,8 @@ const translations = {
         messages: {
             onboardingEmployerOrSubmitMessage: 'Que te reembolsen es tan fácil como enviar un mensaje. Repasemos lo básico.',
             onboardingPersonalSpendMessage: 'Aquí tienes cómo organizar tus gastos en unos pocos clics.',
-            onboardingMangeTeamMessage: ({onboardingCompanySize}: {onboardingCompanySize?: OnboardingCompanySize}) =>
-                `Aquí tienes una lista de tareas recomendadas para una empresa de tu tamaño${onboardingCompanySize ? ` con ${onboardingCompanySize} remitentes` : ':'}`,
+            onboardingManageTeamMessage:
+                '# ¡Tu prueba gratuita ha comenzado! Vamos a poner todo a punto.\n👋 Hola, soy tu especialista de configuración de Expensify. Ahora que has creado un espacio de trabajo, aprovecha al máximo tus 30 días de prueba gratuita siguiendo los pasos que aparecen a continuación.',
             onboardingTrackWorkspaceMessage:
                 '# Vamos a configurarte\n👋 ¡Estoy aquí para ayudarte! Para comenzar, he personalizado la configuración de tu espacio de trabajo para propietarios únicos y negocios similares. Puedes ajustar tu espacio de trabajo haciendo clic en el enlace de abajo.\n\nAsí es como puedes organizar tus gastos en unos pocos clics:',
             onboardingChatSplitMessage: 'Dividir cuentas con amigos es tan fácil como enviar un mensaje. Así se hace.',
@@ -5555,17 +5556,6 @@ const translations = {
                     one: '1 día',
                     other: (count: number) => `${count} días`,
                 }),
-                cashExpenseDefault: 'Valor predeterminado para gastos en efectivo',
-                cashExpenseDefaultDescription:
-                    'Elige cómo deben crearse los gastos en efectivo. Un gasto se considera en efectivo si no es una transacción importada desde una tarjeta de empresa. Esto incluye gastos creados manualmente, recibos, viáticos y gastos de distancia y tiempo.',
-                reimbursableDefault: 'Reembolsable',
-                reimbursableDefaultDescription: 'Los gastos suelen ser reembolsados a los empleados',
-                nonReimbursableDefault: 'No reembolsable',
-                nonReimbursableDefaultDescription: 'Los gastos ocasionalmente son reembolsados a los empleados',
-                alwaysReimbursable: 'Siempre reembolsable',
-                alwaysReimbursableDescription: 'Los gastos siempre se reembolsados a los empleados',
-                alwaysNonReimbursable: 'Siempre no reembolsable',
-                alwaysNonReimbursableDescription: 'Los gastos nunca son reembolsados a los empleados',
                 billableDefault: 'Valor predeterminado facturable',
                 billableDefaultDescription: ({tagsPageLink}: BillableDefaultDescriptionParams) =>
                     `<muted-text>Elige si los gastos en efectivo y con tarjeta de crédito deben ser facturables por defecto. Los gastos facturables se activan o desactivan en <a href="${tagsPageLink}">etiquetas</a>.</muted-text>`,
@@ -5835,8 +5825,6 @@ const translations = {
             `actualizó "Antigüedad máxima de gastos (días)" a "${newValue}" (previamente "${oldValue === 'false' ? CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE : oldValue}")`,
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `actualizó "Volver a facturar gastos a clientes" a "${newValue}" (previamente "${oldValue}")`,
-        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `actualizó "Valor predeterminado para gastos en efectivo" a "${newValue}" (previamente "${oldValue}")`,
         updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
             if (!oldValue) {
                 return `establecer la fecha de envío del informe mensual a "${newValue}"`;
@@ -6056,8 +6044,8 @@ const translations = {
             reimbursable: 'Reembolsable',
             groupBy: {
                 reports: 'Informe',
-                members: 'Miembro',
-                cards: 'Tarjeta',
+                from: 'De',
+                card: 'Tarjeta',
             },
             feed: 'Feed',
             withdrawalType: {
