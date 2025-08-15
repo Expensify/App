@@ -128,7 +128,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                Report.addComment(REPORT_ID, REPORT_ID, REPORT_ID, 'Testing a comment');
+                Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment');
                 return waitForBatchedUpdates();
             })
             .then(() => {
