@@ -23,7 +23,7 @@ type SearchMultipleSelectionPickerProps = {
 };
 
 function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTitle, onSaveSelection, shouldShowTextInput = true}: SearchMultipleSelectionPickerProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedItems, setSelectedItems] = useState<SearchMultipleSelectionPickerItem[]>(initiallySelectedItems ?? []);
@@ -35,7 +35,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
     const {sections, noResultsFound} = useMemo(() => {
         const selectedItemsSection = selectedItems
             .filter((item) => item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-            .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString()))
+            .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare))
             .map((item) => ({
                 text: item.name,
                 keyForList: item.name,
@@ -47,7 +47,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
                 (item) =>
                     !selectedItems.some((selectedItem) => selectedItem.value.toString() === item.value.toString()) && item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()),
             )
-            .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString()))
+            .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare))
             .map((item) => ({
                 text: item.name,
                 keyForList: item.name,
@@ -72,7 +72,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
                   ],
             noResultsFound: isEmpty,
         };
-    }, [selectedItems, items, pickerTitle, debouncedSearchTerm]);
+    }, [selectedItems, items, pickerTitle, debouncedSearchTerm, localeCompare]);
 
     const onSelectItem = useCallback(
         (item: Partial<OptionData & SearchMultipleSelectionPickerItem>) => {

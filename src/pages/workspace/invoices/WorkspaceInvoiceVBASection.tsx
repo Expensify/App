@@ -167,7 +167,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     const addPaymentMethodTypePressed = (paymentType: string) => {
         hideAddPaymentMenu();
         if (paymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || paymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
-            openPersonalBankAccountSetupView(undefined, policyID, 'invoice', isUserValidated);
+            openPersonalBankAccountSetupView({policyID, source: 'invoice', isUserValidated});
             return;
         }
 
@@ -191,7 +191,6 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                 activePaymentMethodID={transferBankAccountID}
                 actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
                 buttonRef={addPaymentMethodAnchorRef}
-                shouldEnableScroll={false}
                 style={[styles.mt5, hasBankAccount && [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
             />

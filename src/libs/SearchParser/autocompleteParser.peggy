@@ -59,6 +59,7 @@ autocompleteKey "key"
   = @(
       in
       / currency
+      / groupCurrency
       / tag
       / category
       / to
@@ -69,6 +70,7 @@ autocompleteKey "key"
       / createdBy
       / assignee
       / expenseType
+      / withdrawalType
       / type
       / status
       / cardID
@@ -79,6 +81,7 @@ autocompleteKey "key"
       / policyID
       / action
       / posted
+      / withdrawn
       / exported
     )
 

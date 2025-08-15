@@ -25,14 +25,14 @@ function NewChatSelectorPage() {
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
     const [tabBarContainerElement, setTabBarContainerElement] = useState<HTMLElement | null>(null);
     const [activeTabContainerElement, setActiveTabContainerElement] = useState<HTMLElement | null>(null);
-    const [formState] = useOnyx(ONYXKEYS.FORMS.NEW_ROOM_FORM, {canBeMissing: false});
+    const [formState] = useOnyx(ONYXKEYS.FORMS.NEW_ROOM_FORM, {canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const chatPageInputRef = useRef<AnimatedTextInputRef | null>(null);
     const roomPageInputRef = useRef<AnimatedTextInputRef | null>(null);
 
     // Theoretically, the focus trap container element can be null (due to component unmount/remount), so we filter out the null elements
     const containerElements = useMemo(() => {
-        return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element) as HTMLElement[];
+        return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
 
     const onTabFocusTrapContainerElementChanged = useCallback((activeTabElement?: HTMLElement | null) => {

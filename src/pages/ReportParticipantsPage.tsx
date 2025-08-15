@@ -62,7 +62,7 @@ type ReportParticipantsPageProps = WithReportOrNotFoundProps & PlatformStackScre
 function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const backTo = route.params.backTo;
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -190,7 +190,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             });
         });
 
-        result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
+        result = result.sort((a, b) => localeCompare((a.text ?? '').toLowerCase(), (b.text ?? '').toLowerCase()));
         return result;
     };
 
