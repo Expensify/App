@@ -660,8 +660,11 @@ function notifyNewAction(reportID: string | undefined, accountID: number | undef
  * - Adding one comment
  * - Adding one attachment
  * - Add both a comment and attachment simultaneously
+ *
+ * @param reportID - The report ID where the comment should be added
+ * @param notifyReportID - The report ID we should notify for new actions. This is usually the same as reportID, except when adding a comment to an expense report with a single transaction thread, in which case we want to notify the parent expense report.
  */
-function addActions(reportID: string, text = '', file?: FileObject) {
+function addActions(reportID: string, notifyReportID: string, text = '', file?: FileObject) {
     let reportCommentText = '';
     let reportCommentAction: OptimisticAddCommentReportAction | undefined;
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
@@ -827,7 +830,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         successData,
         failureData,
     });
-    notifyNewAction(reportID, lastAction?.actorAccountID, lastAction);
+    notifyNewAction(notifyReportID, lastAction?.actorAccountID, lastAction);
 }
 
 /** Add an attachment and optional comment. */
@@ -835,15 +838,15 @@ function addAttachment(reportID: string, file: FileObject, text = '', shouldPlay
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-    addActions(reportID, text, file);
+    addActions(reportID, reportID, text, file);
 }
 
 /** Add a single comment to a report */
-function addComment(reportID: string, text: string, shouldPlaySound?: boolean) {
+function addComment(reportID: string, notifyReportID: string, text: string, shouldPlaySound?: boolean) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-    addActions(reportID, text);
+    addActions(reportID, notifyReportID, text);
 }
 
 function reportActionsExist(reportID: string): boolean {
