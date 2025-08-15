@@ -37,6 +37,13 @@ jobs:
         with:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
 
+      - name: Ensure iOS 18 simulator runtime is installed
+        run: |
+          if ! xcrun simctl list runtimes | grep -q "iOS 18"; then
+            sudo xcodebuild -downloadPlatform iOS
+          fi
+          xcrun simctl list runtimes | sed -n '1,120p'
+
       - name: RNEF Remote Build - iOS
         # rnef v2
         uses: callstackincubator/ios@838758ebdbc467492e7e7f31e3ad67eb0decc8ed
