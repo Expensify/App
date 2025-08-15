@@ -17,7 +17,7 @@ import type {PushNotificationData} from './NotificationType';
 /**
  * Manage push notification subscriptions on sign-in/sign-out.
  */
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
     callback: (notificationID) => {
         if (notificationID) {
@@ -41,7 +41,7 @@ Onyx.connect({
 });
 
 let isSingleNewDotEntry: boolean | undefined;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.HYBRID_APP,
     callback: (value) => {
         if (!value) {
@@ -151,7 +151,7 @@ function navigateToReport({reportID}: PushNotificationData): Promise<void> {
 
 function getLastUpdateIDAppliedToClient(): Promise<number> {
     return new Promise((resolve) => {
-        Onyx.connect({
+        Onyx.connectWithoutView({
             key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
             callback: (value) => resolve(value ?? CONST.DEFAULT_NUMBER_ID),
         });
