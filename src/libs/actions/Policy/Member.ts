@@ -320,7 +320,10 @@ function removeOptimisticRoomMembers(
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
         value: {
-            participants: accountIDs.reduce((prev, curr) => ({...prev, [curr]: null}), {}),
+            participants: accountIDs.reduce<Record<number, null>>((acc, curr) => {
+                acc[curr] = null;
+                return acc;
+            }, {}),
         },
     });
 
