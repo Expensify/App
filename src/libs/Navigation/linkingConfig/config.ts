@@ -381,6 +381,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.SUBSCRIPTION.REQUEST_EARLY_CANCELLATION]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION,
                         },
+                        [SCREENS.SETTINGS.SUBSCRIPTION.SUBSCRIPTION_DOWNGRADE_BLOCKED]: {
+                            path: ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.route,
+                        },
                         [SCREENS.WORKSPACE.CURRENCY]: {
                             path: ROUTES.WORKSPACE_OVERVIEW_CURRENCY.route,
                         },
@@ -1458,6 +1461,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_POSTED_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_POSTED,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_WITHDRAWN_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_WITHDRAWN,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_CURRENCY_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_CURRENCY,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_GROUP_CURRENCY_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_GROUP_CURRENCY,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_MERCHANT_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_MERCHANT,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_DESCRIPTION_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_DESCRIPTION,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_REPORT_ID_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_REPORT_ID,
@@ -1671,6 +1675,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.WORKSPACE.PER_DIEM]: {
                     path: ROUTES.WORKSPACE_PER_DIEM.route,
+                },
+                [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
+                    path: ROUTES.WORKSPACE_RECEIPT_PARTNERS.route,
                 },
                 [SCREENS.WORKSPACE.WORKFLOWS]: {
                     path: ROUTES.WORKSPACE_WORKFLOWS.route,

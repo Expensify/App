@@ -31,11 +31,11 @@ import {
     getQueryWithoutAutocompletedPart,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, getUserFriendlyKey, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
 import {getDatePresets} from '@libs/SearchUIUtils';
 import StringUtils from '@libs/StringUtils';
 import Timing from '@userActions/Timing';
-import CONST from '@src/CONST';
+import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -255,8 +255,22 @@ function SearchAutocompleteList(
 
     const autocompleteSuggestions = useMemo<AutocompleteItemData[]>(() => {
         const {autocomplete, ranges = []} = autocompleteParsedQuery ?? {};
-        const autocompleteKey = autocomplete?.key;
-        const autocompleteValue = autocomplete?.value ?? '';
+
+        let autocompleteKey = autocomplete?.key;
+        let autocompleteValue = autocomplete?.value ?? '';
+
+        if (!autocomplete && ranges.length > 0) {
+            const lastRange = ranges.at(ranges.length - 1);
+            if (lastRange && CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.includes(lastRange.key)) {
+                const afterLastRange = autocompleteQueryValue.substring(lastRange.start + lastRange.length);
+                const continuationMatch = afterLastRange.match(/^\s+(\w+)/);
+
+                if (continuationMatch) {
+                    autocompleteKey = lastRange.key;
+                    autocompleteValue = `${lastRange.value} ${continuationMatch[1]}`;
+                }
+            }
+        }
 
         const alreadyAutocompletedKeys = ranges
             .filter((range) => {
@@ -293,7 +307,8 @@ function SearchAutocompleteList(
                     text: categoryName,
                 }));
             }
-            case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY: {
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY: {
                 const autocompleteList = autocompleteValue ? currencyAutocompleteList : (recentCurrencyAutocompleteList ?? []);
                 const filteredCurrencies = autocompleteList
                     .filter((currency) => currency.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(currency.toLowerCase()))
@@ -301,7 +316,7 @@ function SearchAutocompleteList(
                     .slice(0, 10);
 
                 return filteredCurrencies.map((currencyName) => ({
-                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CURRENCY,
+                    filterKey: getUserFriendlyKey(autocompleteKey),
                     text: currencyName,
                 }));
             }
@@ -446,7 +461,7 @@ function SearchAutocompleteList(
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED: {
-                const filteredDatePresets = (getDatePresets(autocompleteKey, true) ?? [])
+                const filteredDatePresets = getDatePresets(autocompleteKey, true)
                     .filter((datePreset) => datePreset.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(datePreset.toLowerCase()))
                     .sort()
                     .slice(0, 10);
@@ -458,6 +473,7 @@ function SearchAutocompleteList(
         }
     }, [
         autocompleteParsedQuery,
+        autocompleteQueryValue,
         tagAutocompleteList,
         recentTagsAutocompleteList,
         categoryAutocompleteList,
@@ -664,7 +680,23 @@ function SearchAutocompleteList(
                 return;
             }
 
-            const trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(autocompleteQueryValue);
+            const fieldKey = focusedItem.mapKey?.includes(':') ? focusedItem.mapKey.split(':').at(0) : focusedItem.mapKey;
+            const isNameField = fieldKey && CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.includes(fieldKey as SearchFilterKey);
+
+            let trimmedUserSearchQuery;
+            if (isNameField && fieldKey) {
+                const fieldPattern = `${fieldKey}:`;
+                const keyIndex = autocompleteQueryValue.toLowerCase().lastIndexOf(fieldPattern.toLowerCase());
+
+                if (keyIndex !== -1) {
+                    trimmedUserSearchQuery = autocompleteQueryValue.substring(0, keyIndex + fieldPattern.length);
+                } else {
+                    trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(autocompleteQueryValue);
+                }
+            } else {
+                trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(autocompleteQueryValue);
+            }
+
             setTextQuery(`${trimmedUserSearchQuery}${sanitizeSearchValue(focusedItem.searchQuery)}\u00A0`);
             updateAutocompleteSubstitutions(focusedItem);
         },
@@ -687,7 +719,7 @@ function SearchAutocompleteList(
         // will fail because the list will be empty on first render so we only render after options are initialized.
         areOptionsInitialized && (
             <SelectionList<OptionData | SearchQueryItem>
-                showLoadingPlaceholder={!areOptionsInitialized}
+                showLoadingPlaceholder
                 fixedNumItemsForLoader={4}
                 loaderSpeed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
                 sections={sections}
