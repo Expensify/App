@@ -37,6 +37,13 @@ Onyx.connect({
 });
 
 /**
+ * Utility to get message based on boolean literal value.
+ */
+function getBooleanLiteralMessage(value: string | undefined, truthyMessage: string, falsyMessage: string): string {
+    return value === 'true' ? truthyMessage : falsyMessage;
+}
+
+/**
  * Builds the partial message fragment for a modified field on the expense.
  */
 function buildMessageFragmentForValue(
@@ -332,8 +339,8 @@ function getForReportAction({
     const hasModifiedReimbursable = isReportActionOriginalMessageAnObject && 'oldReimbursable' in reportActionOriginalMessage && 'reimbursable' in reportActionOriginalMessage;
     if (hasModifiedReimbursable) {
         buildMessageFragmentForValue(
-            reportActionOriginalMessage?.reimbursable ?? '',
-            reportActionOriginalMessage?.oldReimbursable ?? '',
+            getBooleanLiteralMessage(reportActionOriginalMessage?.reimbursable, translateLocal('iou.reimbursable'), translateLocal('iou.nonReimbursable')),
+            getBooleanLiteralMessage(reportActionOriginalMessage?.oldReimbursable, translateLocal('iou.reimbursable'), translateLocal('iou.nonReimbursable')),
             translateLocal('iou.expense'),
             true,
             setFragments,
