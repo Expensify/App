@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {parse} from './SearchParser/autocompleteParser';
+import {getUserFriendlyValue} from './SearchQueryUtils';
 
 /**
  * Parses given query using the autocomplete parser.
@@ -123,7 +124,7 @@ function filterOutRangesWithCorrectValue(
     'worklet';
 
     const typeList = Object.values(CONST.SEARCH.DATA_TYPES) as string[];
-    const expenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE) as string[];
+    const expenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
     const withdrawalTypeList = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE) as string[];
     const statusList = Object.values({
         ...CONST.SEARCH.STATUS.EXPENSE,
@@ -132,7 +133,7 @@ function filterOutRangesWithCorrectValue(
         ...CONST.SEARCH.STATUS.TRIP,
         ...CONST.SEARCH.STATUS.TASK,
     }) as string[];
-    const groupByList = Object.values(CONST.SEARCH.GROUP_BY) as string[];
+    const groupByList = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
     const booleanList = Object.values(CONST.SEARCH.BOOLEAN) as string[];
     const actionList = Object.values(CONST.SEARCH.ACTION_FILTERS) as string[];
     const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];

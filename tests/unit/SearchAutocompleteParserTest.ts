@@ -247,6 +247,18 @@ const tests = [
             ],
         },
     },
+    {
+        query: 'expense-type:per-diem',
+        expected: {
+            autocomplete: {
+                key: 'expenseType',
+                value: 'per-diem',
+                start: 13,
+                length: 8,
+            },
+            ranges: [{key: 'expenseType', value: 'per-diem', start: 13, length: 8}],
+        },
+    },
 ];
 
 const nameFieldContinuationTests = [
