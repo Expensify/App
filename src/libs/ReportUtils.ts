@@ -9028,7 +9028,18 @@ function canUserPerformWriteAction(report: OnyxEntry<Report>, isReportArchived =
         return false;
     }
 
-    return !isArchivedNonExpenseReport(report, isReportArchived) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser && canWriteInReport(report);
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
+    const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
+
+    return (
+        !isArchivedNonExpenseReport(report, isReportArchived ?? !!reportNameValuePairs?.private_isArchived) &&
+        isEmptyObject(reportErrors) &&
+        report &&
+        isAllowedToComment(report) &&
+        !isAnonymousUser &&
+        canWriteInReport(report)
+    );
 }
 
 /**
