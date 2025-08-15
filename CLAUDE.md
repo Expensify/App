@@ -1,4 +1,4 @@
-# Expensify App (NewDot)
+# Expensify App
 
 ## Repository Overview
 
@@ -12,10 +12,11 @@
 ## HybridApp Architecture (Critical Context)
 
 **IMPORTANT**: The mobile application is built from the Mobile-Expensify submodule, not directly from the App repository.
+**IMPORTANT**: NewDot refers to the new Expensify App, OldDot refers to our Old expensify app and website
 
 ### Key Integration Points
 - App (NewDot) and Mobile-Expensify (OldDot) are combined into a single mobile application
-- The HybridApp module (`@expensify/react-native-hybrid-app`) manages transitions between classic and new Expensify
+- The HybridApp module (`@expensify/react-native-hybrid-app`) manages transitions between OldDot and NewDot
 - Build process merges dotenv configurations from both repositories
 - Environment variables from Mobile-Expensify take precedence over App variables
 - Mobile builds **must** be initiated from the Mobile-Expensify directory
@@ -116,11 +117,8 @@ The application uses a nested provider structure for context management:
 
 ### Key Navigators
 - **ProtectedScreens**: Authenticated app screens
-- **PublicScreens**: Login and onboarding
-- **RHP (Right Hand Panel)**: Settings and details panels
-- **Modal Stack**: Overlays and modals
-
-### Screen Types
+- **PublicScreens**: Login and onboarding screens
+- **RHP (Right Hand Panel/Pane)**: Settings and details panel
 - **Central Pane**: Main content area
 - **LHN (Left Hand Navigation)**: Report list and navigation
 - **RHP**: Contextual panels and settings
