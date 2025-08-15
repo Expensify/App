@@ -4,7 +4,8 @@ import type {ValueOf} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
-import type {TableColumnSize} from '@components/Search/types';
+import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
+import {expenseHeaders} from '@components/SelectionList/SearchTableHeader';
 import type {SortableColumnName} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -52,7 +53,7 @@ type MoneyRequestReportTransactionItemProps = {
     taxAmountColumnSize: TableColumnSize;
 
     /** Columns to show */
-    columns: SortableColumnName[];
+    columns: SearchColumnType[];
 
     /** Callback function that scrolls to this transaction in case it is newly added */
     scrollToNewTransaction?: (offset: number) => void;
@@ -99,6 +100,9 @@ function MoneyRequestReportTransactionItem({
         backgroundColor: theme.highlightBG,
     });
 
+    const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
+    const areAllOptionalColumnsHidden = canBeMissingColumns.every((column) => !columns.includes(column as SearchColumnType));
+
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
             <PressableWithFeedback
@@ -133,7 +137,8 @@ function MoneyRequestReportTransactionItem({
                     shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
                     shouldShowCheckbox={!!isSelectionModeEnabled || !isSmallScreenWidth}
                     onCheckboxPress={toggleTransaction}
-                    columns={columns as Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>}
+                    columns={columns}
+                    areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                     isDisabled={isPendingDelete}
                     style={[styles.p3]}
                 />

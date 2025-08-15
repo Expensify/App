@@ -100,6 +100,7 @@ type TransactionItemRowProps = {
     shouldShowErrors?: boolean;
     shouldHighlightItemWhenSelected?: boolean;
     isDisabled?: boolean;
+    areAllOptionalColumnsHidden?: boolean;
 };
 
 function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string) {
@@ -137,6 +138,7 @@ function TransactionItemRow({
     shouldShowErrors = true,
     shouldHighlightItemWhenSelected = true,
     isDisabled = false,
+    areAllOptionalColumnsHidden = false,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -224,7 +226,7 @@ function TransactionItemRow({
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE]: (
                 <View
                     key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide)]}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, false, false, areAllOptionalColumnsHidden)]}
                 >
                     <DateCell
                         created={createdAt}
@@ -369,6 +371,7 @@ function TransactionItemRow({
             shouldShowTooltip,
             shouldUseNarrowLayout,
             transactionItem,
+            areAllOptionalColumnsHidden,
         ],
     );
     const shouldRenderChatBubbleCell = useMemo(() => {
@@ -499,7 +502,7 @@ function TransactionItemRow({
                         wrapperStyle={styles.justifyContentCenter}
                     />
                 )}
-                {columns?.map((column) => columnComponent[column])}
+                {columns?.map((column) => columnComponent[column as keyof ColumnComponents]).filter(Boolean)}
                 {shouldShowRadioButton && (
                     <View style={[styles.ml1, styles.justifyContentCenter]}>
                         <RadioButton
