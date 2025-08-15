@@ -6,11 +6,11 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import useOnyx from './useOnyx';
 
 function useSubscriptionPlan() {
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA, {canBeMissing: true});
 
     // Filter workspaces in which user is the owner and the type is either corporate (control) or team (collect)
-    const ownerPolicies = useMemo(() => getOwnedPaidPolicies(policies, session?.accountID ?? -1), [policies, session?.accountID]);
+    const ownerPolicies = useMemo(() => getOwnedPaidPolicies(policies, userMetadata?.accountID), [policies, userMetadata?.accountID]);
 
     if (isEmptyObject(ownerPolicies)) {
         return null;
