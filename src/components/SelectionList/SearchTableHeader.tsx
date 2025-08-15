@@ -2,40 +2,17 @@ import React, {useCallback} from 'react';
 import type {SearchColumnType, SearchGroupBy, SortOrder} from '@components/Search/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getShouldShowMerchant} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
 import SortableTableHeader from './SortableTableHeader';
 import type {SortableColumnName} from './types';
 
-type ShouldShowSearchColumnFn = (data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) => boolean;
-
 type SearchColumnConfig = {
     columnName: SearchColumnType;
     translationKey: TranslationPaths;
     isColumnSortable?: boolean;
-};
-
-const shouldShowColumnConfig: Record<SortableColumnName, ShouldShowSearchColumnFn> = {
-    [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: () => true,
-    [CONST.SEARCH.TABLE_COLUMNS.TYPE]: () => true,
-    [CONST.SEARCH.TABLE_COLUMNS.DATE]: () => true,
-    [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: (data: OnyxTypes.SearchResults['data']) => getShouldShowMerchant(data),
-    [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: (data: OnyxTypes.SearchResults['data']) => !getShouldShowMerchant(data),
-    [CONST.SEARCH.TABLE_COLUMNS.FROM]: (data, metadata) => metadata?.columnsToShow?.shouldShowFromColumn ?? false,
-    [CONST.SEARCH.TABLE_COLUMNS.TO]: (data, metadata) => metadata?.columnsToShow?.shouldShowToColumn ?? false,
-    [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: (data, metadata) => metadata?.columnsToShow?.shouldShowCategoryColumn ?? false,
-    [CONST.SEARCH.TABLE_COLUMNS.TAG]: (data, metadata) => metadata?.columnsToShow?.shouldShowTagColumn ?? false,
-    [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: (data, metadata) => metadata?.columnsToShow?.shouldShowTaxColumn ?? false,
-    [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: () => true,
-    [CONST.SEARCH.TABLE_COLUMNS.ACTION]: () => true,
-    [CONST.SEARCH.TABLE_COLUMNS.TITLE]: () => true,
-    [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: () => true,
-    [CONST.SEARCH.TABLE_COLUMNS.IN]: () => true,
-    [CONST.SEARCH.TABLE_COLUMNS.CARD]: () => false,
-    // This column is never displayed on Search
-    [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: () => false,
+    canBeMissing?: boolean;
 };
 
 const expenseHeaders: SearchColumnConfig[] = [
@@ -56,18 +33,22 @@ const expenseHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
         translationKey: 'common.merchant',
+        canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
         translationKey: 'common.description',
+        canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
         translationKey: 'common.from',
+        canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TO,
         translationKey: 'common.to',
+        canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.CARD,
@@ -76,15 +57,18 @@ const expenseHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
         translationKey: 'common.category',
+        canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAG,
         translationKey: 'common.tag',
+        canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
         translationKey: 'common.tax',
         isColumnSortable: false,
+        canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
@@ -101,32 +85,39 @@ const taskHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
         translationKey: 'common.date',
+        canBeMissing: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
         translationKey: 'common.title',
+        canBeMissing: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
         translationKey: 'common.description',
+        canBeMissing: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
         translationKey: 'common.from',
+        canBeMissing: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.IN,
         translationKey: 'common.sharedIn',
         isColumnSortable: false,
+        canBeMissing: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE,
         translationKey: 'common.assignee',
+        canBeMissing: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
         translationKey: 'common.action',
         isColumnSortable: false,
+        canBeMissing: false,
     },
 ];
 
@@ -139,7 +130,7 @@ const SearchColumns = {
 };
 
 type SearchTableHeaderProps = {
-    data: OnyxTypes.SearchResults['data'];
+    columns: SortableColumnName[];
     metadata: OnyxTypes.SearchResults['search'];
     sortBy?: SearchColumnType;
     sortOrder?: SortOrder;
@@ -153,7 +144,7 @@ type SearchTableHeaderProps = {
 };
 
 function SearchTableHeader({
-    data,
+    columns,
     metadata,
     sortBy,
     sortOrder,
@@ -179,10 +170,9 @@ function SearchTableHeader({
                 return columnName === CONST.SEARCH.TABLE_COLUMNS.CARD || columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION;
             }
 
-            const shouldShowFun = shouldShowColumnConfig[columnName];
-            return shouldShowFun(data, metadata);
+            return columns.includes(columnName);
         },
-        [data, metadata, groupBy],
+        [columns, groupBy],
     );
 
     if (displayNarrowVersion) {
@@ -218,5 +208,5 @@ function SearchTableHeader({
 }
 
 SearchTableHeader.displayName = 'SearchTableHeader';
-
+export {expenseHeaders};
 export default SearchTableHeader;

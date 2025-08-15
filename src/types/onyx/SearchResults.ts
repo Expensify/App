@@ -35,6 +35,15 @@ type ListItemDataType<C extends SearchDataTypes, T extends SearchStatus> = C ext
 
 /** Model of columns to show for search results */
 type ColumnsToShow = {
+    /** Whether the From column should be shown */
+    shouldShowFromColumn: boolean;
+
+    /** Whether the To column should be shown */
+    shouldShowToColumn: boolean;
+
+    /** Whether the description column should be shown */
+    shouldShowDescriptionColumn: boolean;
+
     /** Whether the category column should be shown */
     shouldShowCategoryColumn: boolean;
 

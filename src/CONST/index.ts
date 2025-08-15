@@ -1298,6 +1298,7 @@ const CONST = {
                 RECEIPT: 'receipt',
                 DATE: 'date',
                 MERCHANT: 'merchant',
+                DESCRIPTION: 'description',
                 FROM: 'from',
                 TO: 'to',
                 CATEGORY: 'category',
@@ -6374,6 +6375,7 @@ const CONST = {
             TITLE: 'title',
             ASSIGNEE: 'assignee',
             IN: 'in',
+            COMMENTS: 'comments',
             CARD: 'card',
         },
         SYNTAX_OPERATORS: {
@@ -6507,6 +6509,9 @@ const CONST = {
             UNAPPROVED_CARD: 'unapprovedCard',
         },
         GROUP_PREFIX: 'group_',
+        ANIMATION: {
+            FADE_DURATION: 200,
+        },
     },
 
     EXPENSE: {
