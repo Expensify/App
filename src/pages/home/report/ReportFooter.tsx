@@ -53,6 +53,9 @@ type ReportFooterProps = {
     /** Report transactions */
     reportTransactions?: OnyxEntry<OnyxTypes.Transaction[]>;
 
+    /** The ID of the transaction thread report if there is a single transaction */
+    transactionThreadReportID?: string;
+
     /** The policy of the report */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -61,9 +64,6 @@ type ReportFooterProps = {
 
     /** The pending action when we are adding a chat */
     pendingAction?: PendingAction;
-
-    /** Whether the report is ready for display */
-    isReportReadyForDisplay?: boolean;
 
     /** Whether the composer is in full size */
     isComposerFullSize?: boolean;
@@ -81,11 +81,11 @@ function ReportFooter({
     report = {reportID: '-1'},
     reportMetadata,
     policy,
-    isReportReadyForDisplay = true,
     isComposerFullSize = false,
     onComposerBlur,
     onComposerFocus,
     reportTransactions,
+    transactionThreadReportID,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -175,10 +175,14 @@ function ReportFooter({
             if (isTaskCreated) {
                 return;
             }
-            addComment(report.reportID, text, true);
+
+            // If we are adding an action on an expense report that only has a single transaction thread child report, we need to add the action to the transaction thread instead.
+            // This is because we need it to be associated with the transaction thread and not the expense report in order for conversational corrections to work as expected.
+            const targetReportID = transactionThreadReportID ?? report.reportID;
+            addComment(targetReportID, text, true);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [report.reportID, handleCreateTask],
+        [report.reportID, handleCreateTask, transactionThreadReportID],
     );
 
     const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInput);
@@ -234,7 +238,6 @@ function ReportFooter({
                             lastReportAction={lastReportAction}
                             pendingAction={pendingAction}
                             isComposerFullSize={isComposerFullSize}
-                            isReportReadyForDisplay={isReportReadyForDisplay}
                             didHideComposerInput={didHideComposerInput}
                             reportTransactions={reportTransactions}
                         />
@@ -254,7 +257,6 @@ export default memo(
         prevProps.pendingAction === nextProps.pendingAction &&
         prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
         prevProps.lastReportAction === nextProps.lastReportAction &&
-        prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
         deepEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
         deepEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
         deepEqual(prevProps.policy?.role, nextProps.policy?.role) &&
