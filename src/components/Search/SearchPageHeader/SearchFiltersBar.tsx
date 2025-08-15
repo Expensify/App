@@ -1,4 +1,5 @@
 import React, {useCallback, useMemo, useRef} from 'react';
+import type {ReactNode} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
@@ -45,10 +46,18 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS, {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {CurrencyList, Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
+
+type FilterItem = {
+    label: string;
+    PopoverComponent: (props: PopoverComponentProps) => ReactNode;
+    value: string | string[] | null;
+    filterKey: SearchAdvancedFiltersKey;
+};
 
 type SearchFiltersBarProps = {
     queryJSON: SearchQueryJSON;
@@ -414,7 +423,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
      * Builds the list of all filter chips to be displayed in the
      * filter bar
      */
-    const filters = useMemo(() => {
+    const filters = useMemo<FilterItem[]>(() => {
         const fromValue = filterFormValues.from?.map((accountID) => personalDetails?.[accountID]?.displayName ?? accountID) ?? [];
 
         const shouldDisplayGroupByFilter = groupBy?.value === CONST.SEARCH.GROUP_BY.FROM || groupBy?.value === CONST.SEARCH.GROUP_BY.CARD;
@@ -548,6 +557,26 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         hasMultipleOutputCurrency,
     ]);
 
+    const hiddenSelectedFilters = useMemo(() => {
+        const exposedFilters = filters
+            .flatMap((filter) => {
+                const dateFilterKey = DATE_FILTER_KEYS.find((key) => filter.filterKey.startsWith(key));
+                if (dateFilterKey) {
+                    return [`${dateFilterKey}On`, `${dateFilterKey}After`, `${dateFilterKey}Before`];
+                }
+                return filter.filterKey;
+            })
+            .concat(FILTER_KEYS.ACTION);
+
+        if (!exposedFilters.includes(FILTER_KEYS.GROUP_BY)) {
+            exposedFilters.push(FILTER_KEYS.GROUP_BY);
+        }
+
+        return Object.entries(filterFormValues)
+            .filter(([key, value]) => value && !exposedFilters.includes(key as SearchAdvancedFiltersKey))
+            .map(([key]) => key);
+    }, [filterFormValues, filters]);
+
     if (hasErrors) {
         return null;
     }
@@ -610,7 +639,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                         link
                         small
                         shouldUseDefaultHover={false}
-                        text={translate('search.filtersHeader')}
+                        text={translate('search.filtersHeader') + (hiddenSelectedFilters.length > 0 ? ` (${hiddenSelectedFilters.length})` : '')}
                         iconFill={theme.link}
                         iconHoverFill={theme.linkHover}
                         icon={Expensicons.Filter}
