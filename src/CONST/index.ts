@@ -6382,6 +6382,7 @@ const CONST = {
             TITLE: 'title',
             ASSIGNEE: 'assignee',
             IN: 'in',
+            COMMENTS: 'comments',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',

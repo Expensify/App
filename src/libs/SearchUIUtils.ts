@@ -26,7 +26,6 @@ import type {
     ListItem,
     ReportActionListItemType,
     SearchListItem,
-    SortableColumnName,
     TaskListItemType,
     TransactionCardGroupListItemType,
     TransactionGroupListItemType,
@@ -1837,7 +1836,29 @@ function getColumnsToShow(
     currentAccountID: number | undefined,
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[],
     isExpenseReportView = false,
-): Record<SortableColumnName, boolean> {
+    isTaskView = false,
+): Record<SearchColumnType, boolean> {
+    if (isTaskView) {
+        return {
+            [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.IN]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.TO]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.TYPE]: false,
+        };
+    }
+
     const columns: Record<string, boolean> = isExpenseReportView
         ? {
               [CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT]: true,
@@ -1864,8 +1885,6 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
               [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
               [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
-              [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: true,
-              [CONST.SEARCH.TABLE_COLUMNS.IN]: true,
           };
 
     const updateColumns = (transaction: OnyxTypes.Transaction | SearchTransaction) => {

@@ -9,7 +9,7 @@ import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {SortOrder} from '@components/Search/types';
+import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLocalize from '@hooks/useLocalize';
@@ -167,7 +167,7 @@ function MoneyRequestReportTransactionList({
 
     const columnsToShow = useMemo(() => {
         const columns = getColumnsToShow(session?.accountID, transactions, true);
-        return (Object.keys(columns) as SortableColumnName[]).filter((column) => columns[column]);
+        return (Object.keys(columns) as SearchColumnType[]).filter((column) => columns[column]);
     }, [transactions, session?.accountID]);
 
     const navigateToTransaction = useCallback(

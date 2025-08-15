@@ -621,10 +621,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (!searchResults?.data) {
             return [];
         }
-        const columns = getColumnsToShow(accountID, searchResults?.data);
+        const columns = getColumnsToShow(accountID, searchResults?.data, false, searchResults?.search.type === CONST.SEARCH.DATA_TYPES.TASK);
 
         return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
-    }, [accountID, searchResults?.data]);
+    }, [accountID, searchResults?.data, searchResults?.search.type]);
 
     const opacity = useSharedValue(1);
     const animatedStyle = useAnimatedStyle(() => ({

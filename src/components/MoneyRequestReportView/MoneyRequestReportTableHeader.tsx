@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import type {SortOrder, TableColumnSize} from '@components/Search/types';
+import type {SearchColumnType, SortOrder, TableColumnSize} from '@components/Search/types';
 import SortableTableHeader from '@components/SelectionList/SortableTableHeader';
 import type {SortableColumnName} from '@components/SelectionList/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 type ColumnConfig = {
-    columnName: SortableColumnName;
+    columnName: SearchColumnType;
     translationKey: TranslationPaths | undefined;
     isColumnSortable?: boolean;
 };
@@ -63,14 +63,14 @@ type SearchTableHeaderProps = {
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
     shouldShowSorting: boolean;
-    columns: SortableColumnName[];
+    columns: SearchColumnType[];
 };
 
 function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColumnSize, shouldShowSorting, columns, amountColumnSize, taxAmountColumnSize}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
 
     const shouldShowColumn = useCallback(
-        (columnName: SortableColumnName) => {
+        (columnName: SearchColumnType) => {
             return columns.includes(columnName);
         },
         [columns],

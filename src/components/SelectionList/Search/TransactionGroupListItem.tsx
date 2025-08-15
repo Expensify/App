@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -185,7 +184,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 shouldUseNarrowLayout={!isLargeScreenWidth}
                                 shouldShowCheckbox={!!canSelectMultiple}
                                 onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                columns={columns as Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>}
+                                columns={columns}
                                 onButtonPress={() => {
                                     openReportInRHP(transaction);
                                 }}

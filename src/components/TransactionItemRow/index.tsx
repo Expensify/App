@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import Checkbox from '@components/Checkbox';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
 import RadioButton from '@components/RadioButton';
-import type {TableColumnSize} from '@components/Search/types';
+import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import ActionCell from '@components/SelectionList/Search/ActionCell';
 import DateCell from '@components/SelectionList/Search/DateCell';
 import UserInfoCell from '@components/SelectionList/Search/UserInfoCell';
@@ -89,7 +89,7 @@ type TransactionItemRowProps = {
     taxAmountColumnSize: TableColumnSize;
     onCheckboxPress?: (transactionID: string) => void;
     shouldShowCheckbox?: boolean;
-    columns?: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>;
+    columns?: SearchColumnType[];
     onButtonPress?: () => void;
     style?: StyleProp<ViewStyle>;
     isReportItemChild?: boolean;

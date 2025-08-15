@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import type {SortOrder, TableColumnSize} from '@components/Search/types';
+import type {SearchColumnType, SortOrder, TableColumnSize} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,7 +11,7 @@ import SortableHeaderText from './SortableHeaderText';
 import type {SortableColumnName} from './types';
 
 type ColumnConfig = {
-    columnName: SortableColumnName;
+    columnName: SearchColumnType;
     translationKey: TranslationPaths | undefined;
     isColumnSortable?: boolean;
 };
@@ -25,7 +25,7 @@ type SearchTableHeaderProps = {
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
     containerStyles?: StyleProp<ViewStyle>;
-    shouldShowColumn: (columnName: SortableColumnName) => boolean;
+    shouldShowColumn: (columnName: SearchColumnType) => boolean;
     onSortPress: (column: SortableColumnName, order: SortOrder) => void;
 };
 
