@@ -15,7 +15,6 @@ import {
     isInstantSubmitEnabled,
     isPolicyMember,
     isPreferredExporter,
-    isSubmitAndClose,
 } from './PolicyUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
 import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
@@ -25,7 +24,6 @@ import {
     canHoldUnholdReportAction,
     getTransactionDetails,
     hasOnlyHeldExpenses,
-    hasOnlyNonReimbursableTransactions,
     hasReportBeenReopened as hasReportBeenReopenedUtils,
     hasReportBeenRetracted as hasReportBeenRetractedUtils,
     isArchivedReport,
@@ -98,10 +96,6 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
     }
 
     if (report.stateNum && report.stateNum >= CONST.REPORT.STATE_NUM.APPROVED) {
-        return false;
-    }
-
-    if (hasOnlyNonReimbursableTransactions(report.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
         return false;
     }
 
@@ -551,10 +545,6 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
 
     if (isSelfDMReportUtils(parentReport)) {
         return true;
-    }
-
-    if (hasOnlyNonReimbursableTransactions(parentReport.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
-        return false;
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;

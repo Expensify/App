@@ -5,15 +5,22 @@ import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {ListItem, TransactionCardGroupListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import CONST from '@src/CONST';
 import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
+import ActionCell from './ActionCell';
+import TotalCell from './TotalCell';
 
 type CardListItemHeaderProps<TItem extends ListItem> = {
     /** The card currently being looked at */
     card: TransactionCardGroupListItemType;
+
+    /** Callback to fire when the item is pressed */
+    onSelectRow: (item: TItem) => void;
 
     /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
@@ -28,18 +35,16 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
     canSelectMultiple: boolean | undefined;
 };
 
-function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxPress, isDisabled, isFocused, canSelectMultiple}: CardListItemHeaderProps<TItem>) {
+function CardListItemHeader<TItem extends ListItem>({card: cardItem, onSelectRow, onCheckboxPress, isDisabled, isFocused, canSelectMultiple}: CardListItemHeaderProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
-
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const formattedDisplayName = useMemo(() => formatPhoneNumber(getDisplayNameOrDefault(cardItem)), [cardItem, formatPhoneNumber]);
-
     const backgroundColor =
         StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
-
-    // s77rt add total cell, action cell and collapse/expand button
+    const shouldShowAction = isLargeScreenWidth;
 
     return (
         <View>
@@ -53,14 +58,14 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxP
                             accessibilityLabel={translate('common.select')}
                         />
                     )}
-                    <View style={[styles.flexRow, styles.gap3]}>
+                    <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
                         <ReportActionAvatars
                             subscriptCardFeed={cardItem.bank as CompanyCardFeed}
                             subscriptAvatarBorderColor={backgroundColor}
                             noRightMarginOnSubscriptContainer
-                            reportID={cardItem.reportID}
+                            accountIDs={[cardItem.accountID]}
                         />
-                        <View style={[styles.gapHalf]}>
+                        <View style={[styles.gapHalf, styles.flexShrink1]}>
                             <TextWithTooltip
                                 text={formattedDisplayName}
                                 style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre]}
@@ -72,9 +77,21 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxP
                         </View>
                     </View>
                 </View>
-            </View>
-            <View style={[styles.pv2, styles.ph3]}>
-                <View style={[styles.borderBottom]} />
+                <View style={[styles.flexShrink0, styles.mr3]}>
+                    <TotalCell
+                        total={cardItem.total}
+                        currency={cardItem.currency}
+                    />
+                </View>
+                {shouldShowAction && (
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+                        <ActionCell
+                            action={CONST.SEARCH.ACTION_TYPES.VIEW}
+                            goToItem={() => onSelectRow(cardItem as unknown as TItem)}
+                            isSelected={cardItem.isSelected}
+                        />
+                    </View>
+                )}
             </View>
         </View>
     );

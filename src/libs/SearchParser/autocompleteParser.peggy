@@ -59,6 +59,7 @@ autocompleteKey "key"
   = @(
       in
       / currency
+      / groupCurrency
       / tag
       / category
       / to

@@ -16,7 +16,7 @@ import Navigation from '@navigation/Navigation';
 import {isCurrencySupportedForDirectReimbursement} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, FundList, LastPaymentMethodType} from '@src/types/onyx';
+import type {BankAccountList, FundList} from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -72,13 +72,14 @@ function usePaymentOptions({
     const [lastPaymentMethod, lastPaymentMethodResult] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
         canBeMissing: true,
         selector: (paymentMethod) => {
-            if (typeof paymentMethod?.[policyIDKey] === 'string') {
-                return paymentMethod?.[policyIDKey];
+            const paymentMethodType = paymentMethod?.[policyIDKey];
+            if (typeof paymentMethodType === 'string') {
+                return paymentMethodType;
             }
-            if (typeof (paymentMethod?.[policyIDKey] as LastPaymentMethodType)?.lastUsed === 'string') {
-                return (paymentMethod?.[policyIDKey] as LastPaymentMethodType).lastUsed;
+            if (typeof paymentMethodType?.lastUsed === 'string') {
+                return paymentMethodType.lastUsed;
             }
-            return (paymentMethod?.[policyIDKey] as LastPaymentMethodType)?.lastUsed.name;
+            return paymentMethodType?.lastUsed.name;
         },
     });
 

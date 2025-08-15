@@ -12,14 +12,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
-import type TryNewDot from '@src/types/onyx/TryNewDot';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnboardingCompanySize} from './OnboardingFlow';
 
 type OnboardingData = Onboarding | undefined;
 
 let isLoadingReportData = true;
-let tryNewDotData: TryNewDot | undefined;
 let onboarding: OnboardingData;
 
 type HasCompletedOnboardingFlowProps = {
@@ -37,8 +35,6 @@ let resolveOnboardingFlowStatus: () => void;
 let isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
     resolveOnboardingFlowStatus = resolve;
 });
-
-let resolveTryNewDotStatus: (value?: Promise<void>) => void | undefined;
 
 function onServerDataReady(): Promise<void> {
     return isServerDataReadyPromise;
@@ -71,17 +67,6 @@ function checkServerDataReady() {
     }
 
     resolveIsReadyPromise?.();
-}
-
-/**
- * Check if user completed HybridApp onboarding
- */
-function checkTryNewDotDataReady() {
-    if (tryNewDotData === undefined) {
-        return;
-    }
-
-    resolveTryNewDotStatus?.();
 }
 
 /**
@@ -179,14 +164,6 @@ Onyx.connect({
     callback: (value) => {
         isLoadingReportData = value ?? false;
         checkServerDataReady();
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.NVP_TRY_NEW_DOT,
-    callback: (value) => {
-        tryNewDotData = value;
-        checkTryNewDotDataReady();
     },
 });
 

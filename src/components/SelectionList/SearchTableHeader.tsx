@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import type {SearchColumnType, SortOrder} from '@components/Search/types';
+import type {SearchColumnType, SearchGroupBy, SortOrder} from '@components/Search/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getShouldShowMerchant} from '@libs/SearchUIUtils';
@@ -23,8 +23,8 @@ const shouldShowColumnConfig: Record<SortableColumnName, ShouldShowSearchColumnF
     [CONST.SEARCH.TABLE_COLUMNS.DATE]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: (data: OnyxTypes.SearchResults['data']) => getShouldShowMerchant(data),
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: (data: OnyxTypes.SearchResults['data']) => !getShouldShowMerchant(data),
-    [CONST.SEARCH.TABLE_COLUMNS.FROM]: () => true,
-    [CONST.SEARCH.TABLE_COLUMNS.TO]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.FROM]: (data, metadata) => metadata?.columnsToShow?.shouldShowFromColumn ?? false,
+    [CONST.SEARCH.TABLE_COLUMNS.TO]: (data, metadata) => metadata?.columnsToShow?.shouldShowToColumn ?? false,
     [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: (data, metadata) => metadata?.columnsToShow?.shouldShowCategoryColumn ?? false,
     [CONST.SEARCH.TABLE_COLUMNS.TAG]: (data, metadata) => metadata?.columnsToShow?.shouldShowTagColumn ?? false,
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: (data, metadata) => metadata?.columnsToShow?.shouldShowTaxColumn ?? false,
@@ -33,6 +33,7 @@ const shouldShowColumnConfig: Record<SortableColumnName, ShouldShowSearchColumnF
     [CONST.SEARCH.TABLE_COLUMNS.TITLE]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.IN]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.CARD]: () => false,
     // This column is never displayed on Search
     [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: () => false,
 };
@@ -67,6 +68,10 @@ const expenseHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TO,
         translationKey: 'common.to',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.CARD,
+        translationKey: 'common.card',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
@@ -144,6 +149,7 @@ type SearchTableHeaderProps = {
     isTaxAmountColumnWide: boolean;
     shouldShowSorting: boolean;
     canSelectMultiple: boolean;
+    groupBy: SearchGroupBy | undefined;
 };
 
 function SearchTableHeader({
@@ -157,6 +163,7 @@ function SearchTableHeader({
     canSelectMultiple,
     isAmountColumnWide,
     isTaxAmountColumnWide,
+    groupBy,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -165,10 +172,17 @@ function SearchTableHeader({
 
     const shouldShowColumn = useCallback(
         (columnName: SortableColumnName) => {
+            if (groupBy === CONST.SEARCH.GROUP_BY.FROM) {
+                return columnName === CONST.SEARCH.TABLE_COLUMNS.FROM || columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION;
+            }
+            if (groupBy === CONST.SEARCH.GROUP_BY.CARD) {
+                return columnName === CONST.SEARCH.TABLE_COLUMNS.CARD || columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION;
+            }
+
             const shouldShowFun = shouldShowColumnConfig[columnName];
             return shouldShowFun(data, metadata);
         },
-        [data, metadata],
+        [data, metadata, groupBy],
     );
 
     if (displayNarrowVersion) {

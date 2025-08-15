@@ -102,7 +102,7 @@ describe('NavigationTabBar', () => {
                         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, SidebarOrderedReportsContextProvider]}>
                             <NavigationContainer>
                                 <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />
-                            </NavigationContainer>{' '}
+                            </NavigationContainer>
                         </ComposeProviders>,
                     );
 
@@ -127,7 +127,7 @@ describe('NavigationTabBar', () => {
                         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, SidebarOrderedReportsContextProvider]}>
                             <NavigationContainer>
                                 <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />
-                            </NavigationContainer>{' '}
+                            </NavigationContainer>
                         </ComposeProviders>,
                     );
 

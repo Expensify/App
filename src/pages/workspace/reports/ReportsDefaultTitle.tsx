@@ -7,10 +7,9 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import TextLink from '@components/TextLink';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
@@ -97,17 +96,8 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
                     title={translate('workspace.reports.customNameTitle')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                <View style={[styles.ph5, styles.pb4]}>
-                    <Text>
-                        {translate('workspace.reports.customNameDescription')}
-                        <TextLink
-                            style={[styles.link]}
-                            href={CONST.CUSTOM_REPORT_NAME_HELP_URL}
-                        >
-                            {translate('workspace.reports.customNameDescriptionLink')}
-                        </TextLink>
-                        .
-                    </Text>
+                <View style={[styles.renderHTML, styles.flexRow, styles.ph5, styles.pb4]}>
+                    <RenderHTML html={translate('workspace.reports.customNameDescription')} />
                 </View>
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
