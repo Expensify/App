@@ -9010,7 +9010,7 @@ function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: b
     }
 }
 
-function canUserPerformWriteAction(report: OnyxEntry<Report>, isReportArchived = false) {
+function canUserPerformWriteAction(report: OnyxEntry<Report>, isReportArchived?: boolean) {
     const reportErrors = getCreationReportErrors(report);
 
     // If the expense report is marked for deletion, let us prevent any further write action.

@@ -126,7 +126,7 @@ function ReportActionsListItemRenderer({
     personalDetails,
     allDraftMessages,
     allEmojiReactions,
-    isReportArchived,
+    isReportArchived = false,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
