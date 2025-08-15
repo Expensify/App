@@ -75,6 +75,7 @@ export default createOnyxDerivedValueConfig({
             }
 
             reportTransactionsAndViolations[reportID].transactions[transactionKey] = transaction;
+            transactionReportIDMapping[transactionKey] = reportID;
         }
 
         previousTransactions = transactions;
