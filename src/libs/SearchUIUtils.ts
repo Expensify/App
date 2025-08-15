@@ -1480,7 +1480,7 @@ function getSortedSections(
             case CONST.SEARCH.GROUP_BY.CARD:
                 return getSortedCardData(data as TransactionCardGroupListItemType[], localeCompare);
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
-                return getSortedWithdrawalIDData(data as TransactionWithdrawalIDGroupListItemType[], localeCompare);
+                return getSortedWithdrawalIDData(data as TransactionWithdrawalIDGroupListItemType[]);
         }
     }
 
@@ -1593,7 +1593,7 @@ function getSortedCardData(data: TransactionCardGroupListItemType[], localeCompa
  * @private
  * Sorts report sections based on a specified column and sort order.
  */
-function getSortedWithdrawalIDData(data: TransactionWithdrawalIDGroupListItemType[], localeCompare: LocaleContextProps['localeCompare']) {
+function getSortedWithdrawalIDData(data: TransactionWithdrawalIDGroupListItemType[]) {
     return data ? [] : []; // s77rt TODO
 }
 
