@@ -135,8 +135,13 @@ const baseFilterConfig = {
     },
     amount: {
         getTitle: getFilterDisplayTitle,
-        description: 'common.total' as const,
+        description: 'iou.amount' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_AMOUNT,
+    },
+    total: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.total' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_TOTAL,
     },
     category: {
         getTitle: getFilterDisplayTitle,
@@ -254,6 +259,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
@@ -279,6 +285,7 @@ const typeFiltersKeys = {
         ],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
@@ -311,6 +318,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
         ],
         [
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
@@ -430,8 +438,13 @@ function getFilterDisplayTitle(
 
     const nonDateFilterKey = filterKey as Exclude<SearchFilterKey, SearchDateFilterKeys>;
 
-    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
-        const {lessThan, greaterThan} = filters;
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL) {
+        const lessThanKey = `${nonDateFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as keyof SearchAdvancedFiltersForm;
+        const greaterThanKey = `${nonDateFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as keyof SearchAdvancedFiltersForm;
+
+        const lessThan = filters[lessThanKey];
+        const greaterThan = filters[greaterThanKey];
+
         if (lessThan && greaterThan) {
             return translate('search.filters.amount.between', {
                 lessThan: convertToDisplayStringWithoutCurrency(Number(lessThan)),
@@ -682,6 +695,7 @@ function AdvancedSearchFilters() {
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||

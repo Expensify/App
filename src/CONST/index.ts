@@ -6422,6 +6422,7 @@ const CONST = {
             POSTED: 'posted',
             WITHDRAWAL_TYPE: 'withdrawalType',
             WITHDRAWN: 'withdrawn',
+            TOTAL: 'total',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
             REIMBURSABLE: 'reimbursable',
@@ -6445,6 +6446,7 @@ const CONST = {
             GROUP_BY: 'group-by',
             DATE: 'date',
             AMOUNT: 'amount',
+            TOTAL: 'total',
             EXPENSE_TYPE: 'expense-type',
             CURRENCY: 'currency',
             GROUP_CURRENCY: 'group-currency',
@@ -6479,6 +6481,10 @@ const CONST = {
             ON: 'On',
             AFTER: 'After',
             BEFORE: 'Before',
+        },
+        AMOUNT_MODIFIERS: {
+            LESS_THAN: 'LessThan',
+            GREATER_THAN: 'GreaterThan',
         },
         DATE_PRESETS: {
             NEVER: 'never',
