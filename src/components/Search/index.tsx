@@ -811,7 +811,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         !shouldShowTableHeader ? undefined : (
                             <SearchTableHeader
                                 canSelectMultiple={canSelectMultiple}
-                                data={searchResults?.data}
                                 columns={columnsToShow}
                                 metadata={searchResults?.search}
                                 onSortPress={onSortPress}
