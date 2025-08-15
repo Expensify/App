@@ -1,12 +1,8 @@
 import React from 'react';
 import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import AmountTextInput from '@components/AmountTextInput';
-import CurrencySymbolButton from '@components/CurrencySymbolButton';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import Text from '@components/Text';
 import SymbolButton from '@components/SymbolButton';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addLeadingZero, replaceAllDigits} from '@libs/MoneyRequestUtils';
@@ -28,9 +24,6 @@ function BaseTextInputWithSymbol(
         isSymbolPressable = true,
         hideSymbol = false,
         isNegative = false,
-        allowFlippingAmount = false,
-        toggleNegative,
-        clearNegative,
         style,
         symbolTextStyle,
         ...rest
@@ -77,19 +70,6 @@ function BaseTextInputWithSymbol(
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
-            {allowFlippingAmount && (
-                <PressableWithFeedback
-                    onPress={toggleNegative}
-                    style={[styles.button, styles.buttonMedium, styles.mr2]}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                    accessibilityLabel="Toggle negative amount"
-                >
-                    <Icon
-                        src={Expensicons.PlusMinus}
-                        fill={isNegative ? styles.iconColorPressed.color : styles.iconColorDefault.color}
-                    />
-                </PressableWithFeedback>
-            )}
             {!hideSymbol && symbolPosition === CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX && (
                 <SymbolButton
                     symbol={symbol}

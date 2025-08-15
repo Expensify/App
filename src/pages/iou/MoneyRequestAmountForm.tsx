@@ -3,8 +3,6 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
-import FormHelpMessage from '@components/FormHelpMessage';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
@@ -98,18 +96,6 @@ function MoneyRequestAmountForm(
 
     const absoluteAmount = Math.abs(amount);
 
-    useEffect(() => {
-        if (!isFocused || wasFocused) {
-            return;
-        }
-        const selection = moneyRequestAmountInput.current?.getSelection() ?? {start: 0, end: 0};
-
-        moneyRequestAmountInput.current?.changeSelection({
-            start: selection.end,
-            end: selection.end,
-        });
-    }, [isFocused, wasFocused]);
-
     const initializeAmount = useCallback(
         (newAmount: number) => {
             const frontendAmount = newAmount ? convertToFrontendAmountAsString(newAmount, currency) : '';
@@ -117,6 +103,14 @@ function MoneyRequestAmountForm(
         },
         [currency],
     );
+
+    const toggleNegative = useCallback(() => {
+        setIsNegative(!isNegative);
+    }, [isNegative]);
+
+    const clearNegative = useCallback(() => {
+        setIsNegative(false);
+    }, []);
 
     const initializeIsNegative = useCallback((currentAmount: number) => {
         if (currentAmount >= 0) {
@@ -273,6 +267,10 @@ function MoneyRequestAmountForm(
                 containerStyle={styles.iouAmountTextInputContainer}
                 touchableInputWrapperStyle={styles.heightUndefined}
                 testID="moneyRequestAmountInput"
+                isNegative={isNegative}
+                allowFlippingAmount={allowFlippingAmount}
+                toggleNegative={toggleNegative}
+                clearNegative={clearNegative}
                 errorText={formError}
                 footer={footer}
             />

@@ -22,8 +22,8 @@ import {
     buildOptimisticUnreportedTransactionAction,
     buildTransactionThread,
     findSelfDMReportID,
-    shouldEnableNegative,
     getReportTransactions,
+    shouldEnableNegative,
 } from '@libs/ReportUtils';
 import {getAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';

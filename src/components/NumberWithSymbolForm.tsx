@@ -3,6 +3,11 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
+import {Pressable} from 'react-native';
+import AmountTextInput from '@components/AmountTextInput';
+import Button from '@components/Button';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseContext} from '@hooks/useMouseContext';
 import usePrevious from '@hooks/usePrevious';
@@ -127,7 +132,7 @@ function NumberWithSymbolForm(
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
     const styles = useThemeStyles();
-    const {toLocaleDigit, numberFormat} = useLocalize();
+    const {toLocaleDigit, numberFormat, translate} = useLocalize();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberRef = useRef<string | undefined>(undefined);
@@ -302,6 +307,11 @@ function NumberWithSymbolForm(
      */
     const textInputKeyPress = (event: NativeSyntheticEvent<KeyboardEvent>) => {
         const key = event.nativeEvent.key.toLowerCase();
+
+        if (!textInput.current?.value && key === 'backspace' && isNegative) {
+            clearNegative?.();
+        }
+
         if (isMobileSafari() && key === CONST.PLATFORM_SPECIFIC_KEYS.CTRL.DEFAULT) {
             // Optimistically anticipate forward-delete on iOS Safari (in cases where the Mac Accessibility keyboard is being
             // used for input). If the Control-D shortcut doesn't get sent, the ref will still be reset on the next key press.
@@ -418,7 +428,6 @@ function NumberWithSymbolForm(
             isNegative={isNegative}
             allowFlippingAmount={allowFlippingAmount}
             toggleNegative={toggleNegative}
-            clearNegative={clearNegative}
         />
     );
 
@@ -441,6 +450,17 @@ function NumberWithSymbolForm(
                 </View>
             ) : (
                 textInputComponent
+            )}
+            {allowFlippingAmount && canUseTouchScreen && (
+                <Button
+                    shouldShowRightIcon
+                    small
+                    iconRight={Expensicons.PlusMinus}
+                    onPress={toggleNegative}
+                    style={styles.minWidth18}
+                    isContentCentered
+                    text={translate('iou.flip')}
+                />
             )}
             {shouldShowBigNumberPad || !!footer ? (
                 <View
