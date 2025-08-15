@@ -38,6 +38,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -426,6 +427,7 @@ function PureReportActionItem({
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate, datetimeToCalendarTime, formatPhoneNumber, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isOffline, shouldForceOffline} = useNetwork();
     const reportID = report?.reportID ?? action?.reportID;
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -1298,7 +1300,7 @@ function PureReportActionItem({
                                     hideContextMenu(false);
 
                                     InteractionManager.runAfterInteractions(() => {
-                                        signOutAndRedirectToSignIn();
+                                        signOutAndRedirectToSignIn({isOffline, shouldForceOffline});
                                     });
                                 } else {
                                     toggleReaction(emoji, ignoreSkinToneOnCompare);

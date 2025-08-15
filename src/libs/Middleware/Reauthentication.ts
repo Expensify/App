@@ -1,3 +1,4 @@
+import Onyx from 'react-native-onyx';
 import redirectToSignIn from '@libs/actions/SignInRedirect';
 import {reauthenticate as reauthenticateLibs} from '@libs/Authentication';
 import Log from '@libs/Log';
@@ -8,7 +9,19 @@ import NetworkConnection from '@libs/NetworkConnection';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type Middleware from './types';
+
+let isNetworkOffline = false;
+let networkShouldForceOffline: boolean | undefined;
+// We use connectWithoutView here because this is middleware-level functionality and is not connected with UI
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NETWORK,
+    callback: (network) => {
+        isNetworkOffline = network?.isOffline ?? false;
+        networkShouldForceOffline = network?.shouldForceOffline;
+    },
+});
 
 // We store a reference to the active authentication request so that we are only ever making one request to authenticate at a time.
 let isAuthenticating: Promise<boolean> | null = null;
@@ -36,7 +49,7 @@ function retryReauthenticate(commandName?: string): Promise<boolean> {
             .catch(() => {
                 setIsAuthenticating(false);
                 Log.hmmm('Redirecting to Sign In because we failed to reauthenticate after multiple attempts', {error});
-                redirectToSignIn('passwordForm.error.fallback');
+                redirectToSignIn({errorMessage: 'passwordForm.error.fallback', isOffline: isNetworkOffline, shouldForceOffline: networkShouldForceOffline});
                 return false;
             });
     });
