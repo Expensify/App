@@ -245,12 +245,12 @@ function IOURequestStepConfirmation({
         });
     }, [transactionIDs, defaultBillable]);
 
-    const defaultReimbursable = isPaidGroupPolicy(policy) ? !!policy?.defaultReimbursable : true;
     useEffect(() => {
+        const defaultReimbursable = isPaidGroupPolicy(policy) ? !!policy?.defaultReimbursable : true;
         transactionIDs.forEach((transactionID) => {
             setMoneyRequestReimbursable(transactionID, defaultReimbursable);
         });
-    }, [transactionIDs, defaultReimbursable]);
+    }, [transactionIDs, policy]);
 
     useEffect(() => {
         // Exit early if the transaction is still loading
