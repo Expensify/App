@@ -10,7 +10,9 @@ import {
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasIntegrationAutoSync,
+    isInstantSubmitEnabled,
     isPreferredExporter,
+    isSubmitAndClose,
 } from './PolicyUtils';
 import {getAllReportActions, getOneTransactionThreadReportID, isMoneyRequestAction} from './ReportActionsUtils';
 import {
@@ -105,7 +107,9 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
         return true;
     }
 
-    return isManualSubmitEnabled && baseIsSubmit;
+    // The report need manual submission if manual submit is enabled in the policy or the report is open in a Submit & Close policy with no approvers
+    const needsManualSubmit = isManualSubmitEnabled || (isOpenReport && isInstantSubmitEnabled(policy) && isSubmitAndClose(policy));
+    return needsManualSubmit && baseIsSubmit;
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {
