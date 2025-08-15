@@ -618,6 +618,7 @@ type AssignedCardParams = {
 
 type FeatureNameParams = {
     featureName: string;
+    moreFeaturesLink: string;
 };
 
 type AutoPayApprovedReportsLimitErrorParams = {
@@ -818,6 +819,10 @@ type BusinessTaxIDParams = {
     country: string;
 };
 
+type QBDSetupErrorBodyParams = {
+    conciergeLink: string;
+};
+
 type EmptyCategoriesSubtitleWithAccountingParams = {
     accountingPageURL: string;
 };
@@ -829,6 +834,28 @@ type EmptyTagsSubtitleWithAccountingParams = {
 type SettlementAccountInfoParams = {
     reconciliationAccountSettingsLink: string;
     accountNumber: string;
+};
+
+type MergeSuccessDescriptionParams = {
+    from: string;
+    to: string;
+};
+
+type MergeFailureUncreatedAccountDescriptionParams = {
+    email: string;
+    contactMethodLink: string;
+};
+
+type MergeFailureDescriptionGenericParams = {
+    email: string;
+};
+
+type DomainPermissionInfoRestrictionParams = {
+    domain: string;
+};
+
+type SubmittedWithMemoParams = {
+    memo?: string;
 };
 
 export type {
@@ -1113,7 +1140,13 @@ export type {
     WorkspacesListRouteParams,
     WorkspaceRouteParams,
     BusinessTaxIDParams,
+    QBDSetupErrorBodyParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
     SettlementAccountInfoParams,
+    MergeSuccessDescriptionParams,
+    MergeFailureUncreatedAccountDescriptionParams,
+    MergeFailureDescriptionGenericParams,
+    DomainPermissionInfoRestrictionParams,
+    SubmittedWithMemoParams,
 };
