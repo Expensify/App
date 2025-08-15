@@ -1,3 +1,4 @@
+import type {FileObject} from '@components/AttachmentModal';
 import type {OnboardingPurpose} from '@libs/actions/Welcome/OnboardingFlow';
 import type Account from './Account';
 import type AccountData from './AccountData';
@@ -124,6 +125,7 @@ import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
 
 export type {
+    FileObject,
     TryNewDot,
     Account,
     AccountData,
