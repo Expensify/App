@@ -9748,6 +9748,7 @@ function reopenReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
             lastMessageHtml: getReportActionHtml(optimisticReopenedReportAction),
             stateNum: predictedNextState,
             statusNum: predictedNextStatus,
+            hasReportBeenReopened: true,
             pendingFields: {
                 partial: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
@@ -9804,6 +9805,7 @@ function reopenReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
             value: {
                 stateNum: expenseReport.stateNum,
                 statusNum: expenseReport.statusNum,
+                hasReportBeenReopened: false,
             },
         },
     ];
@@ -9870,6 +9872,7 @@ function retractReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
             lastMessageHtml: getReportActionHtml(optimisticRetractReportAction),
             stateNum: predictedNextState,
             statusNum: predictedNextStatus,
+            hasReportBeenRetracted: true,
             pendingFields: {
                 partial: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
@@ -9921,6 +9924,7 @@ function retractReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
             value: {
                 stateNum: expenseReport.stateNum,
                 statusNum: expenseReport.stateNum,
+                hasReportBeenRetracted: false,
             },
         },
         {
