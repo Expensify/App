@@ -34,7 +34,7 @@ export default function useFlatListScrollKey<T>({data, keyExtractor, initialScro
         }
         // If data.length > 1 and highlighted item is the last element, there will be a bug that does not trigger the `onStartReached` event.
         // So we will need to return at least the last 2 elements in this case.
-        const offset = !inverted ? 1 : 0;
+        const offset = !inverted && currentDataIndex === data.length - 1 ? 1 : 0;
         // We always render the list from the highlighted item to the end of the list because:
         // - With an inverted FlatList, items are rendered from bottom to top,
         //   so the highlighted item stays at the bottom and within the visible viewport.
