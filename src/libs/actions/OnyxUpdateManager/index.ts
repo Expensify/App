@@ -35,13 +35,15 @@ import {
 // Therefore, SaveResponseInOnyx.js can't import and use this file directly.
 
 let lastUpdateIDAppliedToClient: number = CONST.DEFAULT_NUMBER_ID;
-Onyx.connect({
+// We have used `connectWithoutView` here because it is not connected to any UI component.
+Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     callback: (value) => (lastUpdateIDAppliedToClient = value ?? CONST.DEFAULT_NUMBER_ID),
 });
 
 let isLoadingApp = false;
-Onyx.connect({
+// We have used `connectWithoutView` here because it is not connected to any UI component.
+Onyx.connectWithoutView({
     key: ONYXKEYS.IS_LOADING_APP,
     callback: (value) => {
         isLoadingApp = value ?? false;
@@ -222,7 +224,8 @@ function updateAuthTokenIfNecessary(onyxUpdatesFromServer: OnyxEntry<OnyxUpdates
 
 export default () => {
     console.debug('[OnyxUpdateManager] Listening for updates from the server');
-    Onyx.connect({
+    // We have used `connectWithoutView` here because it is not connected to any UI component.
+    Onyx.connectWithoutView({
         key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
         callback: (value) => {
             handleMissingOnyxUpdates(value);
