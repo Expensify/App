@@ -163,8 +163,8 @@ import {
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {isOnHold} from '@libs/TransactionUtils';
-import {addTrailingForwardSlash} from '@libs/Url';
 import Visibility from '@libs/Visibility';
+import addTrailingForwardSlash from '@libs/UrlUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting} from '@src/CONST';

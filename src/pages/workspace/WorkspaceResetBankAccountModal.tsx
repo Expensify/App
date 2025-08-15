@@ -5,8 +5,8 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import BankAccount from '@libs/models/BankAccount';
 import {cancelResetBankAccount, resetNonUSDBankAccount, resetUSDBankAccount} from '@userActions/BankAccounts';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -43,7 +43,7 @@ function WorkspaceResetBankAccountModal({
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const policyID = reimbursementAccount?.achData?.policyID;
     const achData = reimbursementAccount?.achData;
-    const isInOpenState = achData?.state === BankAccount.STATE.OPEN;
+    const isInOpenState = achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
     const bankAccountID = achData?.bankAccountID;
     const bankShortName = `${achData?.addressName ?? ''} ${(achData?.accountNumber ?? '').slice(-4)}`;
 

@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import addTrailingForwardSlash from '@libs/UrlUtils';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn} from './Session';
 
 let isNetworkOffline = false;
@@ -49,7 +50,7 @@ function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<stri
     const params = paramsArray.filter(Boolean).join('&');
 
     return Environment.getOldDotEnvironmentURL().then((environmentURL) => {
-        const oldDotDomain = Url.addTrailingForwardSlash(environmentURL);
+        const oldDotDomain = addTrailingForwardSlash(environmentURL);
 
         // If the URL contains # or ?, we can assume they don't need to have the `?` token to start listing url parameters.
         return `${oldDotDomain}${originURL}${hasURLParams ? '&' : '?'}${params}${hashParams}`;
@@ -91,7 +92,7 @@ function buildTravelDotURL(spotnanaToken: string, isTestAccount: boolean, postLo
 
     const paramsArray = [authCode, tmcIDParam, redirectURL];
     const params = paramsArray.filter(Boolean).join('&');
-    const travelDotDomain = Url.addTrailingForwardSlash(environmentURL);
+    const travelDotDomain = addTrailingForwardSlash(environmentURL);
     return `${travelDotDomain}auth/code?${params}`;
 }
 

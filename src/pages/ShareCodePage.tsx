@@ -32,8 +32,8 @@ import {
     isMoneyRequestReport,
 } from '@libs/ReportUtils';
 import shouldAllowDownloadQRCode from '@libs/shouldAllowDownloadQRCode';
-import {addTrailingForwardSlash} from '@libs/Url';
 import {getAvatarUrl} from '@libs/UserUtils';
+import addTrailingForwardSlash from '@libs/UrlUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
@@ -148,8 +148,8 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                         onPress={() => Clipboard.setString(url)}
                         shouldLimitWidth={false}
                     />
-                    {/* Remove this platform specific condition once https://github.com/Expensify/App/issues/19834 is done. 
-                    We shouldn't introduce platform specific code in our codebase. 
+                    {/* Remove this platform specific condition once https://github.com/Expensify/App/issues/19834 is done.
+                    We shouldn't introduce platform specific code in our codebase.
                     This is a temporary solution while Web is not supported for the QR code download feature */}
                     {shouldAllowDownloadQRCode && (
                         <MenuItem
