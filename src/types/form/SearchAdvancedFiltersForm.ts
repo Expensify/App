@@ -41,6 +41,7 @@ const FILTER_KEYS = {
     WITHDRAWN_AFTER: 'withdrawnAfter',
     WITHDRAWN_BEFORE: 'withdrawnBefore',
     CURRENCY: 'currency',
+    GROUP_CURRENCY: 'groupCurrency',
     CATEGORY: 'category',
     POLICY_ID: 'policyID',
     CARD_ID: 'cardID',
@@ -86,6 +87,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.TOTAL_GREATER_THAN,
         FILTER_KEYS.TOTAL_LESS_THAN,
         FILTER_KEYS.CURRENCY,
+        FILTER_KEYS.GROUP_CURRENCY,
         FILTER_KEYS.CATEGORY,
         FILTER_KEYS.TAG,
         FILTER_KEYS.PAYER,
@@ -182,6 +184,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.TOTAL_GREATER_THAN,
         FILTER_KEYS.TOTAL_LESS_THAN,
         FILTER_KEYS.CURRENCY,
+        FILTER_KEYS.GROUP_CURRENCY,
         FILTER_KEYS.CATEGORY,
         FILTER_KEYS.TAG,
         FILTER_KEYS.PAYER,
@@ -267,6 +270,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.WITHDRAWN_AFTER]: string;
         [FILTER_KEYS.WITHDRAWN_BEFORE]: string;
         [FILTER_KEYS.CURRENCY]: string[];
+        [FILTER_KEYS.GROUP_CURRENCY]: string;
         [FILTER_KEYS.CATEGORY]: string[];
         [FILTER_KEYS.POLICY_ID]: string[];
         [FILTER_KEYS.CARD_ID]: string[];
