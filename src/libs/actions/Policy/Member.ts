@@ -140,7 +140,7 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
  */
 function buildRoomMembersOnyxData(
     roomType: typeof CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE | typeof CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-    policyID: string,
+    policyID: string | undefined,
     accountIDs: number[],
 ): OnyxDataReturnType {
     const report = ReportUtils.getRoom(roomType, policyID);
@@ -876,7 +876,7 @@ function clearWorkspaceOwnerChangeFlow(policyID: string) {
 
 function buildAddMembersToWorkspaceOnyxData(
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
-    policyID: string,
+    policyID: string | undefined,
     policyMemberAccountIDs: number[],
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
@@ -978,7 +978,7 @@ function buildAddMembersToWorkspaceOnyxData(
 function addMembersToWorkspace(
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
     welcomeNote: string,
-    policyID: string,
+    policyID: string | undefined,
     policyMemberAccountIDs: number[],
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
@@ -1181,7 +1181,7 @@ function setWorkspaceInviteRoleDraft(policyID: string, role: ValueOf<typeof CONS
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`, role);
 }
 
-function clearWorkspaceInviteRoleDraft(policyID: string) {
+function clearWorkspaceInviteRoleDraft(policyID: string | undefined) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`, null);
 }
 
