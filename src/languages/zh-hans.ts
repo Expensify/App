@@ -942,6 +942,7 @@ const translations = {
         distance: '距离',
         manual: '手册',
         scan: '扫描',
+        map: '地图',
     },
     spreadsheet: {
         upload: '上传电子表格',

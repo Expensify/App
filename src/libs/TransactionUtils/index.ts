@@ -89,6 +89,7 @@ type TransactionParams = {
     customUnit?: TransactionCustomUnit;
     splitExpenses?: SplitExpense[];
     participants?: Participant[];
+    distance?: number;
 };
 
 type BuildOptimisticTransactionParams = {
@@ -160,6 +161,10 @@ function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
 }
 
+function isManualDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
+}
+
 function isScanRequest(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
@@ -182,6 +187,9 @@ function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
+    if (isManualDistanceRequest(transaction)) {
+        return CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
+    }
     if (isDistanceRequest(transaction)) {
         return CONST.IOU.REQUEST_TYPE.DISTANCE;
     }
@@ -255,6 +263,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         amount,
         currency,
         reportID,
+        distance,
         comment = '',
         attendees = [],
         created = '',
@@ -293,9 +302,11 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     }
 
     const isDistanceTransaction = !!pendingFields?.waypoints;
-    if (isDistanceTransaction) {
+    const isManualDistanceTransaction = isManualDistanceRequest(existingTransaction);
+    if (isDistanceTransaction || isManualDistanceTransaction) {
         // Set the distance unit, which comes from the policy distance unit or the P2P rate data
         lodashSet(commentJSON, 'customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy}));
+        lodashSet(commentJSON, 'customUnit.quantity', distance);
     }
 
     const isPerDiemTransaction = !!pendingFields?.subRates;
@@ -1325,7 +1336,7 @@ function isPayAtEndExpense(transaction: Transaction | undefined | null): boolean
 /**
  * Get custom unit rate (distance rate) ID from the transaction object
  */
-function getRateID(transaction: OnyxInputOrEntry<Transaction>): string | undefined {
+function getRateID(transaction: OnyxInputOrEntry<Transaction>): string {
     return transaction?.comment?.customUnit?.customUnitRateID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 }
 
@@ -1923,6 +1934,7 @@ export {
     getValidWaypoints,
     getValidDuplicateTransactionIDs,
     isDistanceRequest,
+    isManualDistanceRequest,
     isFetchingWaypointsFromServer,
     isExpensifyCardTransaction,
     isCardTransaction,
