@@ -19,6 +19,7 @@ import {
 } from '@libs/actions/IOU';
 import {verifyTestDriveRecipient} from '@libs/actions/Onboarding';
 import setTestReceipt from '@libs/actions/setTestReceipt';
+import type AccountExistsError from '@libs/Errors/AccountExistsError';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TestDriveModalNavigatorParamList} from '@libs/Navigation/types';
@@ -35,6 +36,7 @@ function EmployeeTestDriveModal() {
     const reportID = generateReportID();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
+    const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const route = useRoute<PlatformStackRouteProp<TestDriveModalNavigatorParamList, typeof SCREENS.TEST_DRIVE_MODAL.ROOT>>();
     const [bossEmail, setBossEmail] = useState(route.params?.bossEmail ?? '');
     const [formError, setFormError] = useState<string | undefined>();
@@ -69,6 +71,7 @@ function EmployeeTestDriveModal() {
                             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                             report,
                             parentReport,
+                            currentDate,
                         });
 
                         setMoneyRequestReceipt(transactionID, source, filename, true, CONST.TEST_RECEIPT.FILE_TYPE, false, true);
@@ -93,13 +96,13 @@ function EmployeeTestDriveModal() {
                     },
                     () => {
                         setIsLoading(false);
-                        setFormError(translate('testDrive.modal.employee.error'));
+                        setFormError(translate('common.genericErrorMessage'));
                     },
                 );
             })
-            .catch(() => {
+            .catch((e: AccountExistsError) => {
                 setIsLoading(false);
-                setFormError(translate('testDrive.modal.employee.error'));
+                setFormError(e.translationKey ? translate(e.translationKey) : 'common.genericErrorMessage');
             });
     };
 
