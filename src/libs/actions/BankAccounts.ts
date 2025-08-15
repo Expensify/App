@@ -480,9 +480,6 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
  * @param isConfirmPage - If we're submitting from the confirmation substep, to trigger all external checks
  */
 function updatePersonalInformationForBankAccount(bankAccountID: number, params: RequestorStepProps, policyID: string | undefined, isConfirmPage: boolean) {
-    if (!policyID) {
-        return;
-    }
     API.write(
         WRITE_COMMANDS.UPDATE_PERSONAL_INFORMATION_FOR_BANK_ACCOUNT,
         {
