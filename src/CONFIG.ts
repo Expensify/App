@@ -2,9 +2,9 @@ import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Platform} from 'react-native';
 import type {NativeConfig} from 'react-native-config';
 import Config from 'react-native-config';
-import addTrailingForwardSlash from './libs/UrlUtils';
 import CONST from './CONST';
 import getPlatform from './libs/getPlatform';
+import addTrailingForwardSlash from './libs/UrlUtils';
 
 // react-native-config doesn't trim whitespace on iOS for some reason so we
 // add a trim() call to prevent headaches

@@ -27,13 +27,7 @@ type HelpHeaderProps = {
     shouldShowCloseButton?: boolean;
 };
 
-function HelpHeader({
-                        title,
-                        onBackButtonPress,
-                        onCloseButtonPress,
-                        shouldShowBackButton = true,
-                        shouldShowCloseButton = false,
-                    }: HelpHeaderProps) {
+function HelpHeader({title, onBackButtonPress, onCloseButtonPress, shouldShowBackButton = true, shouldShowCloseButton = false}: HelpHeaderProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -59,12 +53,7 @@ function HelpHeader({
 
                 <Header
                     title={title}
-                    textStyles={[
-                        styles.flexShrink1,
-                        styles.textAlignCenter,
-                        shouldShowBackButton && styles.mr5,
-                        shouldShowCloseButton && styles.mr5,
-                    ]}
+                    textStyles={[styles.flexShrink1, styles.textAlignCenter, shouldShowBackButton && styles.mr5, shouldShowCloseButton && styles.mr5]}
                 />
 
                 {shouldShowCloseButton && (
