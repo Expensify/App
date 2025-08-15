@@ -98,7 +98,7 @@ function ValuePage({
                         autoGrowExtraSpace={variables.w80}
                         isSymbolPressable={false}
                         autoGrowMarginSide="left"
-                        style={[styles.iouAmountTextInput, styles.textAlignRight]}
+                        style={[styles.iouAmountTextInput, styles.lineHeightUndefined, styles.textAlignRight]}
                         containerStyle={styles.iouAmountTextInputContainer}
                     />
                 </FormProvider>
