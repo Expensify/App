@@ -1,12 +1,10 @@
 import React, {useEffect, useRef} from 'react';
 import type {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import {expenseHeaders} from '@components/SelectionList/SearchTableHeader';
-import type {SortableColumnName} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
@@ -101,7 +99,7 @@ function MoneyRequestReportTransactionItem({
     });
 
     const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
-    const areAllOptionalColumnsHidden = canBeMissingColumns.every((column) => !columns.includes(column as SearchColumnType));
+    const areAllOptionalColumnsHidden = canBeMissingColumns.every((column) => !columns.includes(column));
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
