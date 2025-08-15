@@ -4937,6 +4937,7 @@ const translations = {
                 limit: '制限',
                 limitType: 'タイプを制限',
                 name: '名前',
+                disabledApprovalForSmartLimitError: 'スマートリミットカードを設定するには、ポリシーに承認ワークフローを有効にしてください。',
             },
             deactivateCardModal: {
                 deactivate: '無効化',
