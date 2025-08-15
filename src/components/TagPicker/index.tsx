@@ -113,6 +113,7 @@ function TagPicker({
             selectedOptions,
             tags: enabledTags,
             recentlyUsedTags: policyRecentlyUsedTagsList,
+            localeCompare,
         });
         return shouldOrderListByTagName
             ? tagSections.map((option) => ({
