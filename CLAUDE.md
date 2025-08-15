@@ -12,7 +12,7 @@
 ## HybridApp Architecture (Critical Context)
 
 **IMPORTANT**: The mobile application is built from the Mobile-Expensify submodule, not directly from the App repository.
-**IMPORTANT**: NewDot refers to the new Expensify App, OldDot refers to our Old expensify app and website
+**IMPORTANT**: NewDot refers to the new Expensify App, OldDot or Expensify Classic refers to our Old expensify app and website
 
 ### Key Integration Points
 - App (NewDot) and Mobile-Expensify (OldDot) are combined into a single mobile application
@@ -199,6 +199,12 @@ Key GitHub Actions workflows:
 ### Security
 - Content Security Policy enforcement
 - Two-factor authentication support
+
+## Documentation Resources
+
+### Help Documentation
+- **NewDot Help**: https://help.expensify.com/new-expensify/hubs/
+- **OldDot/Expensify Classic Help**: https://help.expensify.com/expensify-classic/hubs/
 
 ## Development Setup Requirements
 
