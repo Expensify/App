@@ -724,7 +724,7 @@ const ROUTES = {
             if (!transactionID) {
                 Log.warn('Invalid transactionID is used to build the MONEY_REQUEST_RECEIPT_PREVIEW route');
             }
-            return `${action}/${iouType}/receipt/${transactionID}/${reportID}?readonly=false`;
+            return `${action}/${iouType}/receipt/${transactionID}/${reportID}?readonly=false` as const;
         },
     },
     MONEY_REQUEST_EDIT_REPORT: {
