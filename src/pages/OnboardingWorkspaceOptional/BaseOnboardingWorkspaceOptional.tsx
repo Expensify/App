@@ -155,7 +155,6 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                         text={translate('onboarding.workspace.createWorkspace')}
                         onPress={() => {
                             setOnboardingErrorMessage('');
-
                             Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.getRoute());
                         }}
                     />

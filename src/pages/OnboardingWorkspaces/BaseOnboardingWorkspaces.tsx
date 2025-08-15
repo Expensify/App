@@ -157,7 +157,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                     <View style={[wrapperPadding, onboardingIsMediumOrLargerScreenWidth && styles.mt5, styles.mb5]}>
                         <Text style={styles.textHeadlineH1}>{translate('onboarding.joinAWorkspace')}</Text>
                         <Text style={[styles.textSupporting, styles.mt3]}>
-                            {isDomainRestriction ? translate('onboarding.domainWorkspaceRestriction.subtitle') : translate('onboarding.listOfWorkspaces')}
+                            {translate(isDomainRestriction ? 'onboarding.domainWorkspaceRestriction.subtitle' : 'onboarding.listOfWorkspaces')}
                         </Text>
                     </View>
                 }
@@ -165,7 +165,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                     <Button
                         success={false}
                         large
-                        text={isDomainRestriction ? translate('onboarding.domainWorkspaceRestriction.skipForNow') : translate('common.skip')}
+                        text={translate(isDomainRestriction ? 'onboarding.domainWorkspaceRestriction.skipForNow' : 'common.skip')}
                         testID="onboardingWorkSpaceSkipButton"
                         onPress={() => {
                             if (isDomainRestriction) {
@@ -191,7 +191,6 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                                 Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
                                 return;
                             }
-
                             Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
                         }}
                         style={[styles.mt5]}
