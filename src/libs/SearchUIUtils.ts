@@ -835,7 +835,6 @@ function getTransactionsSections(
         const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
         const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const shouldShowBlankTo = !report || isOpenExpenseReport(report);
-
         const transactionViolations = getTransactionViolations(allViolations, transactionItem);
         // Use Map.get() for faster lookups with default values
         const from = personalDetailsMap.get(transactionItem.accountID.toString()) ?? emptyPersonalDetails;
@@ -864,7 +863,7 @@ function getTransactionsSections(
             isAmountColumnWide: shouldShowAmountInWideColumn,
             isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
             violations: transactionViolations,
-
+            filename: transactionItem.filename,
             // Manually copying all the properties from transactionItem
             transactionID: transactionItem.transactionID,
             created: transactionItem.created,
@@ -902,6 +901,8 @@ function getTransactionsSections(
             errors: transactionItem.errors,
             isActionLoading: transactionItem.isActionLoading,
             hasViolation: transactionItem.hasViolation,
+            cardID: transactionItem.cardID,
+            cardName: transactionItem.cardName,
         };
 
         transactionsSections.push(transactionSection);
