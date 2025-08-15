@@ -611,7 +611,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         currentConnectionName={currentConnectionName}
                         connectedIntegration={connectedIntegration}
                         translatedText={translate('workspace.tags.importedFromAccountingSoftware')}
-                        environmentURL={environmentURL}
                     />
                 ) : (
                     <Text style={[styles.textNormal, styles.colorMuted]}>

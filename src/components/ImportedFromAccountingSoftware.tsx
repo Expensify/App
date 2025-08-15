@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,15 +26,13 @@ type ImportedFromAccountingSoftwareProps = {
 
     /** The translated text for the "imported from" message */
     translatedText: string;
-
-    /** The environment URL for the link */
-    environmentURL: string;
 };
 
-function ImportedFromAccountingSoftware({policyID, currentConnectionName, translatedText, environmentURL, connectedIntegration}: ImportedFromAccountingSoftwareProps) {
+function ImportedFromAccountingSoftware({policyID, currentConnectionName, translatedText, connectedIntegration}: ImportedFromAccountingSoftwareProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const {environmentURL} = useEnvironment();
     const icon = getIntegrationIcon(connectedIntegration);
 
     return (

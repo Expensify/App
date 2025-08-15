@@ -446,7 +446,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         currentConnectionName={currentConnectionName}
                         connectedIntegration={connectedIntegration}
                         translatedText={translate('workspace.categories.importedFromAccountingSoftware')}
-                        environmentURL={environmentURL}
                     />
                 ) : (
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>

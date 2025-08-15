@@ -17,7 +17,6 @@ import CustomListHeader from '@components/SelectionListWithModal/CustomListHeade
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -66,7 +65,6 @@ function WorkspaceTaxesPage({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, localeCompare} = useLocalize();
-    const {environmentURL} = useEnvironment();
     const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
@@ -368,7 +366,6 @@ function WorkspaceTaxesPage({
                         currentConnectionName={currentConnectionName}
                         connectedIntegration={connectedIntegration}
                         translatedText={translate('workspace.taxes.importedFromAccountingSoftware')}
-                        environmentURL={environmentURL}
                     />
                 ) : (
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>

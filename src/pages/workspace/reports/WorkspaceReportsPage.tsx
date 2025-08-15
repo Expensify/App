@@ -17,7 +17,6 @@ import Section from '@components/Section';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -69,7 +68,6 @@ function WorkspaceReportFieldsPage({
     const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
     const policy = usePolicy(policyID);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`, {canBeMissing: true});
-    const {environmentURL} = useEnvironment();
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
@@ -134,7 +132,6 @@ function WorkspaceReportFieldsPage({
                     currentConnectionName={currentConnectionName}
                     connectedIntegration={connectedIntegration}
                     translatedText={translate('workspace.reportFields.importedFromAccountingSoftware')}
-                    environmentURL={environmentURL}
                 />
             </Text>
         ) : (
