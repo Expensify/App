@@ -3,8 +3,9 @@ import type {TupleToUnion} from 'type-fest';
 import CONST from '@src/CONST';
 import type {MergeTransaction, Transaction} from '@src/types/onyx';
 import type {Receipt} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getIOUActionForReportID} from './ReportActionsUtils';
-import {findSelfDMReportID} from './ReportUtils';
+import {findSelfDMReportID, getReportOrDraftReport, isExpenseReport} from './ReportUtils';
 import {getAmount, getBillable, getCategory, getCurrency, getDescription, getMerchant, getReimbursable, getTag, isCardTransaction} from './TransactionUtils';
 
 const RECEIPT_SOURCE_URL = 'https://www.expensify.com/receipts/';
@@ -21,7 +22,7 @@ type MergeValue = {
 const MERGE_FIELDS_UTILS = {
     amount: {
         translationKey: 'iou.amount',
-        getDataFn: (transaction: Transaction, isFromExpenseReport: boolean) => getAmount(transaction, isFromExpenseReport),
+        getDataFn: (transaction: Transaction, isFromExpenseReport: boolean, isFromUnreportedExpense: boolean) => getAmount(transaction, isFromExpenseReport, isFromUnreportedExpense),
     },
     currency: {
         translationKey: 'iou.currency',
@@ -141,8 +142,10 @@ function getMergeFieldValue(transaction: OnyxEntry<Transaction>, field: MergeFie
 
     // Handle amount field separately as it requires the second parameter
     if (field === 'amount') {
+        const report = getReportOrDraftReport(transaction?.reportID);
+        const isFromExpenseReport = !isEmptyObject(report) && isExpenseReport(report);
         const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-        return MERGE_FIELDS_UTILS[field].getDataFn(transaction, !isUnreportedExpense);
+        return MERGE_FIELDS_UTILS[field].getDataFn(transaction, isFromExpenseReport, isUnreportedExpense);
     }
 
     return MERGE_FIELDS_UTILS[field].getDataFn(transaction);
