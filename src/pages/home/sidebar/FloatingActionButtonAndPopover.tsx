@@ -3,7 +3,7 @@ import {Str} from 'expensify-common';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
@@ -27,13 +27,13 @@ import {openOldDotLink} from '@libs/actions/Link';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import {createNewReport, startNewChat} from '@libs/actions/Report';
 import {isAnonymousUser} from '@libs/actions/Session';
-import {completeTestDriveTask} from '@libs/actions/Task';
+import {startTestDrive} from '@libs/actions/Tour';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasSeenTourSelector} from '@libs/onboardingSelectors';
+import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
 import {openTravelDotLink, shouldOpenTravelDotLinkWeb} from '@libs/openTravelDotLink';
 import {
     areAllGroupPoliciesExpenseChatDisabled,
@@ -135,6 +135,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         selector: hasSeenTourSelector,
         canBeMissing: true,
     });
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
 
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
@@ -188,9 +189,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     }, [isValidReport, quickActionAvatars, personalDetails, quickAction?.action]);
 
     const quickActionSubtitle = useMemo(() => {
-        if (quickAction?.action === CONST.QUICK_ACTIONS.CREATE_REPORT) {
-            return quickActionPolicy?.name;
-        }
         return !hideQABSubtitle ? (getReportName(quickActionReport) ?? translate('quickAction.updateDestination')) : '';
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -333,7 +331,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                         showDelegateNoAccessModal();
                         return;
                     }
-                    navigateToQuickAction(isValidReport, quickAction, currentUserPersonalDetails, quickActionPolicy?.id, selectOption);
+                    navigateToQuickAction(isValidReport, quickAction, selectOption);
                 });
             };
             return [
@@ -385,7 +383,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         policyChatForActivePolicy,
         quickActionTitle,
         quickActionSubtitle,
-        currentUserPersonalDetails,
         quickActionPolicy,
         quickActionReport,
         isValidReport,
@@ -525,22 +522,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                       iconStyles: styles.popoverIconCircle,
                       iconFill: theme.icon,
                       text: translate('testDrive.quickAction.takeATwoMinuteTestDrive'),
-                      onSelected: () =>
-                          interceptAnonymousUser(() => {
-                              InteractionManager.runAfterInteractions(() => {
-                                  if (
-                                      introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
-                                      introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER ||
-                                      introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ||
-                                      (introSelected?.choice === CONST.ONBOARDING_CHOICES.SUBMIT && introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.WORKSPACE)
-                                  ) {
-                                      completeTestDriveTask(isAnonymousUser());
-                                      Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
-                                  } else {
-                                      Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
-                                  }
-                              });
-                          }),
+                      onSelected: () => interceptAnonymousUser(() => startTestDrive(introSelected, isAnonymousUser(), tryNewDot?.hasBeenAddedToNudgeMigration)),
                   },
               ]
             : []),

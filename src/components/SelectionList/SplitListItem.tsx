@@ -144,6 +144,7 @@ function SplitListItem<TItem extends ListItem>({
                             contentWidth={(formattedOriginalAmount.length + 1) * 8}
                             shouldApplyPaddingToContainer
                             shouldUseDefaultLineHeightForPrefix={false}
+                            shouldWrapInputInContainer={false}
                         />
                     </View>
                     <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto]}>

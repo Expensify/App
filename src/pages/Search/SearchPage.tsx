@@ -74,12 +74,15 @@ function SearchPage({route}: SearchPageProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const newReportID = generateReportID();
     const [newReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReportID}`, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReport?.parentReportID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
+    const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
@@ -190,9 +193,10 @@ function SearchPage({route}: SearchPageProps) {
             const selectedReportIDs = Object.values(selectedReports).map((report) => report.reportID);
             const areFullReportsSelected = selectedTransactionReportIDs.length === selectedReportIDs.length && selectedTransactionReportIDs.every((id) => selectedReportIDs.includes(id));
             const groupByReports = queryJSON?.groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
+            const typeInvoice = queryJSON?.type === CONST.REPORT.TYPE.INVOICE;
 
             // Add the report level export if fully reports are selected and we're on the report page
-            if (groupByReports && areFullReportsSelected) {
+            if ((groupByReports || typeInvoice) && areFullReportsSelected) {
                 exportOptions.push({
                     text: translate('export.reportLevelExport'),
                     icon: Expensicons.Table,
@@ -215,6 +219,61 @@ function SearchPage({route}: SearchPageProps) {
                             // Custom IS templates are not policy specific, so we don't need to pass a policyID
                             beginExportWithTemplate(template.name, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
                         },
+                        shouldCloseModalOnSelect: true,
+                        shouldCallAfterModalHide: true,
+                    });
+                }
+            }
+
+            // Collate a list of policyIDs from the selected transactions
+            const selectedPolicyIDs = [
+                ...new Set(
+                    Object.values(selectedTransactions)
+                        .map((transaction) => transaction.policyID)
+                        .filter(Boolean),
+                ),
+            ];
+
+            // If all of the transactions are on the same policy, add the policy-level in-app export templates as export options
+            if (selectedPolicyIDs.length === 1) {
+                const policyID = selectedPolicyIDs.at(0);
+                const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+                const templates = Object.entries(policy?.exportLayouts ?? {}).map(([templateName, layout]) => ({
+                    ...layout,
+                    templateName,
+                }));
+
+                for (const template of templates) {
+                    exportOptions.push({
+                        text: template.name,
+                        icon: Expensicons.Table,
+                        description: policy?.name,
+                        onSelected: () => {
+                            beginExportWithTemplate(template.templateName, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, policyID);
+                        },
+                        shouldCloseModalOnSelect: true,
+                        shouldCallAfterModalHide: true,
+                    });
+                }
+            }
+
+            // Collate a list of the account level in-app export templates for the
+            const accountInAppTemplates = Object.entries(csvExportLayouts ?? {}).map(([templateName, layout]) => ({
+                ...layout,
+                templateName,
+            }));
+
+            if (accountInAppTemplates && accountInAppTemplates.length > 0) {
+                for (const template of accountInAppTemplates) {
+                    exportOptions.push({
+                        text: template.name,
+                        icon: Expensicons.Table,
+                        onSelected: () => {
+                            // Account level in-app export templates are not policy specific, so we don't need to pass a policyID
+                            beginExportWithTemplate(template.templateName, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, undefined);
+                        },
+                        shouldCloseModalOnSelect: true,
+                        shouldCallAfterModalHide: true,
                     });
                 }
             }
@@ -222,8 +281,9 @@ function SearchPage({route}: SearchPageProps) {
             return exportOptions;
         };
 
-        const exportButtonOption: DropdownOption<SearchHeaderOptionValue> = {
+        const exportButtonOption: DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'rightIcon'> = {
             icon: Expensicons.Export,
+            rightIcon: Expensicons.ArrowRight,
             text: translate('common.export'),
             backButtonText: translate('common.export'),
             value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
@@ -413,7 +473,11 @@ function SearchPage({route}: SearchPageProps) {
                         setIsOfflineModalVisible(true);
                         return;
                     }
-                    setIsDeleteExpensesConfirmModalVisible(true);
+
+                    // Use InteractionManager to ensure this runs after the dropdown modal closes
+                    InteractionManager.runAfterInteractions(() => {
+                        setIsDeleteExpensesConfirmModalVisible(true);
+                    });
                 },
             });
         }
@@ -455,6 +519,8 @@ function SearchPage({route}: SearchPageProps) {
         styles.textWrap,
         beginExportWithTemplate,
         integrationsExportTemplates,
+        csvExportLayouts,
+        policies,
     ]);
 
     const handleDeleteExpenses = () => {
@@ -479,6 +545,7 @@ function SearchPage({route}: SearchPageProps) {
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
             report: newReport,
             parentReport: newParentReport,
+            currentDate,
         });
 
         const newReceiptFiles: ReceiptFile[] = [];
