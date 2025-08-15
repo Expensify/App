@@ -6005,6 +6005,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nigdy',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Ostatni miesiąc',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ten miesiąc',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Ostatni miesiąc',
                 },
             },
