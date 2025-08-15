@@ -618,6 +618,7 @@ type AssignedCardParams = {
 
 type FeatureNameParams = {
     featureName: string;
+    moreFeaturesLink: string;
 };
 
 type AutoPayApprovedReportsLimitErrorParams = {
@@ -847,6 +848,36 @@ type MergeFailureUncreatedAccountDescriptionParams = {
 
 type MergeFailureDescriptionGenericParams = {
     email: string;
+};
+
+type IndividualExpenseRulesSubtitleParams = {
+    categoriesPageLink: string;
+    tagsPageLink: string;
+};
+
+type BillableDefaultDescriptionParams = {
+    tagsPageLink: string;
+};
+
+type WorkspaceShareNoteParams = {
+    adminsRoomLink: string;
+};
+
+type RulesEnableWorkflowsParams = {
+    moreFeaturesLink: string;
+};
+
+type UpgradeSuccessMessageParams = {
+    policyName: string;
+    subscriptionLink: string;
+};
+
+type DomainPermissionInfoRestrictionParams = {
+    domain: string;
+};
+
+type SubmittedWithMemoParams = {
+    memo?: string;
 };
 
 export type {
@@ -1138,4 +1169,11 @@ export type {
     MergeSuccessDescriptionParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
+    IndividualExpenseRulesSubtitleParams,
+    BillableDefaultDescriptionParams,
+    WorkspaceShareNoteParams,
+    RulesEnableWorkflowsParams,
+    UpgradeSuccessMessageParams,
+    DomainPermissionInfoRestrictionParams,
+    SubmittedWithMemoParams,
 };
