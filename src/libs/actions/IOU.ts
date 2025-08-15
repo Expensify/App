@@ -3344,7 +3344,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         taxCode,
         taxAmount,
         billable,
-        reimbursable,
+        reimbursable = true,
         linkedTrackedExpenseReportAction,
     } = transactionParams;
 
