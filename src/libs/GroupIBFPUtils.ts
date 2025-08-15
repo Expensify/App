@@ -35,13 +35,15 @@ function loadGroupIBFP(): Promise<void> {
     });
 }
 
-let fpInstancePromise: Promise<any | undefined> | null = null;
+let resolveFpInstancePromise: (fp: any | undefined) => void = () => {};
+const fpInstancePromise = new Promise<any | undefined>((resolve) => {
+    resolveFpInstancePromise = resolve;
+});
+
 async function init(): Promise<void> {
-    if (fpInstancePromise) {
-        return;
-    }
     if (typeof document === 'undefined') {
-        return Promise.resolve();
+        resolveFpInstancePromise(undefined);
+        return;
     }
     const scriptPromise = loadGroupIBFP();
     const envPromise = getEnvironment();
@@ -49,19 +51,11 @@ async function init(): Promise<void> {
     const fp = (globalThis as any)?.window?.gib;
     const cid = cidMap[env] ?? cidMap[CONST.ENVIRONMENT.DEV];
     fp?.init?.({cid, backUrl: '/api/fl', gafUrl: '//eu.id.group-ib.com/id.html'});
-    fpInstancePromise = Promise.resolve(fp);
-}
-
-async function ensureFP(): Promise<any | undefined> {
-    if (fpInstancePromise) {
-        return fpInstancePromise!!;
-    }
-    await init();
-    return fpInstancePromise!!;
+    resolveFpInstancePromise(fp);
 }
 
 function setAttribute(key: string, value: string, opts?: {persist?: boolean; encryption?: unknown}) {
-    ensureFP().then((fp) => {
+    fpInstancePromise.then((fp) => {
         fp?.setAttribute?.(key, value, opts);
     });
 }
@@ -71,20 +65,20 @@ function sendEvent(event: string, persist = false, encryption: unknown = null) {
 }
 
 function setAuthStatus(isLoggedIn: boolean) {
-    ensureFP().then((fp) => {
+    fpInstancePromise.then((fp) => {
         const status = isLoggedIn ? fp?.IS_AUTHORIZED : fp?.IS_GUEST;
         fp?.setAuthStatus?.(status);
     });
 }
 
 function setSessionID(id: string) {
-    ensureFP().then((fp) => {
+    fpInstancePromise.then((fp) => {
         fp?.setSessionID?.(id);
     });
 }
 
 function setIdentity(id: string | number) {
-    ensureFP().then((fp) => {
+    fpInstancePromise.then((fp) => {
         fp?.setIdentity?.(id);
     });
 }
