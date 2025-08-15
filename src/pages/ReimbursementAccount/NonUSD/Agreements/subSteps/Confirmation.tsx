@@ -3,8 +3,8 @@ import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
@@ -30,21 +30,12 @@ function CertifyTrueAndAccurateLabel() {
 
 function TermsAndConditionsLabel() {
     const {translate} = useLocalize();
-    return (
-        <Text>
-            {translate('common.iAcceptThe')}
-            <TextLink href="https://cross-border.corpay.com/tc/">{`${translate('agreementsStep.termsAndConditions')}`}</TextLink>.
-        </Text>
-    );
+    return <RenderHTML html={translate('agreementsStep.iAcceptTheTermsAndConditions')} />;
 }
 
 function ConsentToPrivacyNoticeLabel() {
     const {translate} = useLocalize();
-    return (
-        <Text>
-            {translate('agreementsStep.iConsentToThe')} <TextLink href="https://payments.corpay.com/compliance">{`${translate('agreementsStep.privacyNotice')}`}</TextLink>.
-        </Text>
-    );
+    return <RenderHTML html={translate('agreementsStep.iConsentToThePrivacyNotice')} />;
 }
 
 const INPUT_KEYS = {
@@ -122,7 +113,7 @@ function Confirmation({onNext, policyCurrency}: ConfirmationProps) {
             />
             <InputWrapper
                 InputComponent={CheckboxWithLabel}
-                accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('agreementsStep.termsAndConditions')}.`}
+                accessibilityLabel={translate('agreementsStep.iAcceptTheTermsAndConditionsAccessibility')}
                 inputID={AGREE_TO_TERMS_AND_CONDITIONS}
                 style={styles.mt6}
                 LabelComponent={TermsAndConditionsLabel}
@@ -131,7 +122,7 @@ function Confirmation({onNext, policyCurrency}: ConfirmationProps) {
             />
             <InputWrapper
                 InputComponent={CheckboxWithLabel}
-                accessibilityLabel={`${translate('agreementsStep.iConsentToThe')} ${translate('agreementsStep.privacyNotice')}.`}
+                accessibilityLabel={translate('agreementsStep.iConsentToThePrivacyNoticeAccessibility')}
                 inputID={CONSENT_TO_PRIVACY_NOTICE}
                 style={styles.mt6}
                 LabelComponent={ConsentToPrivacyNoticeLabel}
