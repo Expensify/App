@@ -74,7 +74,7 @@ function SortableTableHeader({
                                     dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    areAllOptionalColumnsHidden,
+                                    !!areAllOptionalColumnsHidden,
                                 ),
                             ]}
                             isSortable={isSortable}
