@@ -190,8 +190,8 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
             }
 
             // Check for currency differences when values equal
-            if ((targetValue === sourceValue) && getCurrency(targetTransaction) !== getCurrency(sourceTransaction)) {
-                conflictFields.push('amount');
+            if (targetValue === sourceValue && getCurrency(targetTransaction) !== getCurrency(sourceTransaction)) {
+                conflictFields.push(field);
                 return;
             }
         }
