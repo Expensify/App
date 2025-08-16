@@ -35,12 +35,6 @@ type ListItemDataType<C extends SearchDataTypes, T extends SearchStatus> = C ext
 
 /** Model of columns to show for search results */
 type ColumnsToShow = {
-    /** Whether the From column should be shown */
-    shouldShowFromColumn: boolean;
-
-    /** Whether the To column should be shown */
-    shouldShowToColumn: boolean;
-
     /** Whether the category column should be shown */
     shouldShowCategoryColumn: boolean;
 
@@ -50,8 +44,11 @@ type ColumnsToShow = {
     /** Whether the tax column should be shown */
     shouldShowTaxColumn: boolean;
 
-    /** Whether the description column should be shown */
-    shouldShowDescriptionColumn: boolean;
+    /** Whether the from column should be shown */
+    shouldShowFromColumn: boolean;
+
+    /** Whether the to column should be shown */
+    shouldShowToColumn: boolean;
 };
 
 /** Model of search result state */
@@ -409,9 +406,6 @@ type SearchTransaction = {
     /** The ID of the report the transaction is associated with */
     reportID: string;
 
-    /** The name of the file used for a receipt */
-    filename?: string;
-
     /** The report ID of the transaction thread associated with the transaction */
     transactionThreadReportID: string;
 
@@ -438,12 +432,6 @@ type SearchTransaction = {
 
     /** The type of action that's pending  */
     pendingAction?: OnyxCommon.PendingAction;
-
-    /** The CC for this transaction */
-    cardID?: number;
-
-    /** The display name of the purchaser card, if any */
-    cardName?: string;
 };
 
 /** Model of tasks search result */
@@ -479,20 +467,46 @@ type SearchTask = {
     statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 };
 
-/** Model of card search result */
-// s77rt sync with BE
-type SearchCard = {
+/** Model of member grouped search result */
+type SearchMemberGroup = {
+    /** Account ID */
+    accountID: number;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+};
+
+/** Model of card grouped search result */
+type SearchCardGroup = {
+    /** Cardholder account ID */
+    accountID: number;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+
     /** Bank name */
     bank: string;
-
-    /** Last four Primary Account Number digits */
-    lastFourPAN: string;
 
     /** Card name */
     cardName: string;
 
-    /** Cardholder account ID */
-    accountID: number;
+    /** Card ID */
+    cardID: number;
+
+    /** Last four Primary Account Number digits */
+    lastFourPAN: string;
 };
 
 /** Types of searchable transactions */
@@ -516,9 +530,9 @@ type SearchResults = {
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, SearchPolicy> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, SearchCard> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>;
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
+        PrefixedRecord<typeof CONST.SEARCH.GROUP_PREFIX, SearchMemberGroup | SearchCardGroup>;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
@@ -541,6 +555,7 @@ export type {
     SearchReport,
     SearchReportAction,
     SearchPolicy,
-    SearchCard,
     SearchResultsInfo,
+    SearchMemberGroup,
+    SearchCardGroup,
 };

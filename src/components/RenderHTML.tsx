@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import {RenderHTMLSource} from 'react-native-render-html';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import CONST from '@src/CONST';
+import Parser from '@libs/Parser';
 
 type RenderHTMLProps = {
     /** HTML string to render */
@@ -15,8 +15,12 @@ type RenderHTMLProps = {
 function RenderHTML({html: htmlParam}: RenderHTMLProps) {
     const {windowWidth} = useWindowDimensions();
     const html = useMemo(() => {
-        // Wrap all unwrapped emojis in `<emoji>` tags.
-        return htmlParam.replace(CONST.REGEX.UNWRAPPED_EMOJI, '<emoji>$1</emoji>');
+        return (
+            Parser.replace(htmlParam, {shouldEscapeText: false, filterRules: ['emoji']})
+                // Remove double <emoji> tag if exists and keep the outermost tag (always the original tag).
+                .replace(/(<emoji[^>]*>)(?:<emoji[^>]*>)+/g, '$1')
+                .replace(/(<\/emoji[^>]*>)(?:<\/emoji[^>]*>)+/g, '$1')
+        );
     }, [htmlParam]);
     return (
         <RenderHTMLSource

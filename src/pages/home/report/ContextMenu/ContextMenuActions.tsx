@@ -337,10 +337,16 @@ const ContextMenuActions: ContextMenuAction[] = [
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && (canEditReportAction(reportAction) || canEditReportAction(moneyRequestAction)) && !isArchivedRoom && !isChronosReport,
         onPress: (closePopover, {reportID, reportAction, draftMessage, moneyRequestAction}) => {
             if (isMoneyRequestAction(reportAction) || isMoneyRequestAction(moneyRequestAction)) {
-                hideContextMenu(false);
-                const childReportID = reportAction?.childReportID;
-                openReport(childReportID);
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
+                const editExpense = () => {
+                    const childReportID = reportAction?.childReportID;
+                    openReport(childReportID);
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
+                };
+                if (closePopover) {
+                    hideContextMenu(false, editExpense);
+                    return;
+                }
+                editExpense();
                 return;
             }
             const editAction = () => {
@@ -563,6 +569,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getPolicyChangeLogDefaultBillableMessage(reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED) {
                     Clipboard.setString(getPolicyChangeLogDefaultTitleEnforcedMessage(reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
+                    Clipboard.setString(translateLocal('iou.unreportedTransaction'));
                 } else if (isReimbursementQueuedAction(reportAction)) {
                     Clipboard.setString(getReimbursementQueuedActionMessage({reportAction, reportOrID: reportID, shouldUseShortDisplayName: false}));
                 } else if (isActionableMentionWhisper(reportAction)) {
@@ -581,7 +589,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     if (harvesting) {
                         setClipboardMessage(translateLocal('iou.automaticallySubmitted'));
                     } else {
-                        Clipboard.setString(translateLocal('iou.submitted'));
+                        Clipboard.setString(translateLocal('iou.submitted', {memo: getOriginalMessage(reportAction)?.message}));
                     }
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
                     const {automaticAction} = getOriginalMessage(reportAction) ?? {};
