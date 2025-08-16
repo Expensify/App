@@ -12,6 +12,9 @@ type MergeTransaction = {
     /** API will set this to contain eligible transactions */
     eligibleTransactions: Transaction[];
 
+    /** Track which transaction was selected for each field (for persistence across page reloads) */
+    selectedTransactionByField?: Partial<Record<string, string>>;
+
     /** Amount which user want to keep */
     amount: number;
 

@@ -1,11 +1,17 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type {MergeTransaction, Transaction} from '@src/types/onyx';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {convertToDisplayString} from './CurrencyUtils';
+import Parser from './Parser';
+import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {getIOUActionForReportID} from './ReportActionsUtils';
 import {findSelfDMReportID, getReportOrDraftReport, isExpenseReport} from './ReportUtils';
+import StringUtils from './StringUtils';
 import {getAmount, getBillable, getCategory, getCurrency, getDescription, getMerchant, getReimbursable, getTag, isCardTransaction} from './TransactionUtils';
 
 const RECEIPT_SOURCE_URL = 'https://www.expensify.com/receipts/';
@@ -13,10 +19,16 @@ const RECEIPT_SOURCE_URL = 'https://www.expensify.com/receipts/';
 // Define the specific merge fields we want to handle
 const MERGE_FIELDS = ['amount', 'currency', 'merchant', 'category', 'tag', 'description', 'reimbursable', 'billable'] as const;
 type MergeFieldKey = TupleToUnion<typeof MERGE_FIELDS>;
-type MergeValueType = string | number | boolean;
-type MergeValue = {
-    value: MergeValueType;
-    currency?: string;
+type MergeFieldOption = {
+    transaction: Transaction;
+    displayValue: string;
+    isSelected: boolean;
+};
+
+type MergeFieldData = {
+    field: MergeFieldKey;
+    label: string;
+    options: MergeFieldOption[];
 };
 
 const MERGE_FIELDS_UTILS = {
@@ -292,6 +304,79 @@ function selectTargetAndSourceTransactionIDsForMerge(originalTargetTransaction: 
     return {targetTransactionID: originalTargetTransaction?.transactionID, sourceTransactionID: originalSourceTransaction?.transactionID};
 }
 
+/**
+ * Get display value for merge transaction field
+ * @param field - The merge field key to get display value for
+ * @param transaction - The transaction to get the field value from
+ * @param translate - The translation function
+ * @returns The formatted display string for the field value
+ */
+function getDisplayValue(field: MergeFieldKey, transaction: Transaction, translate: LocaleContextProps['translate']): string {
+    const fieldValue = getMergeFieldValue(transaction, field);
+
+    if (isEmptyMergeValue(fieldValue)) {
+        return '';
+    }
+    if (typeof fieldValue === 'boolean') {
+        return fieldValue ? translate('common.yes') : translate('common.no');
+    }
+    if (field === 'amount') {
+        return convertToDisplayString(Number(fieldValue), getCurrency(transaction));
+    }
+    if (field === 'description') {
+        return StringUtils.lineBreaksToSpaces(Parser.htmlToText(fieldValue.toString()));
+    }
+    if (field === 'tag') {
+        return getCommaSeparatedTagNameWithSanitizedColons(fieldValue.toString());
+    }
+    return String(fieldValue);
+}
+/**
+ * Build merge fields data array from conflict fields for UI display
+ * @param conflictFields - Array of field keys that have conflicts
+ * @param targetTransaction - The target transaction
+ * @param sourceTransaction - The source transaction
+ * @param mergeTransaction - The current merge transaction state
+ * @param translate - The translation function
+ * @returns Array of merge field data for UI rendering
+ */
+function buildMergeFieldsData(
+    conflictFields: MergeFieldKey[],
+    targetTransaction: Transaction | undefined,
+    sourceTransaction: Transaction | undefined,
+    mergeTransaction: MergeTransaction | null | undefined,
+    translate: LocaleContextProps['translate'],
+): MergeFieldData[] {
+    if (!targetTransaction || !sourceTransaction) {
+        return [];
+    }
+
+    return conflictFields.map((field) => {
+        const label = translate(getMergeFieldTranslationKey(field) as TranslationPaths);
+        const selectedTransactionId = mergeTransaction?.selectedTransactionByField?.[field];
+
+        // Create options for this field
+        const options: MergeFieldOption[] = [
+            {
+                transaction: targetTransaction,
+                displayValue: getDisplayValue(field, targetTransaction, translate),
+                isSelected: selectedTransactionId === targetTransaction.transactionID,
+            },
+            {
+                transaction: sourceTransaction,
+                displayValue: getDisplayValue(field, sourceTransaction, translate),
+                isSelected: selectedTransactionId === sourceTransaction.transactionID,
+            },
+        ];
+
+        return {
+            field,
+            label,
+            options,
+        };
+    });
+}
+
 export {
     getSourceTransactionFromMergeTransaction,
     getTargetTransactionFromMergeTransaction,
@@ -305,6 +390,8 @@ export {
     fillMissingReceiptSource,
     getTransactionThreadReportID,
     getReceiptFileName,
+    getDisplayValue,
+    buildMergeFieldsData,
 };
 
-export type {MergeFieldKey, MergeValueType, MergeValue};
+export type {MergeFieldKey, MergeFieldData};
