@@ -358,6 +358,9 @@ type PureReportActionItemProps = {
 
     /** Whether to highlight the action for a few seconds */
     shouldHighlight?: boolean;
+
+    /** User who has in its tryNewDot NVP */
+    hasInTryNewDot?: boolean;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -422,6 +425,7 @@ function PureReportActionItem({
     userBillingFundID,
     shouldShowBorder,
     shouldHighlight = false,
+    hasInTryNewDot = false,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate, datetimeToCalendarTime, formatPhoneNumber, localeCompare} = useLocalize();
@@ -1196,7 +1200,7 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
             children = (
                 <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment><muted-text>${getIntegrationSyncFailedMessage(action, report?.policyID)}</muted-text></comment>`} />
+                    <RenderHTML html={`<comment><muted-text>${getIntegrationSyncFailedMessage(action, report?.policyID, hasInTryNewDot)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION)) {

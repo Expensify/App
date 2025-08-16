@@ -85,6 +85,9 @@ type ReportActionItemParentActionProps = {
 
     /** User billing fund ID */
     userBillingFundID: number | undefined;
+
+    /** User who has in its tryNewDot NVP */
+    hasInTryNewDot: boolean | undefined;
 };
 
 function ReportActionItemParentAction({
@@ -106,6 +109,7 @@ function ReportActionItemParentAction({
     allEmojiReactions,
     linkedTransactionRouteError,
     userBillingFundID,
+    hasInTryNewDot = false,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestorIDs = useRef(getAllAncestorReportActionIDs(report));
@@ -221,6 +225,7 @@ function ReportActionItemParentAction({
                             emojiReactions={actionEmojiReactions}
                             linkedTransactionRouteError={linkedTransactionRouteError}
                             userBillingFundID={userBillingFundID}
+                            hasInTryNewDot={hasInTryNewDot}
                         />
                     </OfflineWithFeedback>
                 );
