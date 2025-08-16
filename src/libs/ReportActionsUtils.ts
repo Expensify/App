@@ -746,6 +746,14 @@ function isActionableReportMentionWhisper(reportAction: OnyxEntry<ReportAction>)
 }
 
 /**
+ * Checks if a given report action corresponds to an actionable mention invite to submit expense confirm whisper.
+ * @param reportAction
+ */
+function isActionableMentionInviteToSubmitExpenseConfirmWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER);
+}
+
+/**
  * Checks if a given report action corresponds to a welcome whisper.
  * @param reportAction
  */
@@ -766,8 +774,9 @@ function isActionableWhisper(
     | typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER
     | typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER
     | typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER
+    | typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER
 > {
-    return isActionableMentionWhisper(reportAction) || isActionableTrackExpense(reportAction) || isActionableReportMentionWhisper(reportAction);
+    return isActionableMentionWhisper(reportAction) || isActionableTrackExpense(reportAction) || isActionableReportMentionWhisper(reportAction) || isActionableMentionInviteToSubmitExpenseConfirmWhisper(reportAction);
 }
 
 const {POLICY_CHANGE_LOG: policyChangelogTypes, ROOM_CHANGE_LOG: roomChangeLogTypes, ...otherActionTypes} = CONST.REPORT.ACTIONS.TYPE;
@@ -3132,6 +3141,7 @@ export {
     getVacationer,
     getSubmittedTo,
     getReceiptScanFailedMessage,
+    isActionableMentionInviteToSubmitExpenseConfirmWhisper,
 };
 
 export type {LastVisibleMessage};
