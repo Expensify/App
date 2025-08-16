@@ -498,6 +498,9 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
     /** User billing fund ID */
     userBillingFundID: number | undefined;
+
+    /** User who has in its tryNewDot NVP */
+    hasInTryNewDot: boolean | undefined;
 };
 
 type ValidListItem =

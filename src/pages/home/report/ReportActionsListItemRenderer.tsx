@@ -92,6 +92,9 @@ type ReportActionsListItemRendererProps = {
 
     /** All emoji reactions collection */
     allEmojiReactions?: OnyxCollection<ReportActionReactions>;
+
+    /** User who has in its tryNewDot NVP */
+    hasInTryNewDot: boolean | undefined;
 };
 
 function ReportActionsListItemRenderer({
@@ -123,6 +126,7 @@ function ReportActionsListItemRenderer({
     personalDetails,
     allDraftMessages,
     allEmojiReactions,
+    hasInTryNewDot = false,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -219,6 +223,7 @@ function ReportActionsListItemRenderer({
                 allEmojiReactions={allEmojiReactions}
                 linkedTransactionRouteError={linkedTransactionRouteError}
                 userBillingFundID={userBillingFundID}
+                hasInTryNewDot={hasInTryNewDot}
             />
         );
     }

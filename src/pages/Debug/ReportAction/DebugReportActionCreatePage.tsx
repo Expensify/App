@@ -54,6 +54,8 @@ function DebugReportActionCreatePage({
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     const [draftReportAction, setDraftReportAction] = useState<string>(() => getInitialReportAction(reportID, session, personalDetailsList));
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
+    const hasInTryNewDot = !!tryNewDot?.classicRedirect?.dismissed;
 
     const [error, setError] = useState<string>();
 
@@ -128,6 +130,7 @@ function DebugReportActionCreatePage({
                                     isUserValidated={isUserValidated}
                                     personalDetails={personalDetailsList}
                                     userBillingFundID={userBillingFundID}
+                                    hasInTryNewDot={hasInTryNewDot}
                                 />
                             ) : (
                                 <Text>{translate('debug.nothingToPreview')}</Text>
