@@ -31,7 +31,7 @@ You can delete any out-of-pocket expense that hasn’t been submitted yet:
 
 You’ll need to reopen the report first:
 
-1. Tap **Undo submit** or **Undo close**.
+1. Tap **Retract** or **Undo close**.
 2. Once reopened, follow the steps above to delete any eligible expenses.
 
 **Note:** You can only undo reports that are in the **Closed** or **Processing** state. Reports that are **Approved** or **Paid** cannot be reopened.
