@@ -13,10 +13,10 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
-import DomUtils from '@libs/DomUtils';
 import type {AnchorOrigin, EmojiPickerOnModalHide, EmojiPickerRef, EmojiPopoverAnchor, OnEmojiSelected, ShowEmojiPickerOptions} from '@libs/actions/EmojiPickerAction';
 import {isMobileChrome} from '@libs/Browser';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
+import DomUtils from '@libs/DomUtils';
 import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
 import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -86,8 +86,8 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
         onEmojiSelected: onEmojiSelectedValue,
         emojiPopoverAnchor: emojiPopoverAnchorValue,
         anchorOrigin,
-        onWillShow,
-        id,
+        onWillShow = () => {},
+        id = undefined,
         activeEmoji: activeEmojiValue,
         withoutOverlay = true,
         composerToRefocusOnClose: composerToRefocusOnCloseValue,
@@ -136,23 +136,23 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
      * Hide the emoji picker menu.
      */
     const hideEmojiPicker = (isNavigating?: boolean) => {
-      const activeElementId = DomUtils.getActiveElement()?.id;
-      if (activeElementId !== CONST.COMPOSER.NATIVE_ID) {
-          blurActiveElement();
-      }
-      const currOnModalHide = onModalHide.current;
-      onModalHide.current = () => {
-          if (currOnModalHide) {
-              currOnModalHide(!!isNavigating);
-          }
+        const activeElementId = DomUtils.getActiveElement()?.id;
+        if (activeElementId !== CONST.COMPOSER.NATIVE_ID) {
+            blurActiveElement();
+        }
+        const currOnModalHide = onModalHide.current;
+        onModalHide.current = () => {
+            if (currOnModalHide) {
+                currOnModalHide(!!isNavigating);
+            }
 
-          emojiPopoverAnchorRef.current = null;
-      };
-      setIsEmojiPickerVisible(false);
-      actionSheetAwareScrollViewContext.transitionActionSheetState({
-        type: Actions.CLOSE_POPOVER,
-    });
-  };
+            emojiPopoverAnchorRef.current = null;
+        };
+        setIsEmojiPickerVisible(false);
+        actionSheetAwareScrollViewContext.transitionActionSheetState({
+            type: Actions.CLOSE_POPOVER,
+        });
+    };
 
     const handleModalHide = () => {
         onModalHide.current();
