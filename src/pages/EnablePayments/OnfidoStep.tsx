@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Onfido from '@components/Onfido';
@@ -21,7 +21,7 @@ function OnfidoStep() {
         initWithStoredValues: false,
     });
 
-    const shouldShowOnfido = walletOnfidoData?.hasAcceptedPrivacyPolicy && !walletOnfidoData?.isLoading && !walletOnfidoData?.errors && walletOnfidoData?.sdkToken;
+    const shouldShowOnfido = walletOnfidoData?.hasAcceptedPrivacyPolicy && !walletOnfidoData?.isLoading && !walletOnfidoData?.errors && walletOnfidoData?.sdkToken && walletOnfidoData?.isOnfidoMounting;
 
     const goBack = useCallback(() => {
         Navigation.goBack();
@@ -46,6 +46,12 @@ function OnfidoStep() {
         },
         [walletOnfidoData?.applicantID],
     );
+
+    useEffect(() => {
+        console.log('OnfidoStep mounted');
+        return () => console.log('OnfidoStep unmounted');
+    }, []);
+    console.log('walletOnfidoData', walletOnfidoData, 'shouldShowOnfido', shouldShowOnfido);
 
     return (
         <>
