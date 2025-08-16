@@ -23,6 +23,7 @@ import type SCREENS from '@src/SCREENS';
 import EditReportFieldDate from './EditReportFieldDate';
 import EditReportFieldDropdown from './EditReportFieldDropdown';
 import EditReportFieldText from './EditReportFieldText';
+import { Policy } from '@src/types/onyx';
 
 type EditReportFieldPageProps = PlatformStackScreenProps<EditRequestNavigatorParamList, typeof SCREENS.EDIT_REQUEST.REPORT_FIELD>;
 
@@ -40,7 +41,10 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const {translate} = useLocalize();
     const isReportFieldTitle = isReportFieldOfTypeTitle(reportField);
     const reportFieldsEnabled = ((isPaidGroupPolicyExpenseReport(report) || isInvoiceReport(report)) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
-
+    const hasOtherViolations = report?.fieldList && Object.entries(report.fieldList).some(
+        ([key, field] : any) => key !== fieldKey && field.value === "" && !isReportFieldDisabled(report, reportField, policy)
+    );
+    
     if (!reportFieldsEnabled || !reportField || !policyField || !report || isDisabled) {
         return (
             <ScreenWrapper
@@ -68,7 +72,13 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
             goBack();
         } else {
             if (value !== '') {
-                updateReportField(report.reportID, {...reportField, value}, reportField);
+                updateReportField(
+                    {...report, reportID: report.reportID},
+                    {...reportField, value},
+                    reportField,
+                    policy as unknown as Policy,
+                    hasOtherViolations
+                );
             }
             goBack();
         }
