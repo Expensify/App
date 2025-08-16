@@ -1921,31 +1921,4 @@ describe('actions/Report', () => {
             expect(upperCaseRequest?.data?.searchInput).toBe(lowerCaseRequest?.data?.searchInput);
         });
     });
-
-    describe('resolveActionableMentionWhisper', () => {
-        it('should call ResolveActionableMentionWhisper API with currentReportID for navigation context', async () => {
-            global.fetch = TestHelper.getGlobalFetchMock();
-            const mockReportAction = {
-                reportActionID: 'test-action-id',
-                message: [{type: 'TEXT', text: 'Test whisper message'}],
-            } as OnyxTypes.ReportAction;
-            const testReportID = 'test-report-123';
-            const resolution = CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE;
-
-            Report.resolveActionableMentionWhisper(testReportID, mockReportAction, resolution);
-            await waitForBatchedUpdates();
-
-            const apiCall = (global.fetch as MockFetch).mock.calls.find(([url]) => url.includes('ResolveActionableMentionWhisper'));
-            expect(apiCall).toBeDefined();
-            
-            if (apiCall) {
-                const [, options] = apiCall;
-                const requestData = JSON.parse(options?.body as string);
-                
-                expect(requestData.reportActionID).toBe('test-action-id');
-                expect(requestData.resolution).toBe(resolution);
-                expect(requestData.currentReportID).toBe(testReportID);
-            }
-        });
-    });
 });
