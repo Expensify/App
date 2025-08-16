@@ -7,6 +7,7 @@ import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import {WorkspaceBuilding} from '@components/Icon/WorkspaceDefaultAvatars';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -18,7 +19,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardFeedIcon} from '@libs/CardUtils';
-import localeCompare from '@libs/LocaleCompare';
 import {getUserDetailTooltipText} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import Navigation from '@navigation/Navigation';
@@ -289,7 +289,7 @@ function ReportActionAvatarSubscript({
 const getIconDisplayName = (icon: IconType, personalDetails: OnyxInputOrEntry<PersonalDetailsList>) =>
     icon.id ? (personalDetails?.[icon.id]?.displayName ?? personalDetails?.[icon.id]?.login ?? '') : '';
 
-function sortIconsByName(icons: IconType[], personalDetails: OnyxInputOrEntry<PersonalDetailsList>) {
+function sortIconsByName(icons: IconType[], personalDetails: OnyxInputOrEntry<PersonalDetailsList>, localeCompare: LocaleContextProps['localeCompare']) {
     return icons.sort((first, second) => {
         // First sort by displayName/login
         const displayNameLoginOrder = localeCompare(getIconDisplayName(first, personalDetails), getIconDisplayName(second, personalDetails));
@@ -330,6 +330,7 @@ function ReportActionAvatarMultipleHorizontal({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {localeCompare} = useLocalize();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
@@ -345,13 +346,13 @@ function ReportActionAvatarMultipleHorizontal({
         let avatars: IconType[] = unsortedIcons;
 
         if (sortAvatars?.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME)) {
-            avatars = sortIconsByName(unsortedIcons, personalDetails);
+            avatars = sortIconsByName(unsortedIcons, personalDetails, localeCompare);
         } else if (sortAvatars?.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.ID)) {
             avatars = lodashSortBy(unsortedIcons, (icon) => icon.id);
         }
 
         return sortAvatars?.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE) ? avatars.reverse() : avatars;
-    }, [unsortedIcons, personalDetails, sortAvatars]);
+    }, [unsortedIcons, personalDetails, sortAvatars, localeCompare]);
 
     const avatarRows = useMemo(() => {
         // If we're not displaying avatars in rows or the number of icons is less than or equal to the max avatars in a row, return a single row
