@@ -3687,7 +3687,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     optimisticTransaction.iouRequestType = CONST.IOU.REQUEST_TYPE.PER_DIEM;
     optimisticTransaction.hasEReceipt = true;
 
-    const optimisticPolicyRecentlyUsedCategories = lodashUnion([category], policyRecentlyUsedCategories).filter((category) => category !== undefined);
+    const optimisticPolicyRecentlyUsedCategories = lodashUnion([category], policyRecentlyUsedCategories).filter((c) => c !== undefined);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
     const optimisticPolicyRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
     const optimisticPolicyRecentlyUsedDestinations = customUnit.customUnitRateID ? [...new Set([customUnit.customUnitRateID, ...(recentlyUsedDestinations ?? [])])] : [];

@@ -893,29 +893,7 @@ function IOURequestStepConfirmation({
 
             requestMoney(selectedParticipants);
         },
-        [
-            iouType,
-            transaction,
-            isDistanceRequest,
-            isMovingTransactionFromTrackExpense,
-            receiptFiles,
-            isCategorizingTrackExpense,
-            isSharingTrackExpense,
-            isPerDiemRequest,
-            requestMoney,
-            createDistanceRequest,
-            currentUserPersonalDetails.login,
-            currentUserPersonalDetails.accountID,
-            report,
-            transactionTaxCode,
-            transactionTaxAmount,
-            policy,
-            policyTags,
-            policyCategories,
-            trackExpense,
-            submitPerDiemExpense,
-            userLocation,
-        ],
+        [iouType, transaction, isDistanceRequest, isMovingTransactionFromTrackExpense, receiptFiles, isCategorizingTrackExpense, isSharingTrackExpense, isPerDiemRequest, requestMoney, createDistanceRequest, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, report, transactionTaxCode, transactionTaxAmount, policy, policyTags, policyCategories, policyRecentlyUsedCategories, trackExpense, userLocation, submitPerDiemExpense],
     );
 
     /**
