@@ -3,6 +3,7 @@ import AttachmentModal from '@components/AttachmentModal';
 import useOnyx from '@hooks/useOnyx';
 import {navigateToStartStepIfScanFileCannotBeRead} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
+import {getReceiptFileName} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -27,15 +28,25 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [reportMetadata = CONST.DEFAULT_REPORT_METADATA] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: true});
 
-    // If we have a merge transaction, we need to use the receipt from the merge transaction
     const mergeTransactionID = route.params.mergeTransactionID;
     const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, {canBeMissing: true});
-    if (mergeTransactionID && mergeTransaction && transactionMain) {
-        transactionMain.receipt = mergeTransaction.receipt;
-    }
 
     const isDraftTransaction = !!action;
-    const transaction = isDraftTransaction ? transactionDraft : transactionMain;
+
+    // Determine which transaction to use based on the scenario
+    let transaction;
+    if (isDraftTransaction) {
+        transaction = transactionDraft;
+    } else if (mergeTransactionID && mergeTransaction && transactionMain) {
+        // If we have a merge transaction, we need to use the receipt from the merge transaction
+        transaction = {
+            ...transactionMain,
+            receipt: mergeTransaction.receipt,
+            filename: getReceiptFileName(mergeTransaction.receipt),
+        };
+    } else {
+        transaction = transactionMain;
+    }
     const receiptURIs = getThumbnailAndImageURIs(transaction);
     const isLocalFile = receiptURIs.isLocalFile;
     const readonly = route.params.readonly === 'true';
