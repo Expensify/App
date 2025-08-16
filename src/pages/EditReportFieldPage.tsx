@@ -20,7 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type { Policy } from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 import EditReportFieldDate from './EditReportFieldDate';
 import EditReportFieldDropdown from './EditReportFieldDropdown';
 import EditReportFieldText from './EditReportFieldText';
@@ -41,10 +41,9 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const {translate} = useLocalize();
     const isReportFieldTitle = isReportFieldOfTypeTitle(reportField);
     const reportFieldsEnabled = ((isPaidGroupPolicyExpenseReport(report) || isInvoiceReport(report)) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
-    const hasOtherViolations = report?.fieldList && Object.entries(report.fieldList).some(
-        ([key, field]) => key !== fieldKey && field.value === "" && !isReportFieldDisabled(report, reportField, policy)
-    );
-    
+    const hasOtherViolations =
+        report?.fieldList && Object.entries(report.fieldList).some(([key, field]) => key !== fieldKey && field.value === '' && !isReportFieldDisabled(report, reportField, policy));
+
     if (!reportFieldsEnabled || !reportField || !policyField || !report || isDisabled) {
         return (
             <ScreenWrapper
@@ -72,13 +71,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
             goBack();
         } else {
             if (value !== '') {
-                updateReportField(
-                    {...report, reportID: report.reportID},
-                    {...reportField, value},
-                    reportField,
-                    policy as unknown as Policy,
-                    hasOtherViolations
-                );
+                updateReportField({...report, reportID: report.reportID}, {...reportField, value}, reportField, policy as unknown as Policy, hasOtherViolations);
             }
             goBack();
         }
