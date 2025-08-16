@@ -26,6 +26,7 @@ import type {MergeFieldKey} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
+import {getTransactionDetails} from '@libs/ReportUtils';
 import {getCurrency} from '@libs/TransactionUtils';
 import {openReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -95,7 +96,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     // Handle selection
     const handleSelect = useCallback(
         (transaction: Transaction, field: MergeFieldKey) => {
-            const fieldValue = getMergeFieldValue(transaction, field);
+            const fieldValue = getMergeFieldValue(getTransactionDetails(transaction), transaction, field);
 
             // Clear error if it has
             setHasErrors((prev) => {
