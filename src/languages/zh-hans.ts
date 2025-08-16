@@ -551,6 +551,7 @@ const translations = {
         auditor: '审计员',
         role: '角色',
         currency: '货币',
+        groupCurrency: '集团货币',
         rate: '费率',
         emptyLHN: {
             title: '太好了！全部搞定了。',
@@ -5943,8 +5944,8 @@ const translations = {
             reimbursable: '可报销的',
             groupBy: {
                 reports: '报告',
-                members: '成员',
-                cards: '卡片',
+                from: '从',
+                card: '卡片',
             },
             feed: '通道',
             withdrawalType: {

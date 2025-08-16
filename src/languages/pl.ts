@@ -551,6 +551,7 @@ const translations = {
         auditor: 'Audytor',
         role: 'Rola',
         currency: 'Waluta',
+        groupCurrency: 'Waluta grupy',
         rate: 'Oceń',
         emptyLHN: {
             title: 'Hurra! Wszystko nadrobione.',
@@ -6041,8 +6042,8 @@ const translations = {
             reimbursable: 'Podlegające zwrotowi',
             groupBy: {
                 reports: 'Raport',
-                members: 'Członek',
-                cards: 'Karta',
+                from: 'Od',
+                card: 'Karta',
             },
             feed: 'Kanal',
             withdrawalType: {
