@@ -1,11 +1,12 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import {getBrickRoadForPolicy, getChatTabBrickRoad, getChatTabBrickRoadReportID} from '@libs/WorkspacesSettingsUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions, ReportAttributesDerivedValue, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -44,12 +45,7 @@ describe('WorkspacesSettingsUtils', () => {
             });
 
             await waitForBatchedUpdates();
-            const reportAttributes = await new Promise<ReportAttributesDerivedValue | undefined>((resolve) => {
-                Onyx.connect({
-                    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
-                    callback: resolve,
-                });
-            });
+            const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             // When calling getBrickRoadForPolicy with a reportID
             // eslint-disable-next-line rulesdir/no-default-id-values
@@ -73,12 +69,7 @@ describe('WorkspacesSettingsUtils', () => {
             });
 
             await waitForBatchedUpdates();
-            const reportAttributes = await new Promise<ReportAttributesDerivedValue | undefined>((resolve) => {
-                Onyx.connect({
-                    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
-                    callback: resolve,
-                });
-            });
+            const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             // When calling getBrickRoadForPolicy with a reportID
             // eslint-disable-next-line rulesdir/no-default-id-values
@@ -109,12 +100,7 @@ describe('WorkspacesSettingsUtils', () => {
             const reportIDs = Object.values(reports).map((report) => report.reportID);
 
             await waitForBatchedUpdates();
-            const reportAttributes = await new Promise<ReportAttributesDerivedValue | undefined>((resolve) => {
-                Onyx.connect({
-                    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
-                    callback: resolve,
-                });
-            });
+            const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             // When calling getChatTabBrickRoadReportID with reportIDs
             const result = getChatTabBrickRoadReportID(reportIDs, reportAttributes?.reports);
@@ -138,12 +124,7 @@ describe('WorkspacesSettingsUtils', () => {
             const reportIDs = Object.values(reports).map((report) => report.reportID);
 
             await waitForBatchedUpdates();
-            const reportAttributes = await new Promise<ReportAttributesDerivedValue | undefined>((resolve) => {
-                Onyx.connect({
-                    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
-                    callback: resolve,
-                });
-            });
+            const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             // When calling getChatTabBrickRoadReportID with reportIDs
             const result = getChatTabBrickRoadReportID(reportIDs, reportAttributes?.reports);
@@ -173,12 +154,7 @@ describe('WorkspacesSettingsUtils', () => {
             const reportIDs = Object.values(reports).map((report) => report.reportID);
 
             await waitForBatchedUpdates();
-            const reportAttributes = await new Promise<ReportAttributesDerivedValue | undefined>((resolve) => {
-                Onyx.connect({
-                    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
-                    callback: resolve,
-                });
-            });
+            const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             // When calling getChatTabBrickRoad with reportIDs
             const result = getChatTabBrickRoad(reportIDs, reportAttributes?.reports);
@@ -202,12 +178,7 @@ describe('WorkspacesSettingsUtils', () => {
             const reportIDs = Object.values(reports).map((report) => report.reportID);
 
             await waitForBatchedUpdates();
-            const reportAttributes = await new Promise<ReportAttributesDerivedValue | undefined>((resolve) => {
-                Onyx.connect({
-                    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
-                    callback: resolve,
-                });
-            });
+            const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             // When calling getChatTabBrickRoad with reportIDs
             const result = getChatTabBrickRoad(reportIDs, reportAttributes?.reports);
