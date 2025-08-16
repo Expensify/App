@@ -84,7 +84,7 @@ function IOURequestEditReportCommon({
             });
         }
         return getOutstandingReportsForUser(selectedPolicyID, reportOwnerAccountID, outstandingReportsByPolicyID?.[selectedPolicyID], reportNameValuePairs, isEditing);
-    }, [outstandingReportsByPolicyID, reportOwnerAccountID, allPoliciesID, reportNameValuePairs, selectedPolicyID, isEditing]);
+    }, [outstandingReportsByPolicyID, reportOwnerAccountID, allPoliciesID, reportNameValuePairs, selectedReport, selectedPolicyID, isEditing]);
 
     const reportOptions: TransactionGroupListItem[] = useMemo(() => {
         if (!outstandingReportsByPolicyID || isEmptyObject(outstandingReportsByPolicyID)) {
@@ -121,7 +121,7 @@ function IOURequestEditReportCommon({
             return true;
         }
 
-        if (!selectedReport || !selectedReportID) {
+        if (!selectedReport) {
             return false;
         }
 
