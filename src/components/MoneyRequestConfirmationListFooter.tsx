@@ -287,7 +287,6 @@ function MoneyRequestConfirmationListFooter({
     const selectedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const shouldUseTransactionReport = !!transactionReport && isReportOutstanding(transactionReport, policyID, undefined, false);
     const outstandingReportID = isPolicyExpenseChat ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.iouReportID : reportID;
-    const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
 
     let reportName = getReportName(shouldUseTransactionReport ? transactionReport : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${outstandingReportID}`], selectedPolicy);
 
