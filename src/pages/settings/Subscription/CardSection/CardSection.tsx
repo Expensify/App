@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -12,6 +11,7 @@ import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,6 +33,7 @@ import SubscriptionBillingBanner from './BillingBanner/SubscriptionBillingBanner
 import TrialEndedBillingBanner from './BillingBanner/TrialEndedBillingBanner';
 import TrialStartedBillingBanner from './BillingBanner/TrialStartedBillingBanner';
 import CardSectionActions from './CardSectionActions';
+import CardSectionButton from './CardSectionButton';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
 import RequestEarlyCancellationMenuItem from './RequestEarlyCancellationMenuItem';
 import type {BillingStatusResult} from './utils';
@@ -44,7 +45,7 @@ function CardSection() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: true});
+    const privateSubscription = usePrivateSubscription();
     const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
     const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
@@ -175,7 +176,7 @@ function CardSection() {
 
                 <View style={styles.mb3}>{isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}</View>
                 {billingStatus?.isRetryAvailable !== undefined && (
-                    <Button
+                    <CardSectionButton
                         text={translate('subscription.cardSection.retryPaymentButton')}
                         isDisabled={isOffline || !billingStatus?.isRetryAvailable}
                         isLoading={subscriptionRetryBillingStatusPending}
@@ -185,7 +186,7 @@ function CardSection() {
                     />
                 )}
                 {hasCardAuthenticatedError() && (
-                    <Button
+                    <CardSectionButton
                         text={translate('subscription.cardSection.authenticatePayment')}
                         isDisabled={isOffline || !billingStatus?.isAuthenticationRequired}
                         isLoading={subscriptionRetryBillingStatusPending}

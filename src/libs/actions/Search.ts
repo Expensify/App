@@ -5,7 +5,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import type {PaymentData, SearchQueryJSON} from '@components/Search/types';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import * as API from '@libs/API';
-import type {ExportSearchItemsToCSVParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
+import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -516,10 +516,27 @@ function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactio
 
     API.write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, finalParameters);
 }
+
+function queueExportSearchWithTemplate({templateName, templateType, jsonQuery, reportIDList, transactionIDList, policyID}: ExportSearchWithTemplateParams) {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, {
+        templateName,
+        templateType,
+        jsonQuery,
+        reportIDList,
+        transactionIDList,
+        policyID,
+    }) as ExportSearchWithTemplateParams;
+
+    API.write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, finalParameters);
+}
 /**
  * Updates the form values for the advanced filters search form.
  */
-function updateAdvancedFilters(values: Nullable<Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>>>) {
+function updateAdvancedFilters(values: Nullable<Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>>>, shouldUseOnyxSetMethod = false) {
+    if (shouldUseOnyxSetMethod) {
+        Onyx.set(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
+        return;
+    }
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
 }
 
@@ -560,6 +577,7 @@ export {
     unholdMoneyRequestOnSearch,
     exportSearchItemsToCSV,
     queueExportSearchItemsToCSV,
+    queueExportSearchWithTemplate,
     updateAdvancedFilters,
     clearAllFilters,
     clearAdvancedFilters,

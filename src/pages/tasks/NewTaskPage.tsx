@@ -34,12 +34,16 @@ function NewTaskPage({route}: NewTaskPageProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const assignee = useMemo(() => getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails), [task?.assigneeAccountID, personalDetails]);
-    const assigneeTooltipDetails = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(task?.assigneeAccountID ? [task.assigneeAccountID] : [], personalDetails), false);
+    const assigneeTooltipDetails = getDisplayNamesWithTooltips(
+        getPersonalDetailsForAccountIDs(task?.assigneeAccountID ? [task.assigneeAccountID] : [], personalDetails),
+        false,
+        localeCompare,
+    );
     const shareDestination = useMemo(
-        () => (task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails) : undefined),
-        [task?.shareDestination, reports, personalDetails],
+        () => (task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails, localeCompare) : undefined),
+        [task?.shareDestination, reports, personalDetails, localeCompare],
     );
     const parentReport = useMemo(() => (task?.shareDestination ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${task.shareDestination}`] : undefined), [reports, task?.shareDestination]);
     const [errorMessage, setErrorMessage] = useState('');
