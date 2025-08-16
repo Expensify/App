@@ -293,7 +293,7 @@ function MoneyReportHeader({
 
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
-    const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash, currentSearchKey} = useSearchContext();
 
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => {
@@ -385,10 +385,10 @@ function MoneyReportHeader({
                 payInvoice(type, chatReport, moneyRequestReport, payAsBusiness, methodID, paymentMethod);
             } else {
                 startAnimation();
-                payMoneyRequest(type, chatReport, moneyRequestReport, undefined, true);
+                payMoneyRequest(type, chatReport, moneyRequestReport, undefined, true, currentSearchHash, currentSearchKey);
             }
         },
-        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, showDelegateNoAccessModal, isInvoiceReport, moneyRequestReport, startAnimation],
+        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, showDelegateNoAccessModal, isInvoiceReport, moneyRequestReport, startAnimation, currentSearchHash, currentSearchKey],
     );
 
     const confirmApproval = () => {
@@ -399,7 +399,7 @@ function MoneyReportHeader({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(moneyRequestReport, true);
+            approveMoneyRequest(moneyRequestReport, true, currentSearchHash, currentSearchKey);
         }
     };
 
@@ -682,7 +682,7 @@ function MoneyReportHeader({
                     if (!moneyRequestReport) {
                         return;
                     }
-                    submitReport(moneyRequestReport);
+                    submitReport(moneyRequestReport, currentSearchHash, currentSearchKey);
                 }}
             />
         ),

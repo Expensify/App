@@ -181,6 +181,7 @@ import {
     updateReportPreview,
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON, getCurrentSearchQueryJSON, getTodoSearchQuery} from '@libs/SearchQueryUtils';
+import type {SearchKey} from '@libs/SearchUIUtils';
 import {getSession} from '@libs/SessionUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -9522,7 +9523,7 @@ function isLastApprover(approvalChain: string[]): boolean {
     return approvalChain.at(-1) === currentUserEmail;
 }
 
-function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: boolean) {
+function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: boolean, searchHash?: number, searchKey?: SearchKey) {
     if (!expenseReport) {
         return;
     }
@@ -9641,6 +9642,39 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
             value: currentNextStep,
         },
     ];
+
+    if (searchHash) {
+        const transactionIDList = getReportTransactions(expenseReport.reportID).map((transaction) => transaction.transactionID);
+
+        const createOnyxData = (update: Partial<SearchTransaction> | Partial<SearchReport> | null): OnyxUpdate[] => [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+                value: {
+                    data: Object.fromEntries([expenseReport.reportID].map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, update])) as Partial<SearchReport>,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+                value: {
+                    data: Object.fromEntries(transactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, update])) as Partial<SearchTransaction>,
+                },
+            },
+        ];
+
+        const searchApproveOptimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
+        const searchApproveFailureData: OnyxUpdate[] = createOnyxData({isActionLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
+
+        // If we are on the 'Approve', `Unapproved cash` or the `Unapproved company cards` suggested search, remove the report from the view once the action is taken, don't wait for the view to be re-fetched via Search
+        const approveActionSuggestedSearches: Partial<SearchKey[]> = [CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD];
+
+        const searchApproveSuccessData: OnyxUpdate[] = approveActionSuggestedSearches.includes(searchKey) ? createOnyxData(null) : createOnyxData({isActionLoading: false});
+
+        optimisticData.push(...searchApproveOptimisticData);
+        successData.push(...searchApproveSuccessData);
+        failureData.push(...searchApproveFailureData);
+    }
 
     // Clear hold reason of all transactions if we approve all requests
     if (full && hasHeldExpenses) {
@@ -10086,7 +10120,7 @@ function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
     API.write(WRITE_COMMANDS.UNAPPROVE_EXPENSE_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-function submitReport(expenseReport?: OnyxTypes.Report) {
+function submitReport(expenseReport?: OnyxTypes.Report, searchHash?: number, searchKey?: SearchKey) {
     if (!expenseReport) {
         return;
     }
@@ -10192,6 +10226,31 @@ function submitReport(expenseReport?: OnyxTypes.Report) {
             value: currentNextStep,
         },
     ];
+
+    if (searchHash) {
+        const createOnyxData = (update: Partial<SearchReport> | null): OnyxUpdate[] => [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+                value: {
+                    data: Object.fromEntries([expenseReport.reportID].map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, update])) as Partial<SearchReport>,
+                },
+            },
+        ];
+
+        const searchSubmitOptimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
+        const searchSubmitFailureData: OnyxUpdate[] = createOnyxData({isActionLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
+
+        // If we are on the 'Submit' suggested search, remove the report from the view once the action is taken, don't wait for the view to be re-fetched via Search
+        const submitActionSuggestedSearches: Partial<SearchKey[]> = [CONST.SEARCH.SEARCH_KEYS.SUBMIT];
+
+        const searchSubmitSuccessData: OnyxUpdate[] = submitActionSuggestedSearches.includes(searchKey) ? createOnyxData(null) : createOnyxData({isActionLoading: false});
+
+        optimisticData.push(...searchSubmitOptimisticData);
+        successData.push(...searchSubmitSuccessData);
+        failureData.push(...searchSubmitFailureData);
+    }
+
     if (!isSubmitAndClosePolicy) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -10417,7 +10476,15 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
         wasInvited: true,
     });
 }
-function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxEntry<OnyxTypes.Report>, paymentPolicyID?: string, full = true) {
+function payMoneyRequest(
+    paymentType: PaymentMethodType,
+    chatReport: OnyxTypes.Report,
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    paymentPolicyID?: string,
+    full = true,
+    searchHash?: number,
+    searchKey?: SearchKey,
+) {
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
         return;
@@ -10428,6 +10495,30 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
 
     const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType, full, undefined, undefined, paymentPolicyID);
+
+    if (searchHash) {
+        const createOnyxData = (update: Partial<SearchReport> | null): OnyxUpdate[] => [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+                value: {
+                    data: Object.fromEntries([iouReport?.reportID ?? ''].map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, update])) as Partial<SearchReport>,
+                },
+            },
+        ];
+
+        const searchPayOptimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
+        const searchPayFailureData: OnyxUpdate[] = createOnyxData({isActionLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
+
+        // If we are on the 'Pay' suggested search, remove the report from the view once the action is taken, don't wait for the view to be re-fetched via Search
+        const payActionSuggestedSearches: Partial<SearchKey[]> = [CONST.SEARCH.SEARCH_KEYS.PAY];
+
+        const searchPaySuccessData: OnyxUpdate[] = payActionSuggestedSearches.includes(searchKey) ? createOnyxData(null) : createOnyxData({isActionLoading: false});
+
+        optimisticData.push(...searchPayOptimisticData);
+        successData.push(...searchPaySuccessData);
+        failureData.push(...searchPayFailureData);
+    }
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
     // Expensify Wallets.
