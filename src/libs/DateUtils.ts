@@ -53,7 +53,9 @@ type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 const TIMEZONE_UPDATE_THROTTLE_MINUTES = 5;
 
 let currentUserAccountID: number | undefined;
-Onyx.connect({
+// We use `connectWithoutView` here since this connection only updates a module-level variable
+// and doesn't need to trigger component re-renders.
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         // When signed out, val is undefined
@@ -66,7 +68,9 @@ Onyx.connect({
 });
 
 let timezone: Required<Timezone> = CONST.DEFAULT_TIME_ZONE;
-Onyx.connect({
+// We use `connectWithoutView` here since this connection only updates a module-level variable
+// and doesn't need to trigger component re-renders.
+Onyx.connectWithoutView({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
         if (!currentUserAccountID) {
@@ -85,7 +89,9 @@ Onyx.connect({
 let networkTimeSkew = 0;
 let isOffline: boolean | undefined;
 
-Onyx.connect({
+// We use `connectWithoutView` here since this connection only updates a module-level variable
+// and doesn't need to trigger component re-renders.
+Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (val) => {
         networkTimeSkew = val?.timeSkew ?? 0;

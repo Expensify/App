@@ -138,7 +138,8 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const numberFormat = useMemo<LocaleContextProps['numberFormat']>(() => (number, options) => format(currentLocale, number, options), [currentLocale]);
 
     const getLocalDateFromDatetime = useMemo<LocaleContextProps['getLocalDateFromDatetime']>(
-        () => (datetime, currentSelectedTimezone) => DateUtils.getLocalDateFromDatetime(currentLocale, datetime, currentSelectedTimezone ?? selectedTimezone),
+        () => (datetime, currentSelectedTimezone) =>
+            DateUtils.getLocalDateFromDatetime(currentLocale, datetime, currentSelectedTimezone ?? selectedTimezone ?? CONST.DEFAULT_TIME_ZONE.selected),
         [currentLocale, selectedTimezone],
     );
 
@@ -147,7 +148,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const datetimeToCalendarTime = useMemo<LocaleContextProps['datetimeToCalendarTime']>(
         () =>
             (datetime, includeTimezone, isLowercase = false) =>
-                DateUtils.datetimeToCalendarTime(currentLocale, datetime, includeTimezone, selectedTimezone, isLowercase),
+                DateUtils.datetimeToCalendarTime(currentLocale, datetime, includeTimezone, selectedTimezone ?? CONST.DEFAULT_TIME_ZONE.selected, isLowercase),
         [currentLocale, selectedTimezone],
     );
 
