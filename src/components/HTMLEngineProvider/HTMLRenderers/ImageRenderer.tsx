@@ -66,7 +66,9 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     // For other image formats, we retain the thumbnail as is to avoid unnecessary modifications.
     const processedPreviewSource = typeof previewSource === 'string' ? previewSource.replace(/\.png\.(1024|320)\.jpg$/, '.png') : previewSource;
     const source = tryResolveUrlFromApiRoot(isAttachmentOrReceipt ? attachmentSourceAttribute : htmlAttribs.src);
-
+    const imageSource = processedPreviewSource;
+    // const isAuthTokenRequired = isLocalFile(imageSource) ? false : isAttachmentOrReceipt;
+    const isAuthTokenRequired = isAttachmentOrReceipt;
     const alt = htmlAttribs.alt;
     const imageWidth = (htmlAttribs['data-expensify-width'] && parseInt(htmlAttribs['data-expensify-width'], 10)) || undefined;
     const imageHeight = (htmlAttribs['data-expensify-height'] && parseInt(htmlAttribs['data-expensify-height'], 10)) || undefined;
@@ -84,9 +86,9 @@ function ImageRenderer({tnode}: ImageRendererProps) {
 
     const thumbnailImageComponent = (
         <ThumbnailImage
-            previewSourceURL={processedPreviewSource}
+            previewSourceURL={imageSource}
             style={styles.webViewStyles.tagStyles.img}
-            isAuthTokenRequired={isAttachmentOrReceipt}
+            isAuthTokenRequired={isAuthTokenRequired}
             fallbackIcon={fallbackIcon}
             imageWidth={imageWidth}
             imageHeight={imageHeight}
