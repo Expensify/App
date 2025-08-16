@@ -32,9 +32,7 @@ function EmojiWithTooltip({emojiCode, style = {}}: EmojiWithTooltipProps) {
 
     return (
         <Tooltip renderTooltipContent={emojiTooltipContent}>
-            <View style={styles.dInlineBlock}>
-                <Text style={[style, styles.cursorDefault]}>{emojiCode}</Text>
-            </View>
+            <Text style={[style, styles.cursorDefault]}>{emojiCode}</Text>
         </Tooltip>
     );
 }
