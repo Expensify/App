@@ -188,6 +188,30 @@ describe('SearchQueryUtils', () => {
             );
             expect(result).not.toMatch(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
         });
+
+        test('with withdrawal type filter', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                withdrawalType: CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD,
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('sortBy:date sortOrder:desc type:expense withdrawalType:expensify-card');
+        });
+
+        test('with withdrawn filter', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                withdrawnOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('sortBy:date sortOrder:desc type:expense withdrawn:last-month');
+        });
     });
 
     describe('buildFilterFormValuesFromQuery', () => {
@@ -290,6 +314,29 @@ describe('SearchQueryUtils', () => {
             const sortedOptions = options.sort((a, b) => sortOptionsWithEmptyValue(a, b, localeCompare));
 
             expect(sortedOptions).toEqual(['A', 'B', 'C']);
+        });
+    });
+
+    describe('similarSearchHash', () => {
+        it('should return same similarSearchHash for two queries that are the same but use different sorting', () => {
+            const queryJSONa = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense category:none,Uncategorized,Maintenance');
+            const queryJSONb = buildSearchQueryJSON('sortBy:date sortOrder:asc type:expense category:none,Uncategorized,Maintenance');
+
+            expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+        });
+
+        it('should return same similarSearchHash for two queries that have same filters but different values', () => {
+            const queryJSONa = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense feed:"oauth.americanexpressfdx.com 1001" posted:last-statement');
+            const queryJSONb = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense feed:"1234_stripe" posted:last-month');
+
+            expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+        });
+
+        it('should return different similarSearchHash for two queries that have different types', () => {
+            const queryJSONa = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense feed:"oauth.americanexpressfdx.com 1001"');
+            const queryJSONb = buildSearchQueryJSON('sortBy:date sortOrder:desc type:trip feed:"oauth.americanexpressfdx.com 1001"');
+
+            expect(queryJSONa?.similarSearchHash).not.toEqual(queryJSONb?.similarSearchHash);
         });
     });
 });
