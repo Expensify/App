@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
@@ -14,12 +14,10 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isClientTheLeader as isClientTheLeaderActiveClientManager} from '@libs/ActiveClientManager';
-import {getDevicePreferredLocale} from '@libs/Localize';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import Visibility from '@libs/Visibility';
-import {setLocale} from '@userActions/App';
 import {clearSignInData} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,6 +40,7 @@ import type {BaseValidateCodeFormRef} from './ValidateCodeForm/BaseValidateCodeF
 
 type SignInPageInnerProps = {
     shouldEnableMaxHeight?: boolean;
+    ref?: ForwardedRef<SignInPageRef>;
 };
 
 type SignInPageRef = {
@@ -144,7 +143,7 @@ function getRenderOptions({
     };
 }
 
-function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: ForwardedRef<SignInPageRef>) {
+function SignInPage({shouldEnableMaxHeight = true, ref}: SignInPageInnerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -165,7 +164,6 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
       We use that function to prevent repeating code that checks which client is the leader.
     */
     const [activeClients = getEmptyArray<string>()] = useOnyx(ONYXKEYS.ACTIVE_CLIENTS, {canBeMissing: true});
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
 
     /** This state is needed to keep track of if user is using recovery code instead of 2fa code,
      * and we need it here since welcome text(`welcomeText`) also depends on it */
@@ -186,12 +184,6 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
 
     useEffect(() => Performance.measureTTI(), []);
 
-    useEffect(() => {
-        if (preferredLocale) {
-            return;
-        }
-        setLocale(getDevicePreferredLocale());
-    }, [preferredLocale]);
     useEffect(() => {
         if (credentials?.login) {
             return;
@@ -351,9 +343,9 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
 }
 
 type SignInPageProps = SignInPageInnerProps;
-const SignInPageWithRef = forwardRef(SignInPage);
+const SignInPageWithRef = SignInPage;
 
-function SignInPageWrapper(props: SignInPageProps, ref: ForwardedRef<SignInPageRef>) {
+function SignInPageWrapper({ref, ...props}: SignInPageProps) {
     return (
         <ThemeProvider theme={CONST.THEME.DARK}>
             <ThemeStylesProvider>
@@ -374,6 +366,6 @@ function SignInPageWrapper(props: SignInPageProps, ref: ForwardedRef<SignInPageR
 
 SignInPageWrapper.displayName = 'SignInPage';
 
-export default forwardRef(SignInPageWrapper);
+export default SignInPageWrapper;
 
 export type {SignInPageRef};

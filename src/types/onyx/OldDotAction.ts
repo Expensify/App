@@ -1,14 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {
-    ChangeFieldParams,
-    DelegateSubmitParams,
-    ExportedToIntegrationParams,
-    IntegrationsMessageParams,
-    MarkReimbursedFromIntegrationParams,
-    ShareParams,
-    UnshareParams,
-} from '@src/languages/params';
+import type {ChangeFieldParams, ExportedToIntegrationParams, IntegrationsMessageParams, MarkReimbursedFromIntegrationParams, ShareParams, UnshareParams} from '@src/languages/params';
 
 /**
  *
@@ -35,20 +27,6 @@ type OriginalMessageChangeField = {
 //      */
 //     originalMessage: ChangeTypeParams & Record<string, unknown>;
 // };
-
-/**
- *
- */
-type OriginalMessageDelegateSubmit = {
-    /**
-     *
-     */
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT;
-    /**
-     *
-     */
-    originalMessage: DelegateSubmitParams & Record<string, unknown>;
-};
 
 /**
  *
@@ -304,10 +282,6 @@ type OldDotOriginalMessageMap = {
      *
      */
     [CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD]: OriginalMessageChangeField;
-    /**
-     *
-     */
-    [CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT]: OriginalMessageDelegateSubmit;
     /**
      *
      */
