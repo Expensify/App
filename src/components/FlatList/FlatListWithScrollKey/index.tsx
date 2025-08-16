@@ -2,7 +2,7 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback} from 'react';
 import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList} from 'react-native';
 import useFlatListScrollKey from '@hooks/useFlatListScrollKey';
-import FlatList from '.';
+import FlatList from '..';
 
 type FlatListWithScrollKeyProps<T> = Omit<FlatListProps<T>, 'data' | 'initialScrollIndex'> & {
     data: T[];
