@@ -20,10 +20,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type { Policy } from '@src/types/onyx';
 import EditReportFieldDate from './EditReportFieldDate';
 import EditReportFieldDropdown from './EditReportFieldDropdown';
 import EditReportFieldText from './EditReportFieldText';
-import { Policy } from '@src/types/onyx';
 
 type EditReportFieldPageProps = PlatformStackScreenProps<EditRequestNavigatorParamList, typeof SCREENS.EDIT_REQUEST.REPORT_FIELD>;
 
@@ -32,8 +32,8 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {backTo, reportID, policyID} = route.params;
     const fieldKey = getReportFieldKey(route.params.fieldID);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
     const policyField = policy?.fieldList?.[fieldKey] ?? reportField;
     const isDisabled = isReportFieldDisabled(report, reportField, policy);
@@ -42,7 +42,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const isReportFieldTitle = isReportFieldOfTypeTitle(reportField);
     const reportFieldsEnabled = ((isPaidGroupPolicyExpenseReport(report) || isInvoiceReport(report)) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
     const hasOtherViolations = report?.fieldList && Object.entries(report.fieldList).some(
-        ([key, field] : any) => key !== fieldKey && field.value === "" && !isReportFieldDisabled(report, reportField, policy)
+        ([key, field]) => key !== fieldKey && field.value === "" && !isReportFieldDisabled(report, reportField, policy)
     );
     
     if (!reportFieldsEnabled || !reportField || !policyField || !report || isDisabled) {
