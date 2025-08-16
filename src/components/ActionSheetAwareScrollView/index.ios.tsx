@@ -1,12 +1,14 @@
 import type {PropsWithChildren} from 'react';
-import React, {forwardRef, useCallback} from 'react';
+import React, {forwardRef, useCallback, useEffect, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView, ScrollViewProps} from 'react-native';
+import {InteractionManager} from 'react-native';
 import Reanimated, {useAnimatedRef, useScrollViewOffset} from 'react-native-reanimated';
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
 import ActionSheetKeyboardSpace from './ActionSheetKeyboardSpace';
+import type ActionSheetAwareScrollViewProps from './type';
 
-const ActionSheetAwareScrollView = forwardRef<ScrollView, PropsWithChildren<ScrollViewProps>>((props, ref) => {
+const ActionSheetAwareScrollView = forwardRef<ScrollView, PropsWithChildren<ActionSheetAwareScrollViewProps>>(({isInitialData, ...props}, ref) => {
     const scrollViewAnimatedRef = useAnimatedRef<Reanimated.ScrollView>();
     const position = useScrollViewOffset(scrollViewAnimatedRef);
 
@@ -23,6 +25,16 @@ const ActionSheetAwareScrollView = forwardRef<ScrollView, PropsWithChildren<Scro
         },
         [ref, scrollViewAnimatedRef],
     );
+    const [isInitialRenderDone, setIsInitialRenderDone] = useState(!isInitialData);
+
+    useEffect(() => {
+        if (isInitialData) {
+            return;
+        }
+        InteractionManager.runAfterInteractions(() => {
+            setIsInitialRenderDone(true);
+        });
+    }, [isInitialData]);
 
     return (
         <Reanimated.ScrollView
@@ -30,7 +42,12 @@ const ActionSheetAwareScrollView = forwardRef<ScrollView, PropsWithChildren<Scro
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
-            <ActionSheetKeyboardSpace position={position}>{props.children}</ActionSheetKeyboardSpace>
+            {React.Children.map(props.children, (child, index) => {
+                if (index === 0 && isInitialRenderDone) {
+                    return <ActionSheetKeyboardSpace position={position}>{child}</ActionSheetKeyboardSpace>;
+                }
+                return child;
+            })}
         </Reanimated.ScrollView>
     );
 });

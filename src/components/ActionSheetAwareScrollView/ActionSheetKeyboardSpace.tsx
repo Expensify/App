@@ -4,7 +4,6 @@ import {useKeyboardHandler} from 'react-native-keyboard-controller';
 import Reanimated, {useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
-import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {Actions, ActionSheetAwareScrollViewContext, States} from './ActionSheetAwareScrollViewContext';
 
@@ -66,7 +65,6 @@ type ActionSheetKeyboardSpaceProps = ViewProps & {
 };
 
 function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
-    const styles = useThemeStyles();
     const {
         unmodifiedPaddings: {top: paddingTop = 0, bottom: paddingBottom = 0},
     } = useSafeAreaPaddings();
@@ -255,7 +253,7 @@ function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
 
     return (
         <Reanimated.View
-            style={[styles.flex1, animatedStyle]}
+            style={[animatedStyle]}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />

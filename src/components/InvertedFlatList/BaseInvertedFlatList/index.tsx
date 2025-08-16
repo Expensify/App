@@ -1,6 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList, ScrollViewProps} from 'react-native';
+import type ActionSheetAwareScrollViewProps from '@components/ActionSheetAwareScrollView/type';
 import FlatList from '@components/FlatList';
 import usePrevious from '@hooks/usePrevious';
 import getInitialPaginationSize from './getInitialPaginationSize';
@@ -19,17 +20,18 @@ function defaultKeyExtractor<T>(item: T | {key: string} | {id: string}, index: n
     return String(index);
 }
 
-type BaseInvertedFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'renderItem' | 'initialScrollIndex'> & {
+type BaseInvertedFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'renderItem' | 'initialScrollIndex' | 'renderScrollComponent'> & {
     shouldEnableAutoScrollToTopThreshold?: boolean;
     data: T[];
     renderItem: ListRenderItem<T>;
     initialScrollKey?: string | null;
+    renderScrollComponent?: (props: ActionSheetAwareScrollViewProps) => React.ReactElement<ScrollViewProps>;
 };
 
 const AUTOSCROLL_TO_TOP_THRESHOLD = 250;
 
 function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: ForwardedRef<RNFlatList>) {
-    const {shouldEnableAutoScrollToTopThreshold, initialScrollKey, data, onStartReached, renderItem, keyExtractor = defaultKeyExtractor, ...rest} = props;
+    const {renderScrollComponent, shouldEnableAutoScrollToTopThreshold, initialScrollKey, data, onStartReached, renderItem, keyExtractor = defaultKeyExtractor, ...rest} = props;
     // `initialScrollIndex` doesn't work properly with FlatList, this uses an alternative approach to achieve the same effect.
     // What we do is start rendering the list from `initialScrollKey` and then whenever we reach the start we render more
     // previous items, until everything is rendered. We also progressively render new data that is added at the start of the
@@ -135,6 +137,7 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
             onStartReached={handleStartReached}
             renderItem={handleRenderItem}
             keyExtractor={keyExtractor}
+            renderScrollComponent={renderScrollComponent ? (scrollProps) => renderScrollComponent({...scrollProps, isInitialData}) : undefined}
         />
     );
 }
