@@ -18,7 +18,7 @@ This option is helpful when:
 
 You can retract reports with the following statuses:
 - **Processing reports**: Only the submitter (or a Workspace Admin submitting their own report) can use **Undo submit**.
-- **Closed reports**: Only **Workspace Admins** can use **Undo close**.
+- **Closed reports**: Only **Workspace Admins** can use **Retracte**.
 
 **Note:** Held expenses or violations won’t stop you from retracting a report.
 
