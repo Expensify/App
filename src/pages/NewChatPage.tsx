@@ -20,6 +20,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -173,6 +174,8 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const selectionListRef = useRef<SelectionListHandle | null>(null);
 
+    const {singleExecution} = useSingleExecution();
+
     useImperativeHandle(ref, () => ({
         focus: selectionListRef.current?.focusTextInput,
     }));
@@ -292,9 +295,11 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
                 Log.warn('Tried to create chat with empty login');
                 return;
             }
-            KeyboardUtils.dismiss().then(() => navigateToAndOpenReport([login]));
+            KeyboardUtils.dismiss().then(() => {
+                singleExecution(() => navigateToAndOpenReport([login]))();
+            });
         },
-        [selectedOptions, toggleOption],
+        [selectedOptions, toggleOption, singleExecution],
     );
 
     const itemRightSideComponent = useCallback(
