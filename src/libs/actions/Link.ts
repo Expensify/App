@@ -170,8 +170,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     if (hasExpensifyOrigin && href.indexOf('newdotreport?reportID=') > -1) {
         const reportID = href.split('newdotreport?reportID=').pop();
         const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID);
-        // Use navigate without forceReplace to ensure proper back navigation
-        Navigation.navigate(reportRoute, {forceReplace: false});
+        Navigation.navigate(reportRoute);
         return;
     }
 
@@ -182,8 +181,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
             signOutAndRedirectToSignIn();
             return;
         }
-        // Use navigate without forceReplace to ensure proper back navigation for internal links
-        Navigation.navigate(internalNewExpensifyPath as Route, {forceReplace: false});
+        Navigation.navigate(internalNewExpensifyPath as Route);
         return;
     }
     // If we are handling an old dot Expensify link we need to open it with openOldDotLink() so we can navigate to it with the user already logged in.
