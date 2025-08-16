@@ -167,8 +167,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             });
         }
         return translate('workspace.people.removeMembersWarningPrompt', {
-            memberName: getDisplayNameForParticipant({accountID: approverAccountID}),
-            ownerName: getDisplayNameForParticipant({accountID: policy?.ownerAccountID}),
+            memberName: getDisplayNameForParticipant({formatPhoneNumber, accountID: approverAccountID}),
+            ownerName: getDisplayNameForParticipant({formatPhoneNumber, accountID: policy?.ownerAccountID}),
         });
     }, [selectedEmployees, translate, policy, currentUserAccountID, formatPhoneNumber]);
     /**

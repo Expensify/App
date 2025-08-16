@@ -39,7 +39,7 @@ type SearchFiltersParticipantsSelectorProps = {
 };
 
 function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}: SearchFiltersParticipantsSelectorProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const {options, areOptionsInitialized} = useOptionsList({
@@ -118,6 +118,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         // If the current user is not selected, add them to the top of the list
         if (!selectedCurrentUser && chatOptions.currentUserOption) {
             const formattedName = getDisplayNameForParticipant({
+                formatPhoneNumber,
                 accountID: chatOptions.currentUserOption.accountID,
                 shouldAddCurrentUserPostfix: true,
                 personalDetailsData: personalDetails,
@@ -152,7 +153,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             sections: newSections,
             headerMessage: message,
         };
-    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, translate]);
+    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, translate, formatPhoneNumber]);
 
     const resetChanges = useCallback(() => {
         setSelectedOptions([]);
