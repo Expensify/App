@@ -278,8 +278,10 @@ function MoneyRequestView({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowTag = isPolicyExpenseChat && (transactionTag || hasEnabledTags(policyTagLists));
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true) || !!updatedTransaction?.billable);
+    const isCurrentTransactionReimbursableDifferentFromPolicyDefault =
+        policy?.defaultReimbursable !== undefined && !!(updatedTransaction?.reimbursable ?? transactionReimbursable) !== policy.defaultReimbursable;
     const shouldShowReimbursable =
-        isPolicyExpenseChat && (!policy?.disabledFields?.reimbursable || !!transactionReimbursable || !!updatedTransaction?.reimbursable) && !isCardTransaction && !isInvoice;
+        isPolicyExpenseChat && (!policy?.disabledFields?.reimbursable || isCurrentTransactionReimbursableDifferentFromPolicyDefault) && !isCardTransaction && !isInvoice;
     const canEditReimbursable = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE);
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 
