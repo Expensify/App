@@ -594,6 +594,9 @@ function isValidABN(registrationNumber: string): boolean {
     return checksum % 89 === 0;
 }
 
+
+
+
 /**
  * Validates the given value if it is correct ACN number - https://asic.gov.au/for-business/registering-a-company/steps-to-register-a-company/australian-company-numbers/australian-company-number-digit-check/
  * @param registrationNumber - number to validate.
