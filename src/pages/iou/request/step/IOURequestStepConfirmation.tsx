@@ -543,7 +543,7 @@ function IOURequestStepConfirmation({
                     policy,
                     policyTagList: policyTags,
                     policyCategories,
-                    policyRecentlyUsedCategoriesParam,
+                    policyRecentlyUsedCategories: policyRecentlyUsedCategoriesParam,
                 },
                 recentlyUsedParams: {
                     destinations: recentlyUsedDestinations,
