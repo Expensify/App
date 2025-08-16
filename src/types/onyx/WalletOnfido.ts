@@ -22,6 +22,9 @@ type WalletOnfido = {
 
     /** If we should show the FailedKYC view after the user submitted their info with a non fixable error */
     shouldShowFailedKYC?: boolean;
+
+    /** True if Onfido mounting is in progress */
+    isOnfidoMounting?: boolean;
 };
 
 export default WalletOnfido;
