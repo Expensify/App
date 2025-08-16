@@ -175,6 +175,7 @@ function SearchPage({route}: SearchPageProps) {
                         clearSelectedTransactions(undefined, true);
                     },
                     shouldCloseModalOnSelect: true,
+                    shouldCallAfterModalHide: true,
                 },
                 {
                     text: translate('export.expenseLevelExport'),
