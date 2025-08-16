@@ -48,8 +48,7 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
         canBeMissing: true,
     });
     const secondTransactionID = receipts.at(1)?.transactionID;
-    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${secondTransactionID}`, {canBeMissing: true});
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransactionID}`, {canBeMissing: true});
+    const [secondTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${secondTransactionID}`, {canBeMissing: true});
     useEffect(() => {
         if (!receipts || receipts.length === 0) {
             return;
@@ -74,15 +73,14 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
                     return;
                 }
 
-                const secondTransaction = secondTransactionID ? (transaction ?? transactionDraft) : undefined;
-                replaceDefaultDraftTransaction(secondTransaction);
+                replaceDefaultDraftTransaction(secondTransactionID ? secondTransaction : undefined);
                 return;
             }
             removeDraftTransaction(currentReceipt.transactionID);
         });
 
         Navigation.goBack();
-    }, [currentReceipt, receipts, secondTransactionID, transaction, transactionDraft]);
+    }, [currentReceipt, receipts.length, secondTransaction, secondTransactionID]);
 
     const handleCloseConfirmModal = () => {
         setIsDeleteReceiptConfirmModalVisible(false);
