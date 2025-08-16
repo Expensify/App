@@ -4288,6 +4288,7 @@ describe('actions/IOU', () => {
                                 created: '',
                                 merchant,
                                 comment,
+                                reimbursable: true,
                             },
                             shouldGenerateTransactionThreadReport: true,
                         });
@@ -4460,6 +4461,7 @@ describe('actions/IOU', () => {
                                 created: '',
                                 merchant,
                                 comment,
+                                reimbursable: true,
                             },
                             shouldGenerateTransactionThreadReport: true,
                         });
