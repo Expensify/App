@@ -551,6 +551,7 @@ const translations = {
         auditor: 'Prüfer',
         role: 'Rolle',
         currency: 'Währung',
+        groupCurrency: 'Konzernwährung',
         rate: 'Bewerten',
         emptyLHN: {
             title: 'Woohoo! Alles erledigt.',
@@ -6049,8 +6050,8 @@ const translations = {
             reimbursable: 'Erstattungsfähig',
             groupBy: {
                 reports: 'Bericht',
-                members: 'Mitglied',
-                cards: 'Karte',
+                from: 'Von',
+                card: 'Karte',
             },
             feed: 'Feed',
             withdrawalType: {

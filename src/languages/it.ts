@@ -551,6 +551,7 @@ const translations = {
         auditor: 'Revisore dei conti',
         role: 'Ruolo',
         currency: 'Valuta',
+        groupCurrency: 'Valuta di gruppo',
         rate: 'Valuta',
         emptyLHN: {
             title: 'Woohoo! Tutto aggiornato.',
@@ -6063,8 +6064,8 @@ const translations = {
             reimbursable: 'Rimborsabile',
             groupBy: {
                 reports: 'Rapporto',
-                members: 'Membro',
-                cards: 'Carta',
+                from: 'Da',
+                card: 'Carta',
             },
             feed: 'Feed',
             withdrawalType: {

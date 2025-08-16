@@ -551,6 +551,7 @@ const translations = {
         auditor: 'Auditeur',
         role: 'Rôle',
         currency: 'Devise',
+        groupCurrency: 'Devise du groupe',
         rate: 'Taux',
         emptyLHN: {
             title: 'Youpi ! Tout est à jour.',
@@ -6060,8 +6061,8 @@ const translations = {
             reimbursable: 'Remboursable',
             groupBy: {
                 reports: 'Rapport',
-                members: 'Membre',
-                cards: 'Carte',
+                from: 'De',
+                card: 'Carte',
             },
             feed: 'Flux',
             withdrawalType: {
