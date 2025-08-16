@@ -381,8 +381,6 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
                 anchorDimensions={contextMenuDimensions.current}
                 anchorRef={anchorRef}
                 shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
-                shouldEnableNewFocusManagement
-                restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             >
                 <BaseReportActionContextMenu
                     isVisible={isPopoverVisible}
