@@ -180,13 +180,18 @@ index fef9c63..0a887d5 100644
    return YES;
  }
  
-@@ -576,6 +599,11 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
+@@ -576,6 +599,15 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
    _comingFromJS = NO;
  }
  
 +- (void)preventFocusOnFirstResponderOnce
 +{
 +  _preventFocusOnFirstResponderOnce = YES;
++    
++    // Also resign first responder to prevent automatic restoration
++    if (_backedTextInputView.isFirstResponder) {
++      [_backedTextInputView resignFirstResponder];
++    }
 +}
 +
  #pragma mark - Default input accessory view
