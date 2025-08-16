@@ -188,14 +188,16 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
                 mergeableData.currency = sourceValue === 0 ? targetTransaction?.currency : sourceTransaction?.currency;
                 return;
             }
+
+            // Check for currency differences when values equal
+            if ((targetValue === sourceValue) && getCurrency(targetTransaction) !== getCurrency(sourceTransaction)) {
+                conflictFields.push('amount');
+                return;
+            }
         }
 
         if (isTargetValueEmpty || isSourceValueEmpty || targetValue === sourceValue) {
-            if (field === 'amount' && getCurrency(targetTransaction) !== getCurrency(sourceTransaction)) {
-                conflictFields.push('amount');
-            } else {
-                mergeableData[field] = isTargetValueEmpty ? sourceValue : targetValue;
-            }
+            mergeableData[field] = isTargetValueEmpty ? sourceValue : targetValue;
         } else {
             conflictFields.push(field);
         }
