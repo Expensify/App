@@ -29,11 +29,8 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps) {
             observer.observe(baseOnfidoRef.current, {attributes: false, childList: true, subtree: true});
         }
 
-        if (!onfidoOut) {
-            return;
-        }
-
-        onfidoOut.tearDown();
+        console.log('Onfido teardown ', onfidoOut);
+        onfidoOut?.tearDown();
 
         // Clean up function to remove the observer when component unmounts
         return () => {
@@ -44,13 +41,13 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps) {
     useEffect(() => {}, []);
 
     return (
-        <BaseOnfidoWeb
-            ref={baseOnfidoRef}
-            sdkToken={sdkToken}
-            onSuccess={onSuccess}
-            onError={onError}
-            onUserExit={onUserExit}
-        />
+            <BaseOnfidoWeb
+                ref={baseOnfidoRef}
+                sdkToken={sdkToken}
+                onSuccess={onSuccess}
+                onError={onError}
+                onUserExit={onUserExit}
+            />
     );
 }
 
