@@ -1452,7 +1452,6 @@ function PureReportActionItem({
         );
     };
 
-    console.log(action);
     return (
         <PressableWithSecondaryInteraction
             ref={popoverAnchorRef}
