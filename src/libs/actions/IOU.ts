@@ -5779,7 +5779,7 @@ function sendInvoice(
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     companyName?: string,
     companyWebsite?: string,
-    policyRecentlyUsedCategories?: OnyxTypes.RecentlyUsedCategories,
+    policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>,
 ) {
     const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
     if (transaction?.comment) {
