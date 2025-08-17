@@ -222,8 +222,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     reportID={reportID}
                     fullReport={item}
                     reportAttributes={itemReportAttributes}
+                    reportNameValuePairs={reportNameValuePairs}
                     oneTransactionThreadReport={itemOneTransactionThreadReport}
-                    reportNameValuePairs={itemReportNameValuePairs}
                     reportActions={itemReportActions}
                     parentReportAction={itemParentReportAction}
                     iouReportReportActions={itemIouReportReportActions}

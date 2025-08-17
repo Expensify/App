@@ -66,9 +66,10 @@ function OptionRowLHNData({
         // Note: ideally we'd have this as a dependent selector in onyx!
         const item = SidebarUtils.getOptionData({
             report: fullReport,
+            reportNameValuePairs,
             reportAttributes,
             oneTransactionThreadReport,
-            reportNameValuePairs,
+            isReportArchived,
             personalDetails,
             policy,
             parentReportAction,
@@ -95,6 +96,7 @@ function OptionRowLHNData({
         reportAttributes?.brickRoadStatus,
         reportAttributes?.reportName,
         oneTransactionThreadReport,
+        isReportArchived,
         reportNameValuePairs,
         lastReportActionTransaction,
         reportActions,
