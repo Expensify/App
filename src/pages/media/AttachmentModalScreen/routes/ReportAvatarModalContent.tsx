@@ -6,6 +6,7 @@ import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModal
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 
 function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProps) {
     const {reportID, policyID} = route.params;
@@ -13,12 +14,13 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const isReportArchived = useReportIsArchived(reportID);
 
     const attachment = useMemo(() => {
         if (isGroupChat(report) && !isThread(report)) {
             return {
                 source: report?.avatarUrl ? getFullSizeAvatar(report.avatarUrl, 0) : getDefaultGroupAvatar(report?.reportID),
-                headerTitle: getReportName(report),
+                headerTitle: getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived),
                 isWorkspaceAvatar: false,
             };
         }

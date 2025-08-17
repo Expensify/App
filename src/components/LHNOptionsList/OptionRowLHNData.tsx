@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 
 /*
  * This component gets the data from onyx for the actual
@@ -38,6 +39,7 @@ function OptionRowLHNData({
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
+    const isReportArchived = useReportIsArchived(reportID);
     const currentReportIDValue = useCurrentReportID();
     const isReportFocused = isOptionFocused && currentReportIDValue?.currentReportID === reportID;
 

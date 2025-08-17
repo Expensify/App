@@ -25,6 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 
 type NewTaskPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.ROOT>;
 
@@ -40,11 +41,12 @@ function NewTaskPage({route}: NewTaskPageProps) {
         false,
         localeCompare,
     );
-    const shareDestination = useMemo(
-        () => (task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails, localeCompare) : undefined),
-        [task?.shareDestination, reports, personalDetails, localeCompare],
-    );
     const parentReport = useMemo(() => (task?.shareDestination ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${task.shareDestination}`] : undefined), [reports, task?.shareDestination]);
+    const isReportArchived = useReportIsArchived(parentReport?.reportID);
+    const shareDestination = useMemo(
+        () => (task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails, localeCompare, isReportArchived) : undefined),
+        [task?.shareDestination, reports, personalDetails, localeCompare, isReportArchived],
+    );
     const [errorMessage, setErrorMessage] = useState('');
 
     const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;

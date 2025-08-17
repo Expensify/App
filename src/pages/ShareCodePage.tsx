@@ -37,6 +37,7 @@ import {getAvatarUrl} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 
 type ShareCodePageOnyxProps = {
     /** The report currently being looked at */
@@ -93,8 +94,8 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
 
         return currentUserPersonalDetails.login;
     }, [report, currentUserPersonalDetails, isReport]);
-
-    const title = isReport ? getReportName(report) : (currentUserPersonalDetails.displayName ?? '');
+    const isReportArchived = useReportIsArchived(report?.reportID);
+    const title = isReport ? getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
     const url = isReport
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`

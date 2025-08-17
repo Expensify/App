@@ -360,7 +360,7 @@ function categorizeReportsForLHN(
 
         const miniReport: MiniReport = {
             reportID,
-            displayName: getReportName(report),
+            displayName: getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, isArchivedReport(rNVPs)),
             lastVisibleActionCreated: report.lastVisibleActionCreated,
         };
 
@@ -770,7 +770,7 @@ function getOptionData({
                     : translateLocal('workspace.invite.removed');
             const users = translateLocal(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
             result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName} ${verb} ${targetAccountIDsLength} ${users}`);
-            const roomName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`]) || lastActionOriginalMessage?.roomName;
+            const roomName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`], undefined, undefined, undefined, undefined, undefined, undefined, isArchivedReport(reportNameValuePairs)) || lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
@@ -906,7 +906,7 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy);
+    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy, undefined, undefined, isArchivedReport(reportNameValuePairs));
 
     result.text = reportName;
     result.subtitle = subtitle;
@@ -1001,7 +1001,7 @@ function getWelcomeMessage(
 function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = false, reportDetailsLink = ''): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report});
-    const reportName = getReportName(report);
+    const reportName = getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived);
 
     if (report?.description) {
         welcomeMessage.messageHtml = getReportDescription(report);

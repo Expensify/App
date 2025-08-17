@@ -985,6 +985,7 @@ function getShareDestination(
     reports: OnyxCollection<OnyxTypes.Report>,
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     localeCompare: LocaleContextProps['localeCompare'],
+    isReportArchived = false,
 ): ShareDestination {
     const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
@@ -1011,7 +1012,7 @@ function getShareDestination(
     }
     return {
         icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar),
-        displayName: ReportUtils.getReportName(report),
+        displayName: ReportUtils.getReportName(report, undefined, undefined, undefined, undefined, ),
         subtitle,
         displayNamesWithTooltips,
         shouldUseFullTitleToDisplay: ReportUtils.shouldUseFullTitleToDisplay(report),

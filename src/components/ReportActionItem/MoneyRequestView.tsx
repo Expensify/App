@@ -227,6 +227,7 @@ function MoneyRequestView({
 
     const isSettled = isSettledReportUtils(moneyRequestReport?.reportID);
     const isCancelled = moneyRequestReport && moneyRequestReport?.isCancelledIOU;
+    const isParentReportArchived = useReportIsArchived(parentReportID);
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
 
     // Flags for allowing or disallowing editing an expense
@@ -289,7 +290,7 @@ function MoneyRequestView({
 
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
-
+    
     const {unit, rate} = DistanceRequestUtils.getRate({transaction, policy});
     const distance = getDistanceInMeters(transactionBackup ?? transaction, unit);
     const currency = transactionCurrency ?? CONST.CURRENCY.USD;
@@ -915,7 +916,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={canEditReport}
-                            title={getReportName(parentReport) || parentReport?.reportName}
+                            title={getReportName(parentReport, undefined, undefined, undefined, undefined, undefined, undefined, isParentReportArchived) || parentReport?.reportName}
                             description={translate('common.report')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}

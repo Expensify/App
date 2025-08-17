@@ -75,6 +75,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 
 type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
@@ -109,7 +110,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: true});
-    const isReportArchived = isArchivedReport(reportNameValuePairs);
+    const isReportArchived = useReportIsArchived(report?.reportID);
 
     const {translate, localeCompare} = useLocalize();
     const theme = useTheme();
@@ -131,7 +132,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isTaskReport = isTaskReportReportUtils(report);
     const reportHeaderData = !isTaskReport && !isChatThread && report?.parentReportID ? parentReport : report;
     // Use sorted display names for the title for group chats on native small screen widths
-    const title = getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy);
+    const isReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.reportID);
+    const title = getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy, undefined, undefined, isReportHeaderDataArchived);
     const subtitle = getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(reportHeaderData);
     const reportDescription = Parser.htmlToText(getReportDescription(report));
