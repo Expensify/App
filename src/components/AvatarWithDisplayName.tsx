@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,7 +38,6 @@ import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import ReportActionAvatars from './ReportActionAvatars';
 import type {TransactionListItemType} from './SelectionList/types';
 import Text from './Text';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 
 type AvatarWithDisplayNameProps = {
     /** The report currently being looked at */

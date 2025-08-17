@@ -1012,7 +1012,7 @@ function getShareDestination(
     }
     return {
         icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar),
-        displayName: ReportUtils.getReportName(report, undefined, undefined, undefined, undefined, ),
+        displayName: ReportUtils.getReportName(report, undefined, undefined, undefined, undefined),
         subtitle,
         displayNamesWithTooltips,
         shouldUseFullTitleToDisplay: ReportUtils.shouldUseFullTitleToDisplay(report),

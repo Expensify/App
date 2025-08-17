@@ -38,6 +38,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -76,7 +77,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 
 type WorkspaceTopLevelScreens = keyof typeof WORKSPACE_TO_RHP;
 
@@ -133,7 +133,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const currentUserPolicyExpenseChatReportID = getPolicyExpenseChat(accountID, policy?.id, allReports)?.reportID;
     const [currentUserPolicyExpenseChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentUserPolicyExpenseChatReportID}`, {canBeMissing: true});
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(currentUserPolicyExpenseChat);
-    const isCurrentUserPolicyExpenseChatReportArchived = useReportIsArchived(currentUserPolicyExpenseChatReportID)
+    const isCurrentUserPolicyExpenseChatReportArchived = useReportIsArchived(currentUserPolicyExpenseChatReportID);
     const isPolicyExpenseChatEnabled = !!policy?.isPolicyExpenseChatEnabled;
     const prevPendingFields = usePrevious(policy?.pendingFields);
     const shouldDisplayLHB = !shouldUseNarrowLayout;
@@ -513,7 +513,16 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                             <Text style={[styles.textSupporting, styles.fontSizeLabel, styles.ph2]}>{translate('workspace.common.submitExpense')}</Text>
                             <OfflineWithFeedback pendingAction={reportPendingAction}>
                                 <MenuItem
-                                    title={getReportName(currentUserPolicyExpenseChat, undefined, undefined, undefined, undefined, undefined, undefined, isCurrentUserPolicyExpenseChatReportArchived)}
+                                    title={getReportName(
+                                        currentUserPolicyExpenseChat,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        isCurrentUserPolicyExpenseChatReportArchived,
+                                    )}
                                     description={translate('workspace.common.workspace')}
                                     onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID))}
                                     shouldShowRightIcon

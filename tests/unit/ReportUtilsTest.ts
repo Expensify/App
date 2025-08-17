@@ -561,11 +561,13 @@ describe('ReportUtils', () => {
             test('Archived', async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseAdminsRoom.reportID}`, reportNameValuePairs);
 
-                const {result: isReportArchived} = renderHook(() => useReportIsArchived());
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(baseAdminsRoom.reportID));
 
                 expect(getReportName(baseAdminsRoom, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe('#admins (archived)');
 
-                return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(baseAdminsRoom, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe('#admins (archivado)'));
+                return IntlStore.load(CONST.LOCALES.ES).then(() =>
+                    expect(getReportName(baseAdminsRoom, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe('#admins (archivado)'),
+                );
             });
         });
 
@@ -595,11 +597,13 @@ describe('ReportUtils', () => {
 
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseUserCreatedRoom.reportID}`, reportNameValuePairs);
 
-                const {result: isReportArchived} = renderHook(() => useReportIsArchived(archivedPolicyRoom?.reportID));
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(baseUserCreatedRoom?.reportID));
 
                 expect(getReportName(archivedPolicyRoom, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe('#VikingsChat (archived)');
 
-                return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(archivedPolicyRoom, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe('#VikingsChat (archivado)'));
+                return IntlStore.load(CONST.LOCALES.ES).then(() =>
+                    expect(getReportName(archivedPolicyRoom, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe('#VikingsChat (archivado)'),
+                );
             });
         });
 
@@ -653,9 +657,15 @@ describe('ReportUtils', () => {
 
                     const {result: isReportArchived} = renderHook(() => useReportIsArchived(baseArchivedPolicyExpenseChat?.reportID));
 
-                    expect(getReportName(memberArchivedPolicyExpenseChat, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe(`Ragnar Lothbrok's expenses (archived)`);
+                    expect(getReportName(memberArchivedPolicyExpenseChat, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe(
+                        `Ragnar Lothbrok's expenses (archived)`,
+                    );
 
-                    return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(memberArchivedPolicyExpenseChat, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe(`Ragnar Lothbrok's gastos (archivado)`));
+                    return IntlStore.load(CONST.LOCALES.ES).then(() =>
+                        expect(getReportName(memberArchivedPolicyExpenseChat, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe(
+                            `Ragnar Lothbrok's gastos (archivado)`,
+                        ),
+                    );
                 });
 
                 test('as admin', async () => {
@@ -663,12 +673,20 @@ describe('ReportUtils', () => {
                         ...baseArchivedPolicyExpenseChat,
                         isOwnPolicyExpenseChat: false,
                     };
+                    
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${adminArchivedPolicyExpenseChat.reportID}`, reportNameValuePairs);
 
                     const {result: isReportArchived} = renderHook(() => useReportIsArchived(adminArchivedPolicyExpenseChat?.reportID));
 
-                    expect(getReportName(adminArchivedPolicyExpenseChat, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe(`Ragnar Lothbrok's expenses (archived)`);
+                    expect(getReportName(adminArchivedPolicyExpenseChat, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe(
+                        `Ragnar Lothbrok's expenses (archived)`,
+                    );
 
-                    return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(adminArchivedPolicyExpenseChat, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe(`Ragnar Lothbrok's gastos (archivado)`));
+                    return IntlStore.load(CONST.LOCALES.ES).then(() =>
+                        expect(getReportName(adminArchivedPolicyExpenseChat, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe(
+                            `Ragnar Lothbrok's gastos (archivado)`,
+                        ),
+                    );
                 });
             });
         });
@@ -2361,6 +2379,7 @@ describe('ReportUtils', () => {
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
+            
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(archivedReport?.reportID));
 
             expect(
@@ -2391,6 +2410,7 @@ describe('ReportUtils', () => {
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
+            
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(archivedReport?.reportID));
 
             expect(
