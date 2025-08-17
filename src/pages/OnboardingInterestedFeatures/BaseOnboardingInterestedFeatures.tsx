@@ -360,7 +360,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                     text={translate('common.continue')}
                     onPress={handleContinue}
                     isLoading={isLoading}
-                    isDisabled={isOffline}
+                    // isDisabled={isOffline}
                     pressOnEnter
                 />
             </FixedFooter>
