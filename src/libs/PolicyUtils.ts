@@ -678,7 +678,8 @@ function getApprovalWorkflow(policy: OnyxEntry<Policy> | SearchPolicy): ValueOf<
 }
 
 function getDefaultApprover(policy: OnyxEntry<Policy> | SearchPolicy): string {
-    return policy?.approver ?? policy?.owner ?? '';
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return policy?.approver || policy?.owner || '';
 }
 
 function getRuleApprovers(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report>) {
