@@ -1,11 +1,13 @@
 import React from 'react';
 import {InteractionManager} from 'react-native';
+import {useSession} from '@components/OnyxListItemProvider';
 import type {ListItem} from '@components/SelectionList/types';
 import useOnyx from '@hooks/useOnyx';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
+import Permissions from '@libs/Permissions';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,6 +36,9 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const isCreateReport = action === CONST.IOU.ACTION.CREATE;
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
     const reportOrDraftReport = getReportOrDraftReport(reportIDFromRoute);
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const session = useSession();
 
     const handleGoBack = () => {
         if (isEditing) {
@@ -92,7 +97,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             );
 
             if (isEditing) {
-                changeTransactionsReport([transaction.transactionID], item.value);
+                changeTransactionsReport([transaction.transactionID], item.value, isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
             }
         });
     };
@@ -125,7 +130,13 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
         Navigation.dismissModal();
         InteractionManager.runAfterInteractions(() => {
-            changeTransactionsReport([transaction.transactionID], CONST.REPORT.UNREPORTED_REPORT_ID);
+            changeTransactionsReport(
+                [transaction.transactionID],
+                CONST.REPORT.UNREPORTED_REPORT_ID,
+                isASAPSubmitBetaEnabled,
+                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                session?.email ?? '',
+            );
         });
     };
 
