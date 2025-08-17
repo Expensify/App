@@ -55,10 +55,11 @@ async function run(): Promise<IssuesCreateResponse | void> {
         const currentChecklistData: StagingDeployCashData | undefined = shouldCreateNewDeployChecklist ? undefined : GithubUtils.getStagingDeployCashData(mostRecentChecklist);
 
         // Find the list of PRs merged between the current checklist and the previous checklist
-        const mergedPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag);
+        const mergedPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.APP_REPO);
 
         // mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out
         const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
+        const previousMobileExpensifyPRNumbers = new Set(previousChecklistData.PRListMobileExpensify.map((pr) => pr.number));
         core.startGroup('Filtering PRs:');
         core.info('mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out');
         core.info(`Found ${previousPRNumbers.size} PRs in the previous checklist:`);
@@ -67,7 +68,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
         core.info(`Found ${newPRNumbers.length} PRs deployed since the previous checklist:`);
         core.info(JSON.stringify(newPRNumbers));
 
-        // Log the PRs that were filtered out
+        // Filter out cherry-picked PRs that were released with the previous checklist
         const removedPRs = mergedPRs.filter((prNum) => previousPRNumbers.has(prNum));
         if (removedPRs.length > 0) {
             core.info(`⚠️⚠️ Filtered out the following cherry-picked PRs that were released with the previous checklist: ${removedPRs.join(', ')} ⚠️⚠️`);
@@ -75,13 +76,46 @@ async function run(): Promise<IssuesCreateResponse | void> {
         core.endGroup();
         console.info(`[api] Checklist PRs: ${newPRNumbers.join(', ')}`);
 
+        // Get merged Mobile-Expensify PRs
+        let mergedMobileExpensifyPRs: number[] = [];
+        try {
+            const allMobileExpensifyPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.MOBILE_EXPENSIFY_REPO);
+            mergedMobileExpensifyPRs = allMobileExpensifyPRs.filter((prNum) => !previousMobileExpensifyPRNumbers.has(prNum));
+
+            console.info(`Found ${allMobileExpensifyPRs.length} total Mobile-Expensify PRs, ${mergedMobileExpensifyPRs.length} new ones after filtering:`);
+            console.info(`Mobile-Expensify PRs: ${mergedMobileExpensifyPRs.join(', ')}`);
+
+            // Log the Mobile-Expensify PRs that were filtered out
+            const removedMobileExpensifyPRs = allMobileExpensifyPRs.filter((prNum) => previousMobileExpensifyPRNumbers.has(prNum));
+            if (removedMobileExpensifyPRs.length > 0) {
+                core.info(`⚠️⚠️ Filtered out the following cherry-picked Mobile-Expensify PRs that were released with the previous checklist: ${removedMobileExpensifyPRs.join(', ')} ⚠️⚠️`);
+            }
+        } catch (error) {
+            // Check if this is a forked repository
+            if (process.env.GITHUB_REPOSITORY !== `${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`) {
+                console.warn(
+                    "⚠️ Unable to fetch Mobile-Expensify PRs because this workflow is running on a forked repository and secrets aren't accessble. This is expected for development/testing on forks.",
+                );
+            } else {
+                console.error('Failed to fetch Mobile-Expensify PRs:', error);
+            }
+        }
+
         // Next, we generate the checklist body
         let checklistBody = '';
         let checklistAssignees: string[] = [];
         if (shouldCreateNewDeployChecklist) {
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersion,
-                newPRNumbers.map((value) => GithubUtils.getPullRequestURLFromNumber(value)),
+                newPRNumbers.map((value) => GithubUtils.getPullRequestURLFromNumber(value, CONST.APP_REPO_URL)),
+                mergedMobileExpensifyPRs.map((value) => GithubUtils.getPullRequestURLFromNumber(value, CONST.MOBILE_EXPENSIFY_URL)),
+                [], // verifiedPRList
+                [], // verifiedPRListMobileExpensify
+                [], // deployBlockers
+                [], // resolvedDeployBlockers
+                [], // resolvedInternalQAPRs
+                false, // isFirebaseChecked
+                false, // isGHStatusChecked
             );
             if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
@@ -94,7 +128,18 @@ async function run(): Promise<IssuesCreateResponse | void> {
                 const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData?.PRList[indexOfPRInCurrentChecklist].isVerified : false;
                 return {
                     number: prNum,
-                    url: GithubUtils.getPullRequestURLFromNumber(prNum),
+                    url: GithubUtils.getPullRequestURLFromNumber(prNum, CONST.APP_REPO_URL),
+                    isVerified,
+                };
+            });
+
+            // Generate the updated Mobile-Expensify PR list, preserving the previous state of `isVerified` for existing PRs
+            const PRListMobileExpensify = mergedMobileExpensifyPRs.map((prNum) => {
+                const indexOfPRInCurrentChecklist = currentChecklistData?.PRListMobileExpensify.findIndex((pr) => pr.number === prNum) ?? -1;
+                const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData?.PRListMobileExpensify[indexOfPRInCurrentChecklist].isVerified : false;
+                return {
+                    number: prNum,
+                    url: GithubUtils.getPullRequestURLFromNumber(prNum, CONST.MOBILE_EXPENSIFY_URL),
                     isVerified,
                 };
             });
@@ -127,11 +172,21 @@ async function run(): Promise<IssuesCreateResponse | void> {
                 });
             });
 
+            // Include any existing Mobile-Expensify PRs from the current checklist that aren't in the new merged list
+            currentChecklistData?.PRListMobileExpensify.forEach((existingPR) => {
+                const isAlreadyIncluded = PRListMobileExpensify.findIndex((pr) => pr.number === existingPR.number) >= 0;
+                if (!isAlreadyIncluded) {
+                    PRListMobileExpensify.push(existingPR);
+                }
+            });
+
             const didVersionChange = newVersion !== currentChecklistData?.version;
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersion,
                 PRList.map((pr) => pr.url),
+                PRListMobileExpensify.map((pr) => pr.url),
                 PRList.filter((pr) => pr.isVerified).map((pr) => pr.url),
+                PRListMobileExpensify.filter((pr) => pr.isVerified).map((pr) => pr.url),
                 deployBlockers.map((blocker) => blocker.url),
                 deployBlockers.filter((blocker) => blocker.isResolved).map((blocker) => blocker.url),
                 currentChecklistData?.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url),

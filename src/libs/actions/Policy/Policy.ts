@@ -31,6 +31,7 @@ import type {
     OpenPolicyInitialPageParams,
     OpenPolicyMoreFeaturesPageParams,
     OpenPolicyProfilePageParams,
+    OpenPolicyReceiptPartnersPageParams,
     OpenPolicyTaxesPageParams,
     OpenPolicyWorkflowsPageParams,
     OpenWorkspaceInvitePageParams,
@@ -110,6 +111,7 @@ import type {
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, ProhibitedExpenses, Rate, TaxRate} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
+import type {NotificationPreference} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {buildOptimisticMccGroup, buildOptimisticPolicyCategories} from './Category';
@@ -190,12 +192,6 @@ Onyx.connect({
 
         allPolicies[key] = val;
     },
-});
-
-let lastAccessedWorkspacePolicyID: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
-    callback: (value) => (lastAccessedWorkspacePolicyID = value),
 });
 
 let allReports: OnyxCollection<Report>;
@@ -344,7 +340,7 @@ function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>>
 /**
  * Delete the workspace
  */
-function deleteWorkspace(policyID: string, policyName: string, lastUsedPaymentMethods?: LastPaymentMethod) {
+function deleteWorkspace(policyID: string, policyName: string, lastAccessedWorkspacePolicyID: string | undefined, lastUsedPaymentMethods?: LastPaymentMethod) {
     if (!allPolicies) {
         return;
     }
@@ -1159,7 +1155,12 @@ function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string) {
  *
  * @returns - object with onyxSuccessData, onyxOptimisticData, and optimisticReportIDs (map login to reportID)
  */
-function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs, hasOutstandingChildRequest = false): WorkspaceMembersChats {
+function createPolicyExpenseChats(
+    policyID: string,
+    invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
+    hasOutstandingChildRequest = false,
+    notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+): WorkspaceMembersChats {
     const workspaceMembersChats: WorkspaceMembersChats = {
         onyxSuccessData: [],
         onyxOptimisticData: [],
@@ -1222,7 +1223,7 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             policyID,
             ownerAccountID: cleanAccountID,
-            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            notificationPreference,
         });
 
         // Set correct notification preferences: visible for the submitter, hidden for others until there's activity
@@ -2496,6 +2497,17 @@ function openPolicyWorkflowsPage(policyID: string) {
     const params: OpenPolicyWorkflowsPageParams = {policyID};
 
     API.read(READ_COMMANDS.OPEN_POLICY_WORKFLOWS_PAGE, params, onyxData);
+}
+
+function openPolicyReceiptPartnersPage(policyID?: string) {
+    if (!policyID) {
+        Log.warn('openPolicyReceiptPartnersPage invalid params', {policyID});
+        return;
+    }
+
+    const params: OpenPolicyReceiptPartnersPageParams = {policyID};
+
+    API.read(READ_COMMANDS.OPEN_POLICY_RECEIPT_PARTNERS_PAGE, params);
 }
 
 /**
@@ -5736,6 +5748,7 @@ export {
     clearBillingReceiptDetailsErrors,
     clearQuickbooksOnlineAutoSyncErrorField,
     setIsForcedToChangeCurrency,
+    openPolicyReceiptPartnersPage,
     setIsComingFromGlobalReimbursementsFlow,
     setPolicyAttendeeTrackingEnabled,
     updateInterestedFeatures,
