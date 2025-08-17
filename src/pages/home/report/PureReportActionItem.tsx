@@ -1011,7 +1011,7 @@ function PureReportActionItem({
                     </ReportActionItemBasicMessage>
                 );
             } else {
-                children = <ReportActionItemBasicMessage message={translate('iou.submitted')} />;
+                children = <ReportActionItemBasicMessage message={translate('iou.submitted', {memo: getOriginalMessage(action)?.message})} />;
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
             const wasAutoApproved = getOriginalMessage(action)?.automaticAction ?? false;
@@ -1189,7 +1189,7 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
-            children = <ReportActionItemBasicMessage message={translate('receipt.scanFailed')} />;
+            children = <ReportActionItemBasicMessage message={translate('iou.receiptScanningFailed')} />;
         } else if (isRenamedAction(action)) {
             const message = getRenamedAction(action, isExpenseReport(report));
             children = <ReportActionItemBasicMessage message={message} />;
