@@ -6554,6 +6554,7 @@ describe('actions/IOU', () => {
             let updatedTransaction: OnyxEntry<Transaction>;
             let updatedIOUReportActionOnSelfDMReport: OnyxEntry<ReportAction>;
             let updatedTrackExpenseActionableWhisper: OnyxEntry<ReportAction>;
+            let updatedExpenseReport: OnyxEntry<Report>;
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -6576,9 +6577,19 @@ describe('actions/IOU', () => {
                 },
             });
 
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (allReports) => {
+                    updatedExpenseReport = Object.values(allReports ?? {}).find((r) => r?.reportID === expenseReport?.reportID);
+                },
+            });
+
             expect(updatedTransaction?.reportID).toBe(expenseReport?.reportID);
             expect(isMoneyRequestAction(updatedIOUReportActionOnSelfDMReport) ? getOriginalMessage(updatedIOUReportActionOnSelfDMReport)?.IOUTransactionID : undefined).toBe(undefined);
             expect(updatedTrackExpenseActionableWhisper).toBe(undefined);
+            expect(updatedExpenseReport?.nonReimbursableTotal).toBeTruthy();
+            expect(updatedExpenseReport?.total).toBeTruthy();
         });
 
         describe('saveSplitTransactions', () => {
