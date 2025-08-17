@@ -1229,7 +1229,6 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
  */
 function getReportSections(
     data: OnyxTypes.SearchResults['data'],
-    metadata: OnyxTypes.SearchResults['search'],
     currentSearch: SearchKey,
     currentAccountID: number | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
@@ -1408,7 +1407,7 @@ function getSections(
         // eslint-disable-next-line default-case
         switch (groupBy) {
             case CONST.SEARCH.GROUP_BY.REPORTS:
-                return getReportSections(data, metadata, currentSearch, currentAccountID, formatPhoneNumber, reportActions);
+                return getReportSections(data, currentSearch, currentAccountID, formatPhoneNumber, reportActions);
             case CONST.SEARCH.GROUP_BY.FROM:
                 return getMemberSections(data);
             case CONST.SEARCH.GROUP_BY.CARD:
