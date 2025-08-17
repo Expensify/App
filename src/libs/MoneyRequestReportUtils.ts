@@ -4,7 +4,7 @@ import type {TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportMetadata, Transaction} from '@src/types/onyx';
 import {convertToDisplayString} from './CurrencyUtils';
-import {getIOUActionForTransactionID, getOriginalMessage, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
@@ -69,7 +69,7 @@ function getReportIDForTransaction(transactionItem: TransactionListItemType) {
 }
 
 /**
- * Filters all available transactions and returns the ones that belong to not removed parent action.
+ * Filters all available transactions and returns the ones that belong to not removed action and not removed parent action.
  */
 function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[]) {
     return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
@@ -77,7 +77,7 @@ function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>,
             return false;
         }
         const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-        return !isDeletedParentAction(action);
+        return !isDeletedParentAction(action) && (reportActions.length === 0 || !isDeletedAction(action));
     });
 }
 
@@ -142,7 +142,7 @@ const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, poli
         }
 
         // We shouldn't display the nonHeldAmount as the default option if it's not valid since we cannot pay partially in this case
-        if (hasHeldExpensesReportUtils(report?.reportID) && canAllowSettlement && hasValidNonHeldAmount) {
+        if (hasHeldExpensesReportUtils(report?.reportID) && canAllowSettlement && hasValidNonHeldAmount && !hasOnlyHeldExpenses) {
             return nonHeldAmount;
         }
 
@@ -154,24 +154,6 @@ const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, poli
     return convertToDisplayString(totalDisplaySpend, report?.currency);
 };
 
-/**
- * Filters all available transactions and returns the ones that belong to a specific report (by `reportID`).
- * It is used as an onyx selector, to make sure that report related views do not process all transactions in onyx.
- */
-function selectAllTransactionsForReport(transactions: OnyxCollection<Transaction>, reportID: string | undefined, reportActions: ReportAction[]) {
-    if (!reportID) {
-        return [];
-    }
-
-    return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
-        if (!transaction) {
-            return false;
-        }
-        const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-        return transaction.reportID === reportID && !isDeletedParentAction(action);
-    });
-}
-
 export {
     isActionVisibleOnMoneyRequestReport,
     getThreadReportIDsForTransactions,
@@ -181,5 +163,4 @@ export {
     isSingleTransactionReport,
     shouldDisplayReportTableView,
     shouldWaitForTransactions,
-    selectAllTransactionsForReport,
 };

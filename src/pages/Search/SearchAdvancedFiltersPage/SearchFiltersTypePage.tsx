@@ -32,7 +32,7 @@ function SearchFiltersTypePage() {
             keyForList: typeOption.value,
             isSelected: selectedItem === typeOption.value,
         }));
-    }, [allPolicies, selectedItem, session?.email, translate]);
+    }, [allPolicies, selectedItem, session?.email]);
 
     const updateSelectedItem = useCallback((type: ListItem<SearchDataTypes>) => {
         setSelectedItem(type?.keyForList ?? CONST.SEARCH.DATA_TYPES.EXPENSE);

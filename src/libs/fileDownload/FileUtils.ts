@@ -406,8 +406,10 @@ const normalizeFileObject = (file: FileObject): Promise<FileObject> => {
     }
 
     const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
+    const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
+    const isNativePlatform = isAndroidNative || isIOSNative;
 
-    if (!isAndroidNative || 'size' in file) {
+    if (!isNativePlatform || 'size' in file) {
         return Promise.resolve(file);
     }
 
@@ -434,7 +436,7 @@ const validateAttachment = (file: FileObject, isCheckingMultipleFiles?: boolean,
         return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
     }
 
-    if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+    if (isValidatingReceipt && (file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
         return CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL;
     }
 
@@ -453,6 +455,7 @@ type TranslationAdditionalData = {
 const getFileValidationErrorText = (
     validationError: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | null,
     additionalData: TranslationAdditionalData = {},
+    isValidatingReceipt = false,
 ): {
     title: string;
     reason: string;
@@ -463,6 +466,7 @@ const getFileValidationErrorText = (
             reason: '',
         };
     }
+    const maxSize = isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
     switch (validationError) {
         case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE:
             return {
@@ -477,13 +481,17 @@ const getFileValidationErrorText = (
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE:
             return {
                 title: translateLocal('attachmentPicker.attachmentTooLarge'),
-                reason: translateLocal('attachmentPicker.sizeExceeded'),
+                reason: isValidatingReceipt
+                    ? translateLocal('attachmentPicker.sizeExceededWithLimit', {
+                          maxUploadSizeInMB: additionalData.maxUploadSizeInMB ?? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / 1024 / 1024,
+                      })
+                    : translateLocal('attachmentPicker.sizeExceeded'),
             };
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE:
             return {
                 title: translateLocal('attachmentPicker.someFilesCantBeUploaded'),
                 reason: translateLocal('attachmentPicker.sizeLimitExceeded', {
-                    maxUploadSizeInMB: additionalData.maxUploadSizeInMB ?? CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE / 1024 / 1024,
+                    maxUploadSizeInMB: additionalData.maxUploadSizeInMB ?? maxSize / 1024 / 1024,
                 }),
             };
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL:
