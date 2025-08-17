@@ -1,5 +1,5 @@
 /* eslint-disable react-native-a11y/has-valid-accessibility-descriptors */
-import React, {forwardRef} from 'react';
+import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -51,6 +51,11 @@ type PressableWithDelayToggleProps = PressableProps & {
     inline?: boolean;
     accessibilityRole?: string;
 
+     /**
+     * Reference to the outer element
+     */
+    ref?: PressableRef;
+
     /** Whether to use background color based on button states, e.g., hovered, active, pressed...  */
     shouldUseButtonBackground?: boolean;
 
@@ -77,6 +82,7 @@ function PressableWithDelayToggle(
         textStyles,
         iconStyles,
         icon,
+        ref,
         accessibilityRole,
         shouldHaveActiveBackground,
         iconWidth = variables.iconSizeSmall,
@@ -169,6 +175,4 @@ function PressableWithDelayToggle(
 
 PressableWithDelayToggle.displayName = 'PressableWithDelayToggle';
 
-export default forwardRef(PressableWithDelayToggle);
-
-export type {PressableWithDelayToggleProps};
+export default PressableWithDelayToggle;

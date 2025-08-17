@@ -105,7 +105,7 @@ type MenuItemBaseProps = {
     descriptionTextStyle?: StyleProp<TextStyle>;
 
     /** The fill color to pass into the icon. */
-    iconFill?: string;
+    iconFill?: string | ((isHovered: boolean) => string);
 
     /** Secondary icon to display on the left side of component, right of the icon */
     secondaryIcon?: IconAsset;
@@ -381,6 +381,9 @@ type MenuItemBaseProps = {
 
     /** Report ID for the avatar on the right */
     rightIconReportID?: string;
+
+    /** Whether the menu item contains nested submenu items. */
+    hasSubMenuItems?: boolean;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -503,6 +506,7 @@ function MenuItem(
         plaidUrl,
         copyValue = title,
         copiable = false,
+        hasSubMenuItems = false,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -761,14 +765,17 @@ function MenuItem(
                                                                         width={iconWidth}
                                                                         height={iconHeight}
                                                                         fill={
+                                                                            // eslint-disable-next-line no-nested-ternary
                                                                             displayInDefaultIconColor
                                                                                 ? undefined
-                                                                                : (iconFill ??
-                                                                                  StyleUtils.getIconFillColor(
-                                                                                      getButtonState(focused || isHovered, pressed, success, disabled, interactive),
-                                                                                      true,
-                                                                                      isPaneMenu,
-                                                                                  ))
+                                                                                : typeof iconFill === 'function'
+                                                                                  ? iconFill(isHovered)
+                                                                                  : (iconFill ??
+                                                                                    StyleUtils.getIconFillColor(
+                                                                                        getButtonState(focused || isHovered, pressed, success, disabled, interactive),
+                                                                                        true,
+                                                                                        isPaneMenu,
+                                                                                    ))
                                                                         }
                                                                         additionalStyles={additionalIconStyles}
                                                                     />
@@ -942,11 +949,15 @@ function MenuItem(
                                                             styles.pointerEventsAuto,
                                                             StyleUtils.getMenuItemIconStyle(isCompact),
                                                             disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
+                                                            hasSubMenuItems && styles.opacitySemiTransparent,
+                                                            hasSubMenuItems && styles.pl6,
                                                         ]}
                                                     >
                                                         <Icon
                                                             src={iconRight}
                                                             fill={StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))}
+                                                            width={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
+                                                            height={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
                                                         />
                                                     </View>
                                                 )}
