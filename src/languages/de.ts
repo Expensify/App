@@ -3515,6 +3515,21 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: 'Automatisieren Sie die Reisekosten und Essenslieferungskosten in Ihrem gesamten Unternehmen.',
+                inviteMembers: 'Mitglieder einladen',
+                confirmInvite: 'Einladung bestätigen',
+                manageInvites: 'Einladungen verwalten',
+                confirm: 'Bestätigen',
+                allSet: 'Alles erledigt',
+                readyToRoll: 'Sie sind startklar!',
+                takeBusinessRideMessage: "Machen Sie eine Geschäftsfahrt und Ihre Uber-Belege werden in Expensify importiert. Los geht's!",
+                all: 'Alle',
+                linked: 'Verknüpft',
+                outstanding: 'Ausstehend',
+                invite: 'Einladen',
+                resend: 'Erneut senden',
+                pending: 'Ausstehend',
+                suspended: 'Gesperrt',
+                invitationFailure: 'Mitglieder konnten nicht zu Uber for Business eingeladen werden',
             },
         },
         perDiem: {

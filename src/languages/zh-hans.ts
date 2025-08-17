@@ -3486,6 +3486,21 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: '自动化整个组织的差旅和送餐费用。',
+                inviteMembers: '邀请成员',
+                confirmInvite: '确认邀请',
+                manageInvites: '管理邀请',
+                confirm: '确认',
+                allSet: '全部设置完毕',
+                readyToRoll: '您已准备就绪！',
+                takeBusinessRideMessage: '进行商务出行，您的Uber收据将导入到Expensify。出发吧！',
+                all: '全部',
+                linked: '已关联',
+                outstanding: '待处理',
+                invite: '邀请',
+                resend: '重新发送',
+                pending: '待处理',
+                suspended: '已暂停',
+                invitationFailure: '邀请成员加入Uber for Business失败',
             },
         },
         perDiem: {

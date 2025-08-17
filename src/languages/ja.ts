@@ -3528,6 +3528,21 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: '組織全体で出張費や食事の配達費を自動化します。',
+                inviteMembers: 'メンバーを招待',
+                confirmInvite: '招待を確認',
+                manageInvites: '招待を管理',
+                confirm: '確認',
+                allSet: '設定完了',
+                readyToRoll: '準備完了です！',
+                takeBusinessRideMessage: 'ビジネス利用でUberに乗車すると、レシートがExpensifyに自動的にインポートされます。出発しましょう！',
+                all: 'すべて',
+                linked: 'リンク済み',
+                outstanding: '未処理',
+                invite: '招待',
+                resend: '再送信',
+                pending: '保留中',
+                suspended: '停止中',
+                invitationFailure: 'Uber for Businessへのメンバー招待に失敗しました',
             },
         },
         perDiem: {

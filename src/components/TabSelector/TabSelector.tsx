@@ -43,11 +43,11 @@ type IconTitleAndTestID = {
 function getIconTitleAndTestID(route: string, translate: LocaleContextProps['translate']): IconTitleAndTestID {
     switch (route) {
         case CONST.TAB.RECEIPT_PARTNERS.ALL:
-            return {title: translate('workspace.receiptPartners.all'), testID: 'all'};
+            return {title: translate('workspace.receiptPartners.uber.all'), testID: 'all'};
         case CONST.TAB.RECEIPT_PARTNERS.LINKED:
-            return {title: translate('workspace.receiptPartners.linked'), testID: 'linked'};
+            return {title: translate('workspace.receiptPartners.uber.linked'), testID: 'linked'};
         case CONST.TAB.RECEIPT_PARTNERS.OUTSTANDING:
-            return {title: translate('workspace.receiptPartners.outstanding'), testID: 'outstanding'};
+            return {title: translate('workspace.receiptPartners.uber.outstanding'), testID: 'outstanding'};
         case CONST.TAB_REQUEST.MANUAL:
             return {icon: Expensicons.Pencil, title: translate('tabSelector.manual'), testID: 'manual'};
         case CONST.TAB_REQUEST.SCAN:

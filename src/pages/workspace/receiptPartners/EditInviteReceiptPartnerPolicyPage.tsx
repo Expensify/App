@@ -100,13 +100,13 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
             let badgeText: string | undefined;
             switch (status) {
                 case 'LINKED':
-                    badgeText = translate('workspace.receiptPartners.linked');
+                    badgeText = translate('workspace.receiptPartners.uber.linked');
                     break;
                 case 'LINKED_PENDING_APPROVAL':
-                    badgeText = translate('workspace.receiptPartners.pending');
+                    badgeText = translate('workspace.receiptPartners.uber.pending');
                     break;
                 case 'SUSPENDED':
-                    badgeText = translate('workspace.receiptPartners.suspended');
+                    badgeText = translate('workspace.receiptPartners.uber.suspended');
                     break;
                 default:
                     break;
@@ -117,7 +117,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                 rightElement = (
                     <Button
                         small
-                        text={translate('workspace.receiptPartners.resend')}
+                        text={translate('workspace.receiptPartners.uber.resend')}
                         onPress={() => {}}
                     />
                 );
@@ -125,7 +125,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                 rightElement = (
                     <Button
                         small
-                        text={translate('workspace.receiptPartners.invite')}
+                        text={translate('workspace.receiptPartners.uber.invite')}
                         onPress={() => {}}
                     />
                 );
@@ -186,7 +186,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
     return (
         <ScreenWrapper testID={EditInviteReceiptPartnerPolicyPage.displayName}>
             <HeaderWithBackButton
-                title={translate('workspace.receiptPartners.manageInvites')}
+                title={translate('workspace.receiptPartners.uber.manageInvites')}
                 onBackButtonPress={() => window.history.back()}
             />
 

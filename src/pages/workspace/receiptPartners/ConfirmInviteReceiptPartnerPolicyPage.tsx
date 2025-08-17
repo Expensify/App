@@ -18,13 +18,13 @@ function ConfirmInviteReceiptPartnerPolicyPage() {
     return (
         <ScreenWrapper testID={ConfirmInviteReceiptPartnerPolicyPage.displayName}>
             <HeaderWithBackButton
-                title={translate('workspace.receiptPartners.allSet')}
+                title={translate('workspace.receiptPartners.uber.allSet')}
                 onBackButtonPress={() => Navigation.dismissModal()}
             />
             <ConfirmationPage
                 illustration={Illustrations.ToddInCar}
-                heading={translate('workspace.receiptPartners.readyToRoll')}
-                description={translate('workspace.receiptPartners.takeBusinessRideMessage')}
+                heading={translate('workspace.receiptPartners.uber.readyToRoll')}
+                description={translate('workspace.receiptPartners.uber.takeBusinessRideMessage')}
                 shouldShowButton
                 buttonText={translate('common.buttonConfirm')}
                 onButtonPress={handleGotIt}

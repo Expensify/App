@@ -3500,6 +3500,21 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: 'Automatice los gastos de viajes y entrega de comidas en toda su organización.',
+                inviteMembers: 'Invitar miembros',
+                confirmInvite: 'Confirmar invitación',
+                manageInvites: 'Gestionar invitaciones',
+                confirm: 'Confirmar',
+                allSet: 'Todo listo',
+                readyToRoll: '¡Estás listo para empezar!',
+                takeBusinessRideMessage: 'Toma un viaje de negocios y tus recibos de Uber se importarán a Expensify. ¡Vámonos!',
+                all: 'Todos',
+                linked: 'Vinculado',
+                outstanding: 'Pendiente',
+                invite: 'Invitar',
+                resend: 'Reenviar',
+                pending: 'Pendiente',
+                suspended: 'Suspendido',
+                invitationFailure: 'Error al invitar miembros a Uber for Business',
             },
         },
         perDiem: {

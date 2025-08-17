@@ -183,7 +183,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
     return (
         <ScreenWrapper testID={InviteReceiptPartnerPolicyPage.displayName}>
             <HeaderWithBackButton
-                title={translate('workspace.receiptPartners.inviteMembers')}
+                title={translate('workspace.receiptPartners.uber.inviteMembers')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <SelectionList
@@ -196,7 +196,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
                 ListItem={InviteMemberListItem}
                 onSelectRow={toggleOption}
                 showConfirmButton
-                confirmButtonText={translate('workspace.receiptPartners.confirm')}
+                confirmButtonText={translate('workspace.receiptPartners.uber.confirm')}
                 onConfirm={handleConfirm}
                 isConfirmButtonDisabled={selectedOptions.length === 0}
                 addBottomSafeAreaPadding

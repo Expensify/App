@@ -24,6 +24,7 @@ import type {
     EnablePolicyReportFieldsParams,
     EnablePolicyTaxesParams,
     EnablePolicyWorkflowsParams,
+    InviteWorkspaceEmployeesToUberParams,
     LeavePolicyParams,
     OpenDraftWorkspaceRequestParams,
     OpenPolicyEditCardLimitTypePageParams,
@@ -60,7 +61,6 @@ import type {
     UpdateWorkspaceDescriptionParams,
     UpdateWorkspaceGeneralSettingsParams,
     UpgradeToCorporateParams,
-    InviteWorkspaceEmployeesToUberParams,
 } from '@libs/API/parameters';
 import type UpdatePolicyMembersCustomFieldsParams from '@libs/API/parameters/UpdatePolicyMembersCustomFieldsParams';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
@@ -2550,7 +2550,7 @@ function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     pendingAction: null,
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.receiptPartners.invitationFailure'),
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.receiptPartners.uber.invitationFailure'),
                 },
             },
         ],

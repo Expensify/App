@@ -3535,6 +3535,21 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: 'Automatiseer reis- en maaltijdbezorgkosten binnen uw organisatie.',
+                inviteMembers: 'Leden uitnodigen',
+                confirmInvite: 'Uitnodiging bevestigen',
+                manageInvites: 'Uitnodigingen beheren',
+                confirm: 'Bevestigen',
+                allSet: 'Alles klaar',
+                readyToRoll: 'Je bent klaar om te beginnen!',
+                takeBusinessRideMessage: 'Neem een zakelijke rit en je Uber-bonnetjes worden geïmporteerd in Expensify. Laten we gaan!',
+                all: 'Alle',
+                linked: 'Gekoppeld',
+                outstanding: 'Openstaand',
+                invite: 'Uitnodigen',
+                resend: 'Opnieuw verzenden',
+                pending: 'In behandeling',
+                suspended: 'Opgeschort',
+                invitationFailure: 'Kon leden niet uitnodigen voor Uber for Business',
             },
         },
         perDiem: {

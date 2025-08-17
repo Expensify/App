@@ -3523,6 +3523,21 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: 'Automatisez les dépenses de déplacement et de livraison de repas dans toute votre organisation.',
+                inviteMembers: 'Inviter des membres',
+                confirmInvite: "Confirmer l'invitation",
+                manageInvites: 'Gérer les invitations',
+                confirm: 'Confirmer',
+                allSet: 'Tout est prêt',
+                readyToRoll: 'Vous êtes prêt à commencer !',
+                takeBusinessRideMessage: "Prenez un trajet professionnel et vos reçus Uber seront importés dans Expensify. C'est parti !",
+                all: 'Tous',
+                linked: 'Lié',
+                outstanding: 'En attente',
+                invite: 'Inviter',
+                resend: 'Renvoyer',
+                pending: 'En attente',
+                suspended: 'Suspendu',
+                invitationFailure: "Échec de l'invitation des membres à Uber for Business",
             },
         },
         perDiem: {
