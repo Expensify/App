@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import AttachmentModal from '@components/AttachmentModal';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -17,12 +18,12 @@ function ReportAvatar({route}: ReportAvatarProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-
+    const isReportArchived = useReportIsArchived(report?.reportID);
     const attachment = useMemo(() => {
         if (isGroupChat(report) && !isThread(report)) {
             return {
                 source: report?.avatarUrl ? getFullSizeAvatar(report.avatarUrl, 0) : getDefaultGroupAvatar(report?.reportID),
-                headerTitle: getReportName(report),
+                headerTitle: getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived),
                 isWorkspaceAvatar: false,
             };
         }
