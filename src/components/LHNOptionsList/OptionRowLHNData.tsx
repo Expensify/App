@@ -72,6 +72,7 @@ function OptionRowLHNData({
             lastMessageTextFromReport,
             invoiceReceiverPolicy,
             card,
+            lastAction,
             localeCompare,
         });
         // eslint-disable-next-line react-compiler/react-compiler
