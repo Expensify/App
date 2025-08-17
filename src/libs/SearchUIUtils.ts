@@ -819,13 +819,6 @@ function getTransactionsSections(
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
 
-    const shouldShowTo = metadata?.columnsToShow?.shouldShowToColumn;
-    const shouldShowFrom = metadata?.columnsToShow?.shouldShowFromColumn;
-    const shouldShowDescription = metadata?.columnsToShow?.shouldShowDescriptionColumn;
-    const shouldShowCategory = metadata?.columnsToShow?.shouldShowCategoryColumn;
-    const shouldShowTag = metadata?.columnsToShow?.shouldShowTagColumn;
-    const shouldShowTax = metadata?.columnsToShow?.shouldShowTaxColumn;
-
     // Pre-filter transaction keys to avoid repeated checks
     const transactionKeys = Object.keys(data).filter(isTransactionEntry);
     // Get violations - optimize by using a Map for faster lookups
@@ -859,13 +852,7 @@ function getTransactionsSections(
             formattedTotal,
             formattedMerchant,
             date,
-            shouldShowTo,
-            shouldShowFrom,
-            shouldShowDescription,
             shouldShowMerchant,
-            shouldShowCategory,
-            shouldShowTag,
-            shouldShowTax,
             keyForList: transactionItem.transactionID,
             shouldShowYear: doesDataContainAPastYearTransaction,
             isAmountColumnWide: shouldShowAmountInWideColumn,
@@ -1308,14 +1295,8 @@ function getReportSections(
                 formattedMerchant,
                 date,
                 shouldShowMerchant,
-                shouldShowDescription: metadata?.columnsToShow.shouldShowDescriptionColumn,
-                shouldShowFrom: metadata?.columnsToShow.shouldShowFromColumn,
-                shouldShowTo: metadata?.columnsToShow.shouldShowToColumn,
-                shouldShowCategory: metadata?.columnsToShow?.shouldShowCategoryColumn,
-                shouldShowTag: metadata?.columnsToShow?.shouldShowTagColumn,
-                shouldShowTax: metadata?.columnsToShow?.shouldShowTaxColumn,
-                keyForList: transactionItem.transactionID,
                 shouldShowYear: doesDataContainAPastYearTransaction,
+                keyForList: transactionItem.transactionID,
                 violations: transactionViolations,
                 isAmountColumnWide: shouldShowAmountInWideColumn,
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
