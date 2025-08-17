@@ -510,7 +510,6 @@ type SearchCardGroup = {
 };
 
 /** Model of withdrawal ID grouped search result */
-// s77rt add miissing fields state and accountNumber (?)
 type SearchWithdrawalIDGroup = {
     /** Withdrawal ID */
     entryID: number;
@@ -524,8 +523,8 @@ type SearchWithdrawalIDGroup = {
     /** Currency of total value */
     currency: string;
 
-    /** Bank account ID */
-    bankAccountID: number;
+    /** Masked account number */
+    accountNumber: string;
 
     /** Bank name */
     addressName: string;

@@ -1392,7 +1392,8 @@ function getCardSections(data: OnyxTypes.SearchResults['data']): TransactionCard
  * Do not use directly, use only via `getSections()` facade.
  */
 function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data']): TransactionWithdrawalIDGroupListItemType[] {
-    return data ? [] : []; // s77rt TODO
+    // Will be implemented as part of https://github.com/Expensify/App/pull/66078
+    return data ? [] : [];
 }
 
 /**
@@ -1594,7 +1595,8 @@ function getSortedCardData(data: TransactionCardGroupListItemType[], localeCompa
  * Sorts report sections based on a specified column and sort order.
  */
 function getSortedWithdrawalIDData(data: TransactionWithdrawalIDGroupListItemType[]) {
-    return data ? [] : []; // s77rt TODO
+    // Will be implemented as part of https://github.com/Expensify/App/pull/66078
+    return data ? [] : [];
 }
 
 /**

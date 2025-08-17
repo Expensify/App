@@ -138,7 +138,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 />
             ),
             [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: (
-                // s77rt WithdrawalIDListItemHeader
+                // Will be implemented as part of https://github.com/Expensify/App/pull/66078
                 <View />
             ),
         };
