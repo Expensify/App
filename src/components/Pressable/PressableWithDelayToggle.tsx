@@ -51,7 +51,7 @@ type PressableWithDelayToggleProps = PressableProps & {
     inline?: boolean;
     accessibilityRole?: string;
 
-     /**
+    /**
      * Reference to the outer element
      */
     ref?: PressableRef;
@@ -69,28 +69,25 @@ type PressableWithDelayToggleProps = PressableProps & {
     iconHeight?: number;
 };
 
-function PressableWithDelayToggle(
-    {
-        iconChecked = Expensicons.Checkmark,
-        inline = true,
-        onPress,
-        text,
-        textChecked,
-        tooltipText,
-        tooltipTextChecked,
-        styles: pressableStyle,
-        textStyles,
-        iconStyles,
-        icon,
-        ref,
-        accessibilityRole,
-        shouldHaveActiveBackground,
-        iconWidth = variables.iconSizeSmall,
-        iconHeight = variables.iconSizeSmall,
-        shouldUseButtonBackground = false,
-    }: PressableWithDelayToggleProps,
-    ref: PressableRef,
-) {
+function PressableWithDelayToggle({
+    iconChecked = Expensicons.Checkmark,
+    inline = true,
+    onPress,
+    text,
+    textChecked,
+    tooltipText,
+    tooltipTextChecked,
+    styles: pressableStyle,
+    textStyles,
+    iconStyles,
+    icon,
+    ref,
+    accessibilityRole,
+    shouldHaveActiveBackground,
+    iconWidth = variables.iconSizeSmall,
+    iconHeight = variables.iconSizeSmall,
+    shouldUseButtonBackground = false,
+}: PressableWithDelayToggleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isActive, temporarilyDisableInteractions] = useThrottledButtonState();
@@ -176,3 +173,4 @@ function PressableWithDelayToggle(
 PressableWithDelayToggle.displayName = 'PressableWithDelayToggle';
 
 export default PressableWithDelayToggle;
+export type {PressableWithDelayToggleProps};
