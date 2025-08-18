@@ -138,6 +138,8 @@ function WorkspacesListPage() {
         selector: filterInactiveCards,
         canBeMissing: true,
     });
+    const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, {canBeMissing: true});
+
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policyToDelete = getPolicy(policyIDToDelete);
@@ -158,7 +160,7 @@ function WorkspacesListPage() {
             return;
         }
 
-        deleteWorkspace(policyIDToDelete, policyNameToDelete, lastPaymentMethod);
+        deleteWorkspace(policyIDToDelete, policyNameToDelete, lastAccessedWorkspacePolicyID, lastPaymentMethod);
         setIsDeleteModalOpen(false);
     };
 

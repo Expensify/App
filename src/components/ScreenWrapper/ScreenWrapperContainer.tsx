@@ -205,7 +205,7 @@ function ScreenWrapperContainer(
             testID={testID}
         >
             <View
-                fsClass="fs-unmask"
+                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
                 style={[style, paddingTopStyle]}
                 // eslint-disable-next-line react/jsx-props-no-spreading, react-compiler/react-compiler
                 {...keyboardDismissPanResponder.panHandlers}
