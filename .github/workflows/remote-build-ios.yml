@@ -13,6 +13,8 @@ concurrency:
 jobs:
   build:
     runs-on: ${{ github.repository_owner == 'Expensify' && 'macos-15-xlarge' || 'macos-15' }}
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_16.4.0.app/Contents/Developer
     strategy:
       fail-fast: false
       matrix:
@@ -31,10 +33,6 @@ jobs:
         with:
           submodules: ${{ matrix.is_hybrid_build || false }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      # Temporary workaround until https://github.com/actions/runner-images/issues/12758 is fixed
-      - name: Install XCode 16
-        run: sudo xcode-select --switch /Applications/Xcode_16.4.app
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
