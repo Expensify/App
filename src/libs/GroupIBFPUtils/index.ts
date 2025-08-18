@@ -1,5 +1,29 @@
-import {getEnvironment} from '@libs/Environment/Environment';
+import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {getEnvironment} from '../Environment/Environment';
+
+const sessionID: string = Str.guid();
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        const isAuthenticated = !!(session?.authToken ?? null);
+        setAuthStatus(isAuthenticated);
+        if (isAuthenticated) {
+            setIdentity(session?.accountID?.toString() ?? '');
+        }
+        setSessionID(sessionID);
+    },
+});
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (account) => {
+        setAttribute('email', account?.primaryLogin ?? '');
+        setAttribute('mfa', account?.requiresTwoFactorAuth ? '2fa_enabled' : '2fa_disabled');
+    },
+});
 
 const cidMap: Record<string, string> = {
     [CONST.ENVIRONMENT.PRODUCTION]: 'gib-w-expensify',
@@ -77,7 +101,7 @@ function setSessionID(id: string) {
     });
 }
 
-function setIdentity(id: string | number) {
+function setIdentity(id: string) {
     fpInstancePromise.then((fp) => {
         fp?.setIdentity?.(id);
     });
