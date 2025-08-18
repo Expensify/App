@@ -2,9 +2,9 @@
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
 import type {LineLayer} from 'react-map-gl';
+import type {ImageStyle, TextStyle, ViewStyle} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
-import {Platform} from 'react-native';
+import {Animated, Platform} from 'react-native';
 import type {PickerStyle} from 'react-native-picker-select';
 import {interpolate} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
@@ -12,6 +12,7 @@ import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-
 import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
+import {receiptPaneRHPWidth} from '@components/WideRHPContextProvider';
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
@@ -1794,9 +1795,7 @@ const styles = (theme: ThemeColors) =>
 
         animatedRHPNavigatorContainer: (shouldUseNarrowLayout: boolean, expandedRHPProgress: Animated.Value) => ({
             height: '100%',
-            width: shouldUseNarrowLayout
-                ? '100%'
-                : expandedRHPProgress.interpolate({inputRange: [0, 1], outputRange: [variables.sideBarWidth, variables.sideBarWidth + variables.receiptPanelRHPWidth]}),
+            width: shouldUseNarrowLayout ? '100%' : Animated.add(variables.sideBarWidth, Animated.multiply(expandedRHPProgress, receiptPaneRHPWidth)),
             right: 0,
             position: 'absolute',
             overflow: 'hidden',
@@ -2045,7 +2044,7 @@ const styles = (theme: ThemeColors) =>
             ({
                 ...positioning.pFixed,
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
-                left: marginLeft ? variables.receiptPanelRHPWidth : -2 * variables.sideBarWidth,
+                left: marginLeft ? variables.receiptPaneRHPMaxWidth : -2 * variables.sideBarWidth,
                 top: 0,
                 bottom: 0,
                 right: marginRight ? variables.sideBarWidth : 0,
@@ -5746,7 +5745,8 @@ const styles = (theme: ThemeColors) =>
 
         wideRHPMoneyRequestReceiptViewContainer: {
             backgroundColor: theme.appBG,
-            width: variables.receiptPanelRHPWidth,
+            // width: variables.receiptPaneRHPMaxWidth,
+            width: receiptPaneRHPWidth,
             height: '100%',
             borderRightWidth: 1,
             borderColor: theme.border,
@@ -5756,6 +5756,17 @@ const styles = (theme: ThemeColors) =>
             ...sizing.w100,
             ...sizing.h100,
             backgroundColor: colors.green800,
+
+        wideRHPMoneyRequestReceiptViewScrollView: {
+            paddingTop: 12,
+            minHeight: '100%',
+        },
+
+        wideRHPExtendedCardInterpolatorStyles: {
+            position: 'fixed',
+            height: '100%',
+            right: 0,
+            width: Animated.add(variables.sideBarWidth, receiptPaneRHPWidth),
         },
 
         smallMoreButton: {
