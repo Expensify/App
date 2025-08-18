@@ -23,7 +23,6 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
-import type DeleteWorkspaceErrorModal from './DeleteWorkspaceErrorModal';
 import type {OutstandingReportsByPolicyIDDerivedValue, ReportAttributesDerivedValue, ReportTransactionsAndViolationsDerivedValue} from './DerivedValues';
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
@@ -272,5 +271,4 @@ export type {
     BillingReceiptDetails,
     ExportTemplate,
     HybridApp,
-    DeleteWorkspaceErrorModal,
 };

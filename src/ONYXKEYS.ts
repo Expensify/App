@@ -565,9 +565,6 @@ const ONYXKEYS = {
     NVP_LAST_ECASH_ANDROID_LOGIN: 'nvp_lastECashAndroidLogin',
     NVP_LAST_ANDROID_LOGIN: 'nvp_lastAndroidLogin',
 
-    /** Used for displaying the delete workspace error modal */
-    DELETE_WORKSPACE_ERROR_MODAL: 'deleteWorkspaceErrorModal',
-
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -1229,7 +1226,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION]: OnboardingAccounting;
     [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
     [ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS]: Record<string, OnyxTypes.ExportTemplate>;
-    [ONYXKEYS.DELETE_WORKSPACE_ERROR_MODAL]: OnyxTypes.DeleteWorkspaceErrorModal;
 };
 
 type OnyxDerivedValuesMapping = {

@@ -91,7 +91,6 @@ import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
-    DeleteWorkspaceErrorModal,
     IntroSelected,
     InvitedEmailsToAccountIDs,
     LastPaymentMethod,
@@ -5647,10 +5646,6 @@ function clearPolicyTitleFieldError(policyID: string) {
     });
 }
 
-function setDeleteWorkspaceErrorModalData(value: DeleteWorkspaceErrorModal | null) {
-    Onyx.set(ONYXKEYS.DELETE_WORKSPACE_ERROR_MODAL, value);
-}
-
 export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
@@ -5763,5 +5758,4 @@ export {
     setPolicyAttendeeTrackingEnabled,
     updateInterestedFeatures,
     clearPolicyTitleFieldError,
-    setDeleteWorkspaceErrorModalData,
 };

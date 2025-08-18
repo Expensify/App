@@ -7,7 +7,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
-import DeleteWorkspaceErrorConfirmModal from './components/DeleteWorkspaceErrorConfirmModal';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import GrowlNotification from './components/GrowlNotification';
 import {InitialURLContext} from './components/InitialURLContextProvider';
@@ -107,7 +106,6 @@ function Expensify() {
     const [currentOnboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
-    const [deleteWorkspaceErrorModal] = useOnyx(ONYXKEYS.DELETE_WORKSPACE_ERROR_MODAL, {canBeMissing: true});
 
     useDebugShortcut();
     usePriorityMode();
@@ -287,7 +285,6 @@ function Expensify() {
                     <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                     {/* We include the modal for showing a new update at the top level so the option is always present. */}
                     {updateAvailable && !updateRequired ? <UpdateAppModal /> : null}
-                    {deleteWorkspaceErrorModal?.isVisible ? <DeleteWorkspaceErrorConfirmModal errorMessage={deleteWorkspaceErrorModal?.errorMessage} /> : null}
                     {screenShareRequest ? (
                         <ConfirmModal
                             title={translate('guides.screenShare')}

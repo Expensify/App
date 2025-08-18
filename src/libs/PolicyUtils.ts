@@ -44,6 +44,17 @@ import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} 
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {isPublicDomain} from './ValidationUtils';
 
+/**
+ * If DeleteWorkspace endpoint fails, we show a modal with the error message that BE responds with.
+ */
+type DeleteWorkspaceErrorModal = {
+    /** Whether the modal should be visible */
+    isVisible: boolean;
+
+    /** The error message to display in the modal */
+    errorMessage: string;
+};
+
 type MemberEmailsToAccountIDs = Record<string, number>;
 
 type WorkspaceDetails = {
@@ -1527,7 +1538,7 @@ function wasPolicyLastModifiedWhileOffline(
     isOffline: boolean,
     lastOfflineAt: Date | undefined,
     lastOnlineAt: Date | undefined,
-    locale: Locale = CONST.LOCALES.DEFAULT,
+    locale: Locale | undefined,
 ): boolean {
     if (!lastOfflineAt || !lastOnlineAt || isEmptyObject(policy)) {
         return false;
@@ -1700,4 +1711,4 @@ export {
     wasPolicyLastModifiedWhileOffline,
 };
 
-export type {MemberEmailsToAccountIDs};
+export type {DeleteWorkspaceErrorModal, MemberEmailsToAccountIDs};
