@@ -7,6 +7,7 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {openWorkspace} from '@libs/actions/Policy/Policy';
 import {isValidMoneyRequestType} from '@libs/IOUUtils';
@@ -31,13 +32,24 @@ const ACCESS_VARIANTS = {
     [CONST.POLICY.ACCESS_VARIANTS.PAID]: (policy: OnyxEntry<Policy>) => isPaidGroupPolicy(policy),
     [CONST.POLICY.ACCESS_VARIANTS.CONTROL]: (policy: OnyxEntry<Policy>) => isControlPolicy(policy),
     [CONST.POLICY.ACCESS_VARIANTS.ADMIN]: (policy: OnyxEntry<Policy>, login: string) => isPolicyAdmin(policy, login),
-    [CONST.IOU.ACCESS_VARIANTS.CREATE]: (policy: OnyxEntry<Policy>, login: string, report: OnyxEntry<Report>, allPolicies: NonNullable<OnyxCollection<Policy>> | null, iouType?: IOUType) =>
+    [CONST.IOU.ACCESS_VARIANTS.CREATE]: (
+        policy: OnyxEntry<Policy>,
+        login: string,
+        report: OnyxEntry<Report>,
+        allPolicies: NonNullable<OnyxCollection<Policy>> | null,
+        iouType?: IOUType,
+        isReportArchived?: boolean,
+    ) =>
         !!iouType &&
         isValidMoneyRequestType(iouType) &&
         // Allow the user to submit the expense if we are submitting the expense in global menu or the report can create the expense
-        (isEmptyObject(report?.reportID) || canCreateRequest(report, policy, iouType)) &&
+
+        (isEmptyObject(report?.reportID) || canCreateRequest(report, policy, iouType, isReportArchived)) &&
         (iouType !== CONST.IOU.TYPE.INVOICE || canSendInvoice(allPolicies, login)),
-} as const satisfies Record<string, (policy: Policy, login: string, report: Report, allPolicies: NonNullable<OnyxCollection<Policy>> | null, iouType?: IOUType) => boolean>;
+} as const satisfies Record<
+    string,
+    (policy: Policy, login: string, report: Report, allPolicies: NonNullable<OnyxCollection<Policy>> | null, iouType?: IOUType, isArchivedReport?: boolean) => boolean
+>;
 
 type AccessVariant = keyof typeof ACCESS_VARIANTS;
 type AccessOrNotFoundWrapperChildrenProps = {
@@ -155,9 +167,10 @@ function AccessOrNotFoundWrapper({
 
     const {isOffline} = useNetwork();
 
+    const isReportArchived = useReportIsArchived(report?.reportID);
     const isPageAccessible = accessVariants.reduce((acc, variant) => {
         const accessFunction = ACCESS_VARIANTS[variant];
-        return acc && accessFunction(policy, login, report, allPolicies ?? null, iouType);
+        return acc && accessFunction(policy, login, report, allPolicies ?? null, iouType, isReportArchived);
     }, true);
 
     const isPolicyNotAccessible = !isPolicyAccessible(policy);

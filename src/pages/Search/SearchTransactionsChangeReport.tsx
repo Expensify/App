@@ -5,6 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
@@ -18,6 +19,7 @@ function SearchTransactionsChangeReport() {
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
     const transactionsReports = useMemo(() => {
         const reports = Object.values(selectedTransactions).reduce((acc, transaction) => {
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
@@ -34,9 +36,19 @@ function SearchTransactionsChangeReport() {
             return;
         }
 
-        changeTransactionsReport(selectedTransactionsKeys, item.value);
+        const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${item.value}`];
+        changeTransactionsReport(selectedTransactionsKeys, item.value, undefined, reportNextStep);
         clearSelectedTransactions();
 
+        Navigation.goBack();
+    };
+
+    const removeFromReport = () => {
+        if (!transactionsReports || selectedTransactionsKeys.length === 0) {
+            return;
+        }
+        changeTransactionsReport(selectedTransactionsKeys, CONST.REPORT.UNREPORTED_REPORT_ID);
+        clearSelectedTransactions();
         Navigation.goBack();
     };
 
@@ -45,6 +57,8 @@ function SearchTransactionsChangeReport() {
             backTo={undefined}
             transactionsReports={transactionsReports}
             selectReport={selectReport}
+            removeFromReport={removeFromReport}
+            isEditing
         />
     );
 }

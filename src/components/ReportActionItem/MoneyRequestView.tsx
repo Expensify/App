@@ -1,8 +1,9 @@
 import mapValues from 'lodash/mapValues';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
+import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -17,7 +18,11 @@ import useActiveRoute from '@hooks/useActiveRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import useViolations from '@hooks/useViolations';
@@ -29,7 +34,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getLengthOfTag, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction, isPayAction} from '@libs/ReportActionsUtils';
 import {
@@ -51,10 +56,11 @@ import type {TransactionDetails} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
+    getAmount,
     getBillable,
+    getCurrency,
     getDescription,
     getDistanceInMeters,
-    getOriginalTransactionWithSplitInfo,
     getTagForDisplay,
     getTaxName,
     hasMissingSmartscanFields,
@@ -63,6 +69,7 @@ import {
     hasRoute as hasRouteTransactionUtils,
     isCardTransaction as isCardTransactionTransactionUtils,
     isDistanceRequest as isDistanceRequestTransactionUtils,
+    isExpenseSplit,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isScanning,
     shouldShowAttendees as shouldShowAttendeesTransactionUtils,
@@ -102,8 +109,11 @@ type MoneyRequestViewProps = {
     /** whether or not this report is from review duplicates */
     isFromReviewDuplicates?: boolean;
 
-    /** Updated transaction to show in duplicate transaction flow  */
+    /** Updated transaction to show in duplicate & merge transaction flow  */
     updatedTransaction?: OnyxEntry<OnyxTypes.Transaction>;
+
+    /** Merge transaction ID to show in merge transaction flow */
+    mergeTransactionID?: string;
 };
 
 const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
@@ -117,8 +127,19 @@ const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
 
 const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
 
-function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
+function MoneyRequestView({
+    allReports,
+    report,
+    policy,
+    shouldShowAnimatedBackground,
+    readonly = false,
+    updatedTransaction,
+    isFromReviewDuplicates = false,
+    mergeTransactionID,
+}: MoneyRequestViewProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -153,6 +174,10 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true});
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true});
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
+    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
+
+    const originalTransactionIDFromComment = transaction?.comment?.originalTransactionID;
+    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionIDFromComment ?? ''}`, {canBeMissing: true});
 
     const {
         created: transactionDate,
@@ -176,12 +201,13 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
-    const shouldDisplayTransactionAmount = ((isDistanceRequest && hasRoute) || !!transactionAmount) && transactionAmount !== undefined;
-    const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(transactionAmount, transactionCurrency) : '';
-    const formattedPerAttendeeAmount =
-        shouldDisplayTransactionAmount && ((hasReceipt && !isTransactionScanning && didReceiptScanSucceed) || isPerDiemRequest)
-            ? convertToDisplayString(transactionAmount / (transactionAttendees?.length ?? 1), transactionCurrency)
-            : '';
+
+    const actualAmount = updatedTransaction ? getAmount(updatedTransaction) : transactionAmount;
+    const actualCurrency = updatedTransaction ? getCurrency(updatedTransaction) : transactionCurrency;
+    const shouldDisplayTransactionAmount = ((isDistanceRequest && hasRoute) || !!actualAmount) && actualAmount !== undefined;
+    const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount, actualCurrency) : '';
+    const formattedPerAttendeeAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount / (transactionAttendees?.length ?? 1), actualCurrency) : '';
+
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
     const cardProgramName = getCompanyCardDescription(transaction?.cardName, transaction?.cardID, cardList);
@@ -197,22 +223,28 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
     const taxRatesDescription = taxRates?.name;
     const taxRateTitle = updatedTransaction ? getTaxName(policy, updatedTransaction) : getTaxName(policy, transaction);
 
+    const fallbackTaxRateTitle = transaction?.taxValue;
+
     const isSettled = isSettledReportUtils(moneyRequestReport?.reportID);
     const isCancelled = moneyRequestReport && moneyRequestReport?.isCancelledIOU;
+    const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
     const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report) && !readonly;
-    const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction) && canUserPerformWriteAction;
+    const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived) && canUserPerformWriteAction;
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
-    const canEditAmount = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT);
-    const canEditMerchant = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT);
-    const canEditDate = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
-    const canEditReceipt = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
-    const canEditDistance = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
-    const canEditDistanceRate = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE);
-    const canEditReport = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REPORT);
+    const canEditAmount = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, isChatReportArchived);
+    const canEditMerchant = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT, undefined, isChatReportArchived);
+    const canEditDate = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE, undefined, isChatReportArchived);
+    const canEditReceipt = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, undefined, isChatReportArchived);
+    const canEditDistance = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE, undefined, isChatReportArchived);
+    const canEditDistanceRate = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE, undefined, isChatReportArchived);
+    const canEditReport = useMemo(
+        () => canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID),
+        [canUserPerformWriteAction, parentReportAction, isChatReportArchived, outstandingReportsByPolicyID],
+    );
 
     // A flag for verifying that the current report is a sub-report of a expense chat
     // if the policy of the report is either Collect or Control, then this report must be tied to expense chat
@@ -298,6 +330,9 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
         if (formattedOriginalAmount) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.original')} ${formattedOriginalAmount}`;
         }
+        if (isExpenseSplit(transaction, originalTransaction)) {
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
+        }
         if (isCancelled) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         }
@@ -305,7 +340,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
         if (!isDistanceRequest && !isPerDiemRequest) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.cash')}`;
         }
-        if (getOriginalTransactionWithSplitInfo(transaction).isExpenseSplit) {
+        if (isExpenseSplit(transaction, originalTransaction)) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
         }
         if (isCancelled) {
@@ -470,6 +505,22 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
     };
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTagList);
 
+    const previousTransactionTag = usePrevious(transactionTag);
+
+    const [previousTag, setPreviousTag] = useState<string | undefined>(undefined);
+    const [currentTransactionTag, setCurrentTransactionTag] = useState<string | undefined>(undefined);
+
+    useEffect(() => {
+        if (transactionTag === previousTransactionTag) {
+            return;
+        }
+        setPreviousTag(previousTransactionTag);
+        setCurrentTransactionTag(transactionTag);
+    }, [transactionTag, previousTransactionTag]);
+
+    const previousTagLength = getLengthOfTag(previousTag ?? '');
+    const currentTagLength = getLengthOfTag(currentTransactionTag ?? '');
+
     const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
         const tagForDisplay = getTagForDisplay(updatedTransaction ?? transaction, index);
         let shouldShow = false;
@@ -504,7 +555,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                 pendingAction={getPendingFieldAction('tag')}
             >
                 <MenuItemWithTopDescription
-                    highlighted={hasDependentTags && shouldShow && !getTagForDisplay(transaction, index)}
+                    highlighted={hasDependentTags && shouldShow && !getTagForDisplay(transaction, index) && currentTagLength > previousTagLength}
                     description={name ?? translate('common.tag')}
                     title={tagForDisplay}
                     numberOfLinesTitle={2}
@@ -628,6 +679,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                                     enablePreviewModal
                                     readonly={readonly || !canEditReceipt}
                                     isFromReviewDuplicates={isFromReviewDuplicates}
+                                    mergeTransactionID={mergeTransactionID}
                                 />
                             </View>
                         )}
@@ -635,6 +687,22 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                 )}
                 {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
                 {!!shouldShowAuditMessage && <ReceiptAuditMessages notes={receiptImageViolations} />}
+                {isCustomUnitOutOfPolicy && isPerDiemRequest && (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mh4, styles.mb2]}>
+                        <Icon
+                            src={Expensicons.DotIndicator}
+                            fill={theme.danger}
+                            height={16}
+                            width={16}
+                        />
+                        <Text
+                            numberOfLines={1}
+                            style={[StyleUtils.getDotIndicatorTextStyles(true), styles.pre, styles.flexShrink1]}
+                        >
+                            {translate('violations.customUnitOutOfPolicy')}
+                        </Text>
+                    </View>
+                )}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount') ?? (amountTitle ? getPendingFieldAction('customUnitRateID') : undefined)}>
                     <MenuItemWithTopDescription
                         title={amountTitle}
@@ -649,7 +717,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                                 return;
                             }
                             Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, '', getReportRHPActiveRoute()),
+                                ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, '', '', getReportRHPActiveRoute()),
                             );
                         }}
                         brickRoadIndicator={getErrorForField('amount') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
@@ -760,7 +828,7 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
                 {shouldShowTax && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('taxCode')}>
                         <MenuItemWithTopDescription
-                            title={taxRateTitle ?? ''}
+                            title={taxRateTitle ?? fallbackTaxRateTitle}
                             description={taxRatesDescription}
                             interactive={canEditTaxFields}
                             shouldShowRightIcon={canEditTaxFields}

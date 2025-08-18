@@ -19,6 +19,7 @@ import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
@@ -96,9 +97,9 @@ function IOURequestStepConfirmation({
         canBeMissing: true,
     });
     const transactions = useMemo(() => {
-        const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? (optimisticTransactions ?? []) : [initialTransaction];
+        const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
-    }, [initialTransaction, initialTransactionID, optimisticTransactions]);
+    }, [initialTransaction, optimisticTransactions]);
     const hasMultipleTransactions = transactions.length > 1;
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -129,6 +130,9 @@ function IOURequestStepConfirmation({
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${draftPolicyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${realPolicyID}`, {canBeMissing: true});
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${realPolicyID}`, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     /*
      * We want to use a report from the transaction if it exists
@@ -136,7 +140,7 @@ function IOURequestStepConfirmation({
      */
     const transactionReport = getReportOrDraftReport(transaction?.reportID);
     const shouldUseTransactionReport =
-        transactionReport && !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id);
+        transactionReport && !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id, undefined, false);
     const report = shouldUseTransactionReport ? transactionReport : (reportReal ?? reportDraft);
     const policy = policyReal ?? policyDraft;
     const isDraftPolicy = policy === policyDraft;
@@ -145,13 +149,14 @@ function IOURequestStepConfirmation({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {isOffline} = useNetwork();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [selectedParticipantList, setSelectedParticipantList] = useState<Participant[]>([]);
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
-    const [receiptFiles, setReceiptFiles] = useState<Record<string, Receipt | undefined>>({});
+    const [receiptFiles, setReceiptFiles] = useState<Record<string, Receipt>>({});
     const requestType = getRequestType(transaction);
     const isDistanceRequest = requestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
@@ -188,10 +193,6 @@ function IOURequestStepConfirmation({
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false);
 
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: false});
-    const viewTourReportID = introSelected?.viewTour;
-    const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
-
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
             return translate('iou.categorize');
@@ -211,11 +212,12 @@ function IOURequestStepConfirmation({
                 if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                     return participant;
                 }
-                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant);
+                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
             }) ?? [],
-        [transaction?.participants, personalDetails, iouType],
+        [transaction?.participants, iouType, personalDetails, reportAttributesDerived],
     );
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
+    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS) || !account?.shouldBlockTransactionThreadReportCreation;
     const formHasBeenSubmitted = useRef(false);
 
     useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
@@ -376,7 +378,7 @@ function IOURequestStepConfirmation({
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
     useEffect(() => {
-        let newReceiptFiles = {};
+        let newReceiptFiles: Record<string, Receipt> = {};
         let isScanFilesCanBeRead = true;
 
         Promise.all(
@@ -387,7 +389,9 @@ function IOURequestStepConfirmation({
                 const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
 
                 if (!isLocalFile) {
-                    newReceiptFiles = {...newReceiptFiles, [item.transactionID]: item.receipt};
+                    if (item.receipt) {
+                        newReceiptFiles = {...newReceiptFiles, [item.transactionID]: item.receipt};
+                    }
                     return;
                 }
 
@@ -450,7 +454,7 @@ function IOURequestStepConfirmation({
                 const isTestDriveReceipt = receipt?.isTestDriveReceipt ?? false;
 
                 if (isTestDriveReceipt) {
-                    completeTestDriveTask(viewTourReport, viewTourReportID);
+                    completeTestDriveTask();
                 }
 
                 requestMoneyIOUActions({
@@ -494,6 +498,7 @@ function IOURequestStepConfirmation({
                         source: item.comment?.source,
                     },
                     shouldHandleNavigation: index === transactions.length - 1,
+                    shouldGenerateTransactionThreadReport,
                     backToReport,
                 });
             });
@@ -512,8 +517,7 @@ function IOURequestStepConfirmation({
             transactionTaxAmount,
             customUnitRateID,
             backToReport,
-            viewTourReport,
-            viewTourReportID,
+            shouldGenerateTransactionThreadReport,
         ],
     );
 
@@ -539,6 +543,9 @@ function IOURequestStepConfirmation({
                     policyTagList: policyTags,
                     policyCategories,
                 },
+                recentlyUsedParams: {
+                    destinations: recentlyUsedDestinations,
+                },
                 transactionParams: {
                     currency: transaction.currency,
                     created: transaction.created,
@@ -551,7 +558,7 @@ function IOURequestStepConfirmation({
                 },
             });
         },
-        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories],
+        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories, recentlyUsedDestinations],
     );
 
     const trackExpense = useCallback(
@@ -974,7 +981,7 @@ function IOURequestStepConfirmation({
         const file = e?.dataTransfer?.files[0];
         if (file) {
             file.uri = URL.createObjectURL(file);
-            validateFiles([file]);
+            validateFiles([file], Array.from(e.dataTransfer?.items));
         }
     };
 

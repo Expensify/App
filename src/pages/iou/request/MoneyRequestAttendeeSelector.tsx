@@ -71,6 +71,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
@@ -148,6 +149,8 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             chatOptions.personalDetails,
             personalDetails,
             true,
+            undefined,
+            reportAttributesDerived,
         );
         newSections.push(formatResults.section);
 
@@ -171,7 +174,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
             });
@@ -188,13 +191,14 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     }, [
         areOptionsInitialized,
         didScreenTransitionEnd,
-        attendees,
         chatOptions.recentReports,
         chatOptions.personalDetails,
         chatOptions.userToInvite,
+        cleanSearchTerm,
+        attendees,
         personalDetails,
         translate,
-        cleanSearchTerm,
+        reportAttributesDerived,
     ]);
 
     const addAttendeeToSelection = useCallback(
