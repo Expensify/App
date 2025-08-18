@@ -1,18 +1,18 @@
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {init, sendEvent, setAttribute, setAuthStatus, setIdentity, setSessionID} from './GroupIBSDKBridge';
+import {init, sendEvent, setAttribute, setAuthenticationData} from './GroupIBSDKBridge';
 
 const sessionID: string = Str.guid();
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
+        let identity = '';
         const isAuthenticated = !!(session?.authToken ?? null);
-        setAuthStatus(isAuthenticated);
         if (isAuthenticated) {
-            setIdentity(session?.accountID?.toString() ?? '');
+            identity = session?.accountID?.toString() ?? '';
         }
-        setSessionID(sessionID);
+        setAuthenticationData(identity, sessionID);
     },
 });
 

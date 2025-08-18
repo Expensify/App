@@ -48,6 +48,15 @@ async function init(): Promise<void> {
     resolveFpInstancePromise(fp);
 }
 
+function setAuthenticationData(identity: string, sessionID: string): void {
+    fpInstancePromise.then((fp) => {
+        const status = identity !== '' ? fp?.IS_AUTHORIZED : fp?.IS_GUEST;
+        fp?.setAuthStatus?.(status);
+        fp?.setIdentity?.(identity);
+        fp?.setSessionID?.(sessionID);
+    });
+}
+
 function setAttribute(key: string, value: string, opts?: {persist?: boolean; encryption?: unknown}) {
     fpInstancePromise.then((fp) => {
         fp?.setAttribute?.(key, value, opts);
@@ -58,23 +67,4 @@ function sendEvent(event: string, persist = false, encryption: unknown = null) {
     setAttribute('event_type', event, {persist, encryption: encryption ?? undefined});
 }
 
-function setAuthStatus(isLoggedIn: boolean) {
-    fpInstancePromise.then((fp) => {
-        const status = isLoggedIn ? fp?.IS_AUTHORIZED : fp?.IS_GUEST;
-        fp?.setAuthStatus?.(status);
-    });
-}
-
-function setSessionID(id: string) {
-    fpInstancePromise.then((fp) => {
-        fp?.setSessionID?.(id);
-    });
-}
-
-function setIdentity(id: string) {
-    fpInstancePromise.then((fp) => {
-        fp?.setIdentity?.(id);
-    });
-}
-
-export {init, setAttribute, sendEvent, setAuthStatus, setSessionID, setIdentity};
+export {init, sendEvent, setAttribute, setAuthenticationData};

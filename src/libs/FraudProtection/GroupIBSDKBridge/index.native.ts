@@ -1,4 +1,4 @@
-import {AndroidCapability, Capability, FP, FPAttributeFormat} from 'group-ib-fp';
+import {FP, FPAttributeFormat} from 'group-ib-fp';
 import {getEnvironment, getOldDotEnvironmentURL} from '@libs/Environment/Environment';
 import CONST from '@src/CONST';
 
@@ -18,7 +18,7 @@ const cidAndroidMap: Record<string, string> = {
     [CONST.ENVIRONMENT.ADHOC]: 'gib-a-expensify-uat',
 };
 
-async function init(cid: string): Promise<void> {
+async function init(): Promise<void> {
     fp.init();
     const env = await getEnvironment();
     const iOSCustomerID = cidIOSMap[env] ?? cidIOSMap[CONST.ENVIRONMENT.DEV];
@@ -28,31 +28,17 @@ async function init(cid: string): Promise<void> {
     fp.setTargetURL(`${oldDotURL}/api/fl`);
 }
 
+function setAuthenticationData(identity: string, sessionID: string): void {
+    setAttribute('user_id', identity);
+    fp.setSessionID(sessionID);
+}
+
 function setAttribute(key: string, value: string): void {
-    fp.setAttribute(key, value);
+    fp.setAttributeTitle(key, value, FPAttributeFormat.ClearText);
 }
 
 function sendEvent(event: string): void {
-    fp.sendEvent(event);
+    setAttribute('event_type', event);
 }
 
-function setAuthStatus(status: string): void {
-    fp.setAuthStatus(status);
-}
-
-function setSessionID(id: string): void {
-    fp.setSessionID(id);
-}
-
-function setIdentity(id: string): void {
-    fp.setIdentity(id);
-}
-
-export default {
-    init,
-    setAttribute,
-    sendEvent,
-    setAuthStatus,
-    setSessionID,
-    setIdentity,
-};
+export {init, sendEvent, setAttribute, setAuthenticationData};
