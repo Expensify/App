@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
@@ -7,6 +7,7 @@ import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackgrou
 import ScreenWrapper from '@components/ScreenWrapper';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
+import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -40,6 +41,7 @@ import type {BaseValidateCodeFormRef} from './ValidateCodeForm/BaseValidateCodeF
 
 type SignInPageInnerProps = {
     shouldEnableMaxHeight?: boolean;
+    ref?: ForwardedRef<SignInPageRef>;
 };
 
 type SignInPageRef = {
@@ -142,7 +144,7 @@ function getRenderOptions({
     };
 }
 
-function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: ForwardedRef<SignInPageRef>) {
+function SignInPage({shouldEnableMaxHeight = true, ref}: SignInPageInnerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -280,19 +282,22 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
                 (shouldShowEmailDeliveryFailurePage || shouldShowUnlinkLoginForm || shouldShowChooseSSOOrMagicCode || shouldShowSMSDeliveryFailurePage))
         ) {
             clearSignInData();
-            return;
+            return true;
         }
 
         if (shouldShowValidateCodeForm) {
             validateCodeFormRef.current?.clearSignInData();
-            return;
+            return true;
         }
 
         Navigation.goBack();
+        return false;
     };
     useImperativeHandle(ref, () => ({
         navigateBack,
     }));
+    useHandleBackButton(navigateBack);
+
     return (
         // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
         // The SVG should flow under the Home Indicator on iOS.
@@ -342,9 +347,9 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
 }
 
 type SignInPageProps = SignInPageInnerProps;
-const SignInPageWithRef = forwardRef(SignInPage);
+const SignInPageWithRef = SignInPage;
 
-function SignInPageWrapper(props: SignInPageProps, ref: ForwardedRef<SignInPageRef>) {
+function SignInPageWrapper({ref, ...props}: SignInPageProps) {
     return (
         <ThemeProvider theme={CONST.THEME.DARK}>
             <ThemeStylesProvider>
@@ -365,6 +370,6 @@ function SignInPageWrapper(props: SignInPageProps, ref: ForwardedRef<SignInPageR
 
 SignInPageWrapper.displayName = 'SignInPage';
 
-export default forwardRef(SignInPageWrapper);
+export default SignInPageWrapper;
 
 export type {SignInPageRef};
