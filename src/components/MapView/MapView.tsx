@@ -1,7 +1,7 @@
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import type {MapState} from '@rnmapbox/maps';
 import Mapbox, {MarkerView, setAccessToken} from '@rnmapbox/maps';
-import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -20,14 +20,29 @@ import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Direction from './Direction';
-import type {MapViewHandle, MapViewProps} from './MapViewTypes';
+import type {MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
 import ToggleDistanceUnitButton from './ToggleDistanceUnitButton';
 import utils from './utils';
 
-const MapView = forwardRef<MapViewHandle, MapViewProps>(
-    ({accessToken, style, mapPadding, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady, interactive = true, distanceInMeters, unit}, ref) => {
+function MapView(
+    {
+        accessToken,
+        style,
+        mapPadding,
+        styleURL,
+        pitchEnabled,
+        initialState,
+        waypoints,
+        directionCoordinates,
+        onMapReady,
+        interactive = true,
+        distanceInMeters,
+        unit,
+        ref,
+    }: MapViewProps,
+) {
         const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
         const navigation = useNavigation();
         const {isOffline} = useNetwork();
@@ -348,7 +363,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
                 style={styles.mapEditView}
             />
         );
-    },
-);
+    };
+
 
 export default memo(MapView);

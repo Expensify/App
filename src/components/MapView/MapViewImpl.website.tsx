@@ -5,7 +5,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {MapRef, ViewState} from 'react-map-gl';
 import Map, {Marker} from 'react-map-gl';
 import {View} from 'react-native';
@@ -29,27 +29,26 @@ import getCurrentPosition from '@src/libs/getCurrentPosition';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Direction from './Direction';
 import './mapbox.css';
-import type {MapViewHandle, MapViewProps} from './MapViewTypes';
+import type {MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
 import utils from './utils';
 
-const MapViewImpl = forwardRef<MapViewHandle, MapViewProps>(
-    (
-        {
-            style,
-            styleURL,
-            waypoints,
-            mapPadding,
-            accessToken,
-            directionCoordinates,
-            initialState = {location: CONST.MAPBOX.DEFAULT_COORDINATE, zoom: CONST.MAPBOX.DEFAULT_ZOOM},
-            interactive = true,
-            distanceInMeters,
-            unit,
-        },
+function MapViewImpl(
+    {
+        style,
+        styleURL,
+        waypoints,
+        mapPadding,
+        accessToken,
+        directionCoordinates,
+        initialState = {location: CONST.MAPBOX.DEFAULT_COORDINATE, zoom: CONST.MAPBOX.DEFAULT_ZOOM},
+        interactive = true,
+        distanceInMeters,
+        unit,
         ref,
-    ) => {
+    }: MapViewProps,
+) {
         const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
 
         const {isOffline} = useNetwork();
@@ -340,7 +339,6 @@ const MapViewImpl = forwardRef<MapViewHandle, MapViewProps>(
                 style={styles.mapEditView}
             />
         );
-    },
-);
+    };
 
 export default MapViewImpl;
