@@ -2552,10 +2552,7 @@ function togglePolicyUberAutoInvite(policyID?: string, enabled?: boolean) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
-                receiptPartners: {uber: {autoInvite: enabled, pendingFields: {type: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}},
-                pendingFields: {
-                    type: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                },
+                receiptPartners: {uber: {autoInvite: enabled, pendingFields: {autoInvite: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}},
             },
         },
     ];
@@ -2563,14 +2560,14 @@ function togglePolicyUberAutoInvite(policyID?: string, enabled?: boolean) {
         {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             onyxMethod: Onyx.METHOD.MERGE,
-            value: {receiptPartners: {uber: {autoInvite: enabled}}, pendingFields: null},
+            value: {receiptPartners: {uber: {pendingFields: null}}},
         },
     ];
     const failureData: OnyxUpdate[] = [
         {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             onyxMethod: Onyx.METHOD.MERGE,
-            value: {receiptPartners: {uber: {autoInvite: !enabled}}, pendingFields: null},
+            value: {receiptPartners: {uber: {autoInvite: !enabled, pendingFields: null}}},
         },
     ];
 
@@ -2590,7 +2587,7 @@ function togglePolicyUberAutoRemove(policyID?: string, enabled?: boolean) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
-                receiptPartners: {uber: {autoRemove: enabled}},
+                receiptPartners: {uber: {autoRemove: enabled, pendingFields: {autoRemove: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}},
             },
         },
     ];
@@ -2598,14 +2595,14 @@ function togglePolicyUberAutoRemove(policyID?: string, enabled?: boolean) {
         {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             onyxMethod: Onyx.METHOD.MERGE,
-            value: {receiptPartners: {uber: {autoRemove: enabled}}},
+            value: {receiptPartners: {uber: {pendingFields: null}}},
         },
     ];
     const failureData: OnyxUpdate[] = [
         {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             onyxMethod: Onyx.METHOD.MERGE,
-            value: {receiptPartners: {uber: {autoRemove: !enabled}}},
+            value: {receiptPartners: {uber: {autoRemove: !enabled, pendingFields: null}}},
         },
     ];
 

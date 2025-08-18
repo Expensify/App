@@ -123,59 +123,56 @@ type CompanyAddress = {
 /**
  * Uber Receipt Partner
  */
-type UberReceiptPartner = OnyxCommon.OnyxValueWithOfflineFeedback<
-    {
+type UberReceiptPartner = {
+    /**
+     * form data for uber partner
+     */
+    connectFormData: {
         /**
-         * form data for uber partner
+         * fname for uber partner
          */
-        connectFormData: {
-            /**
-             * fname for uber partner
-             */
-            fname?: string;
-            /**
-             * hash for uber partner
-             */
-            hash: string;
-            /**
-             * id for uber partner
-             */
-            id: string;
-            /**
-             * lname for uber partner
-             */
-            lname?: string;
-            /**
-             * name for uber partner
-             */
-            name: string;
-            /**
-             * query for uber partner
-             */
-            query: string;
-            /**
-             * requestID for uber partner
-             */
-            requestID?: string;
-        };
+        fname?: string;
         /**
-         * auto invite for uber connection
+         * hash for uber partner
          */
-        autoInvite?: boolean;
+        hash: string;
         /**
-         * auto remove for uber connection
+         * id for uber partner
          */
-        autoRemove?: boolean;
-    },
-    'autoInvite' | 'autoRemove'
->;
+        id: string;
+        /**
+         * lname for uber partner
+         */
+        lname?: string;
+        /**
+         * name for uber partner
+         */
+        name: string;
+        /**
+         * query for uber partner
+         */
+        query: string;
+        /**
+         * requestID for uber partner
+         */
+        requestID?: string;
+    };
+    /**
+     * auto invite for uber connection
+     */
+    autoInvite?: boolean;
+    /**
+     * auto remove for uber connection
+     */
+    autoRemove?: boolean;
+};
 
 /** Policy Receipt partners */
 type ReceiptPartners = {
     /**
      * uber partner
      */
-    [CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER]: UberReceiptPartner;
+    [CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER]: OnyxCommon.OnyxValueWithOfflineFeedback<UberReceiptPartner>;
 };
 
 /** Policy disabled fields */
