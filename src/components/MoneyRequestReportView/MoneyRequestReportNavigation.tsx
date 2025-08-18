@@ -92,14 +92,10 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion, bac
         if (!reportId) {
             return;
         }
-
-        Navigation.navigate(
-            ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({
-                reportID: reportId,
-                backTo: backTo ?? '',
-            }),
-            {forceReplace: true},
-        );
+        Navigation.setParams({
+            reportID: reportId,
+            backTo: backTo ?? '',
+        });
     };
 
     const goToNextReport = () => {
