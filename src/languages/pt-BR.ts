@@ -4878,13 +4878,13 @@ const translations = {
             title: 'Nomeie seu novo espaço de trabalho',
             selectFeatures: 'Selecione os recursos a serem copiados',
             whichFeatures: 'Quais recursos você deseja copiar para o seu novo espaço de trabalho?',
-            confirmDuplicate: '\n\nTem certeza de que deseja prosseguir?',
+            confirmDuplicate: '\n\nVocê quer continuar?',
             categories: 'categorias e suas regras de categorização automática',
             reimbursementAccount: 'conta de reembolso',
             delayedSubmission: 'envio atrasado',
             welcomeNote: 'Comece a usar meu novo espaço de trabalho',
-            confirmTitle: ({newWorkspaceName, oldWorkspaceName, totalMembers}: {newWorkspaceName?: string; oldWorkspaceName?: string; totalMembers?: number}) =>
-                `Você está prestes a compartilhar ${newWorkspaceName ?? ''} com as ${totalMembers ?? 0} pessoas que compartilharam ${oldWorkspaceName ?? ''} com elas. Esteja ciente de que cada uma dessas pessoas receberá uma notificação informando que agora estão no ${newWorkspaceName ?? ''}.`,
+            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
+                `Você está prestes a criar e compartilhar ${newWorkspaceName ?? ''} com ${totalMembers ?? 0} membros do espaço de trabalho original.`,
         },
         emptyWorkspace: {
             title: 'Criar um espaço de trabalho',

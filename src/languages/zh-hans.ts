@@ -4796,13 +4796,13 @@ const translations = {
             title: '命名您的新工作区',
             selectFeatures: '选择要复制的功能',
             whichFeatures: '您想要将哪些功能复制到您的新工作区？',
-            confirmDuplicate: '\n\n您确定要继续吗？',
+            confirmDuplicate: '\n\n您想继续吗？',
             categories: '类别和您的自动分类规则',
             reimbursementAccount: '报销账户',
             delayedSubmission: '延迟提交',
             welcomeNote: '请开始使用我的新工作区',
-            confirmTitle: ({newWorkspaceName, oldWorkspaceName, totalMembers}: {newWorkspaceName?: string; oldWorkspaceName?: string; totalMembers?: number}) =>
-                `您即将与已共享 ${oldWorkspaceName ?? ''} 的 ${totalMembers ?? 0} 位用户共享此 ${newWorkspaceName ?? ''}。请注意，这些人都会收到一条通知，告知他们现在位于 ${newWorkspaceName ?? ''}。`,
+            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
+                `您即将创建并与原始工作区中的 ${totalMembers ?? 0} 名成员共享 ${newWorkspaceName ?? ''}。`,
         },
         emptyWorkspace: {
             title: '创建一个工作区',

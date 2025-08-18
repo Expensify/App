@@ -4883,13 +4883,13 @@ const translations = {
             title: 'Geef je nieuwe werkruimte een naam',
             selectFeatures: 'Selecteer te kopiëren functies',
             whichFeatures: 'Welke functies wil je kopiëren naar je nieuwe werkruimte?',
-            confirmDuplicate: '\n\nWeet je zeker dat je wilt doorgaan?',
+            confirmDuplicate: '\n\nWil je doorgaan?',
             categories: 'categorieën en je regels voor automatische categorisatie',
             reimbursementAccount: 'vergoedingsrekening',
             delayedSubmission: 'vertraagde indiening',
             welcomeNote: 'Ga aan de slag met mijn nieuwe werkruimte',
-            confirmTitle: ({newWorkspaceName, oldWorkspaceName, totalMembers}: {newWorkspaceName?: string; oldWorkspaceName?: string; totalMembers?: number}) =>
-                `Je staat op het punt om ${newWorkspaceName ?? ''} dit te delen met de ${totalMembers ?? 0} mensen met wie ${oldWorkspaceName ?? ''} gedeeld is. Houd er rekening mee dat elk van deze personen een melding ontvangt met de mededeling dat ze nu op ${newWorkspaceName ?? ''}.`,
+            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
+                `Je staat op het punt om ${newWorkspaceName ?? ''} te maken en te delen met ${totalMembers ?? 0} leden uit de oorspronkelijke werkruimte.`,
         },
         emptyWorkspace: {
             title: 'Maak een werkruimte aan',

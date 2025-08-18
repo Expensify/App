@@ -4860,13 +4860,13 @@ const translations = {
             title: '新しいワークスペースに名前を付けてください',
             selectFeatures: 'コピーする機能を選択してください',
             whichFeatures: '新しいワークスペースにコピーする機能はどれですか？',
-            confirmDuplicate: '\n\n続行してもよろしいですか？',
+            confirmDuplicate: '\n\n続行しますか?',
             categories: 'カテゴリと自動分類ルール',
             reimbursementAccount: '払い戻し口座',
             delayedSubmission: '遅延送信',
             welcomeNote: '新しいワークスペースの使用を開始してください',
-            confirmTitle: ({newWorkspaceName, oldWorkspaceName, totalMembers}: {newWorkspaceName?: string; oldWorkspaceName?: string; totalMembers?: number}) =>
-                `${newWorkspaceName ?? ''} を、${oldWorkspaceName ?? ''} を共有している ${totalMembers ?? 0} 人と共有しようとしています。これらの各ユーザーには、現在 ${newWorkspaceName ?? ''}. にいることを知らせる通知が届きますのでご注意ください`,
+            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
+                `${newWorkspaceName ?? ''} を作成し、元のワークスペースの ${totalMembers ?? 0} 人のメンバーと共有しようとしています。`,
         },
         emptyWorkspace: {
             title: 'ワークスペースを作成',

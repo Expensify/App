@@ -4849,13 +4849,13 @@ const translations = {
             title: 'Name your new workspace',
             selectFeatures: 'Select features to copy',
             whichFeatures: 'Which features do you want to copy over to your new workspace?',
-            confirmDuplicate: '\n\nAre you sure you want to proceed?',
+            confirmDuplicate: '\n\nDo you want to continue?',
             categories: 'categories and your auto-categorization rules',
             reimbursementAccount: 'reimbursement account',
             welcomeNote: 'Please start using my new workspace',
             delayedSubmission: 'delayed submission',
-            confirmTitle: ({newWorkspaceName, oldWorkspaceName, totalMembers}: {newWorkspaceName?: string; oldWorkspaceName?: string; totalMembers?: number}) =>
-                `You are about to share ${newWorkspaceName ?? ''} this with the ${totalMembers ?? 0} people who have ${oldWorkspaceName ?? ''} shared with them. Please be aware that each of these people will receive a notification informing them that they are now on the ${newWorkspaceName ?? ''}.`,
+            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
+                `You’re about to create and share ${newWorkspaceName ?? ''} with ${totalMembers ?? 0} members from the original workspace.`,
         },
         emptyWorkspace: {
             title: 'Create a workspace',

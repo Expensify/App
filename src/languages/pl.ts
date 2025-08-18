@@ -4872,13 +4872,13 @@ const translations = {
             title: 'Nazwij swój nowy obszar roboczy',
             selectFeatures: 'Wybierz funkcje do skopiowania',
             whichFeatures: 'Które funkcje chcesz skopiować do nowego obszaru roboczego?',
-            confirmDuplicate: '\n\nCzy na pewno chcesz kontynuować?',
+            confirmDuplicate: '\n\nCzy chcesz kontynuować?',
             categories: 'kategorie i zasady automatycznej kategoryzacji',
             reimbursementAccount: 'konto zwrotu',
             delayedSubmission: 'opóźnione przesłanie',
             welcomeNote: 'Proszę rozpocząć korzystanie z mojego nowego obszaru roboczego',
-            confirmTitle: ({newWorkspaceName, oldWorkspaceName, totalMembers}: {newWorkspaceName?: string; oldWorkspaceName?: string; totalMembers?: number}) =>
-                `Zamierzasz udostępnić ${newWorkspaceName ?? ''} to ${totalMembers ?? 0} osobom, które mają ${oldWorkspaceName ?? ''} udostępniono im. Pamiętaj, że każda z tych osób otrzyma powiadomienie informujące, że znajduje się teraz w ${newWorkspaceName ?? ''}.`,
+            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
+                `Zamierzasz utworzyć i udostępnić ${newWorkspaceName ?? ''} członkom ${totalMembers ?? 0} z oryginalnej przestrzeni roboczej.`,
         },
         emptyWorkspace: {
             title: 'Utwórz przestrzeń roboczą',

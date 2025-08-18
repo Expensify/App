@@ -332,7 +332,6 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                         <Text style={[styles.webViewStyles.baseFontStyle, styles.textSupporting, styles.mb3]}>
                             {translate('workspace.duplicateWorkspace.confirmTitle', {
                                 newWorkspaceName: duplicateWorkspace?.name,
-                                oldWorkspaceName: policy?.name,
                                 totalMembers,
                             })}
                         </Text>

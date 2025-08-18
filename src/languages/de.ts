@@ -4866,13 +4866,13 @@ const translations = {
             title: 'Benennen Sie Ihren neuen Arbeitsbereich',
             selectFeatures: 'Auswählen der zu kopierenden Features',
             whichFeatures: 'Welche Funktionen möchten Sie in Ihren neuen Arbeitsbereich kopieren?',
-            confirmDuplicate: '\n\nMöchten Sie wirklich fortfahren?',
+            confirmDuplicate: '\n\nMöchten Sie fortfahren?',
             categories: 'Kategorien und Ihre Auto-Kategorisierungsregeln',
             reimbursementAccount: 'Erstattungskonto',
             delayedSubmission: 'verspätete Einreichung',
             welcomeNote: 'Bitte beginnen Sie mit der Nutzung meines neuen Arbeitsbereichs',
-            confirmTitle: ({newWorkspaceName, oldWorkspaceName, totalMembers}: {newWorkspaceName?: string; oldWorkspaceName?: string; totalMembers?: number}) =>
-                `Sie sind dabei, ${newWorkspaceName ?? ''} mit den ${totalMembers ?? 0} Personen zu teilen, die ${oldWorkspaceName ?? ''} mit ihnen geteilt haben. Bitte beachten Sie, dass jede dieser Personen eine Benachrichtigung erhält, dass sie sich nun im ${newWorkspaceName ?? ''} befindet.`,
+            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
+                `Sie sind dabei, ${newWorkspaceName ?? ''} zu erstellen und mit ${totalMembers ?? 0} Mitgliedern aus dem ursprünglichen Arbeitsbereich zu teilen.`,
         },
         emptyWorkspace: {
             title: 'Erstellen Sie einen Arbeitsbereich',
