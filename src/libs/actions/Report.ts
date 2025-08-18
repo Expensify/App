@@ -15,7 +15,6 @@ import type {
     AddCommentOrAttachmentParams,
     AddEmojiReactionParams,
     AddWorkspaceRoomParams,
-    AssignReportToMeParams,
     CompleteGuidedSetupParams,
     DeleteAppReportParams,
     DeleteCommentParams,
@@ -100,7 +99,6 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import type {OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
 import {
     buildOptimisticAddCommentReportAction,
-    buildOptimisticChangeApproverReportAction,
     buildOptimisticChangeFieldAction,
     buildOptimisticChangePolicyReportAction,
     buildOptimisticChatReport,
@@ -203,7 +201,6 @@ import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
-import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearByKey} from './CachedPDFPaths';
 import {setDownload} from './Download';
@@ -5888,68 +5885,6 @@ function resolveConciergeCategoryOptions(reportID: string | undefined, actionRep
     } as Partial<ReportActions>);
 }
 
-function assignCurrentUserAsApprover(report: OnyxEntry<Report>, accountID: number) {
-    if (!report?.reportID) {
-        return;
-    }
-
-    const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID);
-    const onyxData: OnyxData = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-                value: {
-                    managerID: accountID,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-                value: {
-                    [takeControlReportAction.reportActionID]: takeControlReportAction,
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-                value: {
-                    [takeControlReportAction.reportActionID]: {
-                        pendingAction: null,
-                    },
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-                value: {
-                    managerID: report.managerID,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-                value: {
-                    [takeControlReportAction.reportActionID]: {
-                        pendingAction: null,
-                    },
-                },
-            },
-        ],
-    };
-
-    const params: AssignReportToMeParams = {
-        reportID: report.reportID,
-        reportActionID: takeControlReportAction.reportActionID,
-    };
-
-    API.write(WRITE_COMMANDS.ASSIGN_REPORT_TO_ME, params, onyxData);
-}
-
 export type {Video, GuidedSetupData, TaskForParameters, IntroSelected};
 
 export {
@@ -6062,5 +5997,4 @@ export {
     changeReportPolicyAndInviteSubmitter,
     removeFailedReport,
     openUnreportedExpense,
-    assignCurrentUserAsApprover,
 };

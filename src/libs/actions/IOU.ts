@@ -11,6 +11,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import * as API from '@libs/API';
 import type {
     ApproveMoneyRequestParams,
+    AssignReportToMeParams,
     CategorizeTrackedExpenseParams as CategorizeTrackedExpenseApiParams,
     CompleteSplitBillParams,
     CreateDistanceRequestParams,
@@ -109,6 +110,7 @@ import {
     buildOptimisticAddCommentReportAction,
     buildOptimisticApprovedReportAction,
     buildOptimisticCancelPaymentReportAction,
+    buildOptimisticChangeApproverReportAction,
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
     buildOptimisticDetachReceipt,
@@ -12178,6 +12180,81 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     });
 }
 
+function assignCurrentUserAsApprover(report: OnyxEntry<OnyxTypes.Report>, accountID: number) {
+    if (!report?.reportID) {
+        return;
+    }
+
+    const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID);
+    const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`] ?? null;
+    const optimisticNextStep = buildNextStep({...report, managerID: accountID}, CONST.REPORT.STATUS_NUM.SUBMITTED, false, true);
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+                value: {
+                    managerID: accountID,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+                value: {
+                    [takeControlReportAction.reportActionID]: takeControlReportAction,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${report.reportID}`,
+                value: optimisticNextStep,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+                value: {
+                    [takeControlReportAction.reportActionID]: {
+                        pendingAction: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+                value: {
+                    managerID: report.managerID,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+                value: {
+                    [takeControlReportAction.reportActionID]: {
+                        pendingAction: null,
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`,
+                value: currentNextStep,
+            },
+        ],
+    };
+
+    const params: AssignReportToMeParams = {
+        reportID: report.reportID,
+        reportActionID: takeControlReportAction.reportActionID,
+    };
+
+    API.write(WRITE_COMMANDS.ASSIGN_REPORT_TO_ME, params, onyxData);
+}
+
 export {
     adjustRemainingSplitShares,
     approveMoneyRequest,
@@ -12284,5 +12361,6 @@ export {
     reopenReport,
     retractReport,
     startDistanceRequest,
+    assignCurrentUserAsApprover,
 };
 export type {GPSPoint as GpsPoint, IOURequestType, StartSplitBilActionParams, CreateTrackExpenseParams, RequestMoneyInformation, ReplaceReceipt};
