@@ -109,11 +109,10 @@ diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/Text
 index fef9c63..0a887d5 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
 +++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
-@@ -70,6 +70,17 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
-   NSDictionary<NSAttributedStringKey, id> *_originalTypingAttributes;
+@@ -71,6 +71,16 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
  
    BOOL _hasInputAccessoryView;
-+  CGSize _previousContentSize;
+   CGSize _previousContentSize;
 +
 +  /**
 +   * Prevents automatic focus of the text input once it becomes the first responder (e.g. on modal dismissal).
@@ -127,14 +126,6 @@ index fef9c63..0a887d5 100644
  }
  
  #pragma mark - UIView overrides
-@@ -86,6 +87,7 @@ - (instancetype)initWithFrame:(CGRect)frame
-     _comingFromJS = NO;
-     _didMoveToWindow = NO;
-     _originalTypingAttributes = [_backedTextInputView.typingAttributes copy];
-+    _previousContentSize = CGSizeZero;
- 
-     [self addSubview:_backedTextInputView];
-     [self initializeReturnKeyType];
 @@ -295,6 +305,10 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
      _backedTextInputView.disableKeyboardShortcuts = newTextInputProps.disableKeyboardShortcuts;
    }
@@ -146,24 +137,6 @@ index fef9c63..0a887d5 100644
    [super updateProps:props oldProps:oldProps];
  
    [self setDefaultInputAccessoryView];
-@@ -326,7 +328,6 @@ - (void)updateState:(const State::Shared &)state oldState:(const State::Shared &
- - (void)updateLayoutMetrics:(const LayoutMetrics &)layoutMetrics
-            oldLayoutMetrics:(const LayoutMetrics &)oldLayoutMetrics
- {
--  CGSize previousContentSize = _backedTextInputView.contentSize;
- 
-   [super updateLayoutMetrics:layoutMetrics oldLayoutMetrics:oldLayoutMetrics];
- 
-@@ -335,7 +336,8 @@ - (void)updateLayoutMetrics:(const LayoutMetrics &)layoutMetrics
-   _backedTextInputView.textContainerInset =
-       RCTUIEdgeInsetsFromEdgeInsets(layoutMetrics.contentInsets - layoutMetrics.borderWidth);
- 
--  if (!CGSizeEqualToSize(previousContentSize, _backedTextInputView.contentSize) && _eventEmitter) {
-+  if (!CGSizeEqualToSize(_previousContentSize, _backedTextInputView.contentSize) && _eventEmitter) {
-+    _previousContentSize = _backedTextInputView.contentSize;
-     static_cast<const TextInputEventEmitter &>(*_eventEmitter).onContentSizeChange([self _textInputMetrics]);
-   }
- }
 @@ -357,6 +371,15 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
  
  - (BOOL)textInputShouldBeginEditing
@@ -180,18 +153,18 @@ index fef9c63..0a887d5 100644
    return YES;
  }
  
-@@ -576,6 +599,15 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
+@@ -576,6 +599,16 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
    _comingFromJS = NO;
  }
  
 +- (void)preventFocusOnFirstResponderOnce
 +{
 +  _preventFocusOnFirstResponderOnce = YES;
-+    
-+    // Also resign first responder to prevent automatic restoration
-+    if (_backedTextInputView.isFirstResponder) {
-+      [_backedTextInputView resignFirstResponder];
-+    }
++  
++  // Also resign first responder to prevent automatic restoration
++  if (_backedTextInputView.isFirstResponder) {
++    [_backedTextInputView resignFirstResponder];
++  }
 +}
 +
  #pragma mark - Default input accessory view
