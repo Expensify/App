@@ -1,4 +1,4 @@
-import type { ForwardedRef } from 'react';
+import type {ForwardedRef} from 'react';
 import type {View, ViewProps} from 'react-native';
 
 type FocusTrapContainerElementProps = ViewProps & {

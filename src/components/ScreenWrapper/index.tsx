@@ -71,30 +71,28 @@ type ScreenWrapperProps = Omit<ScreenWrapperContainerProps, 'children'> &
         onEntryTransitionEnd?: () => void;
     };
 
-function ScreenWrapper(
-    {
-        navigation: navigationProp,
-        children,
-        style,
-        bottomContent,
-        headerGapStyles,
-        offlineIndicatorStyle,
-        disableOfflineIndicatorSafeAreaPadding,
-        shouldShowOfflineIndicator: shouldShowSmallScreenOfflineIndicator,
-        shouldShowOfflineIndicatorInWideScreen: shouldShowWideScreenOfflineIndicator,
-        shouldMobileOfflineIndicatorStickToBottom: shouldSmallScreenOfflineIndicatorStickToBottomProp,
-        shouldDismissKeyboardBeforeClose,
-        onEntryTransitionEnd,
-        includePaddingTop = true,
-        includeSafeAreaPaddingBottom: includeSafeAreaPaddingBottomProp = true,
-        enableEdgeToEdgeBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPaddingProp,
-        shouldKeyboardOffsetBottomSafeAreaPadding: shouldKeyboardOffsetBottomSafeAreaPaddingProp,
-        isOfflineIndicatorTranslucent,
-        focusTrapSettings,
-        ref,
-        ...restContainerProps
-    }: ScreenWrapperProps,
-) {
+function ScreenWrapper({
+    navigation: navigationProp,
+    children,
+    style,
+    bottomContent,
+    headerGapStyles,
+    offlineIndicatorStyle,
+    disableOfflineIndicatorSafeAreaPadding,
+    shouldShowOfflineIndicator: shouldShowSmallScreenOfflineIndicator,
+    shouldShowOfflineIndicatorInWideScreen: shouldShowWideScreenOfflineIndicator,
+    shouldMobileOfflineIndicatorStickToBottom: shouldSmallScreenOfflineIndicatorStickToBottomProp,
+    shouldDismissKeyboardBeforeClose,
+    onEntryTransitionEnd,
+    includePaddingTop = true,
+    includeSafeAreaPaddingBottom: includeSafeAreaPaddingBottomProp = true,
+    enableEdgeToEdgeBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPaddingProp,
+    shouldKeyboardOffsetBottomSafeAreaPadding: shouldKeyboardOffsetBottomSafeAreaPaddingProp,
+    isOfflineIndicatorTranslucent,
+    focusTrapSettings,
+    ref,
+    ...restContainerProps
+}: ScreenWrapperProps) {
     /**
      * We are only passing navigation as prop from
      * ReportScreen -> ScreenWrapper

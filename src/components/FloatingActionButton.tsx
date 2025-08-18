@@ -44,7 +44,7 @@ type FloatingActionButtonProps = {
     isTooltipAllowed: boolean;
 
     /** Reference to the outer element */
-    ref?: ForwardedRef<HTMLDivElement | View | Text>
+    ref?: ForwardedRef<HTMLDivElement | View | Text>;
 };
 
 function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, isTooltipAllowed, ref}: FloatingActionButtonProps) {

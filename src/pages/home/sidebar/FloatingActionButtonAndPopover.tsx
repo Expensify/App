@@ -70,7 +70,7 @@ type FloatingActionButtonAndPopoverProps = {
     isTooltipAllowed: boolean;
 
     /** Reference to the outer element */
-    ref?: ForwardedRef<FloatingActionButtonAndPopoverRef>
+    ref?: ForwardedRef<FloatingActionButtonAndPopoverRef>;
 };
 
 type FloatingActionButtonAndPopoverRef = {
