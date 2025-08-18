@@ -6,6 +6,7 @@ import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useOnyx from '@hooks/useOnyx';
+import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {quitAndNavigateBack} from '@libs/actions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import type {StepCounterParams} from '@src/languages/params';
@@ -28,10 +29,21 @@ type TwoFactorAuthWrapperProps = ChildrenProps & {
 
     /** Flag to indicate if the keyboard avoiding view should be enabled */
     shouldEnableKeyboardAvoidingView?: boolean;
+
+    /** Flag to indicate if the viewport offset top should be enabled */
+    shouldEnableViewportOffsetTop?: boolean;
 };
 
-function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, shouldEnableKeyboardAvoidingView = true, children}: TwoFactorAuthWrapperProps) {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+function TwoFactorAuthWrapper({
+    stepName,
+    title,
+    stepCounter,
+    onBackButtonPress,
+    shouldEnableKeyboardAvoidingView = true,
+    shouldEnableViewportOffsetTop = false,
+    children,
+}: TwoFactorAuthWrapperProps) {
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -58,6 +70,8 @@ function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, 
         }
     }, [account, stepName]);
 
+    const viewportOffsetTop = useViewportOffsetTop();
+
     if (isActingAsDelegate) {
         return (
             <ScreenWrapper
@@ -78,10 +92,11 @@ function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, 
             shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
             shouldEnableMaxHeight
             testID={stepName}
+            style={shouldEnableViewportOffsetTop ? {marginTop: viewportOffsetTop} : undefined}
         >
             <FullPageNotFoundView
                 shouldShow={shouldShowNotFound}
-                linkKey="securityPage.goToSecurity"
+                linkTranslationKey="securityPage.goToSecurity"
                 onLinkPress={defaultGoBack}
             >
                 <HeaderWithBackButton

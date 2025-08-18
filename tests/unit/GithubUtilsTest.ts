@@ -112,6 +112,7 @@ describe('GithubUtils', () => {
                     isVerified: false,
                 },
             ],
+            PRListMobileExpensify: [],
             labels: [
                 {
                     color: '6FC269',
@@ -163,6 +164,7 @@ describe('GithubUtils', () => {
             const bareExpectedResponse: Partial<Awaited<ReturnType<typeof GithubUtils.getStagingDeployCash>>> = {
                 ...baseExpectedResponse,
                 PRList: [],
+                PRListMobileExpensify: [],
             };
 
             GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [bareIssue]}) as unknown as ListForRepoMethod;
@@ -397,7 +399,11 @@ describe('GithubUtils', () => {
             `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/4`, // No QA
             `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/5`, // No QA
         ];
-
+        const PRListMobileExpensify = [
+            `https://github.com/Expensify/Mobile-Expensify/pull/1`,
+            `https://github.com/Expensify/Mobile-Expensify/pull/2`,
+            `https://github.com/Expensify/Mobile-Expensify/pull/3`,
+        ];
         const internalQAPRList = [
             `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6`, // Internal QA
             `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/7`, // Internal QA
@@ -441,17 +447,22 @@ describe('GithubUtils', () => {
             `${lineBreak}`;
 
         test('Test no verified PRs', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, PRListMobileExpensify).then((issue) => {
                 if (typeof issue !== 'object') {
                     return;
                 }
+                const expectedOutputWithMobileExpensify = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n**Mobile-Expensify Changes:** https://github.com/Expensify/Mobile-Expensify/compare/production...staging\r\n\r\n${deployerFYIMessage}\r\n**This release contains changes from the following pull requests:**\r\n`;
                 expect(issue.issueBody).toBe(
-                    `${baseExpectedOutput}` +
+                    `${expectedOutputWithMobileExpensify}` +
                         `${openCheckbox}${basePRList.at(2)}` +
                         `${lineBreak}${openCheckbox}${basePRList.at(0)}` +
                         `${lineBreak}${openCheckbox}${basePRList.at(1)}` +
                         `${lineBreak}${closedCheckbox}${basePRList.at(4)}` +
                         `${lineBreak}${closedCheckbox}${basePRList.at(5)}` +
+                        `${lineBreak}${lineBreakDouble}**Mobile-Expensify PRs:**` +
+                        `${lineBreak}${openCheckbox}${PRListMobileExpensify.at(0)}` +
+                        `${lineBreak}${openCheckbox}${PRListMobileExpensify.at(1)}` +
+                        `${lineBreak}${openCheckbox}${PRListMobileExpensify.at(2)}` +
                         `${lineBreakDouble}${deployerVerificationsHeader}` +
                         `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
                         `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
@@ -462,8 +473,30 @@ describe('GithubUtils', () => {
             });
         });
 
+        test('Test Mobile-Expensify compare link with Mobile-Expensify PRs', () => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, PRListMobileExpensify).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
+                // Should include Mobile-Expensify compare link since we have Mobile-Expensify PRs
+                expect(issue.issueBody).toContain('**Mobile-Expensify Changes:** https://github.com/Expensify/Mobile-Expensify/compare/production...staging');
+                expect(issue.issueBody).toContain('**Mobile-Expensify PRs:**');
+            });
+        });
+
+        test('Test no Mobile-Expensify compare link without Mobile-Expensify PRs', () => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, []).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
+                // Should NOT include Mobile-Expensify compare link since we don't have Mobile-Expensify PRs
+                expect(issue.issueBody).not.toContain('**Mobile-Expensify Changes:**');
+                expect(issue.issueBody).not.toContain('**Mobile-Expensify PRs:**'); // And should not have PRs section either
+            });
+        });
+
         test('Test some verified PRs', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, [basePRList.at(0) ?? '']).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, [], [basePRList.at(0) ?? '']).then((issue) => {
                 if (typeof issue !== 'object') {
                     return;
                 }
@@ -486,7 +519,7 @@ describe('GithubUtils', () => {
         });
 
         test('Test all verified PRs', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, basePRList).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, [], basePRList).then((issue) => {
                 if (typeof issue !== 'object') {
                     return;
                 }
@@ -504,7 +537,7 @@ describe('GithubUtils', () => {
         });
 
         test('Test no resolved deploy blockers', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, basePRList, baseDeployBlockerList).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, [], basePRList, [], baseDeployBlockerList).then((issue) => {
                 if (typeof issue !== 'object') {
                     return;
                 }
@@ -525,7 +558,7 @@ describe('GithubUtils', () => {
         });
 
         test('Test some resolved deploy blockers', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, basePRList, baseDeployBlockerList, [baseDeployBlockerList.at(0) ?? '']).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, [], basePRList, [], baseDeployBlockerList, [baseDeployBlockerList.at(0) ?? '']).then((issue) => {
                 if (typeof issue !== 'object') {
                     return;
                 }
@@ -546,7 +579,7 @@ describe('GithubUtils', () => {
         });
 
         test('Test all resolved deploy blockers', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, basePRList, baseDeployBlockerList, baseDeployBlockerList).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, [], basePRList, [], baseDeployBlockerList, baseDeployBlockerList).then((issue) => {
                 if (typeof issue !== 'object') {
                     return;
                 }
@@ -571,18 +604,23 @@ describe('GithubUtils', () => {
         });
 
         test('Test internalQA PRs', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, [...basePRList, ...internalQAPRList]).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, [...basePRList, ...internalQAPRList], PRListMobileExpensify).then((issue) => {
                 if (typeof issue !== 'object') {
                     return;
                 }
 
+                const expectedOutputWithMobileExpensify = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n**Mobile-Expensify Changes:** https://github.com/Expensify/Mobile-Expensify/compare/production...staging\r\n\r\n${deployerFYIMessage}\r\n**This release contains changes from the following pull requests:**\r\n`;
                 expect(issue.issueBody).toBe(
-                    `${baseExpectedOutput}` +
+                    `${expectedOutputWithMobileExpensify}` +
                         `${openCheckbox}${basePRList.at(2)}` +
                         `${lineBreak}${openCheckbox}${basePRList.at(0)}` +
                         `${lineBreak}${openCheckbox}${basePRList.at(1)}` +
                         `${lineBreak}${closedCheckbox}${basePRList.at(4)}` +
                         `${lineBreak}${closedCheckbox}${basePRList.at(5)}` +
+                        `${lineBreak}${lineBreakDouble}**Mobile-Expensify PRs:**` +
+                        `${lineBreak}${openCheckbox}${PRListMobileExpensify.at(0)}` +
+                        `${lineBreak}${openCheckbox}${PRListMobileExpensify.at(1)}` +
+                        `${lineBreak}${openCheckbox}${PRListMobileExpensify.at(2)}` +
                         `${lineBreak}${internalQAHeader}` +
                         `${lineBreak}${openCheckbox}${internalQAPRList.at(0)}${assignOctocat}` +
                         `${lineBreak}${openCheckbox}${internalQAPRList.at(1)}${assignOctocat}` +
@@ -597,7 +635,7 @@ describe('GithubUtils', () => {
         });
 
         test('Test some verified internalQA PRs', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, [...basePRList, ...internalQAPRList], [], [], [], [internalQAPRList.at(0) ?? '']).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, [...basePRList, ...internalQAPRList], [], [], [], [], [], [internalQAPRList.at(0) ?? '']).then((issue) => {
                 if (typeof issue !== 'object') {
                     return;
                 }
@@ -710,7 +748,7 @@ describe('GithubUtils', () => {
         test('should call GitHub API with correct parameters', async () => {
             mockCompareCommits.mockResolvedValue(commitHistoryData.emptyResponse);
 
-            await GithubUtils.getCommitHistoryBetweenTags('v1.0.0', 'v1.0.1');
+            await GithubUtils.getCommitHistoryBetweenTags('v1.0.0', 'v1.0.1', CONST.APP_REPO);
 
             expect(mockCompareCommits).toHaveBeenCalledWith({
                 owner: CONST.GITHUB_OWNER,
@@ -725,21 +763,21 @@ describe('GithubUtils', () => {
         test('should return empty array when no commits found', async () => {
             mockCompareCommits.mockResolvedValue(commitHistoryData.emptyResponse);
 
-            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
+            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO);
             expect(result).toEqual([]);
         });
 
         test('should return formatted commit history when commits exist', async () => {
             mockCompareCommits.mockResolvedValue(commitHistoryData.singleCommit);
 
-            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
+            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO);
             expect(result).toEqual(commitHistoryData.expectedFormattedCommit);
         });
 
         test('should handle multiple commits correctly', async () => {
             mockCompareCommits.mockResolvedValue(commitHistoryData.multipleCommitsResponse);
 
-            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
+            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO);
 
             expect(result).toHaveLength(2);
             expect(result.at(0)).toEqual({
@@ -755,7 +793,7 @@ describe('GithubUtils', () => {
         });
 
         test('should handle 404 RequestError with specific error message', async () => {
-            const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+            const coreErrorSpy = jest.spyOn(core, 'error').mockImplementation();
             const requestError = new RequestError('Not Found', 404, {
                 request: {
                     method: 'GET',
@@ -766,8 +804,8 @@ describe('GithubUtils', () => {
 
             mockCompareCommits.mockRejectedValue(requestError);
 
-            await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1')).rejects.toThrow(requestError);
-            expect(consoleErrorSpy).toHaveBeenCalledWith(
+            await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO)).rejects.toThrow(requestError);
+            expect(coreErrorSpy).toHaveBeenCalledWith(
                 expect.stringContaining(
                     "❓❓ Failed to get commits with the GitHub API. The base tag ('1.0.0') or head tag ('1.0.1') likely doesn't exist on the remote repository. If this is the case, create or push them.",
                 ),
@@ -777,7 +815,7 @@ describe('GithubUtils', () => {
         test('should handle generic API errors gracefully', async () => {
             mockCompareCommits.mockRejectedValue(new Error('API Error'));
 
-            await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1')).rejects.toThrow('API Error');
+            await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO)).rejects.toThrow('API Error');
         });
     });
 
@@ -785,6 +823,10 @@ describe('GithubUtils', () => {
         test.each([
             [1234, `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1234`],
             [54321, `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/54321`],
-        ])('getPullRequestNumberFromURL("%s")', (input, expectedOutput) => expect(GithubUtils.getPullRequestURLFromNumber(input)).toBe(expectedOutput));
+        ])('getPullRequestNumberFromURL("%s")', (input, expectedOutput) => expect(GithubUtils.getPullRequestURLFromNumber(input, CONST.APP_REPO_URL)).toBe(expectedOutput));
+        test.each([
+            [1234, `https://github.com/Expensify/Mobile-Expensify/pull/1234`],
+            [54321, `https://github.com/Expensify/Mobile-Expensify/pull/54321`],
+        ])('getPullRequestNumberFromURL("%s")', (input, expectedOutput) => expect(GithubUtils.getPullRequestURLFromNumber(input, CONST.MOBILE_EXPENSIFY_URL)).toBe(expectedOutput));
     });
 });

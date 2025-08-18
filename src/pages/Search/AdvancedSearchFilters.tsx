@@ -11,7 +11,6 @@ import ScrollView from '@components/ScrollView';
 import type {SearchDateFilterKeys, SearchFilterKey, SearchGroupBy} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -104,10 +103,20 @@ const baseFilterConfig = {
         description: 'search.filters.posted' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_POSTED,
     },
+    withdrawn: {
+        getTitle: getFilterDisplayTitle,
+        description: 'search.filters.withdrawn' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_WITHDRAWN,
+    },
     currency: {
         getTitle: getFilterDisplayTitle,
         description: 'common.currency' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_CURRENCY,
+    },
+    groupCurrency: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.groupCurrency' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_GROUP_CURRENCY,
     },
     merchant: {
         getTitle: getFilterDisplayTitle,
@@ -153,6 +162,11 @@ const baseFilterConfig = {
         getTitle: getFilterExpenseDisplayTitle,
         description: 'search.expenseType' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE,
+    },
+    withdrawalType: {
+        getTitle: getFilterDisplayTitle,
+        description: 'search.withdrawalType' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_WITHDRAWAL_TYPE,
     },
     tag: {
         getTitle: getFilterDisplayTitle,
@@ -215,6 +229,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
             CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY,
         ],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
@@ -237,6 +252,8 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
@@ -266,6 +283,8 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.TRIP]: [
@@ -277,6 +296,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
             CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY,
         ],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
@@ -351,7 +371,7 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
 
     const cardNames = Object.values(cards)
         .filter((card) => cardIdsFilter.includes(card.cardID.toString()) && !feedFilter.includes(createCardFeedKey(card.fundID, card.bank)))
-        .map((card) => getCardDescription(card.cardID, cards));
+        .map((card) => getCardDescription(card));
 
     const feedNames = Object.keys(cardFeedNamesWithType)
         .filter((workspaceCardFeedKey) => {
@@ -468,6 +488,11 @@ function getFilterDisplayTitle(
         return filterValue ? translate(`search.filters.groupBy.${filterValue}`) : undefined;
     }
 
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
+        const filterValue = filters[nonDateFilterKey];
+        return filterValue ? translate(`search.filters.withdrawalType.${filterValue}`) : undefined;
+    }
+
     const filterValue = filters[nonDateFilterKey];
     return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
 }
@@ -545,7 +570,6 @@ function isFeatureEnabledInPolicies(policies: OnyxCollection<Policy>, featureNam
 function AdvancedSearchFilters() {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
-    const {isDevelopment} = useEnvironment();
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
@@ -608,9 +632,8 @@ function AdvancedSearchFilters() {
     const shouldDisplayCardFilter = shouldDisplayFilter(Object.keys(allCards).length, areCardsEnabled);
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length !== 0);
-
-    // s77rt remove DEV lock
-    const shouldDisplayGroupByFilter = isDevelopment;
+    const shouldDisplayGroupByFilter = groupBy === CONST.SEARCH.GROUP_BY.FROM || groupBy === CONST.SEARCH.GROUP_BY.CARD;
+    const shouldDisplayGroupCurrencyFilter = groupBy === CONST.SEARCH.GROUP_BY.FROM || groupBy === CONST.SEARCH.GROUP_BY.CARD;
 
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
     if (!Object.keys(typeFiltersKeys).includes(currentType)) {
@@ -657,6 +680,7 @@ function AdvancedSearchFilters() {
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
@@ -666,6 +690,7 @@ function AdvancedSearchFilters() {
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE
                     ) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
@@ -710,6 +735,11 @@ function AdvancedSearchFilters() {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, currentType, groupBy, translate);
                     } else if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
                         if (!shouldDisplayGroupByFilter) {
+                            return;
+                        }
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
+                    } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY) {
+                        if (!shouldDisplayGroupCurrencyFilter) {
                             return;
                         }
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
