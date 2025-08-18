@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {InteractionManager, Keyboard, Platform, View} from 'react-native';
 import {Dimensions} from 'react-native';
 import {KeyboardAwareScrollView, useKeyboardHandler} from 'react-native-keyboard-controller';
 import {useSharedValue} from 'react-native-reanimated';
@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addSplitExpenseField, initDraftSplitExpenseDataForEdit, saveSplitTransactions, updateSplitExpenseAmountField} from '@libs/actions/IOU';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
@@ -46,6 +47,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const bottomOffset = useRef<number>(0);
     const footerHeight = useRef<number>(0);
     const keyboardHeight = useSharedValue(0);
+    const obj = useSafeAreaPaddings();
 
     useKeyboardHandler({
         onStart: (e) => {
@@ -66,7 +68,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         if (viewRef.current) {
             viewRef.current.measureInWindow((x, y, width, height) => {
                 if (keyboardHeight.value < 1.0) {
-                    bottomOffset.current = screenHeight - height - y + footerHeight.current + 33.0;
+                    if (Platform.OS === 'ios') {
+                        bottomOffset.current = screenHeight - obj.paddingTop - obj.paddingBottom - height + footerHeight.current + 36 + 20;
+                    } else if (Platform.OS === 'android') {
+                        bottomOffset.current = screenHeight - obj.paddingTop - obj.paddingBottom - height + footerHeight.current + 28 + 20;
+                    }
+                    console.log('Bottom offset:', bottomOffset.current);
                 }
             });
         }
@@ -237,7 +244,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     ref={viewRef}
                     style={[styles.flex1]}
                     onLayout={(event) => {
-                        setTimeout(measureAbsolutePosition, 0);
+                        measureAbsolutePosition();
                     }}
                 >
                     <HeaderWithBackButton
