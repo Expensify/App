@@ -551,6 +551,7 @@ const translations = {
         auditor: '監査人',
         role: '役割',
         currency: '通貨',
+        groupCurrency: 'グループ通貨',
         rate: '評価',
         emptyLHN: {
             title: 'やった！すべて完了しました。',
@@ -6022,8 +6023,8 @@ const translations = {
             reimbursable: '払い戻し可能',
             groupBy: {
                 reports: '報告',
-                members: 'メンバー',
-                cards: 'カード',
+                from: 'から',
+                card: 'カード',
             },
             feed: 'フィード',
             withdrawalType: {

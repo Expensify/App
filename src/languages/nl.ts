@@ -551,6 +551,7 @@ const translations = {
         auditor: 'Auditor',
         role: 'Rol',
         currency: 'Valuta',
+        groupCurrency: 'Groepsvaluta',
         rate: 'Beoordeel',
         emptyLHN: {
             title: 'Woohoo! Helemaal bij.',
@@ -6056,8 +6057,8 @@ const translations = {
             reimbursable: 'Vergoedbaar',
             groupBy: {
                 reports: 'Verslag',
-                members: 'Lid',
-                cards: 'Kaart',
+                from: 'Van',
+                card: 'Kaart',
             },
             feed: 'Feed',
             withdrawalType: {
