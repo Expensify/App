@@ -53,11 +53,11 @@ Once the report includes at least one expense, the Add Expense option will be un
 
 # Fix and Retract Submitted Reports
 
-Submitted a report too early? Need to add or remove an expense? You can **retract** submitted reports using the **More** > **Undo Submit** or **Undo Close** actions.
+Submitted a report too early? Need to add or remove an expense? You can **retract** submitted reports using the **More** > **Retract** or **Undo Close** actions.
 
 **Retract** means returning a report from **closed** or **processing** back to the **open** state so you can edit it.
 
-- **Undo submit**: The retract button for **processing reports**
+- **Retract**: The retract button for **processing reports**
 - **Undo close**: The retract button for **closed reports**
 
 ---
