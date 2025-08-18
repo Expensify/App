@@ -170,6 +170,9 @@ type OriginalMessageSubmitted = {
     /** Was the report submitted via harvesting (delayed submit) */
     harvesting?: boolean;
 
+    /** The memo of the submitted report */
+    message?: string;
+
     /** The login the approver who is acting on behalf of the vacationer */
     to?: string;
 
@@ -202,6 +205,9 @@ type OriginalMessageClosed = {
 
     /** If the expense report was mark as closed, then this is the report currency */
     currency?: string;
+
+    /** The memo of the closed report */
+    message?: string;
 };
 
 /** Model of `renamed` report action, created when chat rooms get renamed */
