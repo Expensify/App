@@ -2552,7 +2552,7 @@ function togglePolicyUberAutoInvite(policyID?: string, enabled?: boolean) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
-                receiptPartners: {uber: {autoInvite: enabled}},
+                receiptPartners: {uber: {autoInvite: enabled, pendingFields: {type: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}},
                 pendingFields: {
                     type: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
