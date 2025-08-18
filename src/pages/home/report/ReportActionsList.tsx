@@ -348,9 +348,16 @@ function ReportActionsList({
         currentVerticalScrollingOffsetRef: scrollingVerticalOffset,
         readActionSkippedRef: readActionSkipped,
         unreadMarkerReportActionIndex,
-        isInverted: true,
+        isInverted: !isTransactionThread(parentReportAction),
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
+            if (isTransactionThread(parentReportAction)) {
+                // For transaction threads, calculate distance from bottom like MoneyRequestReportActionsList
+                const {layoutMeasurement, contentSize, contentOffset} = event.nativeEvent;
+                scrollingVerticalOffset.current = contentSize.height - layoutMeasurement.height - contentOffset.y;
+            } else {
+                // For regular reports (InvertedFlatList), use raw contentOffset.y
+                scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
+            }
             onScroll?.(event);
         },
     });
