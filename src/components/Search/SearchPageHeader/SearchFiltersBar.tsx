@@ -417,11 +417,8 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     const filters = useMemo(() => {
         const fromValue = filterFormValues.from?.map((accountID) => personalDetails?.[accountID]?.displayName ?? accountID) ?? [];
 
-        const shouldDisplayGroupByFilter =
-            groupBy?.value === CONST.SEARCH.GROUP_BY.FROM || groupBy?.value === CONST.SEARCH.GROUP_BY.CARD || groupBy?.value === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
-        const shouldDisplayGroupCurrencyFilter =
-            (groupBy?.value === CONST.SEARCH.GROUP_BY.FROM || groupBy?.value === CONST.SEARCH.GROUP_BY.CARD || groupBy?.value === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID) &&
-            hasMultipleOutputCurrency;
+        const shouldDisplayGroupByFilter = !!groupBy?.value && groupBy?.value !== CONST.SEARCH.GROUP_BY.REPORTS;
+        const shouldDisplayGroupCurrencyFilter = shouldDisplayGroupByFilter && hasMultipleOutputCurrency;
         const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues.feed;
         const shouldDisplayPostedFilter = !!filterFormValues.feed && (!!filterFormValues.postedOn || !!filterFormValues.postedAfter || !!filterFormValues.postedBefore);
         const shouldDisplayWithdrawalTypeFilter = groupBy?.value === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID && !!filterFormValues.withdrawalType;
