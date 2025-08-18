@@ -162,10 +162,12 @@ function getForReportAction({
     reportOrID,
     reportAction,
     searchReports,
+    isReportArchived = false,
 }: {
     reportOrID: string | SearchReport | undefined;
     reportAction: OnyxEntry<ReportAction>;
     searchReports?: SearchReport[];
+    isReportArchived: boolean;
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
@@ -191,7 +193,7 @@ function getForReportAction({
             undefined,
             undefined,
             undefined,
-            false,
+            isReportArchived,
         );
         return translateLocal('iou.movedFromReport', {reportName: reportName ?? ''});
     }

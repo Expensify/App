@@ -36,7 +36,6 @@ function OptionRowLHNData({
     transactionViolations,
     lastMessageTextFromReport,
     localeCompare,
-    isReportArchived = false,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
@@ -51,7 +50,7 @@ function OptionRowLHNData({
             return undefined;
         }
 
-        const canUserPerformWriteAction = canUserPerformWriteActionUtil(fullReport, isReportArchived);
+        const canUserPerformWriteAction = canUserPerformWriteActionUtil(fullReport, isReportArchived || !!reportNameValuePairs?.private_isArchived);
         const actionsArray = getSortedReportActions(Object.values(reportActions));
 
         const reportActionsForDisplay = actionsArray.filter(
@@ -59,7 +58,7 @@ function OptionRowLHNData({
         );
 
         return reportActionsForDisplay.at(-1);
-    }, [reportActions, fullReport, isReportArchived]);
+    }, [reportActions, fullReport, isReportArchived, reportNameValuePairs]);
 
     const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
     const optionItem = useMemo(() => {
