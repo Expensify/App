@@ -1,11 +1,10 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useEffect, useImperativeHandle, useRef} from 'react';
+import React, {useEffect, useImperativeHandle, useRef} from 'react';
 import AppStateMonitor from '@libs/AppStateMonitor';
 import BaseLoginForm from './BaseLoginForm';
 import type {InputHandle} from './types';
 import type LoginFormProps from './types';
 
-function LoginForm({scrollPageToTop, ...rest}: LoginFormProps, ref: ForwardedRef<InputHandle>) {
+function LoginForm({scrollPageToTop, ref, ...rest}: LoginFormProps) {
     const loginFormRef = useRef<InputHandle>(null);
 
     useImperativeHandle(ref, () => ({
@@ -40,4 +39,4 @@ function LoginForm({scrollPageToTop, ...rest}: LoginFormProps, ref: ForwardedRef
 
 LoginForm.displayName = 'LoginForm';
 
-export default forwardRef(LoginForm);
+export default LoginForm;
