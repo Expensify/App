@@ -26,6 +26,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
@@ -42,9 +43,7 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     getCombinedReportActions,
     getFilteredReportActionsForReportView,
-    getIOUActionForReportID,
     getOneTransactionThreadReportID,
-    getReportAction,
     isCreatedAction,
     isDeletedParentAction,
     isMoneyRequestAction,
@@ -52,15 +51,11 @@ import {
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import {
-    buildTransactionThread,
     canEditReportAction,
     canUserPerformWriteAction,
     findLastAccessedReport,
-    generateReportID,
     getParticipantsAccountIDsForDisplay,
     getReportOfflinePendingActionAndErrors,
-    getReportOrDraftReport,
-    getReportTransactions,
     isChatThread,
     isConciergeChatReport,
     isGroupChat,
@@ -310,8 +305,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         [reportTransactions, isOffline],
     );
     const reportTransactionIDs = useMemo(() => visibleTransactions?.map((transaction) => transaction.transactionID), [visibleTransactions]);
+
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [transactionThreadReportActions = getEmptyObject<OnyxTypes.ReportActions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {
         canBeMissing: true,
     });
@@ -408,9 +403,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute);
 
+    const isReportArchived = useReportIsArchived(report?.reportID);
     const isLinkedActionDeleted = useMemo(
-        () => !!linkedAction && !shouldReportActionBeVisible(linkedAction, linkedAction.reportActionID, canUserPerformWriteAction(report)),
-        [linkedAction, report],
+        () => !!linkedAction && !shouldReportActionBeVisible(linkedAction, linkedAction.reportActionID, canUserPerformWriteAction(report, isReportArchived)),
+        [linkedAction, report, isReportArchived],
     );
 
     const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
@@ -474,7 +470,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 
     const fetchReport = useCallback(() => {
-        if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && !isPolicyExpenseChat(report) && transactionThreadReportID !== CONST.FAKE_REPORT_ID) {
+        if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && !isPolicyExpenseChat(report)) {
             return;
         }
 
@@ -482,45 +478,35 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        if (report?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return;
-        }
-
-        const {moneyRequestReportActionID, transactionID, iouReportID} = route.params;
+        const moneyRequestReportActionID: string | undefined = route.params?.moneyRequestReportActionID;
+        const transactionID: string | undefined = route.params?.transactionID;
 
         // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the transaction thread created yet
         // so we have to call OpenReport in a way that the transaction thread will be created and attached to the parentReportAction
-        if (transactionID && currentUserEmail && !report) {
-            const iouReport = getReportOrDraftReport(iouReportID);
-            const iouAction = getReportAction(iouReportID, moneyRequestReportActionID);
-            const optimisticTransactionThread = buildTransactionThread(iouAction, iouReport, undefined, reportIDFromRoute);
-            openReport(reportIDFromRoute, undefined, [currentUserEmail], optimisticTransactionThread, moneyRequestReportActionID, false, [], undefined, transactionID);
+        if (transactionID && currentUserEmail) {
+            openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID, false, [], undefined, transactionID);
+            return;
         }
-
-        // If there is one transaction thread that has not yet been created, we should create it.
-        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport && parentReportAction?.childMoneyRequestCount === 1 && currentUserEmail) {
-            const optimisticTransactionThreadReportID = generateReportID();
-            const currentReportTransaction = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-            const oneTransactionID = currentReportTransaction.at(0)?.transactionID;
-            const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
-            const optimisticTransactionThread = buildTransactionThread(iouAction, report, undefined, optimisticTransactionThreadReportID);
-            openReport(optimisticTransactionThreadReportID, undefined, [currentUserEmail], optimisticTransactionThread, iouAction?.reportActionID);
-        }
-
         openReport(reportIDFromRoute, reportActionIDFromRoute);
     }, [
-        parentReportAction?.childMoneyRequestCount,
         reportMetadata.isOptimisticReport,
         report,
         isOffline,
-        route.params,
+        route.params?.moneyRequestReportActionID,
+        route.params?.transactionID,
         currentUserEmail,
         reportIDFromRoute,
         reportActionIDFromRoute,
-        reportID,
-        transactionThreadReport,
-        transactionThreadReportID,
     ]);
+
+    const prevTransactionThreadReportID = usePrevious(transactionThreadReportID);
+    useEffect(() => {
+        if (!!prevTransactionThreadReportID || !transactionThreadReportID) {
+            return;
+        }
+
+        fetchReport();
+    }, [fetchReport, prevTransactionThreadReportID, transactionThreadReportID]);
 
     useEffect(() => {
         if (!reportID || !isFocused) {
@@ -586,7 +572,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // There should be only one openReport execution per page start or navigating
         fetchReport();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [route, isLinkedMessagePageReady, reportActionIDFromRoute, transactionThreadReportID]);
+    }, [route, isLinkedMessagePageReady, reportActionIDFromRoute]);
 
     const prevReportActions = usePrevious(reportActions);
     useEffect(() => {
@@ -809,12 +795,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 >
                     <FullPageNotFoundView
                         shouldShow={shouldShowNotFoundPage}
-                        subtitleKey={shouldShowNotFoundLinkedAction ? '' : 'notFound.noAccess'}
+                        subtitleKey={shouldShowNotFoundLinkedAction ? 'notFound.commentYouLookingForCannotBeFound' : 'notFound.noAccess'}
                         subtitleStyle={[styles.textSupporting]}
                         shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={shouldShowNotFoundLinkedAction ? navigateToEndOfReport : Navigation.goBack}
                         shouldShowLink={shouldShowNotFoundLinkedAction}
-                        linkKey="notFound.noAccess"
+                        linkTranslationKey="notFound.goToChatInstead"
+                        subtitleKeyBelowLink={shouldShowNotFoundLinkedAction ? 'notFound.contactConcierge' : ''}
                         onLinkPress={navigateToEndOfReport}
                         shouldDisplaySearchRouter
                     >
