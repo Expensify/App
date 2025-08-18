@@ -43,6 +43,7 @@ import {
     getInvoiceChatByParticipants,
     getMoneyReportPreviewName,
     getMostRecentlyVisitedReport,
+    getParentNavigationSubtitle,
     getParticipantsList,
     getPolicyExpenseChat,
     getReasonAndReportActionThatRequiresAttention,
@@ -917,6 +918,40 @@ describe('ReportUtils', () => {
             expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
                 'submitted via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows">delay submissions</a>',
             );
+        });
+    });
+
+    describe('getParentNavigationSubtitle', () => {
+        const baseArchivedPolicyExpenseChat = {
+            reportID: '2',
+            lastReadTime: '2024-02-01 04:56:47.233',
+            parentReportActionID: '1',
+            parentReportID: '1',
+            reportName: 'Base Report',
+            type: CONST.REPORT.TYPE.INVOICE,
+        };
+
+        const reports: Report[] = [
+            {
+                reportID: '1',
+                lastReadTime: '2024-02-01 04:56:47.233',
+                reportName: 'Report',
+                policyName: 'A workspace',
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 1},
+            },
+            baseArchivedPolicyExpenseChat,
+        ];
+
+        beforeAll(() => {
+            const reportCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, reports, (report) => report.reportID);
+            Onyx.multiSet({
+                ...reportCollectionDataSet,
+            });
+            return waitForBatchedUpdates();
+        });
+
+        it('should return the correct parent navigation subtitle for the archived invoice report', () => {
+            expect(getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, true)).toEqual({reportName: 'A workspace & Ragnar Lothbrok (archived)'});
         });
     });
 
