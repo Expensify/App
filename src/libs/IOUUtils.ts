@@ -165,7 +165,7 @@ function isValidMoneyRequestType(iouType: string): boolean {
  * @param hasMultipleTagLists - whether the policy has multiple levels tag
  * @returns
  */
-function insertTagIntoTransactionTagsString(transactionTags: string, tag: string, tagIndex: number, hasMultipleTagLists?: boolean): string {
+function insertTagIntoTransactionTagsString(transactionTags: string, tag: string, tagIndex: number, hasMultipleTagLists: boolean): string {
     if (!hasMultipleTagLists) {
         return tag;
     }

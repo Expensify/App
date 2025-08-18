@@ -36,7 +36,7 @@ function DebugTagPicker({policyID, tagName = '', onSubmit}: DebugTagPickerProps)
         (index: number) =>
             ({text}: ListItem) => {
                 const newTag = text === selectedTags.at(index) ? undefined : text;
-                const updatedTagName = insertTagIntoTransactionTagsString(newTagName, newTag ?? '', index, hasMultipleTagLists);
+                const updatedTagName = insertTagIntoTransactionTagsString(newTagName, newTag ?? '', index, hasMultipleTagLists ?? false);
                 if (policyTagLists.length === 1) {
                     return onSubmit({text: updatedTagName});
                 }

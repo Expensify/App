@@ -106,7 +106,7 @@ function IOURequestStepTag({
             updatedTag = tagParts.join(':');
         } else {
             // Independent tags (fallback): use comma-separated list
-            updatedTag = insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : searchText, tagListIndex, policy?.hasMultipleTagLists);
+            updatedTag = insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : searchText, tagListIndex, policy?.hasMultipleTagLists ?? false);
         }
 
         if (isEditingSplit) {
