@@ -844,6 +844,7 @@ describe('SidebarUtils', () => {
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
+                isReportArchived: false,
                 personalDetails: {},
                 policy: undefined,
                 parentReportAction: undefined,
@@ -902,6 +903,7 @@ describe('SidebarUtils', () => {
             const result = SidebarUtils.getOptionData({
                 report,
                 reportAttributes: undefined,
+                isReportArchived: false,
                 reportNameValuePairs: {},
                 personalDetails: {},
                 policy: undefined,
@@ -943,6 +945,7 @@ describe('SidebarUtils', () => {
                 const optionData = SidebarUtils.getOptionData({
                     report,
                     reportAttributes: undefined,
+                    isReportArchived: false,
                     reportNameValuePairs,
                     personalDetails: {},
                     policy,
@@ -975,9 +978,12 @@ describe('SidebarUtils', () => {
 
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(report.reportID));
+
                 const optionData = SidebarUtils.getOptionData({
                     report,
                     reportAttributes: undefined,
+                    isReportArchived: isReportArchived.current,
                     reportNameValuePairs,
                     personalDetails: LHNTestUtils.fakePersonalDetails,
                     policy,

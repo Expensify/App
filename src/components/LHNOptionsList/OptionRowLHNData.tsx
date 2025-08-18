@@ -67,9 +67,9 @@ function OptionRowLHNData({
         const item = SidebarUtils.getOptionData({
             report: fullReport,
             reportNameValuePairs,
+            isReportArchived,
             reportAttributes,
             oneTransactionThreadReport,
-            isReportArchived,
             personalDetails,
             policy,
             parentReportAction,

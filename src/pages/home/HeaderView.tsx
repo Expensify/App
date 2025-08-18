@@ -48,7 +48,6 @@ import {
     getReportName,
     hasReportNameError,
     isAdminRoom,
-    isArchivedReport,
     isChatRoom as isChatRoomReportUtils,
     isChatThread as isChatThreadReportUtils,
     isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils,

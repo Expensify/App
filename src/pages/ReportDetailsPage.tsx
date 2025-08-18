@@ -153,7 +153,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         selector: (actions) => (report?.parentReportActionID ? actions?.[report.parentReportActionID] : undefined),
         canBeMissing: true,
     });
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: false});
 
     const {reportActions} = usePaginatedReportActions(report.reportID);
 
@@ -310,10 +309,10 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         });
     }, [isPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility]);
 
-    const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
+    const shouldShowLeaveButton = canLeaveChat(report, policy, isReportArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, session?.email) && !policy?.isJoinRequestPending;
 
-    const reportName = Parser.htmlToText(getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, !!reportNameValuePairs?.private_isArchived));
+    const reportName = Parser.htmlToText(getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived));
 
     const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom
@@ -621,7 +620,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         moneyRequestReport,
     ]);
 
-    const canJoin = canJoinChat(report, parentReportAction, policy, !!reportNameValuePairs?.private_isArchived);
+    const canJoin = canJoinChat(report, parentReportAction, policy, isReportArchived);
 
     const promotedActions = useMemo(() => {
         const result: PromotedAction[] = [];
