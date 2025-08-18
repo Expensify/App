@@ -24,7 +24,7 @@ type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN | typeof CONST.PROM
 type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
     [CONST.PROMOTED_ACTIONS.SHARE]: (report: OnyxReport, backTo?: string) => PromotedAction;
 } & {
-    [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {reportID?: string; accountID?: number; login?: string}) => PromotedAction;
+    [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {reportID?: string; accountID?: number; login?: string; isReportArchived?: boolean}) => PromotedAction;
 };
 
 const PromotedActions = {
@@ -45,7 +45,7 @@ const PromotedActions = {
             joinRoom(report);
         }),
     }),
-    message: ({reportID, accountID, login}) => ({
+    message: ({reportID, accountID, login, isReportArchived = false}) => ({
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
         icon: Expensicons.CommentBubbles,
         translationKey: 'common.message',
@@ -57,11 +57,11 @@ const PromotedActions = {
 
             // The accountID might be optimistic, so we should use the login if we have it
             if (login) {
-                navigateToAndOpenReport([login], false);
+                navigateToAndOpenReport({userLogins: [login], shouldDismissModal: false, isReportArchived});
                 return;
             }
             if (accountID) {
-                navigateToAndOpenReportWithAccountIDs([accountID]);
+                navigateToAndOpenReportWithAccountIDs([accountID], isReportArchived);
             }
         },
     }),
