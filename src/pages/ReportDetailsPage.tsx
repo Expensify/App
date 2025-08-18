@@ -7,7 +7,6 @@ import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
-import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -22,7 +21,6 @@ import ReportActionAvatars from '@components/ReportActionAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
-import TextWithCopy from '@components/TextWithCopy';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -142,7 +140,7 @@ const CASES = {
 type CaseID = ValueOf<typeof CASES>;
 
 function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetailsPageProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
     const styles = useThemeStyles();
@@ -554,8 +552,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
-        return getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participants, personalDetails), hasMultipleParticipants);
-    }, [participants, personalDetails]);
+        return getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participants, personalDetails), hasMultipleParticipants, localeCompare);
+    }, [participants, personalDetails, localeCompare]);
 
     const icons = useMemo(() => getIcons(report, personalDetails, null, '', -1, policy, undefined, isReportArchived), [report, personalDetails, policy, isReportArchived]);
 
@@ -875,6 +873,25 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         </OfflineWithFeedback>
                     )}
 
+                    {isFinancialReportsForBusinesses && (
+                        <>
+                            <MenuItemWithTopDescription
+                                title={base62ReportID}
+                                description={translate('common.reportID')}
+                                copyValue={base62ReportID}
+                                interactive={false}
+                                shouldBlockSelection
+                            />
+                            <MenuItemWithTopDescription
+                                title={report.reportID}
+                                description={translate('common.longID')}
+                                copyValue={report.reportID}
+                                interactive={false}
+                                shouldBlockSelection
+                            />
+                        </>
+                    )}
+
                     <PromotedActionsBar
                         containerStyle={styles.mt5}
                         promotedActions={promotedActions}
@@ -900,25 +917,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             title={caseID === CASES.DEFAULT ? translate('common.delete') : translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction})}
                             onPress={() => setIsDeleteModalVisible(true)}
                         />
-                    )}
-
-                    {isFinancialReportsForBusinesses && (
-                        <FixedFooter style={[styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, styles.pt5]}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                                <TextWithCopy
-                                    copyValue={base62ReportID}
-                                    style={styles.textMicroSupporting}
-                                >
-                                    {`${translate('common.reportID')}: ${base62ReportID}`}
-                                </TextWithCopy>
-                                <TextWithCopy
-                                    copyValue={report.reportID}
-                                    style={styles.textMicroSupporting}
-                                >
-                                    {`${translate('common.longID')}: ${report.reportID}`}
-                                </TextWithCopy>
-                            </View>
-                        </FixedFooter>
                     )}
                 </ScrollView>
                 <ConfirmModal

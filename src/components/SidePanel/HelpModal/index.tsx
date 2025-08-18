@@ -47,18 +47,7 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
     // Web back button: push history state and close Side Panel on popstate
     useEffect(() => {
         ComposerFocusManager.resetReadyToFocus(uniqueModalId);
-        window.history.pushState({isSidePanelOpen: true}, '', null);
-        const handlePopState = () => {
-            if (isExtraLargeScreenWidth) {
-                return;
-            }
-
-            closeSidePanel();
-        };
-
-        window.addEventListener('popstate', handlePopState);
         return () => {
-            window.removeEventListener('popstate', handlePopState);
             ComposerFocusManager.setReadyToFocus(uniqueModalId);
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps

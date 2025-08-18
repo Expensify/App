@@ -3,10 +3,11 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {deleteMoneyRequest, unholdRequest} from '@libs/actions/IOU';
-import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {isMergeAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
@@ -21,7 +22,7 @@ import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OriginalMessageIOU, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -31,6 +32,7 @@ import useReportIsArchived from './useReportIsArchived';
 const HOLD = 'HOLD';
 const UNHOLD = 'UNHOLD';
 const MOVE = 'MOVE';
+const MERGE = 'MERGE';
 
 function useSelectedTransactionsActions({
     report,
@@ -38,6 +40,7 @@ function useSelectedTransactionsActions({
     allTransactionsLength,
     session,
     onExportFailed,
+    policy,
     beginExportWithTemplate,
 }: {
     report?: Report;
@@ -45,10 +48,35 @@ function useSelectedTransactionsActions({
     allTransactionsLength: number;
     session?: Session;
     onExportFailed?: () => void;
-    beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[]) => void;
+    policy?: Policy;
+    beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
 }) {
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
+
+    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
+    const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
+
+    // Collate the list of user-created in-app export templates
+    const customInAppTemplates = useMemo(() => {
+        const policyTemplates = Object.entries(policy?.exportLayouts ?? {}).map(([templateName, layout]) => ({
+            ...layout,
+            templateName,
+            description: policy?.name,
+            policyID: policy?.id,
+        }));
+
+        const csvTemplates = Object.entries(csvExportLayouts ?? {}).map(([templateName, layout]) => ({
+            ...layout,
+            templateName,
+            description: '',
+            policyID: undefined,
+        }));
+
+        return [...policyTemplates, ...csvTemplates];
+    }, [csvExportLayouts, policy]);
+
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const selectedTransactions = useMemo(
@@ -83,7 +111,7 @@ function useSelectedTransactionsActions({
         const transactionsWithActions = selectedTransactionIDs.map((transactionID) => ({
             transactionID,
             action: iouActions.find((action) => {
-                const IOUTransactionID = (getOriginalMessage(action) as OriginalMessageIOU)?.IOUTransactionID;
+                const IOUTransactionID = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action)?.IOUTransactionID;
                 return transactionID === IOUTransactionID;
             }),
         }));
@@ -97,11 +125,8 @@ function useSelectedTransactionsActions({
             deletedTransactionIDs.push(transactionID);
         });
         clearSelectedTransactions(true);
-        if (allTransactionsLength - transactionsWithActions.length <= 1) {
-            turnOffMobileSelectionMode();
-        }
         setIsDeleteModalVisible(false);
-    }, [duplicateTransactions, duplicateTransactionViolations, allTransactionsLength, reportActions, selectedTransactionIDs, clearSelectedTransactions]);
+    }, [duplicateTransactions, duplicateTransactionViolations, reportActions, selectedTransactionIDs, clearSelectedTransactions]);
 
     const showDeleteModal = useCallback(() => {
         setIsDeleteModalVisible(true);
@@ -210,6 +235,29 @@ function useSelectedTransactionsActions({
                 });
             }
 
+            // If the user has any custom integration export templates, add them as export options
+            if (integrationsExportTemplates && integrationsExportTemplates.length > 0) {
+                for (const template of integrationsExportTemplates) {
+                    exportOptions.push({
+                        text: template.name,
+                        icon: Expensicons.Table,
+                        onSelected: () => beginExportWithTemplate(template.name, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, selectedTransactionIDs),
+                    });
+                }
+            }
+
+            // If the user has any custom in-app export templates, add them as export options
+            if (customInAppTemplates && customInAppTemplates.length > 0) {
+                for (const template of customInAppTemplates) {
+                    exportOptions.push({
+                        text: template.name,
+                        icon: Expensicons.Table,
+                        description: template.description,
+                        onSelected: () => beginExportWithTemplate(template.templateName, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, selectedTransactionIDs, template.policyID),
+                    });
+                }
+            }
+
             return exportOptions;
         };
 
@@ -218,6 +266,7 @@ function useSelectedTransactionsActions({
             text: translate('common.export'),
             backButtonText: translate('common.export'),
             icon: Expensicons.Export,
+            rightIcon: Expensicons.ArrowRight,
             subMenuItems: getExportOptions(),
         });
 
@@ -227,7 +276,7 @@ function useSelectedTransactionsActions({
             }
             const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
 
-            const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT);
+            const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
             return canMoveExpense;
         });
 
@@ -241,6 +290,26 @@ function useSelectedTransactionsActions({
                     const shouldTurnOffSelectionMode = allTransactionsLength - selectedTransactionIDs.length <= 1;
                     const route = ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, report?.reportID, shouldTurnOffSelectionMode);
                     Navigation.navigate(route);
+                },
+            });
+        }
+
+        // In phase 1, we only show merge action if report is eligible for merge and only one transaction is selected
+        const canMergeTransaction = selectedTransactions.length === 1 && report && isMergeAction(report, selectedTransactions, policy);
+        if (canMergeTransaction) {
+            options.push({
+                text: translate('common.merge'),
+                icon: Expensicons.ArrowCollapse,
+                value: MERGE,
+                onSelected: () => {
+                    const targetTransaction = selectedTransactions.at(0);
+
+                    if (!report || !targetTransaction) {
+                        return;
+                    }
+
+                    setupMergeTransactionData(targetTransaction.transactionID, {targetTransactionID: targetTransaction.transactionID});
+                    Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(targetTransaction.transactionID, Navigation.getActiveRoute()));
                 },
             });
         }
@@ -278,7 +347,11 @@ function useSelectedTransactionsActions({
         iouType,
         session?.accountID,
         showDeleteModal,
+        outstandingReportsByPolicyID,
+        policy,
         beginExportWithTemplate,
+        integrationsExportTemplates,
+        customInAppTemplates,
     ]);
 
     return {

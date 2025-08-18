@@ -79,6 +79,7 @@ function BaseSelectionList<TItem extends ListItem>(
         listEmptyContent,
         showScrollIndicator = true,
         showLoadingPlaceholder = false,
+        LoadingPlaceholderComponent = OptionsListSkeletonView,
         showConfirmButton = false,
         isConfirmButtonDisabled = false,
         shouldUseDefaultTheme = false,
@@ -474,7 +475,7 @@ function BaseSelectionList<TItem extends ListItem>(
             // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
             if (canSelectMultiple) {
                 if (sections.length > 1 && !isItemSelected(item)) {
-                    // If we're selecting an item, scroll to it's position at the top, so we can see it
+                    // If we're selecting an item, scroll to its position at the top, so we can see it
                     scrollToIndex(0, true);
                 }
 
@@ -637,16 +638,15 @@ function BaseSelectionList<TItem extends ListItem>(
         const isItemFocused = (!isDisabled || selected) && focusedIndex === normalizedIndex;
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
 
-        const newItem = item;
-        if (!item.isSelected) {
-            newItem.isSelected = selected;
-        }
-
         return (
             <View onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}>
                 <BaseSelectionListItemRenderer
                     ListItem={ListItem}
-                    item={newItem}
+                    item={{
+                        shouldAnimateInHighlight: isItemHighlighted,
+                        isSelected: selected,
+                        ...item,
+                    }}
                     shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                     index={index}
                     isFocused={isItemFocused}
@@ -672,7 +672,6 @@ function BaseSelectionList<TItem extends ListItem>(
                     singleExecution={singleExecution}
                     titleContainerStyles={listItemTitleContainerStyles}
                     canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
-                    shouldAnimateInHighlight={isItemHighlighted}
                 />
             </View>
         );
@@ -681,7 +680,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const renderListEmptyContent = () => {
         if (showLoadingPlaceholder) {
             return (
-                <OptionsListSkeletonView
+                <LoadingPlaceholderComponent
                     fixedNumItems={fixedNumItemsForLoader}
                     shouldStyleAsTable={shouldUseUserSkeletonView}
                     speed={loaderSpeed}
