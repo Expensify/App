@@ -280,7 +280,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     // Set the oldestUnreadReportActionID in state once loaded from Onyx, and clear Onyx state to prevent stale data.
     useEffect(() => {
-        if (!oldestUnreadReportActionIDValueFromOnyx) {
+        if (!oldestUnreadReportActionIDValueFromOnyx || (oldestUnreadReportActionIDValueFromOnyx && !!oldestUnreadReportActionIDState)) {
             return;
         }
 
@@ -290,6 +290,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
         resetOldestUnreadReportActionID(reportID);
     }, [oldestUnreadReportActionIDState, oldestUnreadReportActionIDValueFromOnyx, reportID]);
+
+    console.log({oldestUnreadReportActionIDState, oldestUnreadReportActionIDValueFromOnyx, reportID});
 
     const {
         reportActions: unfilteredReportActions,
