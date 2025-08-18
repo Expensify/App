@@ -11,7 +11,7 @@
  */
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
-import type {OnboardingCompanySize, OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -551,6 +551,7 @@ const translations = {
         auditor: 'Revisore dei conti',
         role: 'Ruolo',
         currency: 'Valuta',
+        groupCurrency: 'Valuta di gruppo',
         rate: 'Valuta',
         emptyLHN: {
             title: 'Woohoo! Tutto aggiornato.',
@@ -1580,6 +1581,7 @@ const translations = {
             testCrash: 'Test crash',
             resetToOriginalState: 'Ripristina allo stato originale',
             usingImportedState: 'Stai utilizzando uno stato importato. Premi qui per cancellarlo.',
+            shouldBlockTransactionThreadReportCreation: 'Blocca la creazione di report del thread di transazione',
             debugMode: 'Modalità debug',
             invalidFile: 'File non valido',
             invalidFileDescription: 'Il file che stai cercando di importare non è valido. Per favore riprova.',
@@ -2469,8 +2471,8 @@ const translations = {
         messages: {
             onboardingEmployerOrSubmitMessage: 'Ricevere un rimborso è facile come inviare un messaggio. Vediamo le basi.',
             onboardingPersonalSpendMessage: 'Ecco come monitorare le tue spese in pochi clic.',
-            onboardingMangeTeamMessage: ({onboardingCompanySize}: {onboardingCompanySize?: OnboardingCompanySize}) =>
-                `Ecco un elenco di attività che consiglio per un’azienda delle tue dimensioni con ${onboardingCompanySize} persone che inviano spese:`,
+            onboardingManageTeamMessage:
+                '# La tua prova gratuita è iniziata! Procediamo con la configurazione.\n👋 Ciao, sono il tuo specialista di configurazione Expensify. Ora che hai creato uno spazio di lavoro, sfrutta al massimo i tuoi 30 giorni di prova gratuita seguendo i passaggi indicati di seguito!',
             onboardingTrackWorkspaceMessage:
                 '# Iniziamo\n👋 Sono qui per aiutarti! Per iniziare, ho personalizzato le impostazioni dello spazio di lavoro per ditte individuali e aziende simili. Puoi modificarle cliccando il link qui sotto!\n\nEcco come monitorare le tue spese in pochi clic:',
             onboardingChatSplitMessage: 'Dividere le spese con gli amici è facile come inviare un messaggio. Ecco come.',
@@ -6053,18 +6055,18 @@ const translations = {
             },
             current: 'Corrente',
             past: 'Passato',
-            submitted: 'Data di invio',
-            approved: 'Data approvata',
-            paid: 'Data di pagamento',
-            exported: 'Data esportata',
-            posted: 'Data di pubblicazione',
-            withdrawn: 'Data di ritiro',
+            submitted: 'Invio',
+            approved: 'Approvato',
+            paid: 'Pagato',
+            exported: 'Esportato',
+            posted: 'Pubblicato',
+            withdrawn: 'Ritirato',
             billable: 'Fatturabile',
             reimbursable: 'Rimborsabile',
             groupBy: {
                 reports: 'Rapporto',
-                members: 'Membro',
-                cards: 'Carta',
+                from: 'Da',
+                card: 'Carta',
             },
             feed: 'Feed',
             withdrawalType: {

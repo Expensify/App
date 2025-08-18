@@ -1,6 +1,6 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
-import type {OnboardingCompanySize, OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
@@ -543,6 +543,7 @@ const translations = {
         auditor: 'Auditor',
         role: 'Role',
         currency: 'Currency',
+        groupCurrency: 'Group currency',
         rate: 'Rate',
         emptyLHN: {
             title: 'Woohoo! All caught up.',
@@ -1570,6 +1571,7 @@ const translations = {
             testCrash: 'Test crash',
             resetToOriginalState: 'Reset to original state',
             usingImportedState: 'You are using imported state. Press here to clear it.',
+            shouldBlockTransactionThreadReportCreation: 'Block transaction thread report creation',
             debugMode: 'Debug mode',
             invalidFile: 'Invalid file',
             invalidFileDescription: 'The file you are trying to import is not valid. Please try again.',
@@ -2459,8 +2461,8 @@ const translations = {
         messages: {
             onboardingEmployerOrSubmitMessage: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
             onboardingPersonalSpendMessage: 'Here’s how to track your spend in a few clicks.',
-            onboardingMangeTeamMessage: ({onboardingCompanySize}: {onboardingCompanySize?: OnboardingCompanySize}) =>
-                `Here is a task list I’d recommend for a company of your size${onboardingCompanySize ? ` with ${onboardingCompanySize} submitters` : ':'}`,
+            onboardingManageTeamMessage:
+                "# Your free trial has started! Let's get you set up.\n👋 Hey there, I'm your Expensify setup specialist. Now that you've created a workspace, make the most of your 30-day free trial by following the steps below!",
             onboardingTrackWorkspaceMessage:
                 '# Let’s get you set up\n👋 I’m here to help! To get you started, I’ve tailored your workspace settings for sole proprietors and similar businesses. You can adjust your workspace by clicking the link below!\n\nHere’s how to track your spend in a few clicks:',
             onboardingChatSplitMessage: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
@@ -6014,18 +6016,18 @@ const translations = {
             },
             current: 'Current',
             past: 'Past',
-            submitted: 'Submitted date',
-            approved: 'Approved date',
-            paid: 'Paid date',
-            exported: 'Exported date',
-            posted: 'Posted date',
-            withdrawn: 'Withdrawn date',
+            submitted: 'Submitted',
+            approved: 'Approved',
+            paid: 'Paid',
+            exported: 'Exported',
+            posted: 'Posted',
+            withdrawn: 'Withdrawn',
             billable: 'Billable',
             reimbursable: 'Reimbursable',
             groupBy: {
                 reports: 'Report', // s77rt use singular key name
-                members: 'Member', // s77rt use singular key name
-                cards: 'Card', // s77rt use singular key name
+                from: 'From',
+                card: 'Card',
             },
             feed: 'Feed',
             withdrawalType: {
