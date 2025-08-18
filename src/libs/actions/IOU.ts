@@ -11035,7 +11035,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
     if (!initialReportID) {
         optimisticData.push(
             {
-                onyxMethod: Onyx.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     ...report,
@@ -11090,12 +11090,12 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
 
         failureData.push(
             {
-                onyxMethod: Onyx.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: null,
             },
             {
-                onyxMethod: Onyx.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
                 value: null,
             },
