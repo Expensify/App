@@ -559,7 +559,8 @@ describe('ReportUtils', () => {
             });
 
             test('Archived', async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseAdminsRoom.reportID}`, reportNameValuePairs);
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseAdminsRoom.reportID}`, reportNameValuePairs);
 
                 const {result: isReportArchived} = renderHook(() => useReportIsArchived(baseAdminsRoom.reportID));
 
@@ -595,9 +596,9 @@ describe('ReportUtils', () => {
                     ...baseUserCreatedRoom,
                 };
 
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseUserCreatedRoom.reportID}`, reportNameValuePairs);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseUserCreatedRoom.reportID}`, reportNameValuePairs);
 
-                const {result: isReportArchived} = renderHook(() => useReportIsArchived(baseUserCreatedRoom?.reportID));
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(archivedPolicyRoom?.reportID));
 
                 expect(getReportName(archivedPolicyRoom, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe('#VikingsChat (archived)');
 
@@ -653,9 +654,9 @@ describe('ReportUtils', () => {
                         isOwnPolicyExpenseChat: true,
                     };
 
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseArchivedPolicyExpenseChat.reportID}`, reportNameValuePairs);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseArchivedPolicyExpenseChat.reportID}`, reportNameValuePairs);
 
-                    const {result: isReportArchived} = renderHook(() => useReportIsArchived(baseArchivedPolicyExpenseChat?.reportID));
+                    const {result: isReportArchived} = renderHook(() => useReportIsArchived(memberArchivedPolicyExpenseChat?.reportID));
 
                     expect(getReportName(memberArchivedPolicyExpenseChat, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe(
                         `Ragnar Lothbrok's expenses (archived)`,
@@ -674,7 +675,7 @@ describe('ReportUtils', () => {
                         isOwnPolicyExpenseChat: false,
                     };
 
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${adminArchivedPolicyExpenseChat.reportID}`, reportNameValuePairs);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${adminArchivedPolicyExpenseChat.reportID}`, reportNameValuePairs);
 
                     const {result: isReportArchived} = renderHook(() => useReportIsArchived(adminArchivedPolicyExpenseChat?.reportID));
 
@@ -2378,7 +2379,7 @@ describe('ReportUtils', () => {
             const isInFocusMode = false;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(archivedReport?.reportID));
 
@@ -2409,7 +2410,7 @@ describe('ReportUtils', () => {
             const isInFocusMode = true;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(archivedReport?.reportID));
 
