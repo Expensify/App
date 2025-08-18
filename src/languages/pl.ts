@@ -1240,7 +1240,7 @@ const translations = {
         addUnreportedExpenseConfirm: 'Dodaj do raportu',
         explainHold: 'Wyjaśnij, dlaczego wstrzymujesz ten wydatek.',
         retracted: 'wycofany',
-        retract: 'Wycofaj',
+        retract: 'Wycofać',
         reopened: 'ponownie otwarty',
         reopenReport: 'Ponownie otwórz raport',
         reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>

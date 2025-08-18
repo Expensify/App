@@ -1224,7 +1224,7 @@ const translations = {
         heldExpense: 'retuvo este gasto',
         unheldExpense: 'desbloqueó este gasto',
         explainHold: 'Explica la razón para retener esta solicitud.',
-        retract: 'Retirar',
+        retract: 'Retraer',
         reopened: 'reabrir',
         reopenReport: 'Reabrir informe',
         reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>

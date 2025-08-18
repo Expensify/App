@@ -1243,7 +1243,7 @@ const translations = {
         addUnreportedExpenseConfirm: 'レポートに追加',
         explainHold: 'この経費を保留している理由を説明してください。',
         retracted: '撤回されました',
-        retract: '撤回',
+        retract: '取り消す',
         reopened: '再開されました',
         reopenReport: 'レポートを再開する',
         reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>
