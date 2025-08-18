@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import getEnvironment from '@libs/Environment/getEnvironment';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {cidMap} from './cidMap';
 import {init as initFP, sendEvent, setAttribute, setAuthStatus, setIdentity, setSessionID} from './GroupIBSDKBridge';
@@ -28,7 +29,7 @@ Onyx.connectWithoutView({
 
 async function init(): Promise<void> {
     const env = await getEnvironment();
-    initFP(cidMap[env]);
+    initFP(cidMap[env] ?? cidMap[CONST.ENVIRONMENT.DEV]);
 }
 
 export default {init, sendEvent};
