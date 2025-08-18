@@ -17,7 +17,6 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
 import useLocalize from '@hooks/useLocalize';
-import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -83,8 +82,6 @@ type BrickRoadIndicatorIconProps = {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
 
-const anchorAlignment = {horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP};
-
 const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType']): IconAsset => {
     switch (workspaceType) {
         case CONST.POLICY.TYPE.CORPORATE:
@@ -128,7 +125,6 @@ function WorkspacesListRow({
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const threeDotsMenuContainerRef = useRef<View>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
 
@@ -146,8 +142,6 @@ function WorkspacesListRow({
         }
         threeDotsMenuRef?.current?.hidePopoverMenu();
     }, [isLoadingBill, resetLoadingSpinnerIconIndex]);
-
-    const {calculatePopoverPosition} = usePopoverPosition();
 
     if (layoutWidth === CONST.LAYOUT_WIDTH.NONE) {
         // To prevent layout from jumping or rendering for a split second, when
@@ -191,17 +185,15 @@ function WorkspacesListRow({
                     <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, isNarrow && styles.workspaceListRBR]}>
                         <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
                     </View>
-                    <View ref={threeDotsMenuContainerRef}>
-                        <ThreeDotsMenu
-                            getAnchorPosition={() => calculatePopoverPosition(threeDotsMenuContainerRef, anchorAlignment)}
-                            menuItems={menuItems}
-                            anchorAlignment={anchorAlignment}
-                            shouldOverlay
-                            disabled={shouldDisableThreeDotsMenu}
-                            isNested
-                            threeDotsMenuRef={threeDotsMenuRef}
-                        />
-                    </View>
+                    <ThreeDotsMenu
+                        shouldSelfPosition
+                        menuItems={menuItems}
+                        anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                        shouldOverlay
+                        disabled={shouldDisableThreeDotsMenu}
+                        isNested
+                        threeDotsMenuRef={threeDotsMenuRef}
+                    />
                 </View>
             )}
         </View>

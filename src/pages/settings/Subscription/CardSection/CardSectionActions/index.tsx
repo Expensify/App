@@ -1,22 +1,14 @@
-import React, {useMemo, useRef} from 'react';
-import {View} from 'react-native';
+import React, {useMemo} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
-import usePopoverPosition from '@hooks/usePopoverPosition';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-const anchorAlignment = {
-    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-};
-
 function CardSectionActions() {
     const {translate} = useLocalize();
-    const threeDotsMenuContainerRef = useRef<View>(null);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
@@ -34,17 +26,16 @@ function CardSectionActions() {
         [translate],
     );
 
-    const {calculatePopoverPosition} = usePopoverPosition();
-
     return (
-        <View ref={threeDotsMenuContainerRef}>
-            <ThreeDotsMenu
-                getAnchorPosition={() => calculatePopoverPosition(threeDotsMenuContainerRef, anchorAlignment)}
-                menuItems={overflowMenu}
-                anchorAlignment={anchorAlignment}
-                shouldOverlay
-            />
-        </View>
+        <ThreeDotsMenu
+            shouldSelfPosition
+            menuItems={overflowMenu}
+            anchorAlignment={{
+                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+            }}
+            shouldOverlay
+        />
     );
 }
 

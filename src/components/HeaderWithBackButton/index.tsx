@@ -13,7 +13,6 @@ import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
-import usePopoverPosition from '@hooks/usePopoverPosition';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -77,8 +76,6 @@ function HeaderWithBackButton({
     const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
-    const threeDotContainerRef = useRef<View | null>(null);
-    const {calculatePopoverPosition} = usePopoverPosition();
 
     const middleContent = useMemo(() => {
         if (progressBarPercentage) {
@@ -152,19 +149,17 @@ function HeaderWithBackButton({
                     </PressableWithoutFeedback>
                 </Tooltip>
             ) : (
-                <View ref={threeDotContainerRef}>
-                    <ThreeDotsMenu
-                        getAnchorPosition={() => calculatePopoverPosition(threeDotContainerRef, threeDotsAnchorAlignment)}
-                        icon={threeDotsMenuIcon}
-                        iconFill={threeDotsMenuIconFill}
-                        disabled={shouldDisableThreeDotsButton}
-                        menuItems={threeDotsMenuItems}
-                        onIconPress={onThreeDotsButtonPress}
-                        shouldOverlay={shouldOverlayDots}
-                        anchorAlignment={threeDotsAnchorAlignment}
-                        shouldSetModalVisibility={shouldSetModalVisibility}
-                    />
-                </View>
+                <ThreeDotsMenu
+                    shouldSelfPosition
+                    icon={threeDotsMenuIcon}
+                    iconFill={threeDotsMenuIconFill}
+                    disabled={shouldDisableThreeDotsButton}
+                    menuItems={threeDotsMenuItems}
+                    onIconPress={onThreeDotsButtonPress}
+                    shouldOverlay={shouldOverlayDots}
+                    anchorAlignment={threeDotsAnchorAlignment}
+                    shouldSetModalVisibility={shouldSetModalVisibility}
+                />
             );
         }
         return null;
@@ -181,7 +176,6 @@ function HeaderWithBackButton({
         shouldOverlayDots,
         threeDotsAnchorAlignment,
         shouldSetModalVisibility,
-        calculatePopoverPosition,
     ]);
 
     return (
