@@ -20,6 +20,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchDateValues} from '@components/Search/SearchDatePresetFilterBase';
 import type {SearchDateFilterKeys, SearchGroupBy, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
+import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -419,6 +420,8 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         [filterFormValues.from, updateFilterForm],
     );
 
+    const {typeFiltersKeys} = useAdvancedSearchFilters();
+
     /**
      * Builds the list of all filter chips to be displayed in the
      * filter bar
@@ -558,24 +561,17 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     ]);
 
     const hiddenSelectedFilters = useMemo(() => {
-        const exposedFilters = filters
-            .flatMap((filter) => {
-                const dateFilterKey = DATE_FILTER_KEYS.find((key) => filter.filterKey.startsWith(key));
-                if (dateFilterKey) {
-                    return [`${dateFilterKey}On`, `${dateFilterKey}After`, `${dateFilterKey}Before`];
-                }
-                return filter.filterKey;
-            })
-            .concat(FILTER_KEYS.ACTION);
-
-        if (!exposedFilters.includes(FILTER_KEYS.GROUP_BY)) {
-            exposedFilters.push(FILTER_KEYS.GROUP_BY);
-        }
-
-        return Object.entries(filterFormValues)
-            .filter(([key, value]) => value && !exposedFilters.includes(key as SearchAdvancedFiltersKey))
-            .map(([key]) => key);
-    }, [filterFormValues, filters]);
+        const advancedSearchFiltersKeys = typeFiltersKeys.flat();
+        const exposedFiltersKeys = filters.flatMap((filter) => filter.filterKey);
+        const hiddenFilters = advancedSearchFiltersKeys.filter((key) => !exposedFiltersKeys.includes(key as SearchAdvancedFiltersKey));
+        return hiddenFilters.filter((key) => {
+            const dateFilterKey = DATE_FILTER_KEYS.find((dateKey) => key.startsWith(dateKey));
+            if (dateFilterKey) {
+                return filterFormValues[`${dateFilterKey}On`] ?? filterFormValues[`${dateFilterKey}After`] ?? filterFormValues[`${dateFilterKey}Before`];
+            }
+            return filterFormValues[key as SearchAdvancedFiltersKey];
+        });
+    }, [filterFormValues, filters, typeFiltersKeys]);
 
     if (hasErrors) {
         return null;
