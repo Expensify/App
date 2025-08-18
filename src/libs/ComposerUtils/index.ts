@@ -27,7 +27,7 @@ function insertWhiteSpaceAtIndex(text: string, index: number) {
 function canSkipTriggerHotkeys(isSmallScreenWidth: boolean, isKeyboardShown: boolean): boolean {
     // Do not trigger actions for mobileWeb or native clients that have the keyboard open
     // because for those devices, we want the return key to insert newlines rather than submit the form
-    return (isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen()) || isKeyboardShown;
+    return isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && isKeyboardShown;
 }
 
 /**

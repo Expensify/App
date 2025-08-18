@@ -2,7 +2,7 @@ import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
@@ -114,6 +114,8 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
+
+const isNative = Platform.OS === CONST.PLATFORM.IOS || Platform.OS === CONST.PLATFORM.ANDROID;
 
 // eslint-disable-next-line import/no-mutable-exports
 let onSubmitAction = noop;
@@ -398,21 +400,28 @@ function ReportActionCompose({
         clear: (() => void) | undefined;
     }>({clear: undefined});
 
-    const handleSendMessage = useCallback(() => {
-        'worklet';
+    const handleSendMessage = useCallback(
+        (caller: 'SendButton' | 'Composer') => {
+            'worklet';
 
-        const clearComposer = composerRefShared.get().clear;
-        if (!clearComposer) {
-            throw new Error('The composerRefShared.clear function is not set yet. This should never happen, and indicates a developer error.');
-        }
+            const clearComposer = isNative ? composerRef.current?.clear : composerRefShared.get().clear;
+            if (!clearComposer) {
+                throw new Error('The composerRefShared.clear function is not set yet. This should never happen, and indicates a developer error.');
+            }
 
-        if (isSendDisabled) {
-            return;
-        }
+            if (isSendDisabled) {
+                return;
+            }
 
-        // This will cause onCleared to be triggered where we actually send the message
-        clearComposer();
-    }, [isSendDisabled, composerRefShared]);
+            // This will cause onCleared to be triggered where we actually send the message
+            if (isNative && caller === 'Composer') {
+                runOnUI(clearComposer)();
+            } else {
+                clearComposer();
+            }
+        },
+        [isSendDisabled, composerRefShared],
+    );
 
     const measureComposer = useCallback(
         (e: LayoutChangeEvent) => {
@@ -634,9 +643,7 @@ function ReportActionCompose({
                                         <ComposerWithSuggestions
                                             ref={(ref) => {
                                                 composerRef.current = ref ?? undefined;
-                                                composerRefShared.set({
-                                                    clear: ref?.clear,
-                                                });
+                                                composerRefShared.set({clear: ref?.clear});
                                             }}
                                             suggestionsRef={suggestionsRef}
                                             isNextModalWillOpenRef={isNextModalWillOpenRef}

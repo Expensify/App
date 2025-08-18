@@ -4,6 +4,8 @@ import {KeyboardEvents, useKeyboardHandler} from 'react-native-keyboard-controll
 import {runOnJS} from 'react-native-reanimated';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import getKeyboardHeight from '@libs/getKeyboardHeight';
+import getPlatform from '@libs/getPlatform';
+import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type KeyboardStateContextValue = {
@@ -37,32 +39,86 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
     const [keyboardActiveHeight, setKeyboardActiveHeight] = useState(0);
     const isKeyboardAnimatingRef = useRef(false);
     const [isKeyboardActive, setIsKeyboardActive] = useState(false);
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
     useEffect(() => {
-        const keyboardDidShowListener = KeyboardEvents.addListener('keyboardDidShow', (e) => {
-            setKeyboardHeight(getKeyboardHeight(e.height, bottom));
-            setIsKeyboardActive(true);
-        });
-        const keyboardDidHideListener = KeyboardEvents.addListener('keyboardDidHide', () => {
-            setKeyboardHeight(0);
-            setIsKeyboardActive(false);
-        });
-        const keyboardWillShowListener = KeyboardEvents.addListener('keyboardWillShow', (e) => {
-            setIsKeyboardActive(true);
-            setKeyboardActiveHeight(e.height);
-        });
-        const keyboardWillHideListener = KeyboardEvents.addListener('keyboardWillHide', () => {
-            setIsKeyboardActive(false);
-            setKeyboardActiveHeight(0);
-        });
+        if (!isWeb) {
+            const keyboardDidShowListener = KeyboardEvents.addListener('keyboardDidShow', (e) => {
+                setKeyboardHeight(getKeyboardHeight(e.height, bottom));
+                setIsKeyboardActive(true);
+            });
+            const keyboardDidHideListener = KeyboardEvents.addListener('keyboardDidHide', () => {
+                setKeyboardHeight(0);
+                setIsKeyboardActive(false);
+            });
+            const keyboardWillShowListener = KeyboardEvents.addListener('keyboardWillShow', (e) => {
+                setIsKeyboardActive(true);
+                setKeyboardActiveHeight(e.height);
+            });
+            const keyboardWillHideListener = KeyboardEvents.addListener('keyboardWillHide', () => {
+                setIsKeyboardActive(false);
+                setKeyboardActiveHeight(0);
+            });
 
-        return () => {
-            keyboardDidShowListener.remove();
-            keyboardDidHideListener.remove();
-            keyboardWillShowListener.remove();
-            keyboardWillHideListener.remove();
+            return () => {
+                keyboardDidShowListener.remove();
+                keyboardDidHideListener.remove();
+                keyboardWillShowListener.remove();
+                keyboardWillHideListener.remove();
+            };
+        }
+
+        // Web platform: Use window.visualViewport and focus/blur events
+        const handleViewportResize = () => {
+            if (!window.visualViewport) {
+                setKeyboardHeight(0);
+                setIsKeyboardActive(false);
+                return;
+            }
+
+            const viewportHeight = window.visualViewport.height;
+            const windowHeight = window.innerHeight;
+            const estimatedKeyboardHeight = windowHeight - viewportHeight;
+
+            // Consider the keyboard shown if the viewport height is significantly reduced
+            const isKeyboardLikelyShown = estimatedKeyboardHeight > 100; // Arbitrary threshold for web virtual keyboards
+            setKeyboardHeight(isKeyboardLikelyShown ? estimatedKeyboardHeight : 0);
+            setIsKeyboardActive(isKeyboardLikelyShown);
         };
-    }, [bottom]);
+
+        const handleFocus = (event: FocusEvent) => {
+            // Check if the focused element is an input or textarea
+            const target = event.target as HTMLElement;
+
+            if (['INPUT', 'TEXTAREA'].includes(target.tagName)) {
+                setIsKeyboardActive(true);
+                handleViewportResize(); // Re-check viewport on focus
+            }
+        };
+
+        const handleBlur = (event: FocusEvent) => {
+            const target = event.target as HTMLElement;
+
+            if (['INPUT', 'TEXTAREA', 'DIV'].includes(target.tagName)) {
+                setIsKeyboardActive(false);
+                setKeyboardHeight(0);
+            }
+        };
+
+        if (isWeb) {
+            // Listen to viewport changes for virtual keyboard detection
+            window.visualViewport?.addEventListener('resize', handleViewportResize);
+            // Listen to focus/blur events on inputs
+            document.addEventListener('focus', handleFocus, true);
+            document.addEventListener('blur', handleBlur, true);
+
+            return () => {
+                window.visualViewport?.removeEventListener('resize', handleViewportResize);
+                document.removeEventListener('focus', handleFocus, true);
+                document.removeEventListener('blur', handleBlur, true);
+            };
+        }
+    }, [bottom, isWeb]);
 
     const setIsKeyboardAnimating = useCallback((isAnimating: boolean) => {
         isKeyboardAnimatingRef.current = isAnimating;
@@ -73,15 +129,19 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
             onStart: () => {
                 'worklet';
 
-                runOnJS(setIsKeyboardAnimating)(true);
+                if (!isWeb) {
+                    runOnJS(setIsKeyboardAnimating)(true);
+                }
             },
             onEnd: () => {
                 'worklet';
 
-                runOnJS(setIsKeyboardAnimating)(false);
+                if (!isWeb) {
+                    runOnJS(setIsKeyboardAnimating)(false);
+                }
             },
         },
-        [],
+        [isWeb],
     );
 
     const contextValue = useMemo(
@@ -94,6 +154,7 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
         }),
         [isKeyboardActive, keyboardActiveHeight, keyboardHeight],
     );
+
     return <KeyboardStateContext.Provider value={contextValue}>{children}</KeyboardStateContext.Provider>;
 }
 

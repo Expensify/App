@@ -110,7 +110,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     setIsCommentEmpty: (isCommentEmpty: boolean) => void;
 
     /** Function to handle sending a message */
-    handleSendMessage: () => void;
+    handleSendMessage: (action: 'SendButton' | 'Composer') => void;
 
     /** Whether the compose input should show */
     shouldShowComposeInput: OnyxEntry<boolean>;
@@ -452,9 +452,9 @@ function ComposerWithSuggestions(
             }
 
             // Submit the form when Enter is pressed
-            if (webEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !webEvent.shiftKey) {
+            if ((event?.nativeEvent ?? event).key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !webEvent.shiftKey) {
                 webEvent.preventDefault();
-                handleSendMessage();
+                handleSendMessage('Composer');
             }
 
             // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants

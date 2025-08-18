@@ -16,7 +16,7 @@ type SendButtonProps = {
     isDisabled: boolean;
 
     /** Handle clicking on send button */
-    handleSendMessage: () => void;
+    handleSendMessage: (action: 'SendButton' | 'Composer') => void;
 };
 
 function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonProps) {
@@ -27,7 +27,7 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const Tap = Gesture.Tap().onEnd(() => {
-        handleSendMessage();
+        handleSendMessage('SendButton');
     });
 
     return (
