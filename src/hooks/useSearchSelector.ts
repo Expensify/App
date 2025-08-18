@@ -104,6 +104,7 @@ function useSearchSelector({
 
     // Phone contacts logic
     const {contacts, contactPermissionState, importAndSaveContacts, setContactPermissionState} = useContactImport();
+    const memoizedContacts = useMemo(() => (contacts.length ? contacts : CONST.EMPTY_ARRAY), [contacts]);
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
     const shouldEnableContacts = enablePhoneContacts && isNative;
@@ -121,7 +122,7 @@ function useSearchSelector({
         }
 
         // Integrate contacts into personalDetails if enabled
-        const personalDetailsWithContacts = shouldEnableContacts ? options.personalDetails.concat(contacts) : options.personalDetails;
+        const personalDetailsWithContacts = shouldEnableContacts ? options.personalDetails.concat(memoizedContacts) : options.personalDetails;
 
         const optionsWithContacts = {
             ...options,
@@ -198,7 +199,7 @@ function useSearchSelector({
         includeRecentReports,
         selectedOptions,
         shouldEnableContacts,
-        contacts,
+        memoizedContacts,
         getValidOptionsConfig,
     ]);
 
