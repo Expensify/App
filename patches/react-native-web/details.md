@@ -108,19 +108,7 @@
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/60340
 
-### [react-native-web+0.20.0+010+restore-findNodeHandle.patch](react-native-web+0.20.0+010+restore-findNodeHandle.patch)
-
-- Reason:
-  
-    ```
-    Changes `findNodeHandle()` to log a Console warning instead of throwing an Error when being called.
-    ```
-  
-- Upstream PR/issue: 🛑
-- E/App issue: 🛑
-- PR introducing patch: https://github.com/Expensify/App/pull/60421
-
-### [react-native-web+0.20.0+011+fullstory-support.patch](react-native-web+0.20.0+011+fullstory-support.patch)
+### [react-native-web+0.20.0+010+fullstory-support.patch](react-native-web+0.20.0+010+fullstory-support.patch)
 
 - Reason:
   
