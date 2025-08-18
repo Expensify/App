@@ -33,7 +33,12 @@ import type ReanimatedModalProps from './ReanimatedModal/types';
 import type BaseModalProps from './types';
 import type {FocusTrapOptions} from './types';
 
-const REANIMATED_MODAL_TYPES: Array<ValueOf<typeof CONST.MODAL.MODAL_TYPE>> = [CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED, CONST.MODAL.MODAL_TYPE.FULLSCREEN, CONST.MODAL.MODAL_TYPE.POPOVER];
+const REANIMATED_MODAL_TYPES: Array<ValueOf<typeof CONST.MODAL.MODAL_TYPE>> = [
+    CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED,
+    CONST.MODAL.MODAL_TYPE.FULLSCREEN,
+    CONST.MODAL.MODAL_TYPE.POPOVER,
+    CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
+];
 
 type ModalComponentProps = (ReactNativeModalProps | ReanimatedModalProps) & {
     type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
@@ -166,7 +171,7 @@ function BaseModal(
     const {sidePanelOffset} = useSidePanel();
     const sidePanelStyle = !shouldUseReanimatedModal && shouldApplySidePanelOffset && !isSmallScreenWidth ? {paddingRight: sidePanelOffset.current} : undefined;
     const sidePanelAnimatedStyle =
-        (shouldUseReanimatedModal || type === CONST.MODAL.MODAL_TYPE.POPOVER) && shouldApplySidePanelOffset && !isSmallScreenWidth
+        (shouldUseReanimatedModal || type === CONST.MODAL.MODAL_TYPE.POPOVER || type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED) && shouldApplySidePanelOffset && !isSmallScreenWidth
             ? {transform: [{translateX: Animated.multiply(sidePanelOffset.current, -1)}]}
             : undefined;
     const keyboardStateContextValue = useKeyboardState();
@@ -321,7 +326,6 @@ function BaseModal(
                     modalOverlapsWithTopSafeArea,
                     shouldDisableBottomSafeAreaPadding: !!shouldDisableBottomSafeAreaPadding,
                 },
-                shouldUseReanimatedModal,
             ),
         [
             StyleUtils,
@@ -336,7 +340,6 @@ function BaseModal(
             shouldUseModalPaddingStyle,
             modalOverlapsWithTopSafeArea,
             shouldDisableBottomSafeAreaPadding,
-            shouldUseReanimatedModal,
         ],
     );
 
