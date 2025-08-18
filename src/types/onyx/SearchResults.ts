@@ -528,7 +528,7 @@ type SearchWithdrawalIDGroup = {
     accountNumber: string;
 
     /** Bank name */
-    addressName: BankName;
+    bankName: BankName;
 
     /** When the withdrawal completed */
     debitPosted: string;

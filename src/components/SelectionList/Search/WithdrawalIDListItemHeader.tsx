@@ -28,8 +28,8 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({withdrawalID: withd
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.addressName, styles});
-    const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[withdrawalIDItem.addressName];
+    const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles});
+    const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[withdrawalIDItem.bankName];
     const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
         withdrawalIDItem.debitPosted,
         DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
