@@ -1,6 +1,6 @@
 import type {FlashList, FlashListProps} from '@shopify/flash-list';
 import type {ForwardedRef} from 'react';
-import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {NativeSyntheticEvent} from 'react-native';
 import type {ExtendedTargetedEvent, SearchListItem} from '@components/SelectionList/types';
 
 type BaseSearchListProps = Pick<
@@ -18,6 +18,7 @@ type BaseSearchListProps = Pick<
     | 'showsVerticalScrollIndicator'
     | 'removeClippedSubviews'
     | 'drawDistance'
+    | 'onLayout'
 > & {
     data: SearchListItem[];
 
@@ -26,15 +27,6 @@ type BaseSearchListProps = Pick<
     flattenedItemsLength: number;
 
     onSelectRow: (item: SearchListItem) => void;
-
-    /** Invoked on mount and layout changes */
-    onLayout?: () => void;
-
-    /** Styles to apply to the content container */
-    contentContainerStyle?: StyleProp<ViewStyle>;
-
-    /** The estimated height of an item in the list */
-    estimatedItemSize?: number;
 
     calculatedListHeight: number;
 
