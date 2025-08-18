@@ -10,6 +10,7 @@ import {ReportReceipt} from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -203,16 +204,9 @@ function WorkspaceReportFieldsPage({
                             isCentralPane
                             title={translate('workspace.common.reportTitle')}
                             renderSubtitle={() => (
-                                <Text style={[[styles.textLabelSupportingEmptyValue, styles.lh20, styles.mt1]]}>
-                                    {translate('workspace.reports.customReportNamesSubtitle')}
-                                    <TextLink
-                                        style={[styles.link]}
-                                        href={CONST.CUSTOM_REPORT_NAME_HELP_URL}
-                                    >
-                                        {translate('workspace.reports.customNameDescriptionLink')}
-                                    </TextLink>
-                                    .
-                                </Text>
+                                <View style={[[styles.renderHTML, styles.mt1]]}>
+                                    <RenderHTML html={translate('workspace.reports.customReportNamesSubtitle')} />
+                                </View>
                             )}
                             containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
                             titleStyles={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
