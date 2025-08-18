@@ -5168,7 +5168,7 @@ function getReportNameInternal({
         parentReportAction = isThread(report) ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] : undefined;
     }
     const parentReportActionMessage = getReportActionMessageReportUtils(parentReportAction);
-    const isArchivedNonExpense = isArchivedNonExpenseReport(report, isReportArchived || !!reportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`]?.private_isArchived);
+    const isArchivedNonExpense = isArchivedNonExpenseReport(report, isReportArchived || isArchivedReport(reportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`]));
 
     if (
         isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
@@ -5313,8 +5313,6 @@ function getReportNameInternal({
         if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
             formattedName = getTransactionReportName({reportAction: parentReportAction, transactions, reports});
 
-            // This will get removed as part of https://github.com/Expensify/App/issues/59961
-            // eslint-disable-next-line deprecation/deprecation
             if (isArchivedNonExpense) {
                 formattedName = generateArchivedReportName(formattedName);
             }
@@ -5359,8 +5357,6 @@ function getReportNameInternal({
             return getAdminRoomInvitedParticipants(parentReportAction, reportActionMessage);
         }
 
-        // This will get removed as part of https://github.com/Expensify/App/issues/59961
-        // eslint-disable-next-line deprecation/deprecation
         if (reportActionMessage && isArchivedNonExpense) {
             return generateArchivedReportName(reportActionMessage);
         }
