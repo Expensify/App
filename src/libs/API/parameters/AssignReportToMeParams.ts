@@ -3,7 +3,7 @@ type AssignReportToMeParams = {
     reportID: string;
 
     /** Action ID for optimistic took control action */
-    reportActionID?: string;
+    reportActionID: string;
 };
 
 export default AssignReportToMeParams;

@@ -43,7 +43,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
         if (!isPolicyAdmin(policy) || !policy || !session?.accountID) {
             return;
         }
-        assignCurrentUserAsApprover(report);
+        assignCurrentUserAsApprover(report, session.accountID);
         Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }, [selectedApproverType, policy, session?.accountID, report, reportID]);
 

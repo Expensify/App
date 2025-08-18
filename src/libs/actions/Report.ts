@@ -5888,19 +5888,19 @@ function resolveConciergeCategoryOptions(reportID: string | undefined, actionRep
     } as Partial<ReportActions>);
 }
 
-function assignCurrentUserAsApprover(report: OnyxEntry<Report>) {
+function assignCurrentUserAsApprover(report: OnyxEntry<Report>, accountID: number) {
     if (!report?.reportID) {
         return;
     }
 
-    const takeControlReportAction = buildOptimisticChangeApproverReportAction(currentUserAccountID);
+    const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID);
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
                 value: {
-                    managerID: currentUserAccountID,
+                    managerID: accountID,
                 },
             },
             {
