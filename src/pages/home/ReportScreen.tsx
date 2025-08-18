@@ -284,7 +284,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        setOldestUnreadReportActionIDState(oldestUnreadReportActionIDValueFromOnyx);
         resetOldestUnreadReportActionID(reportID);
 
         if (oldestUnreadReportActionIDValueFromOnyx !== oldestUnreadReportActionIDState) {
