@@ -3,7 +3,7 @@ import type {GestureResponderEvent} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {hasHoverSupport, canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type PressableWithSecondaryInteractionProps from './types';
 
 /** This is a special Pressable that calls onSecondaryInteraction when LongPressed, or right-clicked. */
@@ -29,7 +29,7 @@ function PressableWithSecondaryInteraction(
     const pressableRef = useRef<HTMLDivElement | null>(null);
 
     const executeSecondaryInteraction = (event: GestureResponderEvent) => {
-        if (DeviceCapabilities.hasHoverSupport() && !enableLongPressWithHover) {
+        if (hasHoverSupport() && !enableLongPressWithHover) {
             return;
         }
         if (withoutFocusOnSecondaryInteraction && pressableRef.current) {
@@ -97,7 +97,7 @@ function PressableWithSecondaryInteraction(
             // ESLint is disabled here to propagate all the props, enhancing PressableWithSecondaryInteraction's versatility across different use cases.
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
-            wrapperStyle={[StyleUtils.combineStyles(DeviceCapabilities.canUseTouchScreen() ? [styles.userSelectNone, styles.noSelect] : [], inlineStyle), wrapperStyle]}
+            wrapperStyle={[StyleUtils.combineStyles(canUseTouchScreen() ? [styles.userSelectNone, styles.noSelect] : [], inlineStyle), wrapperStyle]}
             onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
             pressDimmingValue={activeOpacity}
             dimAnimationDuration={opacityAnimationDuration}
