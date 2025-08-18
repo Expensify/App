@@ -291,8 +291,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         resetOldestUnreadReportActionID(reportID);
     }, [oldestUnreadReportActionIDState, oldestUnreadReportActionIDValueFromOnyx, reportID]);
 
-    console.log({oldestUnreadReportActionIDState, oldestUnreadReportActionIDValueFromOnyx, reportID});
-
     const {
         reportActions: unfilteredReportActions,
         linkedAction,
