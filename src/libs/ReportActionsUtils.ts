@@ -272,7 +272,20 @@ function getDelegateAccountIDFromReportAction(reportAction: OnyxInputOrEntry<Rep
         return undefined;
     }
 
-    return reportAction.delegateAccountID;
+    if (reportAction.delegateAccountID) {
+        return reportAction.delegateAccountID;
+    }
+
+    const originalMessage = getOriginalMessage(reportAction);
+    if (!originalMessage) {
+        return undefined;
+    }
+
+    if ('delegateAccountID' in originalMessage) {
+        return originalMessage.delegateAccountID;
+    }
+
+    return undefined;
 }
 
 function isExportIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION> {
