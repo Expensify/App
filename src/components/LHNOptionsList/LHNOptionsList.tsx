@@ -190,7 +190,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             const hasDraftComment = !!draftComments?.[reportID];
 
-            const canUserPerformWrite = canUserPerformWriteAction(item);
+            const isReportArchived = !!itemReportNameValuePairs?.private_isArchived;
+            const canUserPerformWrite = canUserPerformWriteAction(item, isReportArchived);
             const sortedReportActions = getSortedReportActionsForDisplay(itemReportActions, canUserPerformWrite);
             const lastReportAction = sortedReportActions.at(0);
 
@@ -246,6 +247,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     isReportsSplitNavigatorLast={isReportsSplitNavigatorLast}
                     isScreenFocused={isScreenFocused}
                     localeCompare={localeCompare}
+                    isReportArchived={isReportArchived}
                 />
             );
         },
