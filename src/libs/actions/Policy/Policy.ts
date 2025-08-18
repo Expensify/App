@@ -52,7 +52,7 @@ import type {
     SetWorkspaceAutoReportingMonthlyOffsetParams,
     SetWorkspacePayerParams,
     SetWorkspaceReimbursementParams,
-    ToggleReceiptPartnersParams,
+    TogglePolicyReceiptPartnersParams,
     UpdateInvoiceCompanyNameParams,
     UpdateInvoiceCompanyWebsiteParams,
     UpdatePolicyAddressParams,
@@ -3263,7 +3263,7 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean) {
         ],
     };
 
-    const parameters: ToggleReceiptPartnersParams = {policyID, enabled};
+    const parameters: TogglePolicyReceiptPartnersParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.TOGGLE_RECEIPT_PARTNERS, parameters, onyxData);
 
