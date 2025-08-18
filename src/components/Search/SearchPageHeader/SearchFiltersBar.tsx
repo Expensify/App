@@ -562,10 +562,16 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
 
     const hiddenSelectedFilters = useMemo(() => {
         const advancedSearchFiltersKeys = typeFiltersKeys.flat();
-        const exposedFiltersKeys = filters.flatMap((filter) => filter.filterKey);
+        const exposedFiltersKeys = filters.flatMap((filter) => {
+            const dateFilterKey = DATE_FILTER_KEYS.find((key) => filter.filterKey.startsWith(key));
+            if (dateFilterKey) {
+                return dateFilterKey;
+            }
+            return filter.filterKey
+        });
         const hiddenFilters = advancedSearchFiltersKeys.filter((key) => !exposedFiltersKeys.includes(key as SearchAdvancedFiltersKey));
         return hiddenFilters.filter((key) => {
-            const dateFilterKey = DATE_FILTER_KEYS.find((dateKey) => key.startsWith(dateKey));
+            const dateFilterKey = DATE_FILTER_KEYS.find((dateKey) => key === dateKey);
             if (dateFilterKey) {
                 return filterFormValues[`${dateFilterKey}On`] ?? filterFormValues[`${dateFilterKey}After`] ?? filterFormValues[`${dateFilterKey}Before`];
             }
