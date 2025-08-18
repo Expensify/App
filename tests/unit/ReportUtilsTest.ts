@@ -4181,6 +4181,40 @@ describe('ReportUtils', () => {
             // Then it should return false
             expect(result).toBe(false);
         });
+        it('should return false for announce room when the role of the employee is admin and report is archived', async () => {
+            // Given a policy announce room of a policy that the user has an admin role
+            const workspace: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.ADMIN};
+            const policyAnnounceRoom: Report = {
+                ...createRandomReport(50001),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+                policyID: policy.id,
+                writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ADMINS,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workspace.id}`, workspace);
+
+            const result = canUserPerformWriteAction(policyAnnounceRoom, true);
+
+            expect(result).toBe(false);
+        });
+        it('should return true for announce room when the role of the employee is admin and report is not archived', async () => {
+            // Given a policy announce room of a policy that the user has an admin role
+            const workspace: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.ADMIN};
+            const policyAnnounceRoom: Report = {
+                ...createRandomReport(50001),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+                policyID: policy.id,
+                writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ADMINS,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workspace.id}`, workspace);
+
+            const result = canUserPerformWriteAction(policyAnnounceRoom, false);
+
+            expect(result).toBe(true);
+        });
     });
 
     describe('shouldDisableRename', () => {
