@@ -8,9 +8,8 @@ import Onyx from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import type {PolicyTagList} from '@pages/workspace/tags/types';
-import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
+import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
@@ -29,29 +28,27 @@ import type {
     ReportActions,
     ReportAttributesDerivedValue,
     ReportNameValuePairs,
-    TransactionViolation,
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
-import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageMovedTransaction} from '@src/types/onyx/OriginalMessage';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import Timing from './actions/Timing';
-import {getEnabledCategoriesCount} from './CategoryUtils';
-import filterArrayByMatch from './filterArrayByMatch';
-import {isReportMessageAttachment} from './isReportMessageAttachment';
-import {formatPhoneNumber} from './LocalePhoneNumber';
-import {translateLocal} from './Localize';
-import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
-import {MaxHeap} from './MaxHeap';
-import {MinHeap} from './MinHeap';
-import ModifiedExpenseMessage from './ModifiedExpenseMessage';
-import Navigation from './Navigation/Navigation';
-import Parser from './Parser';
-import Performance from './Performance';
-import Permissions from './Permissions';
-import {getDisplayNameOrDefault, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
-import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
+import Timing from '../actions/Timing';
+import {getEnabledCategoriesCount} from '../CategoryUtils';
+import filterArrayByMatch from '../filterArrayByMatch';
+import {isReportMessageAttachment} from '../isReportMessageAttachment';
+import {formatPhoneNumber} from '../LocalePhoneNumber';
+import {translateLocal} from '../Localize';
+import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '../LoginUtils';
+import {MaxHeap} from '../MaxHeap';
+import {MinHeap} from '../MinHeap';
+import ModifiedExpenseMessage from '../ModifiedExpenseMessage';
+import Navigation from '../Navigation/Navigation';
+import Parser from '../Parser';
+import Performance from '../Performance';
+import Permissions from '../Permissions';
+import {getDisplayNameOrDefault, getPersonalDetailByEmail, getPersonalDetailsByIDs} from '../PersonalDetailsUtils';
+import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '../PhoneNumber';
 import {
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,
@@ -59,7 +56,7 @@ import {
     getCountOfRequiredTagLists,
     getSubmitToAccountID,
     isUserInvitedToWorkspace,
-} from './PolicyUtils';
+} from '../PolicyUtils';
 import {
     getCombinedReportActions,
     getExportIntegrationLastMessageText,
@@ -102,8 +99,8 @@ import {
     isThreadParentMessage,
     isUnapprovedAction,
     shouldReportActionBeVisible,
-} from './ReportActionsUtils';
-import type {OptionData} from './ReportUtils';
+} from '../ReportActionsUtils';
+import type {OptionData} from '../ReportUtils';
 import {
     canUserPerformWriteAction,
     formatReportLastMessageText,
@@ -150,234 +147,29 @@ import {
     isTaskReport as reportUtilsIsTaskReport,
     shouldDisplayViolationsRBRInLHN,
     shouldReportBeInOptionList,
-} from './ReportUtils';
-import StringUtils from './StringUtils';
-import {getTaskCreatedMessage, getTaskReportActionMessage} from './TaskUtils';
-import type {AvatarSource} from './UserUtils';
-import {generateAccountID} from './UserUtils';
-
-// Optimized type for SearchOption context - only includes properties actually used
-type SearchOptionData = Pick<
-    OptionData,
-    // Core identification
-    | 'reportID'
-    | 'accountID'
-    | 'login'
-    | 'policyID'
-    | 'ownerAccountID'
-
-    // Display properties
-    | 'text'
-    | 'alternateText'
-    | 'participantsList'
-    | 'icons'
-    | 'subtitle'
-    | 'keyForList'
-    | 'displayName'
-    | 'firstName'
-    | 'lastName'
-    | 'avatar'
-    | 'phoneNumber'
-    | 'searchText'
-
-    // State properties
-    | 'isSelected'
-    | 'isDisabled'
-    | 'brickRoadIndicator'
-    | 'isUnread'
-    | 'isPinned'
-    | 'pendingAction'
-    | 'allReportErrors'
-    | 'isBold'
-    | 'isOptimisticAccount'
-    | 'isOptimisticPersonalDetail'
-    | 'shouldShowSubscript'
-    | 'status'
-
-    // Type/category flags (read-only)
-    | 'isPolicyExpenseChat'
-    | 'isMoneyRequestReport'
-    | 'isThread'
-    | 'isTaskReport'
-    | 'isSelfDM'
-    | 'isChatRoom'
-    | 'isInvoiceRoom'
-    | 'isDefaultRoom'
-
-    // Status properties
-    | 'private_isArchived'
-    | 'lastVisibleActionCreated'
-    | 'notificationPreference'
-    | 'lastMessageText'
-    | 'lastIOUCreationDate'
-
-    // Legacy properties kept for backwards compatibility
-    | 'selected' // Duplicate of isSelected, kept for backwards compatibility
->;
-
-type SearchOption<T> = SearchOptionData & {
-    item: T;
-};
-
-type OptionList = {
-    reports: Array<SearchOption<Report>>;
-    personalDetails: Array<SearchOption<PersonalDetails>>;
-};
-
-type Option = Partial<OptionData>;
-
-/**
- * A narrowed version of `Option` is used when we have a guarantee that given values exist.
- */
-type OptionTree = {
-    text: string;
-    keyForList: string;
-    searchText: string;
-    tooltipText: string;
-    isDisabled: boolean;
-    isSelected: boolean;
-    pendingAction?: PendingAction;
-} & Option;
-
-type PayeePersonalDetails = {
-    text: string;
-    alternateText: string;
-    icons: Icon[];
-    descriptiveText: string;
-    login: string;
-    accountID: number;
-    keyForList: string;
-    isInteractive: boolean;
-};
-
-type SectionBase = {
-    title: string | undefined;
-    shouldShow: boolean;
-};
-
-type Section = SectionBase & {
-    data: Option[];
-};
-
-type GetValidOptionsSharedConfig = {
-    includeP2P?: boolean;
-    transactionViolations?: OnyxCollection<TransactionViolation[]>;
-    action?: IOUAction;
-    shouldBoldTitleByDefault?: boolean;
-    selectedOptions?: Option[];
-};
-
-type GetValidReportsConfig = {
-    betas?: OnyxEntry<Beta[]>;
-    includeMultipleParticipantReports?: boolean;
-    showChatPreviewLine?: boolean;
-    forcePolicyNamePreview?: boolean;
-    includeSelfDM?: boolean;
-    includeOwnedWorkspaceChats?: boolean;
-    includeThreads?: boolean;
-    includeTasks?: boolean;
-    includeMoneyRequests?: boolean;
-    includeInvoiceRooms?: boolean;
-    includeDomainEmail?: boolean;
-    includeReadOnly?: boolean;
-    loginsToExclude?: Record<string, boolean>;
-    shouldSeparateWorkspaceChat?: boolean;
-    shouldSeparateSelfDMChat?: boolean;
-    excludeNonAdminWorkspaces?: boolean;
-    isPerDiemRequest?: boolean;
-    showRBR?: boolean;
-} & GetValidOptionsSharedConfig;
-
-type GetValidReportsReturnTypeCombined = {
-    selfDMOption: SearchOptionData | undefined;
-    workspaceOptions: SearchOptionData[];
-    recentReports: SearchOptionData[];
-};
-
-type GetOptionsConfig = {
-    excludeLogins?: Record<string, boolean>;
-    includeCurrentUser?: boolean;
-    includeRecentReports?: boolean;
-    includeSelectedOptions?: boolean;
-    recentAttendees?: Option[];
-    excludeHiddenThreads?: boolean;
-    canShowManagerMcTest?: boolean;
-    searchString?: string;
-    maxElements?: number;
-    includeUserToInvite?: boolean;
-} & GetValidReportsConfig;
-
-type GetUserToInviteConfig = {
-    searchValue: string | undefined;
-    loginsToExclude?: Record<string, boolean>;
-    reportActions?: ReportActions;
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    phone?: string;
-    avatar?: AvatarSource;
-    shouldAcceptName?: boolean;
-    optionsToExclude?: GetOptionsConfig['selectedOptions'];
-} & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
-
-type MemberForList = {
-    text: string;
-    alternateText: string;
-    keyForList: string;
-    isSelected: boolean;
-    isDisabled: boolean;
-    accountID?: number;
-    login: string;
-    icons?: Icon[];
-    pendingAction?: PendingAction;
-    reportID: string;
-};
-
-type SectionForSearchTerm = {
-    section: Section;
-};
-type Options = {
-    recentReports: SearchOptionData[];
-    personalDetails: SearchOptionData[];
-    userToInvite: SearchOptionData | null;
-    currentUserOption: SearchOptionData | null | undefined;
-    workspaceChats?: SearchOptionData[];
-    selfDMChat?: SearchOptionData | undefined;
-};
-
-type PreviewConfig = {
-    showChatPreviewLine?: boolean;
-    forcePolicyNamePreview?: boolean;
-    showPersonalDetails?: boolean;
-    isDisabled?: boolean | null;
-    selected?: boolean;
-    isSelected?: boolean;
-};
-
-type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName'> & {
-    canInviteUser?: boolean;
-    excludeLogins?: Record<string, boolean>;
-};
-
-type OrderOptionsConfig =
-    | {
-          maxRecentReportsToShow?: never;
-          /* When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well. */
-          sortByReportTypeInSearch?: true;
-      }
-    | {
-          // When specifying maxRecentReportsToShow, you can't sort by report type in search
-          maxRecentReportsToShow?: number;
-          sortByReportTypeInSearch?: false;
-      };
-
-type OrderReportOptionsConfig = {
-    preferChatRoomsOverThreads?: boolean;
-    preferPolicyExpenseChat?: boolean;
-    preferRecentExpenseReports?: boolean;
-};
-
-type ReportAndPersonalDetailOptions = Pick<Options, 'recentReports' | 'personalDetails' | 'workspaceChats'>;
+} from '../ReportUtils';
+import StringUtils from '../StringUtils';
+import {getTaskCreatedMessage, getTaskReportActionMessage} from '../TaskUtils';
+import {generateAccountID} from '../UserUtils';
+import type {
+    FilterUserToInviteConfig,
+    GetOptionsConfig,
+    GetUserToInviteConfig,
+    GetValidReportsConfig,
+    GetValidReportsReturnTypeCombined,
+    MemberForList,
+    Option,
+    OptionList,
+    Options,
+    OrderOptionsConfig,
+    OrderReportOptionsConfig,
+    PayeePersonalDetails,
+    PreviewConfig,
+    ReportAndPersonalDetailOptions,
+    SearchOption,
+    SearchOptionData,
+    SectionForSearchTerm,
+} from './types';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -1190,7 +982,7 @@ function isDisablingOrDeletingLastEnabledCategory(
     return false;
 }
 
-function isDisablingOrDeletingLastEnabledTag(policyTagList: PolicyTagList | undefined, selectedTags: Array<PolicyTag | undefined>): boolean {
+function isDisablingOrDeletingLastEnabledTag(policyTagList: PolicyTagLists[string] | undefined, selectedTags: Array<PolicyTag | undefined>): boolean {
     const enabledTagsCount = getCountOfEnabledTagsOfList(policyTagList?.tags);
 
     if (!enabledTagsCount) {
@@ -1203,7 +995,7 @@ function isDisablingOrDeletingLastEnabledTag(policyTagList: PolicyTagList | unde
     return false;
 }
 
-function isMakingLastRequiredTagListOptional(policy: Policy | undefined, policyTags: PolicyTagLists | undefined, selectedTagLists: Array<PolicyTagList | undefined>): boolean {
+function isMakingLastRequiredTagListOptional(policy: Policy | undefined, policyTags: PolicyTagLists | undefined, selectedTagLists: Array<PolicyTagLists[string] | undefined>): boolean {
     const requiredTagsCount = getCountOfRequiredTagLists(policyTags);
 
     if (!requiredTagsCount) {
@@ -2807,4 +2599,26 @@ export {
     sortAlphabetically,
 };
 
-export type {MemberForList, Option, OptionList, OptionTree, Options, ReportAndPersonalDetailOptions, SearchOption, Section, SectionBase};
+export type {
+    FilterUserToInviteConfig,
+    GetOptionsConfig,
+    GetUserToInviteConfig,
+    GetValidOptionsSharedConfig,
+    GetValidReportsConfig,
+    GetValidReportsReturnTypeCombined,
+    MemberForList,
+    Option,
+    OptionList,
+    OptionTree,
+    Options,
+    OrderOptionsConfig,
+    OrderReportOptionsConfig,
+    PayeePersonalDetails,
+    PreviewConfig,
+    ReportAndPersonalDetailOptions,
+    SearchOption,
+    SearchOptionData,
+    Section,
+    SectionBase,
+    SectionForSearchTerm,
+} from './types';
