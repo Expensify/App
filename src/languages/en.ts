@@ -578,6 +578,7 @@ const translations = {
         reportID: 'Report ID',
         longID: 'Long ID',
         entryID: 'Entry ID',
+        withdrawalID: 'Withdrawal ID',
         bankAccounts: 'Bank accounts',
         chooseFile: 'Choose file',
         chooseFiles: 'Choose files',

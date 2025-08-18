@@ -6405,6 +6405,7 @@ const CONST = {
             ASSIGNEE: 'assignee',
             IN: 'in',
             CARD: 'card',
+            WITHDRAWAL_ID: 'withdrawalId',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',

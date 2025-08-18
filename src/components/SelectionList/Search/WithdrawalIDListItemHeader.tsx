@@ -6,13 +6,20 @@ import getBankIcon from '@components/Icon/BankIcons';
 import type {ListItem, TransactionWithdrawalIDGroupListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
+import ActionCell from './ActionCell';
+import TotalCell from './TotalCell';
 
 type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
     /** The withdrawal ID currently being looked at */
     withdrawalID: TransactionWithdrawalIDGroupListItemType;
+
+    /** Callback to fire when the item is pressed */
+    onSelectRow: (item: TItem) => void;
 
     /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
@@ -24,18 +31,24 @@ type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
     canSelectMultiple: boolean | undefined;
 };
 
-function WithdrawalIDListItemHeader<TItem extends ListItem>({withdrawalID: withdrawalIDItem, onCheckboxPress, isDisabled, canSelectMultiple}: WithdrawalIDListItemHeaderProps<TItem>) {
+function WithdrawalIDListItemHeader<TItem extends ListItem>({
+    withdrawalID: withdrawalIDItem,
+    onSelectRow,
+    onCheckboxPress,
+    isDisabled,
+    canSelectMultiple,
+}: WithdrawalIDListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles});
     const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[withdrawalIDItem.bankName];
     const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
         withdrawalIDItem.debitPosted,
         DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
     );
-
-    // s77rt add total cell, action cell and collapse/expand button
+    const shouldShowAction = isLargeScreenWidth;
 
     return (
         <View>
@@ -49,16 +62,16 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({withdrawalID: withd
                             accessibilityLabel={translate('common.select')}
                         />
                     )}
-                    <View style={[styles.flexRow, styles.gap3]}>
+                    <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
                         <Icon
                             src={icon}
                             width={iconSize}
                             height={iconSize}
                             additionalStyles={iconStyles}
                         />
-                        <View style={[styles.gapHalf]}>
+                        <View style={[styles.gapHalf, styles.flexShrink1]}>
                             <TextWithTooltip
-                                text={`${formattedBankName} ${withdrawalIDItem.accountNumber}`}
+                                text={`${formattedBankName} xx${withdrawalIDItem.accountNumber.slice(-4)}`}
                                 style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre]}
                             />
                             <TextWithTooltip
@@ -68,9 +81,21 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({withdrawalID: withd
                         </View>
                     </View>
                 </View>
-            </View>
-            <View style={[styles.pv2, styles.ph3]}>
-                <View style={[styles.borderBottom]} />
+                <View style={[styles.flexShrink0, styles.mr3]}>
+                    <TotalCell
+                        total={withdrawalIDItem.total}
+                        currency={withdrawalIDItem.currency}
+                    />
+                </View>
+                {shouldShowAction && (
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+                        <ActionCell
+                            action={CONST.SEARCH.ACTION_TYPES.VIEW}
+                            goToItem={() => onSelectRow(withdrawalIDItem as unknown as TItem)}
+                            isSelected={withdrawalIDItem.isSelected}
+                        />
+                    </View>
+                )}
             </View>
         </View>
     );

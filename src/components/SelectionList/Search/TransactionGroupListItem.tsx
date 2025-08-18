@@ -142,6 +142,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: (
                 <WithdrawalIDListItemHeader
                     withdrawalID={groupItem as TransactionWithdrawalIDGroupListItemType}
+                    onSelectRow={onSelectRow}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
                     canSelectMultiple={canSelectMultiple}
