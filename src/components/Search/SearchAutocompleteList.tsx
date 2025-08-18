@@ -719,7 +719,7 @@ function SearchAutocompleteList(
         // will fail because the list will be empty on first render so we only render after options are initialized.
         areOptionsInitialized && (
             <SelectionList<OptionData | SearchQueryItem>
-                showLoadingPlaceholder={!areOptionsInitialized}
+                showLoadingPlaceholder
                 fixedNumItemsForLoader={4}
                 loaderSpeed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
                 sections={sections}
