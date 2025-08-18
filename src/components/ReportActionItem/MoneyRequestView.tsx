@@ -244,7 +244,7 @@ function MoneyRequestView({
     const canEditDistanceRate = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE, undefined, isChatReportArchived);
     const canEditReport = useMemo(
         () => isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID),
-        [isEditable, parentReportAction, isChatReportArchived, outstandingReportsByPolicyID, readonly],
+        [isEditable, parentReportAction, isChatReportArchived, outstandingReportsByPolicyID],
     );
 
     // A flag for verifying that the current report is a sub-report of a expense chat
