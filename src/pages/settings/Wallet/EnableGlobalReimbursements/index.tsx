@@ -99,7 +99,6 @@ function EnableGlobalReimbursements({route}: EnableGlobalReimbursementsProps) {
         }
 
         return () => {
-            clearErrors(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS);
             clearEnableGlobalReimbursementsForUSDBankAccount();
         };
     }, [enableGlobalReimbursements?.errors, enableGlobalReimbursements?.isEnablingGlobalReimbursements, enableGlobalReimbursements?.isSuccess]);
