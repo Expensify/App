@@ -1,10 +1,29 @@
 import {AndroidCapability, Capability, FP, FPAttributeFormat} from 'group-ib-fp';
+import getEnvironment from '@libs/Environment/getEnvironment';
+import CONST from '@src/CONST';
 
 const fp = FP.getInstance();
 
-function init(cid: string): void {
+const cidIOSMap: Record<string, string> = {
+    [CONST.ENVIRONMENT.PRODUCTION]: 'gib-i-expensify',
+    [CONST.ENVIRONMENT.STAGING]: 'gib-i-expensify-stg',
+    [CONST.ENVIRONMENT.DEV]: 'gib-i-expensify-uat',
+    [CONST.ENVIRONMENT.ADHOC]: 'gib-i-expensify-uat',
+};
+
+const cidAndroidMap: Record<string, string> = {
+    [CONST.ENVIRONMENT.PRODUCTION]: 'gib-a-expensify',
+    [CONST.ENVIRONMENT.STAGING]: 'gib-a-expensify-stg',
+    [CONST.ENVIRONMENT.DEV]: 'gib-a-expensify-uat',
+    [CONST.ENVIRONMENT.ADHOC]: 'gib-a-expensify-uat',
+};
+
+async function init(cid: string): Promise<void> {
     fp.init();
-    fp.setCustomerID(cid);
+    const env = await getEnvironment();
+    const iOSCustomerID = cidIOSMap[env] ?? cidIOSMap[CONST.ENVIRONMENT.DEV];
+    const androidCustomerID = cidAndroidMap[env] ?? cidAndroidMap[CONST.ENVIRONMENT.DEV];
+    fp.setCustomerID(iOSCustomerID, androidCustomerID);
 }
 
 function setAttribute(key: string, value: string): void {

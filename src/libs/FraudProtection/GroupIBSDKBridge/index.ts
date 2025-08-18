@@ -1,4 +1,6 @@
-import {getOldDotEnvironmentURL} from '../../Environment/Environment';
+import CONST from '@src/CONST';
+import {getEnvironment, getOldDotEnvironmentURL} from '../../Environment/Environment';
+import {cidMap} from './cidMap';
 
 function getScriptURL(): string {
     if (typeof window === 'undefined' || typeof window.location === 'undefined') {
@@ -32,13 +34,15 @@ const fpInstancePromise = new Promise<any | undefined>((resolve) => {
     resolveFpInstancePromise = resolve;
 });
 
-async function init(cid: string): Promise<void> {
+async function init(): Promise<void> {
     if (typeof document === 'undefined') {
         resolveFpInstancePromise(undefined);
         return;
     }
     await loadGroupIBFP();
     const fp = (globalThis as any)?.window?.gib;
+    const env = await getEnvironment();
+    const cid = cidMap[env] ?? cidMap[CONST.ENVIRONMENT.DEV];
     const oldDotURL = await getOldDotEnvironmentURL();
     fp?.init?.({cid, backUrl: `${oldDotURL.replace('https://', '//')}/api/fl`, gafUrl: '//eu.id.group-ib.com/id.html'});
     resolveFpInstancePromise(fp);
