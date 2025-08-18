@@ -691,7 +691,7 @@ function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: On
     return !!(policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID);
 }
 
-const isCurrencySupportECards = (currency?: string) => {
+const isCurrencySupportedForECards = (currency?: string) => {
     if (!currency) {
         return false;
     }
