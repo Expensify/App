@@ -5,11 +5,11 @@ import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {InitialURLContext} from '@components/InitialURLContextProvider';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import GrowlNotification from './components/GrowlNotification';
+import {InitialURLContext} from './components/InitialURLContextProvider';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
@@ -106,7 +106,6 @@ function Expensify() {
     const [currentOnboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
-    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {canBeMissing: true});
 
     useDebugShortcut();
     usePriorityMode();
@@ -127,17 +126,7 @@ function Expensify() {
     const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
 
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale;
-    const shouldHideSplash = (isSplashReadyToBeHidden || isSplashVisible) && shouldInit && !hybridApp?.loggedOutFromOldDot;
-
-    // This effect is closing OldDot sign out modal based on splash screen state
-    useEffect(() => {
-        if (!isSplashReadyToBeHidden || !isNavigationReady || !hasAttemptedToOpenPublicRoom || !hybridApp?.loggedOutFromOldDot) {
-            return;
-        }
-
-        setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
-        HybridAppModule.clearOldDotAfterSignOut();
-    }, [hasAttemptedToOpenPublicRoom, hybridApp?.loggedOutFromOldDot, isNavigationReady, isSplashReadyToBeHidden, setSplashScreenState]);
+    const shouldHideSplash = (isSplashReadyToBeHidden || isSplashVisible) && shouldInit;
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
