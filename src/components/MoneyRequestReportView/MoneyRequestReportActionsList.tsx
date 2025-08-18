@@ -118,7 +118,7 @@ function MoneyRequestReportActionsList({
     showReportActionsLoadingState,
 }: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
-    const {translate, preferredLocale, getLocalDateFromDatetime} = useLocalize();
+    const {translate, getLocalDateFromDatetime} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
     const reportScrollManager = useReportScrollManager();
     const lastMessageTime = useRef<string | null>(null);
@@ -349,12 +349,12 @@ function MoneyRequestReportActionsList({
      */
     const earliestReceivedOfflineMessageIndex = useMemo(() => {
         const lastIndex = reportActions.findLastIndex((action) => {
-            return wasMessageReceivedWhileOffline(action, isOffline, lastOfflineAt.current, lastOnlineAt.current, getLocalDateFromDatetime, preferredLocale);
+            return wasMessageReceivedWhileOffline(action, isOffline, lastOfflineAt.current, lastOnlineAt.current, getLocalDateFromDatetime);
         });
 
         // The last index in the list is the earliest message that was received while offline
         return lastIndex > -1 ? lastIndex : undefined;
-    }, [getLocalDateFromDatetime, isOffline, lastOfflineAt, lastOnlineAt, preferredLocale, reportActions]);
+    }, [getLocalDateFromDatetime, isOffline, lastOfflineAt, lastOnlineAt, reportActions]);
 
     /**
      * The reportActionID the unread marker should display above
