@@ -3402,6 +3402,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                 if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
                     iouReport.total -= amount;
                 }
+                iouReport.nonReimbursableTotal = (iouReport.nonReimbursableTotal ?? 0) - amount;
 
                 if (typeof iouReport.unheldTotal === 'number') {
                     iouReport.unheldTotal -= amount;
