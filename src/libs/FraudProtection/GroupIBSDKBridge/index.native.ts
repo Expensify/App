@@ -23,14 +23,14 @@ async function init(): Promise<void> {
     const env = await getEnvironment();
     const iOSCustomerID = cidIOSMap[env] ?? cidIOSMap[CONST.ENVIRONMENT.DEV];
     const androidCustomerID = cidAndroidMap[env] ?? cidAndroidMap[CONST.ENVIRONMENT.DEV];
-    fp.setCustomerID(iOSCustomerID, androidCustomerID);
+    fp.setCustomerId(iOSCustomerID, androidCustomerID);
     const oldDotURL = await getOldDotEnvironmentURL();
     fp.setTargetURL(`${oldDotURL}/api/fl`);
 }
 
 function setAuthenticationData(identity: string, sessionID: string): void {
     setAttribute('user_id', identity);
-    fp.setSessionID(sessionID);
+    fp.setSessionId(sessionID);
 }
 
 function setAttribute(key: string, value: string): void {
