@@ -5,7 +5,11 @@
 import React, {memo, useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
+import useEnvironment from '@hooks/useEnvironment';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openLink as openLinkUtil} from '@userActions/Link';
+import CONST from '@src/CONST';
+import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
 import TextLink from './TextLink';
 import type {LinkProps, PressProps} from './TextLink';
@@ -23,10 +27,25 @@ type TextLinkBlockProps = (LinkProps | PressProps) & {
 
 function TextLinkBlock({text, style, prefixIcon, ...rest}: TextLinkBlockProps) {
     const words = useMemo(() => text.match(/(\S+\s*)/g) ?? [], [text]);
+
+    const {environmentURL} = useEnvironment();
     const styles = useThemeStyles();
 
+    const openLink = () => {
+        if (!rest.href) {
+            return;
+        }
+        openLinkUtil(rest.href, environmentURL);
+    };
+
     return (
-        <>
+        <PressableWithoutFeedback
+            role={CONST.ROLE.BUTTON}
+            style={styles.dContents}
+            onPress={openLink}
+            accessible
+            accessibilityLabel={rest.href ?? CONST.ROLE.BUTTON}
+        >
             {words.map((word, index) => (
                 <View
                     // eslint-disable-next-line react/no-array-index-key
@@ -44,7 +63,7 @@ function TextLinkBlock({text, style, prefixIcon, ...rest}: TextLinkBlockProps) {
                     </TextLink>
                 </View>
             ))}
-        </>
+        </PressableWithoutFeedback>
     );
 }
 
