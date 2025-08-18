@@ -76,7 +76,7 @@ function resetSignInFlow() {
 /*
  * Updates Onyx state after start of React Native runtime based on initial `useNewDotSignInPage` value
  */
-function prepareHybridAppAfterTransitionToNewDot(hybridApp: HybridApp) { 
+function prepareHybridAppAfterTransitionToNewDot(hybridApp: HybridApp) {
     if (hybridApp?.useNewDotSignInPage) {
         return Onyx.merge(ONYXKEYS.HYBRID_APP, {
             ...hybridApp,

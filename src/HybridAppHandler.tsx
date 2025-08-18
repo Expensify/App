@@ -21,13 +21,13 @@ function HybridAppHandler() {
     const finalizeTransitionFromOldDot = useCallback(
         (hybridAppSettings: HybridAppSettings) => {
             const loggedOutFromOldDot = !!hybridAppSettings.hybridApp.loggedOutFromOldDot;
-            
+
             setShouldClearOldDot(loggedOutFromOldDot);
             setupNewDotAfterTransitionFromOldDot(hybridAppSettings, tryNewDot).then(() => {
                 if (splashScreenState !== CONST.BOOT_SPLASH_STATE.VISIBLE) {
                     return;
                 }
-                
+
                 setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
             });
         },
