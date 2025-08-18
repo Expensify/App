@@ -11,7 +11,7 @@ function ShareLogList({logSource}: ShareLogListProps) {
             return;
         }
         const src = `file://${logSource}`;
-        Report.addAttachment(reportID, {name: filename, source: src, uri: src, type: 'text/plain'} as File);
+        Report.addAttachment(reportID, reportID, {name: filename, source: src, uri: src, type: 'text/plain'} as File);
 
         const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportID);
         Navigation.navigate(routeToNavigate);

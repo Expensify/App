@@ -119,7 +119,7 @@ function ShareDetailsPage({
                     );
                 }
                 if (report.reportID) {
-                    addAttachment(report.reportID, file, message);
+                    addAttachment(report.reportID, report.reportID, file, message);
                 }
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);

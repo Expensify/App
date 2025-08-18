@@ -12,7 +12,7 @@ function ShareLogList({logSource}: ShareLogListProps) {
             logSource,
             filename,
             (file) => {
-                Report.addAttachment(reportID, file);
+                Report.addAttachment(reportID, reportID, file);
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportID);
                 Navigation.navigate(routeToNavigate);

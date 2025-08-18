@@ -239,6 +239,7 @@ function ReportFooter({
                             isComposerFullSize={isComposerFullSize}
                             didHideComposerInput={didHideComposerInput}
                             reportTransactions={reportTransactions}
+                            transactionThreadReportID={transactionThreadReportID}
                         />
                     </SwipeableView>
                 </View>

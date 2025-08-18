@@ -660,7 +660,7 @@ function notifyNewAction(reportID: string | undefined, accountID: number | undef
  * - Adding one comment
  * - Adding one attachment
  * - Add both a comment and attachment simultaneously
- * 
+ *
  * @param reportID - The report ID where the comment should be added
  * @param notifyReportID - The report ID we should notify for new actions. This is usually the same as reportID, except when adding a comment to an expense report with a single transaction thread, in which case we want to notify the parent expense report.
  */
@@ -834,11 +834,11 @@ function addActions(reportID: string, notifyReportID: string, text = '', file?: 
 }
 
 /** Add an attachment and optional comment. */
-function addAttachment(reportID: string, file: FileObject, text = '', shouldPlaySound?: boolean) {
+function addAttachment(reportID: string, notifyReportID: string, file: FileObject, text = '', shouldPlaySound?: boolean) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-    addActions(reportID, reportID, text, file);
+    addActions(reportID, notifyReportID, text, file);
 }
 
 /** Add a single comment to a report */
