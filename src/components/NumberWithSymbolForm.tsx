@@ -350,7 +350,7 @@ function NumberWithSymbolForm(
             onChangeAmount={setNewNumber}
             onSymbolButtonPress={onSymbolButtonPress}
             placeholder={numberFormat(0)}
-            ref={(ref: BaseTextInputRef) => {
+            ref={(ref: BaseTextInputRef | null) => {
                 if (typeof forwardedRef === 'function') {
                     forwardedRef(ref);
                 } else if (forwardedRef && 'current' in forwardedRef) {
