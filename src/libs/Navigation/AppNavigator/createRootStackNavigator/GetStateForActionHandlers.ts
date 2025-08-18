@@ -6,7 +6,6 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
 import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
-import type {SplitNavigatorName} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -92,7 +91,7 @@ function handlePushFullscreenAction(
     const shouldFilterPreloadedRoutes =
         getIsNarrowLayout() &&
         isSplitNavigatorName(navigatorName) &&
-        targetScreen !== SPLIT_TO_SIDEBAR[navigatorName as SplitNavigatorName] &&
+        targetScreen !== SPLIT_TO_SIDEBAR[navigatorName] &&
         state.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === navigatorName);
 
     const adjustedState = shouldFilterPreloadedRoutes ? {...state, preloadedRoutes: state.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== navigatorName)} : state;
