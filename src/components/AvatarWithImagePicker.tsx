@@ -126,7 +126,7 @@ type AvatarWithImagePickerProps = {
     editIcon?: IconAsset;
 };
 
-const anchorAlignment = {horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP};
+const anchorAlignment = {horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP};
 
 function AvatarWithImagePicker({
     DefaultAvatar = () => null,
@@ -316,9 +316,7 @@ function AvatarWithImagePicker({
             return;
         }
 
-        calculatePopoverPosition(anchorRef, anchorAlignment).then(({vertical, horizontal, width}) => {
-            setPopoverPosition({vertical: vertical + variables.spacing2, horizontal: horizontal - width + (width - variables.photoUploadPopoverWidth) / 2});
-        });
+        calculatePopoverPosition(anchorRef, anchorAlignment).then(setPopoverPosition);
     }, [calculatePopoverPosition, isMenuVisible]);
 
     return (
