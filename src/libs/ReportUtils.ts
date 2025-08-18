@@ -33,6 +33,7 @@ import type {
     IntroSelected,
     NewGroupChatDraft,
     OnyxInputOrEntry,
+    OutstandingReportsByPolicyIDDerivedValue,
     PersonalDetails,
     PersonalDetailsList,
     Policy,
@@ -1972,6 +1973,10 @@ function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, reportM
     return lodashMaxBy(filteredReports, (a) => [reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? '', a?.lastReadTime ?? '']);
 }
 
+/**
+ * This function is used to find the last accessed report and we don't need to subscribe the data in the UI.
+ * So please use `Onyx.connectWithoutView()` to get the necessary data when we remove the `Onyx.connect()`
+ */
 function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = false, policyID?: string, excludeReportID?: string): OnyxEntry<Report> {
     // If it's the user's first time using New Expensify, then they could either have:
     //   - just a Concierge report, if so we'll return that
@@ -2021,10 +2026,7 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
     // and it prompts the user to use the Concierge chat instead.
     reportsValues =
         reportsValues.filter((report) => {
-            // This will get removed as part of https://github.com/Expensify/App/issues/59961
-            // eslint-disable-next-line deprecation/deprecation
-            const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
-
+            const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
             return !isSystemChat(report) && !isArchivedReport(reportNameValuePairs);
         }) ?? [];
 
@@ -4209,6 +4211,7 @@ function canEditFieldOfMoneyRequest(
     fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>,
     isDeleteAction?: boolean,
     isChatReportArchived = false,
+    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
 ): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
     const restrictedFields: string[] = [
@@ -4295,17 +4298,24 @@ function canEditFieldOfMoneyRequest(
                 getOutstandingReportsForUser(
                     moneyRequestReport?.policyID,
                     moneyRequestReport?.ownerAccountID,
-                    reportsByPolicyID?.[moneyRequestReport?.policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
+                    outstandingReportsByPolicyID?.[moneyRequestReport?.policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
                 ).length > 0
             );
+        }
+        const isSubmitter = isCurrentUserSubmitter(moneyRequestReport);
+
+        // If the report is Open, then only submitters, admins can move expenses
+        const isOpen = isOpenExpenseReport(moneyRequestReport);
+        if (!isUnreportedExpense && isOpen && !isSubmitter && !isAdmin) {
+            return false;
         }
 
         return isUnreportedExpense
             ? Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
-                  getOutstandingReportsForUser(currentPolicy?.id, currentUserAccountID, reportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
+                  getOutstandingReportsForUser(currentPolicy?.id, currentUserAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
               ).length > 0
             : Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
-                  getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, reportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
+                  getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
               ).length > 1 ||
                   (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID));
     }
@@ -4991,7 +5001,7 @@ function getReportActionMessage({
         });
     }
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED) {
-        return translateLocal('receipt.scanFailed');
+        return translateLocal('iou.receiptScanningFailed');
     }
 
     if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {
@@ -5145,7 +5155,7 @@ function getReportNameInternal({
         if (harvesting) {
             return translateLocal('iou.automaticallySubmitted');
         }
-        return translateLocal('iou.submitted');
+        return translateLocal('iou.submitted', {memo: getOriginalMessage(parentReportAction)?.message});
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
         const {automaticAction} = getOriginalMessage(parentReportAction) ?? {};
@@ -6757,6 +6767,8 @@ function buildOptimisticReportPreview(
         childLastActorAccountID: currentUserAccountID,
         childLastMoneyRequestComment: comment,
         childRecentReceiptTransactionIDs: hasReceipt && !isEmptyObject(transaction) && transaction?.transactionID ? {[transaction.transactionID]: created} : undefined,
+        childOwnerAccountID: iouReport?.ownerAccountID,
+        childManagerAccountID: iouReport?.managerID,
         ...((isTestDriveTransaction || isTestTransaction) && !isScanRequest && {childStateNum: 2, childStatusNum: 4}),
     };
 }

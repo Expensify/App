@@ -1861,7 +1861,6 @@ const CONST = {
         MSWORD: 'application/msword',
         ZIP: 'application/zip',
         RFC822: 'message/rfc822',
-        HEIC: 'image/heic',
     },
 
     SHARE_FILE_MIMETYPE: {
@@ -1872,7 +1871,6 @@ const CONST = {
         WEBP: 'image/webp',
         TIF: 'image/tif',
         TIFF: 'image/tiff',
-        HEIC: 'image/heic',
         IMG: 'image/*',
         PDF: 'application/pdf',
         MSWORD: 'application/msword',
@@ -1998,17 +1996,28 @@ const CONST = {
     EXPENSIFY_MERCHANT: 'Expensify, Inc.',
     EMAIL,
 
-    FULL_STORY: {
-        MASK: 'fs-mask',
-        UNMASK: 'fs-unmask',
-        CUSTOMER: 'customer',
-        CONCIERGE: 'concierge',
-        OTHER: 'other',
-        WEB_PROP_ATTR: 'data-testid',
-        SHUTDOWN: 'shutdown',
-        RESTART: 'restart',
-        SET_IDENTITY: 'setIdentity',
-        OBSERVE: 'observe',
+    FULLSTORY: {
+        CLASS: {
+            MASK: 'fs-mask',
+            UNMASK: 'fs-unmask',
+            EXCLUDE: 'fs-exclude',
+        },
+        OPERATION: {
+            TRACK_EVENT: 'trackEvent',
+            GET_SESSION: 'getSession',
+            INIT: 'init',
+            LOG: 'log',
+            SOURCE: 'source',
+            OBSERVE: 'observe',
+            RESTART: 'restart',
+            SET_IDENTITY: 'setIdentity',
+            SET_CONFIG: 'setConfig',
+            SET_PAGE: 'setPage',
+            SET_PROPERTIES: 'setProperties',
+            SHUTDOWN: 'shutdown',
+            START: 'start',
+            STAT: 'stat',
+        },
     },
 
     CONCIERGE_DISPLAY_NAME: 'Concierge',
@@ -3175,7 +3184,7 @@ const CONST = {
             BREX: 'oauth.brex.com',
             WELLS_FARGO: 'oauth.wellsfargo.com',
             AMEX_DIRECT: 'oauth.americanexpressfdx.com',
-            CSV: '_ccupload',
+            CSV: 'ccupload',
         },
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
@@ -6304,8 +6313,8 @@ const CONST = {
         },
         GROUP_BY: {
             REPORTS: 'reports',
-            MEMBERS: 'members',
-            CARDS: 'cards',
+            FROM: 'from',
+            CARD: 'card',
         },
         BOOLEAN: {
             YES: 'yes',
@@ -6365,6 +6374,7 @@ const CONST = {
             TITLE: 'title',
             ASSIGNEE: 'assignee',
             IN: 'in',
+            CARD: 'card',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -6390,6 +6400,7 @@ const CONST = {
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expenseType',
             CURRENCY: 'currency',
+            GROUP_CURRENCY: 'groupCurrency',
             MERCHANT: 'merchant',
             DESCRIPTION: 'description',
             FROM: 'from',
@@ -6436,6 +6447,7 @@ const CONST = {
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expense-type',
             CURRENCY: 'currency',
+            GROUP_CURRENCY: 'group-currency',
             MERCHANT: 'merchant',
             DESCRIPTION: 'description',
             FROM: 'from',
@@ -6494,6 +6506,7 @@ const CONST = {
             UNAPPROVED_CASH: 'unapprovedCash',
             UNAPPROVED_CARD: 'unapprovedCard',
         },
+        GROUP_PREFIX: 'group_',
     },
 
     EXPENSE: {

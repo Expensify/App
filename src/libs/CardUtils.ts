@@ -1,6 +1,5 @@
 import {fromUnixTime, isBefore} from 'date-fns';
 import groupBy from 'lodash/groupBy';
-import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
@@ -19,15 +18,6 @@ import {translateLocal} from './Localize';
 import {filterObject} from './ObjectUtils';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
-
-let allWorkspaceCards: OnyxCollection<WorkspaceCardsList> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allWorkspaceCards = value;
-    },
-});
 
 /**
  * @returns string with a month in MM format
@@ -402,7 +392,9 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknam
     const feedName = getBankName(feed);
     const formattedFeedName = shouldAddCardsSuffix ? translateLocal('workspace.companyCards.feedName', {feedName}) : feedName;
 
-    return customFeedName ?? formattedFeedName;
+    // Custom feed name can be empty. Fallback to default feed name
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return customFeedName || formattedFeedName;
 }
 
 function getPlaidInstitutionIconUrl(feedName?: string) {
@@ -506,7 +498,7 @@ function isSelectedFeedExpired(directFeed: DirectCardFeedData | undefined): bool
 }
 
 /** Returns list of cards which can be assigned */
-function getFilteredCardList(list: WorkspaceCardsList | undefined, directFeed: DirectCardFeedData | undefined, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards) {
+function getFilteredCardList(list: WorkspaceCardsList | undefined, directFeed: DirectCardFeedData | undefined, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>) {
     const {cardList: customFeedCardsToAssign, ...cards} = list ?? {};
     const assignedCards = Object.values(cards).map((card) => card.cardName);
 
@@ -561,7 +553,7 @@ function filterInactiveCards(cards: CardList | undefined): CardList {
 
 function getAllCardsForWorkspace(
     workspaceAccountID: number,
-    allCardList: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards,
+    allCardList: OnyxCollection<WorkspaceCardsList>,
     cardFeeds?: CardFeeds,
     expensifyCardSettings?: OnyxCollection<ExpensifyCardSettings>,
 ): CardList {
@@ -651,14 +643,9 @@ function checkIfFeedConnectionIsBroken(feedCards: Record<string, Card> | undefin
 /**
  * Checks if an Expensify Card was issued for a given workspace.
  */
-function hasIssuedExpensifyCard(workspaceAccountID: number, allCardList: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards): boolean {
+function hasIssuedExpensifyCard(workspaceAccountID: number, allCardList: OnyxCollection<WorkspaceCardsList>): boolean {
     const cards = getAllCardsForWorkspace(workspaceAccountID, allCardList);
     return Object.values(cards).some((card) => card.bank === CONST.EXPENSIFY_CARD.BANK);
-}
-
-function hasCardListObject(workspaceAccountID: number, feedName: CompanyCardFeed): boolean {
-    const workspaceCards = allWorkspaceCards?.[`cards_${workspaceAccountID}_${feedName}`] ?? {};
-    return !!workspaceCards.cardList;
 }
 
 /**
@@ -720,7 +707,6 @@ export {
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
     hasIssuedExpensifyCard,
-    hasCardListObject,
     isExpensifyCardFullySetUp,
     filterInactiveCards,
     getFundIdFromSettingsKey,
