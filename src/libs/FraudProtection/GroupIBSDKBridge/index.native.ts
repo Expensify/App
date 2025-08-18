@@ -2,8 +2,9 @@ import {FP, Capability, AndroidCapability, FPAttributeFormat} from 'group-ib-fp'
 
 const fp = FP.getInstance();
 
-function init(): void {
+function init(cid: string): void {
     fp.init();
+    fp.setCustomerID(cid);
 }
 
 function setAttribute(key: string, value: string): void {
@@ -26,7 +27,7 @@ function setIdentity(id: string): void {
     fp.setIdentity(id);
 }
 
-const GroupIBFPUtils = {
+export default {
     init,
     setAttribute,
     sendEvent,

@@ -1,36 +1,4 @@
-import {Str} from 'expensify-common';
-import Onyx from 'react-native-onyx';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {getEnvironment, getOldDotEnvironmentURL} from '../Environment/Environment';
-
-const sessionID: string = Str.guid();
-Onyx.connectWithoutView({
-    key: ONYXKEYS.SESSION,
-    callback: (session) => {
-        const isAuthenticated = !!(session?.authToken ?? null);
-        setAuthStatus(isAuthenticated);
-        if (isAuthenticated) {
-            setIdentity(session?.accountID?.toString() ?? '');
-        }
-        setSessionID(sessionID);
-    },
-});
-
-Onyx.connectWithoutView({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (account) => {
-        setAttribute('email', account?.primaryLogin ?? '');
-        setAttribute('mfa', account?.requiresTwoFactorAuth ? '2fa_enabled' : '2fa_disabled');
-    },
-});
-
-const cidMap: Record<string, string> = {
-    [CONST.ENVIRONMENT.PRODUCTION]: 'gib-w-expensify',
-    [CONST.ENVIRONMENT.STAGING]: 'gib-w-expensify-stg',
-    [CONST.ENVIRONMENT.DEV]: 'gib-w-expensify-uat',
-    [CONST.ENVIRONMENT.ADHOC]: 'gib-w-expensify-uat',
-};
+import {getOldDotEnvironmentURL} from '../../Environment/Environment';
 
 function getScriptURL(): string {
     if (typeof window === 'undefined' || typeof window.location === 'undefined') {
@@ -64,16 +32,13 @@ const fpInstancePromise = new Promise<any | undefined>((resolve) => {
     resolveFpInstancePromise = resolve;
 });
 
-async function init(): Promise<void> {
+async function init(cid: string): Promise<void> {
     if (typeof document === 'undefined') {
         resolveFpInstancePromise(undefined);
         return;
     }
-    const scriptPromise = loadGroupIBFP();
-    const envPromise = getEnvironment();
-    const [_, env] = await Promise.all([scriptPromise, envPromise]);
+    await loadGroupIBFP();
     const fp = (globalThis as any)?.window?.gib;
-    const cid = cidMap[env] ?? cidMap[CONST.ENVIRONMENT.DEV];
     const oldDotURL = await getOldDotEnvironmentURL();
     fp?.init?.({cid, backUrl: `${oldDotURL.replace('https://', '//')}/api/fl`, gafUrl: '//eu.id.group-ib.com/id.html'});
     resolveFpInstancePromise(fp);
@@ -108,7 +73,7 @@ function setIdentity(id: string) {
     });
 }
 
-const GroupIBFPUtils = {
+export {
     init,
     setAttribute,
     sendEvent,
@@ -116,5 +81,3 @@ const GroupIBFPUtils = {
     setSessionID,
     setIdentity,
 };
-
-export default GroupIBFPUtils;
