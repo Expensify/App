@@ -1,4 +1,4 @@
-import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
+import {findFocusedRoute, useFocusEffect, useNavigationState} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
@@ -7,11 +7,13 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import {useOptionsList} from '@components/OptionListContextProvider';
+import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {GetAdditionalSectionsCallback} from '@components/Search/SearchAutocompleteList';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
 import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
-import type {SearchQueryString} from '@components/Search/types';
+import type {SearchFilterKey, SearchQueryString} from '@components/Search/types';
 import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
@@ -34,7 +36,7 @@ import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import {navigateToAndOpenReport, searchInServer} from '@userActions/Report';
-import CONST from '@src/CONST';
+import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -83,7 +85,10 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
+    const {areOptionsInitialized} = useOptionsList();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
+    const shouldShowList = isRecentSearchesDataLoaded && areOptionsInitialized;
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
@@ -349,7 +354,25 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                             timestamp: endTime,
                         });
                     } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
-                        const trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(textInputValue);
+                        const fieldKey = item.mapKey?.includes(':') ? item.mapKey.split(':').at(0) : item.mapKey;
+                        const isNameField = fieldKey && CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.includes(fieldKey as SearchFilterKey);
+
+                        let trimmedUserSearchQuery;
+                        if (isNameField && fieldKey) {
+                            const fieldPattern = `${fieldKey}:`;
+                            const keyIndex = textInputValue.toLowerCase().lastIndexOf(fieldPattern.toLowerCase());
+
+                            if (keyIndex !== -1) {
+                                trimmedUserSearchQuery = textInputValue.substring(0, keyIndex + fieldPattern.length);
+                            } else {
+                                trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(textInputValue);
+                            }
+                        } else {
+                            const keyIndex = fieldKey ? textInputValue.toLowerCase().lastIndexOf(`${fieldKey}:`) : -1;
+                            trimmedUserSearchQuery =
+                                keyIndex !== -1 && fieldKey ? textInputValue.substring(0, keyIndex + fieldKey.length + 1) : getQueryWithoutAutocompletedPart(textInputValue);
+                        }
+
                         const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)}\u00A0`;
                         onSearchQueryChange(newSearchQuery, true);
                         setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
@@ -432,7 +455,21 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     });
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
-    const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
+
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    /** We added a delay to focus on text input to allow navigation/modal animations to get completed, see issue https://github.com/Expensify/App/issues/65855 for more details */
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => {
+                if (!textInputRef.current) {
+                    return;
+                }
+                textInputRef?.current?.focus();
+            }, CONST.ANIMATED_TRANSITION);
+
+            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
+        }, []),
+    );
 
     return (
         <View
@@ -449,50 +486,56 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     shouldDisplayHelpButton={false}
                 />
             )}
-            {isRecentSearchesDataLoaded && (
-                <>
-                    <SearchInputSelectionWrapper
-                        value={textInputValue}
-                        isFullWidth={shouldUseNarrowLayout}
-                        onSearchQueryChange={onSearchQueryChange}
-                        onSubmit={() => {
-                            const focusedOption = listRef.current?.getFocusedOption();
+            <SearchInputSelectionWrapper
+                value={textInputValue}
+                isFullWidth={shouldUseNarrowLayout}
+                onSearchQueryChange={onSearchQueryChange}
+                onSubmit={() => {
+                    const focusedOption = listRef.current?.getFocusedOption();
 
-                            if (!focusedOption) {
-                                submitSearch(textInputValue);
-                                return;
-                            }
+                    if (!focusedOption) {
+                        submitSearch(textInputValue);
+                        return;
+                    }
 
-                            onListItemPress(focusedOption);
-                        }}
-                        caretHidden={shouldHideInputCaret}
-                        autocompleteListRef={listRef}
-                        shouldShowOfflineMessage
-                        wrapperStyle={{...styles.border, ...styles.alignItemsCenter}}
-                        outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
-                        wrapperFocusedStyle={styles.borderColorFocus}
-                        isSearchingForReports={isSearchingForReports}
-                        selection={selection}
-                        substitutionMap={autocompleteSubstitutions}
-                        ref={textInputRef}
-                    />
-                    <SearchAutocompleteList
-                        autocompleteQueryValue={autocompleteQueryValue || textInputValue}
-                        handleSearch={searchInServer}
-                        searchQueryItem={searchQueryItem}
-                        getAdditionalSections={getAdditionalSections}
-                        onListItemPress={onListItemPress}
-                        setTextQuery={setTextAndUpdateSelection}
-                        updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
-                        onHighlightFirstItem={() => listRef.current?.updateAndScrollToFocusedIndex(1)}
-                        ref={listRef}
-                        textInputRef={textInputRef}
-                        personalDetails={personalDetails}
-                        reports={reports}
-                        allFeeds={allFeeds}
-                        allCards={allCards}
-                    />
-                </>
+                    onListItemPress(focusedOption);
+                }}
+                caretHidden={shouldHideInputCaret}
+                autocompleteListRef={listRef}
+                shouldShowOfflineMessage
+                wrapperStyle={{...styles.border, ...styles.alignItemsCenter}}
+                outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
+                wrapperFocusedStyle={styles.borderColorFocus}
+                isSearchingForReports={isSearchingForReports}
+                selection={selection}
+                substitutionMap={autocompleteSubstitutions}
+                ref={textInputRef}
+                autoFocus={false}
+            />
+            {shouldShowList && (
+                <SearchAutocompleteList
+                    autocompleteQueryValue={autocompleteQueryValue || textInputValue}
+                    handleSearch={searchInServer}
+                    searchQueryItem={searchQueryItem}
+                    getAdditionalSections={getAdditionalSections}
+                    onListItemPress={onListItemPress}
+                    setTextQuery={setTextAndUpdateSelection}
+                    updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
+                    onHighlightFirstItem={() => listRef.current?.updateAndScrollToFocusedIndex(1)}
+                    ref={listRef}
+                    textInputRef={textInputRef}
+                    personalDetails={personalDetails}
+                    reports={reports}
+                    allFeeds={allFeeds}
+                    allCards={allCards}
+                />
+            )}
+            {!shouldShowList && (
+                <OptionsListSkeletonView
+                    fixedNumItems={4}
+                    shouldStyleAsTable
+                    speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+                />
             )}
         </View>
     );

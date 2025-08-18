@@ -23,6 +23,9 @@ reportID = "reportid"i { return "reportID"; }
 keyword = "keyword"i { return "keyword"; }
 in = "in"i { return "in"; }
 currency = "currency"i { return "currency"; }
+groupCurrency
+  = "groupCurrency"
+  / "group-currency"i { return "groupCurrency"; }
 tag = "tag"i { return "tag"; }
 category = "category"i { return "category"; }
 to = "to"i { return "to"; }
@@ -38,6 +41,9 @@ from = "from"i { return "from"; }
 expenseType
   = "expenseType"
   / "expense-type"i { return "expenseType"; }
+withdrawalType
+  = "withdrawalType"
+  / "withdrawal-type"i { return "withdrawalType"; }
 billable = "billable"i { return "billable"; }
 reimbursable = "reimbursable"i { return "reimbursable"; }
 type = "type"i { return "type"; }
@@ -56,6 +62,7 @@ approved = "approved"i { return "approved"; }
 paid = "paid"i { return "paid"; }
 exported = "exported"i { return "exported"; }
 posted = "posted"i { return "posted"; }
+withdrawn = "withdrawn"i { return "withdrawn"; }
 groupBy = "groupBy"i / "group-by"i { return "groupBy"; }
 feed = "feed"i { return "feed"; }
 title = "title"i { return "title"; }

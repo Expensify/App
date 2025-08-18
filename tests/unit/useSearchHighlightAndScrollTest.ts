@@ -36,14 +36,7 @@ describe('useSearchHighlightAndScroll', () => {
                 personalDetailsList: {},
             },
             search: {
-                columnsToShow: {
-                    shouldShowCategoryColumn: true,
-                    shouldShowTagColumn: true,
-                    shouldShowTaxColumn: true,
-                    shouldShowToColumn: true,
-                    shouldShowFromColumn: true,
-                    shouldShowDescriptionColumn: true,
-                },
+                columnsToShow: {shouldShowCategoryColumn: true, shouldShowTagColumn: true, shouldShowTaxColumn: true, shouldShowFromColumn: true, shouldShowToColumn: true},
                 hasMoreResults: false,
                 hasResults: true,
                 offset: 0,
@@ -66,6 +59,7 @@ describe('useSearchHighlightAndScroll', () => {
             flatFilters: [],
             hash: 123,
             recentSearchHash: 456,
+            similarSearchHash: 789,
         },
         searchKey: undefined,
         shouldCalculateTotals: false,

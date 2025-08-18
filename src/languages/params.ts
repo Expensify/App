@@ -161,6 +161,11 @@ type WorkspacesListRouteParams = {
     workspacesListRoute: string;
 };
 
+type BusinessBankAccountParams = {
+    amount?: string;
+    last4Digits?: string;
+};
+
 type WorkspaceRouteParams = {
     workspaceRoute: string;
 };
@@ -224,6 +229,8 @@ type EnterMagicCodeParams = {contactMethod: string};
 type TransferParams = {amount: string};
 
 type InstantSummaryParams = {rate: string; minAmount: string};
+
+type BankAccountLastFourParams = {lastFour: string};
 
 type NotYouParams = {user: string};
 
@@ -499,6 +506,8 @@ type TaxAmountParams = {taxAmount: number};
 
 type SecondaryLoginParams = {secondaryLogin: string};
 
+type WorkspaceMembersCountParams = {count: number};
+
 type OwnerOwesAmountParams = {amount: string; email: string};
 
 type ChangeOwnerSubscriptionParams = {usersCount: number; finalCount: number};
@@ -611,6 +620,7 @@ type AssignedCardParams = {
 
 type FeatureNameParams = {
     featureName: string;
+    moreFeaturesLink: string;
 };
 
 type AutoPayApprovedReportsLimitErrorParams = {
@@ -811,6 +821,10 @@ type BusinessTaxIDParams = {
     country: string;
 };
 
+type QBDSetupErrorBodyParams = {
+    conciergeLink: string;
+};
+
 type EmptyCategoriesSubtitleWithAccountingParams = {
     accountingPageURL: string;
 };
@@ -822,6 +836,50 @@ type EmptyTagsSubtitleWithAccountingParams = {
 type SettlementAccountInfoParams = {
     reconciliationAccountSettingsLink: string;
     accountNumber: string;
+};
+
+type MergeSuccessDescriptionParams = {
+    from: string;
+    to: string;
+};
+
+type MergeFailureUncreatedAccountDescriptionParams = {
+    email: string;
+    contactMethodLink: string;
+};
+
+type MergeFailureDescriptionGenericParams = {
+    email: string;
+};
+
+type IndividualExpenseRulesSubtitleParams = {
+    categoriesPageLink: string;
+    tagsPageLink: string;
+};
+
+type BillableDefaultDescriptionParams = {
+    tagsPageLink: string;
+};
+
+type WorkspaceShareNoteParams = {
+    adminsRoomLink: string;
+};
+
+type RulesEnableWorkflowsParams = {
+    moreFeaturesLink: string;
+};
+
+type UpgradeSuccessMessageParams = {
+    policyName: string;
+    subscriptionLink: string;
+};
+
+type DomainPermissionInfoRestrictionParams = {
+    domain: string;
+};
+
+type SubmittedWithMemoParams = {
+    memo?: string;
 };
 
 export type {
@@ -1080,6 +1138,7 @@ export type {
     SettlementDateParams,
     PolicyExpenseChatNameParams,
     YourPlanPriceValueParams,
+    BusinessBankAccountParams,
     NeedCategoryForExportToIntegrationParams,
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyManualApprovalThresholdParams,
@@ -1093,8 +1152,10 @@ export type {
     UpdatedPolicyCategoryExpenseLimitTypeParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     SubscriptionSettingsSummaryParams,
+    BankAccountLastFourParams,
     ReviewParams,
     CreateExpensesParams,
+    WorkspaceMembersCountParams,
     CurrencyInputDisabledTextParams,
     EmployeeInviteMessageParams,
     FlightParams,
@@ -1104,7 +1165,18 @@ export type {
     WorkspacesListRouteParams,
     WorkspaceRouteParams,
     BusinessTaxIDParams,
+    QBDSetupErrorBodyParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
     SettlementAccountInfoParams,
+    MergeSuccessDescriptionParams,
+    MergeFailureUncreatedAccountDescriptionParams,
+    MergeFailureDescriptionGenericParams,
+    IndividualExpenseRulesSubtitleParams,
+    BillableDefaultDescriptionParams,
+    WorkspaceShareNoteParams,
+    RulesEnableWorkflowsParams,
+    UpgradeSuccessMessageParams,
+    DomainPermissionInfoRestrictionParams,
+    SubmittedWithMemoParams,
 };

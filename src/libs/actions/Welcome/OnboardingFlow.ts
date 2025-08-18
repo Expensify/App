@@ -84,10 +84,13 @@ function startOnboardingFlow(startOnboardingFlowParams: GetOnboardingInitialPath
     if (focusedRoute?.name === currentRoute?.name) {
         return;
     }
+    const rootState = navigationRef.getRootState();
+    const rootStateRouteNamesSet = new Set(rootState.routes.map((route) => route.name));
     navigationRef.resetRoot({
-        ...navigationRef.getRootState(),
+        ...rootState,
         ...adaptedState,
         stale: true,
+        routes: [...rootState.routes, ...(adaptedState?.routes.filter((route) => !rootStateRouteNamesSet.has(route.name)) ?? [])],
     } as PartialState<NavigationState>);
 }
 
@@ -118,11 +121,6 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     if (isIndividual) {
         Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
     }
-
-    if (onboardingInitialPath && state?.routes?.at(-1)?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR) {
-        return onboardingInitialPath;
-    }
-
     if (isUserFromPublicDomain && !onboardingValuesParam?.isMergeAccountStepCompleted) {
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }
@@ -338,8 +336,8 @@ const getOnboardingMessages = (locale?: Locale) => {
         tasks: [testDriveEmployeeTask, trackExpenseTask],
     };
 
-    const onboardingMangeTeamMessage: OnboardingMessage = {
-        message: ({onboardingCompanySize}) => translate(resolvedLocale, 'onboarding.messages.onboardingMangeTeamMessage', {onboardingCompanySize}),
+    const onboardingManageTeamMessage: OnboardingMessage = {
+        message: translate(resolvedLocale, 'onboarding.messages.onboardingManageTeamMessage'),
         tasks: [createWorkspaceTask, testDriveAdminTask, addAccountingIntegrationTask, connectCorporateCardTask, inviteTeamTask, setupCategoriesAndTags, setupCategoriesTask, setupTagsTask],
     };
 
@@ -378,7 +376,7 @@ const getOnboardingMessages = (locale?: Locale) => {
         onboardingMessages: {
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: onboardingEmployerOrSubmitMessage,
             [CONST.ONBOARDING_CHOICES.SUBMIT]: onboardingEmployerOrSubmitMessage,
-            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: onboardingMangeTeamMessage,
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: onboardingManageTeamMessage,
             [CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE]: onboardingTrackWorkspaceMessage,
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: onboardingPersonalSpendMessage,
             [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: onboardingChatSplitMessage,
