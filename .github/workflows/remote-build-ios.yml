@@ -12,9 +12,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ${{ github.repository_owner == 'Expensify' && 'macos-15-xlarge' || 'macos-15' }}
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_16.2.0.app/Contents/Developer
+    runs-on: ${{ github.repository_owner == 'Expensify' && 'macos-14-xlarge' || 'macos-14' }}
     strategy:
       fail-fast: false
       matrix:
