@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {getEnvironment} from '../Environment/Environment';
+import {getEnvironment, getOldDotEnvironmentURL} from '../Environment/Environment';
 
 const sessionID: string = Str.guid();
 Onyx.connectWithoutView({
@@ -74,7 +74,8 @@ async function init(): Promise<void> {
     const [_, env] = await Promise.all([scriptPromise, envPromise]);
     const fp = (globalThis as any)?.window?.gib;
     const cid = cidMap[env] ?? cidMap[CONST.ENVIRONMENT.DEV];
-    fp?.init?.({cid, backUrl: '/api/fl', gafUrl: '//eu.id.group-ib.com/id.html'});
+    const oldDotURL = await getOldDotEnvironmentURL();
+    fp?.init?.({cid, backUrl: `${oldDotURL.replace('https://', '//')}/api/fl`, gafUrl: '//eu.id.group-ib.com/id.html'});
     resolveFpInstancePromise(fp);
 }
 
