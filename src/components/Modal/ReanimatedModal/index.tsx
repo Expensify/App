@@ -138,10 +138,7 @@ function ReanimatedModal({
         if (handleRef.current) {
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
-        if (getPlatform() !== CONST.PLATFORM.IOS) {
-            onModalHide();
-        }
-    }, [onModalHide]);
+    }, []);
 
     const containerView = (
         <Container
@@ -200,9 +197,7 @@ function ReanimatedModal({
                 testID={testID}
                 onDismiss={() => {
                     onDismiss?.();
-                    if (getPlatform() === CONST.PLATFORM.IOS) {
-                        onModalHide();
-                    }
+                    onModalHide();
                 }}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
