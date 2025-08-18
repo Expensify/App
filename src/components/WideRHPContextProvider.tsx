@@ -1,9 +1,10 @@
 import {findFocusedRoute, useNavigation, useRoute} from '@react-navigation/native';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Animated, InteractionManager} from 'react-native';
+import {Animated, Dimensions, InteractionManager} from 'react-native';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import type {NavigationRoute} from '@libs/Navigation/types';
+import variables from '@styles/variables';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
@@ -29,6 +30,18 @@ type WideRHPContextType = {
 
 const expandedRHPProgress = new Animated.Value(0);
 const secondOverlayProgress = new Animated.Value(0);
+
+const wideRHPMaxWidth = variables.receiptPaneRHPMaxWidth + variables.sideBarWidth;
+
+// Function to calculate receipt pane RHP width with minimum constraint
+const calculateReceiptPaneRHPWidth = (windowWidth: number) => {
+    const calculatedWidth = windowWidth < wideRHPMaxWidth ? variables.receiptPaneRHPMaxWidth - (wideRHPMaxWidth - windowWidth) : variables.receiptPaneRHPMaxWidth;
+
+    return Math.max(calculatedWidth, variables.mobileResponsiveWidthBreakpoint - variables.sideBarWidth);
+};
+
+// This animated value is necessary to have a responsive rhp width for the range 800px to 840px.
+const receiptPaneRHPWidth = new Animated.Value(calculateReceiptPaneRHPWidth(Dimensions.get('window').width));
 
 const WideRHPContext = createContext<WideRHPContextType>({
     wideRHPRouteKeys: [],
@@ -126,6 +139,25 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         }
     }, [shouldShowSecondaryOverlay]);
 
+    // Effect to recalculate receiptPaneRHPWidth when dimensions change
+    useEffect(() => {
+        const handleDimensionChange = () => {
+            const windowWidth = Dimensions.get('window').width;
+            const newWidth = calculateReceiptPaneRHPWidth(windowWidth);
+
+            receiptPaneRHPWidth.setValue(newWidth);
+        };
+
+        // Set initial value
+        handleDimensionChange();
+
+        // Add event listener for dimension changes
+        const subscription = Dimensions.addEventListener('change', handleDimensionChange);
+
+        // Cleanup subscription on unmount
+        return () => subscription?.remove();
+    }, []);
+
     const value = useMemo(
         () => ({
             expandedRHPProgress,
@@ -165,4 +197,4 @@ function useShowWideRHPVersion(condition: boolean) {
 
 export default WideRHPContextProvider;
 export type {WideRHPContextType};
-export {expandedRHPProgress, secondOverlayProgress, WideRHPContext, useShowWideRHPVersion};
+export {expandedRHPProgress, secondOverlayProgress, WideRHPContext, useShowWideRHPVersion, receiptPaneRHPWidth};

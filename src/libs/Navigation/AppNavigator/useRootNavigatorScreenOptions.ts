@@ -53,7 +53,7 @@ const useRootNavigatorScreenOptions = () => {
                         // Adjust output range to match the wide RHP size
                         outputRangeMultiplier: isSmallScreenWidth
                             ? undefined
-                            : Animated.add(Animated.multiply(expandedRHPProgress, variables.receiptPanelRHPWidth / variables.sideBarWidth), 1),
+                            : Animated.add(Animated.multiply(expandedRHPProgress, variables.receiptPaneRHPMaxWidth / variables.sideBarWidth), 1),
                     }),
             },
         },
