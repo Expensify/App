@@ -279,7 +279,7 @@ function IOURequestStepDistanceManual({
     const submitAndNavigateToNextPage = useCallback(() => {
         const value = numberFormRef.current?.getNumber() ?? '';
         if (!value.length) {
-            setFormError(translate('iou.error.invalidAmount'));
+            setFormError(translate('iou.error.invalidDistance'));
             return;
         }
 

@@ -1221,6 +1221,7 @@ const translations = {
             invalidCategoryLength: 'The category name exceeds 255 characters. Please shorten it or choose a different category.',
             invalidTagLength: 'The tag name exceeds 255 characters. Please shorten it or choose a different tag.',
             invalidAmount: 'Please enter a valid amount before continuing',
+            invalidDistance: 'Please enter a valid distance before continuing',
             invalidIntegerAmount: 'Please enter a whole dollar amount before continuing',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `Maximum tax amount is ${amount}`,
             invalidSplit: 'The sum of splits must equal the total amount',
