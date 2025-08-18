@@ -1,5 +1,5 @@
 import {AndroidCapability, Capability, FP, FPAttributeFormat} from 'group-ib-fp';
-import getEnvironment from '@libs/Environment/getEnvironment';
+import {getEnvironment, getOldDotEnvironmentURL} from '@libs/Environment/Environment';
 import CONST from '@src/CONST';
 
 const fp = FP.getInstance();
@@ -24,6 +24,8 @@ async function init(cid: string): Promise<void> {
     const iOSCustomerID = cidIOSMap[env] ?? cidIOSMap[CONST.ENVIRONMENT.DEV];
     const androidCustomerID = cidAndroidMap[env] ?? cidAndroidMap[CONST.ENVIRONMENT.DEV];
     fp.setCustomerID(iOSCustomerID, androidCustomerID);
+    const oldDotURL = await getOldDotEnvironmentURL();
+    fp.setTargetURL(`${oldDotURL}/api/fl`);
 }
 
 function setAttribute(key: string, value: string): void {
