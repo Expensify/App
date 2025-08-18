@@ -12,7 +12,6 @@ import saveLastSearchParams from '@userActions/ReportNavigation';
 import {search} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 type MoneyRequestReportNavigationProps = {
     reportID?: string;
@@ -39,7 +38,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion, bac
     });
 
     const {type, status, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
-    let results: string[] = [];
+    let results: Array<string | undefined> = [];
     if (!!type && !!groupBy && !!currentSearchResults?.data && !!currentSearchResults?.search) {
         const temp = getSections(
             type,

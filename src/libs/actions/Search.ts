@@ -321,7 +321,7 @@ function search({
     searchKey: SearchKey | undefined;
     offset?: number;
     shouldCalculateTotals?: boolean;
-    prevReports?: string[];
+    prevReports?: Array<string | undefined>;
 }) {
     const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON);
     const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
