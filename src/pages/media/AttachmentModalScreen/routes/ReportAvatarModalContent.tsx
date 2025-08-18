@@ -32,7 +32,7 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
             originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID,
             isWorkspaceAvatar: true,
         };
-    }, [policy, report]);
+    }, [policy, report, isReportArchived]);
 
     const contentProps = useMemo(
         () =>

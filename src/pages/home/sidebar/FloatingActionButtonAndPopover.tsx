@@ -109,11 +109,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         const policyChatsForActivePolicy = getWorkspaceChats(activePolicyID, [session?.accountID ?? CONST.DEFAULT_NUMBER_ID], allReports);
         return policyChatsForActivePolicy.length > 0 ? policyChatsForActivePolicy.at(0) : ({} as OnyxTypes.Report);
     }, [activePolicy, activePolicyID, session?.accountID, allReports]);
+    const isPolicyChatForActivePolicyArchived = useReportIsArchived(policyChatForActivePolicy?.reportID);
     const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector), canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
-
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const fabRef = useRef<HTMLDivElement>(null);
@@ -373,7 +373,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                     icon: Expensicons.ReceiptScan,
                     text: translate('quickAction.scanReceipt'),
                     description:
-                        getReportName(policyChatForActivePolicy, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived) ??
+                        getReportName(policyChatForActivePolicy, undefined, undefined, undefined, undefined, undefined, undefined, isPolicyChatForActivePolicyArchived) ??
                         translate('quickAction.updateDestination'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected,
@@ -400,6 +400,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
         isReportArchived,
+        isPolicyChatForActivePolicyArchived,
     ]);
 
     const isTravelEnabled = useMemo(() => {
