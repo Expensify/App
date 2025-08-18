@@ -1,5 +1,8 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
+import {Dimensions} from 'react-native';
+import {KeyboardAwareScrollView, useKeyboardHandler} from 'react-native-keyboard-controller';
+import {useSharedValue} from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -38,6 +41,36 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const screenHeight = Dimensions.get('window').height;
+    const viewRef = React.useRef<View>(null);
+    const bottomOffset = useRef<number>(0);
+    const footerHeight = useRef<number>(0);
+    const keyboardHeight = useSharedValue(0);
+
+    useKeyboardHandler({
+        onStart: (e) => {
+            'worklet';
+            keyboardHeight.value = e.height;
+        },
+        onMove: (e) => {
+            'worklet';
+            keyboardHeight.value = e.height;
+        },
+        onEnd: (e) => {
+            'worklet';
+            keyboardHeight.value = e.height;
+        },
+    });
+
+    const measureAbsolutePosition = () => {
+        if (viewRef.current) {
+            viewRef.current.measureInWindow((x, y, width, height) => {
+                if (keyboardHeight.value < 1.0) {
+                    bottomOffset.current = screenHeight - height - y + footerHeight.current + 33.0;
+                }
+            });
+        }
+    };
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
@@ -159,7 +192,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(Math.abs(transactionDetailsAmount) - sumOfSplitExpenses, transactionDetails.currency)})
             : '';
         return (
-            <>
+            <View
+                onLayout={(event) => {
+                    const {height} = event.nativeEvent.layout;
+                    footerHeight.current = height;
+                    measureAbsolutePosition();
+                }}
+            >
                 {(!!errorMessage || !!warningMessage) && (
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
@@ -177,7 +216,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     pressOnEnter
                     enterKeyEventListenerPriority={1}
                 />
-            </>
+            </View>
         );
     }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, onSaveSplitExpense]);
 
@@ -194,7 +233,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             shouldDismissKeyboardBeforeClose={false}
         >
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable}>
-                <View style={[styles.flex1]}>
+                <View
+                    ref={viewRef}
+                    style={[styles.flex1]}
+                    onLayout={(event) => {
+                        setTimeout(measureAbsolutePosition, 0);
+                    }}
+                >
                     <HeaderWithBackButton
                         title={translate('iou.split')}
                         subtitle={translate('iou.splitExpenseSubtitle', {
@@ -204,6 +249,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
                     <SelectionList
+                        /* Keeps input fields visible above keyboard on mobile */
+                        renderScrollComponent={(props) => (
+                            <KeyboardAwareScrollView
+                                {...props}
+                                bottomOffset={bottomOffset.current} /* Bottom offset ensures inputs stay above the "save" button */
+                            />
+                        )}
                         onSelectRow={(item) => {
                             Keyboard.dismiss();
                             InteractionManager.runAfterInteractions(() => {
@@ -220,6 +272,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         shouldSingleExecuteRowSelect
                         canSelectMultiple={false}
                         shouldPreventDefaultFocusOnSelectRow
+                        removeClippedSubviews={false}
                     />
                 </View>
             </FullPageNotFoundView>

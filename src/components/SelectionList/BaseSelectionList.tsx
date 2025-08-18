@@ -150,6 +150,7 @@ function BaseSelectionList<TItem extends ListItem>(
         selectedItems = [],
         isSelected,
         canShowProductTrainingTooltip,
+        renderScrollComponent,
     }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -978,6 +979,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 <>
                     {!listHeaderContent && header()}
                     <SectionList
+                        renderScrollComponent={renderScrollComponent}
                         removeClippedSubviews={removeClippedSubviews}
                         ref={listRef}
                         sections={slicedSections}

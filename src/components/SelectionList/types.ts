@@ -1,10 +1,11 @@
-import type {MutableRefObject, ReactElement, ReactNode} from 'react';
+import type {JSXElementConstructor, MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {
     GestureResponderEvent,
     InputModeOptions,
     LayoutChangeEvent,
     NativeScrollEvent,
     NativeSyntheticEvent,
+    ScrollViewProps,
     SectionListData,
     StyleProp,
     TargetedEvent,
@@ -853,6 +854,8 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to hide the keyboard when scrolling a list */
     shouldHideKeyboardOnScroll?: boolean;
+
+    renderScrollComponent?: ((props: ScrollViewProps) => ReactElement<ScrollViewProps, string | JSXElementConstructor<any>>) | undefined;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
