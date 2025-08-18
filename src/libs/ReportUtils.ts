@@ -4729,8 +4729,10 @@ function getReportPreviewMessage(
     }
 
     const lastActorID = iouReportAction?.actorAccountID;
-    let amount = originalMessage?.amount;
-    let currency = originalMessage?.currency ? originalMessage?.currency : report.currency;
+    // Prioritize transaction data when available, fallback to originalMessage for legacy data and SendMoney flows
+    const iouDetails = originalMessage?.IOUDetails;
+    let amount = iouDetails?.amount ?? originalMessage?.amount;
+    let currency = iouDetails?.currency ?? originalMessage?.currency ?? report.currency;
 
     if (!isEmptyObject(linkedTransaction)) {
         amount = getTransactionAmount(linkedTransaction, isExpenseReport(report));
@@ -6383,9 +6385,7 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
     const IOUReportID = isPersonalTrackingExpense ? undefined : iouReportID || generateReportID();
 
     const originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>['originalMessage'] = {
-        amount,
         comment,
-        currency,
         IOUTransactionID: transactionID,
         IOUReportID,
         type,
