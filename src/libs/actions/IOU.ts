@@ -10926,6 +10926,8 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
     const iouAction = getIOUActionForReportID(transaction?.reportID, transactionID);
     let report: OnyxTypes.Report | undefined;
 
+    // If there is no existing transaction thread report, we should create one
+    // This way we ensure every held request has a dedicated thread for comments
     if (initialReportID) {
         report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${initialReportID}`];
     } else {
@@ -11029,7 +11031,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
         },
     ];
 
-    // if the transaction thread report wasn't created before, we do it now
+    // If the transaction thread report wasn't created before, we create it optimistically
     if (!initialReportID) {
         optimisticData.push(
             {
@@ -11057,11 +11059,13 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
         );
 
         if (iouAction?.reportActionID) {
+            // We link the IOU action to the new transaction thread by setting childReportID optimistically
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`,
                 value: {[iouAction?.reportActionID]: {childReportID: reportID, childType: CONST.REPORT.TYPE.CHAT}},
             });
+            // We reset the childReportID if the request fails
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`,
