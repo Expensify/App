@@ -10,9 +10,7 @@ type HOCProps = {
 
 type WithCurrentUserPersonalDetailsProps = HOCProps;
 
-export default function <TProps extends WithCurrentUserPersonalDetailsProps>(
-    WrappedComponent: ComponentType<TProps>,
-): ComponentType<Omit<TProps, keyof HOCProps>> {
+export default function <TProps extends WithCurrentUserPersonalDetailsProps>(WrappedComponent: ComponentType<TProps>): ComponentType<Omit<TProps, keyof HOCProps>> {
     function WithCurrentUserPersonalDetails(props: Omit<TProps, keyof HOCProps>) {
         const currentUserPersonalDetails = useCurrentUserPersonalDetails();
         return (
