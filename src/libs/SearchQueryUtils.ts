@@ -972,13 +972,13 @@ function getQueryWithUpdatedValues(query: string) {
 
 function getCurrentSearchQueryJSON() {
     const rootState = navigationRef.getRootState();
-    const lastPolicyRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    const lastSearchFullscreenRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
 
-    if (!lastPolicyRoute) {
+    if (!lastSearchFullscreenRoute) {
         return;
     }
 
-    const lastSearchRoute = lastPolicyRoute.state?.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
+    const lastSearchRoute = lastSearchFullscreenRoute.state?.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
     if (!lastSearchRoute || !lastSearchRoute.params) {
         return;
     }
