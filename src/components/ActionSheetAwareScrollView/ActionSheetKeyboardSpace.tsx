@@ -109,12 +109,15 @@ function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
             return withSpring(0, SPRING_CONFIG);
         }
 
+        const isKeyboardOpen = keyboard.state.get() === KeyboardState.OPEN;
+        const isKeyboardClosed = keyboard.state.get() === KeyboardState.CLOSED;
+
         const keyboardHeight = keyboard.height.get() === 0 ? 0 : keyboard.height.get() - paddingBottom;
 
         // Sometimes we need to know the last keyboard height
         const lastKeyboardHeight = keyboard.heightWhenOpened.get() - paddingBottom;
         const {popoverHeight = 0, frameY, height} = current.payload ?? {};
-        const invertedKeyboardHeight = keyboard.state.get() === KeyboardState.CLOSED ? lastKeyboardHeight : 0;
+        const invertedKeyboardHeight = isKeyboardClosed ? lastKeyboardHeight : 0;
         const elementOffset = frameY !== undefined && height !== undefined && popoverHeight !== undefined ? frameY + paddingTop + height - (windowHeight - popoverHeight) : 0;
         // when the state is not idle we know for sure we have the previous state
         const previousPayload = previous.payload ?? {};
@@ -126,9 +129,6 @@ function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
         const isOpeningKeyboard = syncLocalWorkletState.get() === 1;
         const isClosingKeyboard = syncLocalWorkletState.get() === 3;
         const isClosedKeyboard = syncLocalWorkletState.get() === 4;
-
-        const isKeyboardOpen = keyboard.state.get() === KeyboardState.OPEN;
-        const isKeyboardClosed = keyboard.state.get() === KeyboardState.CLOSED;
 
         // Depending on the current and sometimes previous state we can return
         // either animation or just a value
