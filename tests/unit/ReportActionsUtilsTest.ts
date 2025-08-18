@@ -366,28 +366,30 @@ describe('ReportActionsUtils', () => {
             [IOUReportID]: {...mockIOUReport, reportID: IOUReportID},
             [mockChatReportID]: mockChatReport,
         };
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(mockIOUAction) as OriginalMessageIOU;
 
         const linkedActionWithChildReportID = {
             ...mockIOUAction,
-            originalMessage: {...getOriginalMessage(mockIOUAction), IOUTransactionID},
+            originalMessage: {...originalMessage, IOUTransactionID},
             childReportID: 'existingChildReportID',
         };
 
         const linkedActionWithoutChildReportID = {
             ...mockIOUAction,
-            originalMessage: {...getOriginalMessage(mockIOUAction), IOUTransactionID},
+            originalMessage: {...originalMessage, IOUTransactionID},
             childReportID: undefined,
         };
 
         const unlinkedAction = {
             ...mockIOUAction,
-            originalMessage: {...getOriginalMessage(mockIOUAction), IOUTransactionID: IOUExpenseTransactionID},
+            originalMessage: {...originalMessage, IOUTransactionID: IOUExpenseTransactionID},
         };
 
         const payAction = {
             ...mockIOUAction,
             originalMessage: {
-                ...getOriginalMessage(mockIOUAction),
+                ...originalMessage,
                 IOUTransactionID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
             },
@@ -452,7 +454,7 @@ describe('ReportActionsUtils', () => {
 
         const linkedCreateActionWithoutChildReportID = {
             ...mockIOUAction,
-            originalMessage: {...getOriginalMessage(mockIOUAction), IOUTransactionID},
+            originalMessage: {...originalMessage, IOUTransactionID},
             childReportID: undefined,
         };
 
