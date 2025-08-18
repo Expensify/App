@@ -13,7 +13,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
-import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 // Mock the dependencies
 jest.mock('@libs/actions/Link', () => ({
@@ -216,7 +215,7 @@ describe('OnboardingHelpDropdownButton', () => {
             expect(mockOpenExternalLink).toHaveBeenCalledWith(CONST.REGISTER_FOR_WEBINAR_URL);
         });
 
-        it('should call reschedule booking when reschedule option is pressed', async () => {
+        it('should call reschedule booking when reschedule option is pressed', () => {
             // When component is rendered and dropdown is opened
             renderOnboardingHelpDropdownButton(props);
 

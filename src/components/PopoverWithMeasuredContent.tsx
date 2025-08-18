@@ -3,7 +3,7 @@ import React, {useContext, useEffect, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import usePrevious from '@hooks/usePrevious';
-import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
+import useSidePanel from '@hooks/useSidePanel';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
@@ -82,7 +82,7 @@ function PopoverWithMeasuredContent({
     const [isContentMeasured, setIsContentMeasured] = useState(popoverWidth > 0 && popoverHeight > 0);
     const prevIsVisible = usePrevious(isVisible);
     const prevAnchorPosition = usePrevious(anchorPosition);
-    const {shouldHideSidePanel} = useSidePanelDisplayStatus();
+    const {shouldHideSidePanel} = useSidePanel();
     const availableWidth = windowWidth - (shouldHideSidePanel ? 0 : variables.sideBarWidth);
     const prevWindowDimensions = usePrevious({availableWidth, windowHeight});
 

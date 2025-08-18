@@ -15,6 +15,7 @@ import KeyboardUtils from '@src/utils/keyboard';
 
 type SidePanelContextProps = {
     isSidePanelTransitionEnded: boolean;
+    isSidePanelHiddenOrLargeScreen: boolean;
     shouldHideSidePanel: boolean;
     shouldHideSidePanelBackdrop: boolean;
     shouldHideHelpButton: boolean;
@@ -27,6 +28,7 @@ type SidePanelContextProps = {
 
 const SidePanelContext = createContext<SidePanelContextProps>({
     isSidePanelTransitionEnded: true,
+    isSidePanelHiddenOrLargeScreen: true,
     shouldHideSidePanel: true,
     shouldHideSidePanelBackdrop: true,
     shouldHideHelpButton: true,
@@ -46,7 +48,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     const sidePanelWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
 
     const [isSidePanelTransitionEnded, setIsSidePanelTransitionEnded] = useState(true);
-    const {shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideHelpButton} = useSidePanelDisplayStatus();
+    const {shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideHelpButton, isSidePanelHiddenOrLargeScreen} = useSidePanelDisplayStatus();
     const shouldHideToolTip = isExtraLargeScreenWidth ? !isSidePanelTransitionEnded : !shouldHideSidePanel;
 
     const shouldApplySidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel;
@@ -91,6 +93,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     const value = useMemo(
         () => ({
             isSidePanelTransitionEnded,
+            isSidePanelHiddenOrLargeScreen,
             shouldHideSidePanel,
             shouldHideSidePanelBackdrop,
             shouldHideHelpButton,
@@ -100,7 +103,16 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             openSidePanel,
             closeSidePanel,
         }),
-        [closeSidePanel, isSidePanelTransitionEnded, openSidePanel, shouldHideHelpButton, shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideToolTip],
+        [
+            closeSidePanel,
+            isSidePanelHiddenOrLargeScreen,
+            isSidePanelTransitionEnded,
+            openSidePanel,
+            shouldHideHelpButton,
+            shouldHideSidePanel,
+            shouldHideSidePanelBackdrop,
+            shouldHideToolTip,
+        ],
     );
 
     return <SidePanelContext.Provider value={value}>{children}</SidePanelContext.Provider>;
