@@ -5,7 +5,6 @@ import SymbolButton from '@components/SymbolButton';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addLeadingZero, replaceAllDigits} from '@libs/MoneyRequestUtils';
-import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
 import type BaseTextInputWithSymbolProps from './types';
 
@@ -24,9 +23,9 @@ function BaseTextInputWithSymbol(
         hideSymbol = false,
         style,
         symbolTextStyle,
+        ref,
         ...rest
     }: BaseTextInputWithSymbolProps,
-    ref: React.ForwardedRef<BaseTextInputRef>,
 ) {
     const {fromLocaleDigit} = useLocalize();
     const styles = useThemeStyles();
@@ -79,4 +78,4 @@ function BaseTextInputWithSymbol(
 
 BaseTextInputWithSymbol.displayName = 'BaseTextInputWithSymbol';
 
-export default React.forwardRef(BaseTextInputWithSymbol);
+export default BaseTextInputWithSymbol;
