@@ -19,6 +19,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -76,7 +77,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const isCurrentUser = session?.accountID === accountID;
     const reportKey = useMemo(() => {
-        const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID;
+        const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants({newParticipantList: session?.accountID ? [accountID, session.accountID] : [], reports})?.reportID;
 
         if (isAnonymousUserSession() || !reportID) {
             return `${ONYXKEYS.COLLECTION.REPORT}0` as const;
@@ -90,6 +91,7 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const isValidAccountID = isValidAccountRoute(accountID);
     const loginParams = route.params?.login;
+    const isReportArchived = useReportIsArchived(report?.reportID);
 
     const details = useMemo((): OnyxEntry<PersonalDetails> => {
         // Check if we have the personal details already in Onyx
@@ -165,10 +167,10 @@ function ProfilePage({route}: ProfilePageProps) {
 
         // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
         if ((!isCurrentUser || report) && !isAnonymousUserSession()) {
-            result.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams}));
+            result.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams, isReportArchived}));
         }
         return result;
-    }, [accountID, isCurrentUser, loginParams, report]);
+    }, [accountID, isCurrentUser, loginParams, report, isReportArchived]);
 
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>

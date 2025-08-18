@@ -871,6 +871,7 @@ function setAssigneeValue(
     chatReport?: OnyxEntry<OnyxTypes.Report>,
     isCurrentUser = false,
     skipShareDestination = false,
+    isReportArchived = false,
 ): OnyxEntry<OnyxTypes.Report> | undefined {
     let report: OnyxEntry<OnyxTypes.Report> | undefined = chatReport;
     if (isCurrentUser) {
@@ -883,7 +884,7 @@ function setAssigneeValue(
     } else {
         // Check for the chatReport by participants IDs
         if (!report) {
-            report = ReportUtils.getChatByParticipants([assigneeAccountID, currentUserAccountID]);
+            report = ReportUtils.getChatByParticipants({newParticipantList: [assigneeAccountID, currentUserAccountID], isReportArchived});
         }
         // If chat report is still not found we need to build new optimistic chat report
         if (!report) {

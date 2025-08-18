@@ -1330,22 +1330,32 @@ function getOptimisticChatReport(accountID: number): OptimisticChatReport {
  * @param userLogins list of user logins to start a chat report with.
  * @param shouldDismissModal a flag to determine if we should dismiss modal before navigate to report or navigate to report directly.
  */
-function navigateToAndOpenReport(
-    userLogins: string[],
+function navigateToAndOpenReport({
+    userLogins,
     shouldDismissModal = true,
-    reportName?: string,
-    avatarUri?: string,
-    avatarFile?: File | CustomRNImageManipulatorResult | undefined,
-    optimisticReportID?: string,
+    reportName,
+    avatarUri,
+    avatarFile,
+    optimisticReportID,
     isGroupChat = false,
-) {
+    isReportArchived = false,
+}: {
+    userLogins: string[];
+    shouldDismissModal?: boolean;
+    reportName?: string;
+    avatarUri?: string;
+    avatarFile?: File | CustomRNImageManipulatorResult;
+    optimisticReportID?: string;
+    isGroupChat?: boolean;
+    isReportArchived?: boolean;
+}) {
     let newChat: OptimisticChatReport | undefined;
     let chat: OnyxEntry<Report>;
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
 
     // If we are not creating a new Group Chat then we are creating a 1:1 DM and will look for an existing chat
     if (!isGroupChat) {
-        chat = getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
+        chat = getChatByParticipants({newParticipantList: [...participantAccountIDs, currentUserAccountID], isReportArchived});
     }
 
     if (isEmptyObject(chat)) {
@@ -1389,9 +1399,9 @@ function navigateToAndOpenReport(
  *
  * @param participantAccountIDs of user logins to start a chat report with.
  */
-function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) {
+function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], isReportArchived = false) {
     let newChat: OptimisticChatReport | undefined;
-    const chat = getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
+    const chat = getChatByParticipants({newParticipantList: [...participantAccountIDs, currentUserAccountID], isReportArchived});
     if (!chat) {
         newChat = buildOptimisticChatReport({
             participantList: [...participantAccountIDs, currentUserAccountID],
@@ -2662,7 +2672,7 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
             if (!checkIfCurrentPageActive()) {
                 return;
             }
-            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], shouldDismissModal);
+            navigateToAndOpenReport({userLogins: [CONST.EMAIL.CONCIERGE], shouldDismissModal});
         });
     } else if (shouldDismissModal) {
         Navigation.dismissModalWithReport({reportID: conciergeReportID, reportActionID});

@@ -3354,7 +3354,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     }
 
     if (!chatReport) {
-        chatReport = getChatByParticipants([payerAccountID, payeeAccountID]) ?? null;
+        chatReport = getChatByParticipants({newParticipantList: [payerAccountID, payeeAccountID]}) ?? null;
     }
 
     // If we still don't have a report, it likely doesn't exist and we need to build an optimistic one
@@ -3620,7 +3620,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     }
 
     if (!chatReport) {
-        chatReport = getChatByParticipants([payerAccountID, payeeAccountID]) ?? null;
+        chatReport = getChatByParticipants({newParticipantList: [payerAccountID, payeeAccountID]}) ?? null;
     }
 
     // If we still don't have a report, it likely doesn't exist and we need to build an optimistic one
@@ -6126,7 +6126,7 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string 
 
     const allParticipantsAccountIDs = [...participantAccountIDs, currentUserAccountID];
     if (!existingSplitChatReport) {
-        existingSplitChatReport = getChatByParticipants(allParticipantsAccountIDs, undefined, participantAccountIDs.length > 1);
+        existingSplitChatReport = getChatByParticipants({newParticipantList: allParticipantsAccountIDs, shouldIncludeGroupChats: participantAccountIDs.length > 1});
     }
 
     // We found an existing chat report we are done...
@@ -6432,7 +6432,7 @@ function createSplitsAndOnyxData({
             oneOnOneChatReport = splitChatReport;
             shouldCreateOptimisticPersonalDetails = !existingSplitChatReport && !personalDetailExists;
         } else {
-            const existingChatReport = getChatByParticipants([accountID, currentUserAccountID]);
+            const existingChatReport = getChatByParticipants({newParticipantList: [accountID, currentUserAccountID]});
             isNewOneOnOneChatReport = !existingChatReport;
             shouldCreateOptimisticPersonalDetails = isNewOneOnOneChatReport && !personalDetailExists;
             oneOnOneChatReport =
@@ -7263,7 +7263,7 @@ function completeSplitBill(
             // The expense chat reportID is saved in the splits array when starting a split expense with a workspace
             oneOnOneChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`];
         } else {
-            const existingChatReport = getChatByParticipants(participant.accountID ? [participant.accountID, sessionAccountID] : []);
+            const existingChatReport = getChatByParticipants({newParticipantList: participant.accountID ? [participant.accountID, sessionAccountID] : []});
             isNewOneOnOneChatReport = !existingChatReport;
             oneOnOneChatReport =
                 existingChatReport ??
@@ -8380,7 +8380,7 @@ function getSendMoneyParams(
         idempotencyKey: Str.guid(),
     });
 
-    let chatReport = !isEmptyObject(report) && report?.reportID ? report : getChatByParticipants([recipientAccountID, managerID]);
+    let chatReport = !isEmptyObject(report) && report?.reportID ? report : getChatByParticipants({newParticipantList: [recipientAccountID, managerID]});
     let isNewChat = false;
     if (!chatReport) {
         chatReport = buildOptimisticChatReport({
