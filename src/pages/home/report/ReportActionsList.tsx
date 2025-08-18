@@ -693,6 +693,7 @@ function ReportActionsList({
             isUserValidated,
             personalDetailsList,
             userBillingFundID,
+            hasInTryNewDot,
         ],
     );
 

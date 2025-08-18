@@ -564,6 +564,7 @@ function MoneyRequestReportActionsList({
             userBillingFundID,
             emojiReactions,
             draftMessage,
+            hasInTryNewDot,
         ],
     );
 
