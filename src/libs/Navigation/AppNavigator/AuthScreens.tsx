@@ -1,8 +1,6 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useNavigation} from '@react-navigation/native';
 import React, {memo, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -62,7 +60,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import attachmentModalScreenOptions from './attachmentModalScreenOptions';
@@ -108,66 +106,7 @@ function initializePusher() {
     });
 }
 
-let timezone: Timezone | null;
-let currentAccountID = -1;
-let isLoadingApp = false;
-let lastUpdateIDAppliedToClient: OnyxEntry<number>;
-
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        // When signed out, val hasn't accountID
-        if (!(value && 'accountID' in value)) {
-            currentAccountID = -1;
-            timezone = null;
-            return;
-        }
-
-        currentAccountID = value.accountID ?? CONST.DEFAULT_NUMBER_ID;
-
-        if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
-            // This means sign in in RHP was successful, so we can subscribe to user events
-            initializePusher();
-        }
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => {
-        if (!value || !isEmptyObject(timezone)) {
-            return;
-        }
-
-        timezone = value?.[currentAccountID]?.timezone ?? {};
-        const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone;
-
-        // If the current timezone is different than the user's timezone, and their timezone is set to automatic
-        // then update their timezone.
-        if (!isEmptyObject(currentTimezone) && timezone?.automatic && timezone?.selected !== currentTimezone) {
-            PersonalDetails.updateAutomaticTimezone({
-                automatic: true,
-                selected: currentTimezone,
-            });
-        }
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.IS_LOADING_APP,
-    callback: (value) => {
-        isLoadingApp = !!value;
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (value) => {
-        lastUpdateIDAppliedToClient = value;
-    },
-});
-
-function handleNetworkReconnect() {
+function handleNetworkReconnect(isLoadingApp: boolean, lastUpdateIDAppliedToClient: number | undefined) {
     if (isLoadingApp) {
         App.openApp();
     } else {
@@ -227,6 +166,35 @@ function AuthScreens() {
         canBeMissing: true,
     });
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [lastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, {canBeMissing: true});
+
+    const timezone = useMemo(() => {
+        const timezoneObject = currentUserPersonalDetails?.timezone ?? {};
+        if (!currentUserPersonalDetails || !isEmptyObject(timezoneObject)) {
+            return;
+        }
+        return timezoneObject;
+    }, [currentUserPersonalDetails]);
+
+    useEffect(() => {
+        if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
+            // This means sign in in RHP was successful, so we can subscribe to user events
+            initializePusher();
+        }
+
+        const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone;
+
+        // If the current timezone is different than the user's timezone, and their timezone is set to automatic
+        // then update their timezone.
+        if (!isEmptyObject(currentTimezone) && timezone?.automatic && timezone?.selected !== currentTimezone) {
+            PersonalDetails.updateAutomaticTimezone({
+                automatic: true,
+                selected: currentTimezone,
+            });
+        }
+    }, [session, timezone?.automatic, timezone?.selected]);
+
     const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
     const [isOnboardingLoading] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: (value) => !!value?.isLoading});
@@ -295,7 +263,7 @@ function AuthScreens() {
         }
 
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(handleNetworkReconnect);
+        NetworkConnection.onReconnect(() => handleNetworkReconnect(!!isLoadingApp, lastUpdateIDAppliedToClient));
         PusherConnectionManager.init();
         initializePusher();
         // Sometimes when we transition from old dot to new dot, the client is not the leader
