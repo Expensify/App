@@ -113,6 +113,7 @@ function IOURequestStepScan({
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const platform = getPlatform(true);
     const [mutedPlatforms = getEmptyObject<Partial<Record<Platform, true>>>()] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS, {canBeMissing: true});
     const isPlatformMuted = mutedPlatforms[platform];
@@ -121,7 +122,7 @@ function IOURequestStepScan({
     const [shouldShowMultiScanEducationalPopup, setShouldShowMultiScanEducationalPopup] = useState(false);
     const [cameraKey, setCameraKey] = useState(0);
     const {shouldStartLocationPermissionFlow} = useIOUUtils();
-    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
+    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS) || !account?.shouldBlockTransactionThreadReportCreation;
 
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
@@ -297,6 +298,7 @@ function IOURequestStepScan({
                 policy: OnyxEntry<Policy>;
             },
             billable?: boolean,
+            reimbursable = true,
         ) => {
             files.forEach((receiptFile: ReceiptFile, index) => {
                 const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
@@ -318,6 +320,7 @@ function IOURequestStepScan({
                             created: transaction?.created,
                             receipt,
                             billable,
+                            reimbursable,
                             ...(gpsPoints ?? {}),
                         },
                         ...(policyParams ?? {}),
