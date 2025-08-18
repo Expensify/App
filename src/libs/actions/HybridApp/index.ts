@@ -67,7 +67,6 @@ function resetSignInFlow() {
         return Promise.resolve();
     }
 
-    HybridAppModule.nativePrint('resetSignInFlow');
     return Onyx.merge(ONYXKEYS.HYBRID_APP, {
         readyToShowAuthScreens: false,
         useNewDotSignInPage: true,
@@ -77,14 +76,7 @@ function resetSignInFlow() {
 /*
  * Updates Onyx state after start of React Native runtime based on initial `useNewDotSignInPage` value
  */
-function prepareHybridAppAfterTransitionToNewDot(hybridApp: HybridApp) {
-    HybridAppModule.nativePrint(
-        `prepareHybridAppAfterTransitionToNewDot: ${JSON.stringify({
-            ...hybridApp,
-            readyToShowAuthScreens: !(hybridApp?.useNewDotSignInPage ?? false),
-        })}`,
-    );
-
+function prepareHybridAppAfterTransitionToNewDot(hybridApp: HybridApp) { 
     if (hybridApp?.useNewDotSignInPage) {
         return Onyx.merge(ONYXKEYS.HYBRID_APP, {
             ...hybridApp,
