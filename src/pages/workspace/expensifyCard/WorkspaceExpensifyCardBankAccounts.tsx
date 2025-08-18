@@ -19,7 +19,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import {getEligibleBankAccountsForCard, getEligibleBankAccountsForEuUkCard} from '@libs/CardUtils';
+import {getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import Navigation from '@navigation/Navigation';
@@ -78,7 +78,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
             return null;
         }
 
-        const eligibleBankAccounts = isUkEuCurrencySupported ? getEligibleBankAccountsForEuUkCard(bankAccountsList) : getEligibleBankAccountsForCard(bankAccountsList);
+        const eligibleBankAccounts = isUkEuCurrencySupported ? getEligibleBankAccountsForUkEuCard(bankAccountsList) : getEligibleBankAccountsForCard(bankAccountsList);
 
         return eligibleBankAccounts.map((bankAccount) => {
             const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;

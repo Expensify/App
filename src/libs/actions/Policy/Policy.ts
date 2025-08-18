@@ -63,7 +63,7 @@ import type {
 import type UpdatePolicyMembersCustomFieldsParams from '@libs/API/parameters/UpdatePolicyMembersCustomFieldsParams';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {isCurrencySupportECards} from '@libs/CardUtils';
+import {isCurrencySupportedForECards} from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -291,7 +291,7 @@ function isCurrencySupportedForGlobalReimbursement(
         return CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency);
     }
     if (canUseExpensifyCardEuUk) {
-        return isCurrencySupportECards(currency);
+        return isCurrencySupportedForECards(currency);
     }
     return currency === CONST.CURRENCY.USD;
 }

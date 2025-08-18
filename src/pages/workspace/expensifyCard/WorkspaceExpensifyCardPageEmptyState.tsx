@@ -14,7 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getEligibleBankAccountsForCard, getEligibleBankAccountsForEuUkCard} from '@libs/CardUtils';
+import {getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
@@ -64,7 +64,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const isSetupUnfinished = isEmptyObject(bankAccountList) && reimbursementAccountStatus && reimbursementAccountStatus !== CONST.BANK_ACCOUNT.STATE.OPEN;
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policy?.id);
 
-    const eligibleBankAccounts = isUkEuCurrencySupported ? getEligibleBankAccountsForEuUkCard(bankAccountList) : getEligibleBankAccountsForCard(bankAccountList);
+    const eligibleBankAccounts = isUkEuCurrencySupported ? getEligibleBankAccountsForUkEuCard(bankAccountList) : getEligibleBankAccountsForCard(bankAccountList);
 
     const startFlow = useCallback(() => {
         if (!eligibleBankAccounts.length || isSetupUnfinished) {
