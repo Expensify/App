@@ -1146,3 +1146,16 @@ button {
 .expensifyhelp-logo__help {
     fill: var(--color-success);
 }
+
+#edit-link {
+    margin: 20px 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#edit-icon {
+    fill: var(--color-text-supporting);
+    width: 13;
+    height: 13px;
+}
