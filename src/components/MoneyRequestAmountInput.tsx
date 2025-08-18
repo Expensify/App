@@ -103,6 +103,9 @@ type MoneyRequestAmountInputProps = {
      * E.g., Split amount input
      */
     shouldWrapInputInContainer?: boolean;
+
+    /** Reference to the outer element */
+    forwardedRef?: ForwardedRef<BaseTextInputRef>;
 } & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix'>;
 
 type Selection = {
@@ -141,9 +144,9 @@ function MoneyRequestAmountInput(
         shouldApplyPaddingToContainer = false,
         shouldUseDefaultLineHeightForPrefix = true,
         shouldWrapInputInContainer = true,
+        forwardedRef,
         ...props
     }: MoneyRequestAmountInputProps,
-    forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
@@ -186,7 +189,7 @@ function MoneyRequestAmountInput(
                 if (typeof forwardedRef === 'function') {
                     forwardedRef(ref);
                 } else if (forwardedRef?.current) {
-                    // eslint-disable-next-line no-param-reassign
+                    // eslint-disable-next-line no-param-reassign, react-compiler/react-compiler
                     forwardedRef.current = ref;
                 }
                 // eslint-disable-next-line react-compiler/react-compiler
@@ -230,5 +233,5 @@ function MoneyRequestAmountInput(
 
 MoneyRequestAmountInput.displayName = 'MoneyRequestAmountInput';
 
-export default React.forwardRef(MoneyRequestAmountInput);
+export default MoneyRequestAmountInput;
 export type {MoneyRequestAmountInputProps, MoneyRequestAmountInputRef};

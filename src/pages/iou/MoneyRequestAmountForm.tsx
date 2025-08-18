@@ -1,4 +1,3 @@
-import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -75,8 +74,8 @@ function MoneyRequestAmountForm(
         shouldKeepUserInput = false,
         chatReportID,
         hideCurrencySymbol = false,
+        forwardedRef,
     }: MoneyRequestAmountFormProps,
-    forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
@@ -220,11 +219,11 @@ function MoneyRequestAmountForm(
                     setFormError('');
                 }}
                 shouldShowBigNumberPad={canUseTouchScreen}
-                ref={(ref) => {
+                forwardedRef={(ref) => {
                     if (typeof forwardedRef === 'function') {
                         forwardedRef(ref);
                     } else if (forwardedRef && 'current' in forwardedRef) {
-                        // eslint-disable-next-line no-param-reassign
+                        // eslint-disable-next-line no-param-reassign, react-compiler/react-compiler
                         forwardedRef.current = ref;
                     }
                     textInput.current = ref;
@@ -244,5 +243,5 @@ function MoneyRequestAmountForm(
 
 MoneyRequestAmountForm.displayName = 'MoneyRequestAmountForm';
 
-export default React.forwardRef(MoneyRequestAmountForm);
+export default MoneyRequestAmountForm;
 export type {CurrentMoney, MoneyRequestAmountFormProps};
