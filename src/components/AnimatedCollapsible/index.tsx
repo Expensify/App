@@ -36,6 +36,9 @@ type AnimatedCollapsibleProps = {
     /** Whether the toggle button is disabled */
     disabled?: boolean;
 
+    /** Callback for when the toggle button is pressed */
+    onPress?: () => void;
+
     /** Whether to animate on initial mount. Defaults to false */
     shouldAnimateOnMount?: boolean;
 };
@@ -48,6 +51,7 @@ function AnimatedCollapsible({
     headerStyle,
     contentStyle,
     expandButtonStyle,
+    onPress,
     disabled = false,
     shouldAnimateOnMount = false,
 }: AnimatedCollapsibleProps) {
@@ -56,7 +60,7 @@ function AnimatedCollapsible({
     const height = useSharedValue(0);
     const isAnimating = useSharedValue(false);
     const hasBeenToggled = useSharedValue(false);
-    const [isExpanded, setIsExpanded] = useState(true);
+    const [isExpanded, setIsExpanded] = useState(false);
 
     // Animation for content height and opacity
     const derivedHeight = useDerivedValue(() => {
@@ -117,6 +121,10 @@ function AnimatedCollapsible({
         if (disabled) {
             return;
         }
+        if (onPress) {
+            onPress();
+            return;
+        }
         hasBeenToggled.set(true);
         setIsExpanded(!isExpanded);
     };
@@ -125,7 +133,7 @@ function AnimatedCollapsible({
         <PressableWithFeedback
             onPress={handleToggle}
             disabled={disabled}
-            style={[styles.p3, styles.justifyContentCenter, styles.alignItemsCenter, expandButtonStyle]}
+            style={[styles.p3, styles.justifyContentCenter, styles.alignItemsCenter, styles.pl0, expandButtonStyle]}
             accessibilityRole={CONST.ROLE.BUTTON}
             accessibilityLabel="Collapse"
         >

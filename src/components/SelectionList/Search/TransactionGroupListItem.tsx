@@ -184,7 +184,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <View style={styles.flex1}>
                     <AnimatedCollapsible
                         header={getHeader}
-                        disabled={!!isDisabledOrEmpty}
+                        onPress={(isEmpty && !shouldDisplayEmptyView) ? onPress : undefined}
                     >
                         {shouldDisplayEmptyView ? (
                             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>

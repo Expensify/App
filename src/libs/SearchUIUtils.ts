@@ -87,7 +87,7 @@ import {
     isOpenExpenseReport,
     isSettled,
 } from './ReportUtils';
-import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getTodoSearchQuery} from './SearchQueryUtils';
+import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, getTodoSearchQuery} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
@@ -100,6 +100,17 @@ import {
     isViolationDismissed,
 } from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
+import Onyx from 'react-native-onyx';
+
+let allSnapshots: Record<string, OnyxTypes.SearchResults | undefined> = {};
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.SNAPSHOT,
+    waitForCollectionCallback: true,
+    callback: (val) => {
+        allSnapshots = val;
+    }
+})
 
 const transactionColumnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -1332,17 +1343,27 @@ function getReportSections(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getMemberSections(data: OnyxTypes.SearchResults['data']): TransactionMemberGroupListItemType[] {
+function getMemberSections(data: OnyxTypes.SearchResults['data'], currentAccountID: number | undefined, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], currentSearch: SearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES, queryJSON?: SearchQueryJSON): TransactionMemberGroupListItemType[] {
     const memberSections: Record<string, TransactionMemberGroupListItemType> = {};
 
     for (const key in data) {
         if (isGroupEntry(key)) {
             const memberGroup = data[key] as SearchMemberGroup;
             const personalDetails = data.personalDetailsList[memberGroup.accountID];
-
+            let transactions: TransactionListItemType[] = [];
+            if (queryJSON) {
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: memberGroup.accountID}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                const matchData = newQueryJSONWithHash?.hash ? allSnapshots[`${ONYXKEYS.COLLECTION.SNAPSHOT}${newQueryJSONWithHash.hash}`] : undefined;
+                transactions = matchData ? getTransactionsSections(matchData?.data, matchData?.search, currentSearch, currentAccountID, formatPhoneNumber) : []
+            }
+            
             memberSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.FROM,
-                transactions: [],
+                transactions,
                 ...personalDetails,
                 ...memberGroup,
             };
@@ -1407,6 +1428,7 @@ function getSections(
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
     currentSearch: SearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
     archivedReportsIDList?: ArchivedReportsIDSet,
+    queryJSON?: SearchQueryJSON,
 ) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
@@ -1422,7 +1444,7 @@ function getSections(
             case CONST.SEARCH.GROUP_BY.REPORTS:
                 return getReportSections(data, metadata, currentSearch, currentAccountID, formatPhoneNumber, reportActions);
             case CONST.SEARCH.GROUP_BY.FROM:
-                return getMemberSections(data);
+                return getMemberSections(data, currentAccountID, formatPhoneNumber, currentSearch, queryJSON);
             case CONST.SEARCH.GROUP_BY.CARD:
                 return getCardSections(data);
         }

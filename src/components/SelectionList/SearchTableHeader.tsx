@@ -176,10 +176,10 @@ function SearchTableHeader({
     const shouldShowColumn = useCallback(
         (columnName: SortableColumnName) => {
             if (groupBy === CONST.SEARCH.GROUP_BY.FROM) {
-                return columnName === CONST.SEARCH.TABLE_COLUMNS.FROM || columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION;
+                return columnName === CONST.SEARCH.TABLE_COLUMNS.FROM || columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION || columnName === CONST.SEARCH.TABLE_COLUMNS.EXPAND;
             }
             if (groupBy === CONST.SEARCH.GROUP_BY.CARD) {
-                return columnName === CONST.SEARCH.TABLE_COLUMNS.CARD || columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION;
+                return columnName === CONST.SEARCH.TABLE_COLUMNS.CARD || columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION || columnName === CONST.SEARCH.TABLE_COLUMNS.EXPAND;
             }
 
             const shouldShowFun = shouldShowColumnConfig[columnName];
