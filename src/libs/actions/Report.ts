@@ -1363,24 +1363,30 @@ function navigateToAndOpenReport(
     }
     const report = isEmptyObject(chat) ? newChat : chat;
 
+    // Prefer navigating to an existing chat resolved by accountIDs derived from logins (helps with secondary login -> primary mapping)
+    const navigateToResolvedReport = () => {
+        // Recompute accountIDs from provided logins in case server enriched personalDetails (e.g., secondary login mapping)
+        const resolvedIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
+        const resolvedChat = getChatByParticipants([...resolvedIDs, currentUserAccountID]);
+        const targetReportID = resolvedChat?.reportID ?? report?.reportID;
+        if (targetReportID) {
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(targetReportID));
+        }
+    };
+
     if (shouldDismissModal) {
         Navigation.onModalDismissedOnce(() => {
             Navigation.onModalDismissedOnce(() => {
-                if (!report?.reportID) {
-                    return;
-                }
-
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+                navigateToResolvedReport();
             });
         });
-
         Navigation.dismissModal();
-    } else if (report?.reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+    } else {
+        navigateToResolvedReport();
     }
     // In some cases when RHP modal gets hidden and then we navigate to report Composer focus breaks, wrapping navigation in setTimeout fixes this
     setTimeout(() => {
-        Navigation.isNavigationReady().then(() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID)));
+        Navigation.isNavigationReady().then(() => navigateToResolvedReport());
     }, 0);
 }
 
