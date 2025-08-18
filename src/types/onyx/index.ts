@@ -23,19 +23,19 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
-import type {ReportAttributesDerivedValue, ReportTransactionsAndViolationsDerivedValue} from './DerivedValues';
+import type {OutstandingReportsByPolicyIDDerivedValue, ReportAttributesDerivedValue, ReportTransactionsAndViolationsDerivedValue} from './DerivedValues';
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
+import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
 import type HybridApp from './HybridApp';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
-import type IntegrationServerExportTemplate from './IntegrationServerExportTemplate';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -266,10 +266,11 @@ export type {
     LastPaymentMethodType,
     ReportAttributesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
+    OutstandingReportsByPolicyIDDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,
     BillingReceiptDetails,
-    IntegrationServerExportTemplate,
+    ExportTemplate,
     HybridApp,
 };
