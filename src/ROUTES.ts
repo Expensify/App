@@ -65,6 +65,7 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_STATUS: 'search/filters/status',
     SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
     SEARCH_ADVANCED_FILTERS_CURRENCY: 'search/filters/currency',
+    SEARCH_ADVANCED_FILTERS_GROUP_CURRENCY: 'search/filters/group-currency',
     SEARCH_ADVANCED_FILTERS_MERCHANT: 'search/filters/merchant',
     SEARCH_ADVANCED_FILTERS_DESCRIPTION: 'search/filters/description',
     SEARCH_ADVANCED_FILTERS_REPORT_ID: 'search/filters/reportID',
@@ -218,6 +219,10 @@ const ROUTES = {
     SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY: 'settings/subscription/add-payment-card/change-payment-currency',
     SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY: 'settings/subscription/disable-auto-renew-survey',
     SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION: 'settings/subscription/request-early-cancellation-survey',
+    SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED: {
+        route: 'settings/subscription/downgrade-blocked',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/subscription/downgrade-blocked', backTo),
+    },
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
     SETTINGS_PAYMENT_CURRENCY: 'setting/preferences/payment-currency',
@@ -1931,10 +1936,6 @@ const ROUTES = {
     RULES_BILLABLE_DEFAULT: {
         route: 'workspaces/:policyID/rules/billable',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/billable` as const,
-    },
-    RULES_REIMBURSABLE_DEFAULT: {
-        route: 'workspaces/:policyID/rules/reimbursable',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/reimbursable` as const,
     },
     RULES_PROHIBITED_DEFAULT: {
         route: 'workspaces/:policyID/rules/prohibited',
