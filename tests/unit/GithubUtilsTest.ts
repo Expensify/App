@@ -446,7 +446,7 @@ describe('GithubUtils', () => {
                 if (typeof issue !== 'object') {
                     return;
                 }
-                const expectedOutputWithMobileExpensify = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n**Mobile-Expensify Changes:** https://github.com/Expensify/Mobile-Expensify/compare/production...staging\r\n\r\n${deployerFYIMessage}\r\n**This release contains changes from the following pull requests:**\r\n`;
+                const expectedOutputWithMobileExpensify = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n**Mobile-Expensify Changes:** https://github.com/Expensify/Mobile-Expensify/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
                 expect(issue.issueBody).toBe(
                     `${expectedOutputWithMobileExpensify}` +
                         `${openCheckbox}${basePRList.at(2)}` +
@@ -604,7 +604,7 @@ describe('GithubUtils', () => {
                     return;
                 }
 
-                const expectedOutputWithMobileExpensify = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n**Mobile-Expensify Changes:** https://github.com/Expensify/Mobile-Expensify/compare/production...staging\r\n\r\n${deployerFYIMessage}\r\n**This release contains changes from the following pull requests:**\r\n`;
+                const expectedOutputWithMobileExpensify = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n**Mobile-Expensify Changes:** https://github.com/Expensify/Mobile-Expensify/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
                 expect(issue.issueBody).toBe(
                     `${expectedOutputWithMobileExpensify}` +
                         `${openCheckbox}${basePRList.at(2)}` +
