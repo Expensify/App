@@ -1,11 +1,10 @@
-import React, {forwardRef} from 'react';
+import React from 'react';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import AnimatedSectionList from './AnimatedSectionList';
-import type {SectionListProps, SectionListRef} from './types';
+import type {SectionListProps} from './types';
 
 function BaseSectionList<ItemT, SectionT>(
-    {addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, contentContainerStyle: contentContainerStyleProp, ...restProps}: SectionListProps<ItemT, SectionT>,
-    ref: SectionListRef<ItemT, SectionT>,
+    {addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, contentContainerStyle: contentContainerStyleProp, ref, ...restProps}: SectionListProps<ItemT, SectionT>,
 ) {
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, style: contentContainerStyleProp});
 
@@ -21,4 +20,4 @@ function BaseSectionList<ItemT, SectionT>(
 
 BaseSectionList.displayName = 'BaseSectionList';
 
-export default forwardRef(BaseSectionList);
+export default BaseSectionList;
