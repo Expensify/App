@@ -53,10 +53,9 @@ import type {
     SetWorkspaceAutoReportingMonthlyOffsetParams,
     SetWorkspacePayerParams,
     SetWorkspaceReimbursementParams,
+    TogglePolicyReceiptPartnersParams,
     TogglePolicyUberAutoInvitePageParams,
     TogglePolicyUberAutoRemovePageParams,
-    ToggleReceiptPartnersParams,
-    TogglePolicyReceiptPartnersParams,
     UpdateInvoiceCompanyNameParams,
     UpdateInvoiceCompanyWebsiteParams,
     UpdatePolicyAddressParams,
@@ -2532,14 +2531,11 @@ function removePolicyReceiptPartnersConnection(policyID: string, partnerName: st
         },
     ];
 
-    const successData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
-
     const parameters: RemovePolicyReceiptPartnersConnectionParams = {
         policyID,
         partnerName,
     };
-    API.write(WRITE_COMMANDS.DISCONNECT_WORKSPACE_RECEIPT_PARTNER, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.DISCONNECT_WORKSPACE_RECEIPT_PARTNER, parameters, {optimisticData});
 }
 
 function togglePolicyUberAutoInvite(policyID?: string, enabled?: boolean) {
