@@ -4,7 +4,6 @@ import type {ValueOf} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
-import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {
     ListItem,
@@ -26,13 +25,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {generateReportID} from '@libs/ReportUtils';
 import variables from '@styles/variables';
-import {updateSearchResultsWithTransactionThreadReportID} from '@userActions/Search';
-import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
+import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
@@ -50,17 +45,16 @@ function TransactionGroupListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     groupBy,
-    policies,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${groupItem?.policyID}`];
     const isEmpty = groupItem.transactions.length === 0;
+    // Currently only the transaction report groups have transactions where the empty view makes sense
+    const shouldDisplayEmptyView = isEmpty && groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
     const isDisabledOrEmpty = isEmpty || isDisabled;
-    const {isLargeScreenWidth} = useResponsiveLayout();
-    const {currentSearchHash} = useSearchContext();
+    const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
         const isAmountColumnWide = groupItem.transactions.some((transaction) => transaction.isAmountColumnWide);
@@ -86,22 +80,11 @@ function TransactionGroupListItem<TItem extends ListItem>({
         const backTo = Navigation.getActiveRoute();
 
         const reportID = getReportIDForTransaction(transactionItem);
-        const siblingTransactionIDs = groupItem.transactions.map((transaction) => transaction.transactionID);
+        const siblingTransactionThreadIDs = groupItem.transactions.map(getReportIDForTransaction);
 
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
         // to display prev/next arrows in RHP for navigation
-        setActiveTransactionIDs(siblingTransactionIDs).then(() => {
-            // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
-            if (transactionItem.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                const transactionThreadReportID = generateReportID();
-                const {moneyRequestReportActionID, transactionID, reportID: transactionItemReportID} = transactionItem;
-                const reportAction = getReportAction(transactionItemReportID, moneyRequestReportActionID);
-                const iouReportID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
-
-                updateSearchResultsWithTransactionThreadReportID(currentSearchHash, transactionID, transactionThreadReportID);
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReportID, backTo, moneyRequestReportActionID, transactionID, iouReportID}));
-                return;
-            }
+        setActiveTransactionThreadIDs(siblingTransactionThreadIDs).then(() => {
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         });
     };
@@ -114,8 +97,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
         COLUMNS.TYPE,
         COLUMNS.DATE,
         COLUMNS.MERCHANT,
-        COLUMNS.FROM,
-        COLUMNS.TO,
+        ...(sampleTransaction?.shouldShowFrom ? [COLUMNS.FROM] : []),
+        ...(sampleTransaction?.shouldShowTo ? [COLUMNS.TO] : []),
         ...(sampleTransaction?.shouldShowCategory ? [COLUMNS.CATEGORY] : []),
         ...(sampleTransaction?.shouldShowTag ? [COLUMNS.TAG] : []),
         ...(sampleTransaction?.shouldShowTax ? [COLUMNS.TAX] : []),
@@ -128,7 +111,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
             [CONST.SEARCH.GROUP_BY.REPORTS]: (
                 <ReportListItemHeader
                     report={groupItem as TransactionReportGroupListItemType}
-                    policy={policy}
                     onSelectRow={onSelectRow}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
@@ -136,17 +118,19 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     canSelectMultiple={canSelectMultiple}
                 />
             ),
-            [CONST.SEARCH.GROUP_BY.MEMBERS]: (
+            [CONST.SEARCH.GROUP_BY.FROM]: (
                 <MemberListItemHeader
                     member={groupItem as TransactionMemberGroupListItemType}
+                    onSelectRow={onSelectRow}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
                     canSelectMultiple={canSelectMultiple}
                 />
             ),
-            [CONST.SEARCH.GROUP_BY.CARDS]: (
+            [CONST.SEARCH.GROUP_BY.CARD]: (
                 <CardListItemHeader
                     card={groupItem as TransactionCardGroupListItemType}
+                    onSelectRow={onSelectRow}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
                     isFocused={isFocused}
@@ -160,7 +144,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         return headers[groupBy];
-    }, [groupItem, policy, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, groupBy]);
+    }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, groupBy]);
 
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
@@ -198,7 +182,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             >
                 <View style={styles.flex1}>
                     {getHeader}
-                    {isEmpty ? (
+                    {shouldDisplayEmptyView ? (
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
                             <Text
                                 style={[styles.textLabelSupporting]}
@@ -211,6 +195,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         groupItem.transactions.map((transaction) => (
                             <TransactionItemRow
                                 key={transaction.transactionID}
+                                report={transaction.report}
                                 transactionItem={transaction}
                                 isSelected={!!transaction.isSelected}
                                 dateColumnSize={dateColumnSize}
@@ -224,7 +209,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 onButtonPress={() => {
                                     openReportInRHP(transaction);
                                 }}
-                                columnWrapperStyles={[styles.ph3, styles.pv1Half]}
+                                style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half]]}
                                 isReportItemChild
                                 isInSingleTransactionReport={groupItem.transactions.length === 1}
                             />
