@@ -13,7 +13,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
@@ -1312,9 +1312,11 @@ describe('SidebarUtils', () => {
                     lastActorAccountID: undefined,
                 };
 
+                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(mockIOUAction) as OriginalMessageIOU;
                 const linkedCreateAction: ReportAction = {
                     ...mockIOUAction,
-                    originalMessage: {...getOriginalMessage(mockIOUAction), IOUTransactionID},
+                    originalMessage: {...originalMessage, IOUTransactionID},
                     childReportID: report.reportID,
                     reportActionID: '3',
                 };
