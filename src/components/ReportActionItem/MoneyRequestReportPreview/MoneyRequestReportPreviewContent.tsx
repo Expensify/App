@@ -135,7 +135,7 @@ function MoneyRequestReportPreviewContent({
         [transactions, iouReportID, action],
     );
 
-    const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation} = usePaymentAnimations();
+    const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation} = usePaymentAnimations();
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
@@ -227,7 +227,6 @@ function MoneyRequestReportPreviewContent({
         } else if (hasHeldExpensesReportUtils(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else {
-            startApprovedAnimation();
             approveMoneyRequest(iouReport, true);
         }
     };
@@ -784,10 +783,9 @@ function MoneyRequestReportPreviewContent({
                         transactionCount={numberOfRequests}
                         startAnimation={() => {
                             if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-                                startApprovedAnimation();
-                            } else {
-                                startAnimation();
+                                return;
                             }
+                            startAnimation();
                         }}
                     />
                 )}
