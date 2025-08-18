@@ -805,7 +805,7 @@ function addActions(reportID: string, notifyReportID: string, text = '', file?: 
     ];
 
     // Update optimistic data for parent report action if the report is a child report
-    const optimisticParentReportData = getOptimisticDataForParentReportAction(reportID, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    const optimisticParentReportData = getOptimisticDataForParentReportAction(report, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     optimisticParentReportData.forEach((parentReportData) => {
         if (isEmptyObject(parentReportData)) {
             return;
@@ -1830,7 +1830,7 @@ function handleReportChanged(report: OnyxEntry<Report>) {
             const currCallback = callback;
             callback = () => {
                 currCallback();
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(preexistingReportID), {forceReplace: true});
+                Navigation.setParams({reportID: preexistingReportID});
             };
 
             // The report screen will listen to this event and transfer the draft comment to the existing report
@@ -1960,8 +1960,9 @@ function deleteReportComment(reportID: string | undefined, reportAction: ReportA
     // Update optimistic data for parent report action if the report is a child report and the reportAction has no visible child
     const childVisibleActionCount = reportAction.childVisibleActionCount ?? 0;
     if (childVisibleActionCount === 0) {
+        const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
         const optimisticParentReportData = getOptimisticDataForParentReportAction(
-            originalReportID,
+            originalReport,
             optimisticReport?.lastVisibleActionCreated ?? '',
             CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
