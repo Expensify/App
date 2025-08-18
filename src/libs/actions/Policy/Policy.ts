@@ -91,6 +91,7 @@ import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    DeleteWorkspaceErrorModal,
     IntroSelected,
     InvitedEmailsToAccountIDs,
     LastPaymentMethod,
@@ -5646,8 +5647,8 @@ function clearPolicyTitleFieldError(policyID: string) {
     });
 }
 
-function setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen(value: boolean) {
-    Onyx.set(ONYXKEYS.IS_DELETE_WORKSPACE_ANNUAL_SUBSCRIPTION_ERROR_MODAL_OPEN, value);
+function setDeleteWorkspaceErrorModalData(value: DeleteWorkspaceErrorModal | null) {
+    Onyx.set(ONYXKEYS.DELETE_WORKSPACE_ERROR_MODAL, value);
 }
 
 export {
@@ -5762,5 +5763,5 @@ export {
     setPolicyAttendeeTrackingEnabled,
     updateInterestedFeatures,
     clearPolicyTitleFieldError,
-    setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen,
+    setDeleteWorkspaceErrorModalData,
 };

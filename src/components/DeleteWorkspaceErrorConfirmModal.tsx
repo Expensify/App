@@ -1,13 +1,17 @@
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
-import {setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen} from '@libs/actions/Policy/Policy';
+import {setDeleteWorkspaceErrorModalData} from '@libs/actions/Policy/Policy';
 import ConfirmModal from './ConfirmModal';
 
-function AnnualSubscriptionErrorConfirmModal() {
+type DeleteWorkspaceErrorConfirmModalProps = {
+    errorMessage?: string;
+};
+
+function DeleteWorkspaceErrorConfirmModal({errorMessage}: DeleteWorkspaceErrorConfirmModalProps) {
     const {translate} = useLocalize();
 
     const hideAnnualSubscriptionErrorModal = () => {
-        setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen(false);
+        setDeleteWorkspaceErrorModalData(null);
     };
 
     return (
@@ -17,12 +21,12 @@ function AnnualSubscriptionErrorConfirmModal() {
             onConfirm={hideAnnualSubscriptionErrorModal}
             onCancel={hideAnnualSubscriptionErrorModal}
             confirmText={translate('common.buttonConfirm')}
-            prompt={translate('workspace.common.cannotDeleteWorkspaceAnnualSubscriptionError')}
+            prompt={errorMessage}
             shouldShowCancelButton={false}
             success={false}
         />
     );
 }
 
-AnnualSubscriptionErrorConfirmModal.displayName = 'AnnualSubscriptionErrorConfirmModal';
-export default AnnualSubscriptionErrorConfirmModal;
+DeleteWorkspaceErrorConfirmModal.displayName = 'DeleteWorkspaceErrorConfirmModal';
+export default DeleteWorkspaceErrorConfirmModal;

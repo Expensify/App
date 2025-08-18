@@ -565,8 +565,8 @@ const ONYXKEYS = {
     NVP_LAST_ECASH_ANDROID_LOGIN: 'nvp_lastECashAndroidLogin',
     NVP_LAST_ANDROID_LOGIN: 'nvp_lastAndroidLogin',
 
-    /** Whether the delete workspace annual subscription error modal is open */
-    IS_DELETE_WORKSPACE_ANNUAL_SUBSCRIPTION_ERROR_MODAL_OPEN: 'isDeleteWorkspaceAnnualSubscriptionErrorModalOpen',
+    /** Used for displaying the delete workspace error modal */
+    DELETE_WORKSPACE_ERROR_MODAL: 'deleteWorkspaceErrorModal',
 
     /** Collection Keys */
     COLLECTION: {
@@ -1229,7 +1229,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION]: OnboardingAccounting;
     [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
     [ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS]: Record<string, OnyxTypes.ExportTemplate>;
-    [ONYXKEYS.IS_DELETE_WORKSPACE_ANNUAL_SUBSCRIPTION_ERROR_MODAL_OPEN]: boolean;
+    [ONYXKEYS.DELETE_WORKSPACE_ERROR_MODAL]: OnyxTypes.DeleteWorkspaceErrorModal;
 };
 
 type OnyxDerivedValuesMapping = {

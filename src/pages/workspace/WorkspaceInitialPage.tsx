@@ -46,9 +46,10 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
-import {clearDeleteWorkspaceError, clearErrors, openPolicyInitialPage, removeWorkspace, setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen} from '@libs/actions/Policy/Policy';
+import {clearDeleteWorkspaceError, clearErrors, openPolicyInitialPage, removeWorkspace, setDeleteWorkspaceErrorModalData} from '@libs/actions/Policy/Policy';
 import {checkIfFeedConnectionIsBroken, flatAllCardsList, getCompanyFeeds} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
@@ -410,7 +411,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const shouldShowPolicy = useMemo(() => checkIfShouldShowPolicy(policy, false, currentUserLogin), [policy, currentUserLogin]);
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
-    const hasDeleteWorkspaceAnnualSubscriptionError = isDeleteWorkspaceAnnualSubscriptionError(policy);
+    const policyErrorMessage = getLatestErrorMessage(policy);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !shouldShowPolicy && !isPendingDelete;
 
@@ -428,14 +429,17 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         }
         if (prevIsPendingDelete && !isPendingDelete) {
             setIsLoaderVisible(false);
-            if (hasDeleteWorkspaceAnnualSubscriptionError) {
+            if (policyErrorMessage) {
                 clearDeleteWorkspaceError(policyID);
-                setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen(true);
+                setDeleteWorkspaceErrorModalData({
+                    isVisible: true,
+                    errorMessage: policyErrorMessage,
+                });
                 return;
             }
             goBackFromInvalidPolicy();
         }
-    }, [isPendingDelete, prevIsPendingDelete, prevPolicy, isOffline, hasDeleteWorkspaceAnnualSubscriptionError, policyID, setIsLoaderVisible]);
+    }, [isPendingDelete, prevIsPendingDelete, prevPolicy, isOffline, policyErrorMessage, policyID, setIsLoaderVisible]);
 
     // We are checking if the user can access the route.
     // If user can't access the route, we are dismissing any modals that are open when the NotFound view is shown
@@ -498,7 +502,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                         pendingAction={policy?.pendingAction}
                         onClose={() => dismissError(policyID, policy?.pendingAction)}
                         errors={policy?.errors}
-                        shouldShowErrorMessages={!hasDeleteWorkspaceAnnualSubscriptionError}
+                        shouldShowErrorMessages={!isDeleteWorkspaceAnnualSubscriptionError(policy)}
                         errorRowStyles={[styles.ph5, styles.pv2]}
                         shouldDisableStrikeThrough={false}
                         shouldHideOnDelete={false}

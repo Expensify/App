@@ -43,16 +43,17 @@ import {
     deleteWorkspace,
     leaveWorkspace,
     removeWorkspace,
-    setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen,
+    setDeleteWorkspaceErrorModalData,
     updateDefaultPolicy,
 } from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import {getPolicy, getPolicyBrickRoadIndicatorStatus, isDeleteWorkspaceAnnualSubscriptionError, isPolicyAdmin, shouldShowPolicy, wasPolicyLastModifiedWhileOffline} from '@libs/PolicyUtils';
+import {getPolicy, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, shouldShowPolicy, wasPolicyLastModifiedWhileOffline} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
 import type {AvatarSource} from '@libs/UserUtils';
@@ -125,7 +126,7 @@ function WorkspacesListPage() {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [isDeleteWorkspaceAnnualSubscriptionErrorModalOpen] = useOnyx(ONYXKEYS.IS_DELETE_WORKSPACE_ANNUAL_SUBSCRIPTION_ERROR_MODAL_OPEN, {canBeMissing: true});
+    const [deleteWorkspaceErrorModal] = useOnyx(ONYXKEYS.DELETE_WORKSPACE_ERROR_MODAL, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
@@ -185,20 +186,22 @@ function WorkspacesListPage() {
     }, []);
 
     useEffect(() => {
-        if (!isFocused || isDeleteWorkspaceAnnualSubscriptionErrorModalOpen) {
+        if (!isFocused || deleteWorkspaceErrorModal?.isVisible) {
             return;
         }
 
-        const policyIDWithError = Object.values(policies ?? {}).find(isDeleteWorkspaceAnnualSubscriptionError)?.id;
-        if (
-            !policyIDWithError ||
-            wasPolicyLastModifiedWhileOffline(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDWithError}`], isOffline, lastOfflineAt.current, lastOnlineAt.current, preferredLocale)
-        ) {
+        const policyWithError = Object.values(policies ?? {}).find(getLatestErrorMessage);
+        const policyIDWithError = policyWithError?.id;
+        if (!policyWithError || wasPolicyLastModifiedWhileOffline(policyWithError, isOffline, lastOfflineAt.current, lastOnlineAt.current, preferredLocale)) {
             return;
         }
+        const policyErrorMessage = getLatestErrorMessage(policyWithError);
         clearDeleteWorkspaceError(policyIDWithError);
-        setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen(true);
-    }, [isDeleteWorkspaceAnnualSubscriptionErrorModalOpen, policies, isFocused, isOffline, lastOfflineAt, lastOnlineAt, preferredLocale]);
+        setDeleteWorkspaceErrorModalData({
+            isVisible: true,
+            errorMessage: policyErrorMessage,
+        });
+    }, [deleteWorkspaceErrorModal?.isVisible, policies, isFocused, isOffline, lastOfflineAt, lastOnlineAt, preferredLocale]);
 
     /**
      * Gets the menu item for each workspace
