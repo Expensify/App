@@ -30,6 +30,12 @@ type WideRHPContextType = {
 
     // Navigate to the last element in wideRHPRouteKeys array
     dismissToWideReport: () => void;
+
+    // Mark reportID as expense before condition check
+    markReportIDAsExpense: (reportID: string) => void;
+
+    // Check if reportID is marked as expense
+    isReportIDMarkedAsExpense: (reportID: string) => boolean;
 };
 
 const expandedRHPProgress = new Animated.Value(0);
@@ -55,11 +61,14 @@ const WideRHPContext = createContext<WideRHPContextType>({
     showWideRHPVersion: () => {},
     cleanWideRHPRouteKey: () => {},
     dismissToWideReport: () => {},
+    markReportIDAsExpense: () => {},
+    isReportIDMarkedAsExpense: () => false,
 });
 
 function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const [wideRHPRouteKeys, setWideRHPRouteKeys] = useState<string[]>([]);
     const [shouldRenderSecondaryOverlay, setShouldRenderSecondaryOverlay] = useState(false);
+    const [expenseReportIDs, setExpenseReportIDs] = useState<Set<string>>(new Set());
 
     const shouldShowSecondaryOverlay = useRootNavigationState((state) => {
         const focusedRoute = findFocusedRoute(state);
@@ -126,6 +135,21 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         navigationRef.dispatch({...StackActions.popTo(SCREENS.RIGHT_MODAL.SEARCH_REPORT), target: rhpStateKey});
     }, []);
 
+    const markReportIDAsExpense = useCallback((reportID: string) => {
+        setExpenseReportIDs((prev) => {
+            const newSet = new Set(prev);
+            newSet.add(reportID);
+            return newSet;
+        });
+    }, []);
+
+    const isReportIDMarkedAsExpense = useCallback(
+        (reportID: string) => {
+            return expenseReportIDs.has(reportID);
+        },
+        [expenseReportIDs],
+    );
+
     useEffect(() => {
         if (wideRHPRouteKeys.length > 0) {
             Animated.timing(expandedRHPProgress, {
@@ -189,8 +213,10 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             secondOverlayProgress,
             shouldRenderSecondaryOverlay,
             dismissToWideReport,
+            markReportIDAsExpense,
+            isReportIDMarkedAsExpense,
         }),
-        [wideRHPRouteKeys, showWideRHPVersion, cleanWideRHPRouteKey, shouldRenderSecondaryOverlay, dismissToWideReport],
+        [wideRHPRouteKeys, showWideRHPVersion, cleanWideRHPRouteKey, shouldRenderSecondaryOverlay, dismissToWideReport, markReportIDAsExpense, isReportIDMarkedAsExpense],
     );
 
     return <WideRHPContext.Provider value={value}>{children}</WideRHPContext.Provider>;
@@ -200,7 +226,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
 function useShowWideRHPVersion(condition: boolean) {
     const navigation = useNavigation();
     const route = useRoute();
-    const {showWideRHPVersion, cleanWideRHPRouteKey} = useContext(WideRHPContext);
+    const reportID = route.params && 'reportID' in route.params && typeof route.params.reportID === 'string' ? route.params.reportID : '';
+    const {showWideRHPVersion, cleanWideRHPRouteKey, isReportIDMarkedAsExpense} = useContext(WideRHPContext);
 
     useEffect(() => {
         return navigation.addListener('beforeRemove', () => {
@@ -211,11 +238,14 @@ function useShowWideRHPVersion(condition: boolean) {
     }, [cleanWideRHPRouteKey, navigation, route]);
 
     useEffect(() => {
-        if (!condition) {
+        // Check if we should show wide RHP based on condition OR if reportID is in optimistic set
+        const shouldShow = condition || (reportID && isReportIDMarkedAsExpense(reportID));
+
+        if (!shouldShow) {
             return;
         }
         showWideRHPVersion(route);
-    }, [condition, route, showWideRHPVersion]);
+    }, [condition, reportID, isReportIDMarkedAsExpense, route, showWideRHPVersion]);
 }
 
 export default WideRHPContextProvider;
