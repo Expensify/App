@@ -4,6 +4,7 @@ import {sub as dateSubtract} from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
+import type {SearchFilterKey} from '@components/Search/types';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import BankAccount from '@libs/models/BankAccount';
@@ -29,6 +30,7 @@ const ACTIVE_EXPENSIFY_URL = addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const EXPENSIFY_MOBILE_URL = 'https://expensify.com/mobile';
 const EXPENSIFY_URL = 'https://www.expensify.com';
+const UBER_CONNECT_URL = 'https://business-integrations.uber.com/connect';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'org.me.mobiexpensifyg';
@@ -416,6 +418,7 @@ const CONST = {
     },
 
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
+    UBER_CONNECT_URL,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-travel-expense/id471713959',
@@ -995,10 +998,8 @@ const CONST = {
         ADMIN_TOUR_MOBILE: 'https://app.storylane.io/demo/b6faqcdsxgww?embed=inline',
         TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/mqzy3huvtrhx?embed=inline',
         TRACK_WORKSPACE_TOUR_MOBILE: 'https://app.storylane.io/share/wq4hiwsqvoho?embed=inline',
-
-        // At the moment we are using Navattic links, but it will be changed to Storylane in the future.
-        EMPLOYEE_TOUR: 'https://expensify.navattic.com/35609gb',
-        EMPLOYEE_TOUR_MOBILE: 'https://expensify.navattic.com/35609gb',
+        EMPLOYEE_TOUR: 'https://app.storylane.io/share/izmryscwurdd?embed=inline',
+        EMPLOYEE_TOUR_MOBILE: 'https://app.storylane.io/share/wckqdetaacgy?embed=inline',
     },
     OLD_DOT_PUBLIC_URLS: {
         TERMS_URL: `${EXPENSIFY_URL}/terms`,
@@ -1287,8 +1288,7 @@ const CONST = {
                 },
             },
             THREAD_DISABLED: ['CREATED'],
-            // Used when displaying reportActions list to handle unread messages icon/button
-            SCROLL_VERTICAL_OFFSET_THRESHOLD: 200,
+            LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD: 2000,
             ACTION_VISIBLE_THRESHOLD: 250,
             MAX_GROUPING_TIME: 300000,
         },
@@ -1788,6 +1788,7 @@ const CONST = {
         ASCII_CAPABLE: 'ascii-capable',
         NUMBER_PAD: 'number-pad',
         DECIMAL_PAD: 'decimal-pad',
+        NUMBERS_AND_PUNCTUATION: 'numbers-and-punctuation',
     },
 
     INPUT_MODE: {
@@ -1860,7 +1861,6 @@ const CONST = {
         MSWORD: 'application/msword',
         ZIP: 'application/zip',
         RFC822: 'message/rfc822',
-        HEIC: 'image/heic',
     },
 
     SHARE_FILE_MIMETYPE: {
@@ -1871,7 +1871,6 @@ const CONST = {
         WEBP: 'image/webp',
         TIF: 'image/tif',
         TIFF: 'image/tiff',
-        HEIC: 'image/heic',
         IMG: 'image/*',
         PDF: 'application/pdf',
         MSWORD: 'application/msword',
@@ -1997,17 +1996,28 @@ const CONST = {
     EXPENSIFY_MERCHANT: 'Expensify, Inc.',
     EMAIL,
 
-    FULL_STORY: {
-        MASK: 'fs-mask',
-        UNMASK: 'fs-unmask',
-        CUSTOMER: 'customer',
-        CONCIERGE: 'concierge',
-        OTHER: 'other',
-        WEB_PROP_ATTR: 'data-testid',
-        SHUTDOWN: 'shutdown',
-        RESTART: 'restart',
-        SET_IDENTITY: 'setIdentity',
-        OBSERVE: 'observe',
+    FULLSTORY: {
+        CLASS: {
+            MASK: 'fs-mask',
+            UNMASK: 'fs-unmask',
+            EXCLUDE: 'fs-exclude',
+        },
+        OPERATION: {
+            TRACK_EVENT: 'trackEvent',
+            GET_SESSION: 'getSession',
+            INIT: 'init',
+            LOG: 'log',
+            SOURCE: 'source',
+            OBSERVE: 'observe',
+            RESTART: 'restart',
+            SET_IDENTITY: 'setIdentity',
+            SET_CONFIG: 'setConfig',
+            SET_PAGE: 'setPage',
+            SET_PROPERTIES: 'setProperties',
+            SHUTDOWN: 'shutdown',
+            START: 'start',
+            STAT: 'stat',
+        },
     },
 
     CONCIERGE_DISPLAY_NAME: 'Concierge',
@@ -2957,6 +2967,12 @@ const CONST = {
             TOBACCO: 'tobacco',
             ADULT_ENTERTAINMENT: 'adultEntertainment',
         },
+        RECEIPT_PARTNERS: {
+            NAME: {UBER: 'uber'},
+            NAME_USER_FRIENDLY: {
+                uber: 'Uber for Business',
+            },
+        },
         CONNECTIONS: {
             NAME: {
                 // Here we will add other connections names when we add support for them
@@ -3168,7 +3184,7 @@ const CONST = {
             BREX: 'oauth.brex.com',
             WELLS_FARGO: 'oauth.wellsfargo.com',
             AMEX_DIRECT: 'oauth.americanexpressfdx.com',
-            CSV: '_ccupload',
+            CSV: 'ccupload',
         },
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
@@ -6287,14 +6303,18 @@ const CONST = {
             DISTANCE: 'distance',
             PER_DIEM: 'perDiem',
         },
+        WITHDRAWAL_TYPE: {
+            EXPENSIFY_CARD: 'expensify-card',
+            REIMBURSEMENT: 'reimbursement',
+        },
         SORT_ORDER: {
             ASC: 'asc',
             DESC: 'desc',
         },
         GROUP_BY: {
             REPORTS: 'reports',
-            MEMBERS: 'members',
-            CARDS: 'cards',
+            FROM: 'from',
+            CARD: 'card',
         },
         BOOLEAN: {
             YES: 'yes',
@@ -6354,6 +6374,7 @@ const CONST = {
             TITLE: 'title',
             ASSIGNEE: 'assignee',
             IN: 'in',
+            CARD: 'card',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -6379,6 +6400,7 @@ const CONST = {
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expenseType',
             CURRENCY: 'currency',
+            GROUP_CURRENCY: 'groupCurrency',
             MERCHANT: 'merchant',
             DESCRIPTION: 'description',
             FROM: 'from',
@@ -6398,6 +6420,7 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            WITHDRAWAL_TYPE: 'withdrawalType',
             WITHDRAWN: 'withdrawn',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
@@ -6424,6 +6447,7 @@ const CONST = {
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expense-type',
             CURRENCY: 'currency',
+            GROUP_CURRENCY: 'group-currency',
             MERCHANT: 'merchant',
             DESCRIPTION: 'description',
             FROM: 'from',
@@ -6443,6 +6467,7 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            WITHDRAWAL_TYPE: 'withdrawal-type',
             WITHDRAWN: 'withdrawn',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
@@ -6481,6 +6506,7 @@ const CONST = {
             UNAPPROVED_CASH: 'unapprovedCash',
             UNAPPROVED_CARD: 'unapprovedCard',
         },
+        GROUP_PREFIX: 'group_',
     },
 
     EXPENSE: {
@@ -6976,6 +7002,14 @@ const CONST = {
     },
 } as const;
 
+const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
+] as SearchFilterKey[];
+
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
@@ -6988,5 +7022,7 @@ type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
 type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
 export type {Country, IOUAction, IOUType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInvite, OnboardingAccounting, IOUActionParams};
+
+export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS};
 
 export default CONST;
