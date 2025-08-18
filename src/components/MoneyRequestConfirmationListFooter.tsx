@@ -250,7 +250,7 @@ function MoneyRequestConfirmationListFooter({
     isReceiptEditable = false,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
@@ -284,7 +284,9 @@ function MoneyRequestConfirmationListFooter({
     const policyID = selectedParticipants?.at(0)?.policyID;
     const reportOwnerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
     const shouldUseTransactionReport = !!transactionReport && isReportOutstanding(transactionReport, policyID, undefined, false);
-    const firstOutstandingReport = getOutstandingReportsForUser(policyID, reportOwnerAccountID, allReports ?? {}, undefined, false).at(0);
+    const firstOutstandingReport = getOutstandingReportsForUser(policyID, reportOwnerAccountID, allReports ?? {}, undefined, false)
+        .sort((a, b) => localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''))
+        .at(0);
     let reportName: string | undefined;
     if (shouldUseTransactionReport) {
         reportName = transactionReport.reportName;
@@ -376,7 +378,9 @@ function MoneyRequestConfirmationListFooter({
                             return;
                         }
 
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(action, iouType, transactionID, reportID, CONST.IOU.PAGE_INDEX.CONFIRM, Navigation.getActiveRoute()));
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(action, iouType, transactionID, reportID, reportActionID, CONST.IOU.PAGE_INDEX.CONFIRM, Navigation.getActiveRoute()),
+                        );
                     }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
@@ -433,7 +437,7 @@ function MoneyRequestConfirmationListFooter({
                             return;
                         }
 
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
@@ -455,7 +459,7 @@ function MoneyRequestConfirmationListFooter({
                             return;
                         }
 
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                     }}
                     brickRoadIndicator={shouldDisplayDistanceRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     disabled={didConfirm}
@@ -478,7 +482,7 @@ function MoneyRequestConfirmationListFooter({
                             return;
                         }
 
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
@@ -670,7 +674,7 @@ function MoneyRequestConfirmationListFooter({
                         if (!transactionID) {
                             return;
                         }
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                     }}
                     interactive={shouldReportBeEditable}
                     shouldRenderAsHTML

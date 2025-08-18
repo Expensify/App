@@ -4,14 +4,11 @@ import type {AppStateStatus} from 'react-native';
 import {AppState} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {importEmojiLocale} from '@assets/emojis';
 import * as API from '@libs/API';
 import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, OpenOldDotLinkParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Browser from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
-import {buildEmojisTrie} from '@libs/EmojiTrie';
-import localeEventCallback from '@libs/Localize/localeEventCallback';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,8 +17,6 @@ import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import CONST from '@src/CONST';
-import {isFullySupportedLocale, isSupportedLocale} from '@src/CONST/LOCALES';
-import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -53,26 +48,6 @@ Onyx.connect({
     key: ONYXKEYS.IS_SIDEBAR_LOADED,
     callback: (val) => (isSidebarLoaded = val),
     initWithStoredValues: false,
-});
-
-let preferredLocale: Locale | undefined;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => {
-        if (!val || !isSupportedLocale(val)) {
-            return;
-        }
-
-        preferredLocale = val;
-        IntlStore.load(val);
-        localeEventCallback(val);
-
-        // For locales without emoji support, fallback on English
-        const normalizedLocale = isFullySupportedLocale(val) ? val : CONST.LOCALES.DEFAULT;
-        importEmojiLocale(normalizedLocale).then(() => {
-            buildEmojisTrie(normalizedLocale);
-        });
-    },
 });
 
 let isUsingImportedState: boolean | undefined;
@@ -171,8 +146,8 @@ function getNonOptimisticPolicyIDs(policies: OnyxCollection<OnyxTypes.Policy>): 
         .filter((id): id is string => !!id);
 }
 
-function setLocale(locale: OnyxTypes.Locale) {
-    if (locale === preferredLocale) {
+function setLocale(locale: Locale, currentPreferredLocale: Locale | undefined) {
+    if (locale === currentPreferredLocale) {
         return;
     }
 
@@ -196,11 +171,6 @@ function setLocale(locale: OnyxTypes.Locale) {
     };
 
     API.write(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, parameters, {optimisticData});
-}
-
-function setLocaleAndNavigate(locale: OnyxTypes.Locale) {
-    setLocale(locale);
-    Navigation.goBack();
 }
 
 function setSidebarLoaded() {
@@ -446,6 +416,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
     currency?: string,
     file?: File,
     routeToNavigateAfterCreate?: Route,
+    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
 ) {
     const policyIDWithDefault = policyID || generatePolicyID();
     createDraftInitialWorkspace(policyOwnerEmail, policyName, policyIDWithDefault, makeMeAdmin, currency, file);
@@ -456,7 +427,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
                 Navigation.goBack();
             }
             const routeToNavigate = routeToNavigateAfterCreate ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithDefault, backTo);
-            savePolicyDraftByNewWorkspace(policyIDWithDefault, policyName, policyOwnerEmail, makeMeAdmin, currency, file);
+            savePolicyDraftByNewWorkspace(policyIDWithDefault, policyName, policyOwnerEmail, makeMeAdmin, currency, file, lastUsedPaymentMethod);
             Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
         })
         .then(endSignOnTransition);
@@ -472,8 +443,25 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
  * @param [currency] Optional, selected currency for the workspace
  * @param [file] Optional, avatar file for workspace
  */
-function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, policyOwnerEmail = '', makeMeAdmin = false, currency = '', file?: File) {
-    createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID, CONST.ONBOARDING_CHOICES.MANAGE_TEAM, currency, file);
+function savePolicyDraftByNewWorkspace(
+    policyID?: string,
+    policyName?: string,
+    policyOwnerEmail = '',
+    makeMeAdmin = false,
+    currency = '',
+    file?: File,
+    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
+) {
+    createWorkspace({
+        policyOwnerEmail,
+        makeMeAdmin,
+        policyName,
+        policyID,
+        engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+        currency,
+        file,
+        lastUsedPaymentMethod,
+    });
 }
 
 /**
@@ -654,7 +642,6 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
 
 export {
     setLocale,
-    setLocaleAndNavigate,
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
     redirectThirdPartyDesktopSignIn,
