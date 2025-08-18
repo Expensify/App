@@ -854,6 +854,7 @@ type Thread = {
 
 type GetChatRoomSubtitleConfig = {
     isCreateExpenseFlow?: boolean;
+    isReportArchived?: boolean;
 };
 
 type SelfDMParameters = {
@@ -5463,7 +5464,7 @@ function getReportSubtitlePrefix(report: OnyxEntry<Report>): string {
 /**
  * Get either the policyName or domainName the chat is tied to
  */
-function getChatRoomSubtitle(report: OnyxEntry<Report>, config: GetChatRoomSubtitleConfig = {isCreateExpenseFlow: false}): string | undefined {
+function getChatRoomSubtitle(report: OnyxEntry<Report>, config: GetChatRoomSubtitleConfig = {isCreateExpenseFlow: false, isReportArchived: false}): string | undefined {
     if (isChatThread(report)) {
         return '';
     }
@@ -5497,8 +5498,7 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>, config: GetChatRoomSubti
     }
 
     // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    if (isArchivedReport(getReportNameValuePairs(report?.reportID))) {
+    if (config.isReportArchived) {
         return report?.oldPolicyName ?? '';
     }
     return getPolicyName({report});

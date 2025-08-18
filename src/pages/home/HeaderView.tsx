@@ -132,7 +132,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const reportHeaderData = !isTaskReport && !isChatThread && report?.parentReportID ? parentReport : report;
     // Use sorted display names for the title for group chats on native small screen widths
     const title = getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy);
-    const subtitle = getChatRoomSubtitle(reportHeaderData);
+    const subtitle = getChatRoomSubtitle(reportHeaderData, {isReportArchived});
     const parentNavigationSubtitleData = getParentNavigationSubtitle(reportHeaderData);
     const reportDescription = Parser.htmlToText(getReportDescription(report));
     const policyName = getPolicyName({report, returnEmptyIfNotFound: true});

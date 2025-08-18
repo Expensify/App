@@ -970,7 +970,7 @@ function createOption(
         result.tooltipText = getReportParticipantsTitle(visibleParticipantAccountIDs);
 
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || reportUtilsIsGroupChat(report);
-        subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
+        subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true, isReportArchived: !!result.private_isArchived});
 
         const lastAction = lastVisibleReportActions[report.reportID];
         // lastActorAccountID can be an empty string
