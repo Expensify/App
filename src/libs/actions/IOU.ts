@@ -12185,7 +12185,7 @@ function assignCurrentUserAsApprover(report: OnyxEntry<OnyxTypes.Report>, accoun
         return;
     }
 
-    const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID);
+    const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID);
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`] ?? null;
     const optimisticNextStep = buildNextStep({...report, managerID: accountID}, CONST.REPORT.STATUS_NUM.SUBMITTED, false, true);
 

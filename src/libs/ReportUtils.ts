@@ -7576,11 +7576,11 @@ function buildOptimisticResolvedDuplicatesReportAction(): OptimisticDismissedVio
     };
 }
 
-function buildOptimisticChangeApproverReportAction(managerID: number): OptimisticChangedApproverReportAction {
+function buildOptimisticChangeApproverReportAction(managerID: number, actorAccountID: number): OptimisticChangedApproverReportAction {
     const created = DateUtils.getDBTime();
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
-        actorAccountID: currentUserAccountID,
+        actorAccountID,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
         message: [
