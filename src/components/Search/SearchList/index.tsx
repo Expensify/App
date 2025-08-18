@@ -394,7 +394,6 @@ function SearchList(
                 onSelectRow={onSelectRow}
                 keyExtractor={keyExtractor}
                 onScroll={onScroll}
-                showsVerticalScrollIndicator={false}
                 ref={listRef}
                 scrollToIndex={scrollToIndex}
                 isFocused={isFocused}
@@ -404,8 +403,6 @@ function SearchList(
                 ListFooterComponent={ListFooterComponent}
                 onViewableItemsChanged={onViewableItemsChanged}
                 onLayout={onLayout}
-                removeClippedSubviews
-                drawDistance={1000}
                 estimatedItemSize={estimatedItemSize}
                 overrideItemLayout={overrideItemLayout}
                 estimatedListSize={estimatedListSize}
