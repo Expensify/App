@@ -6,7 +6,6 @@ import PendingMembersToMetadata from './migrations/PendingMembersToMetadata';
 import PronounsMigration from './migrations/PronounsMigration';
 import RemoveEmptyReportActionsDrafts from './migrations/RemoveEmptyReportActionsDrafts';
 import RenameReceiptFilename from './migrations/RenameReceiptFilename';
-import TransactionBackupsToCollection from './migrations/TransactionBackupsToCollection';
 
 export default function () {
     const startTime = Date.now();
@@ -17,7 +16,6 @@ export default function () {
         const migrationPromises = [
             RenameReceiptFilename,
             KeyReportActionsDraftByReportActionID,
-            TransactionBackupsToCollection,
             RemoveEmptyReportActionsDrafts,
             NVPMigration,
             PronounsMigration,

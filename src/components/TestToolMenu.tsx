@@ -2,12 +2,14 @@ import React from 'react';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isUsingStagingApi} from '@libs/ApiUtils';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
-import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/User';
+import {setIsDebugModeEnabled, setShouldBlockTransactionThreadReportCreation, setShouldUseStagingServer} from '@userActions/User';
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account as AccountOnyx} from '@src/types/onyx';
 import Button from './Button';
@@ -27,11 +29,14 @@ const ACCOUNT_DEFAULT: AccountOnyx = {
 };
 
 function TestToolMenu() {
+    const {isBetaEnabled} = usePermissions();
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
     const [account = ACCOUNT_DEFAULT] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE, {canBeMissing: true});
     const shouldUseStagingServer = account?.shouldUseStagingServer ?? isUsingStagingApi();
     const isDebugModeEnabled = !!account?.isDebugModeEnabled;
+    const shouldBlockTransactionThreadReportCreation = !!account?.shouldBlockTransactionThreadReportCreation;
+    const shouldShowTransactionThreadReportToggle = isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -48,6 +53,17 @@ function TestToolMenu() {
             </Text>
             {isAuthenticated && (
                 <>
+                    {/* When toggled, the app won't create the transaction thread report. It should be removed together with CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS beta */}
+                    {shouldShowTransactionThreadReportToggle && (
+                        <TestToolRow title={translate('initialSettingsPage.troubleshoot.shouldBlockTransactionThreadReportCreation')}>
+                            <Switch
+                                accessibilityLabel={translate('initialSettingsPage.troubleshoot.shouldBlockTransactionThreadReportCreation')}
+                                isOn={shouldBlockTransactionThreadReportCreation}
+                                onToggle={() => setShouldBlockTransactionThreadReportCreation(!shouldBlockTransactionThreadReportCreation)}
+                            />
+                        </TestToolRow>
+                    )}
+
                     {/* When toggled the app will be put into debug mode. */}
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugMode')}>
                         <Switch

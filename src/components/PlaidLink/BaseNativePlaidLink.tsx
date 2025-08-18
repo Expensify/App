@@ -1,22 +1,19 @@
 import {useEffect} from 'react';
+import {create, dismissLink, open, usePlaidEmitter} from 'react-native-plaid-link-sdk';
 import type {LinkEvent} from 'react-native-plaid-link-sdk';
-import {dismissLink, openLink, usePlaidEmitter} from 'react-native-plaid-link-sdk';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type PlaidLinkProps from './types';
 
-function PlaidLink({token, onSuccess = () => {}, onExit = () => {}, onEvent}: PlaidLinkProps) {
+function BaseNativePlaidLink({token, onSuccess = () => {}, onExit = () => {}, onEvent}: PlaidLinkProps) {
     usePlaidEmitter((event: LinkEvent) => {
         Log.info('[PlaidLink] Handled Plaid Event: ', false, {...event});
         onEvent(event.eventName, event.metadata);
     });
     useEffect(() => {
         onEvent(CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.OPEN);
-        openLink({
-            tokenConfig: {
-                token,
-                noLoadingState: false,
-            },
+        create({token, noLoadingState: false});
+        open({
             onSuccess: ({publicToken, metadata}) => {
                 onSuccess({publicToken, metadata});
             },
@@ -36,6 +33,6 @@ function PlaidLink({token, onSuccess = () => {}, onExit = () => {}, onEvent}: Pl
     return null;
 }
 
-PlaidLink.displayName = 'PlaidLink';
+BaseNativePlaidLink.displayName = 'BaseNativePlaidLink';
 
-export default PlaidLink;
+export default BaseNativePlaidLink;
