@@ -45,6 +45,7 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
         initialNumToRender = 10,
         ...rest
     } = props;
+
     // `initialScrollIndex` doesn't work properly with FlatList, this uses an alternative approach to achieve the same effect.
     // What we do is start rendering the list from `initialScrollKey` and then whenever we reach the start we render more
     // previous items, until everything is rendered. We also progressively render new data that is added at the start of the

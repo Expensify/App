@@ -272,17 +272,21 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
 
     const [oldestUnreadReportActionIDValueFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${reportID}`, {canBeMissing: true});
-    const [oldestUnreadReportActionID, setOldestUnreadReportActionID] = useState<string | undefined>(oldestUnreadReportActionIDValueFromOnyx);
+    const [oldestUnreadReportActionIDState, setOldestUnreadReportActionIDState] = useState<string | undefined>(oldestUnreadReportActionIDValueFromOnyx);
+    const oldestUnreadReportActionID = useMemo(
+        () => (oldestUnreadReportActionIDState === CONST.NOT_FOUND_ID ? undefined : oldestUnreadReportActionIDState),
+        [oldestUnreadReportActionIDState],
+    );
 
     // Set the oldestUnreadReportActionID in state once loaded from Onyx, and clear Onyx state to prevent stale data.
     useEffect(() => {
-        if (!oldestUnreadReportActionIDValueFromOnyx || (oldestUnreadReportActionIDValueFromOnyx && !!oldestUnreadReportActionID)) {
+        if (!oldestUnreadReportActionIDValueFromOnyx || (oldestUnreadReportActionIDValueFromOnyx && !!oldestUnreadReportActionIDState)) {
             return;
         }
 
-        setOldestUnreadReportActionID(oldestUnreadReportActionIDValueFromOnyx);
+        setOldestUnreadReportActionIDState(oldestUnreadReportActionIDValueFromOnyx);
         resetOldestUnreadReportActionID(reportID);
-    }, [oldestUnreadReportActionID, oldestUnreadReportActionIDValueFromOnyx, reportID]);
+    }, [oldestUnreadReportActionIDState, oldestUnreadReportActionIDValueFromOnyx, reportID]);
 
     const {
         reportActions: unfilteredReportActions,
@@ -290,7 +294,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         sortedAllReportActions,
         hasNewerActions,
         hasOlderActions,
-    } = usePaginatedReportActions(reportID, reportActionIDFromRoute ?? (oldestUnreadReportActionID === CONST.NOT_FOUND_ID ? undefined : oldestUnreadReportActionID));
+    } = usePaginatedReportActions(reportID, reportActionIDFromRoute ?? oldestUnreadReportActionID);
 
     // wrapping in useMemo because this is array operation and can cause performance issues
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
@@ -494,7 +498,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const handleOpenReport = useCallback<typeof openReport>((...args) => {
         // Reset the oldestUnreadReportActionID every time the report is (newly) fetched
-        setOldestUnreadReportActionID(undefined);
+        setOldestUnreadReportActionIDState(undefined);
         openReport(...args);
     }, []);
 
@@ -809,7 +813,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     // When we open a report, we have to wait for the oldest unread report action ID to be set and
     // retrieved from Onyx, in order to get the correct initial report action page from store.
-    const isLoadingOldestUnreadReportActionID = !isOffline && !oldestUnreadReportActionID;
+    const isLoadingOldestUnreadReportActionID = !isOffline && !oldestUnreadReportActionIDState;
 
     // Once all the above conditions are met, we can consider the report ready.
     const isReportReady = !isInitiallyLoadingReport && !isLoadingOldestUnreadReportActionID;
