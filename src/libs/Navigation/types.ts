@@ -11,12 +11,16 @@ import type {
     Route,
 } from '@react-navigation/native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
-import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {SearchQueryString} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
-import type {AttachmentModalScreenParams} from '@pages/media/AttachmentModalScreen/types';
+import type {ProfileAvatarScreenParams} from '@pages/media/AttachmentModalScreen/routes/ProfileAvatarModalContent';
+import type {ReportAddAttachmentScreenParams} from '@pages/media/AttachmentModalScreen/routes/report/ReportAddAttachmentModalContent';
+import type {ReportAttachmentScreenParams} from '@pages/media/AttachmentModalScreen/routes/report/ReportAttachmentModalContent';
+import type {ReportAvatarScreenParams} from '@pages/media/AttachmentModalScreen/routes/report/ReportAvatarModalContent';
+import type {TransactionReceiptScreenParams} from '@pages/media/AttachmentModalScreen/routes/TransactionReceiptModalContent';
+import type {WorkspaceAvatarScreenParams} from '@pages/media/AttachmentModalScreen/routes/WorkspaceAvatarModalContent';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -1839,7 +1843,6 @@ type ReportsSplitNavigatorParamList = {
         moneyRequestReportActionID?: string;
         transactionID?: string;
     };
-    [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
 };
 
 type SettingsSplitNavigatorParamList = {
@@ -2088,22 +2091,17 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.CONCIERGE]: undefined;
     [SCREENS.TRACK_EXPENSE]: undefined;
     [SCREENS.SUBMIT_EXPENSE]: undefined;
-    [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
-    [SCREENS.PROFILE_AVATAR]: {
-        accountID: string;
-        backTo?: Routes;
-    };
-    [SCREENS.WORKSPACE_AVATAR]: {
-        policyID: string;
-        letter?: UpperCaseCharacters;
-    };
+
+    [SCREENS.REPORT_ATTACHMENTS]: ReportAttachmentScreenParams;
+    [SCREENS.REPORT_ADD_ATTACHMENT]: ReportAddAttachmentScreenParams;
+    [SCREENS.REPORT_AVATAR]: ReportAvatarScreenParams;
+    [SCREENS.PROFILE_AVATAR]: ProfileAvatarScreenParams;
+    [SCREENS.WORKSPACE_AVATAR]: WorkspaceAvatarScreenParams;
+    [SCREENS.TRANSACTION_RECEIPT]: TransactionReceiptScreenParams;
+
     [SCREENS.WORKSPACE_JOIN_USER]: {
         policyID: string;
         email: string;
-    };
-    [SCREENS.REPORT_AVATAR]: {
-        reportID: string;
-        policyID?: string;
     };
     [SCREENS.WORKSPACES_LIST]: {
         backTo?: Routes;
@@ -2123,15 +2121,6 @@ type AuthScreensParamList = SharedScreensParamList & {
     [NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR]: NavigatorScreenParams<TestDriveDemoNavigatorParamList>;
     [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
-    [SCREENS.TRANSACTION_RECEIPT]: {
-        reportID: string;
-        transactionID: string;
-        readonly?: string;
-        isFromReviewDuplicates?: string;
-        action?: IOUAction;
-        iouType?: IOUType;
-        mergeTransactionID?: string;
-    };
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
     [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;

@@ -7,7 +7,8 @@ import type DeepValueOf from './types/utils/DeepValueOf';
 const PROTECTED_SCREENS = {
     HOME: 'Home',
     CONCIERGE: 'Concierge',
-    ATTACHMENTS: 'Attachments',
+    REPORT_ATTACHMENTS: 'ReportAttachments',
+    REPORT_ADD_ATTACHMENT: 'ReportAddAttachment',
     TRACK_EXPENSE: 'TrackExpense',
     SUBMIT_EXPENSE: 'SubmitExpense',
 } as const;
@@ -771,6 +772,14 @@ const SCREENS = {
 
 type Screen = DeepValueOf<typeof SCREENS>;
 
+type AttachmentModalScreen =
+    | typeof SCREENS.REPORT_ATTACHMENTS
+    | typeof SCREENS.REPORT_ADD_ATTACHMENT
+    | typeof SCREENS.REPORT_AVATAR
+    | typeof SCREENS.PROFILE_AVATAR
+    | typeof SCREENS.WORKSPACE_AVATAR
+    | typeof SCREENS.TRANSACTION_RECEIPT;
+
 export default SCREENS;
 export {PROTECTED_SCREENS};
-export type {Screen};
+export type {Screen, AttachmentModalScreen};
