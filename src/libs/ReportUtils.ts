@@ -5136,6 +5136,7 @@ function getReportNameInternal({
 }: GetReportNameParams): string {
     let formattedName: string | undefined;
     let parentReportAction: OnyxEntry<ReportAction>;
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     if (parentReportActionParam) {
         parentReportAction = parentReportActionParam;
     } else {
@@ -5225,7 +5226,7 @@ function getReportNameInternal({
     }
 
     if (isMovedAction(parentReportAction)) {
-        return getMovedActionMessage(parentReportAction);
+        return getMovedActionMessage(parentReportAction, parentReport);
     }
 
     if (isMoneyRequestAction(parentReportAction)) {
@@ -6227,7 +6228,7 @@ function getMovedTransactionMessage(report: OnyxEntry<Report>) {
     return message;
 }
 
-function getMovedActionMessage(action: ReportAction) {
+function getMovedActionMessage(action: ReportAction, report: OnyxEntry<Report>) {
     if (!isMovedAction(action)) {
         return '';
     }
@@ -6236,11 +6237,10 @@ function getMovedActionMessage(action: ReportAction) {
     if (!movedActionOriginalMessage) {
         return '';
     }
-    const html = getReportActionHtml(action);
     const {toPolicyID, newParentReportID, movedReportID} = movedActionOriginalMessage;
     const toPolicyName = getPolicyNameByID(toPolicyID);
     return translateLocal('iou.movedAction', {
-        shouldHideMovedReportUrl: html.startsWith('moved this report'),
+        shouldHideMovedReportUrl: !isDM(report),
         movedReportUrl: `${environmentURL}/r/${movedReportID}`,
         newParentReportUrl: `${environmentURL}/r/${newParentReportID}`,
         toPolicyName,
