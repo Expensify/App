@@ -17,7 +17,7 @@ function parseHybridAppSettings(hybridAppSettings: string | null): HybridAppSett
     return JSON.parse(hybridAppSettings) as HybridAppSettings;
 }
 
-function getHybridAppSettings(): Promise<null | HybridAppSettings> {
+function getHybridAppSettings(): Promise<HybridAppSettings | null> {
     return HybridAppModule.getHybridAppSettings().then((hybridAppSettings) => {
         return parseHybridAppSettings(hybridAppSettings);
     });

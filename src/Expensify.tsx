@@ -126,7 +126,7 @@ function Expensify() {
     const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
 
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale;
-    const shouldHideSplash = (isSplashReadyToBeHidden || isSplashVisible) && shouldInit;
+    const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isSplashReadyToBeHidden : isSplashVisible);
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {

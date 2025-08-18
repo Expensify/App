@@ -82,7 +82,7 @@ Onyx.connect({
     callback: (value) => {
         session = value ?? {};
 
-        if (!session?.authToken) {
+        if (!session?.authToken && isHybridAppSetupFinished) {
             migrateHybridAppToNewPartnerName();
         }
 
