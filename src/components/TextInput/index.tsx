@@ -1,7 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
+import {isMobileChrome} from '@libs/Browser';
 import DomUtils from '@libs/DomUtils';
 import Visibility from '@libs/Visibility';
 import BaseTextInput from './BaseTextInput';
@@ -26,7 +26,7 @@ function TextInput({ref, ...props}: BaseTextInputProps) {
         }
 
         removeVisibilityListener = Visibility.onVisibilityChange(() => {
-            if (!Browser.isMobileChrome() || !Visibility.isVisible() || !textInputRef.current || DomUtils.getActiveElement() !== textInputRef.current) {
+            if (!isMobileChrome() || !Visibility.isVisible() || !textInputRef.current || DomUtils.getActiveElement() !== textInputRef.current) {
                 return;
             }
             textInputRef.current.blur();
