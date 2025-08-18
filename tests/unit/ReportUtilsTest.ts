@@ -559,7 +559,6 @@ describe('ReportUtils', () => {
             });
 
             test('Archived', async () => {
-
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseAdminsRoom.reportID}`, reportNameValuePairs);
 
                 const {result: isReportArchived} = renderHook(() => useReportIsArchived(baseAdminsRoom.reportID));

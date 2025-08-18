@@ -39,7 +39,7 @@ function OptionRowLHNData({
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
-    const isReportArchived = useReportIsArchived(reportID);
+    const isReportArchived = useReportIsArchived(reportID || fullReport?.reportID);
     const currentReportIDValue = useCurrentReportID();
     const isReportFocused = isOptionFocused && currentReportIDValue?.currentReportID === reportID;
 

@@ -5167,8 +5167,10 @@ function getReportNameInternal({
     } else {
         parentReportAction = isThread(report) ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] : undefined;
     }
+
+    const isArchived = isReportArchived || !!allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`]?.private_isArchived;
     const parentReportActionMessage = getReportActionMessageReportUtils(parentReportAction);
-    const isArchivedNonExpense = isArchivedNonExpenseReport(report, isReportArchived || isArchivedReport(reportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`]));
+    const isArchivedNonExpense = isArchivedNonExpenseReport(report, isArchived);
 
     if (
         isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
@@ -5361,7 +5363,12 @@ function getReportNameInternal({
             return generateArchivedReportName(reportActionMessage);
         }
         if (!isEmptyObject(parentReportAction) && isModifiedExpenseAction(parentReportAction)) {
-            const modifiedMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: parentReportAction, searchReports: reports, isReportArchived});
+            const modifiedMessage = ModifiedExpenseMessage.getForReportAction({
+                reportOrID: report?.reportID,
+                reportAction: parentReportAction,
+                searchReports: reports,
+                isReportArchived: isArchived,
+            });
             return formatReportLastMessageText(modifiedMessage);
         }
         if (isTripRoom(report) && report?.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
