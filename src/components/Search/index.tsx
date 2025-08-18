@@ -1,6 +1,6 @@
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import type {ContentStyle} from '@shopify/flash-list';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import {View} from 'react-native';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
@@ -8,6 +8,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -175,6 +176,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
+    const {markReportIDAsExpense} = useContext(WideRHPContext);
     const {
         setCurrentSearchHashAndKey,
         setSelectedTransactions,
@@ -587,9 +589,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 return;
             }
 
+            markReportIDAsExpense(reportID);
+
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID}));
         },
-        [hash, isMobileSelectionModeEnabled, toggleTransaction, queryJSON],
+        [isMobileSelectionModeEnabled, markReportIDAsExpense, toggleTransaction, queryJSON, hash],
     );
 
     const onViewableItemsChanged = useCallback(
