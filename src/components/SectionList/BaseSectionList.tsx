@@ -3,9 +3,13 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import AnimatedSectionList from './AnimatedSectionList';
 import type {SectionListProps} from './types';
 
-function BaseSectionList<ItemT, SectionT>(
-    {addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, contentContainerStyle: contentContainerStyleProp, ref, ...restProps}: SectionListProps<ItemT, SectionT>,
-) {
+function BaseSectionList<ItemT, SectionT>({
+    addBottomSafeAreaPadding,
+    addOfflineIndicatorBottomSafeAreaPadding,
+    contentContainerStyle: contentContainerStyleProp,
+    ref,
+    ...restProps
+}: SectionListProps<ItemT, SectionT>) {
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, style: contentContainerStyleProp});
 
     return (
