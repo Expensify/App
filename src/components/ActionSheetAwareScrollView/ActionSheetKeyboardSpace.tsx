@@ -1,8 +1,8 @@
 import React, {useContext, useEffect} from 'react';
 import type {ViewProps} from 'react-native';
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
-import Reanimated, {useAnimatedReaction, useAnimatedStyle, useDerivedValue, useScrollViewOffset, useSharedValue, withSequence, withSpring, withTiming} from 'react-native-reanimated';
-import type {AnimatedRef, SharedValue} from 'react-native-reanimated';
+import Reanimated, {useAnimatedReaction, useAnimatedRef, useAnimatedStyle, useDerivedValue, useScrollViewOffset, useSharedValue, withSequence, withSpring, withTiming} from 'react-native-reanimated';
+import type {AnimatedRef} from 'react-native-reanimated';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -44,10 +44,12 @@ const useAnimatedKeyboard = () => {
             },
             onMove: (e) => {
                 'worklet';
+
                 height.set(e.height);
             },
             onEnd: (e) => {
                 'worklet';
+
                 state.set(e.height > 0 ? KeyboardState.OPEN : KeyboardState.CLOSED);
                 height.set(e.height);
             },
@@ -70,7 +72,10 @@ function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
     } = useSafeAreaPaddings();
     const keyboard = useAnimatedKeyboard();
     const {scrollViewRef} = props;
-    const position = scrollViewRef ? useScrollViewOffset(scrollViewRef) : undefined;
+    // Create a dummy ref when scrollViewRef is not provided to satisfy hooks rules
+    const dummyRef = useAnimatedRef<Reanimated.ScrollView>();
+    const actualRef = scrollViewRef ?? dummyRef;
+    const position = useScrollViewOffset(actualRef);
 
     // Similar to using `global` in worklet but it's just a local object
     const syncLocalWorkletState = useSharedValue(KeyboardState.UNKNOWN);
@@ -179,7 +184,7 @@ function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
                     return lastKeyboardHeight - keyboardHeight;
                 }
 
-                const scrollOffset = position?.get() ?? 0;
+                const scrollOffset = scrollViewRef ? position.get() : 0;
 
                 // Check if there's a space not filled by content and we need to move
                 const hasWhiteGap =
