@@ -80,6 +80,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                                             >
                                                 {translate('common.learnMore')}
                                             </TextLink>
+                                            .
                                         </>
                                     ) : undefined
                                 }
