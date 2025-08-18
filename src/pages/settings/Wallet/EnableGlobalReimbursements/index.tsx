@@ -84,6 +84,10 @@ function EnableGlobalReimbursements({route}: EnableGlobalReimbursementsProps) {
     };
 
     useEffect(() => {
+        return clearErrors(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS);
+    }, []);
+
+    useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (enableGlobalReimbursements?.errors || enableGlobalReimbursements?.isEnablingGlobalReimbursements || !enableGlobalReimbursements?.isSuccess) {
             return;
@@ -95,6 +99,7 @@ function EnableGlobalReimbursements({route}: EnableGlobalReimbursementsProps) {
         }
 
         return () => {
+            clearErrors(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS);
             clearEnableGlobalReimbursementsForUSDBankAccount();
         };
     }, [enableGlobalReimbursements?.errors, enableGlobalReimbursements?.isEnablingGlobalReimbursements, enableGlobalReimbursements?.isSuccess]);
