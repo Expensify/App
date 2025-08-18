@@ -2,6 +2,7 @@ import React from 'react';
 import {InteractionManager} from 'react-native';
 import type {ListItem} from '@components/SelectionList/types';
 import useOnyx from '@hooks/useOnyx';
+import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -24,7 +25,7 @@ type TransactionGroupListItem = ListItem & {
 type IOURequestStepReportProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_REPORT> & WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_REPORT>;
 
 function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
-    const {backTo, action, iouType, transactionID, reportID: reportIDFromRoute} = route.params;
+    const {backTo, action, iouType, transactionID, reportID: reportIDFromRoute, reportActionID} = route.params;
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const reportID = isUnreported ? transaction?.participants?.at(0)?.reportID : transaction?.reportID;
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: false});
@@ -128,6 +129,9 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         });
     };
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, reportOrDraftReport, transaction);
+
     return (
         <IOURequestEditReportCommon
             backTo={backTo}
@@ -137,6 +141,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             removeFromReport={removeFromReport}
             isEditing={isEditing}
             isUnreported={isUnreported}
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
         />
     );
 }
