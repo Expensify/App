@@ -6588,8 +6588,8 @@ describe('actions/IOU', () => {
             expect(updatedTransaction?.reportID).toBe(expenseReport?.reportID);
             expect(isMoneyRequestAction(updatedIOUReportActionOnSelfDMReport) ? getOriginalMessage(updatedIOUReportActionOnSelfDMReport)?.IOUTransactionID : undefined).toBe(undefined);
             expect(updatedTrackExpenseActionableWhisper).toBe(undefined);
-            expect(updatedExpenseReport?.nonReimbursableTotal).toBeTruthy();
-            expect(updatedExpenseReport?.total).toBeTruthy();
+            expect(updatedExpenseReport?.nonReimbursableTotal).toBe(-amount);
+            expect(updatedExpenseReport?.total).toBe(-amount);
         });
 
         describe('saveSplitTransactions', () => {
