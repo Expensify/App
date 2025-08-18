@@ -98,7 +98,6 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
 
     /** Prevents the submit button from triggering blur on mouse down. */
     shouldPreventDefaultFocusOnPressSubmit?: boolean;
-<<<<<<< HEAD
 };
 
 function FormProvider(
@@ -120,30 +119,6 @@ function FormProvider(
     }: FormProviderProps,
     forwardedRef: ForwardedRef<FormRef>,
 ) {
-=======
-
-    /** Reference to the outer element */
-    forwardedRef?: ForwardedRef<FormRef>;
-};
-
-function FormProvider({
-    formID,
-    validate,
-    shouldValidateOnBlur = true,
-    shouldValidateOnChange = true,
-    children,
-    enabledWhenOffline = false,
-    onSubmit,
-    shouldTrimValues = true,
-    allowHTML = false,
-    isLoading = false,
-    shouldRenderFooterAboveSubmit = false,
-    shouldUseStrictHtmlTagValidation = false,
-    shouldPreventDefaultFocusOnPressSubmit = false,
-    forwardedRef,
-    ...rest
-}: FormProviderProps) {
->>>>>>> 7acd72ff71c (Prettier run)
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
     const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`, {canBeMissing: true});
     const [draftValues, draftValuesMetadata] = useOnyx<OnyxFormDraftKey, Form>(`${formID}Draft`, {canBeMissing: true});
