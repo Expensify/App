@@ -296,7 +296,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
                 return;
             }
             KeyboardUtils.dismiss().then(() => {
-                singleExecution(() => navigateToAndOpenReport([login]))();
+                singleExecution(() => navigateToAndOpenReport({userLogins: [login]}))();
             });
         },
         [selectedOptions, toggleOption, singleExecution],
