@@ -293,6 +293,7 @@ import type {
     WorkEmailResendCodeParams,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
+    WorkspaceMembersCountParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
@@ -551,6 +552,7 @@ const translations = {
         auditor: 'Audytor',
         role: 'Rola',
         currency: 'Waluta',
+        groupCurrency: 'Waluta grupy',
         rate: 'Oceń',
         emptyLHN: {
             title: 'Hurra! Wszystko nadrobione.',
@@ -1578,6 +1580,7 @@ const translations = {
             testCrash: 'Test awarii',
             resetToOriginalState: 'Przywróć do stanu początkowego',
             usingImportedState: 'Używasz zaimportowanego stanu. Naciśnij tutaj, aby go wyczyścić.',
+            shouldBlockTransactionThreadReportCreation: 'Blokuj tworzenie raportów wątku transakcji',
             debugMode: 'Tryb debugowania',
             invalidFile: 'Nieprawidłowy plik',
             invalidFileDescription: 'Plik, który próbujesz zaimportować, jest nieprawidłowy. Spróbuj ponownie.',
@@ -4915,7 +4918,7 @@ const translations = {
             },
             addedWithPrimary: 'Niektórzy członkowie zostali dodani z ich głównymi loginami.',
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Dodane przez dodatkowe logowanie ${secondaryLogin}.`,
-            membersListTitle: 'Katalog wszystkich członków przestrzeni roboczej.',
+            workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Łączna liczba członków przestrzeni roboczej: ${count}`,
             importMembers: 'Importuj członków',
         },
         card: {
@@ -5542,6 +5545,17 @@ const translations = {
                     one: '1 dzień',
                     other: (count: number) => `${count} dni`,
                 }),
+                cashExpenseDefault: 'Domyślny wydatek gotówkowy',
+                cashExpenseDefaultDescription:
+                    'Wybierz, jak powinny być tworzone wydatki gotówkowe. Wydatek jest uznawany za gotówkowy, jeśli nie jest importowaną transakcją kartą firmową. Obejmuje to ręcznie tworzone wydatki, paragony, diety, odległości i czas pracy.',
+                reimbursableDefault: 'Zwracany',
+                reimbursableDefaultDescription: 'Wydatki są zazwyczaj zwracane pracownikom',
+                nonReimbursableDefault: 'Niezwracany',
+                nonReimbursableDefaultDescription: 'Wydatki są czasami zwracane pracownikom',
+                alwaysReimbursable: 'Zawsze zwracany',
+                alwaysReimbursableDescription: 'Wydatki są zawsze zwracane pracownikom',
+                alwaysNonReimbursable: 'Nigdy nie zwracany',
+                alwaysNonReimbursableDescription: 'Wydatki nigdy nie są zwracane pracownikom',
                 billableDefault: 'Domyślne do rozliczenia',
                 billableDefaultDescription: ({tagsPageLink}: BillableDefaultDescriptionParams) =>
                     `<muted-text>Wybierz, czy wydatki gotówkowe i kartą kredytową powinny być domyślnie rozliczane. Rozliczane wydatki można włączyć lub wyłączyć w <a href="${tagsPageLink}">tagi</a>.</muted-text>`,
@@ -5830,6 +5844,8 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `zaktualizowano "Ponowne obciążenie klientów kosztami" na "${newValue}" (wcześniej "${oldValue}")`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `zaktualizowano "Domyślny wydatek gotówkowy" na "${newValue}" (wcześniej "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `zmieniono "Wymuś domyślne tytuły raportów" ${value ? 'na' : 'wyłączony'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `zaktualizował nazwę tego miejsca pracy na "${newName}" (wcześniej "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -6031,18 +6047,18 @@ const translations = {
             },
             current: 'Obecny',
             past: 'Przeszłość',
-            submitted: 'Data złożenia',
-            approved: 'Data zatwierdzenia',
-            paid: 'Data płatności',
-            exported: 'Data eksportu',
-            posted: 'Data opublikowania',
-            withdrawn: 'Data wycofania',
+            submitted: 'Złożone',
+            approved: 'Zatwierdzone',
+            paid: 'Zapłacone',
+            exported: 'Eksportowane',
+            posted: 'Opublikowane',
+            withdrawn: 'Wycofane',
             billable: 'Podlegające fakturowaniu',
             reimbursable: 'Podlegające zwrotowi',
             groupBy: {
                 reports: 'Raport',
-                members: 'Członek',
-                cards: 'Karta',
+                from: 'Od',
+                card: 'Karta',
             },
             feed: 'Kanal',
             withdrawalType: {
@@ -6658,9 +6674,8 @@ const translations = {
                     `Zakwestionowałeś opłatę w wysokości ${amountOwed} na karcie kończącej się na ${cardEnding}. Twoje konto zostanie zablokowane do czasu rozwiązania sporu z bankiem.`,
             },
             cardAuthenticationRequired: {
-                title: 'Nie można było obciążyć Twojej karty',
-                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) =>
-                    `Twoja karta płatnicza nie została w pełni uwierzytelniona. Proszę ukończyć proces uwierzytelniania, aby aktywować kartę płatniczą kończącą się na ${cardEnding}.`,
+                title: 'Twoja karta płatnicza nie została w pełni uwierzytelniona.',
+                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) => `Dokończ proces uwierzytelnienia, aby aktywować kartę kończącą się na ${cardEnding}.`,
             },
             insufficientFunds: {
                 title: 'Nie można było obciążyć Twojej karty',

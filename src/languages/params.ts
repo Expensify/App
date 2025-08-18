@@ -506,6 +506,8 @@ type TaxAmountParams = {taxAmount: number};
 
 type SecondaryLoginParams = {secondaryLogin: string};
 
+type WorkspaceMembersCountParams = {count: number};
+
 type OwnerOwesAmountParams = {amount: string; email: string};
 
 type ChangeOwnerSubscriptionParams = {usersCount: number; finalCount: number};
@@ -1153,6 +1155,7 @@ export type {
     BankAccountLastFourParams,
     ReviewParams,
     CreateExpensesParams,
+    WorkspaceMembersCountParams,
     CurrencyInputDisabledTextParams,
     EmployeeInviteMessageParams,
     FlightParams,

@@ -65,6 +65,7 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_STATUS: 'search/filters/status',
     SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
     SEARCH_ADVANCED_FILTERS_CURRENCY: 'search/filters/currency',
+    SEARCH_ADVANCED_FILTERS_GROUP_CURRENCY: 'search/filters/group-currency',
     SEARCH_ADVANCED_FILTERS_MERCHANT: 'search/filters/merchant',
     SEARCH_ADVANCED_FILTERS_DESCRIPTION: 'search/filters/description',
     SEARCH_ADVANCED_FILTERS_REPORT_ID: 'search/filters/reportID',
@@ -1931,6 +1932,10 @@ const ROUTES = {
     RULES_BILLABLE_DEFAULT: {
         route: 'workspaces/:policyID/rules/billable',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/billable` as const,
+    },
+    RULES_REIMBURSABLE_DEFAULT: {
+        route: 'workspaces/:policyID/rules/reimbursable',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/reimbursable` as const,
     },
     RULES_PROHIBITED_DEFAULT: {
         route: 'workspaces/:policyID/rules/prohibited',
