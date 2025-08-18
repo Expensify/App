@@ -1,4 +1,4 @@
-import {FP, Capability, AndroidCapability, FPAttributeFormat} from 'group-ib-fp';
+import {AndroidCapability, Capability, FP, FPAttributeFormat} from 'group-ib-fp';
 
 const fp = FP.getInstance();
 

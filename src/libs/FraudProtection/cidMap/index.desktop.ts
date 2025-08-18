@@ -1,5 +1,4 @@
-import CONST from "@src/CONST";
-
+import CONST from '@src/CONST';
 
 export const cidMap: Record<string, string> = {
     [CONST.ENVIRONMENT.PRODUCTION]: 'gib-w-expensify-desk',

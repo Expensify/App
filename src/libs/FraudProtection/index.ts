@@ -1,10 +1,9 @@
-
-import getEnvironment from '@libs/Environment/getEnvironment';
-import { cidMap } from './cidMap';
-import {init as initFP, setAttribute, setAuthStatus, setIdentity, setSessionID} from './GroupIBSDKBridge';
+import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
+import getEnvironment from '@libs/Environment/getEnvironment';
 import ONYXKEYS from '@src/ONYXKEYS';
-import { Str } from 'expensify-common';
+import {cidMap} from './cidMap';
+import {init as initFP, sendEvent, setAttribute, setAuthStatus, setIdentity, setSessionID} from './GroupIBSDKBridge';
 
 const sessionID: string = Str.guid();
 Onyx.connectWithoutView({
@@ -27,11 +26,9 @@ Onyx.connectWithoutView({
     },
 });
 
-
 async function init(): Promise<void> {
     const env = await getEnvironment();
     initFP(cidMap[env]);
 }
 
-
-export default {init};
+export default {init, sendEvent};

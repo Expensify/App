@@ -1,3 +1,3 @@
-import FraudProtection from "@libs/FraudProtection";
+import FraudProtection from '@libs/FraudProtection';
 
 FraudProtection.init();

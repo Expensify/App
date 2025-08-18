@@ -73,11 +73,4 @@ function setIdentity(id: string) {
     });
 }
 
-export {
-    init,
-    setAttribute,
-    sendEvent,
-    setAuthStatus,
-    setSessionID,
-    setIdentity,
-};
+export {init, setAttribute, sendEvent, setAuthStatus, setSessionID, setIdentity};
