@@ -103,7 +103,7 @@ describe('useSidebarOrderedReports', () => {
         );
     }
 
-    it('should prevent unnecessary re-renders when reports have same content but different references', async () => {
+    it('should prevent unnecessary re-renders when reports have same content but different references', () => {
         // Given reports with same content but different object references
         const reportsContent = {
             report1: {reportName: 'Chat 1', lastVisibleActionCreated: '2024-01-01 10:00:00'},
@@ -123,10 +123,6 @@ describe('useSidebarOrderedReports', () => {
 
         // Then the mock calls are cleared
         mockSidebarUtils.sortReportsToDisplayInLHN.mockClear();
-
-        // Then the report name value pairs are updated
-        // @ts-expect-error - we want to test the case where getUpdatedReports() is non-empty
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}`, {dummy: true});
 
         // When the reports are updated
         const newReportsWithSameContent = createMockReports(reportsContent);
@@ -191,44 +187,6 @@ describe('useSidebarOrderedReports', () => {
         );
     });
 
-    it('should optimize performance by avoiding unnecessary sorting when only report order changes', async () => {
-        // Given the initial reports are set
-        const reports = createMockReports({
-            report1: {reportName: 'Chat A'},
-            report2: {reportName: 'Chat B'},
-            report3: {reportName: 'Chat C'},
-        });
-
-        // When the initial reports are set
-        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(reports);
-        mockSidebarUtils.sortReportsToDisplayInLHN.mockReturnValue(['1', '2', '3']);
-        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation((prev) => ({...prev}));
-        currentReportIDForTestsValue = '1';
-
-        // When the hook is rendered
-        const {rerender} = renderHook(() => useSidebarOrderedReports(), {
-            wrapper: TestWrapper,
-        });
-
-        // Then the mock calls are cleared
-        expect(mockSidebarUtils.sortReportsToDisplayInLHN).toHaveBeenCalledTimes(1);
-
-        // When the mock is updated
-        mockSidebarUtils.sortReportsToDisplayInLHN.mockClear();
-
-        // Then the report name value pairs are updated
-        // @ts-expect-error - we want to test the case where getUpdatedReports() is non-empty
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}`, {dummy: true});
-
-        // When the mock is updated
-        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(reports);
-
-        rerender({});
-
-        // Then sorting should not be called again since deep comparison shows no change
-        expect(mockSidebarUtils.sortReportsToDisplayInLHN).not.toHaveBeenCalled();
-    });
-
     it('should handle empty reports correctly with deep comparison', async () => {
         // Given the initial reports are set
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue({});
@@ -245,9 +203,6 @@ describe('useSidebarOrderedReports', () => {
 
         // When the mock is updated
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue({});
-
-        // When the priority mode is changed
-        await Onyx.set(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
 
         rerender({});
 
