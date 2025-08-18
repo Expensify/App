@@ -1,4 +1,4 @@
-import React, {useMemo, useRef} from 'react';
+import React, {useMemo} from 'react';
 import {ActivityIndicator, Keyboard, StyleSheet, View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
 import Avatar from '@components/Avatar';

@@ -1,4 +1,4 @@
-import React, {useMemo, useRef} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
@@ -12,7 +12,6 @@ import CONST from '@src/CONST';
 function TaxExemptActions() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const threeDotsMenuContainerRef = useRef<View>(null);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
@@ -30,10 +29,7 @@ function TaxExemptActions() {
     );
 
     return (
-        <View
-            ref={threeDotsMenuContainerRef}
-            style={[styles.mtn2, styles.pAbsolute, styles.rn3]}
-        >
+        <View style={[styles.mtn2, styles.pAbsolute, styles.rn3]}>
             <ThreeDotsMenu
                 shouldSelfPosition
                 menuItems={overflowMenu}

@@ -10,6 +10,25 @@ const defaultAnchorAlignment = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
+/**
+ * Hook for calculating the position of a popover relative to an anchor element.
+ *
+ * Popovers are only used on larger screen widths. On small screens, the position will
+ * default to `{horizontal: 0, vertical: 0, width: 0, height: 0}`.
+ *
+ * @returns An object containing a function to calculate the popover's position.
+ *
+ * @example
+ * const { calculatePopoverPosition } = usePopoverPosition();
+ *
+ * // Later in a component
+ * const position = await calculatePopoverPosition(anchorRef, {
+ *   horizontal: 'center',
+ *   vertical: 'top',
+ * });
+ * console.log(position);
+ * // { horizontal: 120, vertical: 300, width: 50, height: 30 }
+ */
 function usePopoverPosition() {
     // Popovers are not used on small screen widths, but can be present in RHP
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth

@@ -36,7 +36,7 @@ type DropdownButtonProps = {
 
 const PADDING_MODAL = 8;
 
-const defaultAnchorAlignment = {
+const ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
@@ -78,7 +78,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
      * Calculate popover position and toggle overlay
      */
     const calculatePopoverPositionAndToggleOverlay = useCallback(() => {
-        calculatePopoverPosition(anchorRef, defaultAnchorAlignment).then((pos) => {
+        calculatePopoverPosition(anchorRef, ANCHOR_ORIGIN).then((pos) => {
             setPopoverTriggerPosition({...pos, vertical: pos.vertical + PADDING_MODAL});
             toggleOverlay();
         });
@@ -138,7 +138,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
                 isVisible={isOverlayVisible}
                 onClose={toggleOverlay}
                 anchorPosition={popoverTriggerPosition}
-                anchorAlignment={defaultAnchorAlignment}
+                anchorAlignment={ANCHOR_ORIGIN}
                 restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
                 shouldEnableNewFocusManagement
                 shouldMeasureAnchorPositionFromTop={false}
