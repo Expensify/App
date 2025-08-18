@@ -323,8 +323,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     if (isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS)) {
         integrateItems.push({
             icon: Illustrations.ReceiptPartners,
-            titleTranslationKey: 'workspace.moreFeatures.receiptPartners.uber.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.receiptPartners.uber.subtitle',
+            titleTranslationKey: 'workspace.moreFeatures.receiptPartners.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.receiptPartners.subtitle',
             isActive: policy?.areReceiptPartnersEnabled ?? false,
             pendingAction: policy?.pendingFields?.areReceiptPartnersEnabled,
             disabledAction: () => {
