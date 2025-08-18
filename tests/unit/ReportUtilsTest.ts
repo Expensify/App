@@ -2004,18 +2004,27 @@ describe('ReportUtils', () => {
             return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollectionDataSet);
         });
         it('should return the 1:1 chat', () => {
-            const report = getChatByParticipants([currentUserAccountID, userAccountID]);
+            const report = getChatByParticipants({newParticipantList: [currentUserAccountID, userAccountID]});
             expect(report?.reportID).toEqual(oneOnOneChatReport.reportID);
         });
 
         it('should return the group chat', () => {
-            const report = getChatByParticipants([currentUserAccountID, userAccountID, userAccountID2], undefined, true);
+            const report = getChatByParticipants({newParticipantList: [currentUserAccountID, userAccountID, userAccountID2], shouldIncludeGroupChats: true});
             expect(report?.reportID).toEqual(groupChatReport.reportID);
         });
 
         it('should return undefined when no report is found', () => {
-            const report = getChatByParticipants([currentUserAccountID, userAccountID2], undefined);
+            const report = getChatByParticipants({newParticipantList: [currentUserAccountID, userAccountID2]});
             expect(report).toEqual(undefined);
+        });
+
+        it('should return undefined when report is archived and shouldExcludeClosedReports is true', () => {
+            const report = getChatByParticipants({
+                newParticipantList: [currentUserAccountID, userAccountID],
+                shouldExcludeClosedReports: true,
+                isReportArchived: true,
+            });
+            expect(report).toBeUndefined();
         });
     });
 
