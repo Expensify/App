@@ -9,7 +9,6 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
-import useEnvironment from './useEnvironment';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useWorkspaceList from './useWorkspaceList';
@@ -154,9 +153,9 @@ function isFeatureEnabledInPolicies(policies: OnyxCollection<Policy>, featureNam
 
 function useAdvancedSearchFilters() {
     const {localeCompare} = useLocalize();
-    const {isDevelopment} = useEnvironment();
     const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const policyID = searchAdvancedFilters.policyID;
+    const groupBy = searchAdvancedFilters.groupBy;
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList, true), [userCardList, workspaceCardFeeds]);
@@ -209,9 +208,7 @@ function useAdvancedSearchFilters() {
     const shouldDisplayCardFilter = shouldDisplayFilter(Object.keys(allCards).length, areCardsEnabled);
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length !== 0);
-
-    // s77rt remove DEV lock
-    const shouldDisplayGroupByFilter = isDevelopment;
+    const shouldDisplayGroupByFilter = groupBy === CONST.SEARCH.GROUP_BY.FROM || groupBy === CONST.SEARCH.GROUP_BY.CARD;
 
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
