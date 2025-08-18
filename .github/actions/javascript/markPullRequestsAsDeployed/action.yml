@@ -4,6 +4,9 @@ inputs:
     PR_LIST:
         description: "Array of pull request numbers"
         required: true
+    MOBILE_EXPENSIFY_PR_LIST:
+        description: "Array of Mobile-Expensify pull request numbers"
+        required: false
     IS_PRODUCTION_DEPLOY:
         description: "Check if deploying to production"
         required: false

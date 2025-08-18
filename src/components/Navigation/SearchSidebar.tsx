@@ -1,5 +1,5 @@
 import type {ParamListBase} from '@react-navigation/native';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import HeaderGap from '@components/HeaderGap';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -11,12 +11,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import SearchTypeMenu from '@pages/Search/SearchTypeMenu';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 import NavigationTabBar from './NavigationTabBar';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
 import TopBar from './TopBar';
@@ -43,8 +41,10 @@ function SearchSidebar({state}: SearchSidebarProps) {
     }, [params?.q]);
 
     const currentSearchResultsKey = queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchResultsKey}`, {canBeMissing: true, selector: (snapshot) => snapshot?.search});
-    const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResultsInfo | undefined>(undefined);
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchResultsKey}`, {
+        canBeMissing: true,
+        selector: (snapshot) => snapshot?.search,
+    });
 
     useEffect(() => {
         if (!currentSearchResults?.type) {
@@ -52,16 +52,9 @@ function SearchSidebar({state}: SearchSidebarProps) {
         }
 
         setLastSearchType(currentSearchResults.type);
-        if (currentSearchResults.hasResults ?? currentSearchResults.hasMoreResults) {
-            setLastNonEmptySearchResults(currentSearchResults);
-        }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
 
-    const searchResultsToUse = (currentSearchResults?.hasResults ?? currentSearchResults?.hasMoreResults) ? currentSearchResults : lastNonEmptySearchResults;
-
-    const isDataLoaded = isSearchDataLoaded(searchResultsToUse, queryJSON);
-
-    const shouldShowLoadingState = route?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT ? false : !isOffline && !isDataLoaded;
+    const shouldShowLoadingState = route?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT ? false : !isOffline && !!currentSearchResults?.isLoading;
 
     if (shouldUseNarrowLayout) {
         return null;

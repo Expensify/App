@@ -3,6 +3,7 @@ import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/
 import React from 'react';
 import {SectionList} from 'react-native';
 import Onyx from 'react-native-onyx';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
@@ -18,14 +19,37 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@react-navigation/native');
 jest.mock('@src/libs/Navigation/navigationRef');
+jest.mock('react-native-permissions', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    RESULTS: {
+        UNAVAILABLE: 'unavailable',
+        GRANTED: 'granted',
+        LIMITED: 'limited',
+        DENIED: 'denied',
+        BLOCKED: 'blocked',
+    },
+    check: jest.fn(() => Promise.resolve('unavailable')),
+    request: jest.fn(() => Promise.resolve('unavailable')),
+    PERMISSIONS: {
+        IOS: {
+            CONTACTS: 'ios.permission.CONTACTS',
+        },
+        ANDROID: {
+            READ_CONTACTS: 'android.permission.READ_CONTACTS',
+        },
+    },
+}));
 
 const wrapper = ({children}: {children: React.ReactNode}) => (
     <OnyxListItemProvider>
-        <LocaleContextProvider>
-            <OptionsListContextProvider>
-                <ScreenWrapper testID="test">{children}</ScreenWrapper>
-            </OptionsListContextProvider>
-        </LocaleContextProvider>
+        <HTMLEngineProvider>
+            <LocaleContextProvider>
+                <OptionsListContextProvider>
+                    <ScreenWrapper testID="test">{children}</ScreenWrapper>
+                </OptionsListContextProvider>
+            </LocaleContextProvider>
+        </HTMLEngineProvider>
     </OnyxListItemProvider>
 );
 
@@ -52,7 +76,7 @@ describe('NewChatPage', () => {
         });
         const spy = jest.spyOn(SectionList.prototype, 'scrollToLocation');
 
-        const addButton = screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0);
+        const addButton = await waitFor(() => screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0));
         if (addButton) {
             fireEvent.press(addButton);
             expect(spy).toHaveBeenCalledWith(expect.objectContaining({itemIndex: 0}));

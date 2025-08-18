@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, ListRenderItem} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
@@ -52,11 +52,42 @@ function MoneyRequestReportPreview({
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
-    const [currentWidth, setCurrentWidth] = useState<number>(0);
-    const [currentWrapperWidth, setCurrentWrapperWidth] = useState<number>(0);
+
+    const widthsRef = useRef<{currentWidth: number | null; currentWrapperWidth: number | null}>({currentWidth: null, currentWrapperWidth: null});
+    const [widths, setWidths] = useState({currentWidth: 0, currentWrapperWidth: 0});
+
+    const updateWidths = useCallback(() => {
+        const {currentWidth, currentWrapperWidth} = widthsRef.current;
+
+        if (currentWidth && currentWrapperWidth) {
+            setWidths({currentWidth, currentWrapperWidth});
+        }
+    }, []);
+
+    const onCarouselLayout = useCallback(
+        (e: LayoutChangeEvent) => {
+            const newWidth = e.nativeEvent.layout.width;
+            if (widthsRef.current.currentWidth !== newWidth) {
+                widthsRef.current.currentWidth = newWidth;
+                updateWidths();
+            }
+        },
+        [updateWidths],
+    );
+    const onWrapperLayout = useCallback(
+        (e: LayoutChangeEvent) => {
+            const newWrapperWidth = e.nativeEvent.layout.width;
+            if (widthsRef.current.currentWrapperWidth !== newWrapperWidth) {
+                widthsRef.current.currentWrapperWidth = newWrapperWidth;
+                updateWidths();
+            }
+        },
+        [updateWidths],
+    );
+
     const reportPreviewStyles = useMemo(
-        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length, currentWidth, currentWrapperWidth),
-        [StyleUtils, currentWidth, currentWrapperWidth, shouldUseNarrowLayout, transactions.length],
+        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length, widths.currentWidth, widths.currentWrapperWidth),
+        [StyleUtils, widths, shouldUseNarrowLayout, transactions.length],
     );
     const shouldShowPayerAndReceiver = useMemo(() => {
         if (!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU) {
@@ -121,13 +152,9 @@ function MoneyRequestReportPreview({
             invoiceReceiverPolicy={invoiceReceiverPolicy}
             lastTransactionViolations={lastTransactionViolations}
             renderTransactionItem={renderItem}
-            onCarouselLayout={(e: LayoutChangeEvent) => {
-                setCurrentWidth(e.nativeEvent.layout.width);
-            }}
-            onWrapperLayout={(e: LayoutChangeEvent) => {
-                setCurrentWrapperWidth(e.nativeEvent.layout.width);
-            }}
-            currentWidth={currentWidth}
+            onCarouselLayout={onCarouselLayout}
+            onWrapperLayout={onWrapperLayout}
+            currentWidth={widths.currentWidth}
             reportPreviewStyles={reportPreviewStyles}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
             isInvoice={isInvoice}
