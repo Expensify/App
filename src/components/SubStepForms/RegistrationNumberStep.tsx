@@ -10,6 +10,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
+import useDelayedAutoFocus from '@hooks/useDelayedAutoFocus';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useTheme from '@hooks/useTheme';
@@ -53,26 +54,7 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
     const theme = useTheme();
 
     const internalInputRef = useRef<AnimatedTextInputRef>(null);
-    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-    useFocusEffect(
-        useCallback(() => {
-            if (!shouldDelayAutoFocus) {
-                return;
-            }
-
-            focusTimeoutRef.current = setTimeout(() => {
-                internalInputRef.current?.focus();
-            }, CONST.ANIMATED_TRANSITION);
-
-            return () => {
-                if (!focusTimeoutRef.current) {
-                    return;
-                }
-                clearTimeout(focusTimeoutRef.current);
-            };
-        }, [shouldDelayAutoFocus]),
-    );
+    useDelayedAutoFocus(internalInputRef, shouldDelayAutoFocus);
 
     const validate = useCallback(
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
