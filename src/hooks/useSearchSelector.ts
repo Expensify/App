@@ -89,18 +89,18 @@ function useSearchSelector({
     maxResults = 20,
     searchContext = 'search',
     includeUserToInvite = true,
-    excludeLogins = {},
+    excludeLogins = CONST.EMPTY_OBJECT,
     includeRecentReports = false,
     enablePhoneContacts = false,
-    getValidOptionsConfig = {},
+    getValidOptionsConfig = CONST.EMPTY_OBJECT,
     onSelectionChange,
     onSingleSelect,
-    initialSelected = [],
+    initialSelected,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {options, areOptionsInitialized} = useOptionsList();
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelected);
+    const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelected ?? []);
 
     // Phone contacts logic
     const {contacts, contactPermissionState, importAndSaveContacts, setContactPermissionState} = useContactImport();

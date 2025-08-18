@@ -60,8 +60,6 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
         includeUserToInvite: true,
         excludeLogins: excludedUsers,
         includeRecentReports: true,
-        initialSelected: [],
-        onSelectionChange: () => {},
     });
 
     useEffect(() => {
