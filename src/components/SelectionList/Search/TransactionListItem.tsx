@@ -81,6 +81,7 @@ function TransactionListItem<TItem extends ListItem>({
                 CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT,
                 CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM,
                 CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO,
+                ...(transactionItem?.shouldShowCategory ? [CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] : []),
                 ...(transactionItem?.shouldShowTag ? [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG] : []),
                 ...(transactionItem?.shouldShowTax ? [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAX] : []),
                 CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT,
