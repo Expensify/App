@@ -69,9 +69,10 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             },
             {} as Record<string, number>,
         );
+        // We also want to re-run this logic when the personal detail is changed.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [importedSpreadsheetMemberData, personalDetails]);
+    }, [newMembers, personalDetails]);
 
     /** Opens privacy url as an external link */
     const openPrivacyURL = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
