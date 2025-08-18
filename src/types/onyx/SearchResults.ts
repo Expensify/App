@@ -44,6 +44,12 @@ type ColumnsToShow = {
 
     /** Whether the tax column should be shown */
     shouldShowTaxColumn: boolean;
+
+    /** Whether the from column should be shown */
+    shouldShowFromColumn: boolean;
+
+    /** Whether the to column should be shown */
+    shouldShowToColumn: boolean;
 };
 
 /** Model of search result state */
@@ -69,6 +75,15 @@ type SearchResultsInfo = {
 
     /** The optional columns that should be shown according to policy settings */
     columnsToShow: ColumnsToShow;
+
+    /** The number of results */
+    count?: number;
+
+    /** The total spend */
+    total?: number;
+
+    /** The currency of the total spend */
+    currency?: string;
 };
 
 /** Model of personal details search result */
@@ -453,36 +468,70 @@ type SearchTask = {
     statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 };
 
-/** Model of card search result */
-// s77rt sync with BE
-type SearchCard = {
+/** Model of member grouped search result */
+type SearchMemberGroup = {
+    /** Account ID */
+    accountID: number;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+};
+
+/** Model of card grouped search result */
+type SearchCardGroup = {
+    /** Cardholder account ID */
+    accountID: number;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+
     /** Bank name */
     bank: string;
-
-    /** Last four Primary Account Number digits */
-    lastFourPAN: string;
 
     /** Card name */
     cardName: string;
 
-    /** Cardholder account ID */
-    accountID: number;
-};
-
-/** Model of bank withdrawal search result */
-// s77rt sync with BE
-type SearchBankWithdrawal = {
-    /** The bank name */
-    bankName: BankName;
+    /** Card ID */
+    cardID: number;
 
     /** Last four Primary Account Number digits */
     lastFourPAN: string;
+};
 
-    /** Withdrawal date */
-    withdrawalDate: string;
+/** Model of withdrawal ID grouped search result */
+type SearchWithdrawalIDGroup = {
+    /** Withdrawal ID */
+    entryID: number;
 
-    /** Entry ID */
-    entryID: string;
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+
+    /** Masked account number */
+    accountNumber: string;
+
+    /** Bank name */
+    addressName: BankName;
+
+    /** When the withdrawal completed */
+    debitPosted: string;
 };
 
 /** Types of searchable transactions */
@@ -506,12 +555,9 @@ type SearchResults = {
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, SearchPolicy> &
-        // s77rt sync with BE
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, SearchCard> &
-        // s77rt sync with BE
-        Partial<Record<typeof ONYXKEYS.BANK_ACCOUNT_LIST, Record<string, SearchBankWithdrawal>>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>;
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
+        PrefixedRecord<typeof CONST.SEARCH.GROUP_PREFIX, SearchMemberGroup | SearchCardGroup | SearchWithdrawalIDGroup>;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
@@ -534,6 +580,8 @@ export type {
     SearchReport,
     SearchReportAction,
     SearchPolicy,
-    SearchCard,
-    SearchBankWithdrawal,
+    SearchResultsInfo,
+    SearchMemberGroup,
+    SearchCardGroup,
+    SearchWithdrawalIDGroup,
 };

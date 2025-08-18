@@ -22,16 +22,20 @@ function Backdrop({
     const {translate} = useLocalize();
 
     const Entering = useMemo(() => {
+        if (!backdropOpacity) {
+            return;
+        }
         const FadeIn = new Keyframe(getModalInAnimation('fadeIn'));
-
         return FadeIn.duration(animationInTiming);
-    }, [animationInTiming]);
+    }, [animationInTiming, backdropOpacity]);
 
     const Exiting = useMemo(() => {
+        if (!backdropOpacity) {
+            return;
+        }
         const FadeOut = new Keyframe(getModalOutAnimation('fadeOut'));
-
         return FadeOut.duration(animationOutTiming);
-    }, [animationOutTiming]);
+    }, [animationOutTiming, backdropOpacity]);
 
     const backdropStyle = useMemo(
         () => ({
@@ -61,14 +65,18 @@ function Backdrop({
     }
     return (
         isBackdropVisible && (
-            <Animated.View
-                entering={Entering}
-                exiting={Exiting}
+            <View
                 style={[styles.userSelectNone]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
-                <View style={[styles.modalBackdrop, backdropStyle, style]}>{!!customBackdrop && customBackdrop}</View>
-            </Animated.View>
+                <Animated.View
+                    entering={Entering}
+                    exiting={Exiting}
+                    style={[styles.modalBackdrop, backdropStyle, style]}
+                >
+                    {!!customBackdrop && customBackdrop}
+                </Animated.View>
+            </View>
         )
     );
 }
