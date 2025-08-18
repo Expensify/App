@@ -105,7 +105,6 @@ function verifyIdentity(parameters: VerifyIdentityParams) {
                 isLoading: true,
                 errors: null,
                 fixableErrors: null,
-                isOnfidoMounting: true, // Set this to true to indicate that the Onfido flow is in progress
             },
         },
         {

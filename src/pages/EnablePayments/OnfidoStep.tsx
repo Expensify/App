@@ -21,7 +21,7 @@ function OnfidoStep() {
         initWithStoredValues: false,
     });
 
-    const shouldShowOnfido = walletOnfidoData?.hasAcceptedPrivacyPolicy && !walletOnfidoData?.isLoading && !walletOnfidoData?.errors && walletOnfidoData?.sdkToken && walletOnfidoData?.isOnfidoMounting;
+    const shouldShowOnfido = walletOnfidoData?.hasAcceptedPrivacyPolicy && !walletOnfidoData?.isLoading && !walletOnfidoData?.errors && walletOnfidoData?.sdkToken && !walletOnfidoData?.isOnfidoMounting;
 
     const goBack = useCallback(() => {
         Navigation.goBack();
@@ -41,6 +41,7 @@ function OnfidoStep() {
                 onfidoData: JSON.stringify({
                     ...data,
                     applicantID: walletOnfidoData?.applicantID,
+                    isOnfidoMounting: true, // Set this to true to indicate that the Onfido flow is in progress
                 }),
             });
         },

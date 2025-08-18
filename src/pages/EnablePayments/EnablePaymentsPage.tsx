@@ -67,7 +67,12 @@ function EnablePaymentsPage() {
                     );
                 }
 
-                const currentStep = userWallet?.currentStep || CONST.WALLET.STEP.ADDITIONAL_DETAILS;
+                console.log('current step onfido --> ', userWallet?.currentStep);
+                let currentStep: string = CONST.WALLET.STEP.ADDITIONAL_DETAILS;
+                if (userWallet?.currentStep !== CONST.WALLET.STEP.ONFIDO) {
+                    currentStep = userWallet?.currentStep || CONST.WALLET.STEP.ADDITIONAL_DETAILS;
+                }
+                console.log('walletOnfidoData --> currentStep', currentStep);
 
                 switch (currentStep) {
                     case CONST.WALLET.STEP.ADDITIONAL_DETAILS:
