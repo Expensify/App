@@ -30,32 +30,21 @@ function UserInfoAndActionButtonRow({
     const shouldShowToRecipient = hasFromSender && hasToRecipient && !!item?.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
 
     return (
-        <View
-            style={[
-                styles.pt0,
-                styles.flexRow,
-                styles.alignItemsCenter,
-                shouldShowUserInfo ? styles.justifyContentBetween : styles.justifyContentEnd,
-                styles.gap2,
-                styles.ph3,
-                containerStyle,
-            ]}
-        >
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                {shouldShowUserInfo && (
-                    <UserInfoCellsWithArrow
-                        shouldShowToRecipient={shouldShowToRecipient}
-                        participantFrom={item?.from}
-                        participantFromDisplayName={participantFromDisplayName}
-                        participantToDisplayName={participantToDisplayName}
-                        participantTo={item?.to}
-                        avatarSize={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
-                        infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
-                        infoCellsAvatarStyle={styles.pr1}
-                        fromRecipientStyle={!shouldShowToRecipient ? styles.mw100 : {}}
-                    />
-                )}
-            </View>
+        <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, shouldShowUserInfo ? styles.justifyContentBetween : styles.justifyContentEnd, styles.gap2, styles.ph3]}>
+            {shouldShowUserInfo && (
+                <UserInfoCellsWithArrow
+                    shouldShowToRecipient={shouldShowToRecipient}
+                    participantFrom={item?.from}
+                    participantFromDisplayName={participantFromDisplayName}
+                    participantToDisplayName={participantToDisplayName}
+                    participantTo={item?.to}
+                    avatarSize={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}
+                    infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
+                    infoCellsAvatarStyle={styles.pr1}
+                    fromRecipientStyle={!shouldShowToRecipient ? styles.mw100 : {}}
+                />
+            )}
             <View style={[{width: variables.w80}, styles.alignItemsEnd]}>
                 <ActionCell
                     action={item.action}

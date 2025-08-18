@@ -23,7 +23,6 @@ const hasKeyTriggeredCompute = <K extends OnyxKey, Deps extends NonEmptyTuple<Ex
 const setDerivedValue = (key: OnyxDerivedKey, value: OnyxInput<OnyxDerivedKey>) =>
     Onyx.set(key, value, {
         skipCacheCheck: true,
-        skipNullRemoval: true,
     });
 
 export {hasKeyTriggeredCompute, setDerivedValue};

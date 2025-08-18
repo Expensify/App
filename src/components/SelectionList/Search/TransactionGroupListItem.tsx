@@ -18,7 +18,6 @@ import type {
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -30,7 +29,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
@@ -48,16 +46,16 @@ function TransactionGroupListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     groupBy,
-    policies,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${groupItem?.policyID}`];
     const isEmpty = groupItem.transactions.length === 0;
+    // Currently only the transaction report groups have transactions where the empty view makes sense
+    const shouldDisplayEmptyView = isEmpty && groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
     const isDisabledOrEmpty = isEmpty || isDisabled;
-    const {isLargeScreenWidth} = useResponsiveLayout();
+    const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
         const isAmountColumnWide = groupItem.transactions.some((transaction) => transaction.isAmountColumnWide);
@@ -100,8 +98,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
         COLUMNS.TYPE,
         COLUMNS.DATE,
         COLUMNS.MERCHANT,
-        COLUMNS.FROM,
-        COLUMNS.TO,
+        ...(sampleTransaction?.shouldShowFrom ? [COLUMNS.FROM] : []),
+        ...(sampleTransaction?.shouldShowTo ? [COLUMNS.TO] : []),
         ...(sampleTransaction?.shouldShowCategory ? [COLUMNS.CATEGORY] : []),
         ...(sampleTransaction?.shouldShowTag ? [COLUMNS.TAG] : []),
         ...(sampleTransaction?.shouldShowTax ? [COLUMNS.TAX] : []),
@@ -114,7 +112,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
             [CONST.SEARCH.GROUP_BY.REPORTS]: (
                 <ReportListItemHeader
                     report={groupItem as TransactionReportGroupListItemType}
-                    policy={policy}
                     onSelectRow={onSelectRow}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
@@ -122,17 +119,19 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     canSelectMultiple={canSelectMultiple}
                 />
             ),
-            [CONST.SEARCH.GROUP_BY.MEMBERS]: (
+            [CONST.SEARCH.GROUP_BY.FROM]: (
                 <MemberListItemHeader
                     member={groupItem as TransactionMemberGroupListItemType}
+                    onSelectRow={onSelectRow}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
                     canSelectMultiple={canSelectMultiple}
                 />
             ),
-            [CONST.SEARCH.GROUP_BY.CARDS]: (
+            [CONST.SEARCH.GROUP_BY.CARD]: (
                 <CardListItemHeader
                     card={groupItem as TransactionCardGroupListItemType}
+                    onSelectRow={onSelectRow}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
                     isFocused={isFocused}
@@ -146,10 +145,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         return headers[groupBy];
-    }, [groupItem, policy, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, groupBy]);
+    }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, groupBy]);
 
     const StyleUtils = useStyleUtils();
-    const {hovered, bind} = useHover();
     const pressableRef = useRef<View>(null);
 
     const onPress = useCallback(() => {
@@ -165,8 +163,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
-                onMouseEnter={bind.onMouseEnter}
-                onMouseLeave={bind.onMouseLeave}
                 ref={pressableRef}
                 onLongPress={onLongPress}
                 onPress={onPress}
@@ -190,7 +186,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         header={getHeader}
                         disabled={!!isDisabledOrEmpty}
                     >
-                        {isEmpty ? (
+                        {shouldDisplayEmptyView ? (
                             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
                                 <Text
                                     style={[styles.textLabelSupporting]}
@@ -203,6 +199,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             groupItem.transactions.map((transaction) => (
                                 <TransactionItemRow
                                     key={transaction.transactionID}
+                                    report={transaction.report}
                                     transactionItem={transaction}
                                     isSelected={!!transaction.isSelected}
                                     dateColumnSize={dateColumnSize}
@@ -216,8 +213,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                     onButtonPress={() => {
                                         openReportInRHP(transaction);
                                     }}
-                                    isParentHovered={hovered}
-                                    columnWrapperStyles={[styles.ph3, styles.pv1Half]}
+                                    style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half]]}
                                     isReportItemChild
                                     isInSingleTransactionReport={groupItem.transactions.length === 1}
                                 />
