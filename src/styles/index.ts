@@ -5777,11 +5777,12 @@ const styles = (theme: ThemeColors) =>
 
         wideRHPMoneyRequestReceiptViewContainer: {
             backgroundColor: theme.appBG,
-            width: variables.sideBarWidth,
+            width: receiptPaneRHPWidth,
             height: '100%',
             borderRightWidth: 1,
             borderColor: theme.border,
         },
+
         wideRHPMoneyRequestReceiptViewScrollView: {
             paddingTop: 12,
             minHeight: '100%',

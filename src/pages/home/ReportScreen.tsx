@@ -3,7 +3,8 @@ import {useIsFocused} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList, ViewStyle} from 'react-native';
-import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import {Animated, DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Banner from '@components/Banner';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -852,7 +853,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                         <DragAndDropProvider isDisabled={isEditingDisabled}>
                             <View style={[styles.flex1, styles.flexRow]}>
                                 {shouldShowWideRHP && (
-                                    <View style={styles.wideRHPMoneyRequestReceiptViewContainer}>
+                                    <Animated.View style={styles.wideRHPMoneyRequestReceiptViewContainer}>
                                         <ScrollView contentContainerStyle={styles.wideRHPMoneyRequestReceiptViewScrollView}>
                                             <MoneyRequestReceiptView
                                                 allReports={allReports}
@@ -860,7 +861,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                                 fillSpace
                                             />
                                         </ScrollView>
-                                    </View>
+                                    </Animated.View>
                                 )}
                                 <View
                                     style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
