@@ -51,6 +51,7 @@ function SubmitDetailsPage({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: false});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
 
@@ -76,8 +77,9 @@ function SubmitDetailsPage({
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
             report,
             parentReport,
+            currentDate,
         });
-    }, [reportOrAccountID, policy, report, parentReport]);
+    }, [reportOrAccountID, policy, report, parentReport, currentDate]);
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report);
     const participants = selectedParticipants.map((participant) =>
@@ -111,7 +113,6 @@ function SubmitDetailsPage({
                     taxCode: transactionTaxCode,
                     taxAmount: transactionTaxAmount,
                     billable: transaction.billable,
-                    reimbursable: transaction.reimbursable,
                     merchant: transaction.merchant ?? '',
                     created: transaction.created,
                     actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
@@ -137,7 +138,6 @@ function SubmitDetailsPage({
                     taxCode: transactionTaxCode,
                     taxAmount: transactionTaxAmount,
                     billable: transaction.billable,
-                    reimbursable: transaction.reimbursable,
                     merchant: transaction.merchant ?? '',
                     created: transaction.created,
                     actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
