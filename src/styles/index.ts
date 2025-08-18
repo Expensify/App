@@ -5745,12 +5745,6 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: colors.green800,
         },
 
-        receiptPreviewEReceipt: {
-            ...flex.flexColumn,
-            ...flex.justifyContentCenter,
-            ...flex.alignItemsCenter,
-        },
-
         topBarWrapper: {
             zIndex: 15,
         },
