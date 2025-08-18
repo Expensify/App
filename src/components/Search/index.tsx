@@ -734,6 +734,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 onAllCheckboxPress={toggleAllTransactions}
                 canSelectMultiple={canSelectMultiple}
                 shouldPreventLongPressRow={isChat || isTask}
+                isFocused={isFocused}
                 SearchTableHeader={
                     !shouldShowTableHeader ? undefined : (
                         <SearchTableHeader
