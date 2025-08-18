@@ -156,6 +156,7 @@ import {
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getPolicyChangeLogDefaultBillableMessage,
+    getPolicyChangeLogDefaultReimbursableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getRenamedAction,
@@ -693,6 +694,7 @@ type TransactionDetails = {
     customUnitRateID?: string;
     comment: string;
     category: string;
+    reimbursable: boolean;
     billable: boolean;
     tag: string;
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
@@ -4025,6 +4027,7 @@ function getTransactionDetails(
         waypoints: getWaypoints(transaction),
         customUnitRateID: getRateID(transaction),
         category: getCategory(transaction),
+        reimbursable: getReimbursable(transaction),
         billable: getBillable(transaction),
         tag: getTag(transaction),
         mccGroup: getMCCGroup(transaction),
@@ -4093,7 +4096,7 @@ function canEditMoneyRequest(
     const originalMessage = getOriginalMessage(reportAction);
     const actionType = originalMessage?.type;
 
-    if (!actionType || !allowedReportActionType.includes(actionType)) {
+    if (!actionType || !(allowedReportActionType.includes(actionType) || (actionType === CONST.IOU.REPORT_ACTION_TYPE.PAY && !!originalMessage.IOUDetails))) {
         return false;
     }
 
@@ -4222,6 +4225,7 @@ function canEditFieldOfMoneyRequest(
         CONST.EDIT_REQUEST_FIELD.RECEIPT,
         CONST.EDIT_REQUEST_FIELD.DISTANCE,
         CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE,
+        CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
         CONST.EDIT_REQUEST_FIELD.REPORT,
     ];
 
@@ -4249,11 +4253,20 @@ function canEditFieldOfMoneyRequest(
         return false;
     }
 
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REIMBURSABLE && isClosedReport(moneyRequestReport)) {
+        return false;
+    }
+
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(moneyRequestReport?.policyID);
     const isAdmin = isExpenseReport(moneyRequestReport) && policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = isExpenseReport(moneyRequestReport) && currentUserAccountID === moneyRequestReport?.managerID;
+    const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
+
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REIMBURSABLE) {
+        return isAdmin || isManager || isRequestor;
+    }
 
     if ((fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) && isDistanceRequest(transaction)) {
         return isAdmin || isManager;
@@ -4267,7 +4280,6 @@ function canEditFieldOfMoneyRequest(
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
-        const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
         return (
             !isInvoiceReport(moneyRequestReport) &&
             !isReceiptBeingScanned(transaction) &&
@@ -4820,6 +4832,12 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.currency = getCurrency(oldTransaction);
     }
 
+    if ('reimbursable' in transactionChanges) {
+        const oldReimbursable = getReimbursable(oldTransaction);
+        originalMessage.oldReimbursable = oldReimbursable ? translateLocal('common.reimbursable').toLowerCase() : translateLocal('iou.nonReimbursable').toLowerCase();
+        originalMessage.reimbursable = transactionChanges?.reimbursable ? translateLocal('common.reimbursable').toLowerCase() : translateLocal('iou.nonReimbursable').toLowerCase();
+    }
+
     if ('billable' in transactionChanges) {
         const oldBillable = getBillable(oldTransaction);
         originalMessage.oldBillable = oldBillable ? translateLocal('common.billable').toLowerCase() : translateLocal('common.nonBillable').toLowerCase();
@@ -5214,6 +5232,9 @@ function getReportNameInternal({
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE)) {
         return getPolicyChangeLogDefaultBillableMessage(parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_REIMBURSABLE)) {
+        return getPolicyChangeLogDefaultReimbursableMessage(parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED)) {
         return getPolicyChangeLogDefaultTitleEnforcedMessage(parentReportAction);
@@ -9010,7 +9031,7 @@ function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: b
     }
 }
 
-function canUserPerformWriteAction(report: OnyxEntry<Report>) {
+function canUserPerformWriteAction(report: OnyxEntry<Report>, isReportArchived?: boolean) {
     const reportErrors = getCreationReportErrors(report);
 
     // If the expense report is marked for deletion, let us prevent any further write action.
@@ -9021,8 +9042,9 @@ function canUserPerformWriteAction(report: OnyxEntry<Report>) {
     // This will get removed as part of https://github.com/Expensify/App/issues/59961
     // eslint-disable-next-line deprecation/deprecation
     const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
+
     return (
-        !isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived) &&
+        !isArchivedNonExpenseReport(report, isReportArchived ?? !!reportNameValuePairs?.private_isArchived) &&
         isEmptyObject(reportErrors) &&
         report &&
         isAllowedToComment(report) &&

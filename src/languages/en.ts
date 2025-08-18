@@ -282,6 +282,7 @@ import type {
     WorkEmailResendCodeParams,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
+    WorkspaceMembersCountParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
@@ -1571,6 +1572,7 @@ const translations = {
             testCrash: 'Test crash',
             resetToOriginalState: 'Reset to original state',
             usingImportedState: 'You are using imported state. Press here to clear it.',
+            shouldBlockTransactionThreadReportCreation: 'Block transaction thread report creation',
             debugMode: 'Debug mode',
             invalidFile: 'Invalid file',
             invalidFileDescription: 'The file you are trying to import is not valid. Please try again.',
@@ -4894,7 +4896,7 @@ const translations = {
             },
             addedWithPrimary: 'Some members were added with their primary logins.',
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Added by secondary login ${secondaryLogin}.`,
-            membersListTitle: 'Directory of all workspace members.',
+            workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Total workspace members: ${count}`,
             importMembers: 'Import members',
         },
         card: {
@@ -5523,6 +5525,17 @@ const translations = {
                     one: '1 day',
                     other: (count: number) => `${count} days`,
                 }),
+                cashExpenseDefault: 'Cash expense default',
+                cashExpenseDefaultDescription:
+                    'Choose how cash expenses should be created. An expense is considered a cash expense if it is not an imported company card transaction. This includes manually created expenses, receipts, per diem, distance, and time expenses.',
+                reimbursableDefault: 'Reimbursable',
+                reimbursableDefaultDescription: 'Expenses are most often paid back to employees',
+                nonReimbursableDefault: 'Non-reimbursable',
+                nonReimbursableDefaultDescription: 'Expenses are occasionally paid back to employees',
+                alwaysReimbursable: 'Always reimbursable',
+                alwaysReimbursableDescription: 'Expenses are always paid back to employees',
+                alwaysNonReimbursable: 'Always non-reimbursable',
+                alwaysNonReimbursableDescription: 'Expenses are never paid back to employees',
                 billableDefault: 'Billable default',
                 billableDefaultDescription: ({tagsPageLink}: BillableDefaultDescriptionParams) =>
                     `<muted-text>Choose whether cash and credit card expenses should be billable by default. Billable expenses are enabled or disabled in <a href="${tagsPageLink}">tags</a>.</muted-text>`,
@@ -5813,6 +5826,7 @@ const translations = {
             return `updated the monthly report submission date to "${newValue}" (previously "${oldValue}")`;
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `updated "Re-bill expenses to clients" to "${newValue}" (previously "${oldValue}")`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `updated "Cash expense default" to "${newValue}" (previously "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `turned "Enforce default report titles" ${value ? 'on' : 'off'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `updated the name of this workspace to "${newName}" (previously "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -6016,12 +6030,12 @@ const translations = {
             },
             current: 'Current',
             past: 'Past',
-            submitted: 'Submitted date',
-            approved: 'Approved date',
-            paid: 'Paid date',
-            exported: 'Exported date',
-            posted: 'Posted date',
-            withdrawn: 'Withdrawn date',
+            submitted: 'Submitted',
+            approved: 'Approved',
+            paid: 'Paid',
+            exported: 'Exported',
+            posted: 'Posted',
+            withdrawn: 'Withdrawn',
             billable: 'Billable',
             reimbursable: 'Reimbursable',
             groupBy: {
@@ -6639,9 +6653,9 @@ const translations = {
                     `You disputed the ${amountOwed} charge on the card ending in ${cardEnding}. Your account will be locked until the dispute is resolved with your bank.`,
             },
             cardAuthenticationRequired: {
-                title: 'Your card couldn’t be charged',
+                title: 'Your payment card hasn’t been fully authenticated.',
                 subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) =>
-                    `Your payment card hasn’t been fully authenticated. Please complete the authentication process to activate your payment card ending in ${cardEnding}.`,
+                    `Please complete the authentication process to activate your payment card ending in ${cardEnding}.`,
             },
             insufficientFunds: {
                 title: 'Your card couldn’t be charged',
