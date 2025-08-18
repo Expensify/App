@@ -3,7 +3,7 @@ import CONST from '@src/CONST';
 import usePermissions from './usePermissions';
 import usePolicy from './usePolicy';
 
-export default function useExpensifyCardUkEuSupported(policyID?: string) {
+export default function useExpensifyCardUkEu(policyID?: string) {
     const {isBetaEnabled} = usePermissions();
     const policy = usePolicy(policyID);
 
