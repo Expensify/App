@@ -267,6 +267,14 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
     return reportAction.originalMessage;
 }
 
+function getDelegateAccountIDFromReportAction(reportAction: OnyxInputOrEntry<ReportAction>): number | undefined {
+    if (!reportAction) {
+        return undefined;
+    }
+
+    return reportAction.delegateAccountID;
+}
+
 function isExportIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION> {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION;
 }
@@ -3132,6 +3140,7 @@ export {
     getVacationer,
     getSubmittedTo,
     getReceiptScanFailedMessage,
+    getDelegateAccountIDFromReportAction,
 };
 
 export type {LastVisibleMessage};
