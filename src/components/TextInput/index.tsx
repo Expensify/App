@@ -1,4 +1,3 @@
-import type {ForwardedRef} from 'react';
 import React, {useEffect, useRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -6,12 +5,12 @@ import * as Browser from '@libs/Browser';
 import DomUtils from '@libs/DomUtils';
 import Visibility from '@libs/Visibility';
 import BaseTextInput from './BaseTextInput';
-import type {BaseTextInputProps, BaseTextInputRef} from './BaseTextInput/types';
+import type {BaseTextInputProps} from './BaseTextInput/types';
 import * as styleConst from './styleConst';
 
 type RemoveVisibilityListener = () => void;
 
-function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef>) {
+function TextInput({ref, ...props}: BaseTextInputProps) {
     const styles = useThemeStyles();
     const textInputRef = useRef<HTMLFormElement | null>(null);
     const removeVisibilityListenerRef = useRef<RemoveVisibilityListener>(null);
@@ -80,4 +79,4 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
 
 TextInput.displayName = 'TextInput';
 
-export default React.forwardRef(TextInput);
+export default TextInput;
