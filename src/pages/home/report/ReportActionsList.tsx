@@ -102,6 +102,9 @@ type ReportActionsListProps = {
     /** Function to load newer chats */
     loadNewerChats: (force?: boolean) => void;
 
+    /** Whether the composer is in full size */
+    isComposerFullSize?: boolean;
+
     /** ID of the list */
     listID: number;
 
@@ -110,8 +113,6 @@ type ReportActionsListProps = {
 
     /** The current composer height */
     composerHeight: number;
-
-    isComposerFullSize?: boolean;
 };
 
 // In the component we are subscribing to the arrival of new actions.
