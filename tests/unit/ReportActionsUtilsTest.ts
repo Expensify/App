@@ -372,6 +372,12 @@ describe('ReportActionsUtils', () => {
             originalMessage: {...getOriginalMessage(mockIOUAction), IOUTransactionID},
         };
 
+        const linkedCreateActionWithoutChildReportID = {
+            ...mockIOUAction,
+            originalMessage: {...getOriginalMessage(mockIOUAction), IOUTransactionID},
+            childReportID: undefined,
+        };
+
         const unlinkedCreateAction = {
             ...mockIOUAction,
             originalMessage: {...getOriginalMessage(mockIOUAction), IOUTransactionID: IOUExpenseTransactionID},
@@ -398,6 +404,11 @@ describe('ReportActionsUtils', () => {
         it('should return the childReportID for a valid single IOU action', () => {
             const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedCreateAction], false, [IOUTransactionID]);
             expect(result).toEqual(linkedCreateAction.childReportID);
+        });
+
+        it('should return CONST.FAKE_REPORT_ID when action exists but childReportID is undefined', () => {
+            const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedCreateActionWithoutChildReportID], false, [IOUTransactionID]);
+            expect(result).toEqual(CONST.FAKE_REPORT_ID);
         });
 
         it('should return undefined for action with a transaction that is not linked to it', () => {
