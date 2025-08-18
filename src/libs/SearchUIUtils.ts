@@ -54,6 +54,7 @@ import type {
     SearchTask,
     SearchTransaction,
     SearchTransactionAction,
+    SearchWithdrawalIDGroup,
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
@@ -1392,8 +1393,21 @@ function getCardSections(data: OnyxTypes.SearchResults['data']): TransactionCard
  * Do not use directly, use only via `getSections()` facade.
  */
 function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data']): TransactionWithdrawalIDGroupListItemType[] {
-    // Will be implemented as part of https://github.com/Expensify/App/pull/66078
-    return data ? [] : [];
+    const withdrawalIDSections: Record<string, TransactionWithdrawalIDGroupListItemType> = {};
+
+    for (const key in data) {
+        if (isGroupEntry(key)) {
+            const withdrawalIDGroup = data[key] as SearchWithdrawalIDGroup;
+
+            withdrawalIDSections[key] = {
+                groupedBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+                transactions: [],
+                ...withdrawalIDGroup,
+            };
+        }
+    }
+
+    return Object.values(withdrawalIDSections);
 }
 
 /**
@@ -1481,7 +1495,7 @@ function getSortedSections(
             case CONST.SEARCH.GROUP_BY.CARD:
                 return getSortedCardData(data as TransactionCardGroupListItemType[], localeCompare);
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
-                return getSortedWithdrawalIDData(data as TransactionWithdrawalIDGroupListItemType[]);
+                return getSortedWithdrawalIDData(data as TransactionWithdrawalIDGroupListItemType[], localeCompare);
         }
     }
 
@@ -1576,7 +1590,7 @@ function getSortedReportData(data: TransactionReportGroupListItemType[], localeC
 
 /**
  * @private
- * Sorts report sections based on a specified column and sort order.
+ * Sorts member sections based on a specified column and sort order.
  */
 function getSortedMemberData(data: TransactionMemberGroupListItemType[], localeCompare: LocaleContextProps['localeCompare']) {
     return data.sort((a, b) => localeCompare(a.displayName ?? a.login ?? '', b.displayName ?? b.login ?? ''));
@@ -1584,7 +1598,7 @@ function getSortedMemberData(data: TransactionMemberGroupListItemType[], localeC
 
 /**
  * @private
- * Sorts report sections based on a specified column and sort order.
+ * Sorts card sections based on a specified column and sort order.
  */
 function getSortedCardData(data: TransactionCardGroupListItemType[], localeCompare: LocaleContextProps['localeCompare']) {
     return data.sort((a, b) => localeCompare(a.displayName ?? a.login ?? '', b.displayName ?? b.login ?? ''));
@@ -1592,11 +1606,10 @@ function getSortedCardData(data: TransactionCardGroupListItemType[], localeCompa
 
 /**
  * @private
- * Sorts report sections based on a specified column and sort order.
+ * Sorts withdrawal ID sections based on a specified column and sort order.
  */
-function getSortedWithdrawalIDData(data: TransactionWithdrawalIDGroupListItemType[]) {
-    // Will be implemented as part of https://github.com/Expensify/App/pull/66078
-    return data ? [] : [];
+function getSortedWithdrawalIDData(data: TransactionWithdrawalIDGroupListItemType[], localeCompare: LocaleContextProps['localeCompare']) {
+    return data.sort((a, b) => localeCompare(b.debitPosted, a.debitPosted));
 }
 
 /**
