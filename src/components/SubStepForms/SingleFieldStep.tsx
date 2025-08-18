@@ -1,5 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {forwardRef, useCallback, useRef} from 'react';
+import React, {forwardRef, useRef} from 'react';
 import type {InputModeOptions} from 'react-native';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -8,6 +7,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useDelayedAutoFocus from '@hooks/useDelayAutoFocus';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -87,26 +87,7 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const internalInputRef = useRef<AnimatedTextInputRef>(null);
-    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-    useFocusEffect(
-        useCallback(() => {
-            if (!shouldDelayAutoFocus) {
-                return;
-            }
-
-            focusTimeoutRef.current = setTimeout(() => {
-                internalInputRef.current?.focus();
-            }, CONST.ANIMATED_TRANSITION);
-
-            return () => {
-                if (!focusTimeoutRef.current) {
-                    return;
-                }
-                clearTimeout(focusTimeoutRef.current);
-            };
-        }, [shouldDelayAutoFocus]),
-    );
+    useDelayedAutoFocus(internalInputRef, shouldDelayAutoFocus);
 
     return (
         <FormProvider
