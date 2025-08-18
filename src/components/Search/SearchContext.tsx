@@ -1,12 +1,6 @@
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
-import {
-    isTransactionCardGroupListItemType,
-    isTransactionListItemType,
-    isTransactionMemberGroupListItemType,
-    isTransactionReportGroupListItemType,
-    isTransactionWithdrawalIDGroupListItemType,
-} from '@libs/SearchUIUtils';
+import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
