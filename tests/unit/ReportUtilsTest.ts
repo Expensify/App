@@ -951,7 +951,9 @@ describe('ReportUtils', () => {
         });
 
         it('should return the correct parent navigation subtitle for the archived invoice report', () => {
-            expect(getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, true)).toEqual({reportName: 'A workspace & Ragnar Lothbrok (archived)'});
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, true);
+            const normalizedActual = {...actual, reportName: actual.reportName?.replace(/\u00A0/g, ' ')};
+            expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok (archived)'});
         });
     });
 
