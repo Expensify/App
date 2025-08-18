@@ -1,4 +1,5 @@
 import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs/lib/typescript/src/types';
+import {TabActions} from '@react-navigation/native';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
@@ -8,6 +9,7 @@ import useIsResizing from '@hooks/useIsResizing';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import getBackgroundColor from './getBackground';
@@ -137,8 +139,7 @@ function TabSelector({
                         });
 
                         if (!event.defaultPrevented) {
-                            // The `merge: true` option makes sure that the params inside the tab screen are preserved
-                            navigation.navigate(route.name, {key: route.key, merge: true});
+                            navigation.dispatch(TabActions.jumpTo(route.name));
                         }
 
                         onTabPress(route.name);
