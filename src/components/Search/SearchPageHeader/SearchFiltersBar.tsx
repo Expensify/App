@@ -567,7 +567,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
             if (dateFilterKey) {
                 return dateFilterKey;
             }
-            return filter.filterKey
+            return filter.filterKey;
         });
         const hiddenFilters = advancedSearchFiltersKeys.filter((key) => !exposedFiltersKeys.includes(key as SearchAdvancedFiltersKey));
         return hiddenFilters.filter((key) => {
