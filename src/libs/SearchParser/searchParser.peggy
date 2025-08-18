@@ -117,6 +117,7 @@ key "key"
       / keyword
       / in
       / currency
+      / groupCurrency
       / tag
       / category
       / to
@@ -126,6 +127,7 @@ key "key"
       / payer
       / exporter
       / expenseType
+      / withdrawalType
       / submitted
       / approved
       / paid
