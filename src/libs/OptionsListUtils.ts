@@ -435,8 +435,7 @@ Onyx.connect({
                 lastReportActions[reportID] = firstReportAction;
             }
 
-            const isReportArchived = useReportIsArchived(report?.reportID);
-            const isWriteActionAllowed = canUserPerformWriteAction(report, isReportArchived);
+            const isWriteActionAllowed = canUserPerformWriteAction(report);
 
             // The report is only visible if it is the last action not deleted that
             // does not match a closed or created state.
