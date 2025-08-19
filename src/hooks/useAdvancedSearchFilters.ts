@@ -27,6 +27,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
             CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY,
         ],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
@@ -93,6 +94,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
             CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY,
         ],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
@@ -209,6 +211,7 @@ function useAdvancedSearchFilters() {
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length !== 0);
     const shouldDisplayGroupByFilter = groupBy === CONST.SEARCH.GROUP_BY.FROM || groupBy === CONST.SEARCH.GROUP_BY.CARD;
+    const shouldDisplayGroupCurrencyFilter = groupBy === CONST.SEARCH.GROUP_BY.FROM || groupBy === CONST.SEARCH.GROUP_BY.CARD;
 
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
@@ -238,6 +241,9 @@ function useAdvancedSearchFilters() {
                             return;
                         }
                         if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY && !shouldDisplayGroupByFilter) {
+                            return;
+                        }
+                        if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY && !shouldDisplayGroupCurrencyFilter) {
                             return;
                         }
                         return key;
