@@ -1092,7 +1092,6 @@ const translations = {
             }
             return `hat diesen <a href="${movedReportUrl}">Bericht</a> in den <a href="${newParentReportUrl}">${toPolicyName}</a> Workspace verschoben`;
         },
-        unreportedTransaction: 'diese Ausgabe in Ihren persönlichen Bereich verschoben',
         pendingMatchWithCreditCard: 'Beleg steht aus, um mit Kartentransaktion abgeglichen zu werden',
         pendingMatch: 'Ausstehende Übereinstimmung',
         pendingMatchWithCreditCardDescription: 'Beleg wartet auf Abgleich mit Kartentransaktion. Als Barzahlung markieren, um abzubrechen.',

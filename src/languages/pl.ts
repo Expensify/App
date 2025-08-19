@@ -1088,7 +1088,6 @@ const translations = {
             }
             return `przeniósł ten <a href="${movedReportUrl}">raport</a> do przestrzeni roboczej <a href="${newParentReportUrl}">${toPolicyName}</a>`;
         },
-        unreportedTransaction: 'przeniósł ten wydatek do twojej przestrzeni osobistej',
         pendingMatchWithCreditCard: 'Paragon oczekuje na dopasowanie z transakcją kartą',
         pendingMatch: 'Oczekujące dopasowanie',
         pendingMatchWithCreditCardDescription: 'Paragon oczekuje na dopasowanie z transakcją kartą. Oznacz jako gotówka, aby anulować.',

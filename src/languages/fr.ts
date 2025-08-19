@@ -1094,7 +1094,6 @@ const translations = {
             }
             return `a déplacé ce <a href="${movedReportUrl}">rapport</a> vers l’espace de travail <a href="${newParentReportUrl}">${toPolicyName}</a>`;
         },
-        unreportedTransaction: 'déplacé cette dépense vers votre espace personnel',
         pendingMatchWithCreditCard: 'Reçu en attente de correspondance avec la transaction par carte',
         pendingMatch: 'Correspondance en attente',
         pendingMatchWithCreditCardDescription: 'Reçu en attente de correspondance avec une transaction par carte. Marquer comme espèce pour annuler.',

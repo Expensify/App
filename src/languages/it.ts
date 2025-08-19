@@ -1089,7 +1089,6 @@ const translations = {
             }
             return `ha spostato questo <a href="${movedReportUrl}">rapporto</a> nello spazio di lavoro <a href="${newParentReportUrl}">${toPolicyName}</a>`;
         },
-        unreportedTransaction: 'spostato questa spesa nel tuo spazio personale',
         pendingMatchWithCreditCard: 'Ricevuta in attesa di abbinamento con transazione della carta',
         pendingMatch: 'Partita in sospeso',
         pendingMatchWithCreditCardDescription: 'Ricevuta in attesa di abbinamento con transazione della carta. Segna come contante per annullare.',

@@ -1083,7 +1083,6 @@ const translations = {
             }
             return `已将此 <a href="${movedReportUrl}">报告</a> 移动到 <a href="${newParentReportUrl}">${toPolicyName}</a> 工作区`;
         },
-        unreportedTransaction: '已将此费用移动到您的个人空间',
         pendingMatchWithCreditCard: '收据待与卡交易匹配',
         pendingMatch: '待匹配',
         pendingMatchWithCreditCardDescription: '收据待与卡交易匹配。标记为现金以取消。',

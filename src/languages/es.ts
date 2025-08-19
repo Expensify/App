@@ -1077,7 +1077,6 @@ const translations = {
             }
             return `movió este <a href="${movedReportUrl}">informe</a> al espacio de trabajo <a href="${newParentReportUrl}">${toPolicyName}</a>`;
         },
-        unreportedTransaction: 'movió este gasto a tu espacio personal',
         receiptIssuesFound: () => ({
             one: 'Problema encontrado',
             other: 'Problemas encontrados',

@@ -1091,7 +1091,6 @@ const translations = {
             }
             return `moveu este <a href="${movedReportUrl}">relatório</a> para o workspace <a href="${newParentReportUrl}">${toPolicyName}</a>`;
         },
-        unreportedTransaction: 'movei esta despesa para o seu espaço pessoal',
         pendingMatchWithCreditCard: 'Recibo pendente de correspondência com transação do cartão',
         pendingMatch: 'Partida pendente',
         pendingMatchWithCreditCardDescription: 'Recibo pendente de correspondência com transação do cartão. Marcar como dinheiro para cancelar.',

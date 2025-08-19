@@ -1091,7 +1091,6 @@ const translations = {
             }
             return `<a href="${movedReportUrl}">レポート</a> を <a href="${newParentReportUrl}">${toPolicyName}</a> ワークスペースに移動しました`;
         },
-        unreportedTransaction: 'この経費をあなたの個人スペースに移動しました。',
         pendingMatchWithCreditCard: 'カード取引との一致待ちの領収書',
         pendingMatch: '保留中の一致',
         pendingMatchWithCreditCardDescription: '領収書がカード取引と一致待ちです。現金としてマークしてキャンセルしてください。',

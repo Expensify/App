@@ -1090,7 +1090,6 @@ const translations = {
             }
             return `heeft dit <a href="${movedReportUrl}">rapport</a> verplaatst naar de <a href="${newParentReportUrl}">${toPolicyName}</a> werkruimte`;
         },
-        unreportedTransaction: 'heeft deze uitgave naar uw persoonlijke ruimte verplaatst',
         pendingMatchWithCreditCard: 'Bon is in afwachting van een overeenkomst met kaarttransactie',
         pendingMatch: 'In afwachting van overeenkomst',
         pendingMatchWithCreditCardDescription: 'Ontvangst in afwachting van overeenkomst met kaarttransactie. Markeer als contant om te annuleren.',

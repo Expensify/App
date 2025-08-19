@@ -1079,7 +1079,6 @@ const translations = {
             }
             return `moved this <a href="${movedReportUrl}">report</a> to the <a href="${newParentReportUrl}">${toPolicyName}</a> workspace`;
         },
-        unreportedTransaction: 'moved this expense to your personal space',
         pendingMatchWithCreditCard: 'Receipt pending match with card transaction',
         pendingMatch: 'Pending match',
         pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
