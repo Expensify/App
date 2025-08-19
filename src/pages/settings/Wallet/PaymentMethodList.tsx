@@ -481,16 +481,16 @@ function PaymentMethodList({
     );
 
     return (
-        <View style={[style, {minHeight: (itemsToRender.length + (shouldShowAddBankAccount ? 1 : 0)) * variables.optionRowHeight}]}>
+        <View style={[style, {minHeight: (filteredPaymentMethods.length + (shouldShowAddBankAccount ? 1 : 0)) * variables.optionRowHeight}]}>
             <FlashList<PaymentMethod | string>
                 estimatedItemSize={variables.optionRowHeight}
                 data={itemsToRender}
                 renderItem={renderItem}
                 keyExtractor={keyExtractor}
                 ListHeaderComponent={listHeaderComponent}
+                ListFooterComponent={shouldShowAddBankAccount ? renderListFooterComponent : undefined}
                 onContentSizeChange={onListContentSizeChange}
             />
-            {shouldShowAddBankAccount && renderListFooterComponent()}
         </View>
     );
 }
