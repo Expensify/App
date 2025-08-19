@@ -845,10 +845,6 @@ type SettlementAccountInfoParams = {
     accountNumber: string;
 };
 
-type ImportMemberConfirmationParams = {
-    newMembers: number;
-};
-
 type MergeSuccessDescriptionParams = {
     from: string;
     to: string;
@@ -894,7 +890,6 @@ type SubmittedWithMemoParams = {
 };
 
 export type {
-    ImportMemberConfirmationParams,
     ContactMethodsRouteParams,
     ContactMethodParams,
     SplitExpenseEditTitleParams,

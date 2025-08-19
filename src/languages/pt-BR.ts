@@ -117,7 +117,6 @@ import type {
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
-    ImportMemberConfirmationParams,
     ImportMembersSuccessfulDescriptionParams,
     ImportPerDiemRatesSuccessfulDescriptionParams,
     ImportTagsSuccessfulDescriptionParams,
@@ -992,8 +991,11 @@ const translations = {
             'O arquivo que você enviou está vazio ou contém dados inválidos. Por favor, certifique-se de que o arquivo está formatado corretamente e contém as informações necessárias antes de enviá-lo novamente.',
         importSpreadsheet: 'Importar planilha',
         downloadCSV: 'Baixar CSV',
-        importMemberConfirmation: ({newMembers}: ImportMemberConfirmationParams) =>
-            `Por favor, confirme os detalhes abaixo para o(s) ${newMembers} novo(s) membro(s) do espaço de trabalho que será(ão) adicionado(s) como parte deste envio. Membros existentes não receberão atualizações de função nem mensagens de convite.`,
+        importMemberConfirmation: () => ({
+            one: `Confirme os detalhes abaixo para um novo membro do workspace que será adicionado como parte deste envio. Os membros existentes não receberão atualizações de função nem mensagens de convite.`,
+            other: (count: number) =>
+                `Confirme os detalhes abaixo para os ${count} novos membros do workspace que serão adicionados como parte deste envio. Os membros existentes não receberão atualizações de função nem mensagens de convite.`,
+        }),
     },
     receipt: {
         upload: 'Fazer upload de recibo',

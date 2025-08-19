@@ -86,7 +86,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const membersSubmitsTo = membersSubmitsToColumn !== -1 ? spreadsheet?.data[membersSubmitsToColumn].map((submitsTo) => submitsTo) : [];
         const membersForwardsTo = membersForwardsToColumn !== -1 ? spreadsheet?.data[membersForwardsToColumn].map((forwardsTo) => forwardsTo) : [];
         const members = membersEmails?.slice(containsHeader ? 1 : 0).map((email, index) => {
-            const isPolicyMember = isPolicyMemberWithoutPendingDelete(email, policyID);
+            const isPolicyMember = isPolicyMemberWithoutPendingDelete(email, policy);
             let role = isPolicyMember ? (policy?.employeeList?.[email]?.role ?? '') : '';
             if (membersRolesColumn !== -1 && membersRoles?.[containsHeader ? index + 1 : index]) {
                 role = membersRoles?.[containsHeader ? index + 1 : index];
@@ -115,7 +115,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
         // add submitsTo and forwardsTo members if they are not in the workspace
         members?.forEach((member) => {
-            if (member.submitsTo && !allMembers.some((m) => m.email === member.submitsTo) && !isPolicyMemberWithoutPendingDelete(member.submitsTo, policyID)) {
+            if (member.submitsTo && !allMembers.some((m) => m.email === member.submitsTo) && !isPolicyMemberWithoutPendingDelete(member.submitsTo, policy)) {
                 isRoleMissing = true;
                 allMembers.push({
                     email: member.submitsTo,
@@ -125,7 +125,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 });
             }
 
-            if (member.forwardsTo && !allMembers.some((m) => m.email === member.forwardsTo) && !isPolicyMemberWithoutPendingDelete(member.forwardsTo, policyID)) {
+            if (member.forwardsTo && !allMembers.some((m) => m.email === member.forwardsTo) && !isPolicyMemberWithoutPendingDelete(member.forwardsTo, policy)) {
                 isRoleMissing = true;
                 allMembers.push({
                     email: member.forwardsTo,
@@ -143,7 +143,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             setIsImporting(true);
             importPolicyMembers(policyID, allMembers);
         }
-    }, [validate, spreadsheet, containsHeader, policyID, policy?.employeeList]);
+    }, [validate, spreadsheet?.columns, spreadsheet?.data, containsHeader, policy, policyID]);
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;

@@ -284,15 +284,13 @@ function isPolicyMember(currentUserLogin: string | undefined, policyID: string |
     return !!currentUserLogin && !!policyID && !!allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList?.[currentUserLogin];
 }
 
-function isPolicyMemberWithoutPendingDelete(currentUserLogin: string | undefined, policyID: string | undefined): boolean {
-    if (!currentUserLogin || !policyID) {
+function isPolicyMemberWithoutPendingDelete(currentUserLogin: string | undefined, policy: OnyxEntry<Policy>): boolean {
+    if (!currentUserLogin || !policy?.id) {
         return false;
     }
 
-    return (
-        isPolicyMember(currentUserLogin, policyID) &&
-        allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList?.[currentUserLogin]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-    );
+    const policyEmployee = policy?.employeeList?.[currentUserLogin];
+    return !!policyEmployee && policyEmployee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
 function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean {

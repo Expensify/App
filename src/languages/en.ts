@@ -106,7 +106,6 @@ import type {
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
-    ImportMemberConfirmationParams,
     ImportMembersSuccessfulDescriptionParams,
     ImportPerDiemRatesSuccessfulDescriptionParams,
     ImportTagsSuccessfulDescriptionParams,
@@ -984,8 +983,11 @@ const translations = {
             'The file you uploaded is either empty or contains invalid data. Please ensure that the file is correctly formatted and contains the necessary information before uploading it again.',
         importSpreadsheet: 'Import spreadsheet',
         downloadCSV: 'Download CSV',
-        importMemberConfirmation: ({newMembers}: ImportMemberConfirmationParams) =>
-            `Please confirm the details below for the ${newMembers} new workspace member(s) that will be added as part of this upload. Existing members won’t receive any role updates or invite messages.`,
+        importMemberConfirmation: () => ({
+            one: `Please confirm the details below for a new workspace member that will be added as part of this upload. Existing members won’t receive any role updates or invite messages.`,
+            other: (count: number) =>
+                `Please confirm the details below for the ${count} new workspace members that will be added as part of this upload. Existing members won’t receive any role updates or invite messages.`,
+        }),
     },
     receipt: {
         upload: 'Upload receipt',

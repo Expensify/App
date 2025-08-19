@@ -117,7 +117,6 @@ import type {
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
-    ImportMemberConfirmationParams,
     ImportMembersSuccessfulDescriptionParams,
     ImportPerDiemRatesSuccessfulDescriptionParams,
     ImportTagsSuccessfulDescriptionParams,
@@ -991,8 +990,11 @@ const translations = {
             'Het bestand dat u heeft geüpload is ofwel leeg of bevat ongeldige gegevens. Zorg ervoor dat het bestand correct is opgemaakt en de benodigde informatie bevat voordat u het opnieuw uploadt.',
         importSpreadsheet: 'Spreadsheet importeren',
         downloadCSV: 'CSV downloaden',
-        importMemberConfirmation: ({newMembers}: ImportMemberConfirmationParams) =>
-            `Bevestig hieronder de gegevens voor de ${newMembers} nieuw(e) werkruimte-lid/leden die worden toegevoegd als onderdeel van deze upload. Bestaande leden ontvangen geen rolupdates of uitnodigingsberichten.`,
+        importMemberConfirmation: () => ({
+            one: `Bevestig hieronder de gegevens voor een nieuw werkruimte-lid dat via deze upload wordt toegevoegd. Bestaande leden ontvangen geen rolupdates of uitnodigingsberichten.`,
+            other: (count: number) =>
+                `Bevestig hieronder de gegevens voor de ${count} nieuwe werkruimte-leden die via deze upload worden toegevoegd. Bestaande leden ontvangen geen rolupdates of uitnodigingsberichten.`,
+        }),
     },
     receipt: {
         upload: 'Bonnetje uploaden',

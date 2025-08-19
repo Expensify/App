@@ -58,8 +58,8 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
 
     const [importedSpreadsheetMemberData] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA, {canBeMissing: true});
     const newMembers = useMemo(() => {
-        return importedSpreadsheetMemberData?.filter((member) => !isPolicyMemberWithoutPendingDelete(member.email, policyID) && !member.role) ?? [];
-    }, [importedSpreadsheetMemberData, policyID]);
+        return importedSpreadsheetMemberData?.filter((member) => !isPolicyMemberWithoutPendingDelete(member.email, policy) && !member.role) ?? [];
+    }, [importedSpreadsheetMemberData, policy]);
     const invitedEmailsToAccountIDsDraft = useMemo(() => {
         const memberEmails = newMembers.map((member) => member.email);
         return memberEmails.reduce(
@@ -95,32 +95,34 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
     };
 
-    const roleItems: ListItemType[] = useMemo(
-        () => [
-            {
-                value: CONST.POLICY.ROLE.ADMIN,
-                text: translate('common.admin'),
-                alternateText: translate('workspace.common.adminAlternateText'),
-                isSelected: role === CONST.POLICY.ROLE.ADMIN,
-                keyForList: CONST.POLICY.ROLE.ADMIN,
-            },
-            {
-                value: CONST.POLICY.ROLE.AUDITOR,
-                text: translate('common.auditor'),
-                alternateText: translate('workspace.common.auditorAlternateText'),
-                isSelected: role === CONST.POLICY.ROLE.AUDITOR,
-                keyForList: CONST.POLICY.ROLE.AUDITOR,
-            },
-            {
-                value: CONST.POLICY.ROLE.USER,
-                text: translate('common.member'),
-                alternateText: translate('workspace.common.memberAlternateText'),
-                isSelected: role === CONST.POLICY.ROLE.USER,
-                keyForList: CONST.POLICY.ROLE.USER,
-            },
-        ],
-        [role, translate],
-    );
+    const onRoleChange = (item: ListItemType) => {
+        setRole(item.value);
+        setIsRoleSelectionModalVisible(false);
+    };
+
+    const roleItems: ListItemType[] = [
+        {
+            value: CONST.POLICY.ROLE.ADMIN,
+            text: translate('common.admin'),
+            alternateText: translate('workspace.common.adminAlternateText'),
+            isSelected: role === CONST.POLICY.ROLE.ADMIN,
+            keyForList: CONST.POLICY.ROLE.ADMIN,
+        },
+        {
+            value: CONST.POLICY.ROLE.AUDITOR,
+            text: translate('common.auditor'),
+            alternateText: translate('workspace.common.auditorAlternateText'),
+            isSelected: role === CONST.POLICY.ROLE.AUDITOR,
+            keyForList: CONST.POLICY.ROLE.AUDITOR,
+        },
+        {
+            value: CONST.POLICY.ROLE.USER,
+            text: translate('common.member'),
+            alternateText: translate('workspace.common.memberAlternateText'),
+            isSelected: role === CONST.POLICY.ROLE.USER,
+            keyForList: CONST.POLICY.ROLE.USER,
+        },
+    ];
 
     if (!spreadsheet || !importedSpreadsheetMemberData) {
         return <NotFoundPage />;
@@ -153,7 +155,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                     />
                 </View>
                 <View style={[styles.mb5]}>
-                    <Text>{translate('spreadsheet.importMemberConfirmation', {newMembers: newMembers?.length})}</Text>
+                    <Text>{translate('spreadsheet.importMemberConfirmation', {count: newMembers?.length ?? 0})}</Text>
                 </View>
                 <View style={[styles.mb3]}>
                     <View style={[styles.mhn5, styles.mb3]}>
@@ -204,10 +206,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             <WorkspaceMemberDetailsRoleSelectionModal
                 isVisible={isRoleSelectionModalVisible}
                 items={roleItems}
-                onRoleChange={(item) => {
-                    setRole(item.value);
-                    setIsRoleSelectionModalVisible(false);
-                }}
+                onRoleChange={onRoleChange}
                 onClose={() => setIsRoleSelectionModalVisible(false)}
             />
         </ScreenWrapper>
