@@ -14,7 +14,9 @@ import {
     isUserInvitedToWorkspace,
     shouldShowEmployeeListError,
     shouldShowPolicy,
+    sortWorkspacesBySelected,
 } from '@libs/PolicyUtils';
+import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1118,6 +1120,77 @@ describe('PolicyUtils', () => {
             expect(getCurrentUserEmailSpy).toHaveBeenCalled();
 
             getCurrentUserEmailSpy.mockRestore();
+        });
+    });
+
+    describe('sortWorkspacesBySelected', () => {
+        it('should order workspaces with selected workspace first', () => {
+            const workspace1 = {policyID: '1', name: 'Workspace 1'};
+            const workspace2 = {policyID: '2', name: 'Workspace 2'};
+            const selectedWorkspace1 = {policyID: '3', name: 'Workspace 3'};
+            const selectedWorkspace2 = {policyID: '4', name: 'Workspace 4'};
+            expect(sortWorkspacesBySelected(workspace1, workspace2, ['3', '4'])).toBe(-1); // Neither selected, alphabetical order
+            expect(sortWorkspacesBySelected(workspace1, selectedWorkspace1, ['3', '4'])).toBe(1); // selectedWorkspace1 comes first
+            expect(sortWorkspacesBySelected(selectedWorkspace1, selectedWorkspace2, ['3', '4'])).toBe(-1); // Both selected, alphabetical order
+        });
+
+        it('should order workspaces using name if no workspace is selected', () => {
+            const workspace1 = {policyID: '1', name: 'Workspace 1'};
+            const workspace2 = {policyID: '2', name: 'Workspace 2'};
+            const workspace3 = {policyID: '3', name: 'Workspace 3'};
+            const workspace4 = {policyID: '4', name: 'Workspace 4'};
+            expect(sortWorkspacesBySelected(workspace1, workspace2, undefined)).toBe(-1);
+            expect(sortWorkspacesBySelected(workspace1, workspace3, undefined)).toBe(-1);
+            expect(sortWorkspacesBySelected(workspace3, workspace4, undefined)).toBe(-1);
+        });
+
+        it('should sort workspaces when using this method correctly', () => {
+            const unsortedWorkspaces = [
+                {policyID: '2', name: 'Workspace 2'},
+                {policyID: '1', name: 'Workspace 1'},
+                {policyID: '4', name: 'Workspace 4'},
+                {policyID: '3', name: 'Workspace 3'},
+            ];
+            const selectedWorkspaceIDs = ['3', '4'];
+            const sortedWorkspaces = unsortedWorkspaces.sort((a, b) => sortWorkspacesBySelected(a, b, selectedWorkspaceIDs));
+            expect(sortedWorkspaces).toEqual([
+                {policyID: '3', name: 'Workspace 3'},
+                {policyID: '4', name: 'Workspace 4'},
+                {policyID: '1', name: 'Workspace 1'},
+                {policyID: '2', name: 'Workspace 2'},
+            ]);
+        });
+    });
+
+    describe('getPolicyEmployeeAccountIDs', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should return an array of employee accountIDs for the given policy (excluding current user)', async () => {
+            const policy = {
+                ...createRandomPolicy(1),
+                employeeList,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+            
+            const result = getPolicyEmployeeAccountIDs('1');
+            expect(result).toEqual(expect.arrayContaining([2, 3, 4, 5, 6, 7]));
+        });
+
+        it('should return an empty array if policy ID is not provided', () => {
+            const result = getPolicyEmployeeAccountIDs();
+            expect(result).toEqual([]);
+        });
+
+        it('should return an empty array if policy is not found', () => {
+            const result = getPolicyEmployeeAccountIDs('nonexistent');
+            expect(result).toEqual([]);
         });
     });
 });
