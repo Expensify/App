@@ -260,6 +260,12 @@ function revealVirtualCardDetails(cardID: number, validateCode: string): Promise
                         return;
                     }
 
+                    if (response?.jsonCode === 404) {
+                        // eslint-disable-next-line prefer-promise-reject-errors
+                        reject('validateCodeForm.error.missingPrivateDetails');
+                        return;
+                    }
+
                     // eslint-disable-next-line prefer-promise-reject-errors
                     reject('cardPage.cardDetailsLoadingFailure');
                     return;

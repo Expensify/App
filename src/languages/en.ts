@@ -2143,6 +2143,7 @@ const translations = {
             pleaseFillMagicCode: 'Please enter your magic code',
             incorrectMagicCode: 'Incorrect or invalid magic code. Please try again or request a new code.',
             pleaseFillTwoFactorAuth: 'Please enter your two-factor authentication code',
+            missingPrivateDetails: 'Please update your private personal details under Settings > Profile, then try again.',
         },
     },
     passwordForm: {
