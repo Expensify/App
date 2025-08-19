@@ -11,7 +11,7 @@
  */
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
-import type {OnboardingCompanySize, OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -143,6 +143,7 @@ import type {
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
     MissingPropertyParams,
+    MovedActionParams,
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
     MovedTransactionParams,
@@ -293,6 +294,7 @@ import type {
     WorkEmailResendCodeParams,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
+    WorkspaceMembersCountParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
@@ -551,6 +553,7 @@ const translations = {
         auditor: 'Auditor',
         role: 'Rol',
         currency: 'Valuta',
+        groupCurrency: 'Groepsvaluta',
         rate: 'Beoordeel',
         emptyLHN: {
             title: 'Woohoo! Helemaal bij.',
@@ -1081,6 +1084,13 @@ const translations = {
         movedFromReport: ({reportName}: MovedFromReportParams) => `verplaatste een uitgave${reportName ? `van ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `heeft deze uitgave verplaatst${reportName ? `naar <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `heeft deze uitgave naar uw <a href="${reportUrl}">persoonlijke ruimte</a> verplaatst`,
+        movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
+            if (shouldHideMovedReportUrl) {
+                return `heeft dit rapport verplaatst naar de <a href="${newParentReportUrl}">${toPolicyName}</a> werkruimte`;
+            }
+            return `heeft dit <a href="${movedReportUrl}">rapport</a> verplaatst naar de <a href="${newParentReportUrl}">${toPolicyName}</a> werkruimte`;
+        },
+        unreportedTransaction: 'heeft deze uitgave naar uw persoonlijke ruimte verplaatst',
         pendingMatchWithCreditCard: 'Bon is in afwachting van een overeenkomst met kaarttransactie',
         pendingMatch: 'In afwachting van overeenkomst',
         pendingMatchWithCreditCardDescription: 'Ontvangst in afwachting van overeenkomst met kaarttransactie. Markeer als contant om te annuleren.',
@@ -1582,6 +1592,7 @@ const translations = {
             testCrash: 'Test crash',
             resetToOriginalState: 'Reset naar oorspronkelijke staat',
             usingImportedState: 'U gebruikt geïmporteerde status. Druk hier om het te wissen.',
+            shouldBlockTransactionThreadReportCreation: 'Creatie van transactie thread rapporten blokkeren',
             debugMode: 'Debug-modus',
             invalidFile: 'Ongeldig bestand',
             invalidFileDescription: 'Het bestand dat je probeert te importeren is niet geldig. Probeer het opnieuw.',
@@ -2380,14 +2391,14 @@ const translations = {
             },
 
             setupCategoriesAndTags: {
-                title: ({workspaceCategoriesLink, workspaceMoreFeaturesLink}) => `Stel [categorieën](${workspaceCategoriesLink}) en [tags](${workspaceMoreFeaturesLink}) in`,
+                title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Stel [categorieën](${workspaceCategoriesLink}) en [tags](${workspaceTagsLink}) in`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
                     '*Stel categorieën en tags in* zodat uw team uitgaven kan coderen voor eenvoudige rapportage.\n' +
                     '\n' +
                     `Importeer ze automatisch door [uw boekhoudsoftware te verbinden](${workspaceAccountingLink}), of stel ze handmatig in via uw [werkruimte-instellingen](${workspaceCategoriesLink}).`,
             },
             setupTagsTask: {
-                title: ({workspaceMoreFeaturesLink}) => `Stel [tags](${workspaceMoreFeaturesLink}) in`,
+                title: ({workspaceTagsLink}) => `Stel [tags](${workspaceTagsLink}) in`,
                 description: ({workspaceMoreFeaturesLink}) =>
                     'Gebruik tags om extra uitgavendetails toe te voegen zoals projecten, klanten, locaties en afdelingen. Als u meerdere niveaus van tags nodig heeft, kunt u upgraden naar het Control-abonnement.\n' +
                     '\n' +
@@ -2476,8 +2487,8 @@ const translations = {
         messages: {
             onboardingEmployerOrSubmitMessage: 'Terugbetaald krijgen is net zo eenvoudig als een bericht sturen. Laten we de basis doornemen.',
             onboardingPersonalSpendMessage: 'Zo volgt u uw uitgaven in een paar klikken.',
-            onboardingMangeTeamMessage: ({onboardingCompanySize}: {onboardingCompanySize?: OnboardingCompanySize}) =>
-                `Hier is een takenlijst die ik zou aanraden voor een bedrijf van uw grootte met ${onboardingCompanySize} inzenders:`,
+            onboardingManageTeamMessage:
+                '# Je gratis proefperiode is begonnen! Laten we aan de slag gaan met de installatie.\n👋 Hallo, ik ben je Expensify-installatiespecialist. Nu je een workspace hebt gemaakt, haal het meeste uit je 30 dagen gratis proefperiode door de onderstaande stappen te volgen!',
             onboardingTrackWorkspaceMessage:
                 '# Laten we u instellen\n👋 Ik ben hier om te helpen! Om u op weg te helpen, heb ik uw werkruimte-instellingen afgestemd op eenmanszaken en soortgelijke bedrijven. U kunt uw werkruimte aanpassen door op de onderstaande link te klikken!\n\nZo volgt u uw uitgaven in een paar klikken:',
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo eenvoudig als een bericht sturen. Zo doet u dat.',
@@ -3546,6 +3557,9 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: 'Automatiseer reis- en maaltijdbezorgkosten binnen uw organisatie.',
+                autoRemove: 'Nodig nieuwe werkruimteleden uit voor Uber for Business',
+                autoInvite: 'Deactiveer verwijderde werkruimteleden van Uber for Business',
+                manageInvites: 'Beheer uitnodigingen',
             },
         },
         perDiem: {
@@ -4679,6 +4693,7 @@ const translations = {
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Uber verbreken',
                 disconnectText: 'Om deze functie uit te schakelen, verbreek eerst de Uber for Business integratie.',
+                description: 'Weet u zeker dat u deze integratie wilt verbreken?',
                 confirmText: 'Begrepen',
             },
             workflowWarningModal: {
@@ -4926,7 +4941,7 @@ const translations = {
             },
             addedWithPrimary: 'Sommige leden zijn toegevoegd met hun primaire logins.',
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Toegevoegd door secundaire login ${secondaryLogin}.`,
-            membersListTitle: 'Directory van alle werkruimteleden.',
+            workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Totaal aantal leden van de werkruimte: ${count}`,
             importMembers: 'Leden importeren',
         },
         card: {
@@ -5554,6 +5569,17 @@ const translations = {
                     one: '1 dag',
                     other: (count: number) => `${count} dagen`,
                 }),
+                cashExpenseDefault: 'Contante uitgave standaard',
+                cashExpenseDefaultDescription:
+                    'Kies hoe contante uitgaven moeten worden aangemaakt. Een uitgave wordt als contant beschouwd als het geen geïmporteerde bedrijfspastransactie is. Dit omvat handmatig aangemaakte uitgaven, bonnetjes, dagvergoedingen, kilometer- en tijdsuitgaven.',
+                reimbursableDefault: 'Vergoedbaar',
+                reimbursableDefaultDescription: 'Uitgaven worden meestal terugbetaald aan medewerkers',
+                nonReimbursableDefault: 'Niet vergoedbaar',
+                nonReimbursableDefaultDescription: 'Uitgaven worden soms terugbetaald aan medewerkers',
+                alwaysReimbursable: 'Altijd vergoedbaar',
+                alwaysReimbursableDescription: 'Uitgaven worden altijd terugbetaald aan medewerkers',
+                alwaysNonReimbursable: 'Nooit vergoedbaar',
+                alwaysNonReimbursableDescription: 'Uitgaven worden nooit terugbetaald aan medewerkers',
                 billableDefault: 'Factureerbaar standaardwaarde',
                 billableDefaultDescription: ({tagsPageLink}: BillableDefaultDescriptionParams) =>
                     `<muted-text>Kies of contante en creditcarduitgaven standaard factureerbaar moeten zijn. Factureerbare uitgaven worden in <a href="${tagsPageLink}">tags</a> in- of uitgeschakeld.</muted-text>`,
@@ -5843,6 +5869,8 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `bijgewerkt "Onkosten doorberekenen aan klanten" naar "${newValue}" (voorheen "${oldValue}")`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `bijgewerkt "Contante uitgave standaard" naar "${newValue}" (voorheen "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `omgezet "Standaardrapporttitels afdwingen" ${value ? 'op' : 'uit'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `heeft de naam van deze werkruimte bijgewerkt naar "${newName}" (voorheen "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -6019,6 +6047,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nooit',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Laatste maand',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Deze maand',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Laatste verklaring',
                 },
             },
@@ -6046,18 +6075,18 @@ const translations = {
             },
             current: 'Huidig',
             past: 'Verleden',
-            submitted: 'Ingediende datum',
-            approved: 'Goedgekeurde datum',
-            paid: 'Betaaldatum',
-            exported: 'Geëxporteerde datum',
-            posted: 'Geplaatste datum',
-            withdrawn: 'Teruggetrokken datum',
+            submitted: 'Ingediend',
+            approved: 'Goedgekeurd',
+            paid: 'Betaald',
+            exported: 'Geëxporteerd',
+            posted: 'Geplaatste',
+            withdrawn: 'Teruggetrokken',
             billable: 'Factureerbaar',
             reimbursable: 'Vergoedbaar',
             groupBy: {
                 reports: 'Verslag',
-                members: 'Lid',
-                cards: 'Kaart',
+                from: 'Van',
+                card: 'Kaart',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -6673,9 +6702,8 @@ const translations = {
                     `U betwistte de ${amountOwed} kosten op de kaart die eindigt op ${cardEnding}. Uw account wordt geblokkeerd totdat het geschil met uw bank is opgelost.`,
             },
             cardAuthenticationRequired: {
-                title: 'Uw kaart kon niet worden belast.',
-                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) =>
-                    `Uw betaalkaart is niet volledig geverifieerd. Voltooi het verificatieproces om uw betaalkaart met eindcijfers ${cardEnding} te activeren.`,
+                title: 'Je betaalkaart is nog niet volledig geverifieerd.',
+                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) => `Voltooi de verificatie om je betaalkaart met eindigend op ${cardEnding} te activeren.`,
             },
             insufficientFunds: {
                 title: 'Uw kaart kon niet worden belast.',

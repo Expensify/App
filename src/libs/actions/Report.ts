@@ -160,6 +160,7 @@ import {
     populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
 } from '@libs/ReportUtils';
+import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {isOnHold} from '@libs/TransactionUtils';
@@ -802,7 +803,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     ];
 
     // Update optimistic data for parent report action if the report is a child report
-    const optimisticParentReportData = getOptimisticDataForParentReportAction(reportID, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    const optimisticParentReportData = getOptimisticDataForParentReportAction(report, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     optimisticParentReportData.forEach((parentReportData) => {
         if (isEmptyObject(parentReportData)) {
             return;
@@ -1827,7 +1828,7 @@ function handleReportChanged(report: OnyxEntry<Report>) {
             const currCallback = callback;
             callback = () => {
                 currCallback();
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(preexistingReportID), {forceReplace: true});
+                Navigation.setParams({reportID: preexistingReportID});
             };
 
             // The report screen will listen to this event and transfer the draft comment to the existing report
@@ -1957,8 +1958,9 @@ function deleteReportComment(reportID: string | undefined, reportAction: ReportA
     // Update optimistic data for parent report action if the report is a child report and the reportAction has no visible child
     const childVisibleActionCount = reportAction.childVisibleActionCount ?? 0;
     if (childVisibleActionCount === 0) {
+        const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
         const optimisticParentReportData = getOptimisticDataForParentReportAction(
-            originalReportID,
+            originalReport,
             optimisticReport?.lastVisibleActionCreated ?? '',
             CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
@@ -5765,6 +5767,20 @@ function buildOptimisticChangePolicyData(report: Report, policyID: string, repor
         },
     });
 
+    const currentSearchQueryJSON = getCurrentSearchQueryJSON();
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+
+    // Search data might not have the new policy data so we should add it optimistically.
+    if (policy && currentSearchQueryJSON) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
+            value: {
+                data: {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy},
+            },
+        });
+    }
+
     // 5. Make sure the expense report is not archived
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -5864,18 +5880,19 @@ function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, 
 
 /**
  * Resolves Concierge category options by adding a comment and updating the report action
- * @param reportID - The report ID where the comment should be added and the report action should be updated
+ * @param reportID - The report ID where the comment should be added
+ * @param actionReportID - The report ID where the report action should be updated (may be different for threads)
  * @param reportActionID - The specific report action ID to update
  * @param selectedCategory - The category selected by the user
  */
-function resolveConciergeCategoryOptions(reportID: string | undefined, reportActionID: string | undefined, selectedCategory: string) {
-    if (!reportID || !reportActionID) {
+function resolveConciergeCategoryOptions(reportID: string | undefined, actionReportID: string | undefined, reportActionID: string | undefined, selectedCategory: string) {
+    if (!reportID || !actionReportID || !reportActionID) {
         return;
     }
 
     addComment(reportID, selectedCategory);
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${actionReportID}`, {
         [reportActionID]: {
             originalMessage: {
                 selectedCategory,
