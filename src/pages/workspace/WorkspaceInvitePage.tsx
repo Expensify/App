@@ -311,7 +311,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                     subtitle={policyName}
                     onBackButtonPress={() => {
                         clearErrors(route.params.policyID);
-                        Navigation.goBack();
+                        Navigation.goBack(route.params.backTo);
                     }}
                 />
                 <SelectionList
