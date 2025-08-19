@@ -144,6 +144,7 @@ import type {
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
     MissingPropertyParams,
+    MovedActionParams,
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
     MovedTransactionParams,
@@ -295,6 +296,7 @@ import type {
     WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
+    WorkspaceMembersCountParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
@@ -1082,6 +1084,12 @@ const translations = {
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `ha eliminato una spesa (${amount} per ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `ha spostato una spesa${reportName ? `da ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `spostato questa spesa${reportName ? `a <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
+            if (shouldHideMovedReportUrl) {
+                return `ha spostato questo rapporto nello spazio di lavoro <a href="${newParentReportUrl}">${toPolicyName}</a>`;
+            }
+            return `ha spostato questo <a href="${movedReportUrl}">rapporto</a> nello spazio di lavoro <a href="${newParentReportUrl}">${toPolicyName}</a>`;
+        },
         unreportedTransaction: 'spostato questa spesa nel tuo spazio personale',
         pendingMatchWithCreditCard: 'Ricevuta in attesa di abbinamento con transazione della carta',
         pendingMatch: 'Partita in sospeso',
@@ -2397,14 +2405,14 @@ const translations = {
                     `![Invita il tuo team](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
             },
             setupCategoriesAndTags: {
-                title: ({workspaceCategoriesLink, workspaceMoreFeaturesLink}) => `Configura [categorie](${workspaceCategoriesLink}) e [tag](${workspaceMoreFeaturesLink})`,
+                title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Configura [categorie](${workspaceCategoriesLink}) e [tag](${workspaceTagsLink})`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
                     '*Configura categorie e tag* in modo che il tuo team possa codificare le spese per una rendicontazione semplice.\n' +
                     '\n' +
                     `Importale automaticamente [collegando il software di contabilità](${workspaceAccountingLink}), oppure configuralo manualmente nelle [impostazioni dello spazio di lavoro](${workspaceCategoriesLink}).`,
             },
             setupTagsTask: {
-                title: ({workspaceMoreFeaturesLink}) => `Configura i [tag](${workspaceMoreFeaturesLink})`,
+                title: ({workspaceTagsLink}) => `Configura i [tag](${workspaceTagsLink})`,
                 description: ({workspaceMoreFeaturesLink}) =>
                     'Usa i tag per aggiungere dettagli extra alle spese come progetti, clienti, sedi e reparti. Se ti servono più livelli di tag, puoi passare al piano Control.\n' +
                     '\n' +
@@ -4944,7 +4952,7 @@ const translations = {
             },
             addedWithPrimary: 'Alcuni membri sono stati aggiunti con i loro accessi principali.',
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Aggiunto da login secondario ${secondaryLogin}.`,
-            membersListTitle: 'Directory di tutti i membri del workspace.',
+            workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Numero totale di membri dello spazio di lavoro: ${count}`,
             importMembers: 'Importa membri',
         },
         card: {
@@ -5583,6 +5591,17 @@ const translations = {
                     one: '1 giorno',
                     other: (count: number) => `${count} giorni`,
                 }),
+                cashExpenseDefault: 'Spesa in contanti predefinita',
+                cashExpenseDefaultDescription:
+                    'Scegli come devono essere create le spese in contanti. Una spesa è considerata in contanti se non è una transazione su carta aziendale importata. Ciò include spese create manualmente, ricevute, diarie, chilometraggi e spese di tempo.',
+                reimbursableDefault: 'Rimborsabile',
+                reimbursableDefaultDescription: 'Le spese sono solitamente rimborsate ai dipendenti',
+                nonReimbursableDefault: 'Non rimborsabile',
+                nonReimbursableDefaultDescription: 'Le spese sono occasionalmente rimborsate ai dipendenti',
+                alwaysReimbursable: 'Sempre rimborsabile',
+                alwaysReimbursableDescription: 'Le spese sono sempre rimborsate ai dipendenti',
+                alwaysNonReimbursable: 'Mai rimborsabile',
+                alwaysNonReimbursableDescription: 'Le spese non sono mai rimborsate ai dipendenti',
                 billableDefault: 'Predefinito fatturabile',
                 billableDefaultDescription: ({tagsPageLink}: BillableDefaultDescriptionParams) =>
                     `<muted-text>Scegli se le spese in contanti e con carta di credito devono essere fatturabili per impostazione predefinita. Le spese fatturabili possono essere abilitate o disabilitate nei <a href="${tagsPageLink}">tag</a>.</muted-text>`,
@@ -5875,6 +5894,8 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `aggiornato "Riaddebita le spese ai clienti" a "${newValue}" (precedentemente "${oldValue}")`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `aggiornato "Spesa in contanti predefinita" a "${newValue}" (precedentemente "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `trasformato "Imponi titoli di report predefiniti" ${value ? 'su' : 'spento'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) =>
             `ha aggiornato il nome di questo spazio di lavoro in "${newName}" (precedentemente "${oldName}")`,
@@ -6052,6 +6073,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Mai',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Ultimo mese',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Questo mese',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Ultima dichiarazione',
                 },
             },
@@ -6708,9 +6730,8 @@ const translations = {
                     `Hai contestato l'addebito di ${amountOwed} sulla carta che termina con ${cardEnding}. Il tuo account sarà bloccato fino a quando la disputa non sarà risolta con la tua banca.`,
             },
             cardAuthenticationRequired: {
-                title: 'La tua carta non può essere addebitata',
-                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) =>
-                    `La tua carta di pagamento non è stata completamente autenticata. Completa il processo di autenticazione per attivare la tua carta di pagamento che termina con ${cardEnding}.`,
+                title: 'La tua carta di pagamento non è stata completamente autenticata.',
+                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) => `Completa il processo di autenticazione per attivare la tua carta che termina con ${cardEnding}.`,
             },
             insufficientFunds: {
                 title: 'La tua carta non può essere addebitata',

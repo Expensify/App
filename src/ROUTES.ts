@@ -597,11 +597,10 @@ const ROUTES = {
     },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':type/edit/reason/:transactionID?/:searchHash?',
-        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string, backTo: string, searchHash?: number) => {
-            const route = searchHash
-                ? (`${type as string}/edit/reason/${transactionID}/${searchHash}/?backTo=${backTo}&reportID=${reportID}` as const)
-                : (`${type as string}/edit/reason/${transactionID}/?backTo=${backTo}&reportID=${reportID}` as const);
-            return route;
+        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string | undefined, backTo: string, searchHash?: number) => {
+            const searchPart = searchHash ? `/${searchHash}` : '';
+            const reportPart = reportID ? `&reportID=${reportID}` : '';
+            return `${type as string}/edit/reason/${transactionID}${searchPart}/?backTo=${backTo}${reportPart}` as const;
         },
     },
     MONEY_REQUEST_CREATE: {
@@ -719,6 +718,18 @@ const ROUTES = {
         route: ':action/:iouType/report/:transactionID/:reportID/:reportActionID?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '', reportActionID?: string) =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
+    },
+    MONEY_REQUEST_RECEIPT_PREVIEW: {
+        route: ':action/:iouType/receipt/:transactionID/:reportID',
+        getRoute: (reportID: string, transactionID: string, action: IOUAction, iouType: IOUType) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the MONEY_REQUEST_RECEIPT_PREVIEW route');
+            }
+            if (!transactionID) {
+                Log.warn('Invalid transactionID is used to build the MONEY_REQUEST_RECEIPT_PREVIEW route');
+            }
+            return `${action}/${iouType}/receipt/${transactionID}/${reportID}?readonly=false` as const;
+        },
     },
     MONEY_REQUEST_EDIT_REPORT: {
         route: ':action/:iouType/report/:reportID/edit',
@@ -1937,6 +1948,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/billable',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/billable` as const,
     },
+    RULES_REIMBURSABLE_DEFAULT: {
+        route: 'workspaces/:policyID/rules/reimbursable',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/reimbursable` as const,
+    },
     RULES_PROHIBITED_DEFAULT: {
         route: 'workspaces/:policyID/rules/prohibited',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/prohibited` as const,
@@ -2093,22 +2108,14 @@ const ROUTES = {
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt/:action?/:iouType?',
-        getRoute: (
-            reportID: string | undefined,
-            transactionID: string | undefined,
-            readonly = false,
-            isFromReviewDuplicates = false,
-            action?: IOUAction,
-            iouType?: IOUType,
-            mergeTransactionID?: string,
-        ) => {
+        getRoute: (reportID: string | undefined, transactionID: string | undefined, readonly = false, isFromReviewDuplicates = false, mergeTransactionID?: string) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the TRANSACTION_RECEIPT route');
             }
             if (!transactionID) {
                 Log.warn('Invalid transactionID is used to build the TRANSACTION_RECEIPT route');
             }
-            return `r/${reportID}/transaction/${transactionID}/receipt${action ? `/${action}` : ''}${iouType ? `/${iouType}` : ''}?readonly=${readonly}${
+            return `r/${reportID}/transaction/${transactionID}/receipt?readonly=${readonly}${
                 isFromReviewDuplicates ? '&isFromReviewDuplicates=true' : ''
             }${mergeTransactionID ? `&mergeTransactionID=${mergeTransactionID}` : ''}` as const;
         },

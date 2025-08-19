@@ -39,17 +39,11 @@ type OriginalMessageIOU = {
     /** ID of the expense report */
     expenseReportID?: string;
 
-    /** How much was transaction */
-    amount: number;
-
     /** Was the action created automatically, not by a human */
     automaticAction?: boolean;
 
     /** Optional comment */
     comment?: string;
-
-    /** Currency of the transaction money */
-    currency: string;
 
     /** When was the `IOU` last modified */
     lastModified?: string;
@@ -69,9 +63,6 @@ type OriginalMessageIOU = {
     /** Timestamp of when the `IOU` report action was deleted */
     deleted?: string;
 
-    /** Only exists when we are sending money */
-    IOUDetails?: IOUDetails;
-
     /** Collection of accountIDs of users mentioned in message */
     whisperedTo?: number[];
 
@@ -80,7 +71,28 @@ type OriginalMessageIOU = {
 
     /** The bank account id */
     bankAccountID?: number;
-};
+} & (
+    | {
+          /** How much was transaction */
+          amount: number;
+
+          /** Currency of the transaction money */
+          currency: string;
+
+          /** Only exists when we are sending money */
+          IOUDetails?: IOUDetails;
+      }
+    | {
+          /** How much was transaction */
+          amount?: number;
+
+          /** Currency of the transaction money */
+          currency?: string;
+
+          /** Only exists when we are sending money */
+          IOUDetails: IOUDetails;
+      }
+);
 
 /** Names of moderation decisions */
 type DecisionName = ValueOf<
@@ -382,6 +394,12 @@ type OriginalMessagePolicyChangeLog = {
 
     /** New default billable value */
     newDefaultBillable?: string;
+
+    /** Old default reimbursable value */
+    oldDefaultReimbursable?: string;
+
+    /** New default reimbursable value */
+    newDefaultReimbursable?: string;
 
     /** value -- returned when updating "Auto-approve compliant reports" */
     value?: boolean;
