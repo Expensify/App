@@ -346,7 +346,10 @@ const ROUTES = {
     SETTINGS_2FA_VERIFY_ACCOUNT: {
         route: 'settings/security/two-factor-auth/verify-account',
         getRoute: (backTo?: string, forwardTo?: string) =>
-            getUrlWithBackToParam(forwardTo ? `settings/security/two-factor-auth/verify-account?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/security/two-factor-auth/verify-account', backTo),
+            getUrlWithBackToParam(
+                forwardTo ? `settings/security/two-factor-auth/verify-account?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/security/two-factor-auth/verify-account',
+                backTo,
+            ),
     },
     SETTINGS_2FA_VERIFY: {
         route: 'settings/security/two-factor-auth/verify',
