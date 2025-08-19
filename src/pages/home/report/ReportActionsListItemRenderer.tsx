@@ -255,6 +255,7 @@ function ReportActionsListItemRenderer({
             emojiReactions={emojiReactions}
             linkedTransactionRouteError={linkedTransactionRouteError}
             userBillingFundID={userBillingFundID}
+            hasInTryNewDot={hasInTryNewDot}
         />
     );
 }

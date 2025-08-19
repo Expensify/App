@@ -65,6 +65,9 @@ type ReportActionItemProps = Omit<PureReportActionItemProps, 'taskReport' | 'lin
 
     /** User billing fund ID */
     userBillingFundID: number | undefined;
+
+    /** User who has in its tryNewDot NVP */
+    hasInTryNewDot?: boolean;
 };
 
 function ReportActionItem({
@@ -80,6 +83,7 @@ function ReportActionItem({
     personalDetails,
     linkedTransactionRouteError,
     userBillingFundID,
+    hasInTryNewDot,
     ...props
 }: ReportActionItemProps) {
     const reportID = report?.reportID;
@@ -142,6 +146,7 @@ function ReportActionItem({
             clearAllRelatedReportActionErrors={clearAllRelatedReportActionErrors}
             dismissTrackExpenseActionableWhisper={dismissTrackExpenseActionableWhisper}
             userBillingFundID={userBillingFundID}
+            hasInTryNewDot={hasInTryNewDot}
         />
     );
 }
