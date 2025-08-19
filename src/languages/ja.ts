@@ -3564,6 +3564,9 @@ const translations = {
                 pending: '保留中',
                 suspended: '停止中',
                 invitationFailure: 'Uber for Businessへのメンバー招待に失敗しました',
+                autoRemove: 'Uber for Business に新しいワークスペースメンバーを招待する',
+                autoInvite: 'Uber for Business から削除されたワークスペースメンバーを非アクティブ化する',
+                manageInvites: '招待を管理する',
             },
         },
         perDiem: {
@@ -4681,6 +4684,7 @@ const translations = {
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Uberを切断',
                 disconnectText: 'この機能を無効にするには、まずUber for Business統合を切断してください。',
+                description: 'この統合を切断してもよろしいですか?',
                 confirmText: '了解',
             },
             workflowWarningModal: {
@@ -6022,6 +6026,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: '未承認',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '先月',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: '今月',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最後の声明',
                 },
             },

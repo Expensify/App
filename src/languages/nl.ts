@@ -3571,6 +3571,9 @@ const translations = {
                 pending: 'In behandeling',
                 suspended: 'Opgeschort',
                 invitationFailure: 'Kon leden niet uitnodigen voor Uber for Business',
+                autoRemove: 'Nodig nieuwe werkruimteleden uit voor Uber for Business',
+                autoInvite: 'Deactiveer verwijderde werkruimteleden van Uber for Business',
+                manageInvites: 'Beheer uitnodigingen',
             },
         },
         perDiem: {
@@ -4704,6 +4707,7 @@ const translations = {
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Uber verbreken',
                 disconnectText: 'Om deze functie uit te schakelen, verbreek eerst de Uber for Business integratie.',
+                description: 'Weet u zeker dat u deze integratie wilt verbreken?',
                 confirmText: 'Begrepen',
             },
             workflowWarningModal: {
@@ -6057,6 +6061,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nooit',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Laatste maand',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Deze maand',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Laatste verklaring',
                 },
             },

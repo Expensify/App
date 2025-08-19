@@ -3559,6 +3559,9 @@ const translations = {
                 pending: 'En attente',
                 suspended: 'Suspendu',
                 invitationFailure: "Échec de l'invitation des membres à Uber for Business",
+                autoRemove: "Inviter de nouveaux membres de l'espace de travail sur Uber",
+                autoInvite: "Désactiver les membres supprimés de l'espace de travail sur Uber",
+                manageInvites: 'Gérer les invitations',
             },
         },
         perDiem: {
@@ -4703,6 +4706,7 @@ const translations = {
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Déconnecter Uber',
                 disconnectText: "Pour désactiver cette fonctionnalité, veuillez d'abord déconnecter l'intégration Uber for Business.",
+                description: 'Êtes-vous sûr de vouloir déconnecter cette intégration?',
                 confirmText: 'Compris',
             },
             workflowWarningModal: {
@@ -6061,6 +6065,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Jamais',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Le mois dernier',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ce mois-ci',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Dernière relevé',
                 },
             },

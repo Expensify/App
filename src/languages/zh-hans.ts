@@ -3522,6 +3522,8 @@ const translations = {
                 pending: '待处理',
                 suspended: '已暂停',
                 invitationFailure: '邀请成员加入Uber for Business失败',
+                autoRemove: '邀请新工作区成员加入 Uber for Business',
+                autoInvite: '停用已从 Uber for Business 移除的工作区成员',
             },
         },
         perDiem: {
@@ -4618,6 +4620,7 @@ const translations = {
             receiptPartnersWarningModal: {
                 featureEnabledTitle: '断开Uber连接',
                 disconnectText: '要禁用此功能，请先断开Uber for Business集成。',
+                description: '您确定要断开此集成吗？',
                 confirmText: '明白了',
             },
             workflowWarningModal: {
@@ -5942,6 +5945,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: '从未',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '上个月',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: '本月',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最后发言',
                 },
             },
