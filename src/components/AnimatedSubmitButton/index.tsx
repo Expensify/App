@@ -117,6 +117,8 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
                         text={showLoading ? text : translate('common.submitted')}
                         isLoading={showLoading}
                         icon={!showLoading ? icon : undefined}
+                        isDisabled
+                        shouldStayNormalOnDisable
                     />
                 </Animated.View>
             )}
