@@ -3509,6 +3509,9 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: '自动化整个组织的差旅和送餐费用。',
+                autoRemove: '邀请新工作区成员加入 Uber for Business',
+                autoInvite: '停用已从 Uber for Business 移除的工作区成员',
+                manageInvites: '管理邀请',
             },
         },
         perDiem: {
@@ -4605,6 +4608,7 @@ const translations = {
             receiptPartnersWarningModal: {
                 featureEnabledTitle: '断开Uber连接',
                 disconnectText: '要禁用此功能，请先断开Uber for Business集成。',
+                description: '您确定要断开此集成吗？',
                 confirmText: '明白了',
             },
             workflowWarningModal: {
