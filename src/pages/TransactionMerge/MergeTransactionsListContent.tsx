@@ -17,6 +17,7 @@ import {
     fillMissingReceiptSource,
     getMergeableDataAndConflictFields,
     getSourceTransactionFromMergeTransaction,
+    getTransactionThreadReportID,
     selectTargetAndSourceTransactionIDsForMerge,
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
@@ -45,7 +46,8 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const {isOffline} = useNetwork();
     const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: false});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: true});
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getTransactionThreadReportID(targetTransaction)}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: false});
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
     const currentUserLogin = session?.email;
@@ -89,11 +91,11 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         () => (
             <View style={[styles.ph5, styles.pb5]}>
                 <Text style={[styles.textLabel, styles.minHeight5, styles.breakWord, styles.flex1]}>
-                    <RenderHTML html={translate('transactionMerge.listPage.selectTransactionToMerge', {reportName: getReportName(report)})} />
+                    <RenderHTML html={translate('transactionMerge.listPage.selectTransactionToMerge', {reportName: getReportName(transactionThreadReport ?? report)})} />
                 </Text>
             </View>
         ),
-        [report, translate, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.breakWord, styles.flex1],
+        [transactionThreadReport, report, translate, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.breakWord, styles.flex1],
     );
 
     const subTitleContent = useMemo(() => {
