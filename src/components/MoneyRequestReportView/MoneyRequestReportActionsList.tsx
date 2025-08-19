@@ -22,12 +22,13 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 import DateUtils from '@libs/DateUtils';
-import {parseFSAttributes} from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -156,7 +157,8 @@ function MoneyRequestReportActionsList({
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.accountID});
 
-    const canPerformWriteAction = canUserPerformWriteAction(report);
+    const isReportArchived = useReportIsArchived(reportID);
+    const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -166,12 +168,40 @@ function MoneyRequestReportActionsList({
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
+    const beginExportWithTemplate = useCallback(
+        (templateName: string, templateType: string, transactionIDList: string[]) => {
+            if (!report) {
+                return;
+            }
+
+            setIsExportWithTemplateModalVisible(true);
+            queueExportSearchWithTemplate({
+                templateName,
+                templateType,
+                jsonQuery: '{}',
+                reportIDList: [report.reportID],
+                transactionIDList,
+                policyID: policy?.id,
+            });
+        },
+        [report, policy],
+    );
+
     const {
         options: selectedTransactionsOptions,
         handleDeleteTransactions,
         isDeleteModalVisible,
         hideDeleteModal,
-    } = useSelectedTransactionsActions({report, reportActions, allTransactionsLength: transactions.length, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
+    } = useSelectedTransactionsActions({
+        report,
+        reportActions,
+        allTransactionsLength: transactions.length,
+        session,
+        onExportFailed: () => setIsDownloadErrorModalVisible(true),
+        policy,
+        beginExportWithTemplate: (templateName, templateType, transactionIDList) => beginExportWithTemplate(templateName, templateType, transactionIDList),
+    });
 
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
     const visibleReportActions = useMemo(() => {
@@ -265,6 +295,9 @@ function MoneyRequestReportActionsList({
     }, []);
 
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
         if (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction, visibleReportActions))) {
             // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
@@ -329,7 +362,7 @@ function MoneyRequestReportActionsList({
     /**
      * The reportActionID the unread marker should display above
      */
-    const unreadMarkerReportActionID = useMemo(() => {
+    const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = useMemo(() => {
         // If there are message that were received while offline,
         // we can skip checking all messages later than the earliest received offline message.
         const startIndex = visibleReportActions.length - 1;
@@ -356,20 +389,20 @@ function MoneyRequestReportActionsList({
 
             // eslint-disable-next-line react-compiler/react-compiler
             if (shouldDisplayNewMarker) {
-                return reportAction.reportActionID;
+                return [reportAction.reportActionID, index];
             }
         }
 
-        return null;
+        return [null, -1];
     }, [currentUserAccountID, earliestReceivedOfflineMessageIndex, prevVisibleActionsMap, visibleReportActions, unreadMarkerTime]);
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
-    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling} = useReportUnreadMessageScrollTracking({
+    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
         reportID: report.reportID,
         currentVerticalScrollingOffsetRef: scrollingVerticalBottomOffset,
-        floatingMessageVisibleInitialValue: false,
         readActionSkippedRef: readActionSkipped,
-        hasUnreadMarkerReportAction: !!unreadMarkerReportActionID,
+        unreadMarkerReportActionIndex,
+        isInverted: false,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             const {layoutMeasurement, contentSize, contentOffset} = event.nativeEvent;
             const fullContentHeight = contentSize.height;
@@ -508,6 +541,7 @@ function MoneyRequestReportActionsList({
                     personalDetails={personalDetails}
                     userBillingFundID={userBillingFundID}
                     emojiReactions={actionEmojiReactions}
+                    isReportArchived={isReportArchived}
                     draftMessage={matchingDraftMessageString}
                 />
             );
@@ -560,9 +594,6 @@ function MoneyRequestReportActionsList({
         [reportScrollManager],
     );
     const reportHasComments = visibleReportActions.length > 0;
-
-    // Parse Fullstory attributes on initial render
-    useLayoutEffect(parseFSAttributes, []);
 
     /**
      * Runs when the FlatList finishes laying out
@@ -647,6 +678,7 @@ function MoneyRequestReportActionsList({
             )}
             <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
                 <FloatingMessageCounter
+                    hasNewMessages={!!unreadMarkerReportActionID}
                     isActive={isFloatingMessageCounterVisible}
                     onClick={scrollToBottomAndMarkReportAsRead}
                 />
@@ -666,6 +698,7 @@ function MoneyRequestReportActionsList({
                         style={styles.overscrollBehaviorContain}
                         data={visibleReportActions}
                         renderItem={renderItem}
+                        onViewableItemsChanged={onViewableItemsChanged}
                         keyExtractor={keyExtractor}
                         onLayout={recordTimeToMeasureItemLayout}
                         onEndReached={onEndReached}
@@ -706,6 +739,17 @@ function MoneyRequestReportActionsList({
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={isDownloadErrorModalVisible}
                 onClose={() => setIsDownloadErrorModalVisible(false)}
+            />
+            <ConfirmModal
+                onConfirm={() => {
+                    setIsExportWithTemplateModalVisible(false);
+                    clearSelectedTransactions(undefined, true);
+                }}
+                isVisible={isExportWithTemplateModalVisible}
+                title={translate('export.exportInProgress')}
+                prompt={translate('export.conciergeWillSend')}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
             />
         </View>
     );

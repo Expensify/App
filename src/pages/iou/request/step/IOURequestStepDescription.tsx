@@ -10,15 +10,13 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getPersonalPolicy} from '@libs/PolicyUtils';
-import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canEditMoneyRequest} from '@libs/ReportUtils';
-import {areRequiredFieldsEmpty} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {setDraftSplitTransaction, setMoneyRequestDescription, updateMoneyRequestDescription} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -48,20 +46,7 @@ function IOURequestStepDescription({
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
-    const reportActionsReportID = useMemo(() => {
-        let actionsReportID;
-        if (action === CONST.IOU.ACTION.EDIT) {
-            actionsReportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID : report?.parentReportID;
-        }
-        return actionsReportID;
-    }, [action, iouType, report?.reportID, report?.parentReportID]);
-    const [reportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`, {
-        canEvict: false,
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        selector: (reportActions) => reportActions?.[report?.parentReportActionID || reportActionID],
-        canBeMissing: true,
-    });
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef, inputRef} = useAutoFocusInput(true);
@@ -138,23 +123,8 @@ function IOURequestStepDescription({
         navigateBack();
     };
 
-    const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
-    const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
-    const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
-    const canEditSplitExpense = isSplitExpense && !!transaction;
-
     // eslint-disable-next-line rulesdir/no-negated-variables
-    let shouldShowNotFoundPage = false;
-
-    if (isEditing) {
-        if (isSplitBill) {
-            shouldShowNotFoundPage = !canEditSplitBill;
-        } else if (isSplitExpense) {
-            shouldShowNotFoundPage = !canEditSplitExpense;
-        } else {
-            shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction);
-        }
-    }
+    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && getPersonalPolicy()?.id !== report.policyID;
     const getDescriptionHint = () => {
