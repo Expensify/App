@@ -39,7 +39,15 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             return;
         }
 
-        changeTransactionsReport(selectedTransactionIDs, item.value, isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '', allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`], reportNextStep);
+        changeTransactionsReport(
+            selectedTransactionIDs,
+            item.value,
+            isASAPSubmitBetaEnabled,
+            session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            session?.email ?? '',
+            allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+            reportNextStep,
+        );
         turnOffMobileSelectionMode();
         clearSelectedTransactions(true);
         Navigation.dismissModal();

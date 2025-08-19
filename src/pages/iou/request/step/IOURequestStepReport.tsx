@@ -98,7 +98,14 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             );
 
             if (isEditing) {
-                changeTransactionsReport([transaction.transactionID], item.value, isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '', allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]);
+                changeTransactionsReport(
+                    [transaction.transactionID],
+                    item.value,
+                    isASAPSubmitBetaEnabled,
+                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    session?.email ?? '',
+                    allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+                );
             }
         });
     };
