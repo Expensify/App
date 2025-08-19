@@ -6094,9 +6094,10 @@ const translations = {
             billable: 'Facturable',
             reimbursable: 'Remboursable',
             groupBy: {
-                reports: 'Rapport',
-                from: 'De',
-                card: 'Carte',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Rapport',
+                [CONST.SEARCH.GROUP_BY.FROM]: 'De',
+                [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retrait',
             },
             feed: 'Flux',
             withdrawalType: {

@@ -5974,9 +5974,10 @@ const translations = {
             billable: '可计费的',
             reimbursable: '可报销的',
             groupBy: {
-                reports: '报告',
-                from: '从',
-                card: '卡片',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: '报告',
+                [CONST.SEARCH.GROUP_BY.FROM]: '从',
+                [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提现ID',
             },
             feed: '通道',
             withdrawalType: {

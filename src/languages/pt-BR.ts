@@ -6089,9 +6089,10 @@ const translations = {
             billable: 'Faturável',
             reimbursable: 'Reembolsável',
             groupBy: {
-                reports: 'Relatório',
-                from: 'De',
-                card: 'Cartão',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Relatório',
+                [CONST.SEARCH.GROUP_BY.FROM]: 'De',
+                [CONST.SEARCH.GROUP_BY.CARD]: 'Cartão',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retirada',
             },
             feed: 'Feed',
             withdrawalType: {

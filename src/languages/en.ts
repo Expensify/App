@@ -6057,9 +6057,10 @@ const translations = {
             billable: 'Billable',
             reimbursable: 'Reimbursable',
             groupBy: {
-                reports: 'Report', // s77rt use singular key name
-                from: 'From',
-                card: 'Card',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Report',
+                [CONST.SEARCH.GROUP_BY.FROM]: 'From',
+                [CONST.SEARCH.GROUP_BY.CARD]: 'Card',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Withdrawal ID',
             },
             feed: 'Feed',
             withdrawalType: {

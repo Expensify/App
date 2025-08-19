@@ -6090,9 +6090,10 @@ const translations = {
             billable: 'Factureerbaar',
             reimbursable: 'Vergoedbaar',
             groupBy: {
-                reports: 'Verslag',
-                from: 'Van',
-                card: 'Kaart',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Verslag',
+                [CONST.SEARCH.GROUP_BY.FROM]: 'Van',
+                [CONST.SEARCH.GROUP_BY.CARD]: 'Kaart',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Opname-ID',
             },
             feed: 'Feed',
             withdrawalType: {

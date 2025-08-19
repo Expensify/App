@@ -6330,6 +6330,7 @@ const CONST = {
             REPORTS: 'reports',
             FROM: 'from',
             CARD: 'card',
+            WITHDRAWAL_ID: 'withdrawal-id',
         },
         BOOLEAN: {
             YES: 'yes',
