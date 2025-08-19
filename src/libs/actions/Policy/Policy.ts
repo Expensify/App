@@ -2531,6 +2531,18 @@ function removePolicyReceiptPartnersConnection(policyID: string, partnerName: st
         },
     ];
 
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                receiptPartners: {
+                    [partnerName]: {pendingAction: null},
+                },
+            },
+        },
+    ];
+
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2547,7 +2559,7 @@ function removePolicyReceiptPartnersConnection(policyID: string, partnerName: st
         policyID,
         partnerName,
     };
-    API.write(WRITE_COMMANDS.DISCONNECT_WORKSPACE_RECEIPT_PARTNER, parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.DISCONNECT_WORKSPACE_RECEIPT_PARTNER, parameters, {optimisticData, failureData, successData});
 }
 
 function togglePolicyUberAutoInvite(policyID: string | undefined, enabled: boolean) {
