@@ -60,7 +60,7 @@ function ShareDetailsPage({
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
     const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails, reportAttributesDerived), [report, unknownUserDetails, reportAttributesDerived]);
 
-    const fileUri = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');
+    const fileSource = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');
     const validateFileName = shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
     const fileType = shouldUsePreValidatedFile ? (validatedFile?.type ?? CONST.SHARE_FILE_MIMETYPE.JPEG) : (currentAttachment?.mimeType ?? '');
 
@@ -110,7 +110,7 @@ function ShareDetailsPage({
         }
 
         readFileAsync(
-            fileUri,
+            fileSource,
             validateFileName,
             (file) => {
                 if (isDraft) {
@@ -203,13 +203,13 @@ function ShareDetailsPage({
                                 <SafeAreaView>
                                     <AttachmentModal
                                         headerTitle={validateFileName}
-                                        source={fileUri}
+                                        source={fileSource}
                                         originalFileName={validateFileName}
                                         fallbackSource={FallbackAvatar}
                                     >
                                         {({show}) => (
                                             <AttachmentPreview
-                                                source={fileUri ?? ''}
+                                                source={fileSource ?? ''}
                                                 aspectRatio={currentAttachment?.aspectRatio}
                                                 onPress={show}
                                                 onLoadError={() => {
