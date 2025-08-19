@@ -41,7 +41,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getCorrectedAutoReportingFrequency, getDefaultApprover, isControlPolicy, isPaidGroupPolicy as isPaidGroupPolicyUtil, isPolicyAdmin as isPolicyAdminUtil} from '@libs/PolicyUtils';
-import {convertPolicyEmployeesToApprovalWorkflows, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, getEligibleExistingBusinessBankAccounts, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -55,7 +55,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
-import filterValidExistingAccounts from './utils/filterValidExistingAccounts';
 import type {AutoReportingFrequencyKey} from './WorkspaceAutoReportingFrequencyPage';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
 
@@ -90,7 +89,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     );
     const {isBetaEnabled} = usePermissions();
 
-    const hasValidExistingAccounts = filterValidExistingAccounts(bankAccountList, policy?.outputCurrency).length > 0;
+    const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency).length > 0;
 
     const isAdvanceApproval = approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1;
     const updateApprovalMode = isAdvanceApproval ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
@@ -118,7 +117,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
         } else {
             updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
-            const hasValidExistingUSDAccounts = filterValidExistingAccounts(bankAccountList, CONST.CURRENCY.USD).length > 0;
+            const hasValidExistingUSDAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, CONST.CURRENCY.USD).length > 0;
             if (hasValidExistingUSDAccounts) {
                 Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.getRoute(route.params.policyID));
             } else {
@@ -344,7 +343,26 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 onCloseError: () => clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
             },
         ];
-    }, [policy, bankAccountList, styles, translate, onPressAutoReportingFrequency, isSmartLimitEnabled, approvalWorkflows, addApprovalAction, isOffline, theme.spinner, isPolicyAdmin, displayNameForAuthorizedPayer, route.params.policyID, updateApprovalMode, isAccountLocked, isBetaEnabled, hasValidExistingAccounts, showLockedAccountModal]);
+    }, [
+        policy,
+        bankAccountList,
+        styles,
+        translate,
+        onPressAutoReportingFrequency,
+        isSmartLimitEnabled,
+        approvalWorkflows,
+        addApprovalAction,
+        isOffline,
+        theme.spinner,
+        isPolicyAdmin,
+        displayNameForAuthorizedPayer,
+        route.params.policyID,
+        updateApprovalMode,
+        isAccountLocked,
+        isBetaEnabled,
+        hasValidExistingAccounts,
+        showLockedAccountModal,
+    ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
         <Section

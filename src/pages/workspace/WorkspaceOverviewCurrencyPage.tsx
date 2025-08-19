@@ -11,6 +11,7 @@ import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import {goBackFromInvalidPolicy} from '@libs/PolicyUtils';
+import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 import {clearCorpayBankAccountFields} from '@userActions/BankAccounts';
 import {clearDraftValues, setDraftValues} from '@userActions/FormActions';
 import {isCurrencySupportedForGlobalReimbursement, setIsForcedToChangeCurrency, updateGeneralSettings} from '@userActions/Policy/Policy';
@@ -23,7 +24,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import filterValidExistingAccounts from './workflows/utils/filterValidExistingAccounts';
 
 type WorkspaceOverviewCurrencyPageProps = WithPolicyAndFullscreenLoadingProps;
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
@@ -50,7 +50,7 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
             setIsForcedToChangeCurrency(false);
 
             if (isCurrencySupportedForGlobalReimbursement(item.currencyCode as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) ?? false)) {
-                const hasValidExistingAccounts = filterValidExistingAccounts(bankAccountList, item.currencyCode).length > 0;
+                const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, item.currencyCode).length > 0;
                 if (hasValidExistingAccounts) {
                     Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.getRoute(policy.id));
                     return;
