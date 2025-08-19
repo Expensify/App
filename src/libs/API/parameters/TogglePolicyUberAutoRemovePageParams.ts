@@ -1,6 +1,6 @@
 type TogglePolicyUberAutoRemovePageParams = {
     policyID: string;
-    enabled?: boolean;
+    enabled: boolean;
 };
 
 export default TogglePolicyUberAutoRemovePageParams;

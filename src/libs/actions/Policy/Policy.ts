@@ -2538,7 +2538,7 @@ function removePolicyReceiptPartnersConnection(policyID: string, partnerName: st
     API.write(WRITE_COMMANDS.DISCONNECT_WORKSPACE_RECEIPT_PARTNER, parameters, {optimisticData});
 }
 
-function togglePolicyUberAutoInvite(policyID?: string, enabled?: boolean) {
+function togglePolicyUberAutoInvite(policyID: string | undefined, enabled: boolean) {
     if (!policyID) {
         Log.warn('togglePolicyUberAutoInvite invalid params', {policyID});
         return;
@@ -2573,7 +2573,7 @@ function togglePolicyUberAutoInvite(policyID?: string, enabled?: boolean) {
     API.write(WRITE_COMMANDS.POLICY_UBER_AUTO_INVITE, params, {optimisticData, successData, failureData});
 }
 
-function togglePolicyUberAutoRemove(policyID?: string, enabled?: boolean) {
+function togglePolicyUberAutoRemove(policyID: string | undefined, enabled: boolean) {
     if (!policyID) {
         Log.warn('togglePolicyUberAutoRemove invalid params', {policyID});
         return;

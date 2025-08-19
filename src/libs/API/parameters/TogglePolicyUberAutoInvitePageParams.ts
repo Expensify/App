@@ -1,6 +1,6 @@
 type TogglePolicyUberAutoInvitePageParams = {
     policyID: string;
-    enabled?: boolean;
+    enabled: boolean;
 };
 
 export default TogglePolicyUberAutoInvitePageParams;

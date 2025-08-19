@@ -49,8 +49,8 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const isLoading = policy?.isLoading;
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const integrations = policy?.receiptPartners;
-    const isAutoRemove = integrations?.uber?.autoRemove;
-    const isAutoInvite = integrations?.uber?.autoInvite;
+    const isAutoRemove = !!integrations?.uber?.autoRemove;
+    const isAutoInvite = !!integrations?.uber?.autoInvite;
     const [isConnected, setIsConnected] = useState(false);
 
     const startIntegrationFlow = useCallback(
@@ -277,7 +277,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                                     title={translate('workspace.receiptPartners.uber.autoInvite')}
                                                     switchAccessibilityLabel={translate('workspace.receiptPartners.uber.autoInvite')}
                                                     onToggle={toggleWorkspaceUberAutoInvite}
-                                                    isActive={!!isAutoInvite}
+                                                    isActive={isAutoInvite}
                                                 />
                                             </View>
                                         </OfflineWithFeedback>
@@ -288,7 +288,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                                     title={translate('workspace.receiptPartners.uber.autoRemove')}
                                                     switchAccessibilityLabel={translate('workspace.receiptPartners.uber.autoRemove')}
                                                     onToggle={toggleWorkspaceUberAutoRemove}
-                                                    isActive={!!isAutoRemove}
+                                                    isActive={isAutoRemove}
                                                 />
                                             </View>
                                         </OfflineWithFeedback>
