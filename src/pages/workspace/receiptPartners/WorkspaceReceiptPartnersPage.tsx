@@ -178,6 +178,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                         numberOfLinesDescription: 5,
                         titleContainerStyle: [styles.pr2],
                         description: integrationData?.description,
+                        brickRoadIndicator: policy?.receiptPartners?.uber?.errorFields ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                         rightComponent: isUberConnected ? (
                             <View ref={threeDotsMenuContainerRef}>
                                 <ThreeDotsMenu
@@ -205,17 +206,18 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
 
         return [];
     }, [
-        calculateAndSetThreeDotsMenuPosition,
-        getOverflowMenu,
-        isUberConnected,
-        isOffline,
         policyID,
         receiptPartnerIntegrations,
-        startIntegrationFlow,
-        styles.justifyContentCenter,
-        styles.pr2,
-        styles.sectionMenuItemTopDescription,
         translate,
+        getOverflowMenu,
+        styles.sectionMenuItemTopDescription,
+        styles.pr2,
+        styles.justifyContentCenter,
+        policy?.receiptPartners?.uber?.errorFields,
+        isUberConnected,
+        calculateAndSetThreeDotsMenuPosition,
+        isOffline,
+        startIntegrationFlow,
     ]);
 
     return (

@@ -169,6 +169,14 @@ type UberReceiptPartner = {
      * organization id for connected uber
      */
     organizationID?: string;
+    /**
+     * Collection of errors coming from BE
+     */
+    errors?: OnyxCommon.Errors;
+    /**
+     * Collection of form field errors
+     */
+    errorFields?: OnyxCommon.ErrorFields;
 };
 
 /** Policy Receipt partners */
