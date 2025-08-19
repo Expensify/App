@@ -14,6 +14,7 @@ import RecordTroubleshootDataToolMenu from '@components/RecordTroubleshootDataTo
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import {useSearchContext} from '@components/Search/SearchContext';
 import Section from '@components/Section';
 import Switch from '@components/Switch';
 import TestToolMenu from '@components/TestToolMenu';
@@ -54,9 +55,8 @@ function TroubleshootPage() {
     const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS, {canBeMissing: true});
     const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE, {canBeMissing: true});
     const {resetOptions} = useOptionsList({shouldInitialize: false});
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
-    const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
-
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});    
+    const {setShouldResetSearchQuery} = useSearchContext();
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
             const dataToShare = ExportOnyxState.maskOnyxState(value, shouldMaskOnyxState);
@@ -176,6 +176,7 @@ function TroubleshootPage() {
                                 onConfirm={() => {
                                     setIsConfirmationModalVisible(false);
                                     resetOptions();
+                                    setShouldResetSearchQuery(true);
                                     clearOnyxAndResetApp();
                                 }}
                                 onCancel={() => setIsConfirmationModalVisible(false)}
