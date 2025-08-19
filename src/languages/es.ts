@@ -1900,6 +1900,7 @@ const translations = {
         validateCardTitle: 'Asegurémonos de que eres tú',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Introduzca el código mágico enviado a ${contactMethod} para ver los datos de su tarjeta. Debería llegar en un par de minutos.`,
+        missingPrivateDetails: 'Actualiza tus datos personales privados en Configuración > Perfil y vuelve a intentarlo',
     },
     workflowsPage: {
         workflowTitle: 'Gasto',

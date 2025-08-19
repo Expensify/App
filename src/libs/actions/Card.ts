@@ -262,7 +262,7 @@ function revealVirtualCardDetails(cardID: number, validateCode: string): Promise
 
                     if (response?.jsonCode === 404) {
                         // eslint-disable-next-line prefer-promise-reject-errors
-                        reject('validateCodeForm.error.missingPrivateDetails');
+                        reject('cardPage.missingPrivateDetails');
                         return;
                     }
 

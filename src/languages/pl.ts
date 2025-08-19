@@ -1915,6 +1915,7 @@ const translations = {
         validateCardTitle: 'Upewnijmy się, że to Ty',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Proszę wprowadzić magiczny kod wysłany na ${contactMethod}, aby zobaczyć szczegóły swojej karty. Powinien dotrzeć w ciągu minuty lub dwóch.`,
+        missingPrivateDetails: 'Zaktualizuj swoje prywatne dane osobowe w Ustawienia > Profil, a następnie spróbuj ponownie',
     },
     workflowsPage: {
         workflowTitle: 'Wydatki',

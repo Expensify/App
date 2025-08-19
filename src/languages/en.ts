@@ -1905,6 +1905,7 @@ const translations = {
         cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
         validateCardTitle: "Let's make sure it's you",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to view your card details. It should arrive within a minute or two.`,
+        missingPrivateDetails: 'Please update your private personal details under Settings > Profile, then try again.',
     },
     workflowsPage: {
         workflowTitle: 'Spend',
@@ -2143,7 +2144,6 @@ const translations = {
             pleaseFillMagicCode: 'Please enter your magic code',
             incorrectMagicCode: 'Incorrect or invalid magic code. Please try again or request a new code.',
             pleaseFillTwoFactorAuth: 'Please enter your two-factor authentication code',
-            missingPrivateDetails: 'Please update your private personal details under Settings > Profile, then try again.',
         },
     },
     passwordForm: {

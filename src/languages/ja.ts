@@ -1913,6 +1913,7 @@ const translations = {
         cardDetailsLoadingFailure: 'カードの詳細を読み込む際にエラーが発生しました。インターネット接続を確認して、もう一度お試しください。',
         validateCardTitle: 'あなたであることを確認しましょう',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `カードの詳細を表示するには、${contactMethod} に送信されたマジックコードを入力してください。1～2分以内に届くはずです。`,
+        missingPrivateDetails: '設定 > プロフィール から個人のプライベート情報を更新して、もう一度お試しください',
     },
     workflowsPage: {
         workflowTitle: '支出',
