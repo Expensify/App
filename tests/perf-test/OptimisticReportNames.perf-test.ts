@@ -12,7 +12,11 @@ import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Mock dependencies
-jest.mock('@libs/ReportUtils');
+jest.mock('@libs/ReportUtils', () => ({
+    ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
+    isExpenseReport: jest.fn(),
+    getTitleReportField: jest.fn(),
+}));
 jest.mock('@libs/Performance', () => ({
     markStart: jest.fn(),
     markEnd: jest.fn(),

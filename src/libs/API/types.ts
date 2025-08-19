@@ -50,6 +50,8 @@ const WRITE_COMMANDS = {
     CARD_DEACTIVATE: 'Card_Deactivate',
     CHRONOS_REMOVE_OOO_EVENT: 'Chronos_RemoveOOOEvent',
     MAKE_DEFAULT_PAYMENT_METHOD: 'MakeDefaultPaymentMethod',
+    POLICY_UBER_AUTO_INVITE: 'PolicyUberAutoInvite',
+    POLICY_UBER_AUTO_REMOVE: 'PolicyUberAutoRemove',
     ADD_PAYMENT_CARD: 'AddPaymentCard',
     ADD_PAYMENT_CARD_SCA: 'AddPaymentCardSCA',
     VERIFY_SETUP_INTENT: 'User_VerifySetupIntent',
@@ -298,6 +300,7 @@ const WRITE_COMMANDS = {
     UPDATE_QUICKBOOKS_DESKTOP_SYNC_CUSTOMERS: 'UpdateQuickbooksDesktopSyncCustomers',
     UPDATE_QUICKBOOKS_DESKTOP_SYNC_ITEMS: 'UpdateQuickbooksDesktopSyncItems',
     REMOVE_POLICY_CONNECTION: 'RemovePolicyConnection',
+    DISCONNECT_WORKSPACE_RECEIPT_PARTNER: 'DisconnectWorkspaceReceiptPartner',
     SET_POLICY_TAXES_ENABLED: 'SetPolicyTaxesEnabled',
     DELETE_POLICY_TAXES: 'DeletePolicyTaxes',
     UPDATE_POLICY_TAX_VALUE: 'UpdatePolicyTaxValue',
@@ -525,6 +528,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT_TYPE]: Parameters.UpdateExpensifyCardLimitTypeParams;
     [WRITE_COMMANDS.CARD_DEACTIVATE]: Parameters.CardDeactivateParams;
     [WRITE_COMMANDS.MAKE_DEFAULT_PAYMENT_METHOD]: Parameters.MakeDefaultPaymentMethodParams;
+    [WRITE_COMMANDS.POLICY_UBER_AUTO_INVITE]: Parameters.TogglePolicyUberAutoInvitePageParams;
+    [WRITE_COMMANDS.POLICY_UBER_AUTO_REMOVE]: Parameters.TogglePolicyUberAutoRemovePageParams;
     [WRITE_COMMANDS.ADD_PAYMENT_CARD]: Parameters.AddPaymentCardParams;
     [WRITE_COMMANDS.ADD_PAYMENT_CARD_SCA]: Parameters.AddPaymentCardParams;
     [WRITE_COMMANDS.VERIFY_SETUP_INTENT]: Parameters.VerifySetupIntentParams;
@@ -600,6 +605,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_REPORT_NOTIFICATION_PREFERENCE]: Parameters.UpdateReportNotificationPreferenceParams;
     [WRITE_COMMANDS.UPDATE_ROOM_VISIBILITY]: Parameters.UpdateRoomVisibilityParams;
     [WRITE_COMMANDS.UPDATE_ROOM_DESCRIPTION]: Parameters.UpdateRoomDescriptionParams;
+    [WRITE_COMMANDS.DISCONNECT_WORKSPACE_RECEIPT_PARTNER]: Parameters.RemovePolicyReceiptPartnersConnectionParams;
     [WRITE_COMMANDS.UPDATE_REPORT_WRITE_CAPABILITY]: Parameters.UpdateReportWriteCapabilityParams;
     [WRITE_COMMANDS.ADD_WORKSPACE_ROOM]: Parameters.AddWorkspaceRoomParams;
     [WRITE_COMMANDS.UPDATE_POLICY_ROOM_NAME]: Parameters.UpdatePolicyRoomNameParams;
