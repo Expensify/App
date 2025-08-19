@@ -6473,7 +6473,7 @@ const CONST = {
             TAX_RATE: 'tax-rate',
             CARD_ID: 'card',
             FEED: 'feed',
-            REPORT_ID: 'reportid',
+            REPORT_ID: 'report-id',
             KEYWORD: 'keyword',
             IN: 'in',
             SUBMITTED: 'submitted',
@@ -6497,6 +6497,7 @@ const CONST = {
         DATE_PRESETS: {
             NEVER: 'never',
             LAST_MONTH: 'last-month',
+            THIS_MONTH: 'this-month',
             LAST_STATEMENT: 'last-statement',
         },
         SNAPSHOT_ONYX_KEYS: [
