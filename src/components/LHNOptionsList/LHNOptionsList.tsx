@@ -401,6 +401,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     onLayout={onLayout}
                     onScroll={onScroll}
                     initialScrollIndex={isWebOrDesktop ? getScrollIndex(route) : undefined}
+                    maintainVisibleContentPosition={{disabled: true}}
                 />
             )}
         </View>
