@@ -11,7 +11,7 @@
  */
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
-import type {OnboardingCompanySize, OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -551,6 +551,7 @@ const translations = {
         auditor: 'Auditor',
         role: 'Função',
         currency: 'Moeda',
+        groupCurrency: 'Moeda do grupo',
         rate: 'Avaliar',
         emptyLHN: {
             title: 'Woohoo! Tudo em dia.',
@@ -1579,6 +1580,7 @@ const translations = {
             testCrash: 'Teste de falha',
             resetToOriginalState: 'Redefinir para o estado original',
             usingImportedState: 'Você está usando um estado importado. Clique aqui para limpá-lo.',
+            shouldBlockTransactionThreadReportCreation: 'Bloquear a criação de relatórios de thread de transação',
             debugMode: 'Modo de depuração',
             invalidFile: 'Arquivo inválido',
             invalidFileDescription: 'O arquivo que você está tentando importar não é válido. Por favor, tente novamente.',
@@ -2475,8 +2477,8 @@ const translations = {
         messages: {
             onboardingEmployerOrSubmitMessage: 'Ser reembolsado é tão fácil quanto enviar uma mensagem. Vamos ver o básico.',
             onboardingPersonalSpendMessage: 'Veja como rastrear seus gastos em poucos cliques.',
-            onboardingMangeTeamMessage: ({onboardingCompanySize}: {onboardingCompanySize?: OnboardingCompanySize}) =>
-                `Aqui está uma lista de tarefas que eu recomendaria para uma empresa do seu tamanho com ${onboardingCompanySize} remetentes:`,
+            onboardingManageTeamMessage:
+                '# Seu teste gratuito começou! Vamos configurar tudo.\n👋 Olá, sou seu especialista de configuração da Expensify. Agora que você criou um workspace, aproveite ao máximo seus 30 dias de teste gratuito seguindo as etapas abaixo!',
             onboardingTrackWorkspaceMessage:
                 '# Vamos configurar você\n👋 Estou aqui para ajudar! Para você começar, adaptei as configurações do seu espaço de trabalho para microempreendedores individuais e empresas semelhantes. Você pode ajustar seu espaço de trabalho clicando no link abaixo!\n\nVeja como rastrear seus gastos em poucos cliques:',
             onboardingChatSplitMessage: 'Dividir contas com amigos é tão fácil quanto enviar uma mensagem. Veja como.',
@@ -6045,18 +6047,18 @@ const translations = {
             },
             current: 'Atual',
             past: 'Passado',
-            submitted: 'Data de envio',
-            approved: 'Data aprovada',
-            paid: 'Data de pagamento',
-            exported: 'Data exportada',
-            posted: 'Data de postagem',
-            withdrawn: 'Data de retirada',
+            submitted: 'Enviado',
+            approved: 'Aprovado',
+            paid: 'Pago',
+            exported: 'Exportado',
+            posted: 'Postado',
+            withdrawn: 'Retirado',
             billable: 'Faturável',
             reimbursable: 'Reembolsável',
             groupBy: {
                 reports: 'Relatório',
-                members: 'Membro',
-                cards: 'Cartão',
+                from: 'De',
+                card: 'Cartão',
             },
             feed: 'Feed',
             withdrawalType: {
