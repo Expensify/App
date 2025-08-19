@@ -8,14 +8,20 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import type {Route as Routes} from '@src/ROUTES';
 
 type Shortcut = {
     displayName: string;
     descriptionKey: 'search' | 'newChat' | 'openShortcutDialog' | 'escape' | 'copy';
 };
 
-function KeyboardShortcutsPage() {
+type KeyboardShortcutsPageProps = {
+    backTo: Routes;
+};
+
+function KeyboardShortcutsPage({backTo}: KeyboardShortcutsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const shortcuts = Object.values(CONST.KEYBOARD_SHORTCUTS)
@@ -46,7 +52,10 @@ function KeyboardShortcutsPage() {
             includeSafeAreaPaddingBottom={false}
             testID={KeyboardShortcutsPage.displayName}
         >
-            <HeaderWithBackButton title={translate('keyboardShortcutsPage.title')} />
+            <HeaderWithBackButton
+                title={translate('keyboardShortcutsPage.title')}
+                onBackButtonPress={() => Navigation.goBack(backTo)}
+            />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <View style={[styles.ph5, styles.pv3]}>
                     <Text style={[styles.mb3, styles.webViewStyles.baseFontStyle]}>{translate('keyboardShortcutsPage.subtitle')}</Text>
