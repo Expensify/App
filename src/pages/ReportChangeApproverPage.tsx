@@ -14,8 +14,10 @@ import {assignCurrentUserAsApprover} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
-import {getManagerAccountEmail, isMemberPolicyAdmin, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
+import {isMemberPolicyAdmin, isPolicyAdmin} from '@libs/PolicyUtils';
 import {isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -50,7 +52,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
     const sections = useMemo(() => {
         const data = [];
 
-        if (!isMemberPolicyAdmin(policy, getManagerAccountEmail(policy, report))) {
+        if (!isMemberPolicyAdmin(policy, getLoginByAccountID(report.managerID ?? CONST.DEFAULT_NUMBER_ID))) {
             data.push({
                 text: translate('iou.changeApprover.actions.bypassApprovers'),
                 keyForList: 'bypassApprover',
