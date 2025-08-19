@@ -72,8 +72,7 @@ let authPromiseResolver: ((value: boolean) => void) | null = null;
 
 let hasSwitchedAccountInHybridMode = false;
 
-// Use connectWithoutView because it doesn't get value to use in UI
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         session = value ?? {};
