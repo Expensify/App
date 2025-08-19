@@ -12,6 +12,7 @@ import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Mock dependencies
+// Partial mock preserves parseReportRouteParams and other exports that are used by Report.ts's dependencies
 jest.mock('@libs/ReportUtils', () => ({
     ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
     isExpenseReport: jest.fn(),
