@@ -261,7 +261,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                             role={CONST.ROLE.LINK}
                             accessibilityLabel={translate('common.privacy')}
                             href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
-                            style={[styles.mt5, styles.alignSelfStart]}
+                            style={[styles.mt6, styles.alignSelfStart]}
                         >
                             <View style={[styles.flexRow]}>
                                 <Text style={[styles.mr1, styles.label, styles.link]}>{translate('common.privacy')}</Text>
