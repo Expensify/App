@@ -6491,6 +6491,13 @@ const CONST = {
             BILLABLE: 'billable',
             ACTION: 'action',
         },
+
+        // Maps an internal search value to the user friendly display text, e.g. `perDiem` -> `per-diem`
+        get SEARCH_USER_FRIENDLY_VALUES_MAP() {
+            return {
+                [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',
+            };
+        },
         DATE_MODIFIERS: {
             ON: 'On',
             AFTER: 'After',
