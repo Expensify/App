@@ -1,3 +1,4 @@
+// Issue - https://github.com/Expensify/App/issues/26719
 import {Str} from 'expensify-common';
 import type {AppStateStatus} from 'react-native';
 import {AppState} from 'react-native';
