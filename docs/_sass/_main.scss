@@ -1151,11 +1151,12 @@ button {
     margin: 20px 0;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    font-size: 13px;
 }
 
 #edit-icon {
     fill: var(--color-text-supporting);
-    width: 13;
     height: 13px;
+    width: 13px;
 }
