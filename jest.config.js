@@ -1,12 +1,7 @@
 const testFileExtension = 'ts?(x)';
 module.exports = {
     preset: 'jest-expo',
-    collectCoverageFrom: [
-        '<rootDir>/src/**/*.{ts,tsx,js,jsx}',
-        '!<rootDir>/src/**/__mocks__/**',
-        '!<rootDir>/src/**/tests/**',
-        '!**/*.d.ts',
-    ],
+    collectCoverageFrom: ['<rootDir>/src/**/*.{ts,tsx,js,jsx}', '!<rootDir>/src/**/__mocks__/**', '!<rootDir>/src/**/tests/**', '!**/*.d.ts'],
     testMatch: [
         `<rootDir>/tests/ui/**/*.${testFileExtension}`,
         `<rootDir>/tests/unit/**/*.${testFileExtension}`,
