@@ -2993,6 +2993,10 @@ const CONST = {
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
             },
+            UNSUPPORTED_NAMES: {
+                // Integrations that still require Expensify Classic
+                FINANCIALFORCE: 'financialForce',
+            },
             ROUTE: {
                 QBO: 'quickbooks-online',
                 XERO: 'xero',
