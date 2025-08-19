@@ -190,6 +190,7 @@ import {
     isMarkAsClosedAction,
     isModifiedExpenseAction,
     isMoneyRequestAction,
+    isMovedAction,
     isOldDotReportAction,
     isPendingRemove,
     isPolicyChangeLogAction,
@@ -4437,8 +4438,8 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): vo
 
     const transactionID = getOriginalMessage(reportAction)?.IOUTransactionID;
 
-    if (!transactionID || !reportAction.childReportID) {
-        Log.warn('Missing transactionID and reportAction.childReportID during the change of the money request hold status');
+    if (!transactionID) {
+        Log.warn('Missing transactionID during the change of the money request hold status');
         return;
     }
 
@@ -4447,7 +4448,11 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): vo
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`] ?? null;
 
     if (isOnHold) {
-        unholdRequest(transactionID, reportAction.childReportID);
+        if (reportAction.childReportID) {
+            unholdRequest(transactionID, reportAction.childReportID);
+        } else {
+            Log.warn('Missing reportAction.childReportID during money request unhold');
+        }
     } else {
         const activeRoute = encodeURIComponent(Navigation.getActiveRoute());
         Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID, activeRoute));
@@ -5153,6 +5158,7 @@ function getReportNameInternal({
 }: GetReportNameParams): string {
     let formattedName: string | undefined;
     let parentReportAction: OnyxEntry<ReportAction>;
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     if (parentReportActionParam) {
         parentReportAction = parentReportActionParam;
     } else {
@@ -5242,6 +5248,10 @@ function getReportNameInternal({
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
         return getPolicyChangeMessage(parentReportAction);
+    }
+
+    if (isMovedAction(parentReportAction)) {
+        return getMovedActionMessage(parentReportAction, parentReport);
     }
 
     if (isMoneyRequestAction(parentReportAction)) {
@@ -6243,6 +6253,25 @@ function getMovedTransactionMessage(report: OnyxEntry<Report>) {
     return message;
 }
 
+function getMovedActionMessage(action: ReportAction, report: OnyxEntry<Report>) {
+    if (!isMovedAction(action)) {
+        return '';
+    }
+    const movedActionOriginalMessage = getOriginalMessage(action);
+
+    if (!movedActionOriginalMessage) {
+        return '';
+    }
+    const {toPolicyID, newParentReportID, movedReportID} = movedActionOriginalMessage;
+    const toPolicyName = getPolicyNameByID(toPolicyID);
+    return translateLocal('iou.movedAction', {
+        shouldHideMovedReportUrl: !isDM(report),
+        movedReportUrl: `${environmentURL}/r/${movedReportID}`,
+        newParentReportUrl: `${environmentURL}/r/${newParentReportID}`,
+        toPolicyName,
+    });
+}
+
 function getPolicyChangeMessage(action: ReportAction) {
     const PolicyChangeOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY>) ?? {};
     const {fromPolicy: fromPolicyID, toPolicy: toPolicyID} = PolicyChangeOriginalMessage as OriginalMessageChangePolicy;
@@ -6550,7 +6579,7 @@ function buildOptimisticMovedReportAction(
     newParentReportID: string,
     movedReportID: string,
     policyName: string,
-    isIouReport = false,
+    shouldHideMovedReportUrl = false,
 ): ReportAction {
     const originalMessage = {
         fromPolicyID,
@@ -6561,7 +6590,7 @@ function buildOptimisticMovedReportAction(
 
     const movedActionMessage = [
         {
-            html: isIouReport
+            html: shouldHideMovedReportUrl
                 ? `moved this <a href='${CONST.NEW_EXPENSIFY_URL}r/${movedReportID}' target='_blank' rel='noreferrer noopener'>report</a> to the <a href='${CONST.NEW_EXPENSIFY_URL}r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`
                 : `moved this report to the <a href='${CONST.NEW_EXPENSIFY_URL}r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`,
             text: `moved this report to the ${policyName} workspace`,
@@ -7845,6 +7874,7 @@ function buildTransactionThread(
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>,
     moneyRequestReport: OnyxEntry<Report>,
     existingTransactionThreadReportID?: string,
+    optimisticTransactionThreadReportID?: string,
 ): OptimisticChatReport {
     const participantAccountIDs = [...new Set([currentUserAccountID, Number(reportAction?.actorAccountID)])].filter(Boolean) as number[];
     const existingTransactionThreadReport = getReportOrDraftReport(existingTransactionThreadReportID);
@@ -7867,6 +7897,7 @@ function buildTransactionThread(
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportActionID: reportAction?.reportActionID,
         parentReportID: moneyRequestReport?.reportID,
+        optimisticReportID: optimisticTransactionThreadReportID,
     });
 }
 
@@ -9717,13 +9748,11 @@ function getAllAncestorReportActionIDs(report: Report | null | undefined, includ
 
 /**
  * Get optimistic data of parent report action
- * @param reportID The reportID of the report that is updated
+ * @param report The report that is updated
  * @param lastVisibleActionCreated Last visible action created of the child report
  * @param type The type of action in the child report
  */
-function getOptimisticDataForParentReportAction(reportID: string | undefined, lastVisibleActionCreated: string, type: string): Array<OnyxUpdate | null> {
-    const report = getReportOrDraftReport(reportID);
-
+function getOptimisticDataForParentReportAction(report: Report | undefined, lastVisibleActionCreated: string, type: string): Array<OnyxUpdate | null> {
     if (!report || isEmptyObject(report)) {
         return [];
     }
@@ -11762,6 +11791,7 @@ export {
     isWorkspaceThread,
     isMoneyRequestReportEligibleForMerge,
     getReportStatusTranslation,
+    getMovedActionMessage,
 };
 
 export type {

@@ -143,6 +143,7 @@ import type {
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
     MissingPropertyParams,
+    MovedActionParams,
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
     MovedTransactionParams,
@@ -1081,6 +1082,12 @@ const translations = {
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `ha eliminato una spesa (${amount} per ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `ha spostato una spesa${reportName ? `da ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `spostato questa spesa${reportName ? `a <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
+            if (shouldHideMovedReportUrl) {
+                return `ha spostato questo rapporto nello spazio di lavoro <a href="${newParentReportUrl}">${toPolicyName}</a>`;
+            }
+            return `ha spostato questo <a href="${movedReportUrl}">rapporto</a> nello spazio di lavoro <a href="${newParentReportUrl}">${toPolicyName}</a>`;
+        },
         unreportedTransaction: 'spostato questa spesa nel tuo spazio personale',
         pendingMatchWithCreditCard: 'Ricevuta in attesa di abbinamento con transazione della carta',
         pendingMatch: 'Partita in sospeso',
@@ -6042,6 +6049,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Mai',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Ultimo mese',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Questo mese',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Ultima dichiarazione',
                 },
             },
