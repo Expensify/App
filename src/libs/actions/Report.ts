@@ -91,7 +91,7 @@ import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {getDefaultApprover, getMemberAccountIDsForWorkspace, getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyMember} from '@libs/PolicyUtils';
+import {getDefaultApprover, getMemberAccountIDsForWorkspace, getPolicy, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyMember} from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
@@ -133,6 +133,7 @@ import {
     getPendingChatMembers,
     getPolicyExpenseChat,
     getReportFieldKey,
+    getReportFieldsByPolicyID,
     getReportIDFromLink,
     getReportLastMessage,
     getReportLastVisibleActionCreated,
@@ -142,6 +143,7 @@ import {
     getReportTransactions,
     getReportViolations,
     getRouteFromLink,
+    getTitleReportField,
     isChatThread as isChatThreadReportUtils,
     isConciergeChatReport,
     isExpenseReport,
@@ -155,6 +157,7 @@ import {
     isSelfDM,
     isUnread,
     isValidReportIDFromPath,
+    populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
 } from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
@@ -811,7 +814,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     ];
 
     // Update optimistic data for parent report action if the report is a child report
-    const optimisticParentReportData = getOptimisticDataForParentReportAction(reportID, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    const optimisticParentReportData = getOptimisticDataForParentReportAction(report, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     optimisticParentReportData.forEach((parentReportData) => {
         if (isEmptyObject(parentReportData)) {
             return;
@@ -1836,7 +1839,7 @@ function handleReportChanged(report: OnyxEntry<Report>) {
             const currCallback = callback;
             callback = () => {
                 currCallback();
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(preexistingReportID), {forceReplace: true});
+                Navigation.setParams({reportID: preexistingReportID});
             };
 
             // The report screen will listen to this event and transfer the draft comment to the existing report
@@ -1966,8 +1969,9 @@ function deleteReportComment(reportID: string | undefined, reportAction: ReportA
     // Update optimistic data for parent report action if the report is a child report and the reportAction has no visible child
     const childVisibleActionCount = reportAction.childVisibleActionCount ?? 0;
     if (childVisibleActionCount === 0) {
+        const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
         const optimisticParentReportData = getOptimisticDataForParentReportAction(
-            originalReportID,
+            originalReport,
             optimisticReport?.lastVisibleActionCreated ?? '',
             CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
@@ -3524,16 +3528,6 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
 
     if (lastAccessedReportID) {
         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
-        const isChatThread = isChatThreadReportUtils(currentReport);
-
-        if (isChatThread) {
-            // Using requestAnimationFrame to wait for RHP modal dismissal before navigating, avoiding navigation stack issues on web/desktop.
-            requestAnimationFrame(() => {
-                Navigation.navigate(lastAccessedReportRoute);
-            });
-            return;
-        }
-
         Navigation.goBack(lastAccessedReportRoute);
     } else {
         const isChatThread = isChatThreadReportUtils(currentReport);
@@ -5103,6 +5097,12 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
         type: CONST.REPORT.TYPE.EXPENSE,
         total: -(iouReport?.total ?? 0),
     };
+
+    const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
+    if (!!titleReportField && isPaidGroupPolicy(policy)) {
+        expenseReport.reportName = populateOptimisticReportFormula(titleReportField.defaultValue, expenseReport, policy);
+    }
+
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
@@ -5163,7 +5163,7 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportId}`,
-            value: {[reportPreview.reportActionID]: {...reportPreview, created: DateUtils.getDBTime()}},
+            value: {[reportPreview.reportActionID]: {...reportPreview, childReportName: expenseReport.reportName, created: DateUtils.getDBTime()}},
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,

@@ -136,6 +136,7 @@ import {
     getDeletedTransactionMessage,
     getDisplayNamesWithTooltips,
     getDowngradeWorkspaceMessage,
+    getMovedActionMessage,
     getMovedTransactionMessage,
     getPolicyChangeMessage,
     getRejectedReportMessage,
@@ -1103,6 +1104,12 @@ function PureReportActionItem({
                     <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(toReport)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED) {
+            children = (
+                <ReportActionItemBasicMessage message="">
+                    <RenderHTML html={`<comment><muted-text>${getMovedActionMessage(action, report)}</muted-text></comment>`} />
+                </ReportActionItemBasicMessage>
+            );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
             children = (
                 <ReportActionItemBasicMessage message="">
@@ -1199,7 +1206,7 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
-            children = <ReportActionItemBasicMessage message={translate('receipt.scanFailed')} />;
+            children = <ReportActionItemBasicMessage message={translate('iou.receiptScanningFailed')} />;
         } else if (isRenamedAction(action)) {
             const message = getRenamedAction(action, isExpenseReport(report));
             children = <ReportActionItemBasicMessage message={message} />;
