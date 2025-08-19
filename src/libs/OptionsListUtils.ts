@@ -2164,8 +2164,8 @@ function getAttendeeOptions(
         });
     }
 
-    const filteredRecentAttendees = recentAttendees
-        .filter((attendee) => !attendees.find(({email, displayName}) => (attendee.email ? email === attendee.email : displayName === attendee.displayName)))
+    // attendees list might lack some personal data such as accoundID and login at this point - fetch those here
+    const RecentAttendeesWithDetails = recentAttendees
         .map((attendee) => ({
             ...attendee,
             login: attendee.email ?? attendee.displayName,
@@ -2182,11 +2182,11 @@ function getAttendeeOptions(
             includeOwnedWorkspaceChats,
             includeRecentReports: false,
             includeP2P,
-            includeSelectedOptions: false,
+            includeSelectedOptions: true,
             includeSelfDM: false,
             includeInvoiceRooms,
             action,
-            recentAttendees: filteredRecentAttendees,
+            recentAttendees: RecentAttendeesWithDetails,
         },
     );
 }

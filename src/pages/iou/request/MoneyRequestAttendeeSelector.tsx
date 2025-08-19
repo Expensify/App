@@ -98,6 +98,19 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         return optionList;
     }, [areOptionsInitialized, didScreenTransitionEnd, options.reports, options.personalDetails, betas, attendees, recentAttendees, iouType, action, isPaidGroupPolicy, searchTerm]);
 
+    // Selectd members list is maintained saparately as 'attendees', so update selection info here
+    const defaultOptionsModified = useMemo(() => {
+        return {
+            ...defaultOptions,
+            recentReports: defaultOptions.recentReports.map((item) =>
+                attendees.some((attendee) => attendee?.email === item.login || attendee?.accountID === item.accountID) ? {...item, isSelected: true} : item,
+            ),
+            personalDetails: defaultOptions.personalDetails.map((item) =>
+                attendees.some((attendee) => attendee?.email === item.login || attendee?.accountID === item.accountID) ? {...item, isSelected: true} : item,
+            ),
+        };
+    }, [defaultOptions]);
+
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
             return {
@@ -108,7 +121,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 headerMessage: '',
             };
         }
-        const newOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
+        const newOptions = filterAndOrderOptions(defaultOptionsModified, cleanSearchTerm, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             preferPolicyExpenseChat: isPaidGroupPolicy,
             shouldAcceptName: true,
@@ -120,8 +133,20 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 ...getPersonalDetailByEmail(attendee.email),
             })),
         });
+
         return newOptions;
     }, [areOptionsInitialized, defaultOptions, cleanSearchTerm, isPaidGroupPolicy, attendees]);
+
+    // attendees who are not on expensify
+    const filteredAttendees = attendees
+        .filter((attendee) => attendee.accountID)
+        .map((attendee) => ({
+            ...attendee,
+            reportID: CONST.DEFAULT_NUMBER_ID.toString(),
+            selected: true,
+            login: attendee.email,
+            ...getPersonalDetailByEmail(attendee.email),
+        }));
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -138,7 +163,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
         const formatResults = formatSectionsFromSearchTerm(
             cleanSearchTerm,
-            attendees.map((attendee) => ({
+            filteredAttendees.map((attendee) => ({
                 ...attendee,
                 reportID: CONST.DEFAULT_NUMBER_ID.toString(),
                 selected: true,
