@@ -50,6 +50,6 @@ function MapView({ref, ...props}: MapViewProps) {
             </Suspense>
         </ErrorBoundary>
     );
-};
+}
 
 export default MapView;

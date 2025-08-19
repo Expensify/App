@@ -33,7 +33,7 @@ type MapViewProps = {
     unit?: Unit;
 
     // Referemce to the outerElement
-    ref? : React.ForwardedRef<MapViewHandle>;
+    ref?: React.ForwardedRef<MapViewHandle>;
 };
 
 type DirectionProps = {
