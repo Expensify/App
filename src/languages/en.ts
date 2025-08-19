@@ -6046,7 +6046,7 @@ const translations = {
             billable: 'Billable',
             reimbursable: 'Reimbursable',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Report', // s77rt use singular key name
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Report',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'From',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Card',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Withdrawal ID',
