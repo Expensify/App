@@ -15,7 +15,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 // Mock ReportUtils
 jest.mock('@libs/ReportUtils', () => ({
     getReportIDFromLink: jest.fn(),
-    parseReportRouteParams: jest.fn(() => ({reportID: '', isSubReportPageRoute: false})),
+    parseReportRouteParams: jest.fn(() => ({reportID: undefined})),
 }));
 
 describe('useCurrentReportID', () => {
