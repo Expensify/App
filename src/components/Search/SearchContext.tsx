@@ -15,6 +15,7 @@ const defaultSearchContextData: SearchContextData = {
     selectedReports: [],
     isOnSearch: false,
     shouldTurnOffSelectionMode: false,
+    shouldResetSearchQuery: false,
 };
 
 const defaultSearchContext: SearchContext = {
@@ -31,6 +32,7 @@ const defaultSearchContext: SearchContext = {
     setShouldShowFiltersBarLoading: () => {},
     shouldShowSelectAllMatchingItems: () => {},
     selectAllMatchingItems: () => {},
+    setShouldResetSearchQuery: () => {},
 };
 
 const Context = React.createContext<SearchContext>(defaultSearchContext);
@@ -157,6 +159,13 @@ function SearchContextProvider({children}: ChildrenProps) {
         [searchContextData.selectedTransactionIDs, searchContextData.selectedTransactions],
     );
 
+    const setShouldResetSearchQuery = useCallback((shouldReset: boolean) => {
+        setSearchContextData((prevState) => ({
+            ...prevState,
+            shouldResetSearchQuery: shouldReset,
+        }));
+    }, []);
+
     const searchContext = useMemo<SearchContext>(
         () => ({
             ...searchContextData,
@@ -172,6 +181,7 @@ function SearchContextProvider({children}: ChildrenProps) {
             shouldShowSelectAllMatchingItems,
             areAllMatchingItemsSelected,
             selectAllMatchingItems,
+            setShouldResetSearchQuery,
         }),
         [
             searchContextData,
@@ -184,6 +194,7 @@ function SearchContextProvider({children}: ChildrenProps) {
             shouldShowSelectAllMatchingItems,
             showSelectAllMatchingItems,
             areAllMatchingItemsSelected,
+            setShouldResetSearchQuery,
         ],
     );
 

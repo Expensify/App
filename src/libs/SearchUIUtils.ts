@@ -1954,15 +1954,15 @@ function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCa
 }
 
 function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): SearchDatePreset[] {
+    const defaultPresets = [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH] as SearchDatePreset[];
+
     switch (filterKey) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
-            return [...(hasFeed ? [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT] : []), CONST.SEARCH.DATE_PRESETS.LAST_MONTH];
+            return [...defaultPresets, ...(hasFeed ? [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT] : [])];
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
-            return [CONST.SEARCH.DATE_PRESETS.NEVER];
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
-            return [CONST.SEARCH.DATE_PRESETS.LAST_MONTH];
+            return [...defaultPresets, CONST.SEARCH.DATE_PRESETS.NEVER];
         default:
-            return [];
+            return defaultPresets;
     }
 }
 

@@ -131,27 +131,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         return [options, value];
     }, [unsafeStatus, type, groupBy]);
 
-    const [date, displayDate] = useMemo(() => {
-        const value: SearchDateValues = {
-            [CONST.SEARCH.DATE_MODIFIERS.ON]: filterFormValues.dateOn,
-            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterFormValues.dateAfter,
-            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterFormValues.dateBefore,
-        };
-
-        const displayText: string[] = [];
-        if (value.On) {
-            displayText.push(isSearchDatePreset(value.On) ? translate(`search.filters.date.presets.${value.On}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On)}`);
-        }
-        if (value.After) {
-            displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After)}`);
-        }
-        if (value.Before) {
-            displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
-        }
-
-        return [value, displayText];
-    }, [filterFormValues.dateOn, filterFormValues.dateAfter, filterFormValues.dateBefore, translate]);
-
     const createDateDisplayValue = useCallback(
         (filterValues: {on?: string; after?: string; before?: string}): [SearchDateValues, string[]] => {
             const value: SearchDateValues = {
@@ -176,6 +155,16 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
             return [value, displayText];
         },
         [translate],
+    );
+
+    const [date, displayDate] = useMemo(
+        () =>
+            createDateDisplayValue({
+                on: filterFormValues.dateOn,
+                after: filterFormValues.dateAfter,
+                before: filterFormValues.dateBefore,
+            }),
+        [filterFormValues.dateOn, filterFormValues.dateAfter, filterFormValues.dateBefore, createDateDisplayValue],
     );
 
     const [posted, displayPosted] = useMemo(
@@ -329,6 +318,8 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         [translate, updateFilterForm],
     );
 
+    const datePickerComponent = useMemo(() => createDatePickerComponent(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, date, 'common.date'), [createDatePickerComponent, date]);
+
     const postedPickerComponent = useMemo(() => createDatePickerComponent(CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED, posted, 'search.filters.posted'), [createDatePickerComponent, posted]);
 
     const withdrawnPickerComponent = useMemo(
@@ -369,30 +360,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
             );
         },
         [statusOptions, status, translate, updateFilterForm],
-    );
-
-    const datePickerComponent = useCallback(
-        ({closeOverlay}: PopoverComponentProps) => {
-            const onChange = (selectedDates: SearchDateValues) => {
-                const dateFormValues = {
-                    dateOn: selectedDates[CONST.SEARCH.DATE_MODIFIERS.ON],
-                    dateAfter: selectedDates[CONST.SEARCH.DATE_MODIFIERS.AFTER],
-                    dateBefore: selectedDates[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
-                };
-
-                updateFilterForm(dateFormValues);
-            };
-
-            return (
-                <DateSelectPopup
-                    label={translate('common.date')}
-                    value={date}
-                    onChange={onChange}
-                    closeOverlay={closeOverlay}
-                />
-            );
-        },
-        [date, translate, updateFilterForm],
     );
 
     const userPickerComponent = useCallback(
