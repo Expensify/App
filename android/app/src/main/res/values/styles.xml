@@ -66,5 +66,4 @@
         <item name="windowSplashScreenAnimatedIcon">@drawable/bootsplash_logo</item>
         <item name="windowSplashScreenBackground">@color/bootsplash_background</item>
     </style>
-
 </resources>
