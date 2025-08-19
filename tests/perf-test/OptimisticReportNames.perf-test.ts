@@ -10,6 +10,7 @@ import type {Policy, Report} from '@src/types/onyx';
 import createCollection from '../utils/collections/createCollection';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
 jest.mock('@libs/actions/Timing', () => ({
     start: jest.fn(),
     end: jest.fn(),
@@ -23,15 +24,11 @@ jest.mock('@libs/Performance', () => ({
 }));
 
 // Clean approach: Use manual mock without requireActual to avoid circular dependencies
-jest.mock('@libs/ReportUtils', () => {
-    const actualReportUtils = jest.createMockFromModule('@libs/ReportUtils') as any;
-    return {
-        ...actualReportUtils,
-        parseReportRouteParams: jest.fn(() => ({reportID: '', isSubReportPageRoute: false})),
-        isExpenseReport: jest.fn(),
-        getTitleReportField: jest.fn(),
-    };
-});
+jest.mock('@libs/ReportUtils', () => ({
+    parseReportRouteParams: jest.fn(() => ({reportID: '', isSubReportPageRoute: false})),
+    isExpenseReport: jest.fn(),
+    getTitleReportField: jest.fn(),
+}));
 
 const mockReportUtils = ReportUtils as jest.Mocked<typeof ReportUtils>;
 
