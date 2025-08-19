@@ -149,6 +149,12 @@ Onyx.connect({
     },
 });
 
+function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction>): boolean {
+    const type = transaction?.comment?.type;
+    const customUnitName = transaction?.comment?.customUnit?.name;
+    return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+}
+
 function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
@@ -156,13 +162,17 @@ function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     }
 
     // This is the case for transaction objects once they have been saved to the server
-    const type = transaction?.comment?.type;
-    const customUnitName = transaction?.comment?.customUnit?.name;
-    return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+    return hasDistanceCustomUnit(transaction);
 }
 
 function isManualDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
-    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
+    // This is used during the expense creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
+    }
+
+    // This is the case for transaction objects once they have been saved to the server
+    return hasDistanceCustomUnit(transaction) && isEmptyObject(transaction?.comment?.waypoints);
 }
 
 function isScanRequest(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
