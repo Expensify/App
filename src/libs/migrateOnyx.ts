@@ -4,10 +4,8 @@ import MoveIsOptimisticReportToMetadata from './migrations/MoveIsOptimisticRepor
 import NVPMigration from './migrations/NVPMigration';
 import PendingMembersToMetadata from './migrations/PendingMembersToMetadata';
 import PronounsMigration from './migrations/PronounsMigration';
-import RemoveEmptyReportActionsDrafts from './migrations/RemoveEmptyReportActionsDrafts';
 import RenameCardIsVirtual from './migrations/RenameCardIsVirtual';
 import RenameReceiptFilename from './migrations/RenameReceiptFilename';
-import TransactionBackupsToCollection from './migrations/TransactionBackupsToCollection';
 
 export default function () {
     const startTime = Date.now();
@@ -19,8 +17,6 @@ export default function () {
             RenameCardIsVirtual,
             RenameReceiptFilename,
             KeyReportActionsDraftByReportActionID,
-            TransactionBackupsToCollection,
-            RemoveEmptyReportActionsDrafts,
             NVPMigration,
             PronounsMigration,
             MoveIsOptimisticReportToMetadata,
