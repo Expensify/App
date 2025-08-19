@@ -322,7 +322,7 @@ function MoneyRequestConfirmationListFooter({
     const canModifyTaxFields = !isReadOnly && !isDistanceRequest && !isPerDiemRequest;
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
-    const shouldShowReimbursable = isPaidGroupPolicy(policy) && policy?.disabledFields?.reimbursable === false && !isCardTransaction(transaction) && !isTypeInvoice;
+    const shouldShowReimbursable = isPolicyExpenseChat && policy?.disabledFields?.reimbursable === false && !isCardTransaction(transaction) && !isTypeInvoice;
     // Calculate the formatted tax amount based on the transaction's tax amount and the IOU currency code
     const taxAmount = getTaxAmount(transaction, false);
     const formattedTaxAmount = convertToDisplayString(taxAmount, iouCurrencyCode);
@@ -784,7 +784,7 @@ function MoneyRequestConfirmationListFooter({
 
                             Navigation.navigate(
                                 isReceiptEditable
-                                    ? ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, undefined, undefined, action, iouType)
+                                    ? ROUTES.MONEY_REQUEST_RECEIPT_PREVIEW.getRoute(reportID, transactionID, action, iouType)
                                     : ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID),
                             );
                         }}
@@ -809,7 +809,7 @@ function MoneyRequestConfirmationListFooter({
 
                             Navigation.navigate(
                                 isReceiptEditable
-                                    ? ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, undefined, undefined, action, iouType)
+                                    ? ROUTES.MONEY_REQUEST_RECEIPT_PREVIEW.getRoute(reportID, transactionID, action, iouType)
                                     : ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID),
                             );
                         }}
