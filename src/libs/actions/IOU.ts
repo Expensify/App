@@ -11625,17 +11625,15 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
 
         allParams.transactionThreadReportID = optimisticTransactionThreadReportID;
         allParams.createdReportActionIDForThread = optimisticCreatedAction?.reportActionID;
+        optimisticTransactionThreadReport.pendingFields = {
+            createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        };
 
         optimisticData.push(
             {
-                onyxMethod: Onyx.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTransactionThreadReportID}`,
-                value: {
-                    ...optimisticTransactionThreadReport,
-                    pendingFields: {
-                        createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    },
-                },
+                value: optimisticTransactionThreadReport,
             },
             {
                 onyxMethod: Onyx.METHOD.SET,
@@ -11646,7 +11644,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
 
         failureData.push(
             {
-                onyxMethod: Onyx.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTransactionThreadReportID}`,
                 value: null,
             },
