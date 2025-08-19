@@ -3,7 +3,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {GetTransactionsForMergingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getReportOrDraftReport, getReportTransactions, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import {getAmount, getTransactionViolationsOfTransaction, isCardTransaction} from '@src/libs/TransactionUtils';
@@ -53,7 +53,6 @@ function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2
  * Fetches eligible transactions for merging locally
  * This is FE version of READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING API call
  */
-
 function getTransactionsForMergingLocally(transactionID: string, targetTransaction: Transaction, transactions: OnyxCollection<Transaction>) {
     const transactionsArray = Object.values(transactions ?? {});
 
@@ -91,12 +90,16 @@ function getTransactionsForMerging({
 }) {
     const transactionID = targetTransaction.transactionID;
 
-    // In phase 1:
-    // For managers and admins: we have decided to only return transactions from the money report of target transaction;
+    // Collect/Control workspaces:
+    // - Admins and approvers: The list of eligible expenses will only contain the expenses from the report that the admin/approver triggered the merge from. This is intentionally limited since they’ll only be reviewing one report at a time.
+    // - Submitters will see all their editable expenses, including their IOUs/unreported expenses
+    // Personal workspaces:
+    // - There are no admins/approvers outside of the submitter in these cases, so there’s no consideration for different roles.
+    // - The submitter, who is also the admin, will see all their editable expenses, including their IOUs/unreported expenses
     const isAdmin = isPolicyAdmin(policy, currentUserLogin);
     const isManager = isReportManager(report);
 
-    if (isAdmin || isManager) {
+    if (isPaidGroupPolicy(policy) && (isAdmin || isManager)) {
         const reportTransactions = getReportTransactions(report?.reportID);
         const eligibleTransactions = reportTransactions.filter((transaction): transaction is Transaction => {
             if (!transaction || transaction.transactionID === transactionID) {
