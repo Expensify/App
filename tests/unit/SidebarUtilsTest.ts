@@ -34,6 +34,12 @@ jest.mock('@libs/DraftCommentUtils', () => ({
     prepareDraftComment: jest.fn(),
 }));
 
+// Mock PolicyUtils
+jest.mock('@libs/PolicyUtils', () => ({
+    ...jest.requireActual('@libs/PolicyUtils'),
+    getConnectedIntegration: jest.fn(() => true),
+}));
+
 describe('SidebarUtils', () => {
     beforeAll(() => {
         Onyx.init({
