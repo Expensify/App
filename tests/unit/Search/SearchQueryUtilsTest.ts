@@ -78,11 +78,11 @@ describe('SearchQueryUtils', () => {
         });
 
         test('returns query with updated groupBy', () => {
-            const userQuery = 'from:johndoe@example.com groupBy:reports';
+            const userQuery = 'from:johndoe@example.com groupBy:report';
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} groupBy:reports from:12345`);
+            expect(result).toEqual(`${defaultQuery} groupBy:report from:12345`);
         });
     });
 
