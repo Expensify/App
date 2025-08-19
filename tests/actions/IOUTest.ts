@@ -6644,6 +6644,7 @@ describe('actions/IOU', () => {
             expect(updatedTrackExpenseActionableWhisper).toBe(undefined);
             expect(updatedExpenseReport?.nonReimbursableTotal).toBe(-amount);
             expect(updatedExpenseReport?.total).toBe(-amount);
+            expect(updatedExpenseReport?.unheldNonReimbursableTotal).toBe(-amount);
         });
 
         describe('saveSplitTransactions', () => {
