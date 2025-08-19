@@ -7,6 +7,7 @@ import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackgrou
 import ScreenWrapper from '@components/ScreenWrapper';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
+import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -281,19 +282,22 @@ function SignInPage({shouldEnableMaxHeight = true, ref}: SignInPageInnerProps) {
                 (shouldShowEmailDeliveryFailurePage || shouldShowUnlinkLoginForm || shouldShowChooseSSOOrMagicCode || shouldShowSMSDeliveryFailurePage))
         ) {
             clearSignInData();
-            return;
+            return true;
         }
 
         if (shouldShowValidateCodeForm) {
             validateCodeFormRef.current?.clearSignInData();
-            return;
+            return true;
         }
 
         Navigation.goBack();
+        return false;
     };
     useImperativeHandle(ref, () => ({
         navigateBack,
     }));
+    useHandleBackButton(navigateBack);
+
     return (
         // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
         // The SVG should flow under the Home Indicator on iOS.

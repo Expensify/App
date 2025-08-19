@@ -4,7 +4,6 @@ import MoveIsOptimisticReportToMetadata from './migrations/MoveIsOptimisticRepor
 import NVPMigration from './migrations/NVPMigration';
 import PendingMembersToMetadata from './migrations/PendingMembersToMetadata';
 import PronounsMigration from './migrations/PronounsMigration';
-import RemoveEmptyReportActionsDrafts from './migrations/RemoveEmptyReportActionsDrafts';
 import RenameCardIsVirtual from './migrations/RenameCardIsVirtual';
 import RenameReceiptFilename from './migrations/RenameReceiptFilename';
 
@@ -18,7 +17,6 @@ export default function () {
             RenameCardIsVirtual,
             RenameReceiptFilename,
             KeyReportActionsDraftByReportActionID,
-            RemoveEmptyReportActionsDrafts,
             NVPMigration,
             PronounsMigration,
             MoveIsOptimisticReportToMetadata,

@@ -50,18 +50,6 @@ Onyx.connect({
     },
 });
 
-let defaultCountry = '';
-
-Onyx.connect({
-    key: ONYXKEYS.COUNTRY,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        defaultCountry = value;
-    },
-});
-
 const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
 
 function getDisplayNameOrDefault(
@@ -414,10 +402,6 @@ const getShortMentionIfFound = (displayText: string, userAccountID: string, curr
     return displayText.split('@').at(0);
 };
 
-function getDefaultCountry() {
-    return defaultCountry;
-}
-
 /**
  * Gets the phone number to display for SMS logins
  */
@@ -451,7 +435,6 @@ export {
     getNewAccountIDsAndLogins,
     getUserNameByEmail,
     getShortMentionIfFound,
-    getDefaultCountry,
     getLoginByAccountID,
     getPhoneNumber,
 };

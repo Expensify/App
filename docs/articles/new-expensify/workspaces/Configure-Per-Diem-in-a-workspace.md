@@ -38,6 +38,17 @@ Both options are found in the **three-dot menu** at the top-right corner of the 
   
 ---
 
+# Per Diem Rate Templates
+
+Below are some example templates to reference:
+
+- [Germany rates]({{site.url}}/assets/Files/Germany-per-diem.csv)
+- [Sweden rates]({{site.url}}/assets/Files/Sweden-per-diem.csv)
+- [Finland rates]({{site.url}}/assets/Files/Finland-per-diem.csv)
+- [South Africa single rates]({{site.url}}/assets/Files/South-Africa-per-diem.csv)
+
+---
+
 # Edit or Delete Per Diem Rates
 
 Each rate is listed as a line item. You can:

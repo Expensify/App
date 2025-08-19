@@ -22,6 +22,7 @@ function SearchTransactionsChangeReport() {
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const transactionsReports = useMemo(() => {
         const reports = Object.values(selectedTransactions).reduce((acc, transaction) => {
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
@@ -48,7 +49,7 @@ function SearchTransactionsChangeReport() {
             isASAPSubmitBetaEnabled,
             session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             session?.email ?? '',
-            undefined,
+            allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
             reportNextStep,
         );
         clearSelectedTransactions();
