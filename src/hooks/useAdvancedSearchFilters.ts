@@ -228,7 +228,7 @@ function useAdvancedSearchFilters() {
                         if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG && !shouldDisplayTagFilter) {
                             return;
                         }
-                        if ((key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID || CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED) && !shouldDisplayCardFilter) {
+                        if ((key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED) && !shouldDisplayCardFilter) {
                             return;
                         }
                         if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE && !shouldDisplayTaxFilter) {
