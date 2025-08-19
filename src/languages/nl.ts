@@ -3556,6 +3556,9 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: 'Automatiseer reis- en maaltijdbezorgkosten binnen uw organisatie.',
+                autoRemove: 'Nodig nieuwe werkruimteleden uit voor Uber for Business',
+                autoInvite: 'Deactiveer verwijderde werkruimteleden van Uber for Business',
+                manageInvites: 'Beheer uitnodigingen',
             },
         },
         perDiem: {
@@ -4689,6 +4692,7 @@ const translations = {
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Uber verbreken',
                 disconnectText: 'Om deze functie uit te schakelen, verbreek eerst de Uber for Business integratie.',
+                description: 'Weet u zeker dat u deze integratie wilt verbreken?',
                 confirmText: 'Begrepen',
             },
             workflowWarningModal: {
