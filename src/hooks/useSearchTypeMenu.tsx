@@ -28,7 +28,7 @@ import useThemeStyles from './useThemeStyles';
 import useWindowDimensions from './useWindowDimensions';
 
 export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
-    const {hash} = queryJSON;
+    const {hash, similarSearchHash} = queryJSON;
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -130,8 +130,8 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         }
 
         const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
-        return flattenedMenuItems.findIndex((item) => item.hash === hash);
-    }, [hash, isSavedSearchActive, typeMenuSections]);
+        return flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
+    }, [similarSearchHash, isSavedSearchActive, typeMenuSections]);
 
     const popoverMenuItems = useMemo(() => {
         return typeMenuSections
