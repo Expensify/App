@@ -256,7 +256,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                             }}
                             shouldSaveDraft
                         />
-                                                <PressableWithoutFeedback
+                        <PressableWithoutFeedback
                             onPress={openPrivacyURL}
                             role={CONST.ROLE.LINK}
                             accessibilityLabel={translate('common.privacy')}
