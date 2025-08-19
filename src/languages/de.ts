@@ -4954,7 +4954,8 @@ const translations = {
                 limit: 'Limit',
                 limitType: 'Typ begrenzen',
                 name: 'Name',
-                disabledApprovalForSmartLimitError: 'Bitte aktivieren Sie den Genehmigungs-Workflow in Ihrer Richtlinie, um Smart Limit-Karten einzurichten.',
+                disabledApprovalForSmartLimitError:
+                    'Bitte aktivieren Sie Genehmigungen unter <strong>Workflows > Genehmigungen hinzufügen</strong>, bevor Sie intelligente Limits einrichten',
             },
             deactivateCardModal: {
                 deactivate: 'Deaktivieren',

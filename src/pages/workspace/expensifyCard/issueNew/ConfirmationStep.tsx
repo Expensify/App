@@ -148,6 +148,7 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
                         message={errorMessage}
                         isAlertVisible={!!errorMessage}
                         isDisabled={isOffline || shouldDisableSubmitButton}
+                        isMessageHtml={shouldDisableSubmitButton}
                         isLoading={issueNewCard?.isLoading}
                         onSubmit={() => setIsValidateCodeActionModalVisible(true)}
                         buttonText={translate('workspace.card.issueCard')}

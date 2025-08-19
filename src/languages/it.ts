@@ -4967,7 +4967,7 @@ const translations = {
                 limit: 'Limite',
                 limitType: 'Tipo di limite',
                 name: 'Nome',
-                disabledApprovalForSmartLimitError: 'Abilita il flusso di approvazione nella tua politica per impostare le carte Limite Intelligente.',
+                disabledApprovalForSmartLimitError: 'Abilita le approvazioni in <strong>Flussi di lavoro > Aggiungi approvazioni</strong> prima di impostare i limiti intelligenti',
             },
             deactivateCardModal: {
                 deactivate: 'Disattiva',
