@@ -383,7 +383,7 @@ function BaseModal(
 
     const animationInProps = useMemo(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (disableAnimationIn || (type && !REANIMATED_MODAL_TYPES.includes(type)) || !shouldUseReanimatedModal) {
+        if (disableAnimationIn && ((type && !REANIMATED_MODAL_TYPES.includes(type)) || !shouldUseReanimatedModal)) {
             // We need to apply these animation props to completely disable the "animation in". Simply setting it to 0 and undefined will not work.
             // Based on: https://github.com/react-native-modal/react-native-modal/issues/191
             return {
