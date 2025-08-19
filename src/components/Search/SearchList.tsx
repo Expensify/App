@@ -453,6 +453,7 @@ function SearchList(
                 removeClippedSubviews
                 drawDistance={1000}
                 contentContainerStyle={contentContainerStyle}
+                maintainVisibleContentPosition={{disabled: true}}
             />
             <Modal
                 isVisible={isModalVisible}
