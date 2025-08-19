@@ -26,6 +26,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
@@ -409,9 +410,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute);
 
+    const isReportArchived = useReportIsArchived(report?.reportID);
     const isLinkedActionDeleted = useMemo(
-        () => !!linkedAction && !shouldReportActionBeVisible(linkedAction, linkedAction.reportActionID, canUserPerformWriteAction(report)),
-        [linkedAction, report],
+        () => !!linkedAction && !shouldReportActionBeVisible(linkedAction, linkedAction.reportActionID, canUserPerformWriteAction(report, isReportArchived)),
+        [linkedAction, report, isReportArchived],
     );
 
     const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);

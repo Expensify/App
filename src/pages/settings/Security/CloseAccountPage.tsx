@@ -96,7 +96,7 @@ function CloseAccountPage() {
             includeSafeAreaPaddingBottom
             testID={CloseAccountPage.displayName}
         >
-            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.SUBMITTER]}>
                 <HeaderWithBackButton
                     title={translate('closeAccountPage.closeAccount')}
                     onBackButtonPress={() => Navigation.goBack()}

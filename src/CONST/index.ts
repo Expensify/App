@@ -664,6 +664,7 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         ASAP_SUBMIT: 'asapSubmit',
+        AUTH_AUTO_REPORT_TITLE: 'authAutoReportTitle',
         DEFAULT_ROOMS: 'defaultRooms',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
@@ -1516,6 +1517,9 @@ const CONST = {
         APPLY_AIRSHIP_UPDATES: 'apply_airship_updates',
         APPLY_PUSHER_UPDATES: 'apply_pusher_updates',
         APPLY_HTTPS_UPDATES: 'apply_https_updates',
+        COMPUTE_REPORT_NAME: 'compute_report_name',
+        COMPUTE_REPORT_NAME_FOR_NEW_REPORT: 'compute_report_name_for_new_report',
+        UPDATE_OPTIMISTIC_REPORT_NAMES: 'update_optimistic_report_names',
         COLD: 'cold',
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
@@ -2882,6 +2886,12 @@ const CONST = {
             REIMBURSEMENT_NO: 'reimburseNo', // None
             REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
         },
+        CASH_EXPENSE_REIMBURSEMENT_CHOICES: {
+            REIMBURSABLE_DEFAULT: 'reimbursableDefault', // Reimbursable by default
+            NON_REIMBURSABLE_DEFAULT: 'nonReimbursableDefault', // Non-reimbursable by default
+            ALWAYS_REIMBURSABLE: 'alwaysReimbursable', // Always Reimbursable
+            ALWAYS_NON_REIMBURSABLE: 'alwaysNonReimbursable', // Always Non Reimbursable
+        },
         ID_FAKE: '_FAKE_',
         EMPTY: 'EMPTY',
         SECONDARY_ACTIONS: {
@@ -3748,6 +3758,7 @@ const CONST = {
         TAG: 'tag',
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
+        REIMBURSABLE: 'reimbursable',
         REPORT: 'report',
     },
     FOOTER: {
@@ -6462,7 +6473,7 @@ const CONST = {
             TAX_RATE: 'tax-rate',
             CARD_ID: 'card',
             FEED: 'feed',
-            REPORT_ID: 'reportid',
+            REPORT_ID: 'report-id',
             KEYWORD: 'keyword',
             IN: 'in',
             SUBMITTED: 'submitted',
@@ -6486,6 +6497,7 @@ const CONST = {
         DATE_PRESETS: {
             NEVER: 'never',
             LAST_MONTH: 'last-month',
+            THIS_MONTH: 'this-month',
             LAST_STATEMENT: 'last-statement',
         },
         SNAPSHOT_ONYX_KEYS: [
