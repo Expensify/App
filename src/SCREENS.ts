@@ -54,6 +54,7 @@ const SCREENS = {
         ADVANCED_FILTERS_POSTED_RHP: 'Search_Advanced_Filters_Posted_RHP',
         ADVANCED_FILTERS_WITHDRAWN_RHP: 'Search_Advanced_Filters_Withdrawn_RHP',
         ADVANCED_FILTERS_CURRENCY_RHP: 'Search_Advanced_Filters_Currency_RHP',
+        ADVANCED_FILTERS_GROUP_CURRENCY_RHP: 'Search_Advanced_Filters_Group_Currency_RHP',
         ADVANCED_FILTERS_DESCRIPTION_RHP: 'Search_Advanced_Filters_Description_RHP',
         ADVANCED_FILTERS_MERCHANT_RHP: 'Search_Advanced_Filters_Merchant_RHP',
         ADVANCED_FILTERS_REPORT_ID_RHP: 'Search_Advanced_Filters_ReportID_RHP',
@@ -63,6 +64,7 @@ const SCREENS = {
         ADVANCED_FILTERS_CARD_RHP: 'Search_Advanced_Filters_Card_RHP',
         ADVANCED_FILTERS_TAX_RATE_RHP: 'Search_Advanced_Filters_Tax_Rate_RHP',
         ADVANCED_FILTERS_EXPENSE_TYPE_RHP: 'Search_Advanced_Filters_Expense_Type_RHP',
+        ADVANCED_FILTERS_WITHDRAWAL_TYPE_RHP: 'Search_Advanced_Filters_Withdrawal_Type_RHP',
         ADVANCED_FILTERS_TAG_RHP: 'Search_Advanced_Filters_Tag_RHP',
         ADVANCED_FILTERS_FROM_RHP: 'Search_Advanced_Filters_From_RHP',
         ADVANCED_FILTERS_TO_RHP: 'Search_Advanced_Filters_To_RHP',
@@ -167,6 +169,7 @@ const SCREENS = {
             CHANGE_BILLING_CURRENCY: 'Settings_Subscription_Change_Billing_Currency',
             CHANGE_PAYMENT_CURRENCY: 'Settings_Subscription_Change_Payment_Currency',
             REQUEST_EARLY_CANCELLATION: 'Settings_Subscription_RequestEarlyCancellation',
+            SUBSCRIPTION_DOWNGRADE_BLOCKED: 'Settings_Subscription_DowngradeBlocked',
         },
     },
     TWO_FACTOR_AUTH: {
@@ -278,6 +281,7 @@ const SCREENS = {
         DISTANCE_CREATE: 'Money_Request_Distance_Create',
         STEP_DISTANCE_MAP: 'Money_Request_Step_Distance_Map',
         STEP_DISTANCE_MANUAL: 'Money_Request_Step_Distance_Manual',
+        RECEIPT_PREVIEW: 'Money_Request_Receipt_preview',
     },
 
     TRANSACTION_DUPLICATE: {
@@ -639,6 +643,7 @@ const SCREENS = {
         RULES_MAX_EXPENSE_AMOUNT: 'Rules_Max_Expense_Amount',
         RULES_MAX_EXPENSE_AGE: 'Rules_Max_Expense_Age',
         RULES_BILLABLE_DEFAULT: 'Rules_Billable_Default',
+        RULES_REIMBURSABLE_DEFAULT: 'Rules_Reimbursable_Default',
         RULES_CUSTOM: 'Rules_Custom',
         RULES_PROHIBITED_DEFAULT: 'Rules_Prohibited_Default',
         PER_DIEM: 'Per_Diem',

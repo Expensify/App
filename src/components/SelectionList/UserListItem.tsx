@@ -62,6 +62,10 @@ function UserListItem<TItem extends ListItem>({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const itemAccountID = Number(item.accountID || item.icons?.at(1)?.id) || 0;
 
+    const isThereOnlyWorkspaceIcon = item.icons?.length === 1 && item.icons?.at(0)?.type === CONST.ICON_TYPE_WORKSPACE;
+    const shouldUseIconPolicyID = !item.reportID && !item.accountID && !item.policyID;
+    const policyID = isThereOnlyWorkspaceIcon && shouldUseIconPolicyID ? String(item.icons?.at(0)?.id) : item.policyID;
+
     return (
         <BaseListItem
             item={item}
@@ -111,7 +115,7 @@ function UserListItem<TItem extends ListItem>({
                             </View>
                         </PressableWithFeedback>
                     )}
-                    {(!!reportExists || !!itemAccountID || !!item.policyID) && (
+                    {(!!reportExists || !!itemAccountID || !!policyID) && (
                         <ReportActionAvatars
                             subscriptAvatarBorderColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                             shouldShowTooltip={showTooltip}
@@ -123,7 +127,7 @@ function UserListItem<TItem extends ListItem>({
                             reportID={reportExists ? item.reportID : undefined}
                             /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
                             accountIDs={!reportExists && !!itemAccountID ? [itemAccountID] : []}
-                            policyID={!reportExists && !itemAccountID ? item.policyID : undefined}
+                            policyID={!reportExists && !!policyID ? policyID : undefined}
                             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
                             fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
                         />

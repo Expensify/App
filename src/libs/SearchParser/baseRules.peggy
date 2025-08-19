@@ -19,10 +19,13 @@ date = "date"i { return "date"; }
 amount = "amount"i { return "amount"; }
 merchant = "merchant"i { return "merchant"; }
 description = "description"i { return "description"; }
-reportID = "reportid"i { return "reportID"; }
+reportID = "reportid"i / "report-id"i { return "reportID"; }
 keyword = "keyword"i { return "keyword"; }
 in = "in"i { return "in"; }
 currency = "currency"i { return "currency"; }
+groupCurrency
+  = "groupCurrency"
+  / "group-currency"i { return "groupCurrency"; }
 tag = "tag"i { return "tag"; }
 category = "category"i { return "category"; }
 to = "to"i { return "to"; }
@@ -38,6 +41,9 @@ from = "from"i { return "from"; }
 expenseType
   = "expenseType"
   / "expense-type"i { return "expenseType"; }
+withdrawalType
+  = "withdrawalType"
+  / "withdrawal-type"i { return "withdrawalType"; }
 billable = "billable"i { return "billable"; }
 reimbursable = "reimbursable"i { return "reimbursable"; }
 type = "type"i { return "type"; }
