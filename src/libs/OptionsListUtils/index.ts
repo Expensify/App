@@ -8,47 +8,21 @@ import Onyx from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import CONST from '@src/CONST';
-import type {IOUAction} from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {
-    Beta,
-    DismissedProductTraining,
-    Login,
-    OnyxInputOrEntry,
-    PersonalDetails,
-    PersonalDetailsList,
-    Policy,
-    PolicyCategories,
-    PolicyCategory,
-    PolicyTag,
-    PolicyTagLists,
-    Report,
-    ReportAction,
-    ReportActions,
-    ReportAttributesDerivedValue,
-    ReportNameValuePairs,
-} from '@src/types/onyx';
-import type {Attendee, Participant} from '@src/types/onyx/IOU';
-import type {OriginalMessageMovedTransaction} from '@src/types/onyx/OriginalMessage';
-import type {SearchTransaction} from '@src/types/onyx/SearchResults';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import Timing from '../actions/Timing';
-import {getEnabledCategoriesCount} from '../CategoryUtils';
-import filterArrayByMatch from '../filterArrayByMatch';
-import {isReportMessageAttachment} from '../isReportMessageAttachment';
-import {formatPhoneNumber} from '../LocalePhoneNumber';
-import {translateLocal} from '../Localize';
-import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '../LoginUtils';
-import {MaxHeap} from '../MaxHeap';
-import {MinHeap} from '../MinHeap';
-import ModifiedExpenseMessage from '../ModifiedExpenseMessage';
-import Navigation from '../Navigation/Navigation';
-import Parser from '../Parser';
-import Performance from '../Performance';
-import Permissions from '../Permissions';
-import {getDisplayNameOrDefault, getPersonalDetailByEmail, getPersonalDetailsByIDs} from '../PersonalDetailsUtils';
-import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '../PhoneNumber';
+import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
+import filterArrayByMatch from '@libs/filterArrayByMatch';
+import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import {translateLocal} from '@libs/Localize';
+import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
+import {MaxHeap} from '@libs/MaxHeap';
+import {MinHeap} from '@libs/MinHeap';
+import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
+import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
+import Performance from '@libs/Performance';
+import Permissions from '@libs/Permissions';
+import {getDisplayNameOrDefault, getPersonalDetailByEmail, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,
@@ -56,7 +30,7 @@ import {
     getCountOfRequiredTagLists,
     getSubmitToAccountID,
     isUserInvitedToWorkspace,
-} from '../PolicyUtils';
+} from '@libs/PolicyUtils';
 import {
     getCombinedReportActions,
     getExportIntegrationLastMessageText,
@@ -100,8 +74,8 @@ import {
     isThreadParentMessage,
     isUnapprovedAction,
     shouldReportActionBeVisible,
-} from '../ReportActionsUtils';
-import type {OptionData} from '../ReportUtils';
+} from '@libs/ReportActionsUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import {
     canUserPerformWriteAction,
     formatReportLastMessageText,
@@ -149,10 +123,36 @@ import {
     isTaskReport as reportUtilsIsTaskReport,
     shouldDisplayViolationsRBRInLHN,
     shouldReportBeInOptionList,
-} from '../ReportUtils';
-import StringUtils from '../StringUtils';
-import {getTaskCreatedMessage, getTaskReportActionMessage} from '../TaskUtils';
-import {generateAccountID} from '../UserUtils';
+} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
+import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
+import {generateAccountID} from '@libs/UserUtils';
+import Timing from '@userActions/Timing';
+import CONST from '@src/CONST';
+import type {IOUAction} from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {
+    Beta,
+    DismissedProductTraining,
+    Login,
+    OnyxInputOrEntry,
+    PersonalDetails,
+    PersonalDetailsList,
+    Policy,
+    PolicyCategories,
+    PolicyCategory,
+    PolicyTag,
+    PolicyTagLists,
+    Report,
+    ReportAction,
+    ReportActions,
+    ReportAttributesDerivedValue,
+    ReportNameValuePairs,
+} from '@src/types/onyx';
+import type {Attendee, Participant} from '@src/types/onyx/IOU';
+import type {OriginalMessageMovedTransaction} from '@src/types/onyx/OriginalMessage';
+import type {SearchTransaction} from '@src/types/onyx/SearchResults';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {
     FilterUserToInviteConfig,
     GetOptionsConfig,

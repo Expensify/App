@@ -1,9 +1,9 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OptionData} from '@libs/ReportUtils';
+import type {AvatarSource} from '@libs/UserUtils';
 import type {IOUAction} from '@src/CONST';
 import type {Beta, PersonalDetails, Report, ReportActions, TransactionViolation} from '@src/types/onyx';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {OptionData} from '../ReportUtils';
-import type {AvatarSource} from '../UserUtils';
 
 /**
  * IMPORTANT: This type is a performance-optimized subset of OptionData.
