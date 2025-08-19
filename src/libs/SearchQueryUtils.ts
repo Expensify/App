@@ -79,20 +79,8 @@ const createKeyToUserFriendlyMap = () => {
     return map;
 };
 
-const createDisplayTextToValueMap = () => {
-    const map = new Map<string, string>();
-
-    // Create reverse mapping from user-friendly values to backend keys
-    Object.entries(CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP).forEach(([backendKey, userFriendlyValue]) => {
-        map.set(userFriendlyValue, backendKey);
-    });
-
-    return map;
-};
-
 // Create the maps once at module initialization for performance
 const keyToUserFriendlyMap = createKeyToUserFriendlyMap();
-const displayTextToValueMap = createDisplayTextToValueMap();
 
 /**
  * Lookup a key in the keyToUserFriendlyMap and return the user-friendly key.
@@ -102,16 +90,6 @@ const displayTextToValueMap = createDisplayTextToValueMap();
  */
 function getUserFriendlyKey(keyName: SearchFilterKey | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER): UserFriendlyKey {
     return (keyToUserFriendlyMap.get(keyName) ?? keyName) as UserFriendlyKey;
-}
-
-/**
- * Lookup a value in the displayTextToValueMap and return the backend value.
- *
- * @example
- * getFilterValueFromText("per-diem") // returns "perDiem"
- */
-function getFilterValueFromText(searchText: string): string {
-    return displayTextToValueMap.get(searchText) ?? searchText;
 }
 
 /**
@@ -194,11 +172,11 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
             index !== 0 &&
             ((queryFilter.operator === 'eq' && queryFilters?.at(index - 1)?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters.at(index - 1)?.operator === 'neq'))
         ) {
-            filterValueString += `${delimiter}${sanitizeSearchValue(getUserFriendlyValue(queryFilter.value.toString()))}`;
+            filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
-            filterValueString += `${delimiter}${sanitizeSearchValue(getUserFriendlyValue(queryFilter.value.toString()))}`;
+            filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else {
-            filterValueString += ` ${filterName}${operatorToCharMap[queryFilter.operator]}${sanitizeSearchValue(getUserFriendlyValue(queryFilter.value.toString()))}`;
+            filterValueString += ` ${filterName}${operatorToCharMap[queryFilter.operator]}${sanitizeSearchValue(queryFilter.value.toString())}`;
         }
     });
 
@@ -235,13 +213,13 @@ function getFilters(queryJSON: SearchQueryJSON) {
         if (!Array.isArray(node.right)) {
             filterArray.push({
                 operator: node.operator,
-                value: getFilterValueFromText(String(node.right)) as string | number,
+                value: node.right as string | number,
             });
         } else {
             node.right.forEach((element) => {
                 filterArray.push({
                     operator: node.operator,
-                    value: getFilterValueFromText(String(element)),
+                    value: element,
                 });
             });
         }
