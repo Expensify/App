@@ -12,9 +12,11 @@ import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Mock dependencies
-// Partial mock preserves parseReportRouteParams and other exports that are used by Report.ts's dependencies
 jest.mock('@libs/ReportUtils', () => ({
+    // jest.requireActual is necessary to include multi-layered module imports (eg. Report.ts has processReportIDDeeplink() which uses parseReportRouteParams() imported from getReportIDFromUrl.ts)
+    // Without jest.requireActual, parseReportRouteParams would be undefined, causing the test to fail.
     ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
+    // These methods are mocked below in the beforeAll function to return specific values
     isExpenseReport: jest.fn(),
     getTitleReportField: jest.fn(),
 }));
