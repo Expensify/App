@@ -1,5 +1,7 @@
-import type {FlashList, FlashListProps, ViewToken} from '@shopify/flash-list';
-import React, {forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {useRoute} from '@react-navigation/native';
+import {FlashList} from '@shopify/flash-list';
+import type {FlashListProps, ViewToken} from '@shopify/flash-list';
+import React, {forwardRef, useCallback, useContext, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -9,6 +11,7 @@ import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import {createItemHeightCalculator} from '@components/Search/itemHeightCalculator';
 import ITEM_HEIGHTS from '@components/Search/itemHeights';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -175,6 +178,9 @@ function SearchList(
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: (wallet) => wallet?.tierName, canBeMissing: false});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
+
+    const route = useRoute();
+    const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
 
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
@@ -355,6 +361,39 @@ function SearchList(
         };
     }, [calculatedListHeight, calculatedListWidth]);
 
+    const handleScroll = useCallback<NonNullable<FlashListProps<SearchListItem>['onScroll']>>(
+        (e) => {
+            if (onScroll && typeof onScroll === 'function') {
+                onScroll(e);
+            }
+
+            if (e.nativeEvent.layoutMeasurement.height > 0) {
+                saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+            }
+        },
+        [onScroll, route, saveScrollOffset],
+    );
+
+    const handleLayout = useCallback(() => {
+        if (onLayout && typeof onLayout === 'function') {
+            onLayout();
+        }
+
+        const offset = getScrollOffset(route);
+        if (!offset || !listRef.current) {
+            return;
+        }
+
+        // Use requestAnimationFrame to ensure proper scrolling on iOS
+        requestAnimationFrame(() => {
+            if (!offset || !listRef.current) {
+                return;
+            }
+
+            listRef.current.scrollToOffset({offset});
+        });
+    }, [onLayout, getScrollOffset, route]);
+
     return (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
             {tableHeaderVisible && (
@@ -393,7 +432,7 @@ function SearchList(
                 renderItem={renderItem}
                 onSelectRow={onSelectRow}
                 keyExtractor={keyExtractor}
-                onScroll={onScroll}
+                onScroll={handleScroll}
                 ref={listRef}
                 scrollToIndex={scrollToIndex}
                 isFocused={isFocused}
@@ -402,7 +441,7 @@ function SearchList(
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}
                 onViewableItemsChanged={onViewableItemsChanged}
-                onLayout={onLayout}
+                onLayout={handleLayout}
                 estimatedItemSize={estimatedItemSize}
                 overrideItemLayout={overrideItemLayout}
                 estimatedListSize={estimatedListSize}
