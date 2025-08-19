@@ -1,7 +1,6 @@
 import React, {useEffect, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useBetas} from '@components/OnyxProvider';
+import {useBetas} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -9,10 +8,11 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import * as ReportActions from '@libs/actions/Report';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import useOnyx from '@hooks/useOnyx';
+import {searchInServer} from '@libs/actions/Report';
+import {appendTimeToFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, getHeaderMessage, getShareLogOptions} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -24,7 +24,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const betas = useBetas();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const {options, areOptionsInitialized} = useOptionsList();
 
     const defaultOptions = useMemo(() => {
@@ -37,13 +37,9 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                 headerMessage: '',
             };
         }
-        const shareLogOptions = OptionsListUtils.getShareLogOptions(options, betas ?? []);
+        const shareLogOptions = getShareLogOptions(options, betas ?? []);
 
-        const header = OptionsListUtils.getHeaderMessage(
-            (shareLogOptions.recentReports.length || 0) + (shareLogOptions.personalDetails.length || 0) !== 0,
-            !!shareLogOptions.userToInvite,
-            '',
-        );
+        const header = getHeaderMessage((shareLogOptions.recentReports.length || 0) + (shareLogOptions.personalDetails.length || 0) !== 0, !!shareLogOptions.userToInvite, '');
 
         return {
             ...shareLogOptions,
@@ -56,12 +52,12 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
             return defaultOptions;
         }
 
-        const filteredOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchValue, {
+        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue, {
             preferChatRoomsOverThreads: true,
             sortByReportTypeInSearch: true,
         });
 
-        const headerMessage = OptionsListUtils.getHeaderMessage(
+        const headerMessage = getHeaderMessage(
             (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0,
             !!filteredOptions.userToInvite,
             debouncedSearchValue.trim(),
@@ -99,13 +95,13 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         if (!option.reportID) {
             return;
         }
-        const filename = FileUtils.appendTimeToFileName('logs.txt');
+        const filename = appendTimeToFileName('logs.txt');
 
         onAttachLogToReport(option.reportID, filename);
     };
 
     useEffect(() => {
-        ReportActions.searchInServer(debouncedSearchValue);
+        searchInServer(debouncedSearchValue);
     }, [debouncedSearchValue]);
 
     return (

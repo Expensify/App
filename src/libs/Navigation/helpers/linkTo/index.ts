@@ -6,6 +6,7 @@ import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import {shallowCompare} from '@libs/ObjectUtils';
+import getMatchingNewRoute from '@navigation/helpers/getMatchingNewRoute';
 import type {NavigationPartialRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, StackNavigationAction} from '@navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -26,6 +27,21 @@ function areNamesAndParamsEqual(currentState: NavigationState<RootNavigatorParam
     const areParamsEqual = shallowCompare(currentFocusedRoute?.params as Record<string, unknown> | undefined, targetFocusedRoute?.params as Record<string, unknown> | undefined);
 
     return areNamesEqual && areParamsEqual;
+}
+
+function arePathAndBackToEqual(stateFromPath: PartialState<NavigationState<RootNavigatorParamList>>) {
+    const focusedRouteFromPath = findFocusedRoute(stateFromPath);
+    const params = focusedRouteFromPath?.params ?? {};
+
+    if (!focusedRouteFromPath?.path || !('backTo' in params) || !params.backTo || typeof params.backTo !== 'string') {
+        return false;
+    }
+    let cleanedPath = focusedRouteFromPath.path.replace(/\?.*/, '');
+    let cleanedBackTo = params.backTo.replace(/\?.*/, '');
+    cleanedPath = cleanedPath.endsWith('/') ? cleanedPath.slice(0, -1) : cleanedPath;
+    cleanedBackTo = cleanedBackTo.endsWith('/') ? cleanedBackTo.slice(0, -1) : cleanedBackTo;
+
+    return cleanedPath === cleanedBackTo;
 }
 
 function shouldCheckFullScreenRouteMatching(action: StackNavigationAction): action is StackNavigationAction & {type: 'PUSH'; payload: {name: typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR}} {
@@ -56,11 +72,12 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     const {forceReplace} = {...defaultLinkToOptions, ...options} as Required<LinkToOptions>;
 
     const normalizedPath = normalizePath(path) as Route;
+    const normalizedPathAfterRedirection = (getMatchingNewRoute(normalizedPath) ?? normalizedPath) as Route;
 
     // This is the state generated with the default getStateFromPath function.
     // It won't include the whole state that will be generated for this path but the focused route will be correct.
     // It is necessary because getActionFromState will generate RESET action for whole state generated with our custom getStateFromPath function.
-    const stateFromPath = getStateFromPath(normalizedPath) as PartialState<NavigationState<RootNavigatorParamList>>;
+    const stateFromPath = getStateFromPath(normalizedPathAfterRedirection) as PartialState<NavigationState<RootNavigatorParamList>>;
     const currentState = navigation.getRootState() as NavigationState<RootNavigatorParamList>;
 
     const focusedRouteFromPath = findFocusedRoute(stateFromPath);
@@ -80,7 +97,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     }
 
     // We don't want to dispatch action to push/replace with exactly the same route that is already focused.
-    if (areNamesAndParamsEqual(currentState, stateFromPath)) {
+    if (areNamesAndParamsEqual(currentState, stateFromPath) || arePathAndBackToEqual(stateFromPath)) {
         return;
     }
 

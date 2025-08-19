@@ -430,7 +430,6 @@ function AvatarWithImagePicker({
                                             menuItems={menuItems}
                                             anchorPosition={shouldUseStyleUtilityForAnchorPosition ? styles.popoverMenuOffset(windowWidth) : popoverPosition}
                                             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                                            withoutOverlay
                                             anchorRef={anchorRef}
                                         />
                                     </>

@@ -30,7 +30,7 @@
 {
   const defaultValues = {
     type: "expense",
-    status: "all",
+    status: "",
     sortBy: "date",
     sortOrder: "desc",
   };
@@ -117,6 +117,7 @@ key "key"
       / keyword
       / in
       / currency
+      / groupCurrency
       / tag
       / category
       / to
@@ -126,17 +127,20 @@ key "key"
       / payer
       / exporter
       / expenseType
+      / withdrawalType
       / submitted
       / approved
       / paid
       / exported
       / posted
+      / withdrawn
       / feed
       / title
       / assignee
       / createdBy
       / reimbursable
       / billable
+      / action
     )
 
 filterKey

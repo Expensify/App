@@ -1,7 +1,7 @@
+import GenericBank from '@assets/images/bank-icons/generic-bank-account.svg';
 import GenericBankCard from '@assets/images/cardicons/generic-bank-card.svg';
 import type {BankIconParams} from '@components/Icon/BankIconsUtils';
 import {getBankIconAsset, getBankNameKey} from '@components/Icon/BankIconsUtils';
-import {Bank} from '@components/Icon/Expensicons';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BankIcon} from '@src/types/onyx/Bank';
@@ -11,7 +11,7 @@ import type {BankIcon} from '@src/types/onyx/Bank';
  */
 export default function getBankIcon({styles, bankName, isCard = false}: BankIconParams): BankIcon {
     const bankIcon: BankIcon = {
-        icon: isCard ? GenericBankCard : Bank,
+        icon: isCard ? GenericBankCard : GenericBank,
     };
     if (bankName) {
         const bankNameKey = getBankNameKey(bankName.toLowerCase());

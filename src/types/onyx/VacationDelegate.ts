@@ -8,6 +8,9 @@ type VacationDelegate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Email of the vacation delegate */
     delegate?: string;
 
+    /** Previous delegate for rollback on failure */
+    previousDelegate?: string;
+
     /** Error message */
     errors?: OnyxCommon.Errors;
 }>;

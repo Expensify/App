@@ -2,9 +2,9 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import AttachmentPicker from '@components/AttachmentPicker';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -13,7 +13,10 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,7 +39,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 type MoneyRequestOptions = Record<
     Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>,
-    PopoverMenuItem
+    PopoverMenuItem[]
 >;
 
 type AttachmentPickerWithMenuItemsProps = {
@@ -47,16 +50,13 @@ type AttachmentPickerWithMenuItemsProps = {
     currentUserPersonalDetails: OnyxTypes.PersonalDetails;
 
     /** Callback to open the file in the modal */
-    displayFileInModal: (url: FileObject) => void;
+    displayFilesInModal: (files: FileObject[]) => void;
 
     /** Whether or not the full size composer is available */
     isFullComposerAvailable: boolean;
 
     /** Whether or not the composer is full size */
     isComposerFullSize: boolean;
-
-    /** Whether or not the user is blocked from concierge */
-    isBlockedFromConcierge: boolean;
 
     /** Whether or not the attachment picker is disabled */
     disabled?: boolean;
@@ -105,11 +105,10 @@ function AttachmentPickerWithMenuItems({
     report,
     currentUserPersonalDetails,
     reportParticipantIDs,
-    displayFileInModal,
+    displayFilesInModal,
     isFullComposerAvailable,
     isComposerFullSize,
     reportID,
-    isBlockedFromConcierge,
     disabled,
     setMenuVisibility,
     isMenuVisible,
@@ -131,6 +130,11 @@ function AttachmentPickerWithMenuItems({
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const {isProduction} = useEnvironment();
+    const {isBetaEnabled} = usePermissions();
+    const {setIsLoaderVisible} = useFullScreenLoader();
+    const isReportArchived = useReportIsArchived(report?.reportID);
+
+    const isManualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
@@ -152,52 +156,91 @@ function AttachmentPickerWithMenuItems({
      */
     const moneyRequestOptions = useMemo(() => {
         const options: MoneyRequestOptions = {
-            [CONST.IOU.TYPE.SPLIT]: {
-                icon: Expensicons.Transfer,
-                text: translate('iou.splitExpense'),
-                shouldCallAfterModalHide: shouldUseNarrowLayout,
-                onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
-            },
-            [CONST.IOU.TYPE.SUBMIT]: {
-                icon: getIconForAction(CONST.IOU.TYPE.CREATE),
-                text: translate('iou.createExpense'),
-                shouldCallAfterModalHide: shouldUseNarrowLayout,
-                onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
-            },
-            [CONST.IOU.TYPE.PAY]: {
-                icon: getIconForAction(CONST.IOU.TYPE.SEND),
-                text: translate('iou.paySomeone', {name: getPayeeName(report)}),
-                shouldCallAfterModalHide: shouldUseNarrowLayout,
-                onSelected: () => {
-                    if (isDelegateAccessRestricted) {
-                        close(() => {
-                            showDelegateNoAccessModal();
-                        });
-                        return;
-                    }
-                    selectOption(() => startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), false);
+            [CONST.IOU.TYPE.SPLIT]: [
+                {
+                    icon: Expensicons.Transfer,
+                    text: translate('iou.splitExpense'),
+                    shouldCallAfterModalHide: shouldUseNarrowLayout,
+                    onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
                 },
-            },
-            [CONST.IOU.TYPE.TRACK]: {
-                icon: getIconForAction(CONST.IOU.TYPE.CREATE),
-                text: translate('iou.createExpense'),
-                shouldCallAfterModalHide: shouldUseNarrowLayout,
-                onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
-            },
-            [CONST.IOU.TYPE.INVOICE]: {
-                icon: Expensicons.InvoiceGeneric,
-                text: translate('workspace.invoices.sendInvoice'),
-                shouldCallAfterModalHide: shouldUseNarrowLayout,
-                onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.INVOICE, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), false),
-            },
+            ],
+            [CONST.IOU.TYPE.SUBMIT]: [
+                {
+                    icon: getIconForAction(CONST.IOU.TYPE.CREATE),
+                    text: translate('iou.createExpense'),
+                    shouldCallAfterModalHide: shouldUseNarrowLayout,
+                    onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
+                },
+                ...(isManualDistanceTrackingEnabled
+                    ? [
+                          {
+                              icon: Expensicons.Location,
+                              text: translate('quickAction.recordDistance'),
+                              shouldCallAfterModalHide: shouldUseNarrowLayout,
+                              onSelected: () => selectOption(() => null, true),
+                          },
+                      ]
+                    : []),
+            ],
+            [CONST.IOU.TYPE.PAY]: [
+                {
+                    icon: getIconForAction(CONST.IOU.TYPE.SEND),
+                    text: translate('iou.paySomeone', {name: getPayeeName(report)}),
+                    shouldCallAfterModalHide: shouldUseNarrowLayout,
+                    onSelected: () => {
+                        if (isDelegateAccessRestricted) {
+                            close(() => {
+                                showDelegateNoAccessModal();
+                            });
+                            return;
+                        }
+                        selectOption(() => startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), false);
+                    },
+                },
+            ],
+            [CONST.IOU.TYPE.TRACK]: [
+                {
+                    icon: getIconForAction(CONST.IOU.TYPE.CREATE),
+                    text: translate('iou.createExpense'),
+                    shouldCallAfterModalHide: shouldUseNarrowLayout,
+                    onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
+                },
+                ...(isManualDistanceTrackingEnabled
+                    ? [
+                          {
+                              icon: Expensicons.Location,
+                              text: translate('iou.trackDistance'),
+                              shouldCallAfterModalHide: shouldUseNarrowLayout,
+                              onSelected: () => selectOption(() => null, true),
+                          },
+                      ]
+                    : []),
+            ],
+            [CONST.IOU.TYPE.INVOICE]: [
+                {
+                    icon: Expensicons.InvoiceGeneric,
+                    text: translate('workspace.invoices.sendInvoice'),
+                    shouldCallAfterModalHide: shouldUseNarrowLayout,
+                    onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.INVOICE, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), false),
+                },
+            ],
         };
 
-        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => ({
-            ...options[option],
-        }));
+        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => options[option], isReportArchived);
 
-        return moneyRequestOptionsList.filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
-    }, [translate, shouldUseNarrowLayout, report, policy, reportParticipantIDs, selectOption, isDelegateAccessRestricted, showDelegateNoAccessModal]);
+        return moneyRequestOptionsList.flat().filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
+    }, [
+        translate,
+        shouldUseNarrowLayout,
+        report,
+        policy,
+        reportParticipantIDs,
+        selectOption,
+        isDelegateAccessRestricted,
+        showDelegateNoAccessModal,
+        isManualDistanceTrackingEnabled,
+        isReportArchived,
+    ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
         if (!isPolicyExpenseChat(report) || !isPaidGroupPolicy(report) || !isReportOwner(report)) {
@@ -278,13 +321,22 @@ function AttachmentPickerWithMenuItems({
     const createButtonContainerStyles = [styles.flexGrow0, styles.flexShrink0];
 
     return (
-        <AttachmentPicker>
+        <AttachmentPicker
+            allowMultiple
+            onOpenPicker={() => setIsLoaderVisible(true)}
+            fileLimit={CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT}
+            shouldValidateImage={false}
+        >
             {({openPicker}) => {
                 const triggerAttachmentPicker = () => {
                     onTriggerAttachmentPicker();
                     openPicker({
-                        onPicked: (data) => displayFileInModal(data.at(0) ?? {}),
-                        onCanceled: onCanceledAttachmentPicker,
+                        onPicked: (data) => displayFilesInModal(data),
+                        onCanceled: () => {
+                            onCanceledAttachmentPicker?.();
+                            setIsLoaderVisible(false);
+                        },
+                        onClosed: () => setIsLoaderVisible(false),
                     });
                 };
                 const menuItems = [
@@ -317,7 +369,7 @@ function AttachmentPickerWithMenuItems({
                                                 setMenuVisibility(!isMenuVisible);
                                             }}
                                             style={styles.composerSizeButton}
-                                            disabled={isBlockedFromConcierge || disabled}
+                                            disabled={disabled}
                                             role={CONST.ROLE.BUTTON}
                                             accessibilityLabel={translate('common.create')}
                                         >
@@ -344,7 +396,7 @@ function AttachmentPickerWithMenuItems({
                                                     // Keep focus on the composer when Collapse button is clicked.
                                                     onMouseDown={(e) => e.preventDefault()}
                                                     style={styles.composerSizeButton}
-                                                    disabled={isBlockedFromConcierge || disabled}
+                                                    disabled={disabled}
                                                     role={CONST.ROLE.BUTTON}
                                                     accessibilityLabel={translate('reportActionCompose.collapse')}
                                                 >
@@ -368,7 +420,7 @@ function AttachmentPickerWithMenuItems({
                                                     // Keep focus on the composer when Expand button is clicked.
                                                     onMouseDown={(e) => e.preventDefault()}
                                                     style={styles.composerSizeButton}
-                                                    disabled={isBlockedFromConcierge || disabled}
+                                                    disabled={disabled}
                                                     role={CONST.ROLE.BUTTON}
                                                     accessibilityLabel={translate('reportActionCompose.expand')}
                                                 >
@@ -407,9 +459,11 @@ function AttachmentPickerWithMenuItems({
                                 }
                             }}
                             anchorPosition={styles.createMenuPositionReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth)}
-                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
+                            anchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                            }}
                             menuItems={menuItems}
-                            withoutOverlay
                             anchorRef={actionButtonRef}
                         />
                     </>

@@ -1,17 +1,18 @@
 import React, {useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {deleteWorkspaceCompanyCardFeed, setWorkspaceCompanyCardTransactionLiability} from '@libs/actions/CompanyCards';
@@ -52,9 +53,24 @@ function WorkspaceCompanyCardsSettingsPage({
     const liabilityType = selectedFeedData?.liabilityType;
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
+    const statementCloseDate = useMemo(() => {
+        if (!selectedFeedData?.statementPeriodEndDay) {
+            return undefined;
+        }
+
+        if (typeof selectedFeedData?.statementPeriodEndDay === 'number') {
+            return selectedFeedData.statementPeriodEndDay;
+        }
+
+        return translate(`workspace.companyCards.statementCloseDate.${selectedFeedData.statementPeriodEndDay}`);
+    }, [translate, selectedFeedData?.statementPeriodEndDay]);
 
     const navigateToChangeFeedName = () => {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.getRoute(policyID));
+    };
+
+    const navigateToChangeStatementCloseDate = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE.getRoute(policyID));
     };
 
     const deleteCompanyCardFeed = () => {
@@ -108,6 +124,17 @@ function WorkspaceCompanyCardsSettingsPage({
                             titleStyle={styles.flex1}
                             onPress={navigateToChangeFeedName}
                         />
+                        <OfflineWithFeedback pendingAction={selectedFeedData?.pendingFields?.statementPeriodEndDay}>
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={statementCloseDate?.toString()}
+                                description={translate('workspace.moreFeatures.companyCards.statementCloseDateTitle')}
+                                style={[styles.moneyRequestMenuItem]}
+                                titleStyle={styles.flex1}
+                                onPress={navigateToChangeStatementCloseDate}
+                                brickRoadIndicator={selectedFeedData?.errorFields?.statementPeriodEndDay ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            />
+                        </OfflineWithFeedback>
                         <View style={[styles.mv3, styles.mh5]}>
                             <ToggleSettingOptionRow
                                 title={translate('workspace.moreFeatures.companyCards.personal')}

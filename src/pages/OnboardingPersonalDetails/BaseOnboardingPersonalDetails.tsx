@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -11,11 +10,13 @@ import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingMessages from '@hooks/useOnboardingMessages';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
-import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
+import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {isCurrentUserValidated} from '@libs/UserUtils';
 import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
@@ -31,7 +32,7 @@ import type {BaseOnboardingPersonalDetailsProps} from './types';
 
 function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles, route}: BaseOnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
@@ -39,6 +40,9 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const [conciergeChatReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const {onboardingMessages} = useOnboardingMessages();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+
     // When we merge public email with work email, we now want to navigate to the
     // concierge chat report of the new work email and not the last accessed report.
     const mergedAccountConciergeReportID = !onboardingValues?.shouldRedirectToClassicAfterMerge && onboardingValues?.shouldValidate ? conciergeChatReportID : undefined;
@@ -50,7 +54,10 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {isBetaEnabled} = usePermissions();
 
     const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
-    const isValidated = isCurrentUserValidated(loginList);
+    const isValidated = isCurrentUserValidated(loginList, session?.email);
+
+    const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
+    const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
 
     useEffect(() => {
         setOnboardingErrorMessage('');
@@ -61,10 +68,9 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             if (!onboardingPurposeSelected) {
                 return;
             }
-
             completeOnboardingReport({
                 engagementChoice: onboardingPurposeSelected,
-                onboardingMessage: CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+                onboardingMessage: onboardingMessages[onboardingPurposeSelected],
                 firstName,
                 lastName,
                 adminsChatReportID: onboardingAdminsChatReportID,
@@ -74,11 +80,9 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID();
 
-            Navigation.setNavigationActionToMicrotaskQueue(() =>
-                navigateAfterOnboarding(isSmallScreenWidth, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), onboardingPolicyID, mergedAccountConciergeReportID),
-            );
+            navigateAfterOnboardingWithMicrotaskQueue(isSmallScreenWidth, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), onboardingPolicyID, mergedAccountConciergeReportID);
         },
-        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, isBetaEnabled, isSmallScreenWidth, mergedAccountConciergeReportID],
+        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingMessages, onboardingPolicyID, isBetaEnabled, isSmallScreenWidth, mergedAccountConciergeReportID],
     );
 
     const handleSubmit = useCallback(
@@ -86,25 +90,30 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             const firstName = values.firstName.trim();
             const lastName = values.lastName.trim();
 
-            setDisplayName(firstName, lastName);
+            setDisplayName(firstName, lastName, formatPhoneNumber);
             clearPersonalDetailsDraft();
             setPersonalDetails(firstName, lastName);
 
-            if (isPrivateDomainAndHasAccessiblePolicies && !onboardingPurposeSelected) {
+            if (isPrivateDomainAndHasAccessiblePolicies && (!onboardingPurposeSelected || isVsb || isSmb)) {
                 const nextRoute = isValidated ? ROUTES.ONBOARDING_WORKSPACES : ROUTES.ONBOARDING_PRIVATE_DOMAIN;
                 Navigation.navigate(nextRoute.getRoute(route.params?.backTo));
                 return;
             }
 
             if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
-                updateDisplayName(firstName, lastName);
+                updateDisplayName(firstName, lastName, formatPhoneNumber);
                 Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE.getRoute(route.params?.backTo));
+                return;
+            }
+
+            if (!isPrivateDomainAndHasAccessiblePolicies && onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
+                Navigation.navigate(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(route.params?.backTo));
                 return;
             }
 
             completeOnboarding(firstName, lastName);
         },
-        [isPrivateDomainAndHasAccessiblePolicies, onboardingPurposeSelected, isValidated, route.params?.backTo, completeOnboarding],
+        [isPrivateDomainAndHasAccessiblePolicies, onboardingPurposeSelected, isValidated, route.params?.backTo, completeOnboarding, isVsb, isSmb, formatPhoneNumber],
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {

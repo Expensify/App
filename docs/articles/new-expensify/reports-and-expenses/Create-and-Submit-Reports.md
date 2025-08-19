@@ -27,7 +27,7 @@ Inside the draft report, tap **Add expense** to include expense items.
 
 **Option A:** Create a new expense:
 
-1. Tap **Add expense** > **Create new expense**.
+1. Tap **Add expense** > **Create expense**.
 2. Enter the expense details (amount, merchant, category).
 3. The expense is added directly to the report.
 

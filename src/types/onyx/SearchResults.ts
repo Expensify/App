@@ -68,6 +68,15 @@ type SearchResultsInfo = {
 
     /** The optional columns that should be shown according to policy settings */
     columnsToShow: ColumnsToShow;
+
+    /** The number of results */
+    count?: number;
+
+    /** The total spend */
+    total?: number;
+
+    /** The currency of the total spend */
+    currency?: string;
 };
 
 /** Model of personal details search result */
@@ -224,9 +233,6 @@ type SearchReportAction = {
 
     /** The name of the report */
     reportName: string;
-
-    /** Whether the report is policyExpenseChat */
-    isPolicyExpenseChat?: boolean;
 };
 
 /** Model of policy search result */
@@ -455,6 +461,48 @@ type SearchTask = {
     statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 };
 
+/** Model of member grouped search result */
+type SearchMemberGroup = {
+    /** Account ID */
+    accountID: number;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+};
+
+/** Model of card grouped search result */
+type SearchCardGroup = {
+    /** Cardholder account ID */
+    accountID: number;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+
+    /** Bank name */
+    bank: string;
+
+    /** Card name */
+    cardName: string;
+
+    /** Card ID */
+    cardID: number;
+
+    /** Last four Primary Account Number digits */
+    lastFourPAN: string;
+};
+
 /** Types of searchable transactions */
 type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
@@ -477,7 +525,8 @@ type SearchResults = {
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, SearchPolicy> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>;
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
+        PrefixedRecord<typeof CONST.SEARCH.GROUP_PREFIX, SearchMemberGroup | SearchCardGroup>;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
@@ -500,4 +549,7 @@ export type {
     SearchReport,
     SearchReportAction,
     SearchPolicy,
+    SearchResultsInfo,
+    SearchMemberGroup,
+    SearchCardGroup,
 };

@@ -1,7 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -11,6 +10,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,7 +32,7 @@ function SelectBankStep() {
     const {isBetaEnabled} = usePermissions();
 
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
-    const [bankSelected, setBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS>>();
+    const [bankSelected, setBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null>();
     const [hasError, setHasError] = useState(false);
     const isOtherBankSelected = bankSelected === CONST.COMPANY_CARDS.BANKS.OTHER;
 
@@ -65,7 +65,7 @@ function SelectBankStep() {
             return;
         }
         if (isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS)) {
-            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
+            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE, data: {selectedBank: null}});
         } else {
             Navigation.goBack();
         }

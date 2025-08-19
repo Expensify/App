@@ -127,6 +127,15 @@ It's a valid question, especially because clean builds may take some time. On th
 3. Whenever `package-lock.json` has changed - this may indicate that some packages with native code were bumped (however it's not always necessary, see [[#Should I rebuild HybridApp after bumping a `node_module`?]])
 4. Whenever you've updated `.env` files
 This means that if you changed only React Native code, and didn't pull any changes, the rebuilt is probably not necessary. If something doesn't work, you can always restart the Metro bundler using the following command `npm run start --reset-cache`
+
+💡 **Tip**: If you're still experiencing build issues after running `npm run clean`, try a full Git clean:
+
+```
+git clean -fdx
+```
+This will remove all untracked files and directories, ensuring no lingering artifacts interfere with the build process.
+**Warning**: This will delete **all untracked files**, including anything not committed—make sure you’ve backed up anything important.
+
 ### Should I rebuild HybridApp after bumping a `node_modules` library?
 The `package-lock.json` file contains information about exact versions of `node_modules` that will be installed on your machine. If you've bumped a dependency on your PR you can easily check to see if you would need to rebuild the app by going to the `./node_modules/<PACKAGE_NAME>`, and seeing if there are any Objective-C, Swift, Java, Kotlin or C++ files. Usually they are located in `ios` or `android` folders.
 ### How to clear platform-specific cache?
@@ -164,6 +173,22 @@ IMPORTANT: It's easily to confuse this error with a very similar one: `Failed to
 This error indicates that YAPL JS (OldDot's JavaScript code) hasn't been built properly. In order to fix that, do the following:
 1. cd to `Mobile-Expensify`
 2. run `npm run grunt:build:shared`
+
+### Error: `No JDK found / Please select a valid JDK`
+Android Studio and Gradle require a JDK (Java Development Kit) to build the app. If you're seeing this error or being prompted to select a JDK, it means no valid JDK has been configured. Our project requires JDK 17, so make sure you select or install that version.
+
+**To fix this:**
+- Open Android Studio.
+- Go to File > Project Structure > SDK Location.
+- Under JDK Location:
+    - Set the path to a previously installed JDK 17
+    - Or select the default JDK bundled with Android Studio (on macOS, that's usually at /Applications/Android Studio.app/Contents/jbr) only if it is JDK 17
+
+Alternatively, from the terminal:
+```
+export JAVA_HOME=$(/usr/libexec/java_home -v17)
+```
+
 ### How to find an `.apk`, and install it on your device?
 
 After a successful build, gradle creates an `.apk` file, which you can install on your android devices/emulators. There is a chance that eg. the app failed to install after a successful build, or you want to test the app on another device. In this case you **don't need to rebuild the app**, because you can reuse the existing `.apk`. These are the steps how to do it:
@@ -206,6 +231,22 @@ This one is pretty enigmatic, and usually appears after subsequent android, and 
 This error may appear after execution of `npm run pod-install`. In this case you should do the following:
 1. cd to `Mobile-Expensify/ios`
 2. run `pod repo remove trunk`
+
+### Error: `Build service could not create build operation`
+This might also appear when trying to clean build folder.
+1. Manually clean `rm -rf ~/Library/Developer/Xcode/DerivedData`
+2. Quit XCode and macOS build services:
+    1. Close XCode
+    2. `sudo pkill -9 -f xcodebuild`
+    3. `sudo pkill -9 -f XCBBuildService`
+    4. `sudo pkill -9 -f com.apple.dt.Xcode`
+    5. Restart XCode
+3. Further cleaning:
+    1. `rm -rf ~/Library/Developer/Xcode/ModuleCache.noindex`
+    2. `rm -rf ~/Library/Caches/com.apple.dt.Xcode`
+    3. `rm -rf NewExpensify.xcodeproj/project.xcworkspace/xcuserdata`
+    4. `rm -rf NewExpensify.xcodeproj/project.xcworkspace/xcshareddata`
+4. Restart your Mac
 
 ### How to build a `release` iOS app?
 If you'd like to build HybridApp in `release` configuration, the best way to do it is to:

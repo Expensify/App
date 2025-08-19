@@ -2,8 +2,9 @@
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {useEffect, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {openReport} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
@@ -83,7 +84,8 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         // Perform all the loading checks
         const isLoadingReport = isLoadingReportData && !report?.reportID;
         const isLoadingReportAction = isEmptyObject(reportActions) || (reportMetadata?.isLoadingInitialReportActions && isEmptyObject(linkedReportAction));
-        const shouldHideReport = !isLoadingReport && (!report?.reportID || !canAccessReport(report, betas));
+        const isReportArchived = useReportIsArchived(report?.reportID);
+        const shouldHideReport = !isLoadingReport && (!report?.reportID || !canAccessReport(report, betas, isReportArchived));
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if ((isLoadingReport || isLoadingReportAction) && !shouldHideReport) {

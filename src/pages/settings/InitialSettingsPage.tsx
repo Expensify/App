@@ -1,15 +1,12 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app/src';
 import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import ConfirmModal from '@components/ConfirmModal';
-import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -25,6 +22,8 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
@@ -41,6 +40,7 @@ import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_T
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import {confirmReadyToOpenApp} from '@userActions/App';
+import closeReactNativeApp from '@userActions/HybridApp';
 import {openExternalLink} from '@userActions/Link';
 import {hasPaymentMethodError} from '@userActions/PaymentMethods';
 import {isSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
@@ -93,6 +93,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const [allCards] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const network = useNetwork();
@@ -103,11 +104,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const {translate} = useLocalize();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
-    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
 
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: true});
+    const privateSubscription = usePrivateSubscription();
     const subscriptionPlan = useSubscriptionPlan();
 
     const shouldLogout = useRef(false);
@@ -151,7 +151,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
      * @returns object with translationKey, style and items for the account section
      */
     const accountMenuItemsData: Menu = useMemo(() => {
-        const profileBrickRoadIndicator = getProfilePageBrickRoadIndicator(loginList, privatePersonalDetails, vacationDelegate);
+        const profileBrickRoadIndicator = getProfilePageBrickRoadIndicator(loginList, privatePersonalDetails, vacationDelegate, session?.email);
         const items: MenuData[] = [
             {
                 translationKey: 'common.profile',
@@ -203,6 +203,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         loginList,
         privatePersonalDetails,
         vacationDelegate,
+        session?.email,
         walletBrickRoadIndicator,
         hasActivatedWallet,
         userWallet?.currentBalance,
@@ -236,14 +237,21 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     },
                 },
                 {
+                    translationKey: 'initialSettingsPage.whatIsNew',
+                    icon: Expensicons.TreasureChest,
+                    iconRight: Expensicons.NewWindow,
+                    shouldShowRightIcon: true,
+                    link: CONST.WHATS_NEW_URL,
+                    action: () => {
+                        openExternalLink(CONST.WHATS_NEW_URL);
+                    },
+                },
+                {
                     translationKey: 'exitSurvey.goToExpensifyClassic',
                     icon: Expensicons.ExpensifyLogoNew,
                     ...(CONFIG.IS_HYBRID_APP
                         ? {
-                              action: () => {
-                                  HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
-                                  setRootStatusBarEnabled(false);
-                              },
+                              action: () => closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true}),
                           }
                         : {
                               action() {
@@ -284,7 +292,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, setRootStatusBarEnabled, shouldOpenSurveyReasonPage, signOut]);
+    }, [styles.pt4, shouldOpenSurveyReasonPage, signOut]);
 
     /**
      * Return JSX.Element with menu items
@@ -294,7 +302,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const getMenuItemsSection = useCallback(
         (menuItemsData: Menu) => {
             const openPopover = (link: string | (() => Promise<string>) | undefined, event: GestureResponderEvent | MouseEvent) => {
-                if (!Navigation.isActiveRoute(ROUTES.SETTINGS)) {
+                if (!isScreenFocused) {
                     return;
                 }
 
@@ -340,9 +348,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                 badgeStyle={item.badgeStyle}
                                 fallbackIcon={item.fallbackIcon}
                                 brickRoadIndicator={item.brickRoadIndicator}
-                                floatRightAvatars={item.floatRightAvatars}
                                 shouldStackHorizontally={item.shouldStackHorizontally}
-                                floatRightAvatarSize={item.avatarSize}
                                 ref={popoverAnchor}
                                 shouldBlockSelection={!!item.link}
                                 onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
@@ -357,7 +363,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 </View>
             );
         },
-        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, focusedRouteName, isExecuting, singleExecution],
+        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, isScreenFocused, focusedRouteName, isExecuting, singleExecution],
     );
 
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);

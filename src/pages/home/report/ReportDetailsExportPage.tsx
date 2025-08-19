@@ -1,5 +1,4 @@
 import React, {useCallback, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
 import ConfirmModal from '@components/ConfirmModal';
@@ -10,6 +9,7 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';

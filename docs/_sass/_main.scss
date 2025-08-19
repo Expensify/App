@@ -1095,14 +1095,14 @@ button {
 .title-platform-tabs {
     display: flex;
     justify-content: space-between;
-    padding-bottom: 12px;
+    padding-bottom: 20px;
     h1 {
         padding: 0;
     }
 
     @include maxBreakpoint($breakpoint-tablet) {
         flex-direction: column;
-        gap: 20px;
+        gap: 8px;
     }
 }
 
@@ -1116,13 +1116,18 @@ button {
     gap: 4px;
 }
 
-#platform-tabs > * {
-    cursor: pointer;
-    border-radius: 20px;
-    padding: 10px 20px;
+.badge{
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--color-borders);
+    background-color: transparent;
+    border-radius: 4px;
+    text-align: center;
+    padding: 6px 12px;
+    color: var(--color-text);
+    font-size: 11px;
     box-sizing: border-box;
-    height: 36px;
-    line-height: 16px;
+    height: 28px;
 }
 
 #platform-tabs > .active {

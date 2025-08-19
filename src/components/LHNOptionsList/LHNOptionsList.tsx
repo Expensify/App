@@ -4,7 +4,6 @@ import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -14,6 +13,7 @@ import TextBlock from '@components/TextBlock';
 import useLHNEstimatedListSize from '@hooks/useLHNEstimatedListSize';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
@@ -62,7 +62,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate, preferredLocale, localeCompare} = useLocalize();
     const estimatedListSize = useLHNEstimatedListSize();
     const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
     const shouldShowEmptyLHN = data.length === 0;
@@ -191,7 +191,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             const hasDraftComment = isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
 
-            const canUserPerformWrite = canUserPerformWriteAction(item);
+            const isReportArchived = !!itemReportNameValuePairs?.private_isArchived;
+            const canUserPerformWrite = canUserPerformWriteAction(item, isReportArchived);
             const sortedReportActions = getSortedReportActionsForDisplay(itemReportActions, canUserPerformWrite);
             const lastReportAction = sortedReportActions.at(0);
 
@@ -212,7 +213,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                       }
                     : null;
             }
-            const lastMessageTextFromReport = getLastMessageTextForReport(item, lastActorDetails, itemPolicy, itemReportNameValuePairs);
+            const lastMessageTextFromReport = getLastMessageTextForReport(item, lastActorDetails, itemPolicy, !!itemReportNameValuePairs?.private_isArchived);
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
 
@@ -246,6 +247,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     isFullscreenVisible={isFullscreenVisible}
                     isReportsSplitNavigatorLast={isReportsSplitNavigatorLast}
                     isScreenFocused={isScreenFocused}
+                    localeCompare={localeCompare}
+                    isReportArchived={isReportArchived}
                 />
             );
         },
@@ -271,6 +274,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             isFullscreenVisible,
             isReportsSplitNavigatorLast,
             isScreenFocused,
+            localeCompare,
         ],
     );
 
@@ -380,7 +384,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     animationStyles={styles.emptyLHNAnimation}
                     animationWebStyle={styles.emptyLHNAnimation}
                     title={translate('common.emptyLHN.title')}
-                    shouldShowLink={false}
                     CustomSubtitle={emptyLHNSubtitle}
                     accessibilityLabel={translate('common.emptyLHN.title')}
                 />

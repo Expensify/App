@@ -9,7 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {VacationDelegate} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-function setVacationDelegate(creator: string, delegate: string, shouldOverridePolicyDiffWarning = false) {
+function setVacationDelegate(creator: string, delegate: string, shouldOverridePolicyDiffWarning = false, currentDelegate?: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -19,6 +19,7 @@ function setVacationDelegate(creator: string, delegate: string, shouldOverridePo
                 delegate,
                 errors: null,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                previousDelegate: currentDelegate,
             },
         },
     ];
@@ -30,6 +31,7 @@ function setVacationDelegate(creator: string, delegate: string, shouldOverridePo
             value: {
                 errors: null,
                 pendingAction: null,
+                previousDelegate: null,
             },
         },
     ];
@@ -100,12 +102,12 @@ function deleteVacationDelegate(vacationDelegate?: VacationDelegate) {
     API.write(WRITE_COMMANDS.DELETE_VACATION_DELEGATE, null, {optimisticData, successData, failureData});
 }
 
-function clearVacationDelegateError() {
+function clearVacationDelegateError(previousDelegate?: string) {
     Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
         errors: null,
         pendingAction: null,
-        delegate: null,
-        creator: null,
+        delegate: previousDelegate ?? null,
+        previousDelegate: null,
     });
 }
 

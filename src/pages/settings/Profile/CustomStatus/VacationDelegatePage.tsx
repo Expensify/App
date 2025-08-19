@@ -1,10 +1,9 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {useBetas} from '@components/OnyxProvider';
+import {useBetas} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -12,6 +11,7 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
 import {clearVacationDelegateError, deleteVacationDelegate, setVacationDelegate} from '@libs/actions/VacationDelegate';
@@ -26,7 +26,6 @@ import type {Participant} from '@src/types/onyx/IOU';
 
 function useOptions() {
     const betas = useBetas();
-    const [isLoading, setIsLoading] = useState(true);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
@@ -55,11 +54,6 @@ function useOptions() {
 
         const headerMessage = getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0, !!userToInvite, '');
 
-        if (isLoading) {
-            // eslint-disable-next-line react-compiler/react-compiler
-            setIsLoading(false);
-        }
-
         return {
             userToInvite,
             recentReports,
@@ -67,7 +61,7 @@ function useOptions() {
             currentUserOption,
             headerMessage,
         };
-    }, [optionsList.reports, optionsList.personalDetails, betas, excludeLogins, isLoading]);
+    }, [optionsList.reports, optionsList.personalDetails, betas, excludeLogins]);
 
     const options = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), {
@@ -154,8 +148,8 @@ function VacationDelegatePage() {
             ...section,
             data: section.data.map((option) => ({
                 ...option,
-                text: option?.text ?? option?.displayName ?? '',
-                alternateText: option?.alternateText ?? option?.login ?? undefined,
+                text: option.text ?? option.displayName ?? '',
+                alternateText: option.alternateText ?? option.login ?? undefined,
                 keyForList: option.keyForList ?? '',
                 isDisabled: option.isDisabled ?? undefined,
                 isSelected: option.isSelected ?? undefined,
@@ -167,13 +161,16 @@ function VacationDelegatePage() {
 
     const onSelectRow = useCallback(
         (option: Participant) => {
+            // Clear search to prevent "No results found" after selection
+            setSearchValue('');
+
             if (option?.login === vacationDelegate?.delegate) {
                 deleteVacationDelegate(vacationDelegate);
                 Navigation.goBack(ROUTES.SETTINGS_STATUS);
                 return;
             }
 
-            setVacationDelegate(currentUserLogin ?? '', option?.login ?? '').then((response) => {
+            setVacationDelegate(currentUserLogin ?? '', option?.login ?? '', false, vacationDelegate?.delegate).then((response) => {
                 if (!response?.jsonCode) {
                     Navigation.goBack(ROUTES.SETTINGS_STATUS);
                     return;
@@ -182,10 +179,13 @@ function VacationDelegatePage() {
                 if (response.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING) {
                     setIsWarningModalVisible(true);
                     setNewVacationDelegate(option?.login ?? '');
+                    return;
                 }
+
+                Navigation.goBack(ROUTES.SETTINGS_STATUS);
             });
         },
-        [currentUserLogin, vacationDelegate],
+        [currentUserLogin, vacationDelegate, setSearchValue],
     );
 
     useEffect(() => {
@@ -223,11 +223,11 @@ function VacationDelegatePage() {
                 prompt={translate('statusPage.vacationDelegateWarning', {nameOrEmail: getPersonalDetailByEmail(newVacationDelegate)?.displayName ?? newVacationDelegate})}
                 onConfirm={() => {
                     setIsWarningModalVisible(false);
-                    setVacationDelegate(currentUserLogin ?? '', newVacationDelegate, true).then(() => Navigation.goBack(ROUTES.SETTINGS_STATUS));
+                    setVacationDelegate(currentUserLogin ?? '', newVacationDelegate, true, vacationDelegate?.delegate).then(() => Navigation.goBack(ROUTES.SETTINGS_STATUS));
                 }}
                 onCancel={() => {
                     setIsWarningModalVisible(false);
-                    clearVacationDelegateError();
+                    clearVacationDelegateError(vacationDelegate?.previousDelegate);
                 }}
                 confirmText={translate('common.confirm')}
                 cancelText={translate('common.cancel')}

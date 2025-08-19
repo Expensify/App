@@ -1,6 +1,5 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -12,6 +11,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
@@ -86,7 +86,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
             >
                 <HeaderWithBackButton
                     title={translate('workspace.tags.importTags')}
-                    onBackButtonPress={() => Navigation.goBack(backTo)}
+                    onBackButtonPress={() => Navigation.goBack(backTo ?? ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID))}
                 />
                 <FullPageOfflineBlockingView>
                     <Text style={[styles.textSupporting, styles.textNormal, styles.ph5]}>{translate('workspace.tags.configureMultiLevelTags')}</Text>

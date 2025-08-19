@@ -1,6 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,6 +8,7 @@ import TravelDomainListItem from '@components/SelectionList/TravelDomainListItem
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanupTravelProvisioningSession} from '@libs/actions/Travel';

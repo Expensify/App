@@ -1,7 +1,7 @@
 import React, {useEffect, useRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {inviteMemberToWorkspace} from '@libs/actions/Policy/Member';
 import navigateAfterJoinRequest from '@libs/navigateAfterJoinRequest';

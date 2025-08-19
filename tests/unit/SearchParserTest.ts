@@ -1,5 +1,6 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 import {parse} from '@libs/SearchParser/searchParser';
+import CONST from '@src/CONST';
 import parserCommonTests from '../utils/fixtures/searchParsersCommonQueries';
 
 const tests = [
@@ -7,7 +8,7 @@ const tests = [
         query: parserCommonTests.simple,
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: null,
@@ -17,7 +18,7 @@ const tests = [
         query: parserCommonTests.userFriendlyNames,
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -55,7 +56,7 @@ const tests = [
         query: parserCommonTests.oldNames,
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -93,7 +94,7 @@ const tests = [
         query: parserCommonTests.complex,
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -139,7 +140,7 @@ const tests = [
         query: parserCommonTests.quotesIOS,
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -153,7 +154,7 @@ const tests = [
         query: ',',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -167,7 +168,7 @@ const tests = [
         query: 'currency:,',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -181,7 +182,7 @@ const tests = [
         query: 'tag:,,travel,',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -195,7 +196,7 @@ const tests = [
         query: 'category:',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -209,7 +210,7 @@ const tests = [
         query: 'in:123333 currency:USD merchant:marriott',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -239,7 +240,7 @@ const tests = [
         query: 'date>2024-01-01 date<2024-06-01 merchant:"McDonald\'s"',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -269,7 +270,7 @@ const tests = [
         query: 'from:usera@user.com to:userb@user.com date>2024-01-01',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -296,11 +297,10 @@ const tests = [
         },
     },
     {
-        // cspell:disable-next-line
-        query: 'amount>100 amount<200 from:usera@user.com tax-rate:1234 card:1234 reportid:12345 tag:ecx date>2023-01-01',
+        query: 'amount>100 amount<200 from:usera@user.com tax-rate:1234 card:1234 report-id:12345 tag:ecx date>2023-01-01',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -370,7 +370,7 @@ const tests = [
         query: 'amount>200 las vegas',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -392,7 +392,7 @@ const tests = [
         query: 'amount>200 las vegas category:"Hotel : Marriott"',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -422,7 +422,7 @@ const tests = [
         query: 'amount>200 las vegas category:"Hotel : Marriott" date:2024-01-01,2024-02-01 merchant:"Expensify, Inc." tag:hotel,travel,"meals & entertainment"',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -472,6 +472,34 @@ const tests = [
             },
         },
     },
+    {
+        query: 'type:expense withdrawal-type:expensify-card',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
+                right: CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD,
+            },
+        },
+    },
+    {
+        query: 'type:expense withdrawn:last-month',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
+                right: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+            },
+        },
+    },
 ];
 
 /*
@@ -483,7 +511,7 @@ const keywordTests = [
         query: '" " "  "', // Multiple whitespaces wrapped in quotes
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -497,7 +525,7 @@ const keywordTests = [
         query: '"https://expensify.com" "https://new.expensify.com"',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -511,7 +539,7 @@ const keywordTests = [
         query: '""https://expensify.com"" to ""https://new.expensify.com""', // Nested quotes with a colon
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -525,7 +553,7 @@ const keywordTests = [
         query: '"""https://expensify.com" to "https://new.expensify.com"""', // Mismatched quotes
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -539,7 +567,7 @@ const keywordTests = [
         query: 'date>2024-01-01 from:usera@user.com "https://expensify.com" "https://new.expensify.com"',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -569,7 +597,7 @@ const keywordTests = [
         query: 'from:““Rag” Dog”,"Bag ”Dog“",email@gmail.com,1605423 to:"""Unruly"" “““Glad””” """Dog"""',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {

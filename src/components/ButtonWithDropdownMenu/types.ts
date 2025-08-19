@@ -25,6 +25,7 @@ type DropdownOption<TValueType> = {
     value: TValueType;
     text: string;
     icon?: IconAsset;
+    shouldShowButtonRightIcon?: boolean;
     iconWidth?: number;
     iconHeight?: number;
     iconDescription?: string;
@@ -46,6 +47,8 @@ type DropdownOption<TValueType> = {
     backButtonText?: string;
     avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
     shouldShow?: boolean;
+    /** Whether to show a loading spinner for this option */
+    shouldShowLoadingSpinnerIcon?: boolean;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = {
@@ -150,6 +153,12 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Whether to use modal padding style for the popover menu */
     shouldUseModalPaddingStyle?: boolean;
+
+    /** Whether to use short form for the button */
+    shouldUseShortForm?: boolean;
+
+    /** Whether to display the option icon when only one option is available */
+    shouldUseOptionIcon?: boolean;
 };
 
 export type {
