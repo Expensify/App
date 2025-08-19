@@ -84,6 +84,7 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, policyCurrency}: Ag
             defaultValues={agreementsStepValues}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             inputIDs={INPUT_KEYS}
+            isLoading={reimbursementAccount?.isFinishingCorpayBankAccountOnboarding ?? false}
             onBackButtonPress={handleBackButtonPress}
             onSubmit={submit}
             currency={policyCurrency ?? ''}

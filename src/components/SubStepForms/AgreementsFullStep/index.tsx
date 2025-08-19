@@ -24,6 +24,9 @@ type AgreementsFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
         authorizedToBindClientToAgreement: FormOnyxKeys<TFormID>;
     };
 
+    /** Indicates that action is being processed */
+    isLoading: boolean;
+
     /** Handles back button press */
     onBackButtonPress: () => void;
 
@@ -50,6 +53,9 @@ type AgreementsFullStepSubStepProps<TFormID extends keyof OnyxFormValuesMapping>
     /** Input IDs for field in the form */
     inputIDs: AgreementsFullStepProps<TFormID>['inputIDs'];
 
+    /** Indicates that action is being processed */
+    isLoading: boolean;
+
     /** Currency of related account */
     currency: string;
 };
@@ -58,6 +64,7 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
     defaultValues,
     formID,
     inputIDs,
+    isLoading,
     onBackButtonPress,
     onSubmit,
     currency,
@@ -105,6 +112,7 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
                 formID={formID}
                 inputIDs={inputIDs}
                 isEditing={isEditing}
+                isLoading={isLoading}
                 onMove={moveTo}
                 onNext={nextScreen}
                 currency={currency}

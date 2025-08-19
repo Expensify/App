@@ -56,11 +56,14 @@ type ConfirmationProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepPro
         authorizedToBindClientToAgreement: FormOnyxKeys<TFormID>;
     };
 
+    /** Indicates that action is being processed */
+    isLoading: boolean;
+
     /** Currency of related account */
     currency: string;
 };
 
-function Confirmation<TFormID extends keyof OnyxFormValuesMapping>({defaultValues, formID, inputIDs, onNext, currency}: ConfirmationProps<TFormID>) {
+function Confirmation<TFormID extends keyof OnyxFormValuesMapping>({defaultValues, formID, inputIDs, isLoading, onNext, currency}: ConfirmationProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -103,6 +106,8 @@ function Confirmation<TFormID extends keyof OnyxFormValuesMapping>({defaultValue
             validate={validate}
             submitButtonText={isDocusignStepRequired ? translate('common.confirm') : translate('agreementsStep.accept')}
             style={[styles.mh5, styles.flexGrow1]}
+            enabledWhenOffline={false}
+            isLoading={isLoading}
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('agreementsStep.pleaseConfirm')}</Text>
             {!isDocusignStepRequired && <Text style={[styles.pv3, styles.textSupporting]}>{translate('agreementsStep.regulationRequiresUs')}</Text>}
