@@ -10,6 +10,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getOutstandingReportsForUser, getPolicyName, isIOUReport, isOpenReport, isReportOwner, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
@@ -60,22 +61,23 @@ function IOURequestEditReportCommon({
     const reportPolicy = usePolicy(transactionsReports.at(0)?.policyID);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, (policy) => policy?.id), canBeMissing: false});
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
     const onlyReport = transactionsReports.length === 1 ? transactionsReports.at(0) : undefined;
+    const reportTransactions = useReportTransactions(onlyReport?.reportID);
+
     const isOwner = onlyReport ? onlyReport.ownerAccountID === currentUserPersonalDetails.accountID : false;
     const isReportIOU = onlyReport ? isIOUReport(onlyReport) : false;
     const isCardTransaction = useMemo(() => {
-        if (!transactionIds || !onlyReport || !allTransactions) {
+        if (!transactionIds || !onlyReport) {
             return false;
         }
-        const reportTransactions = Object.values(allTransactions).filter((transaction) => transaction?.reportID === onlyReport.reportID);
+
         return reportTransactions
-            .filter((transaction) => transaction && transactionIds.includes(transaction.transactionID))
+            .filter((transaction) => transactionIds.includes(transaction.transactionID))
             .some((transaction) => transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT);
-    }, [transactionIds, onlyReport, allTransactions]);
+    }, [transactionIds, onlyReport, reportTransactions]);
 
     const shouldShowRemoveFromReport = isEditing && isOwner && !isReportIOU && !isUnreported && !isCardTransaction;
 
