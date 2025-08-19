@@ -264,12 +264,6 @@ type TransactionListItemType = ListItem &
         /** Whether we should show the tax column */
         shouldShowTax: boolean;
 
-        /** Whether we should show the from column */
-        shouldShowFrom: boolean;
-
-        /** Whether we should show the to column */
-        shouldShowTo: boolean;
-
         /** Whether we should show the transaction year.
          * This is true if at least one transaction in the dataset was created in past years
          */

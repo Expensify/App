@@ -822,8 +822,6 @@ function getTransactionsSections(
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
 
-    const shouldShowFrom = metadata?.columnsToShow?.shouldShowFromColumn;
-    const shouldShowTo = metadata?.columnsToShow?.shouldShowToColumn;
     const shouldShowCategory = metadata?.columnsToShow?.shouldShowCategoryColumn;
     const shouldShowTag = metadata?.columnsToShow?.shouldShowTagColumn;
     const shouldShowTax = metadata?.columnsToShow?.shouldShowTaxColumn;
@@ -861,8 +859,6 @@ function getTransactionsSections(
             formattedTotal,
             formattedMerchant,
             date,
-            shouldShowFrom,
-            shouldShowTo,
             shouldShowMerchant,
             shouldShowCategory,
             shouldShowTag,
@@ -1309,8 +1305,6 @@ function getReportSections(
                 formattedMerchant,
                 date,
                 shouldShowMerchant,
-                shouldShowFrom: metadata?.columnsToShow?.shouldShowFromColumn,
-                shouldShowTo: metadata?.columnsToShow?.shouldShowToColumn,
                 shouldShowCategory: metadata?.columnsToShow?.shouldShowCategoryColumn,
                 shouldShowTag: metadata?.columnsToShow?.shouldShowTagColumn,
                 shouldShowTax: metadata?.columnsToShow?.shouldShowTaxColumn,
