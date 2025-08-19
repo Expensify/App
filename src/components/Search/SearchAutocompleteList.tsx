@@ -208,7 +208,13 @@ function SearchAutocompleteList(
             case CONST.SEARCH.DATA_TYPES.TASK:
                 return Object.values(CONST.SEARCH.STATUS.TASK).map((value) => getUserFriendlyValue(value));
             default:
-                return Object.values({...CONST.SEARCH.STATUS.EXPENSE, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP, ...CONST.SEARCH.STATUS.TASK}).map((value) => getUserFriendlyValue(value));
+                return Object.values({
+                    ...CONST.SEARCH.STATUS.EXPENSE,
+                    ...CONST.SEARCH.STATUS.INVOICE,
+                    ...CONST.SEARCH.STATUS.CHAT,
+                    ...CONST.SEARCH.STATUS.TRIP,
+                    ...CONST.SEARCH.STATUS.TASK,
+                }).map((value) => getUserFriendlyValue(value));
         }
     }, [autocompleteQueryValue]);
 

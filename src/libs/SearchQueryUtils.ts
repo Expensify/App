@@ -787,7 +787,9 @@ function buildUserReadableQueryString(
     const {type, status, groupBy, policyID} = queryJSON;
     const filters = queryJSON.flatFilters;
 
-    let title = status ? `type:${getUserFriendlyValue(type)} status:${Array.isArray(status) ? status.map(getUserFriendlyValue).join(',') : getUserFriendlyValue(status)}` : `type:${getUserFriendlyValue(type)}`;
+    let title = status
+        ? `type:${getUserFriendlyValue(type)} status:${Array.isArray(status) ? status.map(getUserFriendlyValue).join(',') : getUserFriendlyValue(status)}`
+        : `type:${getUserFriendlyValue(type)}`;
 
     if (groupBy) {
         title += ` group-by:${getUserFriendlyValue(groupBy)}`;
