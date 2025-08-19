@@ -18,6 +18,7 @@ function useIsReportReadyToDisplay(report: OnyxEntry<Report>, reportIDFromRoute:
     return {
         isCurrentReportLoadedFromOnyx,
         isEditingDisabled,
+        isReportArchived,
     };
 }
 

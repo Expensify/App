@@ -86,7 +86,7 @@ function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownlo
                 onNavigate(attachment);
             }
         }
-    }, [reportActions, parentReportActions, compareImage, attachments, setDownloadButtonVisibility, onNavigate, accountID, type, report]);
+    }, [reportActions, parentReportActions, compareImage, attachments, setDownloadButtonVisibility, onNavigate, accountID, type, report, isReportArchived]);
 
     if (page == null) {
         return (
