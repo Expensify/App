@@ -627,6 +627,8 @@ const translations = {
         getTheApp: 'Descarga la app',
         scanReceiptsOnTheGo: 'Escanea recibos desde tu teléfono',
         headsUp: '¡Atención!',
+        submitTo: 'Enviar a',
+        forwardTo: 'Reenviar a',
         merge: 'Fusionar',
         unstableInternetConnection: 'Conexión a internet inestable. Por favor, revisa tu red e inténtalo de nuevo.',
     },
@@ -974,6 +976,11 @@ const translations = {
             'El archivo que subiste está vacío o contiene datos no válidos. Asegúrate de que el archivo esté correctamente formateado y contenga la información necesaria antes de volver a subirlo.',
         importSpreadsheet: 'Importar hoja de cálculo',
         downloadCSV: 'Descargar CSV',
+        importMemberConfirmation: () => ({
+            one: `Por favor confirma los detalles a continuación para un nuevo miembro del espacio de trabajo que se agregará como parte de esta carga. Los miembros existentes no recibirán actualizaciones de rol ni mensajes de invitación.`,
+            other: (count: number) =>
+                `Por favor confirma los detalles a continuación para los ${count} nuevos miembros del espacio de trabajo que se agregarán como parte de esta carga. Los miembros existentes no recibirán actualizaciones de rol ni mensajes de invitación.`,
+        }),
     },
     receipt: {
         upload: 'Subir recibo',

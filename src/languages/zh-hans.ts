@@ -645,6 +645,8 @@ const translations = {
         getTheApp: '获取应用程序',
         scanReceiptsOnTheGo: '用手机扫描收据',
         headsUp: '\u6CE8\u610F\uFF01',
+        submitTo: '提交到',
+        forwardTo: '转发到',
         merge: '合并',
         unstableInternetConnection: '互联网连接不稳定。请检查你的网络，然后重试。',
     },
@@ -981,6 +983,10 @@ const translations = {
         invalidFileMessage: '您上传的文件要么是空的，要么包含无效数据。请确保文件格式正确并包含必要的信息，然后再重新上传。',
         importSpreadsheet: '导入电子表格',
         downloadCSV: '下载 CSV',
+        importMemberConfirmation: () => ({
+            one: `请确认以下信息，以添加此次上传中的一位新工作区成员。现有成员不会收到角色更新或邀请消息。`,
+            other: (count: number) => `请确认以下信息，以添加此次上传中的 ${count} 位新工作区成员。现有成员不会收到角色更新或邀请消息。`,
+        }),
     },
     receipt: {
         upload: '上传收据',

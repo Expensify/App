@@ -646,6 +646,8 @@ const translations = {
         getTheApp: "Scarica l'app",
         scanReceiptsOnTheGo: 'Scansiona le ricevute dal tuo telefono',
         headsUp: 'Attenzione!',
+        submitTo: 'Invia a',
+        forwardTo: 'Inoltra a',
         merge: 'Unisci',
         unstableInternetConnection: 'Connessione Internet instabile. Controlla la tua rete e riprova.',
     },
@@ -987,6 +989,11 @@ const translations = {
             'Il file che hai caricato è vuoto o contiene dati non validi. Assicurati che il file sia formattato correttamente e contenga le informazioni necessarie prima di caricarlo di nuovo.',
         importSpreadsheet: 'Importa foglio di calcolo',
         downloadCSV: 'Scarica CSV',
+        importMemberConfirmation: () => ({
+            one: `Conferma i dettagli di seguito per un nuovo membro del workspace che verrà aggiunto come parte di questo caricamento. I membri esistenti non riceveranno aggiornamenti di ruolo né messaggi di invito.`,
+            other: (count: number) =>
+                `Conferma i dettagli di seguito per i ${count} nuovi membri del workspace che verranno aggiunti come parte di questo caricamento. I membri esistenti non riceveranno aggiornamenti di ruolo né messaggi di invito.`,
+        }),
     },
     receipt: {
         upload: 'Carica ricevuta',
