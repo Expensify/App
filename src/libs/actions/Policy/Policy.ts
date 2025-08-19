@@ -113,7 +113,7 @@ import type {
     TransactionViolations,
 } from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, ProhibitedExpenses, Rate, TaxRate} from '@src/types/onyx/Policy';
+import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, ProhibitedExpenses, Rate, TaxRate, UberReceiptPartner} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {NotificationPreference} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -2518,7 +2518,7 @@ function openPolicyReceiptPartnersPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_RECEIPT_PARTNERS_PAGE, params);
 }
 
-function removePolicyReceiptPartnersConnection(policyID: string, partnerName: string) {
+function removePolicyReceiptPartnersConnection(policyID: string, partnerName: string, receiptPartnerData?: UberReceiptPartner) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2531,11 +2531,35 @@ function removePolicyReceiptPartnersConnection(policyID: string, partnerName: st
         },
     ];
 
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                receiptPartners: {
+                    [partnerName]: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                receiptPartners: {
+                    [partnerName]: receiptPartnerData,
+                },
+            },
+        },
+    ];
+
     const parameters: RemovePolicyReceiptPartnersConnectionParams = {
         policyID,
         partnerName,
     };
-    API.write(WRITE_COMMANDS.DISCONNECT_WORKSPACE_RECEIPT_PARTNER, parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.DISCONNECT_WORKSPACE_RECEIPT_PARTNER, parameters, {optimisticData, failureData, successData});
 }
 
 function togglePolicyUberAutoInvite(policyID: string | undefined, enabled: boolean) {

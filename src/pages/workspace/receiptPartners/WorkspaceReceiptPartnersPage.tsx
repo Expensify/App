@@ -146,10 +146,10 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         if (!policyID || !selectedPartner) {
             return;
         }
-        removePolicyReceiptPartnersConnection(policyID, selectedPartner);
+        removePolicyReceiptPartnersConnection(policyID, selectedPartner, integrations?.[selectedPartner]);
         setIsConnected(false);
         onCloseModal();
-    }, [policyID, selectedPartner, onCloseModal]);
+    }, [policyID, selectedPartner, integrations, onCloseModal]);
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
         if (policyID) {
