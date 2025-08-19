@@ -36,6 +36,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {calculateBillNewDot, clearDeleteWorkspaceError, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace, updateDefaultPolicy} from '@libs/actions/Policy/Policy';
+import {clearDeleteMemberError} from '@libs/actions/Policy/Member';
 import {callFunctionIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -360,7 +361,17 @@ function WorkspacesListPage() {
                         };
                         return Object.keys(mergedErrors).length > 0 ? mergedErrors : undefined;
                     })(),
-                    dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
+                    dismissError: () => {
+                        const hasEmployeeErrors = Object.keys(policy.employeeList?.[session?.email ?? '']?.errors ?? {}).length > 0;
+                        if (hasEmployeeErrors) {
+                            const employeeData = policy.employeeList?.[session?.email ?? ''];
+                            if (employeeData?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && session?.accountID) {
+                                clearDeleteMemberError(policy.id, session.accountID);
+                            }
+                        } else {
+                            dismissWorkspaceError(policy.id, policy.pendingAction);
+                        }
+                    },
                     disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                     iconFill: theme.textLight,
