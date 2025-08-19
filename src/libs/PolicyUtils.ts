@@ -678,7 +678,8 @@ function getApprovalWorkflow(policy: OnyxEntry<Policy> | SearchPolicy): ValueOf<
 }
 
 function getDefaultApprover(policy: OnyxEntry<Policy> | SearchPolicy): string {
-    return policy?.approver ?? policy?.owner ?? '';
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return policy?.approver || policy?.owner || '';
 }
 
 function getRuleApprovers(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report>) {
@@ -1342,10 +1343,6 @@ function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL || !!policy?.errorFields?.approvalMode;
 }
 
-function getAllPoliciesLength() {
-    return Object.keys(allPolicies ?? {}).length;
-}
-
 function getActivePolicy(): OnyxEntry<Policy> {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
@@ -1646,7 +1643,6 @@ export {
     hasUnsupportedIntegration,
     getWorkflowApprovalsUnavailable,
     getNetSuiteImportCustomFieldLabel,
-    getAllPoliciesLength,
     getActivePolicy,
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,

@@ -21,7 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
-import {getChatFSAttributes, parseFSAttributes} from '@libs/Fullstory';
+import FS from '@libs/Fullstory';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -426,7 +426,7 @@ function ReportActionsList({
                 if (!isFromCurrentUser || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
                     return;
                 }
-                if (!hasNewestReportActionRef.current) {
+                if (!hasNewestReportActionRef.current && !isFromCurrentUser) {
                     if (Navigation.getReportRHPActiveRoute()) {
                         return;
                     }
@@ -502,7 +502,7 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
 
-    const [reportActionsListTestID, reportActionsListFSClass] = getChatFSAttributes(participantsContext, 'ReportActionsList', report);
+    const reportActionsListFSClass = FS.getChatFSClass(participantsContext, report);
     const lastIOUActionWithError = sortedVisibleReportActions.find((action) => action.errors);
     const prevLastIOUActionWithError = usePrevious(lastIOUActionWithError);
 
@@ -663,6 +663,7 @@ function ReportActionsList({
                     emojiReactions={actionEmojiReactions}
                     allDraftMessages={draftMessage}
                     allEmojiReactions={emojiReactions}
+                    isReportArchived={isReportArchived}
                     linkedTransactionRouteError={actionLinkedTransactionRouteError}
                     userBillingFundID={userBillingFundID}
                 />
@@ -690,6 +691,7 @@ function ReportActionsList({
             isUserValidated,
             personalDetailsList,
             userBillingFundID,
+            isReportArchived,
         ],
     );
 
@@ -699,7 +701,7 @@ function ReportActionsList({
         () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived)],
         [unreadMarkerReportActionID, shouldUseNarrowLayout, report, isReportArchived],
     );
-    const hideComposer = !canUserPerformWriteAction(report);
+    const hideComposer = !canUserPerformWriteAction(report, isReportArchived);
     const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
     const canShowHeader = isOffline || hasHeaderRendered.current;
 
@@ -761,9 +763,6 @@ function ReportActionsList({
         loadOlderChats(false);
     }, [loadOlderChats]);
 
-    // Parse Fullstory attributes on initial render
-    useLayoutEffect(parseFSAttributes, []);
-
     return (
         <>
             <FloatingMessageCounter
@@ -773,8 +772,6 @@ function ReportActionsList({
             />
             <View
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
-                testID={reportActionsListTestID}
-                nativeID={reportActionsListTestID}
                 fsClass={reportActionsListFSClass}
             >
                 <InvertedFlatList

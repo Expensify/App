@@ -62,9 +62,6 @@ type ReportFooterProps = {
     /** The pending action when we are adding a chat */
     pendingAction?: PendingAction;
 
-    /** Whether the report is ready for display */
-    isReportReadyForDisplay?: boolean;
-
     /** Whether the composer is in full size */
     isComposerFullSize?: boolean;
 
@@ -81,7 +78,6 @@ function ReportFooter({
     report = {reportID: '-1'},
     reportMetadata,
     policy,
-    isReportReadyForDisplay = true,
     isComposerFullSize = false,
     onComposerBlur,
     onComposerFocus,
@@ -119,7 +115,7 @@ function ReportFooter({
 
     // If a user just signed in and is viewing a public report, optimistically show the composer while loading the report, since they will have write access when the response comes back.
     const shouldShowComposerOptimistically = !isAnonymousUser && isPublicRoom(report) && !!reportMetadata?.isLoadingInitialReportActions;
-    const canPerformWriteAction = canUserPerformWriteAction(report) ?? shouldShowComposerOptimistically;
+    const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived) ?? shouldShowComposerOptimistically;
     const shouldHideComposer = !canPerformWriteAction || isBlockedFromChat;
     const canWriteInReport = canWriteInReportUtil(report);
     const isSystemChat = isSystemChatUtil(report);
@@ -234,7 +230,6 @@ function ReportFooter({
                             lastReportAction={lastReportAction}
                             pendingAction={pendingAction}
                             isComposerFullSize={isComposerFullSize}
-                            isReportReadyForDisplay={isReportReadyForDisplay}
                             didHideComposerInput={didHideComposerInput}
                             reportTransactions={reportTransactions}
                         />
@@ -254,7 +249,6 @@ export default memo(
         prevProps.pendingAction === nextProps.pendingAction &&
         prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
         prevProps.lastReportAction === nextProps.lastReportAction &&
-        prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
         deepEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
         deepEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
         deepEqual(prevProps.policy?.role, nextProps.policy?.role) &&
