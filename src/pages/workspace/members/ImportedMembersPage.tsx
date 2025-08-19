@@ -113,7 +113,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
         const allMembers = [...(members ?? [])];
 
-        // add submitsTo and forwardsTo members if they are not in the workspace
+        // Add submitsTo and forwardsTo members if they are not in the workspace
         members?.forEach((member) => {
             if (member.submitsTo && !allMembers.some((m) => m.email === member.submitsTo) && !isPolicyMemberWithoutPendingDelete(member.submitsTo, policy)) {
                 isRoleMissing = true;
