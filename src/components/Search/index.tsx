@@ -360,7 +360,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return [];
         }
 
-        return getSections(type, searchResults.data, searchResults.search, accountID, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet);
+        return getSections(type, searchResults.data, accountID, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet);
     }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID]);
 
     useEffect(() => {

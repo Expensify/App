@@ -810,7 +810,6 @@ function getTransactionViolations(allViolations: OnyxCollection<OnyxTypes.Transa
  */
 function getTransactionsSections(
     data: OnyxTypes.SearchResults['data'],
-    metadata: OnyxTypes.SearchResults['search'],
     currentSearch: SearchKey,
     currentAccountID: number | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
@@ -819,13 +818,6 @@ function getTransactionsSections(
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
 
-<<<<<<< HEAD
-=======
-    const shouldShowCategory = metadata?.columnsToShow?.shouldShowCategoryColumn;
-    const shouldShowTag = metadata?.columnsToShow?.shouldShowTagColumn;
-    const shouldShowTax = metadata?.columnsToShow?.shouldShowTaxColumn;
-
->>>>>>> main
     // Pre-filter transaction keys to avoid repeated checks
     const transactionKeys = Object.keys(data).filter(isTransactionEntry);
     // Get violations - optimize by using a Map for faster lookups
@@ -1394,7 +1386,6 @@ function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: Sear
 function getSections(
     type: SearchDataTypes,
     data: OnyxTypes.SearchResults['data'],
-    metadata: OnyxTypes.SearchResults['search'],
     currentAccountID: number | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     groupBy?: SearchGroupBy,
@@ -1422,7 +1413,7 @@ function getSections(
         }
     }
 
-    return getTransactionsSections(data, metadata, currentSearch, currentAccountID, formatPhoneNumber);
+    return getTransactionsSections(data, currentSearch, currentAccountID, formatPhoneNumber);
 }
 
 /**
