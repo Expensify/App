@@ -568,6 +568,7 @@ function MoneyRequestReportActionsList({
             emojiReactions,
             draftMessage,
             hasInTryNewDot,
+            isReportArchived,
         ],
     );
 
