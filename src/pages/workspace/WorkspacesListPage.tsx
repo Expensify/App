@@ -51,7 +51,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import {getPolicy, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getDefaultApprover, getPolicy, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
 import type {AvatarSource} from '@libs/UserUtils';
@@ -231,20 +231,20 @@ function WorkspacesListPage() {
                     shouldCallAfterModalHide: !shouldCalculateBillNewDot,
                 });
             }
+            const defaultApprover = getDefaultApprover(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]);
+            if (!(isAdmin || isOwner) && defaultApprover !== session?.email) {
+                threeDotsMenuItems.push({
+                    icon: Expensicons.Exit,
+                    text: translate('common.leave'),
+                    onSelected: callFunctionIfActionIsAllowed(() => leaveWorkspace(item.policyID)),
+                });
+            }
 
             if (isAdmin) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Copy,
                     text: translate('workspace.common.duplicateWorkspace'),
                     onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID, ROUTES.WORKSPACES_LIST.route)) : undefined),
-                });
-            }
-
-            if (!(isAdmin || isOwner)) {
-                threeDotsMenuItems.push({
-                    icon: Expensicons.Exit,
-                    text: translate('common.leave'),
-                    onSelected: callFunctionIfActionIsAllowed(() => leaveWorkspace(item.policyID)),
                 });
             }
 
@@ -314,6 +314,7 @@ function WorkspacesListPage() {
             shouldCalculateBillNewDot,
             loadingSpinnerIconIndex,
             resetLoadingSpinnerIconIndex,
+            policies,
         ],
     );
 
