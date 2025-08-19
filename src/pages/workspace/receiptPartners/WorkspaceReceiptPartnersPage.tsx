@@ -52,6 +52,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const isAutoRemove = !!integrations?.uber?.autoRemove;
     const isAutoInvite = !!integrations?.uber?.autoInvite;
     const [isConnected, setIsConnected] = useState(false);
+    const isUberConnected = !!integrations?.uber?.organizationID || isConnected;
 
     const startIntegrationFlow = useCallback(
         ({name}: {name: string}) => {
@@ -177,7 +178,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                         numberOfLinesDescription: 5,
                         titleContainerStyle: [styles.pr2],
                         description: integrationData?.description,
-                        rightComponent: isConnected ? (
+                        rightComponent: isUberConnected ? (
                             <View ref={threeDotsMenuContainerRef}>
                                 <ThreeDotsMenu
                                     getAnchorPosition={calculateAndSetThreeDotsMenuPosition}
@@ -206,7 +207,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     }, [
         calculateAndSetThreeDotsMenuPosition,
         getOverflowMenu,
-        isConnected,
+        isUberConnected,
         isOffline,
         policyID,
         receiptPartnerIntegrations,
@@ -268,7 +269,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                         />
                                     </OfflineWithFeedback>
                                 ))}
-                                {isConnected && (
+                                {isUberConnected && (
                                     <>
                                         <OfflineWithFeedback pendingAction={integrations?.uber?.pendingFields?.autoInvite}>
                                             <View style={styles.mt5}>

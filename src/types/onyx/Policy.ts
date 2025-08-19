@@ -165,6 +165,10 @@ type UberReceiptPartner = {
      * auto remove for uber connection
      */
     autoRemove?: boolean;
+    /**
+     * organization id for connected uber
+     */
+    organizationID?: string;
 };
 
 /** Policy Receipt partners */
