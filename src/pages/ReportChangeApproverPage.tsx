@@ -10,7 +10,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {assignCurrentUserAsApprover} from '@libs/actions/IOU';
+import {assignReportToMe} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
@@ -45,7 +45,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
         if (!isPolicyAdmin(policy) || !policy || !session?.accountID) {
             return;
         }
-        assignCurrentUserAsApprover(report, session.accountID);
+        assignReportToMe(report, session.accountID);
         Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }, [selectedApproverType, policy, session?.accountID, report, reportID]);
 

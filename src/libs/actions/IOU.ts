@@ -12391,7 +12391,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     });
 }
 
-function assignCurrentUserAsApprover(report: OnyxEntry<OnyxTypes.Report>, accountID: number) {
+function assignReportToMe(report: OnyxEntry<OnyxTypes.Report>, accountID: number) {
     if (!report?.reportID) {
         return;
     }
@@ -12574,7 +12574,7 @@ export {
     reopenReport,
     retractReport,
     startDistanceRequest,
-    assignCurrentUserAsApprover,
+    assignReportToMe,
     clearSplitTransactionDraftErrors,
 };
 export type {GPSPoint as GpsPoint, IOURequestType, StartSplitBilActionParams, CreateTrackExpenseParams, RequestMoneyInformation, ReplaceReceipt};
