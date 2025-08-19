@@ -3566,7 +3566,6 @@ const translations = {
                 invitationFailure: 'Uber for Businessへのメンバー招待に失敗しました',
                 autoRemove: 'Uber for Business に新しいワークスペースメンバーを招待する',
                 autoInvite: 'Uber for Business から削除されたワークスペースメンバーを非アクティブ化する',
-                manageInvites: '招待を管理する',
             },
         },
         perDiem: {

@@ -3523,7 +3523,7 @@ const translations = {
                 subtitle: 'Automatice los gastos de viajes y entrega de comidas en toda su organización.',
                 inviteMembers: 'Invitar miembros',
                 confirmInvite: 'Confirmar invitación',
-                manageInvites: 'Gestionar invitaciones',
+                manageInvites: 'Administrar invitaciones',
                 confirm: 'Confirmar',
                 allSet: 'Todo listo',
                 readyToRoll: '¡Estás listo para empezar!',
@@ -3538,7 +3538,6 @@ const translations = {
                 invitationFailure: 'Error al invitar miembros a Uber for Business',
                 autoRemove: 'Invitar a nuevos miembros del espacio de trabajo a Uber para Empresas',
                 autoInvite: 'Desactivar miembros del espacio de trabajo eliminados de Uber para Empresas',
-                manageInvites: 'Administrar invitaciones',
             },
         },
         perDiem: {

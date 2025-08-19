@@ -3561,7 +3561,6 @@ const translations = {
                 invitationFailure: "Échec de l'invitation des membres à Uber for Business",
                 autoRemove: "Inviter de nouveaux membres de l'espace de travail sur Uber",
                 autoInvite: "Désactiver les membres supprimés de l'espace de travail sur Uber",
-                manageInvites: 'Gérer les invitations',
             },
         },
         perDiem: {

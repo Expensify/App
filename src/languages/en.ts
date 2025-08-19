@@ -3550,7 +3550,6 @@ const translations = {
                 invitationFailure: 'Failed to invite members to Uber for Business',
                 autoRemove: 'Invite new workspace members to Uber for Business',
                 autoInvite: 'Deactivate removed workspace members from Uber for Business',
-                manageInvites: 'Manage invites',
             },
         },
         perDiem: {

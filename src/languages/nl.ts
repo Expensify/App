@@ -3573,7 +3573,6 @@ const translations = {
                 invitationFailure: 'Kon leden niet uitnodigen voor Uber for Business',
                 autoRemove: 'Nodig nieuwe werkruimteleden uit voor Uber for Business',
                 autoInvite: 'Deactiveer verwijderde werkruimteleden van Uber for Business',
-                manageInvites: 'Beheer uitnodigingen',
             },
         },
         perDiem: {
