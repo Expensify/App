@@ -3460,7 +3460,11 @@ function openReportFromDeepLink(
                             };
                             // If we log with deeplink with reportID and data for this report is not available yet,
                             // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens
-                            if (reportID && !isAuthenticated && (!allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || !allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID)) {
+                            if (
+                                reportID &&
+                                !isAuthenticated &&
+                                (!allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || !allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID)
+                            ) {
                                 const reportConnection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                                     // eslint-disable-next-line rulesdir/prefer-early-return
