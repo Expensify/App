@@ -77,6 +77,7 @@ type SearchContextData = {
     selectedReports: SelectedReports[];
     isOnSearch: boolean;
     shouldTurnOffSelectionMode: boolean;
+    shouldResetSearchQuery: boolean;
 };
 
 type SearchContext = SearchContextData & {
@@ -100,6 +101,7 @@ type SearchContext = SearchContextData & {
     shouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
     areAllMatchingItemsSelected: boolean;
     selectAllMatchingItems: (on: boolean) => void;
+    setShouldResetSearchQuery: (shouldReset: boolean) => void;
 };
 
 type ASTNode = {
@@ -155,6 +157,8 @@ type SearchQueryJSON = {
     hash: number;
     /** Hash used for putting queries in recent searches list. It ignores sortOrder and sortBy, because we want to treat queries differing only in sort params as the same query */
     recentSearchHash: number;
+    /** Use similarSearchHash to test if two searchers are similar i.e. have same filters but not necessary same values */
+    similarSearchHash: number;
     flatFilters: QueryFilters;
 } & SearchQueryAST;
 

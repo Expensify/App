@@ -92,13 +92,12 @@ async function run(): Promise<IssuesCreateResponse | void> {
             }
         } catch (error) {
             // Check if this is a forked repository
-            if (process.env.GITHUB_REPOSITORY !== CONST.APP_REPO) {
+            if (process.env.GITHUB_REPOSITORY !== `${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`) {
                 console.warn(
                     "⚠️ Unable to fetch Mobile-Expensify PRs because this workflow is running on a forked repository and secrets aren't accessble. This is expected for development/testing on forks.",
                 );
             } else {
-                console.error('Failed to fetch Mobile-Expensify PRs from main repository:', error);
-                throw error;
+                console.error('Failed to fetch Mobile-Expensify PRs:', error);
             }
         }
 

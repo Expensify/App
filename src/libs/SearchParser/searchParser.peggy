@@ -117,6 +117,7 @@ key "key"
       / keyword
       / in
       / currency
+      / groupCurrency
       / tag
       / category
       / to
