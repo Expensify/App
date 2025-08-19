@@ -361,7 +361,7 @@ function categorizeReportsForLHN(
 
         const miniReport: MiniReport = {
             reportID,
-            displayName: getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, !!rNVPs?.private_isArchived),
+            displayName: getReportName(report),
             lastVisibleActionCreated: report.lastVisibleActionCreated,
         };
 
