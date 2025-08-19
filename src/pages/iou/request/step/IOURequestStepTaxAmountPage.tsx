@@ -56,7 +56,6 @@ function IOURequestStepTaxAmountPage({
     const textInput = useRef<BaseTextInputRef | null>(null);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
-
     const focusTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
