@@ -88,7 +88,7 @@ type ReportActionItemParentActionProps = {
 
     /** User who has in its tryNewDot NVP */
     hasInTryNewDot: boolean | undefined;
-    
+
     /** Whether the report is archived */
     isReportArchived: boolean;
 };
