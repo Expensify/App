@@ -1,5 +1,4 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
-import {useCallback, useContext, useEffect, useState} from 'react';
+import {useCallback, useContext, useEffect} from 'react';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
 import useOnyx from './hooks/useOnyx';
@@ -14,32 +13,22 @@ import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 function HybridAppHandler() {
     const {splashScreenState, setSplashScreenState} = useContext(SplashScreenStateContext);
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
-    const [shouldClearOldDot, setShouldClearOldDot] = useState<boolean>();
-
     const isLoading = isLoadingOnyxValue(tryNewDotMetadata);
 
     const finalizeTransitionFromOldDot = useCallback(
         (hybridAppSettings: HybridAppSettings) => {
             const loggedOutFromOldDot = !!hybridAppSettings.hybridApp.loggedOutFromOldDot;
 
-            setShouldClearOldDot(loggedOutFromOldDot);
             setupNewDotAfterTransitionFromOldDot(hybridAppSettings, tryNewDot).then(() => {
                 if (splashScreenState !== CONST.BOOT_SPLASH_STATE.VISIBLE) {
                     return;
                 }
 
-                setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
+                setSplashScreenState(loggedOutFromOldDot ? CONST.BOOT_SPLASH_STATE.HIDDEN : CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
             });
         },
         [setSplashScreenState, splashScreenState, tryNewDot],
     );
-
-    useEffect(() => {
-        if (!CONFIG.IS_HYBRID_APP || !shouldClearOldDot || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN) {
-            return;
-        }
-        HybridAppModule.clearOldDotAfterSignOut();
-    }, [shouldClearOldDot, splashScreenState]);
 
     useEffect(() => {
         if (!CONFIG.IS_HYBRID_APP || isLoading) {
