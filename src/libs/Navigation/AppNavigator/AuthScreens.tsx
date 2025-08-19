@@ -1,6 +1,8 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useNavigation} from '@react-navigation/native';
-import React, {memo, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import {Platform} from 'react-native';
+import * as RNLocalize from 'react-native-localize';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -245,6 +247,8 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const navigation = useNavigation();
     const {initialURL, isAuthenticatedAtStartup, setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
 
+    const personalDetails = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true, selector: (value) => value?.[currentAccountID]});
+
     // State to track whether the delegator's authentication is completed before displaying data
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
 
@@ -285,6 +289,36 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         }
         Navigation.navigate(ROUTES.REQUIRE_TWO_FACTOR_AUTH);
     }, [shouldShowRequire2FAPage]);
+
+    const handleChange = useCallback(() => {
+        const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone;
+        const prevTimezone = personalDetails?.[0]?.timezone;
+
+        if (!isEmptyObject(currentTimezone) && prevTimezone?.automatic && prevTimezone?.selected !== currentTimezone) {
+            PersonalDetails.updateAutomaticTimezone({
+                automatic: true,
+                selected: currentTimezone,
+            });
+        }
+    }, [personalDetails]);
+
+    useEffect(() => {
+        if (Platform.OS === 'web') {
+            document.addEventListener('visibilitychange', handleChange);
+            window.addEventListener('focus', handleChange);
+
+            return () => {
+                document.removeEventListener('visibilitychange', handleChange);
+                window.removeEventListener('focus', handleChange);
+            };
+        }
+
+        RNLocalize.addEventListener('change', handleChange);
+
+        return () => {
+            RNLocalize.removeEventListener('change', handleChange);
+        };
+    }, [handleChange]);
 
     useEffect(() => {
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
