@@ -137,6 +137,7 @@ module Jekyll
 
     def self.generate_ts_output(import_block, help_content_string)
       <<~TS
+        /* eslint-disable react/jsx-key */
         /* eslint-disable react/no-unescaped-entities */
         /* eslint-disable @typescript-eslint/naming-convention */
         #{import_block}
@@ -236,7 +237,17 @@ module Jekyll
     end
 
     def self.process_heading(node, indent_level)
-      return "#{'  ' * indent_level}<Text style={[styles.textHeadline#{node.name.upcase}, styles.mv4]}>#{CGI.escapeHTML(node.text).strip}</Text>"
+      classes = ["styles.textHeadline#{node.name.upcase}"]
+
+      # If a list follows immediately, don't add the normal bottom margin
+      if %w[ul ol].include?(node.next_element&.name)
+        classes << 'styles.mt4'
+      else
+        classes << 'styles.mv4'
+      end
+
+      text = CGI.escapeHTML(node.text).strip
+      "#{' ' * indent_level}<Text style={[#{classes.join(', ')}]}>#{text}</Text>"
     end
 
     def self.process_unordered_list(node, indent_level)
@@ -302,8 +313,16 @@ module Jekyll
       inner = node.children.map { |c| html_node_to_RN(c, indent_level + 1) }.join
 
       style_classes = ['styles.textNormal']
-      style_classes << 'styles.mt4' if node.previous_element&.name == 'ul'
-      style_classes << 'styles.mb4' if node.next_element&.name == 'p'
+      
+      # Add spacing if previous sibling is a list (ul or ol)
+      if %w[ul ol].include?(node.previous_element&.name)
+        style_classes << 'styles.mt4'
+      end
+
+      # Add spacing if the next element is another paragraph
+      if node.next_element&.name == 'p'
+        style_classes << 'styles.mb4'
+      end
 
       "#{'  ' * indent_level}<Text style={[#{style_classes.join(', ')}]}>#{inner.strip}</Text>"
     end
