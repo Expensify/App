@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import type {ReactNode} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState} from 'react';
+import type {ForwardedRef, ReactNode} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -41,20 +41,31 @@ type AnimatedCollapsibleProps = {
 
     /** Whether to animate on initial mount. Defaults to false */
     shouldAnimateOnMount?: boolean;
+
+    /** Whether to force the collapsible to be expanded */
+    shouldForceExpand?: boolean;
 };
 
-function AnimatedCollapsible({
-    children,
-    header,
-    duration = 300,
-    style,
-    headerStyle,
-    contentStyle,
-    expandButtonStyle,
-    onPress,
-    disabled = false,
-    shouldAnimateOnMount = false,
-}: AnimatedCollapsibleProps) {
+type AnimatedCollapsibleHandle = {
+    handleToggle: () => void;
+};
+
+function AnimatedCollapsible(
+    {
+        children,
+        header,
+        duration = 300,
+        style,
+        headerStyle,
+        contentStyle,
+        expandButtonStyle,
+        onPress,
+        disabled = false,
+        shouldAnimateOnMount = false,
+        shouldForceExpand = false,
+    }: AnimatedCollapsibleProps,
+    ref: ForwardedRef<AnimatedCollapsibleHandle>,
+) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const height = useSharedValue(0);
@@ -117,7 +128,7 @@ function AnimatedCollapsible({
         };
     });
 
-    const handleToggle = () => {
+    const handleToggle = useCallback(() => {
         if (disabled) {
             return;
         }
@@ -127,7 +138,14 @@ function AnimatedCollapsible({
         }
         hasBeenToggled.set(true);
         setIsExpanded(!isExpanded);
-    };
+    }, [disabled, hasBeenToggled, isExpanded, onPress]);
+
+    useEffect(() => {
+        if (!shouldForceExpand || isExpanded) {
+            return;
+        }
+        handleToggle();
+    }, [handleToggle, isExpanded, shouldForceExpand]);
 
     const expandButton = (
         <PressableWithFeedback
@@ -146,6 +164,8 @@ function AnimatedCollapsible({
             )}
         </PressableWithFeedback>
     );
+
+    useImperativeHandle(ref, () => ({handleToggle}));
 
     return (
         <View style={style}>
@@ -171,4 +191,5 @@ function AnimatedCollapsible({
 
 AnimatedCollapsible.displayName = 'AnimatedCollapsible';
 
-export default AnimatedCollapsible;
+export default forwardRef(AnimatedCollapsible);
+export type {AnimatedCollapsibleHandle};

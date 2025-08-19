@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,12 +13,10 @@ function UserInfoAndActionButtonRow({
     item,
     handleActionButtonPress,
     shouldShowUserInfo,
-    containerStyle,
 }: {
     item: TransactionReportGroupListItemType | TransactionListItemType;
     handleActionButtonPress: () => void;
     shouldShowUserInfo: boolean;
-    containerStyle?: StyleProp<ViewStyle>;
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();

@@ -23,6 +23,7 @@ import useInitialWindowDimensions from '@hooks/useInitialWindowDimensions';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -155,6 +156,7 @@ function SearchList(
     );
 
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const listRef = useRef<FlashList<SearchListItem>>(null);
     const hasKeyBeenPressed = useRef(false);
@@ -175,6 +177,7 @@ function SearchList(
     });
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (s) => s?.accountID});
 
     const personalDetails = usePersonalDetails();
 
@@ -347,27 +350,31 @@ function SearchList(
                     isUserValidated={isUserValidated}
                     personalDetails={personalDetails}
                     userBillingFundID={userBillingFundID}
+                    accountID={accountID}
+                    isOffline={isOffline}
                 />
             );
         },
         [
-            ListItem,
-            canSelectMultiple,
             focusedIndex,
             itemsToHighlight,
+            ListItem,
+            onSelectRow,
             handleLongPressRow,
             onCheckboxPress,
-            onSelectRow,
-            policies,
-            hash,
-            groupBy,
-            setFocusedIndex,
+            canSelectMultiple,
             shouldPreventDefaultFocusOnSelectRow,
+            hash,
+            policies,
             allReports,
+            groupBy,
             userWalletTierName,
             isUserValidated,
             personalDetails,
             userBillingFundID,
+            accountID,
+            isOffline,
+            setFocusedIndex,
         ],
     );
 

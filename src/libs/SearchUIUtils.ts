@@ -100,17 +100,6 @@ import {
     isViolationDismissed,
 } from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
-import Onyx from 'react-native-onyx';
-
-let allSnapshots: Record<string, OnyxTypes.SearchResults | undefined> = {};
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.SNAPSHOT,
-    waitForCollectionCallback: true,
-    callback: (val) => {
-        allSnapshots = val;
-    }
-})
 
 const transactionColumnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -1343,27 +1332,26 @@ function getReportSections(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getMemberSections(data: OnyxTypes.SearchResults['data'], currentAccountID: number | undefined, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], currentSearch: SearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES, queryJSON?: SearchQueryJSON): TransactionMemberGroupListItemType[] {
+function getMemberSections(data: OnyxTypes.SearchResults['data'], queryJSON?: SearchQueryJSON): TransactionMemberGroupListItemType[] {
     const memberSections: Record<string, TransactionMemberGroupListItemType> = {};
 
     for (const key in data) {
         if (isGroupEntry(key)) {
             const memberGroup = data[key] as SearchMemberGroup;
             const personalDetails = data.personalDetailsList[memberGroup.accountID];
-            let transactions: TransactionListItemType[] = [];
+            let transactionsQueryJSON: SearchQueryJSON | undefined;
             if (queryJSON) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
                 newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: memberGroup.accountID}]});
                 const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
                 const newQuery = buildSearchQueryString(newQueryJSON);
-                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
-                const matchData = newQueryJSONWithHash?.hash ? allSnapshots[`${ONYXKEYS.COLLECTION.SNAPSHOT}${newQueryJSONWithHash.hash}`] : undefined;
-                transactions = matchData ? getTransactionsSections(matchData?.data, matchData?.search, currentSearch, currentAccountID, formatPhoneNumber) : []
+                transactionsQueryJSON = buildSearchQueryJSON(newQuery);
             }
-            
+
             memberSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.FROM,
-                transactions,
+                transactions: [],
+                transactionsQueryJSON,
                 ...personalDetails,
                 ...memberGroup,
             };
@@ -1444,7 +1432,7 @@ function getSections(
             case CONST.SEARCH.GROUP_BY.REPORTS:
                 return getReportSections(data, metadata, currentSearch, currentAccountID, formatPhoneNumber, reportActions);
             case CONST.SEARCH.GROUP_BY.FROM:
-                return getMemberSections(data, currentAccountID, formatPhoneNumber, currentSearch, queryJSON);
+                return getMemberSections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.CARD:
                 return getCardSections(data);
         }
