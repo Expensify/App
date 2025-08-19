@@ -80,7 +80,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             {
                 translation: translate('workspace.common.profile'),
                 value: 'overview',
-                alternateText: `${policy?.name}, ${policy?.outputCurrency} ${translate('common.currency')}, ${formattedAddress}`,
+                alternateText: `${policy?.outputCurrency} ${translate('common.currency')}, ${formattedAddress}`,
             },
             totalMembers > 1
                 ? {
