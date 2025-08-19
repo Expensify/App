@@ -79,20 +79,8 @@ const createKeyToUserFriendlyMap = () => {
     return map;
 };
 
-const createDisplayTextToValueMap = () => {
-    const map = new Map<string, string>();
-
-    // Create reverse mapping from user-friendly values to backend keys
-    Object.entries(CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP).forEach(([backendKey, userFriendlyValue]) => {
-        map.set(userFriendlyValue, backendKey);
-    });
-
-    return map;
-};
-
 // Create the maps once at module initialization for performance
 const keyToUserFriendlyMap = createKeyToUserFriendlyMap();
-const displayTextToValueMap = createDisplayTextToValueMap();
 
 /**
  * Lookup a key in the keyToUserFriendlyMap and return the user-friendly key.
@@ -102,16 +90,6 @@ const displayTextToValueMap = createDisplayTextToValueMap();
  */
 function getUserFriendlyKey(keyName: SearchFilterKey | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER): UserFriendlyKey {
     return (keyToUserFriendlyMap.get(keyName) ?? keyName) as UserFriendlyKey;
-}
-
-/**
- * Lookup a value in the displayTextToValueMap and return the backend value.
- *
- * @example
- * getFilterValueFromText("per-diem") // returns "perDiem"
- */
-function getFilterValueFromText(searchText: string): string {
-    return displayTextToValueMap.get(searchText) ?? searchText;
 }
 
 /**
@@ -194,11 +172,11 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
             index !== 0 &&
             ((queryFilter.operator === 'eq' && queryFilters?.at(index - 1)?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters.at(index - 1)?.operator === 'neq'))
         ) {
-            filterValueString += `${delimiter}${sanitizeSearchValue(getUserFriendlyValue(queryFilter.value.toString()))}`;
+            filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
-            filterValueString += `${delimiter}${sanitizeSearchValue(getUserFriendlyValue(queryFilter.value.toString()))}`;
+            filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else {
-            filterValueString += ` ${filterName}${operatorToCharMap[queryFilter.operator]}${sanitizeSearchValue(getUserFriendlyValue(queryFilter.value.toString()))}`;
+            filterValueString += ` ${filterName}${operatorToCharMap[queryFilter.operator]}${sanitizeSearchValue(queryFilter.value.toString())}`;
         }
     });
 
@@ -235,13 +213,13 @@ function getFilters(queryJSON: SearchQueryJSON) {
         if (!Array.isArray(node.right)) {
             filterArray.push({
                 operator: node.operator,
-                value: getFilterValueFromText(String(node.right)) as string | number,
+                value: node.right as string | number,
             });
         } else {
             node.right.forEach((element) => {
                 filterArray.push({
                     operator: node.operator,
-                    value: getFilterValueFromText(String(element)),
+                    value: element,
                 });
             });
         }
@@ -316,14 +294,18 @@ const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'var
  * Computes and returns a numerical hash for a given queryJSON.
  * Sorts the query keys and values to ensure that hashes stay consistent.
  */
-function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSearchHash: number} {
+function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSearchHash: number; similarSearchHash: number} {
     let orderedQuery = '';
     orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${query.type}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${Array.isArray(query.status) ? query.status.join(',') : query.status}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${query.groupBy}`;
 
+    let similarSearchHashInput = orderedQuery;
+
     query.flatFilters
         .map((filter) => {
+            similarSearchHashInput += filter.key;
+
             const filters = cloneDeep(filter.filters);
             filters.sort((a, b) => customCollator.compare(a.value.toString(), b.value.toString()));
             return buildFilterValuesString(filter.key, filters);
@@ -331,6 +313,7 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
         .sort()
         .forEach((filterString) => (orderedQuery += ` ${filterString}`));
 
+    const similarSearchHash = hashText(similarSearchHashInput, 2 ** 32);
     const recentSearchHash = hashText(orderedQuery, 2 ** 32);
 
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${query.sortBy}`;
@@ -340,7 +323,7 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
     }
     const primaryHash = hashText(orderedQuery, 2 ** 32);
 
-    return {primaryHash, recentSearchHash};
+    return {primaryHash, recentSearchHash, similarSearchHash};
 }
 
 /**
@@ -371,9 +354,10 @@ function buildSearchQueryJSON(query: SearchQueryString) {
         // Add the full input and hash to the results
         result.inputQuery = query;
         result.flatFilters = flatFilters;
-        const {primaryHash, recentSearchHash} = getQueryHashes(result);
+        const {primaryHash, recentSearchHash, similarSearchHash} = getQueryHashes(result);
         result.hash = primaryHash;
         result.recentSearchHash = recentSearchHash;
+        result.similarSearchHash = similarSearchHash;
 
         if (result.policyID && typeof result.policyID === 'string') {
             // Ensure policyID is always an array for consistency
@@ -483,6 +467,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.BILLABLE ||
                     filterKey === FILTER_KEYS.TITLE ||
                     filterKey === FILTER_KEYS.PAYER ||
+                    filterKey === FILTER_KEYS.GROUP_CURRENCY ||
                     filterKey === FILTER_KEYS.WITHDRAWAL_TYPE ||
                     filterKey === FILTER_KEYS.ACTION) &&
                 filterValue
@@ -634,6 +619,10 @@ function buildFilterFormValuesFromQuery(
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY) {
             const validCurrency = new Set(Object.keys(currencyList));
             filtersForm[filterKey] = filterValues.filter((currency) => validCurrency.has(currency));
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY) {
+            const validCurrency = new Set(Object.keys(currencyList));
+            filtersForm[filterKey] = filterValues.filter((currency) => validCurrency.has(currency)).at(0);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
             const tags = policyID
@@ -1098,4 +1087,5 @@ export {
     getAllPolicyValues,
     getTodoSearchQuery,
     getUserFriendlyValue,
+    getUserFriendlyKey,
 };

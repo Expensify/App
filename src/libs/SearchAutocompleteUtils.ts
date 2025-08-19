@@ -27,7 +27,7 @@ function parseForAutocomplete(text: string) {
  */
 function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists>) {
     const uniqueTagNames = new Set<string>();
-    const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item) as PolicyTagLists[];
+    const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item);
     tagListsUnpacked
         .map(getTagNamesFromTagsLists)
         .flat()
@@ -110,6 +110,8 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
     return newQuery;
 }
 
+const userFriendlyExpenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
+
 /**
  * @private
  */
@@ -124,7 +126,7 @@ function filterOutRangesWithCorrectValue(
     'worklet';
 
     const typeList = Object.values(CONST.SEARCH.DATA_TYPES) as string[];
-    const expenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
+    const expenseTypeList = userFriendlyExpenseTypeList;
     const withdrawalTypeList = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE) as string[];
     const statusList = Object.values({
         ...CONST.SEARCH.STATUS.EXPENSE,
@@ -154,6 +156,7 @@ function filterOutRangesWithCorrectValue(
             return substitutionMap[`${range.key}:${range.value}`] !== undefined || userLogins.get().includes(range.value);
 
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY:
             return currencyList.get().includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE:
             return typeList.includes(range.value);
@@ -174,9 +177,13 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
             return booleanList.includes(range.value);
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
             return datePresetList.includes(range.value);
         default:
             return false;
