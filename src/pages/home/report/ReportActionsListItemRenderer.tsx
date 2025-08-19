@@ -95,6 +95,8 @@ type ReportActionsListItemRendererProps = {
 
     /** User who has in its tryNewDot NVP */
     hasInTryNewDot: boolean | undefined;
+    /** Whether the report is archived */
+    isReportArchived: boolean;
 };
 
 function ReportActionsListItemRenderer({
@@ -127,6 +129,7 @@ function ReportActionsListItemRenderer({
     allDraftMessages,
     allEmojiReactions,
     hasInTryNewDot = false,
+    isReportArchived = false,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -224,6 +227,7 @@ function ReportActionsListItemRenderer({
                 linkedTransactionRouteError={linkedTransactionRouteError}
                 userBillingFundID={userBillingFundID}
                 hasInTryNewDot={hasInTryNewDot}
+                isReportArchived={isReportArchived}
             />
         );
     }

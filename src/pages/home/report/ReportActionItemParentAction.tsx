@@ -88,6 +88,9 @@ type ReportActionItemParentActionProps = {
 
     /** User who has in its tryNewDot NVP */
     hasInTryNewDot: boolean | undefined;
+    
+    /** Whether the report is archived */
+    isReportArchived: boolean;
 };
 
 function ReportActionItemParentAction({
@@ -110,6 +113,7 @@ function ReportActionItemParentAction({
     linkedTransactionRouteError,
     userBillingFundID,
     hasInTryNewDot = false,
+    isReportArchived = false,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestorIDs = useRef(getAllAncestorReportActionIDs(report));
@@ -171,7 +175,7 @@ function ReportActionItemParentAction({
             {/* eslint-disable-next-line react-compiler/react-compiler */}
             {allAncestors.map((ancestor) => {
                 const ancestorReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ancestor.report.reportID}`];
-                const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(ancestorReport);
+                const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(ancestorReport, isReportArchived);
                 const shouldDisplayThreadDivider = !isTripPreview(ancestor.reportAction);
                 const reportNameValuePair =
                     ancestorReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReports.current?.[ancestor?.report?.reportID]?.reportID}`];
