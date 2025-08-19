@@ -320,11 +320,8 @@ function WorkspacesListPage() {
             shouldCalculateBillNewDot,
             loadingSpinnerIconIndex,
             resetLoadingSpinnerIconIndex,
-<<<<<<< HEAD
             startChangeOwnershipFlow,
-=======
             policies,
->>>>>>> main
         ],
     );
 
