@@ -4770,6 +4770,7 @@ const translations = {
             editTags: 'Modifica tag',
             findTag: 'Trova tag',
             subtitle: 'I tag aggiungono modi più dettagliati per classificare i costi.',
+            subtitleWithCustomName: ({tagName}: {tagName: string}) => `Questi tag ${tagName} aggiungono modi più dettagliati per classificare i costi.`,
             dependentMultiLevelTagsSubtitle: {
                 phrase1: 'Stai usando',
                 phrase2: 'tag dipendenti',
@@ -4795,6 +4796,7 @@ const translations = {
             invalidTagNameError: 'Il nome del tag non può essere 0. Si prega di scegliere un valore diverso.',
             genericFailureMessage: "Si è verificato un errore durante l'aggiornamento del tag, riprova.",
             importedFromAccountingSoftware: 'I tag qui sotto sono importati dal tuo',
+            importedFromAccountingSoftwareWithCustomName: ({tagName}: {tagName: string}) => `Questi tag ${tagName} sono importati dal tuo`,
             glCode: 'Codice GL',
             updateGLCodeFailureMessage: "Si è verificato un errore durante l'aggiornamento del codice GL, riprova.",
             tagRules: 'Regole dei tag',

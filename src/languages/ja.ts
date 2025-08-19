@@ -4749,6 +4749,7 @@ const translations = {
             editTags: 'タグを編集',
             findTag: 'タグを見つける',
             subtitle: 'タグは、コストをより詳細に分類する方法を追加します。',
+            subtitleWithCustomName: ({tagName}: {tagName: string}) => `これらの${tagName}タグは、コストをより詳細に分類する方法を追加します。`,
             dependentMultiLevelTagsSubtitle: {
                 phrase1: '使用中です',
                 phrase2: '依存タグ',
@@ -4774,6 +4775,7 @@ const translations = {
             invalidTagNameError: 'タグ名は0にできません。別の値を選んでください。',
             genericFailureMessage: 'タグの更新中にエラーが発生しました。もう一度お試しください。',
             importedFromAccountingSoftware: '以下のタグはあなたのからインポートされます',
+            importedFromAccountingSoftwareWithCustomName: ({tagName}: {tagName: string}) => `これらの${tagName}タグはあなたのからインポートされます`,
             glCode: 'GLコード',
             updateGLCodeFailureMessage: 'GLコードの更新中にエラーが発生しました。もう一度お試しください。',
             tagRules: 'Tag rules',

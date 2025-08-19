@@ -601,12 +601,20 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
+    const customTagName = !isMultiLevelTags ? policyTagLists.at(0)?.name : undefined;
+    const hasCustomTagName = customTagName && customTagName.trim() !== '';
+
     const headerContent = (
         <>
             <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : undefined]}>
                 {!hasSyncError && isConnectionVerified ? (
                     <Text>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.tags.importedFromAccountingSoftware')} `}</Text>
+                        <Text style={[styles.textNormal, styles.colorMuted]}>
+                            {hasCustomTagName 
+                                ? `${translate('workspace.tags.importedFromAccountingSoftwareWithCustomName', {tagName: customTagName})} `
+                                : `${translate('workspace.tags.importedFromAccountingSoftware')} `
+                            }
+                        </Text>
                         <TextLink
                             style={[styles.textNormal, styles.link]}
                             href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
@@ -617,7 +625,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     </Text>
                 ) : (
                     <Text style={[styles.textNormal, styles.colorMuted]}>
-                        {translate('workspace.tags.subtitle')}
+                        {hasCustomTagName 
+                            ? translate('workspace.tags.subtitleWithCustomName', {tagName: customTagName})
+                            : translate('workspace.tags.subtitle')
+                        }
                         {hasDependentTags && (
                             <>
                                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.dependentMultiLevelTagsSubtitle.phrase1')}</Text>

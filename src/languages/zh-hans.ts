@@ -4685,6 +4685,7 @@ const translations = {
             editTags: '编辑标签',
             findTag: '查找标签',
             subtitle: '标签提供了更详细的方法来分类费用。',
+            subtitleWithCustomName: ({tagName}: {tagName: string}) => `这些${tagName}标签提供了更详细的方法来分类费用。`,
             dependentMultiLevelTagsSubtitle: {
                 phrase1: '您正在使用',
                 phrase2: '依赖标签',
@@ -4710,6 +4711,7 @@ const translations = {
             invalidTagNameError: '标签名称不能为0。请选择其他值。',
             genericFailureMessage: '更新标签时发生错误，请重试。',
             importedFromAccountingSoftware: '以下标签是从您的...导入的',
+            importedFromAccountingSoftwareWithCustomName: ({tagName}: {tagName: string}) => `这些${tagName}标签是从您的...导入的`,
             glCode: 'GL代码',
             updateGLCodeFailureMessage: '更新总账代码时发生错误，请重试。',
             tagRules: '标签规则',

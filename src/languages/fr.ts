@@ -4771,6 +4771,7 @@ const translations = {
             editTags: 'Modifier les balises',
             findTag: 'Trouver une balise',
             subtitle: 'Les étiquettes ajoutent des moyens plus détaillés pour classer les coûts.',
+            subtitleWithCustomName: ({tagName}: {tagName: string}) => `Ces étiquettes ${tagName} ajoutent des moyens plus détaillés pour classer les coûts.`,
             dependentMultiLevelTagsSubtitle: {
                 phrase1: 'Vous utilisez',
                 phrase2: 'balises dépendantes',
@@ -4796,6 +4797,7 @@ const translations = {
             invalidTagNameError: 'Le nom de la balise ne peut pas être 0. Veuillez choisir une autre valeur.',
             genericFailureMessage: "Une erreur s'est produite lors de la mise à jour du tag, veuillez réessayer.",
             importedFromAccountingSoftware: 'Les balises ci-dessous sont importées de votre',
+            importedFromAccountingSoftwareWithCustomName: ({tagName}: {tagName: string}) => `Ces étiquettes ${tagName} sont importées de votre`,
             glCode: 'Code GL',
             updateGLCodeFailureMessage: "Une erreur s'est produite lors de la mise à jour du code GL, veuillez réessayer.",
             tagRules: 'Règles de balise',

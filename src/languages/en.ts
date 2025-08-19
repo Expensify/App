@@ -4738,6 +4738,7 @@ const translations = {
             editTags: 'Edit tags',
             findTag: 'Find tag',
             subtitle: 'Tags add more detailed ways to classify costs.',
+            subtitleWithCustomName: ({tagName}: {tagName: string}) => `These ${tagName} tags add more detailed ways to classify costs.`,
             dependentMultiLevelTagsSubtitle: {
                 phrase1: ' You are using ',
                 phrase2: 'dependent tags',
@@ -4763,6 +4764,7 @@ const translations = {
             invalidTagNameError: 'Tag name cannot be 0. Please choose a different value.',
             genericFailureMessage: 'An error occurred while updating the tag, please try again',
             importedFromAccountingSoftware: 'The tags below are imported from your',
+            importedFromAccountingSoftwareWithCustomName: ({tagName}: {tagName: string}) => `These ${tagName} tags are imported from your`,
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again',
             tagRules: 'Tag rules',

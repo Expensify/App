@@ -4748,6 +4748,7 @@ const translations = {
             editTags: 'Editar etiquetas',
             findTag: 'Encontrar etiquetas',
             subtitle: 'Las etiquetas añaden formas más detalladas de clasificar los costos.',
+            subtitleWithCustomName: ({tagName}: {tagName: string}) => `Estas etiquetas ${tagName} añaden formas más detalladas de clasificar los costos.`,
             dependentMultiLevelTagsSubtitle: {
                 phrase1: ' Estás usando ',
                 phrase2: 'etiquetas dependientes',
@@ -4772,6 +4773,7 @@ const translations = {
             invalidTagNameError: 'El nombre de la etiqueta no puede ser 0. Por favor, elige un valor diferente.',
             genericFailureMessage: 'Se ha producido un error al actualizar la etiqueta. Por favor, inténtelo nuevamente.',
             importedFromAccountingSoftware: 'Etiquetas importadas desde',
+            importedFromAccountingSoftwareWithCustomName: ({tagName}: {tagName: string}) => `Estas etiquetas ${tagName} están importadas desde`,
             glCode: 'Código de Libro Mayor',
             updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Por favor, inténtelo nuevamente.',
             tagRules: 'Reglas de etiquetas',

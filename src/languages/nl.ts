@@ -4772,6 +4772,7 @@ const translations = {
             editTags: 'Bewerk tags',
             findTag: 'Tag vinden',
             subtitle: 'Tags voegen meer gedetailleerde manieren toe om kosten te classificeren.',
+            subtitleWithCustomName: ({tagName}: {tagName: string}) => `Deze ${tagName} tags voegen meer gedetailleerde manieren toe om kosten te classificeren.`,
             dependentMultiLevelTagsSubtitle: {
                 phrase1: 'U gebruikt',
                 phrase2: 'afhankelijke tags',
@@ -4797,6 +4798,7 @@ const translations = {
             invalidTagNameError: 'Tagnaam kan niet 0 zijn. Kies een andere waarde.',
             genericFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de tag, probeer het alstublieft opnieuw.',
             importedFromAccountingSoftware: 'De onderstaande labels zijn geïmporteerd uit uw',
+            importedFromAccountingSoftwareWithCustomName: ({tagName}: {tagName: string}) => `Deze ${tagName} labels zijn geïmporteerd uit uw`,
             glCode: 'GL-code',
             updateGLCodeFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de GL-code, probeer het alstublieft opnieuw.',
             tagRules: 'Tagregels',
