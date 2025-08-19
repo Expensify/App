@@ -781,7 +781,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         if (wasSubmittedViaHarvesting) {
             lastMessageTextFromReport = translateLocal('iou.automaticallySubmitted');
         } else {
-            lastMessageTextFromReport = translateLocal('iou.submitted');
+            lastMessageTextFromReport = translateLocal('iou.submitted', {memo: getOriginalMessage(lastReportAction)?.message});
         }
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};
@@ -1226,7 +1226,7 @@ function isReportSelected(reportOption: OptionData, selectedOptions: Array<Parti
 }
 
 function processReport(
-    report: OnyxEntry<Report>,
+    report: OnyxEntry<Report> | null,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     transactions?: SearchTransaction[],
@@ -2396,11 +2396,14 @@ function getFirstKeyForList(data?: Option[] | null) {
 }
 
 function getPersonalDetailSearchTerms(item: Partial<OptionData>) {
+    if (item.accountID === currentUserAccountID) {
+        return getCurrentUserSearchTerms(item);
+    }
     return [item.participantsList?.[0]?.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
 }
 
-function getCurrentUserSearchTerms(item: OptionData) {
-    return [item.text ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
+function getCurrentUserSearchTerms(item: Partial<OptionData>) {
+    return [item.text ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? '', translateLocal('common.you'), translateLocal('common.me')];
 }
 
 /**

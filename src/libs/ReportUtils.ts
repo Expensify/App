@@ -33,6 +33,7 @@ import type {
     IntroSelected,
     NewGroupChatDraft,
     OnyxInputOrEntry,
+    OutstandingReportsByPolicyIDDerivedValue,
     PersonalDetails,
     PersonalDetailsList,
     Policy,
@@ -197,6 +198,7 @@ import {
     isReopenedAction,
     isReportActionAttachment,
     isReportPreviewAction,
+    isRetractedAction,
     isReversedTransaction,
     isRoomChangeLogAction,
     isSentMoneyReportAction,
@@ -635,7 +637,7 @@ type OptimisticModifiedExpenseReportAction = Pick<
     | 'delegateAccountID'
 > & {reportID?: string};
 
-type OptimisticMoneyRequestEntities = {
+type BaseOptimisticMoneyRequestEntities = {
     iouReport: Report;
     type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
     amount: number;
@@ -653,6 +655,10 @@ type OptimisticMoneyRequestEntities = {
     linkedTrackedExpenseReportAction?: ReportAction;
     optimisticCreatedReportActionID?: string;
 };
+
+type OptimisticMoneyRequestEntities = BaseOptimisticMoneyRequestEntities & {shouldGenerateTransactionThreadReport?: boolean};
+type OptimisticMoneyRequestEntitiesWithTransactionThreadFlag = BaseOptimisticMoneyRequestEntities & {shouldGenerateTransactionThreadReport: boolean};
+type OptimisticMoneyRequestEntitiesWithoutTransactionThreadFlag = BaseOptimisticMoneyRequestEntities;
 
 type OptimisticTaskReport = SetRequired<
     Pick<
@@ -1967,6 +1973,10 @@ function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, reportM
     return lodashMaxBy(filteredReports, (a) => [reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? '', a?.lastReadTime ?? '']);
 }
 
+/**
+ * This function is used to find the last accessed report and we don't need to subscribe the data in the UI.
+ * So please use `Onyx.connectWithoutView()` to get the necessary data when we remove the `Onyx.connect()`
+ */
 function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = false, policyID?: string, excludeReportID?: string): OnyxEntry<Report> {
     // If it's the user's first time using New Expensify, then they could either have:
     //   - just a Concierge report, if so we'll return that
@@ -2016,10 +2026,7 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
     // and it prompts the user to use the Concierge chat instead.
     reportsValues =
         reportsValues.filter((report) => {
-            // This will get removed as part of https://github.com/Expensify/App/issues/59961
-            // eslint-disable-next-line deprecation/deprecation
-            const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
-
+            const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
             return !isSystemChat(report) && !isArchivedReport(reportNameValuePairs);
         }) ?? [];
 
@@ -2581,7 +2588,7 @@ function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, rep
         return false;
     }
 
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN && !isEmptyObject(report) && !isDM(report);
+    const isAdmin = policy?.type !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN && !isEmptyObject(report);
 
     return isActionOwner || isAdmin;
 }
@@ -4204,6 +4211,7 @@ function canEditFieldOfMoneyRequest(
     fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>,
     isDeleteAction?: boolean,
     isChatReportArchived = false,
+    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
 ): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
     const restrictedFields: string[] = [
@@ -4290,17 +4298,24 @@ function canEditFieldOfMoneyRequest(
                 getOutstandingReportsForUser(
                     moneyRequestReport?.policyID,
                     moneyRequestReport?.ownerAccountID,
-                    reportsByPolicyID?.[moneyRequestReport?.policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
+                    outstandingReportsByPolicyID?.[moneyRequestReport?.policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
                 ).length > 0
             );
+        }
+        const isSubmitter = isCurrentUserSubmitter(moneyRequestReport);
+
+        // If the report is Open, then only submitters, admins can move expenses
+        const isOpen = isOpenExpenseReport(moneyRequestReport);
+        if (!isUnreportedExpense && isOpen && !isSubmitter && !isAdmin) {
+            return false;
         }
 
         return isUnreportedExpense
             ? Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
-                  getOutstandingReportsForUser(currentPolicy?.id, currentUserAccountID, reportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
+                  getOutstandingReportsForUser(currentPolicy?.id, currentUserAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
               ).length > 0
             : Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
-                  getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, reportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
+                  getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
               ).length > 1 ||
                   (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID));
     }
@@ -4986,7 +5001,7 @@ function getReportActionMessage({
         });
     }
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED) {
-        return translateLocal('receipt.scanFailed');
+        return translateLocal('iou.receiptScanningFailed');
     }
 
     if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {
@@ -5140,7 +5155,7 @@ function getReportNameInternal({
         if (harvesting) {
             return translateLocal('iou.automaticallySubmitted');
         }
-        return translateLocal('iou.submitted');
+        return translateLocal('iou.submitted', {memo: getOriginalMessage(parentReportAction)?.message});
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
         const {automaticAction} = getOriginalMessage(parentReportAction) ?? {};
@@ -6752,6 +6767,8 @@ function buildOptimisticReportPreview(
         childLastActorAccountID: currentUserAccountID,
         childLastMoneyRequestComment: comment,
         childRecentReceiptTransactionIDs: hasReceipt && !isEmptyObject(transaction) && transaction?.transactionID ? {[transaction.transactionID]: created} : undefined,
+        childOwnerAccountID: iouReport?.ownerAccountID,
+        childManagerAccountID: iouReport?.managerID,
         ...((isTestDriveTransaction || isTestTransaction) && !isScanRequest && {childStateNum: 2, childStatusNum: 4}),
     };
 }
@@ -7841,6 +7858,12 @@ function buildTransactionThread(
  * 4. Transaction Thread linked to the IOU action via `parentReportActionID`
  * 5. CREATED action for the Transaction Thread
  */
+function buildOptimisticMoneyRequestEntities(
+    optimisticMoneyRequestEntities: OptimisticMoneyRequestEntitiesWithoutTransactionThreadFlag,
+): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction | null];
+function buildOptimisticMoneyRequestEntities(
+    optimisticMoneyRequestEntities: OptimisticMoneyRequestEntitiesWithTransactionThreadFlag,
+): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport | undefined, OptimisticCreatedReportAction | null];
 function buildOptimisticMoneyRequestEntities({
     iouReport,
     type,
@@ -7858,7 +7881,14 @@ function buildOptimisticMoneyRequestEntities({
     existingTransactionThreadReportID,
     linkedTrackedExpenseReportAction,
     optimisticCreatedReportActionID,
-}: OptimisticMoneyRequestEntities): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction | null] {
+    shouldGenerateTransactionThreadReport = true,
+}: OptimisticMoneyRequestEntities): [
+    OptimisticCreatedReportAction,
+    OptimisticCreatedReportAction,
+    OptimisticIOUReportAction,
+    OptimisticChatReport | undefined,
+    OptimisticCreatedReportAction | null,
+] {
     const createdActionForChat = buildOptimisticCreatedReportAction(payeeEmail, undefined, optimisticCreatedReportActionID);
 
     // The `CREATED` action must be optimistically generated before the IOU action so that it won't appear after the IOU action in the chat.
@@ -7883,11 +7913,11 @@ function buildOptimisticMoneyRequestEntities({
     });
 
     // Create optimistic transactionThread and the `CREATED` action for it, if existingTransactionThreadReportID is undefined
-    const transactionThread = buildTransactionThread(iouAction, iouReport, existingTransactionThreadReportID);
-    const createdActionForTransactionThread = existingTransactionThreadReportID ? null : buildOptimisticCreatedReportAction(payeeEmail);
+    const transactionThread = shouldGenerateTransactionThreadReport ? buildTransactionThread(iouAction, iouReport, existingTransactionThreadReportID) : undefined;
+    const createdActionForTransactionThread = !!existingTransactionThreadReportID || !shouldGenerateTransactionThreadReport ? null : buildOptimisticCreatedReportAction(payeeEmail);
 
     // The IOU action and the transactionThread are co-dependent as parent-child, so we need to link them together
-    iouAction.childReportID = existingTransactionThreadReportID ?? transactionThread.reportID;
+    iouAction.childReportID = existingTransactionThreadReportID ?? transactionThread?.reportID;
 
     return [createdActionForChat, createdActionForIOUReport, iouAction, transactionThread, createdActionForTransactionThread];
 }
@@ -11246,7 +11276,7 @@ function findReportIDForAction(action?: ReportAction): string | undefined {
         ?.replace(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}`, '');
 }
 
-function hasReportBeenReopened(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>): boolean {
+function hasReportBeenReopened(report: OnyxEntry<Report>, reportActions?: OnyxEntry<ReportActions> | ReportAction[]): boolean {
     // If report object is provided and has the property, use it directly
     if (report?.hasReportBeenReopened !== undefined) {
         return report.hasReportBeenReopened;
@@ -11259,6 +11289,21 @@ function hasReportBeenReopened(reportActions: OnyxEntry<ReportActions> | ReportA
 
     const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions);
     return reportActionList.some((action) => isReopenedAction(action));
+}
+
+function hasReportBeenRetracted(report: OnyxEntry<Report>, reportActions?: OnyxEntry<ReportActions> | ReportAction[]): boolean {
+    // If report object is provided and has the property, use it directly
+    if (report?.hasReportBeenRetracted !== undefined) {
+        return report.hasReportBeenRetracted;
+    }
+
+    // Fallback to checking actions for backward compatibility
+    if (!reportActions) {
+        return false;
+    }
+
+    const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions);
+    return reportActionList.some((action) => isRetractedAction(action));
 }
 
 function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Report>, isInvoice?: boolean) {
@@ -11687,6 +11732,7 @@ export {
     pushTransactionViolationsOnyxData,
     navigateOnDeleteExpense,
     hasReportBeenReopened,
+    hasReportBeenRetracted,
     getMoneyReportPreviewName,
     getNextApproverAccountID,
     isWorkspaceTaskReport,
