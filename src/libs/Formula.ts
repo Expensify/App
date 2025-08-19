@@ -1,9 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import {Transaction} from '@src/types/onyx';
-import type Policy from '@src/types/onyx/Policy';
-import type Report from '@src/types/onyx/Report';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
 import {getCurrencySymbol} from './CurrencyUtils';
 import {getAllReportActions} from './ReportActionsUtils';
 import {getReportTransactions} from './ReportUtils';
