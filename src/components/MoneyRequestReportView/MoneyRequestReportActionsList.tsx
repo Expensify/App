@@ -22,6 +22,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
@@ -156,7 +157,8 @@ function MoneyRequestReportActionsList({
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.accountID});
 
-    const canPerformWriteAction = canUserPerformWriteAction(report);
+    const isReportArchived = useReportIsArchived(reportID);
+    const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -539,6 +541,7 @@ function MoneyRequestReportActionsList({
                     personalDetails={personalDetails}
                     userBillingFundID={userBillingFundID}
                     emojiReactions={actionEmojiReactions}
+                    isReportArchived={isReportArchived}
                     draftMessage={matchingDraftMessageString}
                 />
             );
