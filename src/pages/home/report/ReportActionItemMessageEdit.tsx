@@ -382,7 +382,9 @@ function ReportActionItemMessageEdit(
                 });
             };
 
-            if (isScrolling) return;
+            if (isScrolling) {
+                return;
+            }
 
             performMeasurement();
         },

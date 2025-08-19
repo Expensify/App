@@ -23,9 +23,10 @@ export default function useScrollBlocker() {
 
     useEffect(() => {
         return () => {
-            if (scrollTimeoutRef.current) {
-                clearTimeout(scrollTimeoutRef.current);
+            if (!scrollTimeoutRef.current) {
+                return;
             }
+            clearTimeout(scrollTimeoutRef.current);
         };
     }, []);
 
