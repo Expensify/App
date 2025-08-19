@@ -101,7 +101,7 @@ function getExportMenuItem(
                 shouldShowMenuItem,
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID, backTo)),
                 data: resultData.map((card) => ({
-                    value: card.name,
+                    value: card.id,
                     text: card.name,
                     keyForList: card.name,
                     isSelected: isDefaultTitle ? card.name === defaultCard : card.name === selectedAccount,
