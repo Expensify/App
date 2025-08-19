@@ -40,7 +40,6 @@ import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUt
 import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
-import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
 import variables from '@styles/variables';
 import {deletePaymentBankAccount, openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {close as closeModal} from '@userActions/Modal';
@@ -50,6 +49,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from './types';
 
 type WalletPageProps = {
     /** Listen for window resize event on web and desktop. */

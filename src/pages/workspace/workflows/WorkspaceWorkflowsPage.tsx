@@ -344,25 +344,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 onCloseError: () => clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
             },
         ];
-    }, [
-        policy,
-        styles,
-        translate,
-        onPressAutoReportingFrequency,
-        isSmartLimitEnabled,
-        approvalWorkflows,
-        addApprovalAction,
-        isOffline,
-        theme.spinner,
-        isPolicyAdmin,
-        displayNameForAuthorizedPayer,
-        route.params.policyID,
-        updateApprovalMode,
-        isAccountLocked,
-        isBetaEnabled,
-        hasValidExistingAccounts,
-        showLockedAccountModal,
-    ]);
+    }, [policy, bankAccountList, styles, translate, onPressAutoReportingFrequency, isSmartLimitEnabled, approvalWorkflows, addApprovalAction, isOffline, theme.spinner, isPolicyAdmin, displayNameForAuthorizedPayer, route.params.policyID, updateApprovalMode, isAccountLocked, isBetaEnabled, hasValidExistingAccounts, showLockedAccountModal]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
         <Section
