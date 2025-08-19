@@ -9,7 +9,6 @@ import useIsResizing from '@hooks/useIsResizing';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import getBackgroundColor from './getBackground';
