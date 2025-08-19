@@ -13,7 +13,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Mock dependencies
 jest.mock('@libs/ReportUtils', () => ({
-    ...jest.requireActual('@libs/ReportUtils'),
+    ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
     isExpenseReport: jest.fn(),
     getTitleReportField: jest.fn(),
 }));
