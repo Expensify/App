@@ -819,6 +819,13 @@ function getTransactionsSections(
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
 
+<<<<<<< HEAD
+=======
+    const shouldShowCategory = metadata?.columnsToShow?.shouldShowCategoryColumn;
+    const shouldShowTag = metadata?.columnsToShow?.shouldShowTagColumn;
+    const shouldShowTax = metadata?.columnsToShow?.shouldShowTaxColumn;
+
+>>>>>>> main
     // Pre-filter transaction keys to avoid repeated checks
     const transactionKeys = Object.keys(data).filter(isTransactionEntry);
     // Get violations - optimize by using a Map for faster lookups
@@ -1910,15 +1917,15 @@ function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCa
 }
 
 function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): SearchDatePreset[] {
+    const defaultPresets = [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH] as SearchDatePreset[];
+
     switch (filterKey) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
-            return [...(hasFeed ? [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT] : []), CONST.SEARCH.DATE_PRESETS.LAST_MONTH];
+            return [...defaultPresets, ...(hasFeed ? [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT] : [])];
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
-            return [CONST.SEARCH.DATE_PRESETS.NEVER];
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
-            return [CONST.SEARCH.DATE_PRESETS.LAST_MONTH];
+            return [...defaultPresets, CONST.SEARCH.DATE_PRESETS.NEVER];
         default:
-            return [];
+            return defaultPresets;
     }
 }
 
