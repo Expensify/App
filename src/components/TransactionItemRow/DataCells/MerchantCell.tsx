@@ -7,10 +7,12 @@ function MerchantOrDescriptionCell({
     merchantOrDescription,
     shouldShowTooltip,
     shouldUseNarrowLayout,
+    shouldRenderAsHTML,
 }: {
     merchantOrDescription: string;
     shouldUseNarrowLayout?: boolean | undefined;
     shouldShowTooltip: boolean;
+    shouldRenderAsHTML?: boolean;
 }) {
     const styles = useThemeStyles();
 
@@ -23,7 +25,7 @@ function MerchantOrDescriptionCell({
             shouldShowTooltip={shouldShowTooltip}
             text={html}
             style={[!shouldUseNarrowLayout ? styles.lineHeightLarge : styles.lh20, styles.pre, styles.justifyContentCenter, styles.flex1]}
-            shouldRenderAsHTML
+            shouldRenderAsHTML={shouldRenderAsHTML}
         />
     );
 }

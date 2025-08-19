@@ -288,6 +288,7 @@ function TransactionItemRow({
                             merchantOrDescription={description}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={false}
+                            shouldRenderAsHTML
                         />
                     )}
                 </View>
