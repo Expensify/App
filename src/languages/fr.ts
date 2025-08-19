@@ -144,6 +144,7 @@ import type {
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
     MissingPropertyParams,
+    MovedActionParams,
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
     MovedTransactionParams,
@@ -294,6 +295,7 @@ import type {
     WorkEmailResendCodeParams,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
+    WorkspaceMembersCountParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
@@ -1090,6 +1092,12 @@ const translations = {
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `supprimé une dépense (${amount} pour ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `a déplacé une dépense${reportName ? `de ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `déplacé cette dépense${reportName ? `à <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
+            if (shouldHideMovedReportUrl) {
+                return `a déplacé ce rapport vers l’espace de travail <a href="${newParentReportUrl}">${toPolicyName}</a>`;
+            }
+            return `a déplacé ce <a href="${movedReportUrl}">rapport</a> vers l’espace de travail <a href="${newParentReportUrl}">${toPolicyName}</a>`;
+        },
         unreportedTransaction: 'déplacé cette dépense vers votre espace personnel',
         pendingMatchWithCreditCard: 'Reçu en attente de correspondance avec la transaction par carte',
         pendingMatch: 'Correspondance en attente',
@@ -1593,6 +1601,7 @@ const translations = {
             testCrash: 'Test crash',
             resetToOriginalState: "Réinitialiser à l'état d'origine",
             usingImportedState: 'Vous utilisez un état importé. Appuyez ici pour le réinitialiser.',
+            shouldBlockTransactionThreadReportCreation: 'Bloquer la création de rapports de fil de transaction',
             debugMode: 'Mode débogage',
             invalidFile: 'Fichier invalide',
             invalidFileDescription: "Le fichier que vous essayez d'importer n'est pas valide. Veuillez réessayer.",
@@ -2381,13 +2390,13 @@ const translations = {
                     `![Inviter votre équipe](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
             },
             setupCategoriesAndTags: {
-                title: ({workspaceCategoriesLink, workspaceMoreFeaturesLink}) => `Configurer les [catégories](${workspaceCategoriesLink}) et [tags](${workspaceMoreFeaturesLink})`,
+                title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Configurer les [catégories](${workspaceCategoriesLink}) et [tags](${workspaceTagsLink})`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
                     '*Configurez les catégories et tags* pour aider votre équipe à coder les dépenses plus facilement.\n\n' +
                     `Importez-les automatiquement en [connectant votre logiciel comptable](${workspaceAccountingLink}), ou configurez-les manuellement dans les [paramètres de l’espace](${workspaceCategoriesLink}).`,
             },
             setupTagsTask: {
-                title: ({workspaceMoreFeaturesLink}) => `Configurer les [tags](${workspaceMoreFeaturesLink})`,
+                title: ({workspaceTagsLink}) => `Configurer les [tags](${workspaceTagsLink})`,
                 description: ({workspaceMoreFeaturesLink}) =>
                     'Utilisez les tags pour ajouter des détails comme projets, clients, emplacements et départements. Pour plusieurs niveaux de tags, passez au plan Control.\n\n' +
                     '1. Cliquez sur *Espaces de travail*.\n' +
@@ -4931,7 +4940,7 @@ const translations = {
             },
             addedWithPrimary: 'Certains membres ont été ajoutés avec leurs identifiants principaux.',
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Ajouté par la connexion secondaire ${secondaryLogin}.`,
-            membersListTitle: "Annuaire de tous les membres de l'espace de travail.",
+            workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Nombre total de membres de l’espace de travail : ${count}`,
             importMembers: 'Importer des membres',
         },
         card: {
@@ -5563,6 +5572,17 @@ const translations = {
                     one: '1 jour',
                     other: (count: number) => `${count} jours`,
                 }),
+                cashExpenseDefault: 'Dépense en espèces par défaut',
+                cashExpenseDefaultDescription:
+                    'Choisissez comment les dépenses en espèces doivent être créées. Une dépense est considérée comme en espèces si elle n’est pas une transaction par carte d’entreprise importée. Cela inclut les dépenses créées manuellement, les reçus, les indemnités journalières, les frais kilométriques et les frais de temps.',
+                reimbursableDefault: 'Remboursable',
+                reimbursableDefaultDescription: 'Les dépenses sont généralement remboursées aux employés',
+                nonReimbursableDefault: 'Non remboursable',
+                nonReimbursableDefaultDescription: 'Les dépenses sont parfois remboursées aux employés',
+                alwaysReimbursable: 'Toujours remboursable',
+                alwaysReimbursableDescription: 'Les dépenses sont toujours remboursées aux employés',
+                alwaysNonReimbursable: 'Jamais remboursable',
+                alwaysNonReimbursableDescription: 'Les dépenses ne sont jamais remboursées aux employés',
                 billableDefault: 'Par défaut facturable',
                 billableDefaultDescription: ({tagsPageLink}: BillableDefaultDescriptionParams) =>
                     `<muted-text>Choisissez si les dépenses en espèces et par carte de crédit doivent être facturables par défaut. Les dépenses facturables sont activées ou désactivées dans les <a href="${tagsPageLink}">tags</a>.</muted-text>`,
@@ -5853,6 +5873,8 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `mis à jour "Refacturer les dépenses aux clients" à "${newValue}" (précédemment "${oldValue}")`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `mis à jour "Dépense en espèces par défaut" en "${newValue}" (anciennement "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `"Appliquer les titres de rapport par défaut" ${value ? 'sur' : 'désactivé'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `a mis à jour le nom de cet espace de travail en "${newName}" (précédemment "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -6029,6 +6051,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Jamais',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Le mois dernier',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ce mois-ci',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Dernière relevé',
                 },
             },
@@ -6056,12 +6079,12 @@ const translations = {
             },
             current: 'Actuel',
             past: 'Passé',
-            submitted: 'Date de soumission',
-            approved: 'Date approuvée',
-            paid: 'Date de paiement',
-            exported: 'Date exportée',
-            posted: 'Date de publication',
-            withdrawn: 'Date de retrait',
+            submitted: 'Soumission',
+            approved: 'Approuvé',
+            paid: 'Payé',
+            exported: 'Exporté',
+            posted: 'Posté',
+            withdrawn: 'Retiré',
             billable: 'Facturable',
             reimbursable: 'Remboursable',
             groupBy: {
@@ -6686,9 +6709,9 @@ const translations = {
                     `Vous avez contesté le débit de ${amountOwed} sur la carte se terminant par ${cardEnding}. Votre compte sera verrouillé jusqu'à ce que le litige soit résolu avec votre banque.`,
             },
             cardAuthenticationRequired: {
-                title: "Votre carte n'a pas pu être débitée",
+                title: "Votre carte de paiement n'a pas été entièrement authentifiée.",
                 subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) =>
-                    `Votre carte de paiement n'a pas été entièrement authentifiée. Veuillez compléter le processus d'authentification pour activer votre carte de paiement se terminant par ${cardEnding}.`,
+                    `Veuillez terminer le processus d'authentification pour activer votre carte se terminant par ${cardEnding}.`,
             },
             insufficientFunds: {
                 title: "Votre carte n'a pas pu être débitée",
