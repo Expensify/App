@@ -2325,6 +2325,66 @@ describe('actions/IOU', () => {
             expect(report?.participants?.[RORY_ACCOUNT_ID].notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
         });
 
+        it("should update the notification preference to ALWAYS when it's empty string for split distance expenses", async () => {
+            // Given a group chat with empty string notification preference (simulating backend behavior)
+            const reportID = '1';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                participants: {
+                    [RORY_ACCOUNT_ID]: {notificationPreference: ''},
+                    [CARLOS_ACCOUNT_ID]: {notificationPreference: ''},
+                },
+            });
+
+            // Mock distance request transaction draft
+            const draftTransaction: Transaction = {
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'test',
+                created: '',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    waypoints: {
+                        0: {address: 'Start'},
+                        1: {address: 'End'},
+                    },
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, draftTransaction);
+
+            // When the user creates a split distance expense on the group chat
+            splitBill({
+                participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                comment: '',
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'test',
+                created: '',
+                existingSplitChatReportID: reportID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the notification preference should be updated to ALWAYS
+            const report = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    callback: (reportVal) => {
+                        Onyx.disconnect(connection);
+                        resolve(reportVal);
+                    },
+                });
+            });
+            
+            expect(report?.participants?.[RORY_ACCOUNT_ID].notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
+        });
+
         it('the description should not be parsed again after completing the scan split bill without changing the description', async () => {
             const reportID = '1';
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
