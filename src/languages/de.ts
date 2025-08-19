@@ -3553,7 +3553,6 @@ const translations = {
                 invitationFailure: 'Mitglieder konnten nicht zu Uber for Business eingeladen werden',
                 autoRemove: 'Neue Workspace-Mitglieder zu Uber for Business einladen',
                 autoInvite: 'Entfernte Workspace-Mitglieder von Uber for Business deaktivieren',
-                manageInvites: 'Einladungen verwalten',
             },
         },
         perDiem: {
