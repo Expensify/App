@@ -3552,7 +3552,6 @@ const translations = {
             viewTransactions: 'Transacties bekijken',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Uitgaven van ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card transacties worden automatisch geëxporteerd naar een “Expensify Card Liability Account” die is aangemaakt met <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">onze integratie</a>.</muted-text-label>`,
-            cannotDeleteWorkspaceAnnualSubscriptionError: 'U kunt de werkruimte niet verwijderen tot het einde van de jaarlijkse abonnementsperiode.',
         },
         receiptPartners: {
             uber: {

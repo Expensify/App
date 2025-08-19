@@ -3550,7 +3550,6 @@ const translations = {
             viewTransactions: 'Ver transações',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Despesas de ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>As transações do cartão Expensify serão exportadas automaticamente para uma “Conta de responsabilidade do cartão Expensify” criada com <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nossa integração</a>.</muted-text-label>`,
-            cannotDeleteWorkspaceAnnualSubscriptionError: 'Você não pode excluir o espaço de trabalho até o final do período de assinatura anual.',
         },
         receiptPartners: {
             uber: {

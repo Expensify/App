@@ -3532,7 +3532,6 @@ const translations = {
             viewTransactions: 'Transaktionen anzeigen',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Ausgaben von ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card-Transaktionen werden automatisch in ein mit <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">unserer Integration</a> erstelltes „Expensify Card Liability Account“ exportiert.</muted-text-label>`,
-            cannotDeleteWorkspaceAnnualSubscriptionError: 'Sie können den Arbeitsbereich erst am Ende der jährlichen Abonnementlaufzeit löschen.',
         },
         receiptPartners: {
             uber: {
