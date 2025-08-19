@@ -175,6 +175,7 @@ function ConfirmModal({
             restoreFocusType={restoreFocusType}
             shouldHandleNavigationBack={shouldHandleNavigationBack}
             shouldUseReanimatedModal
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ConfirmContent
                 title={title}
