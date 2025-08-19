@@ -164,6 +164,7 @@ function getForReportAction({
     if (typeof reportOrID === 'string') {
         report = searchReports ? searchReports.find((r) => r.reportID === reportOrID) : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`];
     } else {
+        // eslint-disable-next-line -- TODO remove it when its safe to remove
         report = reportOrID;
     }
 
