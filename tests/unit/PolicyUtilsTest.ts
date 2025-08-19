@@ -800,7 +800,7 @@ describe('PolicyUtils', () => {
         it('should return false if expense chat is not enabled', async () => {
             const currentUserLogin = approverEmail;
             const currentUserAccountID = approverAccountID;
-            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `John's Workspace`), isPolicyExpenseChatEnabled: false};
+            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), isPolicyExpenseChatEnabled: false};
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
@@ -813,7 +813,7 @@ describe('PolicyUtils', () => {
         it('should return false if its a fake policy id', async () => {
             const currentUserLogin = approverEmail;
             const currentUserAccountID = approverAccountID;
-            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `John's Workspace`), id: CONST.POLICY.ID_FAKE};
+            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), id: CONST.POLICY.ID_FAKE};
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
