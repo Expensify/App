@@ -77,6 +77,7 @@ type SearchContextData = {
     selectedReports: SelectedReports[];
     isOnSearch: boolean;
     shouldTurnOffSelectionMode: boolean;
+    shouldResetSearchQuery: boolean;
 };
 
 type SearchContext = SearchContextData & {
@@ -100,6 +101,7 @@ type SearchContext = SearchContextData & {
     shouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
     areAllMatchingItemsSelected: boolean;
     selectAllMatchingItems: (on: boolean) => void;
+    setShouldResetSearchQuery: (shouldReset: boolean) => void;
 };
 
 type ASTNode = {
