@@ -11266,13 +11266,13 @@ function generateReportAttributes({
     chatReport,
     reportActions,
     transactionViolations,
-    reportNameValuePairs,
+    isReportArchived = false,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
     reportActions?: OnyxCollection<ReportActions>;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
-    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+    isReportArchived: boolean;
 }) {
     const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`];
     const parentReportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
@@ -11281,7 +11281,6 @@ function generateReportAttributes({
     const doesReportHasViolations = hasReportViolations(report?.reportID);
     const hasViolationsToDisplayInLHN = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
     const hasAnyTypeOfViolations = hasViolationsToDisplayInLHN || (!isReportSettled && isCurrentUserReportOwner && doesReportHasViolations);
-    const isReportArchived = !!reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]?.private_isArchived;
     const reportErrors = getAllReportErrors(report, reportActionsList, isReportArchived);
     const hasErrors = Object.entries(reportErrors ?? {}).length > 0;
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList);
@@ -11297,7 +11296,6 @@ function generateReportAttributes({
         oneTransactionThreadReportID,
         parentReportAction,
         requiresAttention,
-        isReportArchived,
     };
 }
 
