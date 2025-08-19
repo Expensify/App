@@ -382,6 +382,7 @@ function BaseModal(
     );
 
     const animationInProps = useMemo(() => {
+        // disableAnimationIn applies only to legacy modals. This should be removed once we fully migrate to `reanimated-modal`.
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (disableAnimationIn && ((type && !REANIMATED_MODAL_TYPES.includes(type)) || !shouldUseReanimatedModal)) {
             // We need to apply these animation props to completely disable the "animation in". Simply setting it to 0 and undefined will not work.
