@@ -33,7 +33,15 @@ import type ReanimatedModalProps from './ReanimatedModal/types';
 import type BaseModalProps from './types';
 import type {FocusTrapOptions} from './types';
 
-const REANIMATED_MODAL_TYPES: Array<ValueOf<typeof CONST.MODAL.MODAL_TYPE>> = [CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED, CONST.MODAL.MODAL_TYPE.FULLSCREEN, CONST.MODAL.MODAL_TYPE.POPOVER];
+const REANIMATED_MODAL_TYPES: Array<ValueOf<typeof CONST.MODAL.MODAL_TYPE>> = [
+    CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED,
+    CONST.MODAL.MODAL_TYPE.FULLSCREEN,
+    CONST.MODAL.MODAL_TYPE.POPOVER,
+    CONST.MODAL.MODAL_TYPE.CENTERED,
+    CONST.MODAL.MODAL_TYPE.CENTERED_SMALL,
+    CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
+    CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT,
+];
 
 type ModalComponentProps = (ReactNativeModalProps | ReanimatedModalProps) & {
     type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
@@ -374,7 +382,8 @@ function BaseModal(
     );
 
     const animationInProps = useMemo(() => {
-        if (disableAnimationIn) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (disableAnimationIn || (type && REANIMATED_MODAL_TYPES.includes(type)) || shouldUseReanimatedModal) {
             // We need to apply these animation props to completely disable the "animation in". Simply setting it to 0 and undefined will not work.
             // Based on: https://github.com/react-native-modal/react-native-modal/issues/191
             return {
@@ -388,7 +397,7 @@ function BaseModal(
             animationInDelay,
             animationInTiming,
         };
-    }, [animationIn, animationInDelay, animationInTiming, disableAnimationIn, modalStyleAnimationIn]);
+    }, [animationIn, animationInDelay, animationInTiming, disableAnimationIn, modalStyleAnimationIn, shouldUseReanimatedModal, type]);
 
     // In Modals we need to reset the ScreenWrapperOfflineIndicatorContext to allow nested ScreenWrapper components to render offline indicators,
     // except if we are in a narrow pane navigator. In this case, we use the narrow pane's original values.
