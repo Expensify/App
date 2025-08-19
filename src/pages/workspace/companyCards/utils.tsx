@@ -80,7 +80,9 @@ function getExportMenuItem(
                         (!companyCard?.nameValuePairs?.quickbooks_online_export_account_debit ||
                             companyCard?.nameValuePairs?.quickbooks_online_export_account_debit === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE)
                     );
-                    selectedAccount = (quickbooksOnlineBankAccounts ?? []).find((bank) => bank.id === (companyCard?.nameValuePairs?.quickbooks_online_export_account_debit ?? defaultAccount));
+                    selectedAccount = (quickbooksOnlineBankAccounts ?? []).find(
+                        (bank) => bank.id === (companyCard?.nameValuePairs?.quickbooks_online_export_account_debit ?? defaultAccount),
+                    );
                     exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_ONLINE_EXPORT_ACCOUNT_DEBIT;
                     break;
                 }
