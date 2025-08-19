@@ -168,7 +168,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         });
     }, [isDeletedPolicyEmployee, policy?.employeeList, policy?.owner]);
 
-    const shouldShowSearchInput = totalNumberOfEmployeesEitherOwnerOrAdmin.length > 8;
+    const shouldShowSearchInput = totalNumberOfEmployeesEitherOwnerOrAdmin.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowSearchInput ? translate('selectionList.findMember') : undefined;
 
     return (
