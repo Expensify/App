@@ -358,7 +358,7 @@ function WorkspacesListPage() {
                             ...(policy.errors ?? {}),
                             ...(policy.employeeList?.[session?.email ?? '']?.errors ?? {}),
                         };
-                        return Object.keys(mergedErrors).length > 0 ? mergedErrors : null;
+                        return Object.keys(mergedErrors).length > 0 ? mergedErrors : undefined;
                     })(),
                     dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
                     disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
