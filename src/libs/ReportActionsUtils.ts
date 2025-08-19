@@ -20,7 +20,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {isCardPendingActivate, isCardPendingReplace} from './CardUtils';
+import {isCardPendingActivate} from './CardUtils';
 import {convertAmountToDisplayString, convertToDisplayString, convertToShortDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
@@ -2827,13 +2827,15 @@ function isCardIssuedAction(
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL
+    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED
 > {
     return (
         isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED) ||
         isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL) ||
         isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS) ||
         isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED) ||
-        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL)
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED)
     );
 }
 
@@ -2845,10 +2847,6 @@ function shouldShowAddMissingDetails(actionName?: ReportActionName, privatePerso
 function shouldShowActivateCard(actionName?: ReportActionName, card?: Card, privatePersonalDetail?: PrivatePersonalDetails) {
     const missingDetails = isMissingPrivatePersonalDetails(privatePersonalDetail);
     return (actionName === CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED || actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS) && isCardPendingActivate(card) && !missingDetails;
-}
-
-function shouldShowReplacedCard(actionName?: ReportActionName, expensifyCard?: Card) {
-    return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL && isCardPendingReplace(expensifyCard);
 }
 
 function getJoinRequestMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>) {
@@ -2905,9 +2903,8 @@ function getCardIssuedMessage({
             }
             return translateLocal('workspace.expensifyCard.addedShippingDetails', {assignee});
         case CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL:
-            if (expensifyCard?.nameValuePairs?.isVirtual) {
-                return translateLocal('workspace.expensifyCard.replacedVirtualCard', {assignee, link: expensifyCardLink(translateLocal('workspace.expensifyCard.replacementCard'))});
-            }
+            return translateLocal('workspace.expensifyCard.replacedVirtualCard', {assignee, link: expensifyCardLink(translateLocal('workspace.expensifyCard.replacementCard'))});
+        case CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED:
             return translateLocal('workspace.expensifyCard.replacedCard', {assignee});
         default:
             return '';
@@ -3153,7 +3150,6 @@ export {
     getWorkspaceCustomUnitUpdatedMessage,
     getReportActions,
     shouldShowActivateCard,
-    shouldShowReplacedCard,
     getReopenedMessage,
     getLeaveRoomMessage,
     getRetractedMessage,
