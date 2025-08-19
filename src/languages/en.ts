@@ -7000,7 +7000,7 @@ const translations = {
         takeATestDrive: 'Take a test drive',
     },
     migratedUserWelcomeModal: {
-        title: 'Travel and expense, at the speed of chat',
+        title: 'Welcome to New Expensify!',
         subtitle: 'New Expensify has the same great automation, but now with amazing collaboration:',
         confirmText: "Let's go!",
         features: {
