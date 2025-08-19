@@ -916,6 +916,7 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     DEFAULT_NUMBER_ID,
+    FAKE_REPORT_ID: 'FAKE_REPORT_ID',
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
     EXPENSIFY_MOBILE_URL,
@@ -6496,6 +6497,7 @@ const CONST = {
         DATE_PRESETS: {
             NEVER: 'never',
             LAST_MONTH: 'last-month',
+            THIS_MONTH: 'this-month',
             LAST_STATEMENT: 'last-statement',
         },
         SNAPSHOT_ONYX_KEYS: [
