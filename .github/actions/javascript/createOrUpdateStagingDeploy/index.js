@@ -11705,7 +11705,7 @@ async function run() {
             const { data: newChecklist } = await GithubUtils_1.default.octokit.issues.create({
                 ...defaultPayload,
                 title: `Deploy Checklist: New Expensify ${(0, format_1.format)(new Date(), CONST_1.default.DATE_FORMAT_STRING)}`,
-                labels: [CONST_1.default.LABELS.STAGING_DEPLOY],
+                labels: [CONST_1.default.LABELS.STAGING_DEPLOY, CONST_1.default.LABELS.LOCK_DEPLOY],
                 assignees: [CONST_1.default.APPLAUSE_BOT].concat(checklistAssignees),
             });
             console.log(`Successfully created new StagingDeployCash! 🎉 ${newChecklist.html_url}`);
@@ -11751,6 +11751,7 @@ const CONST = {
     LABELS: {
         STAGING_DEPLOY: 'StagingDeployCash',
         DEPLOY_BLOCKER: 'DeployBlockerCash',
+        LOCK_DEPLOY: '🔐 LockCashDeploys 🔐',
         INTERNAL_QA: 'InternalQA',
         HELP_WANTED: 'Help Wanted',
         CP_STAGING: 'CP Staging',
