@@ -712,7 +712,7 @@ function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction
  * Verify that the transaction is in Self DM and that its distance rate is invalid.
  */
 function isUnreportedAndHasInvalidDistanceRateTransaction(transaction: OnyxInputOrEntry<Transaction>, policyParam: OnyxEntry<Policy> = undefined) {
-    if (transaction && isDistanceRequest(transaction)) {
+    if (transaction && (isDistanceRequest(transaction) || isManualDistanceRequest(transaction))) {
         const report = getReportOrDraftReport(transaction.reportID);
         // eslint-disable-next-line deprecation/deprecation
         const policy = policyParam ?? getPolicy(report?.policyID);
@@ -731,7 +731,7 @@ function isUnreportedAndHasInvalidDistanceRateTransaction(transaction: OnyxInput
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
 function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: OnyxEntry<Policy> = undefined): string {
-    if (transaction && isDistanceRequest(transaction)) {
+    if (transaction && (isDistanceRequest(transaction) || isManualDistanceRequest(transaction))) {
         const report = getReportOrDraftReport(transaction.reportID);
         // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
         // eslint-disable-next-line deprecation/deprecation
@@ -1361,7 +1361,7 @@ function getRateID(transaction: OnyxInputOrEntry<Transaction>): string {
  * Else returns policy default tax rate if transaction is in policy default currency, otherwise foreign default tax rate
  */
 function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency?: string | undefined): string | undefined {
-    if (isDistanceRequest(transaction)) {
+    if (isDistanceRequest(transaction) || isManualDistanceRequest(transaction)) {
         const customUnitRateID = getRateID(transaction) ?? '';
         const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
         return customUnitRate?.attributes?.taxRateExternalID;
@@ -1803,7 +1803,7 @@ function buildMergeDuplicatesParams(
 
 function getCategoryTaxCodeAndAmount(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>) {
     const taxRules = policy?.rules?.expenseRules?.filter((rule) => rule.tax);
-    if (!taxRules || taxRules?.length === 0 || isDistanceRequest(transaction)) {
+    if (!taxRules || taxRules?.length === 0 || isDistanceRequest(transaction) || isManualDistanceRequest(transaction)) {
         return {categoryTaxCode: undefined, categoryTaxAmount: undefined};
     }
 
