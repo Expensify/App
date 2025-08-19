@@ -1,6 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import {Transaction} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import {getCurrencySymbol} from './CurrencyUtils';
@@ -25,6 +26,7 @@ type FormulaPart = {
 type FormulaContext = {
     report: Report;
     policy: OnyxEntry<Policy>;
+    updatedTransaction?: Transaction;
 };
 
 const FORMULA_PART_TYPES = {
@@ -244,7 +246,7 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         case 'type':
             return formatType(report.type);
         case 'startdate':
-            return formatDate(getOldestTransactionDate(report.reportID), format);
+            return formatDate(getOldestTransactionDate(report.reportID, context), format);
         case 'total':
             return formatAmount(report.total, getCurrencySymbol(report.currency ?? '') ?? report.currency);
         case 'currency':
@@ -468,7 +470,7 @@ function formatType(type: string | undefined): string {
 /**
  * Get the date of the oldest transaction for a given report
  */
-function getOldestTransactionDate(reportID: string): string | undefined {
+function getOldestTransactionDate(reportID: string, context?: FormulaContext): string | undefined {
     if (!reportID) {
         return undefined;
     }
@@ -481,14 +483,18 @@ function getOldestTransactionDate(reportID: string): string | undefined {
     let oldestDate: string | undefined;
 
     transactions.forEach((transaction) => {
-        const created = getCreated(transaction);
+        // Use updated transaction data if available and matches this transaction
+        const currentTransaction =
+            context?.updatedTransaction && transaction.transactionID === context.updatedTransaction.transactionID ? {...transaction, ...context.updatedTransaction} : transaction;
+
+        const created = getCreated(currentTransaction);
         if (!created) {
             return;
         }
         if (oldestDate && created >= oldestDate) {
             return;
         }
-        if (isPartialTransaction(transaction)) {
+        if (isPartialTransaction(currentTransaction)) {
             return;
         }
         oldestDate = created;
