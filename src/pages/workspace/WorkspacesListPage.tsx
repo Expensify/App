@@ -43,7 +43,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import {getPolicy, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getDefaultApprover, getPolicy, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
@@ -239,8 +239,8 @@ function WorkspacesListPage() {
                     shouldCallAfterModalHide: !shouldCalculateBillNewDot,
                 });
             }
-
-            if (!(isAdmin || isOwner)) {
+            const defaultApprover = getDefaultApprover(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]);
+            if (!(isAdmin || isOwner) && defaultApprover !== session?.email) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Exit,
                     text: translate('common.leave'),
@@ -320,7 +320,11 @@ function WorkspacesListPage() {
             shouldCalculateBillNewDot,
             loadingSpinnerIconIndex,
             resetLoadingSpinnerIconIndex,
+<<<<<<< HEAD
             startChangeOwnershipFlow,
+=======
+            policies,
+>>>>>>> main
         ],
     );
 
