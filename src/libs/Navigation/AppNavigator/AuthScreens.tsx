@@ -387,10 +387,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         return;
                     }
 
-                    if (Navigation.isActiveRoute(ROUTES.KEYBOARD_SHORTCUTS)) {
+                    if (Navigation.isActiveRoute(ROUTES.KEYBOARD_SHORTCUTS.getRoute(Navigation.getActiveRoute()))) {
                         return;
                     }
-                    return Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS);
+                    return Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS.getRoute(Navigation.getActiveRoute()));
                 });
             },
             shortcutsOverviewShortcutConfig.descriptionKey,
