@@ -22,51 +22,45 @@ const convertHeicImage: HeicConverterFunction = (file, {onSuccess = () => {}, on
         return;
     }
 
-    fetch(file.uri)
-        .then((response) => response.blob())
-        .then((blob) => {
-            const fileFromBlob = new File([blob], file.name ?? 'temp-file', {
-                type: blob.type,
+    // Start loading the conversion library in parallel with fetching the file
+    const libraryPromise = import('heic-to').catch((importError) => {
+        console.error('Error loading heic-to library:', importError);
+        // Re-throw a normalized error so the outer catch can handle it uniformly
+        throw new Error('HEIC conversion library unavailable');
+    });
+
+    const fetchBlobPromise = fetch(file.uri).then((response) => response.blob());
+
+    Promise.all([libraryPromise, fetchBlobPromise])
+        .then(([{heicTo, isHeic}, blob]) => {
+            const fileFromBlob = new File([blob], file.name ?? 'temp-file', {type: blob.type});
+
+            return isHeic(fileFromBlob).then((isHEIC) => {
+                if (isHEIC || needsConversion) {
+                    return heicTo({
+                        blob,
+                        type: 'image/jpeg',
+                    })
+                        .then((convertedBlob) => {
+                            const fileName = file.name ? file.name.replace(/\.(heic|heif)$/i, '.jpg') : 'converted-image.jpg';
+                            const jpegFile = new File([convertedBlob], fileName, {type: 'image/jpeg'});
+                            jpegFile.uri = URL.createObjectURL(jpegFile);
+                            onSuccess(jpegFile);
+                        })
+                        .catch((err) => {
+                            console.error('Error converting image format to JPEG:', err);
+                            onError(err, file);
+                        });
+                }
+
+                onSuccess(file);
             });
-
-            // Lazy load heic-to library only when needed
-            return import('heic-to')
-                .then(({heicTo, isHeic}) => {
-                    return isHeic(fileFromBlob).then((isHEIC) => {
-                        if (isHEIC || needsConversion) {
-                            return heicTo({
-                                blob,
-                                type: 'image/jpeg',
-                            })
-                                .then((convertedBlob) => {
-                                    const fileName = file.name ? file.name.replace(/\.(heic|heif)$/i, '.jpg') : 'converted-image.jpg';
-                                    const jpegFile = new File([convertedBlob], fileName, {type: 'image/jpeg'});
-                                    jpegFile.uri = URL.createObjectURL(jpegFile);
-                                    onSuccess(jpegFile);
-                                })
-                                .catch((err) => {
-                                    console.error('Error converting image format to JPEG:', err);
-                                    onError(err, file);
-                                })
-                                .finally(() => {
-                                    onFinish();
-                                });
-                        }
-
-                        onSuccess(file);
-                        onFinish();
-                    });
-                })
-                .catch((importError) => {
-                    console.error('Error loading heic-to library:', importError);
-                    // Graceful fallback: return the original file if conversion library fails to load
-                    onError(new Error('HEIC conversion library unavailable'), file);
-                    onFinish();
-                });
         })
         .catch((err) => {
             console.error('Error processing the file:', err);
             onError(err, file);
+        })
+        .finally(() => {
             onFinish();
         });
 };
