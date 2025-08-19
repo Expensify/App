@@ -130,6 +130,9 @@ type OptionRowLHNDataProps = {
 
     /** TestID of the row, indicating order */
     testID: number;
+
+    /** Whether the report is archived */
+    isReportArchived: boolean;
 };
 
 type OptionRowLHNProps = {

@@ -62,6 +62,10 @@ function useReportActionAvatars({
         action = getReportAction(reportChatReport?.reportID, chatReport.parentReportActionID);
     }
 
+    const [actionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${action?.childReportID}`, {canBeMissing: true});
+
+    const isAReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
+
     const isReportArchived = useReportIsArchived(iouReport?.reportID);
 
     const reportPreviewSenderID = useReportPreviewSenderID({
@@ -70,19 +74,26 @@ function useReportActionAvatars({
         chatReport,
     });
 
-    const policyID = passedPolicyID ?? (chatReport?.policyID === CONST.POLICY.ID_FAKE || !chatReport?.policyID ? (iouReport?.policyID ?? chatReport?.policyID) : chatReport?.policyID);
+    const reportPolicyID = iouReport?.policyID ?? chatReport?.policyID;
+    const chatReportPolicyIDExists = chatReport?.policyID === CONST.POLICY.ID_FAKE || !chatReport?.policyID;
+    const changedPolicyID = actionChildReport?.policyID ?? iouReport?.policyID;
+    const shouldUseChangedPolicyID = !!changedPolicyID && changedPolicyID !== chatReport?.policyID;
+    const retrievedPolicyID = chatReportPolicyIDExists ? reportPolicyID : chatReport?.policyID;
+
+    const policyID = shouldUseChangedPolicyID ? changedPolicyID : (passedPolicyID ?? retrievedPolicyID);
     const policy = usePolicy(policyID);
 
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
 
     const {chatReportIDAdmins, chatReportIDAnnounce, workspaceAccountID} = policy ?? {};
-    const [policyChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportIDAnnounce ?? chatReportIDAdmins}`, {canBeMissing: true});
+
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [policyChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportIDAnnounce || chatReportIDAdmins}`, {canBeMissing: true});
 
     const delegatePersonalDetails = action?.delegateAccountID ? personalDetails?.[action?.delegateAccountID] : undefined;
     const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails);
 
-    const isAReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
     const isAInvoiceReport = isInvoiceReport(iouReport ?? null);
 
     const shouldUseActorAccountID = isAInvoiceReport && !isAReportPreviewAction;
@@ -261,11 +272,18 @@ function useReportActionAvatars({
         secondaryAvatar = secondUserFallbackAvatar;
     }
 
-    const shouldUseMappedAccountIDs = avatarsForAccountIDs.length > 0 && (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE || shouldUseActorAccountID);
+    const shouldUseMappedAccountIDs = avatarsForAccountIDs.length > 0 && (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE || shouldUseActorAccountID || shouldUseCardFeed);
     const shouldUsePrimaryAvatarID = isWorkspaceActor && !!primaryAvatar.id;
     const shouldUseInvoiceExpenseIcons = isWorkspaceExpense && isNestedInInvoiceReport && !!accountID;
 
     let avatars = [primaryAvatar, secondaryAvatar];
+
+    const isUserWithWorkspaceAvatar =
+        avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && avatars.at(0)?.type === CONST.ICON_TYPE_AVATAR && avatars.at(1)?.type === CONST.ICON_TYPE_WORKSPACE;
+    const isWorkspaceWithUserAvatar =
+        avatars.at(0)?.type === CONST.ICON_TYPE_WORKSPACE && avatars.at(1)?.type === CONST.ICON_TYPE_AVATAR && avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE;
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const wasReportPreviewMovedToDifferentPolicy = shouldUseChangedPolicyID && isAReportPreviewAction;
 
     if (shouldUseInvoiceExpenseIcons) {
         avatars = getIconsWithDefaults(invoiceReport);
@@ -278,14 +296,13 @@ function useReportActionAvatars({
         if (avatars.every(({type}) => type === CONST.ICON_TYPE_WORKSPACE)) {
             avatarType = isAReportPreviewAction ? CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE : CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT;
             // But if it is a report preview between workspace and another user it should never be displayed as a multiple avatar
-        } else if (
-            avatars.at(0)?.type === CONST.ICON_TYPE_WORKSPACE &&
-            avatars.at(1)?.type === CONST.ICON_TYPE_AVATAR &&
-            avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE &&
-            isAReportPreviewAction
-        ) {
+        } else if (isWorkspaceWithUserAvatar && isAReportPreviewAction) {
             avatarType = CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT;
         }
+    } else if (isUserWithWorkspaceAvatar && wasReportPreviewMovedToDifferentPolicy) {
+        const policyChatReportIcon = {...getWorkspaceIcon(policyChatReport, policy), id: policyID, name: policy?.name};
+        const [firstAvatar] = avatars;
+        avatars = [firstAvatar, policyChatReportIcon];
     }
 
     return {
