@@ -1,4 +1,5 @@
-import type {ReactNode} from 'react';
+import type {BoundsObserver} from '@react-ng/bounds-observer';
+import type {ForwardedRef, ReactNode} from 'react';
 import type React from 'react';
 import type {GestureResponderEvent, LayoutRectangle, StyleProp, ViewStyle} from 'react-native';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
@@ -87,6 +88,9 @@ type TooltipProps = ChildrenProps &
 
         /** Whether the current screen or component is actively focused via navigation */
         isFocused?: boolean;
+
+        /** Reference to the outer element */
+        ref?: ForwardedRef<BoundsObserver>;
     };
 
 type EducationalTooltipProps = ChildrenProps &
