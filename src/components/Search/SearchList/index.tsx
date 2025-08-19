@@ -1,6 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import {FlashList} from '@shopify/flash-list';
-import type {FlashListProps, ViewToken} from '@shopify/flash-list';
+import type {FlashList, FlashListProps, ViewToken} from '@shopify/flash-list';
 import React, {forwardRef, useCallback, useContext, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
