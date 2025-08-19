@@ -9,7 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
-import {getCleanedTagName} from '@libs/PolicyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import BaseListItem from './BaseListItem';
 import type {ListItem, SplitListItemProps, SplitListItemType} from './types';
@@ -114,7 +114,7 @@ function SplitListItem<TItem extends ListItem>({
                                         numberOfLines={1}
                                         style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                     >
-                                        {getCleanedTagName(splitItem.tags?.at(0) ?? '')}
+                                        {getCommaSeparatedTagNameWithSanitizedColons(splitItem.tags?.at(0) ?? '')}
                                     </Text>
                                 </View>
                             )}
@@ -135,12 +135,16 @@ function SplitListItem<TItem extends ListItem>({
                             submitBehavior="blurAndSubmit"
                             formatAmountOnBlur
                             onAmountChange={onSplitExpenseAmountChange}
-                            prefixContainerStyle={[styles.pv0]}
-                            inputStyle={[styles.optionRowAmountInput]}
-                            containerStyle={[styles.textInputContainer]}
+                            prefixContainerStyle={[styles.pv0, styles.h100]}
+                            prefixStyle={styles.lineHeightUndefined}
+                            inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
+                            containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
                             touchableInputWrapperStyle={[styles.ml3]}
-                            maxLength={formattedOriginalAmount.length}
-                            contentWidth={formattedOriginalAmount.length * 8}
+                            maxLength={formattedOriginalAmount.length + 1}
+                            contentWidth={(formattedOriginalAmount.length + 1) * 8}
+                            shouldApplyPaddingToContainer
+                            shouldUseDefaultLineHeightForPrefix={false}
+                            shouldWrapInputInContainer={false}
                         />
                     </View>
                     <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto]}>

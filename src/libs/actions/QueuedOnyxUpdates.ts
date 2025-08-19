@@ -8,7 +8,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 let queuedOnyxUpdates: OnyxUpdate[] = [];
 let currentAccountID: number | undefined;
 
-Onyx.connect({
+// We use `connectWithoutView` because it is not connected to any UI component.
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
         currentAccountID = session?.accountID;
@@ -35,6 +36,7 @@ function flushQueue(): Promise<void> {
             ONYXKEYS.NVP_TRY_FOCUS_MODE,
             ONYXKEYS.PREFERRED_THEME,
             ONYXKEYS.NVP_PREFERRED_LOCALE,
+            ONYXKEYS.ARE_TRANSLATIONS_LOADING,
             ONYXKEYS.SESSION,
             ONYXKEYS.IS_LOADING_APP,
             ONYXKEYS.HAS_LOADED_APP,

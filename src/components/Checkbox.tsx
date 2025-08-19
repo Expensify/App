@@ -1,5 +1,5 @@
 import type {ForwardedRef, MouseEventHandler, KeyboardEvent as ReactKeyboardEvent} from 'react';
-import React, {forwardRef} from 'react';
+import React from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 type CheckboxProps = Partial<ChildrenProps> & {
@@ -50,33 +51,48 @@ type CheckboxProps = Partial<ChildrenProps> & {
 
     /** stop propagation of the mouse down event */
     shouldStopMouseDownPropagation?: boolean;
+
+    /** Whether the checkbox should be selected when pressing Enter key */
+    shouldSelectOnPressEnter?: boolean;
+
+    /** Additional styles to add to checkbox wrapper */
+    wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<View>;
 };
 
-function Checkbox(
-    {
-        isChecked = false,
-        isIndeterminate = false,
-        hasError = false,
-        disabled = false,
-        style,
-        containerStyle,
-        children = null,
-        onMouseDown,
-        containerSize = 20,
-        containerBorderRadius = 4,
-        caretSize = 14,
-        onPress,
-        accessibilityLabel,
-        shouldStopMouseDownPropagation,
-    }: CheckboxProps,
-    ref: ForwardedRef<View>,
-) {
+function Checkbox({
+    isChecked = false,
+    isIndeterminate = false,
+    hasError = false,
+    disabled = false,
+    style,
+    containerStyle,
+    children = null,
+    onMouseDown,
+    containerSize = 20,
+    containerBorderRadius = 4,
+    caretSize = 14,
+    onPress,
+    accessibilityLabel,
+    shouldStopMouseDownPropagation,
+    shouldSelectOnPressEnter,
+    wrapperStyle,
+    ref,
+}: CheckboxProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
-    const handleSpaceKey = (event?: ReactKeyboardEvent) => {
-        if (event?.code !== 'Space') {
+    const handleSpaceOrEnterKey = (event?: ReactKeyboardEvent) => {
+        if (event?.code !== 'Space' && event?.code !== 'Enter') {
+            return;
+        }
+
+        if (event?.code === 'Enter' && !shouldSelectOnPressEnter) {
+            // If the checkbox should not be selected on Enter key press, we do not want to
+            // toggle it, so we return early.
             return;
         }
 
@@ -103,9 +119,9 @@ function Checkbox(
                 }
                 onMouseDown?.(e);
             }}
-            ref={ref}
+            ref={ref as PressableRef}
             style={[StyleUtils.getCheckboxPressableStyle(containerBorderRadius + 2), style]} // to align outline on focus, border-radius of pressable should be 2px more than Checkbox
-            onKeyDown={handleSpaceKey}
+            onKeyDown={handleSpaceOrEnterKey}
             role={CONST.ROLE.CHECKBOX}
             /*  true  → checked
                 false → unchecked
@@ -113,6 +129,7 @@ function Checkbox(
             aria-checked={isIndeterminate ? 'mixed' : isChecked}
             accessibilityLabel={accessibilityLabel}
             pressDimmingValue={1}
+            wrapperStyle={wrapperStyle}
         >
             {children ?? (
                 <View
@@ -142,6 +159,6 @@ function Checkbox(
 
 Checkbox.displayName = 'Checkbox';
 
-export default forwardRef(Checkbox);
+export default Checkbox;
 
 export type {CheckboxProps};

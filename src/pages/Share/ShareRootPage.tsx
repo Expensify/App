@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Alert, AppState, View} from 'react-native';
+import {Alert, AppState, InteractionManager, View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabNavigatorSkeleton from '@components/Skeletons/TabNavigatorSkeleton';
 import TabSelector from '@components/TabSelector/TabSelector';
@@ -122,6 +123,24 @@ function ShareRootPage() {
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
+    const shareTabInputRef = useRef<AnimatedTextInputRef | null>(null);
+    const submitTabInputRef = useRef<AnimatedTextInputRef | null>(null);
+
+    // We're focusing the input using internal onPageSelected to fix input focus inconsistencies on native.
+    // More info: https://github.com/Expensify/App/issues/59388
+    const onTabSelectFocusHandler = ({index}: {index: number}) => {
+        // We runAfterInteractions since the function is called in the animate block on web-based
+        // implementation, this fixes an animation glitch and matches the native internal delay
+        InteractionManager.runAfterInteractions(() => {
+            // Chat tab (0) / Room tab (1) according to OnyxTabNavigator (see below)
+            if (index === 0) {
+                shareTabInputRef.current?.focus();
+            } else if (index === 1) {
+                submitTabInputRef.current?.focus();
+            }
+        });
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -139,9 +158,11 @@ function ShareRootPage() {
                     <OnyxTabNavigator
                         id={CONST.TAB.SHARE.NAVIGATOR_ID}
                         tabBar={TabSelector}
+                        lazyLoadEnabled
+                        onTabSelect={onTabSelectFocusHandler}
                     >
-                        <TopTab.Screen name={CONST.TAB.SHARE.SHARE}>{() => <ShareTab />}</TopTab.Screen>
-                        {isFileScannable && <TopTab.Screen name={CONST.TAB.SHARE.SUBMIT}>{() => <SubmitTab />}</TopTab.Screen>}
+                        <TopTab.Screen name={CONST.TAB.SHARE.SHARE}>{() => <ShareTab ref={shareTabInputRef} />}</TopTab.Screen>
+                        {isFileScannable && <TopTab.Screen name={CONST.TAB.SHARE.SUBMIT}>{() => <SubmitTab ref={submitTabInputRef} />}</TopTab.Screen>}
                     </OnyxTabNavigator>
                 ) : (
                     <TabNavigatorSkeleton />

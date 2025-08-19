@@ -1,11 +1,12 @@
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {OpenPlaidBankAccountSelectorParams, OpenPlaidBankLoginParams} from '@libs/API/parameters';
+import type {ImportPlaidAccountsParams, OpenPlaidBankAccountSelectorParams, OpenPlaidBankLoginParams} from '@libs/API/parameters';
 import type OpenPlaidCompanyCardLoginParams from '@libs/API/parameters/OpenPlaidCompanyCardLoginParams';
-import {READ_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import getPlaidLinkTokenParameters from '@libs/getPlaidLinkTokenParameters';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
@@ -47,13 +48,15 @@ function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK for Company card
  */
-function openPlaidCompanyCardLogin(country: string) {
+function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: string) {
     const {redirectURI, androidPackage} = getPlaidLinkTokenParameters();
 
     const params: OpenPlaidCompanyCardLoginParams = {
         redirectURI,
         androidPackage,
         country,
+        domain,
+        feed,
     };
 
     const optimisticData = [
@@ -114,4 +117,28 @@ function openPlaidBankAccountSelector(publicToken: string, bankName: string, all
     });
 }
 
-export {openPlaidBankAccountSelector, openPlaidBankLogin, openPlaidCompanyCardLogin};
+function importPlaidAccounts(
+    publicToken: string,
+    feed: string,
+    feedName: string,
+    country: string,
+    domainName: string,
+    plaidAccounts: string,
+    statementPeriodEnd: StatementPeriodEnd | undefined,
+    statementPeriodEndDay: StatementPeriodEndDay | undefined,
+) {
+    const parameters: ImportPlaidAccountsParams = {
+        publicToken,
+        feed,
+        feedName,
+        country,
+        domainName,
+        plaidAccounts,
+        statementPeriodEnd,
+        statementPeriodEndDay,
+    };
+
+    API.write(WRITE_COMMANDS.IMPORT_PLAID_ACCOUNTS, parameters);
+}
+
+export {openPlaidBankAccountSelector, openPlaidBankLogin, openPlaidCompanyCardLogin, importPlaidAccounts};

@@ -1,11 +1,11 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearContactMethodErrors, clearUnvalidatedNewContactMethodAction, requestValidateCodeAction, validateSecondaryLogin} from '@libs/actions/User';
 import {getEarliestErrorField} from '@libs/ErrorUtils';
@@ -22,7 +22,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const contactMethod = account?.primaryLogin ?? '';
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const loginData = loginList?.[contactMethod];
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
     const isUserValidated = account?.validated ?? false;
@@ -37,9 +37,9 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
-            validateSecondaryLogin(loginList, contactMethod, validateCode, true);
+            validateSecondaryLogin(loginList, contactMethod, validateCode, formatPhoneNumber, true);
         },
-        [loginList, contactMethod],
+        [loginList, contactMethod, formatPhoneNumber],
     );
 
     const clearError = useCallback(() => {

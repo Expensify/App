@@ -1,8 +1,8 @@
 import React, {useEffect} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
@@ -21,6 +21,7 @@ import PlaidConnectionStep from './PlaidConnectionStep';
 import SelectBankStep from './SelectBankStep';
 import SelectCountryStep from './SelectCountryStep';
 import SelectFeedType from './SelectFeedType';
+import StatementCloseDateStep from './StatementCloseDateStep';
 
 function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const policyID = policy?.id;
@@ -78,11 +79,13 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         case CONST.COMPANY_CARDS.STEP.CARD_NAME:
             return <CardNameStep />;
         case CONST.COMPANY_CARDS.STEP.CARD_DETAILS:
-            return <DetailsStep policyID={policyID} />;
+            return <DetailsStep />;
         case CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED:
             return <AmexCustomFeed />;
         case CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION:
             return <PlaidConnectionStep />;
+        case CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE:
+            return <StatementCloseDateStep policyID={policyID} />;
         default:
             return isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? <SelectCountryStep policyID={policyID} /> : <SelectBankStep />;
     }

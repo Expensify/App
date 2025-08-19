@@ -1,7 +1,7 @@
 import React, {useEffect, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {openPublicProfilePage} from '@libs/actions/PersonalDetails';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
@@ -13,14 +13,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenProps) {
     const {accountID = CONST.DEFAULT_NUMBER_ID} = route.params;
-
+    const {formatPhoneNumber} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const personalDetail = personalDetails?.[accountID];
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA, {canBeMissing: false});
     const avatarURL = personalDetail?.avatar ?? '';
     const displayName = getDisplayNameOrDefault(personalDetail);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true, canBeMissing: true});
-
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     useEffect(() => {
         if (!isValidAccountRoute(accountID)) {
             return;
@@ -38,7 +37,7 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
                 shouldShowNotFoundPage: !avatarURL,
                 maybeIcon: true,
             }) satisfies Partial<AttachmentModalBaseContentProps>,
-        [accountID, avatarURL, displayName, isLoadingApp, personalDetail, personalDetailsMetadata],
+        [accountID, avatarURL, displayName, isLoadingApp, personalDetail, personalDetailsMetadata, formatPhoneNumber],
     );
 
     return (

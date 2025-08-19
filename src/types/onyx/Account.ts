@@ -80,9 +80,6 @@ type Account = {
     /** Is this account having trouble receiving emails? */
     hasEmailDeliveryFailure?: boolean;
 
-    /** URL to the assigned guide's appointment booking calendar */
-    guideCalendarLink?: string;
-
     /** User recovery codes for setting up 2-FA */
     recoveryCodes?: string;
 
@@ -207,6 +204,9 @@ type Account = {
 
     /** Whether we should use the staging version of the secure API server */
     shouldUseStagingServer?: boolean;
+
+    /** Whether we should block the transaction thread report creation */
+    shouldBlockTransactionThreadReportCreation?: boolean;
 
     /** Whether or not the user is on a public domain email account or not */
     isFromPublicDomain?: boolean;

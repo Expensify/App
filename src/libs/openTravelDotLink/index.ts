@@ -10,4 +10,6 @@ const openTravelDotLink = (activePolicyID?: string) => {
         });
 };
 
-export default openTravelDotLink;
+const shouldOpenTravelDotLinkWeb = () => true;
+
+export {openTravelDotLink, shouldOpenTravelDotLinkWeb};

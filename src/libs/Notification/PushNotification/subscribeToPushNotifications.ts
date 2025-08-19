@@ -1,3 +1,4 @@
+import {NativeModules} from 'react-native';
 import Onyx from 'react-native-onyx';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 import Log from '@libs/Log';
@@ -41,17 +42,17 @@ Onyx.connect({
 
 let isSingleNewDotEntry: boolean | undefined;
 Onyx.connect({
-    key: ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY,
+    key: ONYXKEYS.HYBRID_APP,
     callback: (value) => {
         if (!value) {
             return;
         }
-        isSingleNewDotEntry = value;
+        isSingleNewDotEntry = value?.isSingleNewDotEntry;
     },
 });
 
 function applyOnyxData({reportID, onyxData, lastUpdateID, previousUpdateID, hasPendingOnyxUpdates = false}: PushNotificationData): Promise<void> {
-    Log.info(`[PushNotification] Applying onyx data in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID});
+    Log.info(`[PushNotification] Applying onyx data in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, lastUpdateID});
 
     const logMissingOnyxDataInfo = (isDataMissing: boolean): boolean => {
         if (isDataMissing) {
@@ -102,7 +103,9 @@ function applyOnyxData({reportID, onyxData, lastUpdateID, previousUpdateID, hasP
      * lastUpdateIDAppliedToClient will NOT be populated in other libs. To workaround this, we manually read the value here
      * and pass it as a param
      */
-    return getLastUpdateIDAppliedToClient().then((lastUpdateIDAppliedToClient) => applyOnyxUpdatesReliably(updates, {shouldRunSync: true, clientLastUpdateID: lastUpdateIDAppliedToClient}));
+    return getLastUpdateIDAppliedToClient()
+        .then((lastUpdateIDAppliedToClient) => applyOnyxUpdatesReliably(updates, {shouldRunSync: true, clientLastUpdateID: lastUpdateIDAppliedToClient}))
+        .then(() => NativeModules.PushNotificationBridge.finishBackgroundProcessing());
 }
 
 function navigateToReport({reportID}: PushNotificationData): Promise<void> {
@@ -129,7 +132,8 @@ function navigateToReport({reportID}: PushNotificationData): Promise<void> {
                 }
 
                 Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID});
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID), undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
+                const backTo = Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(String(reportID))) ? undefined : Navigation.getActiveRoute();
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID), undefined, undefined, undefined, undefined, backTo));
                 updateLastVisitedPath(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
             } catch (error) {
                 let errorMessage = String(error);

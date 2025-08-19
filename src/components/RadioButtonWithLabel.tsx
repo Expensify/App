@@ -32,11 +32,17 @@ type RadioButtonWithLabelProps = {
 
     /** Additional styles to apply to the wrapper */
     wrapperStyle?: StyleProp<ViewStyle>;
+
+    /**
+     * Whether the button should have a background layer in the color of theme.appBG.
+     * This is needed for buttons that allow content to display under them.
+     */
+    shouldBlendOpacity?: boolean;
 };
 
 const PressableWithFeedback = Pressables.PressableWithFeedback;
 
-function RadioButtonWithLabel({labelElement, style, label = '', hasError = false, errorText = '', isChecked, onPress, wrapperStyle}: RadioButtonWithLabelProps) {
+function RadioButtonWithLabel({labelElement, style, label = '', hasError = false, errorText = '', isChecked, onPress, wrapperStyle, shouldBlendOpacity}: RadioButtonWithLabelProps) {
     const styles = useThemeStyles();
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
 
@@ -61,6 +67,7 @@ function RadioButtonWithLabel({labelElement, style, label = '', hasError = false
                     // disable hover style when disabled
                     hoverDimmingValue={0.8}
                     pressDimmingValue={0.5}
+                    shouldBlendOpacity={shouldBlendOpacity}
                 >
                     {!!label && <Text style={[styles.ml1]}>{label}</Text>}
                     {!!labelElement && labelElement}

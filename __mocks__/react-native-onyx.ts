@@ -5,6 +5,7 @@
 
 /* eslint-disable rulesdir/prefer-onyx-connect-in-libs */
 import type {ConnectOptions, OnyxKey} from 'react-native-onyx';
+// eslint-disable-next-line no-restricted-imports
 import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
 
 let connectCallbackDelay = 0;
@@ -21,7 +22,7 @@ type ConnectionCallbackParams<TKey extends OnyxKey> = Parameters<ConnectionCallb
 
 const reactNativeOnyxMock: ReactNativeOnyxMock = {
     ...Onyx,
-    connect: <TKey extends OnyxKey>(mapping: ConnectOptions<TKey>) => {
+    connectWithoutView: <TKey extends OnyxKey>(mapping: ConnectOptions<TKey>) => {
         const callback = (...params: ConnectionCallbackParams<TKey>) => {
             if (connectCallbackDelay > 0) {
                 setTimeout(() => {
@@ -31,7 +32,7 @@ const reactNativeOnyxMock: ReactNativeOnyxMock = {
                 (mapping.callback as (...args: ConnectionCallbackParams<TKey>) => void)?.(...params);
             }
         };
-        return Onyx.connect({
+        return Onyx.connectWithoutView({
             ...mapping,
             callback,
         });
@@ -40,4 +41,5 @@ const reactNativeOnyxMock: ReactNativeOnyxMock = {
 };
 
 export default reactNativeOnyxMock;
+// eslint-disable-next-line
 export {withOnyx, useOnyx};

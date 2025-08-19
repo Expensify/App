@@ -37,6 +37,9 @@ type AmountTextInputProps = {
     /** Style for the TextInput container */
     containerStyle?: StyleProp<ViewStyle>;
 
+    /** Whether to apply padding to the input, some inputs doesn't require any padding, e.g. Amount input in money request flow */
+    shouldApplyPaddingToContainer?: boolean;
+
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
 } & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'submitBehavior'>;
@@ -54,6 +57,7 @@ function AmountTextInput(
         containerStyle,
         disableKeyboard = true,
         hideFocusedState = true,
+        shouldApplyPaddingToContainer = false,
         ...rest
     }: AmountTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -85,6 +89,8 @@ function AmountTextInput(
             autoCorrect={false}
             spellCheck={false}
             disableKeyboardShortcuts
+            shouldUseFullInputHeight
+            shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />

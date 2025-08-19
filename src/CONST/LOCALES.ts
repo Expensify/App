@@ -1,15 +1,20 @@
-import type {Spread, TupleToUnion} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 
-const LOCALES = {
+/**
+ * These locales are fully supported.
+ */
+const FULLY_SUPPORTED_LOCALES = {
     EN: 'en',
     ES: 'es',
-    ES_ES: 'es-ES',
-    ES_ES_ONFIDO: 'es_ES',
-
-    DEFAULT: 'en',
 } as const;
 
-const UPCOMING_LOCALES = {
+/**
+ * These are newly-added locales that aren't yet fully supported. i.e:
+ *
+ * - No emoji keyword support
+ * - Unaudited translations
+ */
+const BETA_LOCALES = {
     DE: 'de',
     FR: 'fr',
     IT: 'it',
@@ -18,40 +23,74 @@ const UPCOMING_LOCALES = {
     PL: 'pl',
     PT_BR: 'pt-BR',
     ZH_HANS: 'zh-hans',
-};
-
-const LANGUAGES = [LOCALES.EN, LOCALES.ES] as const;
-
-const UPCOMING_LANGUAGES = [
-    UPCOMING_LOCALES.DE,
-    UPCOMING_LOCALES.FR,
-    UPCOMING_LOCALES.IT,
-    UPCOMING_LOCALES.JA,
-    UPCOMING_LOCALES.NL,
-    UPCOMING_LOCALES.PL,
-    UPCOMING_LOCALES.PT_BR,
-    UPCOMING_LOCALES.ZH_HANS,
-] as const;
-
-const LOCALE_TO_LANGUAGE_STRING = {
-    [LOCALES.EN]: 'English',
-    [LOCALES.ES]: 'Español',
-    [UPCOMING_LOCALES.DE]: 'Deutsch',
-    [UPCOMING_LOCALES.FR]: 'Français',
-    [UPCOMING_LOCALES.IT]: 'Italiano',
-    [UPCOMING_LOCALES.JA]: '日本語',
-    [UPCOMING_LOCALES.NL]: 'Nederlands',
-    [UPCOMING_LOCALES.PL]: 'Polski',
-    [UPCOMING_LOCALES.PT_BR]: 'Português (BR)',
-    [UPCOMING_LOCALES.ZH_HANS]: '中文 (简体)',
 } as const;
 
-type SupportedLanguage = TupleToUnion<Spread<typeof LANGUAGES, typeof UPCOMING_LANGUAGES>>;
+/**
+ * These are additional locales that are not valid values of the preferredLocale NVP.
+ */
+const EXTENDED_LOCALES = {
+    ES_ES_ONFIDO: 'es_ES',
+} as const;
 
 /**
- * We can translate into any language but English (which is used as the source language).
+ * Locales that are valid values of the preferredLocale NVP.
  */
-type TranslationTargetLanguage = Exclude<SupportedLanguage, typeof LOCALES.EN>;
+const LOCALES = {
+    DEFAULT: FULLY_SUPPORTED_LOCALES.EN,
+    ...FULLY_SUPPORTED_LOCALES,
+    ...BETA_LOCALES,
+} as const;
 
-export {LOCALES, LANGUAGES, UPCOMING_LANGUAGES, LOCALE_TO_LANGUAGE_STRING};
-export type {SupportedLanguage, TranslationTargetLanguage};
+/**
+ * Locales that are valid translation targets. This does not include English, because it's used as the source of truth.
+ */
+const {DEFAULT, EN, ...TRANSLATION_TARGET_LOCALES} = {...LOCALES} as const;
+
+/**
+ * These strings are never translated.
+ */
+const LOCALE_TO_LANGUAGE_STRING = {
+    [FULLY_SUPPORTED_LOCALES.EN]: 'English',
+    [FULLY_SUPPORTED_LOCALES.ES]: 'Español',
+    [BETA_LOCALES.DE]: 'Deutsch',
+    [BETA_LOCALES.FR]: 'Français',
+    [BETA_LOCALES.IT]: 'Italiano',
+    [BETA_LOCALES.JA]: '日本語',
+    [BETA_LOCALES.NL]: 'Nederlands',
+    [BETA_LOCALES.PL]: 'Polski',
+    [BETA_LOCALES.PT_BR]: 'Português (BR)',
+    [BETA_LOCALES.ZH_HANS]: '中文 (简体)',
+} as const;
+
+type FullySupportedLocale = ValueOf<typeof FULLY_SUPPORTED_LOCALES>;
+type Locale = FullySupportedLocale | ValueOf<typeof BETA_LOCALES>;
+type TranslationTargetLocale = ValueOf<typeof TRANSLATION_TARGET_LOCALES>;
+
+// Sort all locales alphabetically by their display names
+const SORTED_LOCALES = Object.values({...FULLY_SUPPORTED_LOCALES, ...BETA_LOCALES}).sort((a, b) => LOCALE_TO_LANGUAGE_STRING[a].localeCompare(LOCALE_TO_LANGUAGE_STRING[b]));
+
+function isSupportedLocale(locale: string): locale is Locale {
+    return (Object.values(LOCALES) as readonly string[]).includes(locale);
+}
+
+function isFullySupportedLocale(locale: Locale): locale is FullySupportedLocale {
+    return (Object.values(FULLY_SUPPORTED_LOCALES) as Locale[]).includes(locale);
+}
+
+function isTranslationTargetLocale(locale: string): locale is TranslationTargetLocale {
+    return (Object.values(TRANSLATION_TARGET_LOCALES) as readonly string[]).includes(locale);
+}
+
+export {
+    BETA_LOCALES,
+    EXTENDED_LOCALES,
+    FULLY_SUPPORTED_LOCALES,
+    LOCALES,
+    LOCALE_TO_LANGUAGE_STRING,
+    SORTED_LOCALES,
+    TRANSLATION_TARGET_LOCALES,
+    isSupportedLocale,
+    isFullySupportedLocale,
+    isTranslationTargetLocale,
+};
+export type {FullySupportedLocale, Locale, TranslationTargetLocale};

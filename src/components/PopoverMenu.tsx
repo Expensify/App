@@ -9,6 +9,7 @@ import type {SvgProps} from 'react-native-svg';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -16,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
+import variables from '@styles/variables';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
@@ -26,7 +28,7 @@ import FocusTrapForModal from './FocusTrap/FocusTrapForModal';
 import * as Expensicons from './Icon/Expensicons';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
-import type BottomDockedModalProps from './Modal/BottomDockedModal/types';
+import type ReanimatedModalProps from './Modal/ReanimatedModal/types';
 import type BaseModalProps from './Modal/types';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
@@ -68,9 +70,15 @@ type PopoverMenuItem = MenuItemProps & {
 
     /** Test identifier used to find elements in unit and e2e tests */
     testID?: string;
+
+    /** Whether to show a loading spinner icon for the menu item */
+    shouldShowLoadingSpinnerIcon?: boolean;
+
+    /** Whether to close the modal on select */
+    shouldCloseModalOnSelect?: boolean;
 };
 
-type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'> & Pick<BottomDockedModalProps, 'animationInDelay'>;
+type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'> & Pick<ReanimatedModalProps, 'animationInDelay'>;
 
 type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Callback method fired when the user requests to close the modal */
@@ -104,7 +112,7 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     anchorPosition: AnchorPosition;
 
     /** Ref of the anchor */
-    anchorRef: RefObject<View | HTMLDivElement>;
+    anchorRef: RefObject<View | HTMLDivElement | null>;
 
     /** Where the popover should be positioned relative to the anchor points. */
     anchorAlignment?: AnchorAlignment;
@@ -172,35 +180,17 @@ function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
     return menuItems.findIndex((option) => option.isSelected);
 }
 
-function PopoverMenuContent({
-    shouldUseScrollView,
-    contentContainerStyle,
-    children,
-    addBottomSafeAreaPadding,
-}: {
-    shouldUseScrollView: boolean;
-    contentContainerStyle: StyleProp<ViewStyle>;
-    children: ReactNode;
-    addBottomSafeAreaPadding?: boolean;
-}): React.JSX.Element {
-    const style = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, style: contentContainerStyle});
-
-    if (shouldUseScrollView) {
-        return (
-            <ScrollView
-                contentContainerStyle={contentContainerStyle}
-                addBottomSafeAreaPadding={addBottomSafeAreaPadding}
-            >
-                {children}
-            </ScrollView>
-        );
+function PopoverMenu(props: PopoverMenuProps) {
+    const wasVisible = usePrevious(props.isVisible);
+    // Do not render the PopoverMenu before it gets opened. Until then both values are false
+    if (!wasVisible && !props.isVisible) {
+        return null;
     }
-    // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <View style={style}>{children}</View>;
+    return <BasePopoverMenu {...props} />;
 }
-PopoverMenuContent.displayName = 'PopoverMenuContent';
+PopoverMenu.displayName = 'PopoverMenu';
 
-function PopoverMenu({
+function BasePopoverMenu({
     menuItems,
     onItemSelected,
     isVisible,
@@ -236,8 +226,8 @@ function PopoverMenu({
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
     shouldAvoidSafariException = false,
-    testID,
     enableEdgeToEdgeBottomSafeAreaPadding,
+    testID,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -265,13 +255,17 @@ function PopoverMenu({
             setFocusedIndex(selectedSubMenuItemIndex);
         } else if (selectedItem.shouldCallAfterModalHide && (!isSafari() || shouldAvoidSafariException)) {
             onItemSelected?.(selectedItem, index, event);
-            close(
-                () => {
-                    selectedItem.onSelected?.();
-                },
-                undefined,
-                selectedItem.shouldCloseAllModals,
-            );
+            if (selectedItem.shouldCloseModalOnSelect !== false) {
+                close(
+                    () => {
+                        selectedItem.onSelected?.();
+                    },
+                    undefined,
+                    selectedItem.shouldCloseAllModals,
+                );
+            } else {
+                selectedItem.onSelected?.();
+            }
         } else {
             onItemSelected?.(selectedItem, index, event);
             selectedItem.onSelected?.();
@@ -293,19 +287,20 @@ function PopoverMenu({
     const renderBackButtonItem = () => {
         const previousMenuItems = getPreviousSubMenu();
         const previouslySelectedItem = previousMenuItems[enteredSubMenuIndexes[enteredSubMenuIndexes.length - 1]];
-        const hasBackButtonText = !!previouslySelectedItem.backButtonText;
+        const hasBackButtonText = !!previouslySelectedItem?.backButtonText;
 
         return (
             <MenuItem
-                key={previouslySelectedItem.text}
+                key={previouslySelectedItem?.text}
                 icon={Expensicons.BackArrow}
-                iconFill={theme.icon}
+                iconFill={(isHovered) => (isHovered ? theme.iconHovered : theme.icon)}
                 style={hasBackButtonText ? styles.pv0 : undefined}
-                title={hasBackButtonText ? previouslySelectedItem.backButtonText : previouslySelectedItem.text}
+                additionalIconStyles={[{width: variables.iconSizeSmall, height: variables.iconSizeSmall}, styles.opacitySemiTransparent, styles.mr1]}
+                title={hasBackButtonText ? previouslySelectedItem?.backButtonText : previouslySelectedItem?.text}
                 titleStyle={hasBackButtonText ? styles.createMenuHeaderText : undefined}
                 shouldShowBasicTitle={hasBackButtonText}
                 shouldCheckActionAllowedOnPress={false}
-                description={previouslySelectedItem.description}
+                description={previouslySelectedItem?.description}
                 onPress={() => {
                     setCurrentMenuItems(previousMenuItems);
                     setFocusedIndex(-1);
@@ -316,7 +311,7 @@ function PopoverMenu({
     };
 
     const renderedMenuItems = currentMenuItems.map((item, menuIndex) => {
-        const {text, onSelected, subMenuItems, shouldCallAfterModalHide, key, testID: menuItemTestID, ...menuItemProps} = item;
+        const {text, onSelected, subMenuItems, shouldCallAfterModalHide, key, testID: menuItemTestID, shouldShowLoadingSpinnerIcon, ...menuItemProps} = item;
 
         return (
             <OfflineWithFeedback
@@ -341,17 +336,16 @@ function PopoverMenu({
                         }
                         setFocusedIndex(menuIndex);
                     }}
-                    wrapperStyle={StyleUtils.getItemBackgroundColorStyle(
-                        !!item.isSelected,
-                        focusedIndex === menuIndex,
-                        item.disabled ?? false,
-                        theme.activeComponentBG,
-                        theme.hoverComponentBG,
-                    )}
+                    wrapperStyle={[
+                        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, focusedIndex === menuIndex, item.disabled ?? false, theme.activeComponentBG, theme.hoverComponentBG),
+                        shouldUseScrollView && !shouldUseModalPaddingStyle && StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
+                    ]}
                     shouldRemoveHoverBackground={item.isSelected}
                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                     // Spread other props dynamically
                     {...menuItemProps}
+                    hasSubMenuItems={!!subMenuItems?.length}
+                    shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
                 />
             </OfflineWithFeedback>
         );
@@ -424,6 +418,8 @@ function PopoverMenu({
         return styles.createMenuContainer;
     }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer]);
 
+    const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
+
     return (
         <PopoverWithMeasuredContent
             anchorPosition={anchorPosition}
@@ -449,7 +445,7 @@ function PopoverMenu({
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
             useNativeDriver
             restoreFocusType={restoreFocusType}
-            innerContainerStyle={innerContainerStyle}
+            innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             testID={testID}
             enableEdgeToEdgeBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
@@ -457,13 +453,13 @@ function PopoverMenu({
             <FocusTrapForModal active={isVisible}>
                 <View
                     onLayout={onLayout}
-                    style={[menuContainerStyle, containerStyles]}
+                    style={[menuContainerStyle, containerStyles, {paddingTop, paddingBottom, paddingVertical, ...(isWebOrDesktop ? styles.flex1 : styles.flexGrow1)}]}
                 >
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     <PopoverMenuContent
                         shouldUseScrollView={shouldUseScrollView}
-                        contentContainerStyle={scrollContainerStyle}
+                        contentContainerStyle={restScrollContainerStyle}
                         addBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
                     >
                         {renderedMenuItems}
@@ -473,8 +469,35 @@ function PopoverMenu({
         </PopoverWithMeasuredContent>
     );
 }
+BasePopoverMenu.displayName = 'BasePopoverMenu';
 
-PopoverMenu.displayName = 'PopoverMenu';
+function PopoverMenuContent({
+    shouldUseScrollView,
+    contentContainerStyle,
+    children,
+    addBottomSafeAreaPadding,
+}: {
+    shouldUseScrollView: boolean;
+    contentContainerStyle: StyleProp<ViewStyle>;
+    children: ReactNode;
+    addBottomSafeAreaPadding?: boolean;
+}): React.JSX.Element {
+    const style = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, style: contentContainerStyle});
+
+    if (shouldUseScrollView) {
+        return (
+            <ScrollView
+                contentContainerStyle={contentContainerStyle}
+                addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+            >
+                {children}
+            </ScrollView>
+        );
+    }
+    // eslint-disable-next-line react/jsx-no-useless-fragment
+    return <View style={style}>{children}</View>;
+}
+PopoverMenuContent.displayName = 'PopoverMenuContent';
 
 export default React.memo(
     PopoverMenu,

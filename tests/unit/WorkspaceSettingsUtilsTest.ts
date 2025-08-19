@@ -2,6 +2,8 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getBrickRoadForPolicy} from '@libs/WorkspacesSettingsUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
@@ -19,7 +21,9 @@ describe('WorkspacesSettingsUtils', () => {
 
     beforeEach(() => {
         global.fetch = TestHelper.getGlobalFetchMock();
-        return Onyx.clear().then(waitForBatchedUpdates);
+        Onyx.clear([ONYXKEYS.NVP_PREFERRED_LOCALE]).then(waitForBatchedUpdates);
+        IntlStore.load(CONST.LOCALES.EN);
+        return waitForBatchedUpdates();
     });
     describe('getBrickRoadForPolicy', () => {
         it('Should return "error"', async () => {

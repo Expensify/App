@@ -34,6 +34,16 @@ You can create an expense by scanning a receipt, entering details manually, or t
 6. Click **Create expense**.
 
 💡 **Note:** You can also forward receipts to `receipts@expensify.com` using a verified email address.
+💡 **Note:** Upload your receipt via SMS by texting the photo of your receipt to 47777. To start sending your receipts add your phone number to your account from **Account > Profile > Phone Number**.
+
+## Smart Receipt Detection
+
+Expensify uses AI to detect suspicious or non-human receipts:
+
+- **AI-generated receipts** – We'll flag receipts that appear to be artificially created.
+- **Prohibited expenses** – If a receipt violates workspace rules, it will be flagged as soon as it's submitted.
+
+This feature helps prevent policy violations and ensures accurate expense tracking from the moment of upload.
 
 ---
 
@@ -60,13 +70,21 @@ You can create an expense by scanning a receipt, entering details manually, or t
 
 ---
 
-## Option 4: Bulk Upload Receipts (Desktop Only)
+## Option 4: Scan Multiple Receipts (Mobile)
+
+1. On the mobile app, tap the green **+** button and select **Create expense**.
+2. Tap the multi-receipt icon in the bottom-right corner.
+3. Tap the green capture button to take a photo of each receipt.
+5. Once you’ve scanned all your receipts, tap the green arrow to confirm.
+6. Enter expense details for each receipt or just tap Create expenses for automatic scanning.
+
+---
+
+## Option 5: Bulk Upload Receipts (Desktop)
 
 1. Drag up to 30 PDF or image files (under 10MB each) into Expensify.
 2. Select **Scan Receipts** or **Add Attachments**.
 3. Follow the prompts to assign workspaces, recipients, and coding.
-
----
 
 # Next Steps for Individual Expenses
 
@@ -76,6 +94,33 @@ You can create an expense by scanning a receipt, entering details manually, or t
 - [Connect your bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Personal-Bank-Account) to receive payments.
 
 ---
+
+# Split Personal Expenses
+
+To split an expense, you’ll need to start a chat with each person you’re requesting money from. Once the chat is started, you can request their share of the bill.
+
+## Start a Chat Before Splitting
+
+1. Click the green Create button in the left sidebar.
+2. Select Start Chat.
+3. Search for the person by name, email, or phone number.
+4. Send them a message to begin the conversation.
+5. Once a chat is started, follow the steps below to split the expense.
+
+## Split the Expense
+
+1. In the chat thread, click the + icon next to the message box.
+2. Select Split Expense.
+3. Upload a photo of your receipt, or manually enter the total bill amount.
+4. Click Next.
+- Select the people you want to split the cost with.
+5. You can enter names, emails, or phone numbers.
+6. Click Next.
+7. (Optional) Add a reason for the request in the Description field.
+8. (Optional) If entering the amount manually, include the merchant and date of purchase.
+9. Click Split.
+
+Each person will receive a notification via email or text with the request details. You can chat about the expense in Expensify Chat, and payments can be received via your Expensify Wallet or through other methods.
 
 # Next Steps for Workspace Expenses
 

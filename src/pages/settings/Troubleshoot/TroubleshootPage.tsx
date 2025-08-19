@@ -1,8 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
-import ClientSideLoggingToolMenu from '@components/ClientSideLoggingToolMenu';
 import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -12,17 +10,18 @@ import ImportOnyxState from '@components/ImportOnyxState';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import ProfilingToolMenu from '@components/ProfilingToolMenu';
+import RecordTroubleshootDataToolMenu from '@components/RecordTroubleshootDataToolMenu';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import {useSearchContext} from '@components/Search/SearchContext';
 import Section from '@components/Section';
 import Switch from '@components/Switch';
 import TestToolMenu from '@components/TestToolMenu';
 import TestToolRow from '@components/TestToolRow';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
@@ -30,8 +29,6 @@ import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import Navigation from '@libs/Navigation/Navigation';
 import {clearOnyxAndResetApp} from '@userActions/App';
-import {navigateToConciergeChat} from '@userActions/Report';
-import {shouldShowProfileTool} from '@userActions/TestTool';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -55,7 +52,7 @@ function TroubleshootPage() {
     const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS, {canBeMissing: true});
     const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE, {canBeMissing: true});
     const {resetOptions} = useOptionsList({shouldInitialize: false});
-
+    const {setShouldResetSearchQuery} = useSearchContext();
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
             const dataToShare = ExportOnyxState.maskOnyxState(value, shouldMaskOnyxState);
@@ -124,22 +121,14 @@ function TroubleshootPage() {
                         illustrationStyle={illustrationStyle}
                         titleStyles={styles.accountSettingsSectionTitle}
                         renderSubtitle={() => (
-                            <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
-                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('initialSettingsPage.troubleshoot.description')}</Text>{' '}
-                                <TextLink
-                                    style={styles.link}
-                                    onPress={() => navigateToConciergeChat()}
-                                >
-                                    {translate('initialSettingsPage.troubleshoot.submitBug')}
-                                </TextLink>
-                                .
-                            </Text>
+                            <View style={[styles.renderHTML, styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
+                                <RenderHTML html={translate('initialSettingsPage.troubleshoot.description')} />
+                            </View>
                         )}
                     >
                         <View style={[styles.flex1, styles.mt5]}>
                             <View>
-                                {shouldShowProfileTool() && <ProfilingToolMenu />}
-                                <ClientSideLoggingToolMenu />
+                                <RecordTroubleshootDataToolMenu />
                                 <TestToolRow title={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}>
                                     <Switch
                                         accessibilityLabel={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}
@@ -164,6 +153,7 @@ function TroubleshootPage() {
                                 onConfirm={() => {
                                     setIsConfirmationModalVisible(false);
                                     resetOptions();
+                                    setShouldResetSearchQuery(true);
                                     clearOnyxAndResetApp();
                                 }}
                                 onCancel={() => setIsConfirmationModalVisible(false)}

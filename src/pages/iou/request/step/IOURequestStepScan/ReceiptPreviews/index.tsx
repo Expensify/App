@@ -13,9 +13,11 @@ import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Navigation from '@libs/Navigation/Navigation';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import SubmitButtonShadow from './SubmitButtonShadow';
 
@@ -27,18 +29,14 @@ type ReceiptPreviewsProps = {
 
     /** If the receipts preview should be shown */
     isMultiScanEnabled: boolean;
-
-    /** Method to disable swipe between tabs */
-    setTabSwipeDisabled?: (isDisabled: boolean) => void;
 };
 
-// TODO: remove the lint disable when submit method will be used in the code below
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: ReceiptPreviewsProps) {
+function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
+    const backTo = Navigation.getActiveRoute();
     const isPreviewsVisible = useSharedValue(false);
     const previewsHeight = styles.receiptPlaceholder.height + styles.pv2.paddingVertical * 2;
     const previewItemWidth = styles.receiptPlaceholder.width + styles.receiptPlaceholder.marginRight;
@@ -94,8 +92,7 @@ function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: Rece
                 accessible
                 accessibilityLabel={translate('common.receipt')}
                 accessibilityRole={CONST.ROLE.BUTTON}
-                // TODO: open ReceiptViewModal when implemented https://github.com/Expensify/App/issues/61182
-                onPress={() => {}}
+                onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_RECEIPT_VIEW_MODAL.getRoute(item.transactionID, backTo))}
             >
                 <Image
                     source={{uri: item.source}}
@@ -115,9 +112,10 @@ function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: Rece
         };
     });
 
-    if (!isMultiScanEnabled) {
-        return;
-    }
+    const submitReceipts = () => {
+        const transactionReceipts = (optimisticTransactionsReceipts ?? []).filter((receipt): receipt is ReceiptWithTransactionID & {source: string} => !!receipt.source);
+        submit(transactionReceipts);
+    };
 
     return (
         <Animated.View style={slideInStyle}>
@@ -129,8 +127,6 @@ function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: Rece
                     keyExtractor={(_, index) => index.toString()}
                     renderItem={renderItem}
                     getItemLayout={(data, index) => ({length: previewItemWidth, offset: previewItemWidth * index, index})}
-                    onTouchStart={() => setTabSwipeDisabled?.(true)}
-                    onTouchEnd={() => setTabSwipeDisabled?.(false)}
                     style={styles.pv2}
                     scrollEnabled={isScrollEnabled}
                     showsHorizontalScrollIndicator={false}
@@ -143,12 +139,7 @@ function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: Rece
                         innerStyles={[styles.singleAvatarMedium, styles.bgGreenSuccess]}
                         icon={Expensicons.ArrowRight}
                         iconFill={theme.white}
-                        onPress={() => {
-                            // TODO: uncomment the submit call when necessary updates for the confirmation page and bulk expense creation are implemented
-                            // https://github.com/Expensify/App/issues/61183
-                            // https://github.com/Expensify/App/issues/61184
-                            // submit(optimisticTransactionsReceipts ?? []);
-                        }}
+                        onPress={submitReceipts}
                     />
                 </SubmitButtonShadow>
             </View>

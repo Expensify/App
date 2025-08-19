@@ -30,7 +30,7 @@ title "Bundling Desktop js Bundle Using Webpack"
 info " • ELECTRON_ENV: $ELECTRON_ENV"
 info " • ENV file: $ENV_FILE"
 info ""
-npx webpack --config config/webpack/webpack.desktop.ts --env file=$ENV_FILE
+NODE_OPTIONS=--max-old-space-size=8192 npx webpack --config config/webpack/webpack.desktop.ts --env file=$ENV_FILE
 
 title "Combining web sourcemaps"
 info ""
