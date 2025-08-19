@@ -12,7 +12,12 @@ import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Mock dependencies
-jest.mock('@libs/ReportUtils');
+jest.mock('@libs/ReportUtils', () => ({
+    ...jest.requireActual('@libs/ReportUtils'),
+    parseReportRouteParams: jest.fn(() => ({reportID: '', isSubReportPageRoute: false})),
+    isExpenseReport: jest.fn(),
+    getTitleReportField: jest.fn(),
+}));
 jest.mock('@libs/Performance', () => ({
     markStart: jest.fn(),
     markEnd: jest.fn(),
