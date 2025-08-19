@@ -3556,6 +3556,9 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: '組織全体で出張費や食事の配達費を自動化します。',
+                autoRemove: 'Uber for Business に新しいワークスペースメンバーを招待する',
+                autoInvite: 'Uber for Business から削除されたワークスペースメンバーを非アクティブ化する',
+                manageInvites: '招待を管理する',
             },
         },
         perDiem: {
@@ -4673,6 +4676,7 @@ const translations = {
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Uberを切断',
                 disconnectText: 'この機能を無効にするには、まずUber for Business統合を切断してください。',
+                description: 'この統合を切断してもよろしいですか?',
                 confirmText: '了解',
             },
             workflowWarningModal: {
