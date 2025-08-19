@@ -26,7 +26,7 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import Performance from '@libs/Performance';
 import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, generateReportID, isArchivedReport} from '@libs/ReportUtils';
-import {buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     getListItem,
     getSections,
@@ -186,6 +186,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         shouldShowSelectAllMatchingItems,
         areAllMatchingItemsSelected,
         selectAllMatchingItems,
+        shouldResetSearchQuery,
+        setShouldResetSearchQuery,
     } = useSearchContext();
     const [offset, setOffset] = useState(0);
 
@@ -669,6 +671,19 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
 
+    useEffect(() => {
+        const currentRoute = Navigation.getActiveRouteWithoutParams();
+        if (hasErrors && (currentRoute === '/' || (shouldResetSearchQuery && currentRoute === '/search'))) {
+            // Use requestAnimationFrame to safely update navigation params without overriding the current route
+            requestAnimationFrame(() => {
+                Navigation.setParams({q: buildCannedSearchQuery()});
+            });
+            if (shouldResetSearchQuery) {
+                setShouldResetSearchQuery(false);
+            }
+        }
+    }, [hasErrors, queryJSON, searchResults, shouldResetSearchQuery, setShouldResetSearchQuery]);
+
     const fetchMoreResults = useCallback(() => {
         if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
             return;
@@ -809,6 +824,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 onViewableItemsChanged={onViewableItemsChanged}
                 onLayout={onLayout}
                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
             />
         </SearchScopeProvider>
     );
