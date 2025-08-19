@@ -122,6 +122,7 @@ function IOURequestEditReportCommon({
                     alternateText: getPolicyName({report}) ?? matchingOption?.alternateText,
                     value: report.reportID,
                     isSelected: onlyReport && report.reportID === onlyReport?.reportID,
+                    policyID: matchingOption?.policyID ?? report.policyID,
                 };
             });
     }, [outstandingReportsByPolicyID, debouncedSearchValue, expenseReports, onlyReport, options.reports, localeCompare]);
