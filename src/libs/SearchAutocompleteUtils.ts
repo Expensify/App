@@ -177,9 +177,13 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
             return booleanList.includes(range.value);
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
             return datePresetList.includes(range.value);
         default:
             return false;

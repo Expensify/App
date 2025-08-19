@@ -467,8 +467,12 @@ function SearchAutocompleteList(
                     text: status,
                 }));
             }
-            case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED: {
                 const filteredDatePresets = getDatePresets(autocompleteKey, true)
                     .filter((datePreset) => datePreset.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(datePreset.toLowerCase()))
