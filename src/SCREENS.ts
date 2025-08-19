@@ -281,6 +281,7 @@ const SCREENS = {
         DISTANCE_CREATE: 'Money_Request_Distance_Create',
         STEP_DISTANCE_MAP: 'Money_Request_Step_Distance_Map',
         STEP_DISTANCE_MANUAL: 'Money_Request_Step_Distance_Manual',
+        RECEIPT_PREVIEW: 'Money_Request_Receipt_preview',
     },
 
     TRANSACTION_DUPLICATE: {
@@ -642,6 +643,7 @@ const SCREENS = {
         RULES_MAX_EXPENSE_AMOUNT: 'Rules_Max_Expense_Amount',
         RULES_MAX_EXPENSE_AGE: 'Rules_Max_Expense_Age',
         RULES_BILLABLE_DEFAULT: 'Rules_Billable_Default',
+        RULES_REIMBURSABLE_DEFAULT: 'Rules_Reimbursable_Default',
         RULES_CUSTOM: 'Rules_Custom',
         RULES_PROHIBITED_DEFAULT: 'Rules_Prohibited_Default',
         PER_DIEM: 'Per_Diem',
