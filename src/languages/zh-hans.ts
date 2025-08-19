@@ -52,6 +52,7 @@ import type {
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
     BusinessBankAccountParams,
+    BusinessRegistrationNumberParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -2951,7 +2952,14 @@ const translations = {
         whatsTheBusinessName: '企业名称是什么？',
         whatsTheBusinessAddress: '公司的地址是什么？',
         whatsTheBusinessContactInformation: '商业联系信息是什么？',
-        whatsTheBusinessRegistrationNumber: '营业登记号码是多少？',
+        whatsTheBusinessRegistrationNumber: ({country}: BusinessRegistrationNumberParams) => {
+            switch (country) {
+                case CONST.COUNTRY.GB:
+                    return '公司注册号（CRN）是多少？';
+                default:
+                    return '营业登记号码是多少？';
+            }
+        },
         whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
             switch (country) {
                 case CONST.COUNTRY.US:

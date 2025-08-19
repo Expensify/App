@@ -824,6 +824,10 @@ type BusinessTaxIDParams = {
     country: string;
 };
 
+type BusinessRegistrationNumberParams = {
+    country: string;
+};
+
 type QBDSetupErrorBodyParams = {
     conciergeLink: string;
 };
@@ -1182,4 +1186,5 @@ export type {
     DomainPermissionInfoRestrictionParams,
     SubmittedWithMemoParams,
     SignerInfoMessageParams,
+    BusinessRegistrationNumberParams,
 };

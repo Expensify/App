@@ -52,6 +52,7 @@ import type {
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
     BusinessBankAccountParams,
+    BusinessRegistrationNumberParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -2980,7 +2981,14 @@ const translations = {
         whatsTheBusinessName: 'Jak nazywa się firma?',
         whatsTheBusinessAddress: 'Jaki jest adres firmy?',
         whatsTheBusinessContactInformation: 'Jakie są dane kontaktowe firmy?',
-        whatsTheBusinessRegistrationNumber: 'Jaki jest numer rejestracyjny firmy?',
+        whatsTheBusinessRegistrationNumber: ({country}: BusinessRegistrationNumberParams) => {
+            switch (country) {
+                case CONST.COUNTRY.GB:
+                    return 'Jaki jest numer rejestracyjny firmy (CRN)?';
+                default:
+                    return 'Jaki jest numer rejestracyjny firmy?';
+            }
+        },
         whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
             switch (country) {
                 case CONST.COUNTRY.US:
