@@ -45,7 +45,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         shouldInitialize: didScreenTransitionEnd,
     });
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: false, initWithStoredValues: false});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
@@ -78,7 +77,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
                 selectedOptions.some((selectedOption) => selectedOption.accountID === item.accountID) ? {...item, isSelected: true} : item,
             ),
         };
-    }, [defaultOptions]);
+    }, [defaultOptions, selectedOptions]);
 
     const chatOptions = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(defaultOptionsModified, cleanSearchTerm, {
