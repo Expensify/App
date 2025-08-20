@@ -5,12 +5,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import {openApp} from '@libs/actions/App';
+import {isMobileSafari} from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
-// import SignInPage from './SignInPage';
-import {SignInPageBase} from './SignInPage';
+import SignInPageWrapped, {SignInPage} from './SignInPage';
 import type {SignInPageRef} from './SignInPage';
 
 function SignInModal() {
@@ -18,6 +18,10 @@ function SignInModal() {
     const StyleUtils = useStyleUtils();
     const signinPageRef = useRef<SignInPageRef | null>(null);
     const session = useSession();
+    // Use of SignInPageWrapped (with shouldEnableMaxHeight prop in SignInPageWrapper) is a workaround for Safari not supporting interactive-widget=resizes-content.
+    // This allows better scrolling experience after keyboard shows for modals with input, that are larger than remaining screen height.
+    // More info https://github.com/Expensify/App/pull/62799#issuecomment-2943136220.
+    const SignInPageBase = isMobileSafari() ? SignInPageWrapped : SignInPage;
 
     useEffect(() => {
         const isAnonymousUser = session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;

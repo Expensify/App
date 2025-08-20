@@ -14,7 +14,6 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isClientTheLeader as isClientTheLeaderActiveClientManager} from '@libs/ActiveClientManager';
-import {isMobileSafari} from '@libs/Browser';
 import {getDevicePreferredLocale} from '@libs/Localize';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -43,12 +42,6 @@ import type {BaseValidateCodeFormRef} from './ValidateCodeForm/BaseValidateCodeF
 
 type SignInPageProps = {
     ref?: Ref<SignInPageRef>;
-};
-
-type SignInPageWrapperProps = SignInPageProps & {
-    /** Whether to use screenWrapper styles intended for pages
-     * (that may disturb other ScreenWrapper styles - like those from higher order component e.g. SignInModal) */
-    shouldUseStyles?: boolean;
 };
 
 type SignInPageRef = {
@@ -308,62 +301,54 @@ function SignInPage({ref}: SignInPageProps) {
     }));
 
     return (
-        <ThemeProvider theme={CONST.THEME.DARK}>
-            <ThemeStylesProvider>
-                <ColorSchemeWrapper>
-                    <CustomStatusBarAndBackground isNested />
-                    <LoginProvider>
-                        <SignInPageLayout
-                            welcomeHeader={welcomeHeader}
-                            welcomeText={welcomeText}
-                            shouldShowWelcomeHeader={shouldShowWelcomeHeader || !shouldUseNarrowLayout}
-                            shouldShowWelcomeText={shouldShowWelcomeText}
-                            ref={signInPageLayoutRef}
-                            navigateFocus={navigateFocus}
-                        >
-                            {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
-                            so that password managers can access the values. Conditionally rendering this component will break this feature. */}
-                            <LoginForm
-                                ref={loginFormRef}
-                                isVisible={shouldShowLoginForm}
-                                blurOnSubmit={isAccountValidated === false}
-                                // eslint-disable-next-line react-compiler/react-compiler
-                                scrollPageToTop={signInPageLayoutRef.current?.scrollPageToTop}
-                            />
-                            {shouldShouldSignUpWelcomeForm && <SignUpWelcomeForm />}
-                            {shouldShowValidateCodeForm && (
-                                <ValidateCodeForm
-                                    isVisible={!shouldShowAnotherLoginPageOpenedMessage}
-                                    isUsingRecoveryCode={isUsingRecoveryCode}
-                                    setIsUsingRecoveryCode={setIsUsingRecoveryCode}
-                                    ref={validateCodeFormRef}
-                                />
-                            )}
-                            {!shouldShowAnotherLoginPageOpenedMessage && (
-                                <>
-                                    {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
-                                    {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrMagicCode setIsUsingMagicCode={setIsUsingMagicCode} />}
-                                    {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
-                                    {shouldShowSMSDeliveryFailurePage && <SMSDeliveryFailurePage />}
-                                </>
-                            )}
-                        </SignInPageLayout>
-                    </LoginProvider>
-                </ColorSchemeWrapper>
-            </ThemeStylesProvider>
-        </ThemeProvider>
+        <ColorSchemeWrapper>
+            <CustomStatusBarAndBackground isNested />
+            <LoginProvider>
+                <SignInPageLayout
+                    welcomeHeader={welcomeHeader}
+                    welcomeText={welcomeText}
+                    shouldShowWelcomeHeader={shouldShowWelcomeHeader || !shouldUseNarrowLayout}
+                    shouldShowWelcomeText={shouldShowWelcomeText}
+                    ref={signInPageLayoutRef}
+                    navigateFocus={navigateFocus}
+                >
+                    {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
+                        so that password managers can access the values. Conditionally rendering this component will break this feature. */}
+                    <LoginForm
+                        ref={loginFormRef}
+                        isVisible={shouldShowLoginForm}
+                        blurOnSubmit={isAccountValidated === false}
+                        // eslint-disable-next-line react-compiler/react-compiler
+                        scrollPageToTop={signInPageLayoutRef.current?.scrollPageToTop}
+                    />
+                    {shouldShouldSignUpWelcomeForm && <SignUpWelcomeForm />}
+                    {shouldShowValidateCodeForm && (
+                        <ValidateCodeForm
+                            isVisible={!shouldShowAnotherLoginPageOpenedMessage}
+                            isUsingRecoveryCode={isUsingRecoveryCode}
+                            setIsUsingRecoveryCode={setIsUsingRecoveryCode}
+                            ref={validateCodeFormRef}
+                        />
+                    )}
+                    {!shouldShowAnotherLoginPageOpenedMessage && (
+                        <>
+                            {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
+                            {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrMagicCode setIsUsingMagicCode={setIsUsingMagicCode} />}
+                            {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
+                            {shouldShowSMSDeliveryFailurePage && <SMSDeliveryFailurePage />}
+                        </>
+                    )}
+                </SignInPageLayout>
+            </LoginProvider>
+        </ColorSchemeWrapper>
     );
 }
 
-function SignInPageWrapper({ref, shouldUseStyles = true}: SignInPageWrapperProps) {
+function SignInPageWrapper({ref}: SignInPageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const safeAreaInsets = useSafeAreaInsets();
     const {isInNarrowPaneModal} = useResponsiveLayout();
-
-    const screenWrapperStyles = shouldUseStyles
-        ? [styles.signInPage, StyleUtils.getPlatformSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]
-        : undefined;
 
     return (
         // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
@@ -371,33 +356,29 @@ function SignInPageWrapper({ref, shouldUseStyles = true}: SignInPageWrapperProps
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             shouldEnableMaxHeight
-            style={screenWrapperStyles}
-            testID={SignInPageWrapper.displayName}
+            style={[styles.signInPage, StyleUtils.getPlatformSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 100)]}
+            testID="SignInPageWrapper"
         >
             <SignInPage ref={ref} />
         </ScreenWrapper>
     );
 }
 
-SignInPageWrapper.displayName = 'SignInPage';
-
-// Use of SignInPageWrapper with shouldEnableMaxHeight prop and without additional styles is a workaround for Safari not supporting interactive-widget=resizes-content.
-// This allows better scrolling experience after keyboard shows for modals with input, that are larger than remaining screen height.
-// More info https://github.com/Expensify/App/pull/62799#issuecomment-2943136220.
-function SignInPageBase({ref}: SignInPageProps) {
-    if (isMobileSafari()) {
-        return (
-            <SignInPageWrapper
-                ref={ref}
-                shouldUseStyles={false}
-            />
-        );
-    }
-    return <SignInPage ref={ref} />;
+// WithTheme is a HOC that provides theme-related contexts (e.g. to the SignInPageWrapper component since these contexts are required for variable declarations).
+function WithTheme(Component: React.ComponentType<SignInPageProps>) {
+    return ({ref}: SignInPageProps) => (
+        <ThemeProvider theme={CONST.THEME.DARK}>
+            <ThemeStylesProvider>
+                <Component ref={ref} />
+            </ThemeStylesProvider>
+        </ThemeProvider>
+    );
 }
 
-export {SignInPageBase};
+const SignInPageThemed = WithTheme(SignInPage);
 
-export default SignInPageWrapper;
+export {SignInPageThemed as SignInPage};
+
+export default WithTheme(SignInPageWrapper);
 
 export type {SignInPageRef};
