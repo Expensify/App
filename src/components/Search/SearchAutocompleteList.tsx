@@ -31,7 +31,15 @@ import {
     getQueryWithoutAutocompletedPart,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, getUserFriendlyKey, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
+import {
+    buildSearchQueryJSON,
+    buildUserReadableQueryString,
+    getQueryWithoutFilters,
+    getUserFriendlyKey,
+    getUserFriendlyValue,
+    sanitizeSearchValue,
+    shouldHighlight,
+} from '@libs/SearchQueryUtils';
 import {getDatePresets} from '@libs/SearchUIUtils';
 import StringUtils from '@libs/StringUtils';
 import Timing from '@userActions/Timing';
@@ -382,6 +390,7 @@ function SearchAutocompleteList(
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE: {
                 const filteredExpenseTypes = expenseTypes
+                    .map((value) => getUserFriendlyValue(value))
                     .filter((expenseType) => expenseType.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(expenseType))
                     .sort();
 
@@ -458,8 +467,12 @@ function SearchAutocompleteList(
                     text: status,
                 }));
             }
-            case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED: {
                 const filteredDatePresets = getDatePresets(autocompleteKey, true)
                     .filter((datePreset) => datePreset.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(datePreset.toLowerCase()))

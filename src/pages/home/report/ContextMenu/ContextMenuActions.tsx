@@ -36,6 +36,7 @@ import {
     getOriginalMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogDefaultBillableMessage,
+    getPolicyChangeLogDefaultReimbursableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getPolicyChangeLogDeleteMemberMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
@@ -76,6 +77,7 @@ import {
     isMessageDeleted,
     isModifiedExpenseAction,
     isMoneyRequestAction,
+    isMovedAction,
     isOldDotReportAction,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
@@ -98,6 +100,7 @@ import {
     getDeletedTransactionMessage,
     getDowngradeWorkspaceMessage,
     getIOUReportActionDisplayMessage,
+    getMovedActionMessage,
     getOriginalReportID,
     getPolicyChangeMessage,
     getReimbursementDeQueuedOrCanceledActionMessage,
@@ -105,6 +108,7 @@ import {
     getRejectedReportMessage,
     getReportName,
     getReportPreviewMessage,
+    getUnreportedTransactionMessage,
     getUpgradeWorkspaceMessage,
     getWorkspaceNameUpdatedMessage,
     isExpenseReport,
@@ -193,6 +197,7 @@ type ContextMenuActionPayload = {
     anchorRef?: RefObject<View | null>;
     moneyRequestAction: ReportAction | undefined;
     card?: Card;
+    originalReport: OnyxEntry<ReportType>;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -490,7 +495,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fall back to
         // the `text` and `icon`
-        onPress: (closePopover, {reportAction, transaction, selection, report, reportID, card}) => {
+        onPress: (closePopover, {reportAction, transaction, selection, report, reportID, card, originalReport}) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
             const messageHtml = getActionHtml(reportAction);
             const messageText = getReportActionMessageText(reportAction);
@@ -567,10 +572,12 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getPolicyChangeLogMaxExpenseAmountMessage(reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE) {
                     Clipboard.setString(getPolicyChangeLogDefaultBillableMessage(reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_REIMBURSABLE) {
+                    Clipboard.setString(getPolicyChangeLogDefaultReimbursableMessage(reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED) {
                     Clipboard.setString(getPolicyChangeLogDefaultTitleEnforcedMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-                    Clipboard.setString(translateLocal('iou.unreportedTransaction'));
+                    setClipboardMessage(getUnreportedTransactionMessage());
                 } else if (isReimbursementQueuedAction(reportAction)) {
                     Clipboard.setString(getReimbursementQueuedActionMessage({reportAction, reportOrID: reportID, shouldUseShortDisplayName: false}));
                 } else if (isActionableMentionWhisper(reportAction)) {
@@ -666,6 +673,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getUpdatedApprovalRuleMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
                     setClipboardMessage(getUpdatedManualApprovalThresholdMessage(reportAction));
+                } else if (isMovedAction(reportAction)) {
+                    setClipboardMessage(getMovedActionMessage(reportAction, originalReport));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {
                     const displayMessage = getPolicyChangeMessage(reportAction);
                     Clipboard.setString(displayMessage);
