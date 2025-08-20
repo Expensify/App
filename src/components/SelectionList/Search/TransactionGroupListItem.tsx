@@ -97,8 +97,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
         COLUMNS.TYPE,
         COLUMNS.DATE,
         COLUMNS.MERCHANT,
-        ...(sampleTransaction?.shouldShowFrom ? [COLUMNS.FROM] : []),
-        ...(sampleTransaction?.shouldShowTo ? [COLUMNS.TO] : []),
+        COLUMNS.FROM,
+        COLUMNS.TO,
         ...(sampleTransaction?.shouldShowCategory ? [COLUMNS.CATEGORY] : []),
         ...(sampleTransaction?.shouldShowTag ? [COLUMNS.TAG] : []),
         ...(sampleTransaction?.shouldShowTax ? [COLUMNS.TAX] : []),
@@ -136,6 +136,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     isFocused={isFocused}
                     canSelectMultiple={canSelectMultiple}
                 />
+            ),
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: (
+                // Will be implemented as part of https://github.com/Expensify/App/pull/66078
+                <View />
             ),
         };
 
