@@ -73,15 +73,17 @@ function useOptions() {
         return filteredOptions;
     }, [betas, listOptions.personalDetails, listOptions.reports, contacts]);
 
-    const defaultOptionsModified = {
-        ...defaultOptions,
-        recentReports: defaultOptions.recentReports.map((item) =>
-            selectedOptions.some((selectedOption) => selectedOption.accountID === item.accountID) ? {...item, isSelected: true} : item,
-        ),
-        personalDetails: defaultOptions.personalDetails.map((item) =>
-            selectedOptions.some((selectedOption) => selectedOption.accountID === item.accountID) ? {...item, isSelected: true} : item,
-        ),
-    };
+    const defaultOptionsModified = useMemo(() => {
+        return {
+            ...defaultOptions,
+            recentReports: defaultOptions.recentReports.map((item) =>
+                selectedOptions.some((selectedOption) => selectedOption.accountID === item.accountID) ? {...item, isSelected: true} : item,
+            ),
+            personalDetails: defaultOptions.personalDetails.map((item) =>
+                selectedOptions.some((selectedOption) => selectedOption.accountID === item.accountID) ? {...item, isSelected: true} : item,
+            ),
+        };
+    }, [defaultOptions, selectedOptions]);
 
     const options = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(defaultOptionsModified, debouncedSearchTerm, {

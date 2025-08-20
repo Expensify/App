@@ -109,7 +109,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 attendees.some((attendee) => attendee?.email === item.login || attendee?.accountID === item.accountID) ? {...item, isSelected: true} : item,
             ),
         };
-    }, [defaultOptions]);
+    }, [defaultOptions, attendees]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
