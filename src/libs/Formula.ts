@@ -24,7 +24,7 @@ type FormulaPart = {
 type FormulaContext = {
     report: Report;
     policy: OnyxEntry<Policy>;
-    updatedTransaction?: Transaction;
+    transaction?: Transaction;
 };
 
 const FORMULA_PART_TYPES = {
@@ -482,8 +482,7 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext): s
 
     transactions.forEach((transaction) => {
         // Use updated transaction data if available and matches this transaction
-        const currentTransaction =
-            context?.updatedTransaction && transaction.transactionID === context.updatedTransaction.transactionID ? {...transaction, ...context.updatedTransaction} : transaction;
+        const currentTransaction = context?.transaction && transaction.transactionID === context.transaction.transactionID ? context.transaction : transaction;
 
         const created = getCreated(currentTransaction);
         if (!created) {

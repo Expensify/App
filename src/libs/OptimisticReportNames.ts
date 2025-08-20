@@ -169,7 +169,7 @@ function isValidReportType(reportType?: string): boolean {
 /**
  * Compute a new report name if needed based on an optimistic update
  */
-function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: OnyxUpdate, context: UpdateContext, updatedTransaction?: Transaction): string | null {
+function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: OnyxUpdate, context: UpdateContext): string | null {
     Performance.markStart(CONST.TIMING.COMPUTE_REPORT_NAME);
     Timing.start(CONST.TIMING.COMPUTE_REPORT_NAME);
 
@@ -204,6 +204,11 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
     const formula = titleField.defaultValue;
     const formulaParts = parse(formula);
 
+    let transaction: Transaction | undefined;
+    if (updateType === 'transaction' && (incomingUpdate.value as Transaction).reportID === targetReport.reportID) {
+        transaction = context.allTransactions[(incomingUpdate.value as Transaction).transactionID];
+    }
+
     // Check if any formula part might be affected by this update
     const isAffected = formulaParts.some((part) => {
         if (part.type === FORMULA_PART_TYPES.REPORT) {
@@ -230,11 +235,16 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
 
     const updatedPolicy = updateType === 'policy' && targetReport.policyID === getPolicyIDFromKey(incomingUpdate.key) ? {...(policy ?? {}), ...(incomingUpdate.value as Policy)} : policy;
 
+    const updatedTransaction =
+        updateType === 'transaction' && (incomingUpdate.value as Transaction).reportID === targetReport.reportID
+            ? {...(transaction ?? {}), ...(incomingUpdate.value as Transaction)}
+            : undefined;
+
     // Compute the new name
     const formulaContext: FormulaContext = {
         report: updatedReport,
         policy: updatedPolicy,
-        updatedTransaction,
+        transaction: updatedTransaction,
     };
 
     const newName = compute(formula, formulaContext);
@@ -323,9 +333,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                 }
 
                 if (report) {
-                    // Handle transaction updates directly with the updated transaction data
-                    const updatedTransaction = update.value as Transaction;
-                    const reportNameUpdate = computeReportNameIfNeeded(report, update, context, updatedTransaction);
+                    const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
 
                     if (reportNameUpdate) {
                         additionalUpdates.push({
