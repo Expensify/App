@@ -6122,7 +6122,15 @@ const translations = {
                 changeType: ({oldType, newType}: ChangeTypeParams) => `类型从${oldType}更改为${newType}`,
                 exportedToCSV: `导出为CSV`,
                 exportedToIntegration: {
-                    automatic: ({label}: ExportedToIntegrationParams) => `导出到${label}`,
+                    automatic: ({label}: ExportedToIntegrationParams) => {
+                        // The label will always be in English, so we need to translate it
+                        const labelTranslations: Record<string, string> = {
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
+                        };
+                        const translatedLabel = labelTranslations[label] || label;
+                        return `导出到${translatedLabel}`;
+                    },
                     automaticActionOne: ({label}: ExportedToIntegrationParams) => `通过 ${label} 导出到`,
                     automaticActionTwo: '会计设置',
                     manual: ({label}: ExportedToIntegrationParams) => `将此报告标记为手动导出到${label}。`,
