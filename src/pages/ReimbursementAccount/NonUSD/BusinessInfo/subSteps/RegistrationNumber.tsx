@@ -29,8 +29,8 @@ function RegistrationNumber({onNext, isEditing}: RegistrationNumberProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const defaultValue = reimbursementAccount?.achData?.corpay?.[BUSINESS_REGISTRATION_INCORPORATION_NUMBER] ?? '';
     const businessStepCountryDraftValue = reimbursementAccount?.achData?.corpay?.[COMPANY_COUNTRY_CODE] ?? reimbursementAccountDraft?.[COMPANY_COUNTRY_CODE] ?? '';
 
