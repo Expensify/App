@@ -143,6 +143,7 @@ import type {
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
     MissingPropertyParams,
+    MovedActionParams,
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
     MovedTransactionParams,
@@ -293,6 +294,7 @@ import type {
     WorkEmailResendCodeParams,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
+    WorkspaceMembersCountParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
@@ -643,6 +645,8 @@ const translations = {
         getTheApp: '获取应用程序',
         scanReceiptsOnTheGo: '用手机扫描收据',
         headsUp: '\u6CE8\u610F\uFF01',
+        submitTo: '提交到',
+        forwardTo: '转发到',
         merge: '合并',
         unstableInternetConnection: '互联网连接不稳定。请检查你的网络，然后重试。',
     },
@@ -979,6 +983,10 @@ const translations = {
         invalidFileMessage: '您上传的文件要么是空的，要么包含无效数据。请确保文件格式正确并包含必要的信息，然后再重新上传。',
         importSpreadsheet: '导入电子表格',
         downloadCSV: '下载 CSV',
+        importMemberConfirmation: () => ({
+            one: `请确认以下信息，以添加此次上传中的一位新工作区成员。现有成员不会收到角色更新或邀请消息。`,
+            other: (count: number) => `请确认以下信息，以添加此次上传中的 ${count} 位新工作区成员。现有成员不会收到角色更新或邀请消息。`,
+        }),
     },
     receipt: {
         upload: '上传收据',
@@ -1074,6 +1082,12 @@ const translations = {
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `删除了一笔费用 (${merchant} 的 ${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `移动了一笔费用${reportName ? `来自${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `移动了此费用${reportName ? `至 <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
+            if (shouldHideMovedReportUrl) {
+                return `已将此报告移动到 <a href="${newParentReportUrl}">${toPolicyName}</a> 工作区`;
+            }
+            return `已将此 <a href="${movedReportUrl}">报告</a> 移动到 <a href="${newParentReportUrl}">${toPolicyName}</a> 工作区`;
+        },
         unreportedTransaction: '已将此费用移动到您的个人空间',
         pendingMatchWithCreditCard: '收据待与卡交易匹配',
         pendingMatch: '待匹配',
@@ -1564,6 +1578,7 @@ const translations = {
             testCrash: '测试崩溃',
             resetToOriginalState: '重置为原始状态',
             usingImportedState: '您正在使用导入的状态。点击这里清除它。',
+            shouldBlockTransactionThreadReportCreation: '阻止创建交易线程报告',
             debugMode: '调试模式',
             invalidFile: '文件无效',
             invalidFileDescription: '您尝试导入的文件无效。请再试一次。',
@@ -2351,15 +2366,15 @@ const translations = {
                     `![Invite your team](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
             },
             setupCategoriesAndTags: {
-                title: ({workspaceCategoriesLink, workspaceMoreFeaturesLink}) =>
-                    `\u8bbe\u7f6e\u3010\u5206\u7c7b\u3011(${workspaceCategoriesLink})\u548c\u3010\u6807\u7b7e\u3011(${workspaceMoreFeaturesLink})`,
+                title: ({workspaceCategoriesLink, workspaceTagsLink}) =>
+                    `\u8bbe\u7f6e\u3010\u5206\u7c7b\u3011(${workspaceCategoriesLink})\u548c\u3010\u6807\u7b7e\u3011(${workspaceTagsLink})`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
                     '*\u8bbe\u7f6e\u5206\u7c7b\u548c\u6807\u7b7e*\uff0c\u4ee5\u4fbf\u60a8\u7684\u56e2\u961f\u53ef\u4ee5\u5bf9\u652f\u51fa\u8fdb\u884c\u7f16\u7801\uff0c\u4ee5\u4fbf\u4e8e\u62a5\u544a\u3002\n' +
                     '\n' +
                     `\u901a\u8fc7\u3010\u8fde\u63a5\u60a8\u7684\u4f1a\u8ba1\u8f6f\u4ef6\u3011(${workspaceAccountingLink})\u81ea\u52a8\u5bfc\u5165\u5b83\u4eec\uff0c\u6216\u5728\u60a8\u7684\u3010\u5de5\u4f5c\u533a\u8bbe\u7f6e\u3011(${workspaceCategoriesLink})\u4e2d\u624b\u52a8\u8bbe\u7f6e\u3002`,
             },
             setupTagsTask: {
-                title: ({workspaceMoreFeaturesLink}) => `\u8bbe\u7f6e\u3010\u6807\u7b7e\u3011(${workspaceMoreFeaturesLink})`,
+                title: ({workspaceTagsLink}) => `\u8bbe\u7f6e\u3010\u6807\u7b7e\u3011(${workspaceTagsLink})`,
                 description: ({workspaceMoreFeaturesLink}) =>
                     '\u4f7f\u7528\u6807\u7b7e\u6dfb\u52a0\u989d\u5916\u7684\u652f\u51fa\u8be6\u60c5\uff0c\u4f8b\u5982\u9879\u76ee\u3001\u5ba2\u6237\u3001\u5730\u70b9\u548c\u90e8\u95e8\u3002\u5982\u679c\u60a8\u9700\u8981\u591a\u7ea7\u6807\u7b7e\uff0c\u53ef\u4ee5\u5347\u7ea7\u5230 Control \u8ba1\u5212\u3002\n' +
                     '\n' +
@@ -3498,6 +3513,9 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: '自动化整个组织的差旅和送餐费用。',
+                autoRemove: '邀请新工作区成员加入 Uber for Business',
+                autoInvite: '停用已从 Uber for Business 移除的工作区成员',
+                manageInvites: '管理邀请',
             },
         },
         perDiem: {
@@ -4594,6 +4612,7 @@ const translations = {
             receiptPartnersWarningModal: {
                 featureEnabledTitle: '断开Uber连接',
                 disconnectText: '要禁用此功能，请先断开Uber for Business集成。',
+                description: '您确定要断开此集成吗？',
                 confirmText: '明白了',
             },
             workflowWarningModal: {
@@ -4840,7 +4859,7 @@ const translations = {
             },
             addedWithPrimary: '一些成员已使用他们的主要登录信息添加。',
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `由次要登录 ${secondaryLogin} 添加。`,
-            membersListTitle: '所有工作区成员的目录。',
+            workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `工作区成员总数：${count}`,
             importMembers: '导入成员',
         },
         card: {
@@ -5459,6 +5478,16 @@ const translations = {
                     one: '1天',
                     other: (count: number) => `${count}天`,
                 }),
+                cashExpenseDefault: '现金支出默认值',
+                cashExpenseDefaultDescription: '选择如何创建现金支出。如果不是导入的公司卡交易，则视为现金支出。这包括手动创建的支出、收据、津贴、里程和工时支出。',
+                reimbursableDefault: '可报销',
+                reimbursableDefaultDescription: '支出通常会报销给员工',
+                nonReimbursableDefault: '不可报销',
+                nonReimbursableDefaultDescription: '支出偶尔会报销给员工',
+                alwaysReimbursable: '始终可报销',
+                alwaysReimbursableDescription: '支出始终会报销给员工',
+                alwaysNonReimbursable: '始终不可报销',
+                alwaysNonReimbursableDescription: '支出永远不会报销给员工',
                 billableDefault: '默认计费',
                 billableDefaultDescription: ({tagsPageLink}: BillableDefaultDescriptionParams) =>
                     `<muted-text>C选择现金和信用卡支出是否默认可计费。可计费支出可在<a href="${tagsPageLink}">标签</a>中启用或禁用。</muted-text>`,
@@ -5736,6 +5765,7 @@ const translations = {
             return `将月度报告提交日期更新为“${newValue}”（之前为“${oldValue}”）`;
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `已将“重新向客户计费费用”更新为“${newValue}”（之前为“${oldValue}”）`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `已将“现金支出默认值”更新为“${newValue}”（之前为“${oldValue}”）`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `"强制执行默认报告标题" ${value ? 'on' : '关'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `已将此工作区的名称更新为“${newName}”（之前为“${oldName}”）`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -5907,6 +5937,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: '从未',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '上个月',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: '本月',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最后发言',
                 },
             },
@@ -5943,9 +5974,10 @@ const translations = {
             billable: '可计费的',
             reimbursable: '可报销的',
             groupBy: {
-                reports: '报告',
-                from: '从',
-                card: '卡片',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: '报告',
+                [CONST.SEARCH.GROUP_BY.FROM]: '从',
+                [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提现ID',
             },
             feed: '通道',
             withdrawalType: {
@@ -6546,8 +6578,8 @@ const translations = {
                     `您对卡号以${cardEnding}结尾的卡上的${amountOwed}费用提出了异议。在与您的银行解决争议之前，您的账户将被锁定。`,
             },
             cardAuthenticationRequired: {
-                title: '您的卡无法扣款',
-                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) => `您的支付卡尚未完全认证。请完成认证过程以激活以${cardEnding}结尾的支付卡。`,
+                title: '您的付款卡尚未完成身份验证。',
+                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) => `请完成身份验证流程，以激活以 ${cardEnding} 结尾的付款卡。`,
             },
             insufficientFunds: {
                 title: '您的卡无法扣款',
