@@ -314,7 +314,7 @@ function FormProvider(
 
     const registerInput = useCallback<RegisterInput>(
         (inputID, shouldSubmitForm, inputProps) => {
-            const newRef: RefObject<InputComponentBaseProps> = inputRefs.current[inputID] ?? inputProps.ref ?? createRef();
+            const newRef: MutableRefObject<InputComponentBaseProps> = inputRefs.current[inputID] ?? inputProps.ref ?? createRef();
             if (inputRefs.current[inputID] !== newRef) {
                 inputRefs.current[inputID] = newRef;
             }
