@@ -4288,6 +4288,7 @@ describe('actions/IOU', () => {
                                 created: '',
                                 merchant,
                                 comment,
+                                reimbursable: true,
                             },
                             shouldGenerateTransactionThreadReport: true,
                         });
@@ -4460,6 +4461,7 @@ describe('actions/IOU', () => {
                                 created: '',
                                 merchant,
                                 comment,
+                                reimbursable: true,
                             },
                             shouldGenerateTransactionThreadReport: true,
                         });
@@ -4684,6 +4686,58 @@ describe('actions/IOU', () => {
                                         expect(lastVisibleActionCreated).toBe(lastAction?.created);
                                     },
                                 });
+                            },
+                        });
+                    });
+                });
+        });
+
+        test('should create transaction thread optimistically when initialReportID is undefined', () => {
+            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const transaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: iouReport.reportID,
+                },
+            });
+            const transactionCollectionDataSet: TransactionCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+            const iouAction: ReportAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: transaction.amount,
+                currency: transaction.currency,
+                comment: '',
+                participants: [],
+                transactionID: transaction.transactionID,
+            });
+            const actions: OnyxInputValue<ReportActions> = {[iouAction.reportActionID]: iouAction};
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+            };
+            const actionCollectionDataSet: ReportActionsCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: actions,
+            };
+            const comment = 'hold reason for new thread';
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
+                .then(() => {
+                    // When an expense is put on hold without existing transaction thread (undefined initialReportID)
+                    putOnHold(transaction.transactionID, comment, undefined);
+                    return waitForBatchedUpdates();
+                })
+                .then(() => {
+                    return new Promise<void>((resolve) => {
+                        const connection = Onyx.connect({
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                            callback: (reportActions) => {
+                                Onyx.disconnect(connection);
+                                const updatedIOUAction = reportActions?.[iouAction.reportActionID];
+                                // Verify that IOU action now has childReportID set optimistically
+                                expect(updatedIOUAction?.childReportID).toBeDefined();
+                                resolve();
                             },
                         });
                     });
@@ -6554,6 +6608,7 @@ describe('actions/IOU', () => {
             let updatedTransaction: OnyxEntry<Transaction>;
             let updatedIOUReportActionOnSelfDMReport: OnyxEntry<ReportAction>;
             let updatedTrackExpenseActionableWhisper: OnyxEntry<ReportAction>;
+            let updatedExpenseReport: OnyxEntry<Report>;
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -6576,9 +6631,20 @@ describe('actions/IOU', () => {
                 },
             });
 
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (allReports) => {
+                    updatedExpenseReport = Object.values(allReports ?? {}).find((r) => r?.reportID === expenseReport?.reportID);
+                },
+            });
+
             expect(updatedTransaction?.reportID).toBe(expenseReport?.reportID);
             expect(isMoneyRequestAction(updatedIOUReportActionOnSelfDMReport) ? getOriginalMessage(updatedIOUReportActionOnSelfDMReport)?.IOUTransactionID : undefined).toBe(undefined);
             expect(updatedTrackExpenseActionableWhisper).toBe(undefined);
+            expect(updatedExpenseReport?.nonReimbursableTotal).toBe(-amount);
+            expect(updatedExpenseReport?.total).toBe(-amount);
+            expect(updatedExpenseReport?.unheldNonReimbursableTotal).toBe(-amount);
         });
 
         describe('saveSplitTransactions', () => {

@@ -703,6 +703,7 @@ function ReportActionsList({
                     emojiReactions={actionEmojiReactions}
                     allDraftMessages={draftMessage}
                     allEmojiReactions={emojiReactions}
+                    isReportArchived={isReportArchived}
                     linkedTransactionRouteError={actionLinkedTransactionRouteError}
                     userBillingFundID={userBillingFundID}
                 />
@@ -730,6 +731,7 @@ function ReportActionsList({
             isUserValidated,
             personalDetailsList,
             userBillingFundID,
+            isReportArchived,
         ],
     );
 
@@ -739,7 +741,7 @@ function ReportActionsList({
         () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived)],
         [unreadMarkerReportActionID, shouldUseNarrowLayout, report, isReportArchived],
     );
-    const hideComposer = !canUserPerformWriteAction(report);
+    const hideComposer = !canUserPerformWriteAction(report, isReportArchived);
     const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
     const canShowHeader = isOffline || hasHeaderRendered.current;
 
