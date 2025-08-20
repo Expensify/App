@@ -15,6 +15,7 @@ import {
     isInstantSubmitEnabled,
     isPolicyMember,
     isPreferredExporter,
+    isSubmitAndClose,
 } from './PolicyUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
 import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
@@ -24,6 +25,7 @@ import {
     canHoldUnholdReportAction,
     getTransactionDetails,
     hasOnlyHeldExpenses,
+    hasOnlyNonReimbursableTransactions,
     hasReportBeenReopened as hasReportBeenReopenedUtils,
     hasReportBeenRetracted as hasReportBeenRetractedUtils,
     isArchivedReport,
@@ -96,6 +98,10 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
     }
 
     if (report.stateNum && report.stateNum >= CONST.REPORT.STATE_NUM.APPROVED) {
+        return false;
+    }
+
+    if (hasOnlyNonReimbursableTransactions(report.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
         return false;
     }
 
@@ -292,7 +298,7 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
 }
 
-function isExportAction(report: Report, policy?: Policy, reportActions?: ReportAction[]): boolean {
+function isExportAction(report: Report, policy?: Policy): boolean {
     if (!policy) {
         return false;
     }
@@ -329,10 +335,9 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
     const isReportReimbursed = report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
     const connectedIntegration = getConnectedIntegration(policy);
     const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
-    const isReportExported = isExportedUtils(reportActions);
     const isReportFinished = isReportApproved || isReportReimbursed || isReportClosed;
 
-    return isAdmin && isReportFinished && syncEnabled && !isReportExported;
+    return isAdmin && isReportFinished && syncEnabled;
 }
 
 function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
@@ -547,6 +552,10 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
         return true;
     }
 
+    if (hasOnlyNonReimbursableTransactions(parentReport.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
+        return false;
+    }
+
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     return isMoneyRequestReportEligibleForMerge(parentReport.reportID, isAdmin);
@@ -686,7 +695,7 @@ function getSecondaryExportReportActions(
     customInAppTemplates?: ExportTemplate[],
 ): Array<ValueOf<string>> {
     const options: Array<ValueOf<string>> = [];
-    if (isExportAction(report, policy, reportActions)) {
+    if (isExportAction(report, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
     }
 
