@@ -1516,7 +1516,7 @@ function isPreferredExporter(policy: Policy) {
 /**
  * Checks if the user is member to any workspace.
  */
-function isUserMemberToWorspace(): boolean {
+function isUserMemberToWorkspace(): boolean {
     return Object.values(allPolicies ?? {}).some((policy) => policy?.isPolicyExpenseChatEnabled && policy?.id && policy.id !== CONST.POLICY.ID_FAKE);
 }
 
@@ -1666,7 +1666,7 @@ export {
     areAllGroupPoliciesExpenseChatDisabled,
     getCountOfRequiredTagLists,
     getActiveEmployeeWorkspaces,
-    isUserMemberToWorspace,
+    isUserMemberToWorkspace,
     getPolicyRole,
     hasIndependentTags,
     getLengthOfTag,

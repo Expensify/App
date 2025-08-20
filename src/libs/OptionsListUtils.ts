@@ -58,7 +58,7 @@ import {
     getCountOfEnabledTagsOfList,
     getCountOfRequiredTagLists,
     getSubmitToAccountID,
-    isUserMemberToWorspace,
+    isUserMemberToWorkspace,
 } from './PolicyUtils';
 import {
     getCombinedReportActions,
@@ -1880,7 +1880,7 @@ function getRestrictedLogins(config: GetOptionsConfig, options: OptionList, canS
             !canShowManagerMcTest ||
             (getIsUserSubmittedExpenseOrScannedReceipt() && !userHasReportWithManagerMcTest) ||
             !Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST, config.betas) ||
-            isUserMemberToWorspace(),
+            isUserMemberToWorkspace(),
     };
 }
 

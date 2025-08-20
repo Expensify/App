@@ -13,7 +13,7 @@ import {
     getTagListByOrderWeight,
     getUnitRateValue,
     isPolicyMemberWithoutPendingDelete,
-    isUserMemberToWorspace,
+    isUserMemberToWorkspace,
     shouldShowPolicy,
     sortWorkspacesBySelected,
 } from '@libs/PolicyUtils';
@@ -764,7 +764,7 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('isUserMemberToWorspace', () => {
+    describe('isUserMemberToWorkspace', () => {
         beforeEach(() => {
             wrapOnyxWithWaitForBatchedUpdates(Onyx);
         });
@@ -780,7 +780,7 @@ describe('PolicyUtils', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, {});
 
-            const result = isUserMemberToWorspace();
+            const result = isUserMemberToWorkspace();
 
             expect(result).toBeFalsy();
         });
@@ -793,7 +793,7 @@ describe('PolicyUtils', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
 
-            const result = isUserMemberToWorspace();
+            const result = isUserMemberToWorkspace();
 
             expect(result).toBeTruthy();
         });
@@ -806,7 +806,7 @@ describe('PolicyUtils', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
 
-            const result = isUserMemberToWorspace();
+            const result = isUserMemberToWorkspace();
 
             expect(result).toBeFalsy();
         });
@@ -819,7 +819,7 @@ describe('PolicyUtils', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
 
-            const result = isUserMemberToWorspace();
+            const result = isUserMemberToWorkspace();
 
             expect(result).toBeFalsy();
         });
@@ -832,7 +832,7 @@ describe('PolicyUtils', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
 
-            const result = isUserMemberToWorspace();
+            const result = isUserMemberToWorkspace();
 
             expect(result).toBeTruthy();
         });
