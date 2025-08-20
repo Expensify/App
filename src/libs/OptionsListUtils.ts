@@ -2168,7 +2168,7 @@ function getAttendeeOptions(
         });
     }
 
-    // attendees list might lack some personal data such as accoundID and login at this point - fetch those here
+    // attendees list might lack some personal data such as accountID and login at this point - fetch those here
     const RecentAttendeesWithDetails = recentAttendees
         .map((attendee) => ({
             ...attendee,

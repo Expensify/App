@@ -1,7 +1,6 @@
 import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 import React from 'react';
-import {SectionList} from 'react-native';
 import Onyx from 'react-native-onyx';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -13,7 +12,6 @@ import NewChatPage from '@pages/NewChatPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
-import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 

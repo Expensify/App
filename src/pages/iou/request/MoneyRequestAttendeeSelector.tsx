@@ -98,7 +98,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         return optionList;
     }, [areOptionsInitialized, didScreenTransitionEnd, options.reports, options.personalDetails, betas, attendees, recentAttendees, iouType, action, isPaidGroupPolicy, searchTerm]);
 
-    // Selectd members list is maintained saparately as 'attendees', so update selection info here
+    // Selected members list is maintained separately as 'attendees', so update selection info here
     const defaultOptionsModified = useMemo(() => {
         return {
             ...defaultOptions,
@@ -135,7 +135,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         });
 
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, cleanSearchTerm, isPaidGroupPolicy, attendees]);
+    }, [areOptionsInitialized, defaultOptionsModified, cleanSearchTerm, isPaidGroupPolicy, attendees]);
 
     // attendees who are not on expensify
     const filteredAttendees = attendees
@@ -216,6 +216,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     }, [
         areOptionsInitialized,
         didScreenTransitionEnd,
+        filteredAttendees,
         chatOptions.recentReports,
         chatOptions.personalDetails,
         chatOptions.userToInvite,

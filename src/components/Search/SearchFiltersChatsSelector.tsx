@@ -79,7 +79,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         });
-    }, [defaultOptions, cleanSearchTerm, selectedOptions, defaultOptionsModified]);
+    }, [cleanSearchTerm, selectedOptions, defaultOptionsModified]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [];
@@ -102,14 +102,9 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         };
     }, [
         areOptionsInitialized,
-        chatOptions.personalDetails,
         chatOptions.recentReports,
-        cleanSearchTerm,
         didScreenTransitionEnd,
-        personalDetails,
         reportAttributesDerived,
-        selectedOptions,
-        selectedReportIDs,
         translate,
     ]);
 
