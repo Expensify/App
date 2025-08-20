@@ -295,7 +295,6 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
 
     for (const update of updates) {
         const objectType = determineObjectTypeByKey(update.key);
-        let affectedReports: Report[] = [];
 
         switch (objectType) {
             case 'report': {
@@ -319,7 +318,20 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
 
             case 'policy': {
                 const policyID = getPolicyIDFromKey(update.key);
-                affectedReports = getReportsByPolicyID(policyID, allReports, context);
+                const affectedReports = getReportsByPolicyID(policyID, allReports, context);
+                for (const report of affectedReports) {
+                    const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
+
+                    if (reportNameUpdate) {
+                        additionalUpdates.push({
+                            key: getReportKey(report.reportID),
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            value: {
+                                reportName: reportNameUpdate,
+                            },
+                        });
+                    }
+                }
                 break;
             }
 
@@ -350,20 +362,6 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
 
             default:
                 continue;
-        }
-
-        for (const report of affectedReports) {
-            const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
-
-            if (reportNameUpdate) {
-                additionalUpdates.push({
-                    key: getReportKey(report.reportID),
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    value: {
-                        reportName: reportNameUpdate,
-                    },
-                });
-            }
         }
     }
 
