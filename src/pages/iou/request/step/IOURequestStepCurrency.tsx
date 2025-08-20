@@ -58,6 +58,16 @@ function IOURequestStepCurrency({
         Navigation.setNavigationActionToMicrotaskQueue(() => navigateBack(option.currencyCode));
     };
 
+    // The screen height doesn't update immediately when the keyboard transitions from open to closed
+    // on native so need to keyboard is fully dismissed before triggering navigation.
+    const handlePlatformConfirmCurrencySelection = (option: CurrencyListItem) => {
+        if (isNative) {
+            KeyboardUtils.dismiss().then(() => confirmCurrencySelection(option));
+        } else {
+            confirmCurrencySelection(option);
+        }
+    };
+
     return (
         <StepScreenWrapper
             shouldEnableKeyboardAvoidingView={!isNative}
@@ -75,11 +85,7 @@ function IOURequestStepCurrency({
                         if (!didScreenTransitionEnd) {
                             return;
                         }
-                        if (isNative) {
-                            KeyboardUtils.dismiss().then(() => confirmCurrencySelection(option));
-                        } else {
-                            confirmCurrencySelection(option);
-                        }
+                        handlePlatformConfirmCurrencySelection(option);
                     }}
                     initiallySelectedCurrencyCode={currency.toUpperCase()}
                 />
