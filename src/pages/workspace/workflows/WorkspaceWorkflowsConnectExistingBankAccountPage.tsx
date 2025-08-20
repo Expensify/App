@@ -64,6 +64,8 @@ function WorkspaceWorkflowsConnectExistingBankAccountPage({route}: WorkspaceWork
                     style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                     itemIconRight={Expensicons.ArrowRight}
+                    filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
+                    shouldHideDefaultBadge
                 />
             </ScrollView>
         </ScreenWrapper>

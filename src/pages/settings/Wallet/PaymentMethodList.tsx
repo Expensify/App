@@ -91,6 +91,12 @@ type PaymentMethodListProps = {
 
     /** The icon to be displayed in the right side of the payment method item */
     itemIconRight?: IconAsset;
+
+    /** Type of payment method to filter by */
+    filterType?: ValueOf<typeof CONST.BANK_ACCOUNT.TYPE>;
+
+    /** Whether to show the default badge for the payment method */
+    shouldHideDefaultBadge?: boolean;
 };
 
 type PaymentMethodItem = PaymentMethod & {
@@ -139,8 +145,8 @@ function dismissError(item: PaymentMethodItem) {
     }
 }
 
-function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], isDefault = false): boolean {
-    if (!isDefault) {
+function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], isDefault = false, shouldHideDefaultBadge = false): boolean {
+    if (!isDefault || shouldHideDefaultBadge) {
         return false;
     }
     const defaultPaymentMethodCount = filteredPaymentMethods.filter(
@@ -178,6 +184,8 @@ function PaymentMethodList({
     shouldShowBankAccountSections = false,
     onAddBankAccountPress = () => {},
     itemIconRight,
+    filterType,
+    shouldHideDefaultBadge = false,
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -313,6 +321,11 @@ function PaymentMethodList({
                 (paymentMethod) => paymentMethod.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(paymentMethod.errors),
             );
         }
+
+        if (filterType) {
+            combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => (paymentMethod as BankAccount).accountData?.type === filterType);
+        }
+
         combinedPaymentMethods = combinedPaymentMethods.map((paymentMethod) => {
             const pressHandler = onPress as PaymentMethodPressHandler;
             const isMethodActive = isPaymentMethodActive(actionPaymentMethodType, activePaymentMethodID, paymentMethod);
@@ -348,6 +361,7 @@ function PaymentMethodList({
         bankAccountList,
         styles,
         isOffline,
+        filterType,
         isLoadingCardList,
         cardList,
         illustrations,
@@ -444,6 +458,7 @@ function PaymentMethodList({
                             shouldShowDefaultBadge(
                                 filteredPaymentMethods,
                                 invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.methodID === userWallet?.walletLinkedAccountID,
+                                shouldHideDefaultBadge,
                             )
                                 ? translate('paymentMethodList.defaultPaymentMethod')
                                 : undefined
@@ -477,6 +492,7 @@ function PaymentMethodList({
             listItemStyle,
             shouldShowSelectedState,
             selectedMethodID,
+            shouldHideDefaultBadge,
         ],
     );
 

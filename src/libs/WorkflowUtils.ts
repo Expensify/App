@@ -420,7 +420,7 @@ function getEligibleExistingBusinessBankAccounts(bankAccountList: BankAccountLis
     }
 
     return Object.values(bankAccountList).filter((account) => {
-        return account.bankCurrency === policyCurrency && account.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN && account.accountData?.allowDebit === true;
+        return account.bankCurrency === policyCurrency && account.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN && account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS;
     });
 }
 
