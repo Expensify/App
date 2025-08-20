@@ -40,6 +40,7 @@ function Popover(props: PopoverProps) {
     const {close, popover} = React.useContext(PopoverContext);
     const {isSidePanelTransitionEnded} = useSidePanel();
 
+    // This useEffect handles hiding popovers when when SidePanel is animating.
     React.useEffect(() => {
         if (isSidePanelTransitionEnded || isSmallScreenWidth || !isVisible) {
             return;

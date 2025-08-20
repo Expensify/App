@@ -9,6 +9,11 @@ import {navigateToConciergeChat} from '@userActions/Report';
 import {requestTaxExempt} from '@userActions/Subscription';
 import CONST from '@src/CONST';
 
+const anchorAlignment = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+};
+
 function TaxExemptActions() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -33,10 +38,7 @@ function TaxExemptActions() {
             <ThreeDotsMenu
                 shouldSelfPosition
                 menuItems={overflowMenu}
-                anchorAlignment={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                }}
+                anchorAlignment={anchorAlignment}
                 shouldOverlay
             />
         </View>

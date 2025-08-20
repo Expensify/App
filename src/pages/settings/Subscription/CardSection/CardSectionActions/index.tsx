@@ -7,6 +7,11 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
+const anchorAlignment = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+};
+
 function CardSectionActions() {
     const {translate} = useLocalize();
 
@@ -30,10 +35,7 @@ function CardSectionActions() {
         <ThreeDotsMenu
             shouldSelfPosition
             menuItems={overflowMenu}
-            anchorAlignment={{
-                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-            }}
+            anchorAlignment={anchorAlignment}
             shouldOverlay
         />
     );
