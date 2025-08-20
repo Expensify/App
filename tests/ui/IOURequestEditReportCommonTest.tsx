@@ -155,19 +155,20 @@ describe('IOURequestEditReportCommon', () => {
 
         it('should display not found page when the report is Open and the user is not the owner or admin', async () => {
             // Given a transaction report
-            const mockTransactionsReports: Report[] = [
-                {
-                    reportID: FAKE_TRANSACTION_ID,
-                    reportName: 'Transaction Report',
-                    ownerAccountID: FAKE_ACCOUNT_ID,
-                    policyID: FAKE_POLICY_ID,
-                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                } as Report,
-            ];
+            const mockTransactionReport: Report = {
+                reportID: FAKE_TRANSACTION_ID,
+                reportName: 'Transaction Report',
+                ownerAccountID: FAKE_ACCOUNT_ID,
+                policyID: FAKE_POLICY_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockTransactionReport.reportID}`, mockTransactionReport);
+            await waitForBatchedUpdates();
 
             // When the component is rendered with the transaction reports
-            renderIOURequestEditReportCommon({transactionsReports: mockTransactionsReports});
+            renderIOURequestEditReportCommon({selectedReportID: mockTransactionReport.reportID, selectedPolicyID: mockTransactionReport.policyID});
             await waitForBatchedUpdatesWithAct();
 
             // Then the not found page should be displayed
