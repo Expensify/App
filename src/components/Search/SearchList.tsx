@@ -1,17 +1,18 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListProps, ViewToken} from '@shopify/flash-list';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, {Easing, FadeOutUp, LinearTransition} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import type TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
@@ -24,6 +25,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,6 +39,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {createItemHeightCalculator} from './itemHeightCalculator';
 import ITEM_HEIGHTS from './itemHeights';
 import type {SearchQueryJSON} from './types';
+
+const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
 
 const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
 
@@ -76,6 +80,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     /** Whether to prevent long press of options */
     shouldPreventLongPressRow?: boolean;
+
+    /** Whether to animate the items in the list */
+    shouldAnimate?: boolean;
 
     /** The search query */
     queryJSON: SearchQueryJSON;
@@ -126,6 +133,7 @@ function SearchList(
         queryJSON,
         onViewableItemsChanged,
         onLayout,
+        shouldAnimate,
         estimatedItemSize = ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD,
         isMobileSelectionModeEnabled,
     }: SearchListProps,
@@ -162,6 +170,7 @@ function SearchList(
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
+    const prevDataLength = usePrevious(data.length);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here because there is a race condition that causes shouldUseNarrowLayout to change indefinitely in this component
     // See https://github.com/Expensify/App/issues/48675 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -176,11 +185,15 @@ function SearchList(
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
 
+    const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
     const personalDetails = usePersonalDetails();
 
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: (wallet) => wallet?.tierName, canBeMissing: false});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
+
+    const route = useRoute();
+    const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
 
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
@@ -312,62 +325,72 @@ function SearchList(
             const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             return (
-                <ListItem
-                    showTooltip
-                    isFocused={isItemFocused}
-                    onSelectRow={onSelectRow}
-                    onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
-                        // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
-                        if (isMobileChrome() && event.nativeEvent) {
-                            if (!event.nativeEvent.sourceCapabilities) {
-                                return;
+                <Animated.View
+                    exiting={shouldAnimate ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
+                    entering={undefined}
+                    style={styles.overflowHidden}
+                    layout={shouldAnimate && hasItemsBeingRemoved ? LinearTransition.easing(easing).duration(CONST.SEARCH.EXITING_ANIMATION_DURATION) : undefined}
+                >
+                    <ListItem
+                        showTooltip
+                        isFocused={isItemFocused}
+                        onSelectRow={onSelectRow}
+                        onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
+                            // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
+                            if (isMobileChrome() && event.nativeEvent) {
+                                if (!event.nativeEvent.sourceCapabilities) {
+                                    return;
+                                }
+                                // Ignore the focus if it's caused by a touch event on mobile chrome.
+                                // For example, a long press will trigger a focus event on mobile chrome
+                                if (event.nativeEvent.sourceCapabilities.firesTouchEvents) {
+                                    return;
+                                }
                             }
-                            // Ignore the focus if it's caused by a touch event on mobile chrome.
-                            // For example, a long press will trigger a focus event on mobile chrome
-                            if (event.nativeEvent.sourceCapabilities.firesTouchEvents) {
-                                return;
-                            }
-                        }
-                        setFocusedIndex(index);
-                    }}
-                    onLongPressRow={handleLongPressRow}
-                    onCheckboxPress={onCheckboxPress}
-                    canSelectMultiple={canSelectMultiple}
-                    item={{
-                        shouldAnimateInHighlight: isItemHighlighted,
-                        ...item,
-                    }}
-                    shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                    queryJSONHash={hash}
-                    policies={policies}
-                    isDisabled={isDisabled}
-                    allReports={allReports}
-                    groupBy={groupBy}
-                    userWalletTierName={userWalletTierName}
-                    isUserValidated={isUserValidated}
-                    personalDetails={personalDetails}
-                    userBillingFundID={userBillingFundID}
-                />
+                            setFocusedIndex(index);
+                        }}
+                        onLongPressRow={handleLongPressRow}
+                        onCheckboxPress={onCheckboxPress}
+                        canSelectMultiple={canSelectMultiple}
+                        item={{
+                            shouldAnimateInHighlight: isItemHighlighted,
+                            ...item,
+                        }}
+                        shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                        queryJSONHash={hash}
+                        policies={policies}
+                        isDisabled={isDisabled}
+                        allReports={allReports}
+                        groupBy={groupBy}
+                        userWalletTierName={userWalletTierName}
+                        isUserValidated={isUserValidated}
+                        personalDetails={personalDetails}
+                        userBillingFundID={userBillingFundID}
+                    />
+                </Animated.View>
             );
         },
         [
-            ListItem,
-            canSelectMultiple,
             focusedIndex,
             itemsToHighlight,
+            shouldAnimate,
+            styles.overflowHidden,
+            hasItemsBeingRemoved,
+            ListItem,
+            onSelectRow,
             handleLongPressRow,
             onCheckboxPress,
-            onSelectRow,
-            policies,
-            hash,
-            groupBy,
-            setFocusedIndex,
+            canSelectMultiple,
             shouldPreventDefaultFocusOnSelectRow,
+            hash,
+            policies,
             allReports,
+            groupBy,
             userWalletTierName,
             isUserValidated,
             personalDetails,
             userBillingFundID,
+            setFocusedIndex,
         ],
     );
 
@@ -420,6 +443,39 @@ function SearchList(
         };
     }, [calculatedListHeight, calculatedListWidth]);
 
+    const handleScroll = useCallback<NonNullable<FlashListProps<SearchListItem>['onScroll']>>(
+        (e) => {
+            if (onScroll && typeof onScroll === 'function') {
+                onScroll(e);
+            }
+
+            if (e.nativeEvent.layoutMeasurement.height > 0) {
+                saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+            }
+        },
+        [onScroll, route, saveScrollOffset],
+    );
+
+    const handleLayout = useCallback(() => {
+        if (onLayout && typeof onLayout === 'function') {
+            onLayout();
+        }
+
+        const offset = getScrollOffset(route);
+        if (!offset || !listRef.current) {
+            return;
+        }
+
+        // Use requestAnimationFrame to ensure proper scrolling on iOS
+        requestAnimationFrame(() => {
+            if (!offset || !listRef.current) {
+                return;
+            }
+
+            listRef.current.scrollToOffset({offset});
+        });
+    }, [onLayout, getScrollOffset, route]);
+
     return (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
             {tableHeaderVisible && (
@@ -457,7 +513,7 @@ function SearchList(
                 data={data}
                 renderItem={renderItem}
                 keyExtractor={keyExtractor}
-                onScroll={onScroll}
+                onScroll={handleScroll}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
                 extraData={[focusedIndex, isFocused]}
@@ -465,7 +521,7 @@ function SearchList(
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}
                 onViewableItemsChanged={onViewableItemsChanged}
-                onLayout={onLayout}
+                onLayout={handleLayout}
                 removeClippedSubviews
                 drawDistance={1000}
                 estimatedItemSize={estimatedItemSize}

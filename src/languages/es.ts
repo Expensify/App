@@ -627,6 +627,8 @@ const translations = {
         getTheApp: 'Descarga la app',
         scanReceiptsOnTheGo: 'Escanea recibos desde tu teléfono',
         headsUp: '¡Atención!',
+        submitTo: 'Enviar a',
+        forwardTo: 'Reenviar a',
         merge: 'Fusionar',
         unstableInternetConnection: 'Conexión a internet inestable. Por favor, revisa tu red e inténtalo de nuevo.',
     },
@@ -974,6 +976,11 @@ const translations = {
             'El archivo que subiste está vacío o contiene datos no válidos. Asegúrate de que el archivo esté correctamente formateado y contenga la información necesaria antes de volver a subirlo.',
         importSpreadsheet: 'Importar hoja de cálculo',
         downloadCSV: 'Descargar CSV',
+        importMemberConfirmation: () => ({
+            one: `Por favor confirma los detalles a continuación para un nuevo miembro del espacio de trabajo que se agregará como parte de esta carga. Los miembros existentes no recibirán actualizaciones de rol ni mensajes de invitación.`,
+            other: (count: number) =>
+                `Por favor confirma los detalles a continuación para los ${count} nuevos miembros del espacio de trabajo que se agregarán como parte de esta carga. Los miembros existentes no recibirán actualizaciones de rol ni mensajes de invitación.`,
+        }),
     },
     receipt: {
         upload: 'Subir recibo',
@@ -3521,6 +3528,9 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: 'Automatice los gastos de viajes y entrega de comidas en toda su organización.',
+                autoRemove: 'Invitar a nuevos miembros del espacio de trabajo a Uber para Empresas',
+                autoInvite: 'Desactivar miembros del espacio de trabajo eliminados de Uber para Empresas',
+                manageInvites: 'Administrar invitaciones',
             },
         },
         perDiem: {
@@ -4665,6 +4675,7 @@ const translations = {
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Desconectar Uber',
                 disconnectText: 'Para desactivar esta función, desconecta primero la integración de Uber for Business.',
+                description: '¿Está seguro de que desea desconectar esta integración?',
                 confirmText: 'Entendido',
             },
             workflowWarningModal: {
@@ -6066,9 +6077,10 @@ const translations = {
             billable: 'Facturable',
             reimbursable: 'Reembolsable',
             groupBy: {
-                reports: 'Informe',
-                from: 'De',
-                card: 'Tarjeta',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Informe',
+                [CONST.SEARCH.GROUP_BY.FROM]: 'De',
+                [CONST.SEARCH.GROUP_BY.CARD]: 'Tarjeta',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retiro',
             },
             feed: 'Feed',
             withdrawalType: {
