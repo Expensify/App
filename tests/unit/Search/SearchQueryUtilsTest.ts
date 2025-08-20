@@ -189,6 +189,19 @@ describe('SearchQueryUtils', () => {
             expect(result).not.toMatch(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
         });
 
+        test('total filter values', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                totalLessThan: '1000',
+                totalGreaterThan: '1',
+            };
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual(
+                'sortBy:date sortOrder:desc type:expense total>1 total<1000',
+            );
+        });
+
         test('with withdrawal type filter', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
