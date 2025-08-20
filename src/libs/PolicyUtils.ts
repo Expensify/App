@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate} from '@src/types/onyx';
+import type {Locale, OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -36,12 +36,24 @@ import {hasSynchronizationErrorMessage, isAuthenticationError} from './actions/c
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
+import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {isPublicDomain} from './ValidationUtils';
+
+/**
+ * If DeleteWorkspace endpoint fails, we show a modal with the error message that BE responds with.
+ */
+type DeleteWorkspaceErrorModal = {
+    /** Whether the modal should be visible */
+    isVisible: boolean;
+
+    /** The error message to display in the modal */
+    errorMessage: string;
+};
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -163,6 +175,10 @@ function shouldShowPolicyErrorFields(policy: OnyxEntry<Policy>): boolean {
  */
 function shouldShowPolicyError(policy: OnyxEntry<Policy>): boolean {
     return Object.keys(policy?.errors ?? {}).length > 0 ? isPolicyAdmin(policy) : shouldShowPolicyErrorFields(policy);
+}
+
+function isDeleteWorkspaceAnnualSubscriptionError(policy: OnyxEntry<Policy>): boolean {
+    return Object.values(policy?.errors ?? {}).some((error) => error === CONST.ERROR_TITLE.CANNOT_DELETE_WORKSPACE_ANNUAL_SUBSCRIPTION);
 }
 
 /**
@@ -1523,6 +1539,32 @@ function isUserInvitedToWorkspace(): boolean {
     );
 }
 
+/**
+ * Checks if the policy was last modified while the user was offline.
+ */
+function wasPolicyLastModifiedWhileOffline(
+    policy: OnyxEntry<Policy>,
+    isOffline: boolean,
+    lastOfflineAt: Date | undefined,
+    lastOnlineAt: Date | undefined,
+    locale: Locale | undefined,
+): boolean {
+    if (!lastOfflineAt || !lastOnlineAt || isEmptyObject(policy)) {
+        return false;
+    }
+
+    const policyLastModifiedAt = DateUtils.getLocalDateFromDatetime(locale, policy.lastModified);
+    if (policyLastModifiedAt <= lastOfflineAt) {
+        return false;
+    }
+
+    if (isOffline || policyLastModifiedAt < lastOnlineAt) {
+        return true;
+    }
+
+    return false;
+}
+
 export {
     canEditTaxRate,
     escapeTagName,
@@ -1561,6 +1603,7 @@ export {
     hasPolicyCategoriesError,
     shouldShowPolicyError,
     shouldShowPolicyErrorFields,
+    isDeleteWorkspaceAnnualSubscriptionError,
     shouldShowTaxRateError,
     isControlOnAdvancedApprovalMode,
     isExpensifyTeam,
@@ -1675,6 +1718,7 @@ export {
     getLengthOfTag,
     isPolicyMemberWithoutPendingDelete,
     getPolicyEmployeeAccountIDs,
+    wasPolicyLastModifiedWhileOffline,
 };
 
-export type {MemberEmailsToAccountIDs};
+export type {DeleteWorkspaceErrorModal, MemberEmailsToAccountIDs};
