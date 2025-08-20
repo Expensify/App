@@ -33,6 +33,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const shouldUseTransactionReport = (!!transactionReport && isReportOutstanding(transactionReport, transactionReport?.policyID)) || isUnreported;
     const outstandingReportID = isPolicyExpenseChat(participantReport) ? participantReport?.iouReportID : participantReportID;
     const selectedReportID = shouldUseTransactionReport ? transactionReport?.reportID : outstandingReportID;
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const selectedReport = useMemo(() => {
         if (!selectedReportID) {
             return undefined;
@@ -101,7 +102,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             );
 
             if (isEditing) {
-                changeTransactionsReport([transaction.transactionID], item.value);
+                changeTransactionsReport([transaction.transactionID], item.value, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]);
             }
         });
     };
@@ -145,6 +146,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         <IOURequestEditReportCommon
             backTo={backTo}
             selectReport={selectReport}
+            transactionIDs={transaction ? [transaction.transactionID] : []}
             selectedReportID={selectedReport?.reportID}
             selectedPolicyID={!isEditing && !isFromGlobalCreate ? reportOrDraftReport?.policyID : undefined}
             removeFromReport={removeFromReport}

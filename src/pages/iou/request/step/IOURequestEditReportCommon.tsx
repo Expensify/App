@@ -10,6 +10,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getOutstandingReportsForUser, getPolicyName, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
@@ -28,6 +29,7 @@ type TransactionGroupListItem = ListItem & {
 
 type Props = {
     backTo: Route | undefined;
+    transactionIDs?: string[];
     selectedReportID?: string;
     selectedPolicyID?: string;
     selectReport: (item: TransactionGroupListItem) => void;
@@ -39,6 +41,7 @@ type Props = {
 
 function IOURequestEditReportCommon({
     backTo,
+    transactionIDs,
     selectReport,
     selectedReportID,
     selectedPolicyID,
@@ -60,7 +63,19 @@ function IOURequestEditReportCommon({
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const isOwner = selectedReport ? selectedReport.ownerAccountID === currentUserPersonalDetails.accountID : false;
     const isReportIOU = selectedReport ? isIOUReport(selectedReport) : false;
-    const shouldShowRemoveFromReport = isEditing && isOwner && !isReportIOU && !isUnreported;
+
+    const reportTransactions = useReportTransactions(selectedReportID);
+    const isCardTransaction = useMemo(() => {
+        if (!transactionIDs || !selectedReport) {
+            return false;
+        }
+
+        return reportTransactions
+            .filter((transaction) => transactionIDs.includes(transaction.transactionID))
+            .some((transaction) => transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT);
+    }, [transactionIDs, selectedReport, reportTransactions]);
+
+    const shouldShowRemoveFromReport = isEditing && isOwner && !isReportIOU && !isUnreported && !isCardTransaction;
 
     const expenseReports = useMemo(() => {
         // Early return if no reports are available to prevent useless loop
@@ -105,6 +120,7 @@ function IOURequestEditReportCommon({
                     alternateText: getPolicyName({report}) ?? matchingOption?.alternateText,
                     value: report.reportID,
                     isSelected: report.reportID === selectedReportID,
+                    policyID: matchingOption?.policyID ?? report.policyID,
                 };
             });
     }, [outstandingReportsByPolicyID, debouncedSearchValue, expenseReports, selectedReportID, options.reports, localeCompare]);

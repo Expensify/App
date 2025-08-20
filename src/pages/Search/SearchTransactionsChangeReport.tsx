@@ -17,6 +17,7 @@ function SearchTransactionsChangeReport() {
     const {selectedTransactions, clearSelectedTransactions} = useSearchContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
     const firstTransactionKey = selectedTransactionsKeys.at(0);
     const firstTransactionReportID = firstTransactionKey ? selectedTransactions[firstTransactionKey]?.reportID : undefined;
@@ -33,7 +34,7 @@ function SearchTransactionsChangeReport() {
         }
 
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${item.value}`];
-        changeTransactionsReport(selectedTransactionsKeys, item.value, undefined, reportNextStep);
+        changeTransactionsReport(selectedTransactionsKeys, item.value, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`], reportNextStep);
         clearSelectedTransactions();
 
         Navigation.goBack();
@@ -51,6 +52,7 @@ function SearchTransactionsChangeReport() {
     return (
         <IOURequestEditReportCommon
             backTo={undefined}
+            transactionIDs={selectedTransactionsKeys}
             selectedReportID={selectedReportID}
             selectedPolicyID={selectedPolicyID}
             selectReport={selectReport}
