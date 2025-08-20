@@ -96,6 +96,7 @@ import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportTitleUtils from '@libs/ReportTitleUtils';
 import type {OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
 import {
     buildOptimisticAddCommentReportAction,
@@ -2323,6 +2324,11 @@ function updateReportName(reportID: string, value: string, previousValue: string
             },
         },
     ];
+
+    // Remove title field from rNVP when user manually renames report
+    // This prevents auto-generated names from overriding the custom name
+    const titleFieldRemovalUpdates = ReportTitleUtils.removeTitleFieldFromReport(reportID);
+    optimisticData.push(...titleFieldRemovalUpdates);
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -5213,6 +5219,14 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
         value: {[movedReportAction.reportActionID]: null},
     });
 
+    // Update title field to match new policy when moving report
+    const newPolicy = getPolicy(policyID);
+    if (newPolicy && ReportTitleUtils.shouldUpdateTitleField(iouReport, newPolicy)) {
+        const titleFieldUpdates = ReportTitleUtils.updateTitleFieldToMatchPolicy(iouReportID, newPolicy);
+        optimisticData.push(...titleFieldUpdates);
+        successData.push(...titleFieldUpdates);
+    }
+
     const parameters: MoveIOUReportToExistingPolicyParams = {
         iouReportID,
         policyID,
@@ -5469,6 +5483,13 @@ function moveIOUReportToPolicyAndInviteSubmitter(
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
         value: {[movedReportAction.reportActionID]: null},
     });
+
+    // Update title field to match new policy when moving report
+    if (policy && ReportTitleUtils.shouldUpdateTitleField(iouReport, policy)) {
+        const titleFieldUpdates = ReportTitleUtils.updateTitleFieldToMatchPolicy(reportID, policy);
+        optimisticData.push(...titleFieldUpdates);
+        successData.push(...titleFieldUpdates);
+    }
 
     const parameters: MoveIOUReportToPolicyAndInviteSubmitterParams = {
         iouReportID: reportID,
