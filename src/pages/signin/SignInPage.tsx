@@ -14,12 +14,10 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isClientTheLeader as isClientTheLeaderActiveClientManager} from '@libs/ActiveClientManager';
-import {getDevicePreferredLocale} from '@libs/Localize';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import Visibility from '@libs/Visibility';
-import {setLocale} from '@userActions/App';
 import {clearSignInData} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -162,7 +160,6 @@ function SignInPage({ref}: SignInPageProps) {
       We use that function to prevent repeating code that checks which client is the leader.
     */
     const [activeClients = getEmptyArray<string>()] = useOnyx(ONYXKEYS.ACTIVE_CLIENTS, {canBeMissing: true});
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
 
     /** This state is needed to keep track of if user is using recovery code instead of 2fa code,
      * and we need it here since welcome text(`welcomeText`) also depends on it */
@@ -183,12 +180,6 @@ function SignInPage({ref}: SignInPageProps) {
 
     useEffect(() => Performance.measureTTI(), []);
 
-    useEffect(() => {
-        if (preferredLocale) {
-            return;
-        }
-        setLocale(getDevicePreferredLocale());
-    }, [preferredLocale]);
     useEffect(() => {
         if (credentials?.login) {
             return;
@@ -286,15 +277,16 @@ function SignInPage({ref}: SignInPageProps) {
                 (shouldShowEmailDeliveryFailurePage || shouldShowUnlinkLoginForm || shouldShowChooseSSOOrMagicCode || shouldShowSMSDeliveryFailurePage))
         ) {
             clearSignInData();
-            return;
+            return true;
         }
 
         if (shouldShowValidateCodeForm) {
             validateCodeFormRef.current?.clearSignInData();
-            return;
+            return true;
         }
 
         Navigation.goBack();
+        return false;
     };
     useImperativeHandle(ref, () => ({
         navigateBack,

@@ -6,19 +6,29 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridApp} from '@src/types/onyx';
 import type HybridAppSettings from './types';
 
+/*
+ * Parses initial settings passed from OldDot app
+ */
+function parseHybridAppSettings(hybridAppSettings: string | null): HybridAppSettings | null {
+    if (!hybridAppSettings) {
+        return null;
+    }
+
+    return JSON.parse(hybridAppSettings) as HybridAppSettings;
+}
+
+function getHybridAppSettings(): Promise<HybridAppSettings | null> {
+    return HybridAppModule.getHybridAppSettings().then((hybridAppSettings) => {
+        return parseHybridAppSettings(hybridAppSettings);
+    });
+}
+
 function closeReactNativeApp({shouldSetNVP}: {shouldSetNVP: boolean}) {
     if (CONFIG.IS_HYBRID_APP) {
         Onyx.merge(ONYXKEYS.HYBRID_APP, {closingReactNativeApp: true});
     }
     // eslint-disable-next-line no-restricted-properties
     HybridAppModule.closeReactNativeApp({shouldSetNVP});
-}
-
-/*
- * Parses initial settings passed from OldDot app
- */
-function parseHybridAppSettings(hybridAppSettings: string): HybridAppSettings {
-    return JSON.parse(hybridAppSettings) as HybridAppSettings;
 }
 
 /*
@@ -54,10 +64,10 @@ function setClosingReactNativeApp(closingReactNativeApp: boolean) {
 function resetSignInFlow() {
     // This value is only relevant for HybridApp, so we can skip it in other environments.
     if (!CONFIG.IS_HYBRID_APP) {
-        return;
+        return Promise.resolve();
     }
 
-    Onyx.merge(ONYXKEYS.HYBRID_APP, {
+    return Onyx.merge(ONYXKEYS.HYBRID_APP, {
         readyToShowAuthScreens: false,
         useNewDotSignInPage: true,
     });
@@ -93,7 +103,7 @@ function migrateHybridAppToNewPartnerName() {
 }
 
 export {
-    parseHybridAppSettings,
+    getHybridAppSettings,
     setReadyToShowAuthScreens,
     resetSignInFlow,
     prepareHybridAppAfterTransitionToNewDot,

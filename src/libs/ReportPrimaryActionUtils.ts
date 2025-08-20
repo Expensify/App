@@ -320,16 +320,16 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
+    if (isApproveAction(report, reportTransactions, policy)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.APPROVE;
+    }
+
     if (isRemoveHoldAction(report, chatReport, reportTransactions) || isPayActionWithAllExpensesHeld) {
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
     if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
-    }
-
-    if (isApproveAction(report, reportTransactions, policy)) {
-        return CONST.REPORT.PRIMARY_ACTIONS.APPROVE;
     }
 
     if (isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy)) {
