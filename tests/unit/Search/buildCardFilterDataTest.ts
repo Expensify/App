@@ -436,6 +436,6 @@ describe('buildCardFeedsData', () => {
 describe('buildIndividualCardsData with empty argument objects', () => {
     it('Return empty array when domainCardFeeds and workspaceCardFeeds are empty', () => {
         const result = buildCardFeedsData({}, {}, [], translateMock as LocaleContextProps['translate'], illustrationsMock as IllustrationsType);
-        expect(result).toEqual({selected: [], unselected: []});
+        expect(result).toEqual([]);
     });
 });
