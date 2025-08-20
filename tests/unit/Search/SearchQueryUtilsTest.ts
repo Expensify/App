@@ -197,9 +197,7 @@ describe('SearchQueryUtils', () => {
             };
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual(
-                'sortBy:date sortOrder:desc type:expense total>1 total<1000',
-            );
+            expect(result).toEqual('sortBy:date sortOrder:desc type:expense total>1 total<1000');
         });
 
         test('with withdrawal type filter', () => {
