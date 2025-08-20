@@ -7,7 +7,7 @@ import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
 import focusApp from './focusApp';
 import type {LocalNotificationClickHandler, LocalNotificationData} from './types';
 
@@ -129,9 +129,9 @@ export default {
         push(title, body, icon, data, onClick);
     },
 
-    pushModifiedExpenseNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {
+    pushModifiedExpenseNotification(report: Report, reportAction: ReportAction, policyTags: PolicyTagLists, onClick: LocalNotificationClickHandler, usesIcon = false) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
-        const body = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
+        const body = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags});
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
         const data = {
             reportID: report.reportID,

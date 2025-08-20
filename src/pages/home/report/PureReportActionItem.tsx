@@ -361,6 +361,9 @@ type PureReportActionItemProps = {
 
     /** Whether to highlight the action for a few seconds */
     shouldHighlight?: boolean;
+
+    /** Policy tags for the current report's policy */
+    policyTags?: OnyxTypes.PolicyTagLists;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -425,6 +428,7 @@ function PureReportActionItem({
     userBillingFundID,
     shouldShowBorder,
     shouldHighlight = false,
+    policyTags,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate, datetimeToCalendarTime, formatPhoneNumber, localeCompare} = useLocalize();
@@ -643,21 +647,24 @@ function PureReportActionItem({
                         setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
                     },
                     disabledOptions: disabledActions,
+                    policyTags,
                 });
             });
         },
         [
             draftMessage,
-            action,
-            reportID,
-            toggleContextMenuFromActiveReportAction,
-            originalReportID,
+            action.errors,
+            action.reportActionID,
             shouldDisplayContextMenu,
-            disabledActions,
+            handleShowContextMenu,
+            reportID,
+            originalReportID,
             isArchivedRoom,
             isChronosReport,
-            handleShowContextMenu,
             isThreadReportParentAction,
+            toggleContextMenuFromActiveReportAction,
+            disabledActions,
+            policyTags,
         ],
     );
 

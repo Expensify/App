@@ -883,6 +883,7 @@ type GetReportNameParams = {
     draftReports?: OnyxCollection<Report>;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     policies?: SearchPolicy[];
+    policyTags?: PolicyTagLists;
 };
 
 type ReportByPolicyMap = Record<string, OnyxCollection<Report>>;
@@ -5162,6 +5163,7 @@ function getReportNameInternal({
     reports,
     reportNameValuePairs = allReportNameValuePair,
     policies,
+    policyTags,
 }: GetReportNameParams): string {
     let formattedName: string | undefined;
     let parentReportAction: OnyxEntry<ReportAction>;
@@ -5376,7 +5378,12 @@ function getReportNameInternal({
             return generateArchivedReportName(reportActionMessage);
         }
         if (!isEmptyObject(parentReportAction) && isModifiedExpenseAction(parentReportAction)) {
-            const modifiedMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: parentReportAction, searchReports: reports});
+            const modifiedMessage = ModifiedExpenseMessage.getForReportAction({
+                reportOrID: report?.reportID,
+                reportAction: parentReportAction,
+                searchReports: reports,
+                policyTags: policyTags ?? {},
+            });
             return formatReportLastMessageText(modifiedMessage);
         }
         if (isTripRoom(report) && report?.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {

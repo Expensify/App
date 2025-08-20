@@ -1,4 +1,4 @@
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
 import BrowserNotifications from './BrowserNotifications';
 import type {LocalNotificationClickHandler, LocalNotificationModule} from './types';
 
@@ -10,8 +10,8 @@ function showUpdateAvailableNotification() {
     BrowserNotifications.pushUpdateAvailableNotification();
 }
 
-function showModifiedExpenseNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler) {
-    BrowserNotifications.pushModifiedExpenseNotification(report, reportAction, onClick, true);
+function showModifiedExpenseNotification(report: Report, reportAction: ReportAction, policyTags: PolicyTagLists, onClick: LocalNotificationClickHandler) {
+    BrowserNotifications.pushModifiedExpenseNotification(report, reportAction, policyTags, onClick, true);
 }
 
 function clearReportNotifications(reportID: string | undefined) {
