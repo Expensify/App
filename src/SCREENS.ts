@@ -281,6 +281,7 @@ const SCREENS = {
         DISTANCE_CREATE: 'Money_Request_Distance_Create',
         STEP_DISTANCE_MAP: 'Money_Request_Step_Distance_Map',
         STEP_DISTANCE_MANUAL: 'Money_Request_Step_Distance_Manual',
+        RECEIPT_PREVIEW: 'Money_Request_Receipt_preview',
     },
 
     TRANSACTION_DUPLICATE: {
@@ -551,6 +552,7 @@ const SCREENS = {
         MEMBERS: 'Workspace_Members',
         MEMBERS_IMPORT: 'Members_Import',
         MEMBERS_IMPORTED: 'Members_Imported',
+        MEMBERS_IMPORTED_CONFIRMATION: 'Members_Imported_Confirmation',
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
         INVITE_MESSAGE_ROLE: 'Workspace_Invite_Message_Role',
