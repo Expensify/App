@@ -2,6 +2,16 @@ import {getEnvironment, getOldDotEnvironmentURL} from '@libs/Environment/Environ
 import CONST from '@src/CONST';
 import cidMap from './cidMap';
 
+type GibSdk = {
+    init: (opts: {cid: string; backUrl: string; gafUrl: string}) => void;
+    setAttribute?: (key: string, value: string, opts?: {persist?: boolean; encryption?: unknown}) => void;
+    setAuthStatus?: (status: number) => void;
+    setIdentity?: (id: string | number) => void;
+    setSessionID?: (id: string) => void;
+    IS_AUTHORIZED?: number;
+    IS_GUEST?: number;
+  };
+
 function getScriptURL(): string {
     if (typeof window === 'undefined' || typeof window.location === 'undefined') {
         return 'gib.js';
@@ -29,8 +39,8 @@ function loadGroupIBScript(): Promise<void> {
     });
 }
 
-let resolveFpInstancePromise: (fp: any) => void = () => {};
-const fpInstancePromise = new Promise<any>((resolve) => {
+let resolveFpInstancePromise: (fp: GibSdk | undefined) => void = () => {};
+const fpInstancePromise = new Promise<GibSdk | undefined>((resolve) => {
     resolveFpInstancePromise = resolve;
 });
 
@@ -40,7 +50,7 @@ function init(): Promise<void> {
         return Promise.resolve();
     }
     return Promise.all([loadGroupIBScript(), getEnvironment(), getOldDotEnvironmentURL()]).then(([_, env, oldDotURL]) => {
-        const fp = (globalThis as any)?.window?.gib;
+        const fp = (globalThis as any)?.window?.gib as GibSdk | undefined;
         const cid = cidMap[env] ?? cidMap[CONST.ENVIRONMENT.DEV];
         fp?.init?.({cid, backUrl: `${oldDotURL.replace('https://', '//')}/api/fl`, gafUrl: '//eu.id.group-ib.com/id.html'});
         resolveFpInstancePromise(fp);
@@ -50,7 +60,7 @@ function init(): Promise<void> {
 function setAuthenticationData(identity: string, sessionID: string): void {
     fpInstancePromise.then((fp) => {
         const status = identity !== '' ? fp?.IS_AUTHORIZED : fp?.IS_GUEST;
-        fp?.setAuthStatus?.(status);
+        fp?.setAuthStatus?.(status ?? 0);
         fp?.setIdentity?.(identity);
         fp?.setSessionID?.(sessionID);
     });
