@@ -1425,7 +1425,7 @@ function getMemberSections(data: OnyxTypes.SearchResults['data'], queryJSON?: Se
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getCardSections(data: OnyxTypes.SearchResults['data']): TransactionCardGroupListItemType[] {
+function getCardSections(data: OnyxTypes.SearchResults['data'], queryJSON?: SearchQueryJSON): TransactionCardGroupListItemType[] {
     const cardSections: Record<string, TransactionCardGroupListItemType> = {};
 
     for (const key in data) {
@@ -1433,9 +1433,19 @@ function getCardSections(data: OnyxTypes.SearchResults['data']): TransactionCard
             const cardGroup = data[key] as SearchCardGroup;
             const personalDetails = data.personalDetailsList[cardGroup.accountID];
 
+            let transactionsQueryJSON: SearchQueryJSON | undefined;
+            if (queryJSON) {
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: cardGroup.cardID}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                transactionsQueryJSON = buildSearchQueryJSON(newQuery);
+            }
+
             cardSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.CARD,
                 transactions: [],
+                transactionsQueryJSON,
                 ...personalDetails,
                 ...cardGroup,
             };

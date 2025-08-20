@@ -7,6 +7,7 @@ import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
+import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {
     ListItem,
@@ -60,6 +61,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const {selectedTransactions} = useSearchContext();
+    const selectedTransactionIDs = Object.keys(selectedTransactions);
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`, {canBeMissing: true});
     const transactionsSnapshotMetadata = useMemo(() => {
         return transactionsSnapshot?.search;
@@ -72,8 +75,12 @@ function TransactionGroupListItem<TItem extends ListItem>({
         if (!transactionsSnapshot?.data) {
             return [];
         }
-        return getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, transactionsSnapshot?.data, transactionsSnapshot?.search, accountID, formatPhoneNumber) as TransactionListItemType[];
-    }, [isGroupByReports, transactionsSnapshot?.data, transactionsSnapshot?.search, accountID, formatPhoneNumber, groupItem.transactions]);
+        const sectionData = getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, transactionsSnapshot?.data, transactionsSnapshot?.search, accountID, formatPhoneNumber) as TransactionListItemType[];
+        return sectionData.map((transactionItem) => ({
+            ...transactionItem,
+            isSelected: selectedTransactionIDs.includes(transactionItem.transactionID),
+        }));
+    }, [isGroupByReports, transactionsSnapshot?.data, transactionsSnapshot?.search, accountID, formatPhoneNumber, groupItem.transactions, selectedTransactionIDs]);
     const collapsibleRef = useRef<AnimatedCollapsibleHandle>(null);
     const prevTransactionsLength = usePrevious(transactions.length);
     const shouldForceExpand = prevTransactionsLength === 0 && transactions.length > 0 && !isGroupByReports;

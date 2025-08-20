@@ -551,7 +551,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     return;
                 }
                 handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals});
-                // navigation.setParams({q: newQuery, groupBy});
                 // Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQuery}));
                 return;
             }
@@ -561,7 +560,12 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.cardID}]});
                 const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
                 const newQuery = buildSearchQueryString(newQueryJSON);
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQuery}));
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                if (!newQueryJSONWithHash) {
+                    return;
+                }
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals});
+                // Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQuery}));
                 return;
             }
 

@@ -1151,6 +1151,7 @@ const transactionMemberGroupListItems: TransactionMemberGroupListItemType[] = [
         login: 'admin@policy.com',
         total: 70,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
     {
         accountID: 1111111,
@@ -1162,6 +1163,7 @@ const transactionMemberGroupListItems: TransactionMemberGroupListItemType[] = [
         login: 'approver@policy.com',
         total: 30,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 ];
 
