@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import createRandomTransaction from 'tests/utils/collections/transaction';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
@@ -15,7 +16,7 @@ import IntlStore from '@src/languages/IntlStore';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes, SearchTransaction} from '@src/types/onyx/SearchResults';
 import {formatPhoneNumber, localeCompare} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -1688,6 +1689,65 @@ describe('SearchUIUtils', () => {
             menuItems.forEach((item, index) => {
                 expect(item.searchQuery).toStrictEqual(expectedQueries.at(index));
             });
+        });
+    });
+
+    describe('Test isSearchResultsEmpty', () => {
+        it('should return true when all transactions have delete pending action', () => {
+            const results: OnyxTypes.SearchResults = {
+                data: {
+                    personalDetailsList: {},
+                    transactions_1: {
+                        accountID: 2074551,
+                        amount: 0,
+                        canDelete: false,
+                        canHold: true,
+                        canUnhold: false,
+                        category: 'Employee Meals Remote (Fringe Benefit)',
+                        action: 'approve',
+                        comment: {
+                            comment: '',
+                        },
+                        created: '2025-05-26',
+                        currency: 'USD',
+                        hasEReceipt: false,
+                        isFromOneTransactionReport: true,
+                        managerID: adminAccountID,
+                        merchant: '(none)',
+                        modifiedAmount: -1000,
+                        modifiedCreated: '2025-05-22',
+                        modifiedCurrency: 'USD',
+                        modifiedMerchant: 'Costco Wholesale',
+                        parentTransactionID: '',
+                        policyID: '137DA25D273F2423',
+                        receipt: {
+                            source: 'https://www.expensify.com/receipts/fake.jpg',
+                            state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
+                        },
+                        reportID: '6523565988285061',
+                        reportType: 'expense',
+                        tag: '',
+                        transactionID: '1805965960759424086',
+                        transactionThreadReportID: '4139222832581831',
+                        transactionType: 'cash',
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+                search: {
+                    type: 'expense',
+                    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                    offset: 0,
+                    hasMoreResults: false,
+                    hasResults: true,
+                    isLoading: false,
+                    columnsToShow: {
+                        shouldShowCategoryColumn: true,
+                        shouldShowTagColumn: true,
+                        shouldShowTaxColumn: true,
+                    },
+                },
+            };
+            expect(SearchUIUtils.isSearchResultsEmpty(results)).toBe(true);
         });
     });
 
