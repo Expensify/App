@@ -30,6 +30,7 @@ const shouldShowColumnConfig: Record<SortableColumnName, (isIOUReport: boolean) 
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: () => false,
     [CONST.SEARCH.TABLE_COLUMNS.TITLE]: () => false,
     [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: () => false,
+    [CONST.SEARCH.TABLE_COLUMNS.CARD]: () => false,
 };
 
 const columnConfig: ColumnConfig[] = [
@@ -75,11 +76,13 @@ type SearchTableHeaderProps = {
     sortOrder?: SortOrder;
     onSortPress: (column: SortableColumnName, order: SortOrder) => void;
     dateColumnSize: TableColumnSize;
+    amountColumnSize: TableColumnSize;
+    taxAmountColumnSize: TableColumnSize;
     shouldShowSorting: boolean;
     isIOUReport: boolean;
 };
 
-function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColumnSize, shouldShowSorting, isIOUReport}: SearchTableHeaderProps) {
+function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColumnSize, shouldShowSorting, isIOUReport, amountColumnSize, taxAmountColumnSize}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
 
     const shouldShowColumn = useCallback(
@@ -98,6 +101,8 @@ function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColu
                 columns={columnConfig}
                 shouldShowColumn={shouldShowColumn}
                 dateColumnSize={dateColumnSize}
+                amountColumnSize={amountColumnSize}
+                taxAmountColumnSize={taxAmountColumnSize}
                 shouldShowSorting={shouldShowSorting}
                 sortBy={sortBy}
                 sortOrder={sortOrder}

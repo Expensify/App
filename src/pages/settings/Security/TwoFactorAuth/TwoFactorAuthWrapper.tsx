@@ -1,11 +1,13 @@
-import React, {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import React, {useContext, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useOnyx from '@hooks/useOnyx';
+import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {quitAndNavigateBack} from '@libs/actions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import type {StepCounterParams} from '@src/languages/params';
@@ -28,11 +30,22 @@ type TwoFactorAuthWrapperProps = ChildrenProps & {
 
     /** Flag to indicate if the keyboard avoiding view should be enabled */
     shouldEnableKeyboardAvoidingView?: boolean;
+
+    /** Flag to indicate if the viewport offset top should be enabled */
+    shouldEnableViewportOffsetTop?: boolean;
 };
 
-function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, shouldEnableKeyboardAvoidingView = true, children}: TwoFactorAuthWrapperProps) {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
+function TwoFactorAuthWrapper({
+    stepName,
+    title,
+    stepCounter,
+    onBackButtonPress,
+    shouldEnableKeyboardAvoidingView = true,
+    shouldEnableViewportOffsetTop = false,
+    children,
+}: TwoFactorAuthWrapperProps) {
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const {isDelegateAccessRestricted} = useContext(DelegateNoAccessContext);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = useMemo(() => {
@@ -58,7 +71,9 @@ function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, 
         }
     }, [account, stepName]);
 
-    if (isActingAsDelegate) {
+    const viewportOffsetTop = useViewportOffsetTop();
+
+    if (isDelegateAccessRestricted) {
         return (
             <ScreenWrapper
                 testID={TwoFactorAuthWrapper.displayName}
@@ -78,10 +93,11 @@ function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, 
             shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
             shouldEnableMaxHeight
             testID={stepName}
+            style={shouldEnableViewportOffsetTop ? {marginTop: viewportOffsetTop} : undefined}
         >
             <FullPageNotFoundView
                 shouldShow={shouldShowNotFound}
-                linkKey="securityPage.goToSecurity"
+                linkTranslationKey="securityPage.goToSecurity"
                 onLinkPress={defaultGoBack}
             >
                 <HeaderWithBackButton

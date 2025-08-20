@@ -55,7 +55,6 @@ if (!process.env.ELECTRON_ENV && process.env.npm_lifecycle_event !== 'desktop') 
     defaultPluginsForWebpack.push([
         '@fullstory/babel-plugin-annotate-react',
         {
-            'react-native-web': true,
             native: true,
         },
     ]);
@@ -123,6 +122,7 @@ const metro = {
                     '@libs': './src/libs',
                     '@navigation': './src/libs/Navigation',
                     '@pages': './src/pages',
+                    '@prompts': './prompts',
                     '@styles': './src/styles',
                     // This path is provide alias for files like `ONYXKEYS` and `CONST`.
                     '@src': './src',

@@ -1,10 +1,13 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useNavigation} from '@react-navigation/native';
-import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
+import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import {InitialURLContext} from '@components/InitialURLContextProvider';
+import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import PriorityModeController from '@components/PriorityModeController';
 import {SearchContextProvider} from '@components/Search/SearchContext';
@@ -12,9 +15,11 @@ import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRout
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import {connect} from '@libs/actions/Delegate';
 import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
@@ -27,13 +32,14 @@ import Log from '@libs/Log';
 import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
-import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
+import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
+import {getReportIDFromLink} from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import {getSearchParamFromUrl} from '@libs/Url';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
@@ -59,6 +65,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+import attachmentModalScreenOptions from './attachmentModalScreenOptions';
 import createRootStackNavigator from './createRootStackNavigator';
 import {screensWithEnteringAnimation, workspaceSplitsWithoutEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
 import defaultScreenOptions from './defaultScreenOptions';
@@ -69,6 +76,7 @@ import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeM
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
+import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
@@ -84,7 +92,7 @@ type AuthScreensProps = {
     initialLastUpdateIDAppliedToClient: OnyxEntry<number>;
 };
 
-const loadReportAttachments = () => require<ReactComponentModule>('../../../pages/home/report/ReportAttachments').default;
+const loadAttachmentModalScreen = () => require<ReactComponentModule>('../../../pages/media/AttachmentModalScreen').default;
 const loadValidateLoginPage = () => require<ReactComponentModule>('../../../pages/ValidateLoginPage').default;
 const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../../pages/LogOutPreviousUserPage').default;
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
@@ -110,7 +118,6 @@ function initializePusher() {
         User.subscribeToUserEvents();
     });
 }
-
 let timezone: Timezone | null;
 let currentAccountID = -1;
 let isLoadingApp = false;
@@ -180,11 +187,11 @@ function handleNetworkReconnect() {
 }
 
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
+
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
 // that depends on modal visibility until Modal is completely closed and its focused
 // When modal screen is focused, update modal visibility in Onyx
 // https://reactnavigation.org/docs/navigation-events/
-
 const modalScreenListeners = {
     focus: () => {
         Modal.setModalVisibility(true, CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED);
@@ -218,6 +225,7 @@ const modalScreenListenersWithCancelSearch = {
 
 function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -235,19 +243,20 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const prevIsOnboardingLoading = usePrevious(isOnboardingLoading);
     const [shouldShowRequire2FAPage, setShouldShowRequire2FAPage] = useState(!!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth);
     const navigation = useNavigation();
+    const {initialURL, isAuthenticatedAtStartup, setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
 
     // State to track whether the delegator's authentication is completed before displaying data
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
 
     // On HybridApp we need to prevent flickering during transition to OldDot
     const shouldRenderOnboardingExclusivelyOnHybridApp = useMemo(() => {
-        return CONFIG.IS_HYBRID_APP && Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_ACCOUNTING.route) && isOnboardingCompleted === true;
+        return CONFIG.IS_HYBRID_APP && Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_INTERESTED_FEATURES.route) && isOnboardingCompleted === true;
     }, [isOnboardingCompleted]);
 
     const shouldRenderOnboardingExclusively = useMemo(() => {
         return (
             !CONFIG.IS_HYBRID_APP &&
-            Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_ACCOUNTING.route) &&
+            Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_INTERESTED_FEATURES.route) &&
             getPlatform() !== CONST.PLATFORM.DESKTOP &&
             onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO &&
             isOnboardingCompleted === true &&
@@ -315,6 +324,12 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                             setIsDelegatorFromOldDotIsReady(true);
                         });
                 } else {
+                    const reportID = getReportIDFromLink(initialURL ?? null);
+                    if (reportID && !isAuthenticatedAtStartup) {
+                        Report.openReport(reportID);
+                        // Don't want to call `openReport` again when logging out and then logging in
+                        setIsAuthenticatedAtStartup(true);
+                    }
                     App.openApp();
                 }
             } else {
@@ -535,7 +550,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     }
 
     return (
-        <ComposeProviders components={[OptionsListContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider]}>
+        <ComposeProviders components={[OptionsListContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider, LockedAccountModalProvider, DelegateNoAccessModalProvider]}>
             <RootStack.Navigator persistentScreens={[NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.SEARCH.ROOT]}>
                 {/* This has to be the first navigator in auth screens. */}
                 <RootStack.Screen
@@ -595,11 +610,8 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 />
                 <RootStack.Screen
                     name={SCREENS.ATTACHMENTS}
-                    options={{
-                        headerShown: false,
-                        presentation: Presentation.TRANSPARENT_MODAL,
-                    }}
-                    getComponent={loadReportAttachments}
+                    options={attachmentModalScreenOptions}
+                    getComponent={loadAttachmentModalScreen}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
@@ -733,6 +745,15 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
+                    name={SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW}
+                    options={{
+                        headerShown: false,
+                        presentation: Presentation.TRANSPARENT_MODAL,
+                    }}
+                    getComponent={loadReceiptView}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
                     name={SCREENS.CONNECTION_COMPLETE}
                     options={rootNavigatorScreenOptions.fullScreen}
                     component={ConnectionCompletePage}
@@ -741,6 +762,26 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     name={SCREENS.BANK_CONNECTION_COMPLETE}
                     options={rootNavigatorScreenOptions.fullScreen}
                     component={ConnectionCompletePage}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR}
+                    options={{
+                        ...rootNavigatorScreenOptions.basicModalNavigator,
+                        native: {
+                            contentStyle: {
+                                ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, 0.72),
+                            },
+                            animation: InternalPlatformAnimations.FADE,
+                        },
+                        web: {
+                            cardStyle: {
+                                ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, 0.72),
+                            },
+                            animation: InternalPlatformAnimations.FADE,
+                        },
+                    }}
+                    component={TestToolsModalNavigator}
+                    listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
             <SearchRouterModal />

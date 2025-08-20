@@ -5,7 +5,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
@@ -20,6 +20,8 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+jest.unmock('react-native-reanimated');
+
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
 TestHelper.setupGlobalFetchMock();
@@ -28,7 +30,7 @@ const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.CATEGORIES, initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.CATEGORIES]) => {
     return render(
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
@@ -54,7 +56,10 @@ describe('WorkspaceCategories', () => {
         });
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
+        });
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
             isSmallScreenWidth: false,
             shouldUseNarrowLayout: false,

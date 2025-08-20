@@ -1,7 +1,6 @@
-import {useOnyx} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import usePreferredCurrency from './usePreferredCurrency';
+import usePrivateSubscription from './usePrivateSubscription';
 import useSubscriptionPlan from './useSubscriptionPlan';
 
 const POSSIBLE_COST_SAVINGS = {
@@ -21,12 +20,16 @@ const POSSIBLE_COST_SAVINGS = {
         [CONST.POLICY.TYPE.TEAM]: 1600,
         [CONST.POLICY.TYPE.CORPORATE]: 3200,
     },
+    [CONST.PAYMENT_CARD_CURRENCY.EUR]: {
+        [CONST.POLICY.TYPE.TEAM]: 1000,
+        [CONST.POLICY.TYPE.CORPORATE]: 1600,
+    },
 } as const;
 
 function useSubscriptionPossibleCostSavings(): number {
     const preferredCurrency = usePreferredCurrency();
     const subscriptionPlan = useSubscriptionPlan();
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const privateSubscription = usePrivateSubscription();
 
     if (!subscriptionPlan || !privateSubscription?.type) {
         return 0;

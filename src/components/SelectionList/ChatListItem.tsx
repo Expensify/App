@@ -1,9 +1,7 @@
 import React from 'react';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isInvoiceRoom, isPolicyExpenseChat} from '@libs/ReportUtils';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -23,12 +21,15 @@ function ChatListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     policies,
+    allReports,
+    userWalletTierName,
+    isUserValidated,
+    personalDetails,
+    userBillingFundID,
 }: ChatListItemProps<TItem>) {
     const reportActionItem = item as unknown as ReportActionListItemType;
     const reportID = Number(reportActionItem?.reportID ?? CONST.DEFAULT_NUMBER_ID);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        canBeMissing: true,
-    });
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const styles = useThemeStyles();
     const theme = useTheme();
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -70,6 +71,7 @@ function ChatListItem<TItem extends ListItem>({
             hoverStyle={item.isSelected && styles.activeComponentBG}
         >
             <ReportActionItem
+                allReports={allReports}
                 action={reportActionItem}
                 report={report}
                 reportActions={[]}
@@ -82,18 +84,12 @@ function ChatListItem<TItem extends ListItem>({
                 isFirstVisibleReportAction={false}
                 shouldDisplayContextMenu={false}
                 shouldShowDraftMessage={false}
-                shouldShowSubscriptAvatar={
-                    (isPolicyExpenseChat(report) || isInvoiceRoom(report)) &&
-                    [
-                        CONST.REPORT.ACTIONS.TYPE.IOU,
-                        CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                        CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                        CONST.REPORT.ACTIONS.TYPE.APPROVED,
-                        CONST.REPORT.ACTIONS.TYPE.FORWARDED,
-                    ].some((type) => type === reportActionItem.actionName)
-                }
                 policies={policies}
                 shouldShowBorder
+                userWalletTierName={userWalletTierName}
+                isUserValidated={isUserValidated}
+                personalDetails={personalDetails}
+                userBillingFundID={userBillingFundID}
             />
         </BaseListItem>
     );

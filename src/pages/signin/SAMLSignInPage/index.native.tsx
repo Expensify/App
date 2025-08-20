@@ -1,5 +1,4 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import WebView from 'react-native-webview';
 import type {WebViewNativeEvent} from 'react-native-webview/lib/WebViewTypes';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -7,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import SAMLLoadingIndicator from '@components/SAMLLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import getPlatform from '@libs/getPlatform';
 import getUAForWebView from '@libs/getUAForWebView';
 import Log from '@libs/Log';

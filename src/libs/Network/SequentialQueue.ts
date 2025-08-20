@@ -21,7 +21,8 @@ import type {ConflictData} from '@src/types/onyx/Request';
 import {isOffline, onReconnection} from './NetworkStore';
 
 let shouldFailAllRequests: boolean;
-Onyx.connect({
+// Use connectWithoutView since this is for network data and don't affect to any UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
@@ -78,7 +79,8 @@ function flushOnyxUpdatesQueue() {
 
 let queueFlushedDataToStore: OnyxUpdate[] = [];
 
-Onyx.connect({
+// Use connectWithoutView since this is for network queue and don't affect to any UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.QUEUE_FLUSHED_DATA,
     callback: (val) => {
         if (!val) {
@@ -227,7 +229,8 @@ function flush(shouldResetPromise = true) {
     }
 
     // Ensure persistedRequests are read from storage before proceeding with the queue
-    const connection = Onyx.connect({
+    // Use connectWithoutView since this is for network queue and don't affect to any UI
+    const connection = Onyx.connectWithoutView({
         key: ONYXKEYS.PERSISTED_REQUESTS,
         // We exceptionally opt out of reusing the connection here to avoid extra callback calls due to
         // an existing connection already made in PersistedRequests.ts.
@@ -273,6 +276,11 @@ function unpause() {
     const numberOfPersistedRequests = getAllPersistedRequests().length || 0;
     Log.info(`[SequentialQueue] Unpausing the queue and flushing ${numberOfPersistedRequests} requests`);
     isQueuePaused = false;
+
+    // If there are no persisted requests, we need to flush the Onyx updates queue
+    if (numberOfPersistedRequests === 0) {
+        flushOnyxUpdatesQueue();
+    }
 
     // When the queue is paused and then unpaused, we call flush which by defaults recreates the isReadyPromise.
     // After all the WRITE requests are done, the isReadyPromise is resolved, but since it's a new instance of promise,

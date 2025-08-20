@@ -1,8 +1,8 @@
-import isEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import * as TransactionUtils from '@libs/TransactionUtils';
-import * as TransactionAction from '@userActions/Transaction';
+import {getRoute} from '@libs/actions/Transaction';
+import {getValidWaypoints, hasRoute as hasRouteTransactionUtils, isDistanceRequest as isDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
@@ -19,13 +19,13 @@ export default function useFetchRoute(
 ) {
     const {isOffline} = useNetwork();
     const hasRouteError = !!transaction?.errorFields?.route;
-    const hasRoute = TransactionUtils.hasRoute(transaction);
+    const hasRoute = hasRouteTransactionUtils(transaction);
     const isRouteAbsentWithoutErrors = !hasRoute && !hasRouteError;
     const isLoadingRoute = transaction?.comment?.isLoading ?? false;
-    const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
+    const validatedWaypoints = getValidWaypoints(waypoints);
     const previousValidatedWaypoints = usePrevious(validatedWaypoints);
-    const haveValidatedWaypointsChanged = !isEqual(previousValidatedWaypoints, validatedWaypoints);
-    const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
+    const haveValidatedWaypointsChanged = !deepEqual(previousValidatedWaypoints, validatedWaypoints);
+    const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const shouldFetchRoute = isDistanceRequest && (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && Object.keys(validatedWaypoints).length > 1;
 
     useEffect(() => {
@@ -33,7 +33,7 @@ export default function useFetchRoute(
             return;
         }
 
-        TransactionAction.getRoute(transaction.transactionID, validatedWaypoints, transactionState);
+        getRoute(transaction.transactionID, validatedWaypoints, transactionState);
     }, [shouldFetchRoute, transaction?.transactionID, validatedWaypoints, isOffline, action, transactionState]);
 
     return {shouldFetchRoute, validatedWaypoints};

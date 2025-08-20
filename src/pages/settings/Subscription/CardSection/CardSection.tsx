@@ -1,16 +1,17 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,6 +33,7 @@ import SubscriptionBillingBanner from './BillingBanner/SubscriptionBillingBanner
 import TrialEndedBillingBanner from './BillingBanner/TrialEndedBillingBanner';
 import TrialStartedBillingBanner from './BillingBanner/TrialStartedBillingBanner';
 import CardSectionActions from './CardSectionActions';
+import CardSectionButton from './CardSectionButton';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
 import RequestEarlyCancellationMenuItem from './RequestEarlyCancellationMenuItem';
 import type {BillingStatusResult} from './utils';
@@ -39,11 +41,11 @@ import CardSectionUtils from './utils';
 
 function CardSection() {
     const [isRequestRefundModalVisible, setIsRequestRefundModalVisible] = useState(false);
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: true});
+    const privateSubscription = usePrivateSubscription();
     const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
     const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
@@ -56,7 +58,11 @@ function CardSection() {
     const [subscriptionRetryBillingStatusFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED, {canBeMissing: true});
     const {isOffline} = useNetwork();
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
-    const cardMonth = useMemo(() => DateUtils.getMonthNames(preferredLocale)[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth, preferredLocale]);
+    const cardMonth = useMemo(() => DateUtils.getMonthNames()[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth]);
+    const hasFailedLastBilling = useMemo(
+        () => purchaseList?.[0]?.message.billingType === CONST.BILLING.TYPE_STRIPE_FAILED_AUTHENTICATION || purchaseList?.[0]?.message.billingType === CONST.BILLING.TYPE_FAILED_2018,
+        [purchaseList],
+    );
 
     const requestRefund = useCallback(() => {
         requestRefundByUser();
@@ -100,11 +106,11 @@ function CardSection() {
     };
 
     useEffect(() => {
-        if (!authenticationLink || privateStripeCustomerID?.status !== CONST.STRIPE_GBP_AUTH_STATUSES.CARD_AUTHENTICATION_REQUIRED) {
+        if (!authenticationLink || (privateStripeCustomerID?.status !== CONST.STRIPE_SCA_AUTH_STATUSES.CARD_AUTHENTICATION_REQUIRED && !hasFailedLastBilling)) {
             return;
         }
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
-    }, [authenticationLink, privateStripeCustomerID?.status]);
+    }, [authenticationLink, privateStripeCustomerID?.status, hasFailedLastBilling]);
 
     const handleAuthenticatePayment = () => {
         verifySetupIntent(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, false);
@@ -174,7 +180,7 @@ function CardSection() {
 
                 <View style={styles.mb3}>{isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}</View>
                 {billingStatus?.isRetryAvailable !== undefined && (
-                    <Button
+                    <CardSectionButton
                         text={translate('subscription.cardSection.retryPaymentButton')}
                         isDisabled={isOffline || !billingStatus?.isRetryAvailable}
                         isLoading={subscriptionRetryBillingStatusPending}
@@ -184,7 +190,7 @@ function CardSection() {
                     />
                 )}
                 {hasCardAuthenticatedError() && (
-                    <Button
+                    <CardSectionButton
                         text={translate('subscription.cardSection.authenticatePayment')}
                         isDisabled={isOffline || !billingStatus?.isAuthenticationRequired}
                         isLoading={subscriptionRetryBillingStatusPending}
@@ -226,12 +232,7 @@ function CardSection() {
                     isVisible={isRequestRefundModalVisible}
                     onConfirm={requestRefund}
                     onCancel={() => setIsRequestRefundModalVisible(false)}
-                    prompt={
-                        <>
-                            <Text style={styles.mb4}>{translate('subscription.cardSection.requestRefundModal.phrase1')}</Text>
-                            <Text>{translate('subscription.cardSection.requestRefundModal.phrase2')}</Text>
-                        </>
-                    }
+                    prompt={<RenderHTML html={translate('subscription.cardSection.requestRefundModal.full')} />}
                     confirmText={translate('subscription.cardSection.requestRefundModal.confirm')}
                     cancelText={translate('common.cancel')}
                     danger

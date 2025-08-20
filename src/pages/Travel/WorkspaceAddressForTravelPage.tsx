@@ -1,7 +1,7 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';

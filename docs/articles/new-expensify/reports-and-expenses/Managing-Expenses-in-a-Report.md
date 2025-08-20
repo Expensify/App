@@ -1,186 +1,159 @@
 ---
 title: Managing Expenses in a Report
-description: Learn how to add, remove, and move expenses within a report in New Expensify, and how they interact with comments and system messages.
-keywords: [manage expenses, add expense, remove expense, delete expense, move expense, expense table, expense comments, audit trail, report troubleshooting, New Expensify]
+description: Learn how to add, remove, and move expenses in a report in New Expensify, including how comments and system messages interact with them.
+keywords: [New Expensify, manage expenses, add expense, delete expense, move expense, expense table, expense comments, report audit history, report troubleshooting]
 ---
 <div id="new-expensify" markdown="1">
 
-This article walks you through managing expenses within a report in New Expensify, from adding and removing expenses to how they interact with comments and system messages.
+Easily manage expenses inside reports in New Expensify. This guide covers how to add, delete, or move expenses, and how they interact with comments, system messages, and audit trails.
 
----
+# Managing Expenses in a Report
 
-# Add Expenses to a Report
+## Add Expenses to a Report
 
-There are two options for adding expenses to a report. 
+You can add expenses to a report in two ways:
 
-**Create a new expense:**
+### Create a new expense
 1. Open the draft report.
-2. Click **Add expense** → **Create new expense**.
-3. Fill in the expense details, then click **Save**.
-4. The new expense appears instantly in the report table.
+2. Select **Add expense** > **Create expense**.
+3. Enter the expense details and click **Save**.
+4. The new expense appears instantly in the report.
 
-**Add existing unreported expenses:**
-1. Click **Add expense** → **Add unreported expenses**.
-2. Select one or more expenses from the list.
+### Add existing unreported expenses
+1. Select **Add expense** > **Add unreported expenses**.
+2. Select one or more expenses.
 3. Click **Add to report**.
 
-**Note:** Expenses added this way will instantly appear in the report’s expense table.
+**Tip:** To add additional expenses later, go to **More > Add expense**.
 
 ---
 
-# Remove (Delete) Expenses From a Report
+## Delete Expenses From a Report
 
-**Remove a single expense:**
+You can delete one or more expenses from a report:
+
+### Delete a single expense
 1. Open the report.
-2. Check the box next to the expense you want to remove.
-3. Click the **Bulk actions** menu → Select **Delete**.
+2. Check the box next to the expense.
+3. Select the **green** selection button > **Delete**.
 
-**Remove multiple expenses:**
-1. Select the checkboxes for the expenses you want to delete.
-2. From the **Bulk actions** menu, click **Delete**.
-
-**Note:** Deleted expenses return to your **Self DM** and reappear in the **Add unreported expenses** list.
+### Delete multiple expenses
+1. Check the boxes for all expenses you want to delete.
+2. Select the **green** selection button > **Delete**.
 
 ---
 
-# Move Expenses to Another Report
+## Move or Remove Expenses
 
-To transfer expenses between reports:
+### Move expenses to another report
+1. Check the boxes next to the expenses.
+2. Select the **green** selection button > **Move expense(s)**.
+3. Choose the destination report from the panel.
 
-1. Check the boxes next to the expense(s).
-2. Open the **Bulk actions** menu → Select **Move expense(s)**.
-3. Choose a destination report from the panel.
-
-**Note:**
-- Moved expenses disappear from the current report.
-- They appear in the selected destination report.
-- A system message logs this change for tracking.
+### Remove expenses from a report
+1. Check the boxes next to the expenses.
+2. Select the **green** selection button > **Move expense(s)**.
+3. Choose **Remove from report**.
 
 ---
 
-# How Expenses Appear in the Report Table
+## Edit Expenses in Approved or Paid Reports
 
-Each report includes a table that shows all added expenses.
+Approved and Paid reports are locked for editing. To make changes:
 
-## What you’ll see in each row
+1. Open the report (as an Admin).
+2. Select **More > Cancel Payment** (if Paid).
+3. Then select **More > Unapprove**.
+
+After it's unapproved:
+- The member can select **More > Undo Submit**.
+- They can now edit or remove expenses before resubmitting.
+
+**Important:** If the report was exported to an accounting system, delete the exported data from that system before exporting again. Unapproving a report doesn’t retract the export.
+
+### Example
+
+Taylor submits a report to Jordan. Jordan approves, pays, and exports it to NetSuite, then notices the report includes an unpaid invoice meant for the AP team. Jordan cancels the payment, unapproves the report, and Taylor undoes the submission to remove the invoice. Meanwhile, Jordan deletes the exported report from NetSuite, preparing it for fresh export.
+
+---
+
+## View the Expense Table in a Report
+
+Every report includes an expense table. Each row shows:
+
 - Date
 - Merchant
 - Category
 - Amount
-- Policy violations (if applicable)
-- Clickable rows that open details in the side panel
+- Workspace violations (if applicable)
 
-## Behavior highlights
-- New expenses are briefly highlighted when added.
-- Checkboxes allow you to take group actions.
-- Expenses are listed in reverse chronological order (newest first).
+Clicking a row opens the full expense details in the side panel.
 
 ---
 
-# Comments and How They Relate to Expenses
+## Comments and Collaboration
 
-Every report has a comment thread for collaboration and context.
+Each report includes a comment thread to help track conversations and share documents.
 
-## Comment features
-- The thread appears below the report table.
-- Supports mentions, questions, and internal notes.
-- Updates live for all members in the workspace.
-
-## How comments relate to expenses
-- Reference expenses manually (e.g., “Why is the $150 Uber charge included?”).
-- Comments stay with the report, even if expenses are moved or deleted.
-- Comments aren’t tied to a specific expense, but they’re context-aware.
-
-**Note:** On an empty report, the layout shifts to show the comment thread more clearly.
+### Key features:
+- Add comments below the expense table or on individual expenses.
+- Use **@mentions** to notify teammates.
+- Upload documents to support conversations.
+- Comments update live for everyone with access to the report.
 
 ---
 
-# System Messages and Audit Trail
+## System Messages and Audit History
 
-System messages like **“Expense moved”** or **“Report submitted”** appear in the same thread as comments to help keep a clear audit trail. This makes it easier to track changes and approval workflows.
+Reports include a complete audit trail of every action—submit, approve, pay, export, etc. -in the comment thread. Expenses also log a history of edits, making it easy to follow changes for compliance or troubleshooting.
 
 ---
 
 # Troubleshooting the Reports Page
 
-## Why Can’t I Find a Report I Just Created?
+## Why can’t I find a report I just created?
 
-**Possible reasons:**
-- You’re filtered into a different workspace.
-- The report preview is in **Inbox > Workspace chat**.
-- Your search term doesn’t match the report name.
+**Possible causes:**
+- You're filtered into a different workspace.
+- Your search term doesn't match the report name.
 
 **Solutions:**
-- Clear filters and search again.
-- Look in **Inbox > Workspace chat** for previews.
-- Use broader or partial search terms.
-- Confirm you’re in the right workspace.
+- Clear any filters and search again.
+- Use a broader or partial search term.
 
 ---
 
-## Why is the “Create report” Button Missing?
+## Why is the **Create report** button missing?
 
-**Possible reasons:**
-- You’re in a workspace not using New Expensify.
-- You’re part of a free or personal workspace.
+You’re not a member of a workspace.
 
 **Solutions:**
-- Switch to a **Collect** or **Control** workspace.
-- Make sure chat features are enabled.
-- Ask a Workspace Admin to enable New Expensify or invite you to an eligible workspace.
+- Go to **Workspaces > New Workspace** to create one.
+- Or ask your workspace admin to invite you to the company’s workspace.
 
 ---
 
-## Why Can’t I Submit a Report?
+## Why can’t I submit a report?
 
-**Possible reasons:**
+**Possible causes:**
 - The report has no expenses.
-- The workspace uses **instant submit**, and it already submitted.
-- Expenses are incomplete, have policy violations, or are still SmartScanning.
+- The report is already submitted.
+- All expenses are still SmartScanning or pending Expensify Card transactions.
 
 **Solutions:**
-- Add at least one valid expense.
-- Check expense statuses (e.g., missing receipts).
-- If **instant submit** is enabled, the report might auto-submit.
+- Add at least one complete expense.
+- Wait for SmartScan to finish or card transactions to post.
 
 ---
 
-## Why Don’t I See All My Unreported Expenses?
+## Why can’t I move or delete expenses from a report?
 
-**Possible reasons:**
-- The expenses are already included in another report.
-- Filters are hiding them.
-- They’re from another workspace or were already submitted.
-
-**Solutions:**
-- Clear filters in the **Add expense** screen.
-- Review other reports to avoid duplicates.
-- Check your **Self DM** for unreported expenses.
-
----
-
-## Why Can’t I Move or Delete Expenses From a Report?
-
-**Possible reasons:**
+**Possible causes:**
 - You don’t have permission to edit the report.
-- The report has been submitted or is under review.
+- The report is approved or paid.
 
 **Solutions:**
-- Only the report creator can edit draft reports.
-- Submitted reports are locked from edits.
-- If allowed, withdraw the report or ask a Workspace Admin for help.
-
----
-
-## Why is The Report Total Incorrect or Missing Expenses?
-
-**Possible reasons:**
-- Filters are hiding expenses.
-- The page hasn’t updated fully.
-
-**Solutions:**
-- Refresh or hard reload the page.
-- Clear any active filters.
-- Check system messages for recent changes.
+- Ask a workspace admin to unapprove the report.
+- Retract the report if you submitted it.
 
 </div>

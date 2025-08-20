@@ -4,14 +4,14 @@ import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import TransactionItemRow from '@components/TransactionItemRow';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolations} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -28,6 +28,8 @@ const defaultProps = {
     isSelected: false,
     shouldShowTooltip: false,
     dateColumnSize: CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+    amountColumnSize: CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+    taxAmountColumnSize: CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
     onCheckboxPress: jest.fn(),
     shouldShowCheckbox: false,
     columns: Object.values(CONST.REPORT.TRANSACTION_LIST.COLUMNS),
@@ -36,14 +38,13 @@ const defaultProps = {
 };
 
 // Helper function to render TransactionItemRow with providers
-const renderTransactionItemRow = (transactionItem: TransactionWithOptionalSearchFields, isInReportTableView = true) => {
+const renderTransactionItemRow = (transactionItem: TransactionWithOptionalSearchFields) => {
     return render(
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, HTMLEngineProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
             <TransactionItemRow
                 transactionItem={transactionItem}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultProps}
-                isInReportTableView={isInReportTableView}
             />
         </ComposeProviders>,
     );
@@ -89,16 +90,17 @@ const createErrorReportAction = () =>
     });
 
 describe('TransactionItemRowRBRWithOnyx', () => {
-    beforeAll(() =>
+    beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-        }),
-    );
+        });
+        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DEFAULT);
+    });
 
     beforeEach(() => {
         jest.clearAllMocks();
-        return Onyx.clear().then(waitForBatchedUpdates);
+        return Onyx.clear([ONYXKEYS.NVP_PREFERRED_LOCALE]).then(waitForBatchedUpdates);
     });
 
     it('should display RBR message for transaction with single violation', async () => {
@@ -142,7 +144,7 @@ describe('TransactionItemRowRBRWithOnyx', () => {
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed with both violations
-        expect(screen.getByText('Missing category. Duplicate.')).toBeOnTheScreen();
+        expect(screen.getByText('Missing category. Potential duplicate.')).toBeOnTheScreen();
     });
 
     it('should display RBR message for transaction with report action errors', async () => {
@@ -289,7 +291,7 @@ describe('TransactionItemRowRBR', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
 
         // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction, false);
+        renderTransactionItemRow(mockTransaction);
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed
@@ -313,11 +315,11 @@ describe('TransactionItemRowRBR', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
 
         // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction, false);
+        renderTransactionItemRow(mockTransaction);
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed with both violations
-        expect(screen.getByText('Missing category. Duplicate.')).toBeOnTheScreen();
+        expect(screen.getByText('Missing category. Potential duplicate.')).toBeOnTheScreen();
     });
 
     it('should display RBR message for transaction with violations, and missing merchant error', async () => {
@@ -343,7 +345,7 @@ describe('TransactionItemRowRBR', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
 
         // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction, false);
+        renderTransactionItemRow(mockTransaction);
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed with missing merchant error and violations
@@ -365,7 +367,7 @@ describe('TransactionItemRowRBR', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT_ID}`, mockReport);
 
         // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction, false);
+        renderTransactionItemRow(mockTransaction);
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed with missing merchant error
@@ -379,7 +381,7 @@ describe('TransactionItemRowRBR', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, []);
 
         // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction, false);
+        renderTransactionItemRow(mockTransaction);
         await waitForBatchedUpdates();
 
         // Then the RBR message should not be displayed

@@ -1,10 +1,18 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {getCategoryListSections, getCategoryOptionTree, sortCategories} from '@libs/CategoryOptionListUtils';
 import type {Category, CategoryTreeSection} from '@libs/CategoryOptionListUtils';
+import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {PolicyCategories} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import {localeCompare} from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('CategoryOptionListUtils', () => {
+    beforeAll(() => {
+        IntlStore.load(CONST.LOCALES.DEFAULT);
+        return waitForBatchedUpdates();
+    });
     it('getCategoryListSections()', () => {
         const search = 'Food';
         const emptySearch = '';
@@ -502,17 +510,18 @@ describe('CategoryOptionListUtils', () => {
 
         const smallResult = getCategoryListSections({
             searchValue: emptySearch,
+            localeCompare,
             categories: smallCategoriesList,
         });
         expect(smallResult).toStrictEqual(smallResultList);
 
-        const smallSearchResult = getCategoryListSections({searchValue: search, categories: smallCategoriesList});
+        const smallSearchResult = getCategoryListSections({searchValue: search, categories: smallCategoriesList, localeCompare});
         expect(smallSearchResult).toStrictEqual(smallSearchResultList);
 
-        const smallWrongSearchResult = getCategoryListSections({searchValue: wrongSearch, categories: smallCategoriesList});
+        const smallWrongSearchResult = getCategoryListSections({searchValue: wrongSearch, categories: smallCategoriesList, localeCompare});
         expect(smallWrongSearchResult).toStrictEqual(smallWrongSearchResultList);
 
-        const employeeSearchResult = getCategoryListSections({searchValue: employeeSearch, categories: smallCategoriesList});
+        const employeeSearchResult = getCategoryListSections({searchValue: employeeSearch, categories: smallCategoriesList, localeCompare});
         expect(employeeSearchResult).toStrictEqual(employeeSearchResultList);
 
         const largeResult = getCategoryListSections({
@@ -520,6 +529,7 @@ describe('CategoryOptionListUtils', () => {
             selectedOptions,
             categories: largeCategoriesList,
             recentlyUsedCategories,
+            localeCompare,
         });
         expect(largeResult).toStrictEqual(largeResultList);
 
@@ -528,6 +538,7 @@ describe('CategoryOptionListUtils', () => {
             selectedOptions,
             categories: largeCategoriesList,
             recentlyUsedCategories,
+            localeCompare,
         });
         expect(largeSearchResult).toStrictEqual(largeSearchResultList);
 
@@ -536,10 +547,11 @@ describe('CategoryOptionListUtils', () => {
             selectedOptions,
             categories: largeCategoriesList,
             recentlyUsedCategories,
+            localeCompare,
         });
         expect(largeWrongSearchResult).toStrictEqual(largeWrongSearchResultList);
 
-        const emptyResult = getCategoryListSections({searchValue: search, selectedOptions, categories: emptyCategoriesList});
+        const emptyResult = getCategoryListSections({searchValue: search, selectedOptions, categories: emptyCategoriesList, localeCompare});
         expect(emptyResult).toStrictEqual(emptySelectedResultList);
     });
 
@@ -1278,8 +1290,8 @@ describe('CategoryOptionListUtils', () => {
             },
         ];
 
-        expect(sortCategories(categoriesIncorrectOrdering)).toStrictEqual(result);
-        expect(sortCategories(categoriesIncorrectOrdering2)).toStrictEqual(result2);
-        expect(sortCategories(categoriesIncorrectOrdering3)).toStrictEqual(result3);
+        expect(sortCategories(categoriesIncorrectOrdering, localeCompare)).toStrictEqual(result);
+        expect(sortCategories(categoriesIncorrectOrdering2, localeCompare)).toStrictEqual(result2);
+        expect(sortCategories(categoriesIncorrectOrdering3, localeCompare)).toStrictEqual(result3);
     });
 });

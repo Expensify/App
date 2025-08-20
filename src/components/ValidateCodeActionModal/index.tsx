@@ -1,11 +1,11 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import Navigation from '@libs/Navigation/Navigation';
@@ -68,10 +68,9 @@ function ValidateCodeActionModal({
             onClose={hide}
             onModalHide={onModalHide ?? hide}
             onBackdropPress={() => Navigation.dismissModal()}
-            hideModalContentWhileAnimating
-            useNativeDriver
             shouldUseModalPaddingStyle={false}
             animationInTiming={disableAnimation ? 1 : undefined}
+            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom

@@ -1,16 +1,11 @@
-import delay from 'lodash/delay';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useMemo} from 'react';
 import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
-import AttachmentOfflineIndicator from './AttachmentOfflineIndicator';
-import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
-import Image from './Image';
 import RESIZE_MODES from './Image/resizeModes';
 import type {ImageObjectPosition} from './Image/types';
+import ImageWithLoading from './ImageWithLoading';
 
 type OnMeasure = (args: {width: number; height: number}) => void;
 
@@ -51,78 +46,31 @@ type ImageWithSizeCalculationProps = {
  */
 function ImageWithSizeCalculation({url, altText, style, onMeasure, onLoadFailure, isAuthTokenRequired, objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL}: ImageWithSizeCalculationProps) {
     const styles = useThemeStyles();
-    const isLoadedRef = useRef<boolean | null>(null);
-    const [isImageCached, setIsImageCached] = useState(true);
-    const [isLoading, setIsLoading] = useState(false);
-    const {isOffline} = useNetwork();
 
     const source = useMemo(() => (typeof url === 'string' ? {uri: url} : url), [url]);
 
     const onError = () => {
         Log.hmmm('Unable to fetch image to calculate size', {url});
         onLoadFailure?.();
-        if (isLoadedRef.current) {
-            isLoadedRef.current = false;
-            setIsImageCached(false);
-        }
-        if (isOffline) {
-            return;
-        }
-        setIsLoading(false);
     };
-
-    const imageLoadedSuccessfully = (event: OnLoadNativeEvent) => {
-        isLoadedRef.current = true;
-        setIsLoading(false);
-        setIsImageCached(true);
-        onMeasure({
-            width: event.nativeEvent.width,
-            height: event.nativeEvent.height,
-        });
-    };
-
-    /** Delay the loader to detect whether the image is being loaded from the cache or the internet. */
-    useEffect(() => {
-        if (isLoadedRef.current ?? !isLoading) {
-            return;
-        }
-        const timeout = delay(() => {
-            if (!isLoading || isLoadedRef.current) {
-                return;
-            }
-            setIsImageCached(false);
-        }, 200);
-        return () => clearTimeout(timeout);
-    }, [isLoading]);
 
     return (
-        <View style={[styles.w100, styles.h100, style]}>
-            <Image
-                style={[styles.w100, styles.h100]}
-                source={source}
-                aria-label={altText}
-                isAuthTokenRequired={isAuthTokenRequired}
-                resizeMode={RESIZE_MODES.cover}
-                onLoadStart={() => {
-                    if (isLoadedRef.current ?? isLoading) {
-                        return;
-                    }
-                    setIsLoading(true);
-                }}
-                onError={onError}
-                onLoad={imageLoadedSuccessfully}
-                waitForSession={() => {
-                    // Called when the image should wait for a valid session to reload
-                    // At the moment this function is called, the image is not in cache anymore
-                    isLoadedRef.current = false;
-                    setIsImageCached(false);
-                    setIsLoading(true);
-                }}
-                objectPosition={objectPosition}
-            />
-            {isLoading && !isImageCached && !isOffline && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
-            {isLoading && !isImageCached && <AttachmentOfflineIndicator isPreview />}
-        </View>
+        <ImageWithLoading
+            containerStyles={[styles.w100, styles.h100, style]}
+            style={[styles.w100, styles.h100]}
+            source={source}
+            aria-label={altText}
+            isAuthTokenRequired={isAuthTokenRequired}
+            resizeMode={RESIZE_MODES.cover}
+            onError={onError}
+            onLoad={(event: OnLoadNativeEvent) => {
+                onMeasure({
+                    width: event.nativeEvent.width,
+                    height: event.nativeEvent.height,
+                });
+            }}
+            objectPosition={objectPosition}
+        />
     );
 }
 

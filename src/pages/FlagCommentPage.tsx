@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -49,6 +50,7 @@ function getReportID(route: FlagCommentPageNavigationProps['route']) {
 function FlagCommentPage({parentReportAction, route, report, parentReport, reportAction}: FlagCommentPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isReportArchived = useReportIsArchived(report?.reportID);
 
     const severities: SeverityItemList = [
         {
@@ -135,7 +137,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
             testID={FlagCommentPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!shouldShowFlagComment(reportAction, report)}>
+                <FullPageNotFoundView shouldShow={!shouldShowFlagComment(reportAction, report, isReportArchived)}>
                     <HeaderWithBackButton
                         title={translate('reportActionContextMenu.flagAsOffensive')}
                         onBackButtonPress={() => Navigation.goBack(route.params.backTo)}

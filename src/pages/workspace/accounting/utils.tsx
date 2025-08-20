@@ -281,7 +281,7 @@ function getAccountingIntegrationData(
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_IMPORT.getRoute(policyID)),
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID)),
-                onCardReconciliationPagePress: () => {},
+                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.QBD)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.getRoute(policyID)),
                 subscribedImportSettings: [
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.ENABLE_NEW_CATEGORIES,
@@ -323,12 +323,15 @@ function getSynchronizationErrorMessage(
             <Text style={[styles?.formError]}>
                 <Text style={[styles?.formError]}>{translate('workspace.common.authenticationError', {connectionName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]})} </Text>
                 {connectionName in CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS && (
-                    <TextLink
-                        style={[styles?.link, styles?.fontSizeLabel]}
-                        href={CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS[connectionName as keyof typeof CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS]}
-                    >
-                        {translate('workspace.common.learnMore')}
-                    </TextLink>
+                    <>
+                        <TextLink
+                            style={[styles?.link, styles?.fontSizeLabel]}
+                            href={CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS[connectionName as keyof typeof CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS]}
+                        >
+                            {translate('workspace.common.learnMore')}
+                        </TextLink>
+                        .
+                    </>
                 )}
             </Text>
         );

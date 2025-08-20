@@ -44,6 +44,7 @@ import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__t
 import FolderWithPapers from '@assets/images/product-illustrations/folder-with-papers.svg';
 import GpsTrackOrange from '@assets/images/product-illustrations/gps-track--orange.svg';
 import Hands from '@assets/images/product-illustrations/home-illustration-hands.svg';
+import CardReplacementSuccess from '@assets/images/product-illustrations/illustration__card-replacement-success.svg';
 import InvoiceOrange from '@assets/images/product-illustrations/invoice--orange.svg';
 import JewelBoxBlue from '@assets/images/product-illustrations/jewel-box--blue.svg';
 import JewelBoxGreen from '@assets/images/product-illustrations/jewel-box--green.svg';
@@ -56,6 +57,7 @@ import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-ha
 import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
 import ReceiptYellow from '@assets/images/product-illustrations/receipt--yellow.svg';
 import ReceiptsSearchYellow from '@assets/images/product-illustrations/receipts-search--yellow.svg';
+import ReceiptsStackedOnPin from '@assets/images/product-illustrations/receipts-stacked-on-pin.svg';
 import RocketBlue from '@assets/images/product-illustrations/rocket--blue.svg';
 import RocketOrange from '@assets/images/product-illustrations/rocket--orange.svg';
 import RocketDude from '@assets/images/product-illustrations/rocket-dude.svg';
@@ -94,6 +96,7 @@ import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustrat
 import CreditCardEyes from '@assets/images/simple-illustrations/simple-illustration__creditcardeyes.svg';
 import CreditCardsNewGreen from '@assets/images/simple-illustrations/simple-illustration__creditcards--green.svg';
 import EmailAddress from '@assets/images/simple-illustrations/simple-illustration__email-address.svg';
+import EmptyShelves from '@assets/images/simple-illustrations/simple-illustration__empty-shelves.svg';
 import EmptyState from '@assets/images/simple-illustrations/simple-illustration__empty-state.svg';
 import Encryption from '@assets/images/simple-illustrations/simple-illustration__encryption.svg';
 import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
@@ -122,6 +125,7 @@ import MoneyIntoWallet from '@assets/images/simple-illustrations/simple-illustra
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
 import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__opensafe.svg';
 import PalmTree from '@assets/images/simple-illustrations/simple-illustration__palmtree.svg';
+import PaperAirplane from '@assets/images/simple-illustrations/simple-illustration__paperairplane.svg';
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
 import PerDiem from '@assets/images/simple-illustrations/simple-illustration__perdiem.svg';
 import PiggyBank from '@assets/images/simple-illustrations/simple-illustration__piggybank.svg';
@@ -132,6 +136,7 @@ import RealtimeReport from '@assets/images/simple-illustrations/simple-illustrat
 import ReceiptEnvelope from '@assets/images/simple-illustrations/simple-illustration__receipt-envelope.svg';
 import ReceiptLocationMarker from '@assets/images/simple-illustrations/simple-illustration__receipt-location-marker.svg';
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
+import ReceiptPartners from '@assets/images/simple-illustrations/simple-illustration__receipt.svg';
 import ReceiptUpload from '@assets/images/simple-illustrations/simple-illustration__receiptupload.svg';
 import ReportReceipt from '@assets/images/simple-illustrations/simple-illustration__report-receipt.svg';
 import Rules from '@assets/images/simple-illustrations/simple-illustration__rules.svg';
@@ -310,6 +315,7 @@ export {
     ChaseCompanyCardDetailLarge,
     CitibankCompanyCardDetailLarge,
     MasterCardCompanyCardDetailLarge,
+    ReceiptPartners,
     StripeCompanyCardDetailLarge,
     VisaCompanyCardDetailLarge,
     WellsFargoCompanyCardDetailLarge,
@@ -318,4 +324,8 @@ export {
     ReportReceipt,
     PlaidCompanyCardDetailLarge,
     PlaidCompanyCardDetail,
+    ReceiptsStackedOnPin,
+    PaperAirplane,
+    CardReplacementSuccess,
+    EmptyShelves,
 };

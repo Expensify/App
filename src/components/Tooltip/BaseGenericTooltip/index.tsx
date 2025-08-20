@@ -8,7 +8,6 @@ import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoComplete
 import {PopoverContext} from '@components/PopoverProvider';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
-import {parseFSAttributes} from '@libs/Fullstory';
 import CONST from '@src/CONST';
 import textRef from '@src/types/utils/textRef';
 import viewRef from '@src/types/utils/viewRef';
@@ -32,6 +31,7 @@ function BaseGenericTooltip({
     text,
     numberOfLines,
     maxWidth = 0,
+    minWidth,
     renderTooltipContent,
     shouldForceRenderingBelow = false,
     wrapperStyle = {},
@@ -89,6 +89,7 @@ function BaseGenericTooltip({
                 tooltipTargetWidth: targetWidth,
                 tooltipTargetHeight: targetHeight,
                 maxWidth,
+                minWidth,
                 tooltipContentWidth: contentMeasuredWidth,
                 tooltipWrapperHeight: wrapperMeasuredHeight,
                 manualShiftHorizontal: shiftHorizontal,
@@ -106,6 +107,7 @@ function BaseGenericTooltip({
             targetWidth,
             targetHeight,
             maxWidth,
+            minWidth,
             contentMeasuredWidth,
             wrapperMeasuredHeight,
             shiftHorizontal,
@@ -121,21 +123,12 @@ function BaseGenericTooltip({
         return StyleUtils.getTooltipAnimatedStyles({tooltipContentWidth: contentMeasuredWidth, tooltipWrapperHeight: wrapperMeasuredHeight, currentSize: animation});
     });
 
-    /**
-     * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
-     * to ensure necessary properties are available for further processing.
-     * Reevaluates "fs-class" to dynamically apply styles or behavior based on
-     * updated attribute values.
-     */
-    useLayoutEffect(parseFSAttributes, []);
-
     let content;
     if (renderTooltipContent) {
         content = (
             <View
                 ref={viewRef(contentRef)}
-                fsClass={CONST.FULL_STORY.UNMASK}
-                testID={CONST.FULL_STORY.UNMASK}
+                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
                 {renderTooltipContent()}
             </View>
@@ -145,8 +138,7 @@ function BaseGenericTooltip({
             <Text
                 numberOfLines={numberOfLines}
                 style={textStyle}
-                fsClass={CONST.FULL_STORY.UNMASK}
-                testID={CONST.FULL_STORY.UNMASK}
+                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
                 <Text
                     style={textStyle}

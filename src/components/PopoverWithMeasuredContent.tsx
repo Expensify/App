@@ -1,5 +1,5 @@
-import isEqual from 'lodash/isEqual';
-import React, {useContext, useMemo, useState} from 'react';
+import {circularDeepEqual, deepEqual} from 'fast-equals';
+import React, {useContext, useEffect, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import usePrevious from '@hooks/usePrevious';
@@ -84,14 +84,17 @@ function PopoverWithMeasuredContent({
 
     const modalId = useMemo(() => ComposerFocusManager.getId(), []);
 
-    if (!prevIsVisible && isVisible && shouldEnableNewFocusManagement) {
+    useEffect(() => {
+        if (prevIsVisible || !isVisible || !shouldEnableNewFocusManagement) {
+            return;
+        }
         ComposerFocusManager.saveFocusState(modalId);
-    }
+    }, [isVisible, shouldEnableNewFocusManagement, prevIsVisible, modalId]);
 
     if (!prevIsVisible && isVisible && isContentMeasured && !shouldSkipRemeasurement) {
         // Check if anything significant changed that would require re-measurement
-        const hasAnchorPositionChanged = !isEqual(prevAnchorPosition, anchorPosition);
-        const hasWindowSizeChanged = !isEqual(prevWindowDimensions, {windowWidth, windowHeight});
+        const hasAnchorPositionChanged = !deepEqual(prevAnchorPosition, anchorPosition);
+        const hasWindowSizeChanged = !deepEqual(prevWindowDimensions, {windowWidth, windowHeight});
         const hasStaticDimensions = popoverDimensions.width > 0 && popoverDimensions.height > 0;
 
         // Only reset if:
@@ -238,7 +241,7 @@ export default React.memo(PopoverWithMeasuredContent, (prevProps, nextProps) => 
     if (prevProps.isVisible === nextProps.isVisible && nextProps.isVisible === false) {
         return true;
     }
-    return isEqual(prevProps, nextProps);
+    return circularDeepEqual(prevProps, nextProps);
 });
 
 export type {PopoverWithMeasuredContentProps};

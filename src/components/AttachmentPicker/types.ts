@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
 import type {ValueOf} from 'type-fest';
-import type {FileObject} from '@components/AttachmentModal';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type CONST from '@src/CONST';
 
 type PickerOptions = {

@@ -1,8 +1,8 @@
-import type {TupleToUnion} from 'type-fest';
 import emojis, {localeEmojis} from '@assets/emojis';
 import type {Emoji, HeaderEmoji, PickerEmoji} from '@assets/emojis/types';
 import CONST from '@src/CONST';
-import type {Locale} from '@src/types/onyx';
+import {FULLY_SUPPORTED_LOCALES} from '@src/CONST/LOCALES';
+import type {FullySupportedLocale} from '@src/CONST/LOCALES';
 import Timing from './actions/Timing';
 import StringUtils from './StringUtils';
 import Trie from './Trie';
@@ -14,12 +14,8 @@ type EmojiMetaData = {
     name?: string;
 };
 
-const supportedLanguages = [CONST.LOCALES.DEFAULT, CONST.LOCALES.ES] as const;
-
-type SupportedLanguage = TupleToUnion<typeof supportedLanguages>;
-
-type EmojiTrie = {
-    [key in SupportedLanguage]?: Trie<EmojiMetaData>;
+type EmojiTrieForLocale = {
+    [key in FullySupportedLocale]?: Trie<EmojiMetaData>;
 };
 
 /**
@@ -67,7 +63,7 @@ function getNameParts(name: string): string[] {
     return nameSplit.map((namePart, index) => nameSplit.slice(index).join('_'));
 }
 
-function createTrie(lang: SupportedLanguage = CONST.LOCALES.DEFAULT): Trie<EmojiMetaData> {
+function createTrie(lang: FullySupportedLocale = CONST.LOCALES.DEFAULT): Trie<EmojiMetaData> {
     const trie = new Trie();
     const langEmojis = localeEmojis[lang];
     const defaultLangEmojis = localeEmojis[CONST.LOCALES.DEFAULT];
@@ -115,25 +111,19 @@ function createTrie(lang: SupportedLanguage = CONST.LOCALES.DEFAULT): Trie<Emoji
     return trie;
 }
 
-const emojiTrie: EmojiTrie = supportedLanguages.reduce((acc, lang) => {
+const emojiTrieForLocale: EmojiTrieForLocale = Object.values(FULLY_SUPPORTED_LOCALES).reduce((acc, lang) => {
     acc[lang] = undefined;
     return acc;
-}, {} as EmojiTrie);
+}, {} as EmojiTrieForLocale);
 
-const buildEmojisTrie = (locale: Locale) => {
-    Timing.start(CONST.TIMING.TRIE_INITIALIZATION);
-    // Normalize the locale to lowercase and take the first part before any dash
-    const normalizedLocale = locale.toLowerCase().split('-').at(0);
-    const localeToUse = supportedLanguages.includes(normalizedLocale as SupportedLanguage) ? (normalizedLocale as SupportedLanguage) : undefined;
-
-    if (!localeToUse || emojiTrie[localeToUse]) {
+const buildEmojisTrie = (locale: FullySupportedLocale) => {
+    if (emojiTrieForLocale[locale]) {
         return; // Return early if the locale is not supported or the trie is already built
     }
-    emojiTrie[localeToUse] = createTrie(localeToUse);
+    Timing.start(CONST.TIMING.TRIE_INITIALIZATION);
+    emojiTrieForLocale[locale] = createTrie(locale);
     Timing.end(CONST.TIMING.TRIE_INITIALIZATION);
 };
 
-export default emojiTrie;
+export default emojiTrieForLocale;
 export {buildEmojisTrie};
-
-export type {SupportedLanguage};

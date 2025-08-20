@@ -49,6 +49,14 @@ function TestWorkspaceSplitNavigator() {
                 name={SCREENS.WORKSPACE.CATEGORIES}
                 getComponent={getEmptyComponent}
             />
+            <WorkspaceSplit.Screen
+                name={SCREENS.WORKSPACE.PER_DIEM}
+                getComponent={getEmptyComponent}
+            />
+            <WorkspaceSplit.Screen
+                name={SCREENS.WORKSPACE.RECEIPT_PARTNERS}
+                getComponent={getEmptyComponent}
+            />
         </WorkspaceSplit.Navigator>
     );
 }

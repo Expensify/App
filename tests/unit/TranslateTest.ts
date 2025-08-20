@@ -1,55 +1,30 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import * as translations from '@src/languages/translations';
+import en from '@src/languages/en';
+import es from '@src/languages/es';
+import flattenObject from '@src/languages/flattenObject';
 import type {FlatTranslationsObject, TranslationDeepObject, TranslationPaths} from '@src/languages/types';
 import {translate} from '@src/libs/Localize';
 import asMutable from '@src/types/utils/asMutable';
 import arrayDifference from '@src/utils/arrayDifference';
 
-const originalTranslations = {...translations};
+jest.mock('@src/languages/IntlStore');
 
-asMutable(translations).default = {
-    [CONST.LOCALES.EN]: translations.flattenObject({
-        testKey1: 'English',
-        testKey2: 'Test Word 2',
-        testKeyGroup: {
-            testFunction: ({testVariable}: {testVariable: string}) => `With variable ${testVariable}`,
-        },
-        pluralizationGroup: {
-            countWithoutPluralRules: ({count}: {count: number}) => `Count value is ${count}`,
-            countWithNoCorrespondingRule: ({count}: {count: number}) => ({
-                one: 'One file is being downloaded.',
-                other: `Other ${count} files are being downloaded.`,
-            }),
-        },
-    }),
-    [CONST.LOCALES.ES]: translations.flattenObject({
-        testKey1: 'Spanish',
-        testKey2: 'Spanish Word 2',
-        pluralizationGroup: {
-            couthWithCorrespondingRule: ({count}: {count: number}) => ({
-                one: 'Un artículo',
-                other: `${count} artículos`,
-            }),
-        },
-    }),
+const originalTranslations = {
+    [CONST.LOCALES.EN]: flattenObject(en),
+    [CONST.LOCALES.ES]: flattenObject(es),
 };
 
 describe('translate', () => {
-    it('Test when key is not found in full locale, but present in language', () => {
-        expect(translate(CONST.LOCALES.ES_ES, 'testKey2' as TranslationPaths)).toBe('Spanish Word 2');
-        expect(translate(CONST.LOCALES.ES, 'testKey2' as TranslationPaths)).toBe('Spanish Word 2');
-    });
-
     test('Test when key is not found in default', () => {
-        expect(() => translate(CONST.LOCALES.ES_ES, 'testKey4' as TranslationPaths)).toThrow(Error);
+        expect(() => translate(CONST.LOCALES.EN, 'testKey4' as TranslationPaths)).toThrow(Error);
     });
 
     test('Test when key is not found in default (Production Mode)', () => {
         const ORIGINAL_IS_IN_PRODUCTION = CONFIG.IS_IN_PRODUCTION;
         asMutable(CONFIG).IS_IN_PRODUCTION = true;
-        expect(translate(CONST.LOCALES.ES_ES, 'testKey4' as TranslationPaths)).toBe('testKey4');
+        expect(translate(CONST.LOCALES.EN, 'testKey4' as TranslationPaths)).toBe('testKey4');
         asMutable(CONFIG).IS_IN_PRODUCTION = ORIGINAL_IS_IN_PRODUCTION;
     });
 
@@ -92,12 +67,12 @@ describe('Translation Keys', () => {
     }
 
     const excludeLanguages = [CONST.LOCALES.EN];
-    const languages = Object.keys(originalTranslations.default).filter((ln) => !excludeLanguages.some((excludeLanguage) => excludeLanguage === ln));
-    const mainLanguage = originalTranslations.default.en;
+    const languages = Object.keys(originalTranslations).filter((ln) => !excludeLanguages.some((excludeLanguage) => excludeLanguage === ln));
+    const mainLanguage = originalTranslations.en;
     const mainLanguageKeys = traverseKeyPath(mainLanguage);
 
     languages.forEach((ln) => {
-        const languageKeys = traverseKeyPath(originalTranslations.default[ln as keyof typeof originalTranslations.default]);
+        const languageKeys = traverseKeyPath(originalTranslations[ln as keyof typeof originalTranslations]);
 
         it(`Does ${ln} locale have all the keys`, () => {
             const hasAllKeys = arrayDifference(mainLanguageKeys, languageKeys);
@@ -147,7 +122,7 @@ describe('flattenObject', () => {
             },
         };
 
-        const result = translations.flattenObject(simpleObject as TranslationDeepObject<typeof simpleObject>);
+        const result = flattenObject(simpleObject as TranslationDeepObject<typeof simpleObject>);
         expect(result).toStrictEqual({
             'common.yes': 'Yes',
             'common.no': 'No',

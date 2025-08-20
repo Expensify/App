@@ -19,7 +19,7 @@ import Overlay from './Overlay';
 
 type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
 
-const Stack = createPlatformStackNavigator<RightModalNavigatorParamList>();
+const Stack = createPlatformStackNavigator<RightModalNavigatorParamList, string>();
 
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const styles = useThemeStyles();
@@ -196,6 +196,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE}
                             component={ModalStackNavigators.TransactionDuplicateStackNavigator}
+                        />
+                        <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.MERGE_TRANSACTION}
+                            component={ModalStackNavigators.MergeTransactionStackNavigator}
                         />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.TRAVEL}

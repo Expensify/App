@@ -1,13 +1,14 @@
 import {useMemo} from 'react';
+import type {DependencyList} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxValue, UseOnyxOptions} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxValue, UseOnyxOptions, UseOnyxResult} from 'react-native-onyx';
 import {useSearchContext} from '@components/Search/SearchContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
 
 type OriginalUseOnyx = typeof originalUseOnyx;
-type OriginalUseOnyxReturnType = ReturnType<OriginalUseOnyx>;
 
 const COLLECTION_VALUES = Object.values(ONYXKEYS.COLLECTION);
 const getDataByPath = (data: SearchResults['data'], path: string) => {
@@ -24,7 +25,7 @@ const getDataByPath = (data: SearchResults['data'], path: string) => {
 };
 
 // Helper function to get key data from snapshot
-const getKeyData = <TKey extends OnyxKey, TReturnValue>(snapshotData: SearchResults, key: TKey, initialValue?: TReturnValue): TReturnValue => {
+const getKeyData = <TKey extends OnyxKey, TReturnValue>(snapshotData: SearchResults, key: TKey): TReturnValue => {
     if (key.endsWith('_')) {
         // Create object to store matching entries
         const result: OnyxCollection<TKey> = {};
@@ -37,15 +38,15 @@ const getKeyData = <TKey extends OnyxKey, TReturnValue>(snapshotData: SearchResu
             }
             result[dataKey] = value as OnyxEntry<TKey>;
         });
-        return (Object.keys(result).length > 0 ? result : initialValue) as TReturnValue;
+        return (Object.keys(result).length > 0 ? result : undefined) as TReturnValue;
     }
-    return (getDataByPath(snapshotData?.data, key) ?? initialValue) as TReturnValue;
+    return getDataByPath(snapshotData?.data, key) as TReturnValue;
 };
 
 /**
  * Custom hook for accessing and subscribing to Onyx data with search snapshot support
  */
-const useOnyx: OriginalUseOnyx = (key, options, dependencies) => {
+const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(key: TKey, options?: UseOnyxOptions<TKey, TReturnValue>, dependencies?: DependencyList) => {
     const {isOnSearch, currentSearchHash} = useSearchContext();
     const useOnyxOptions = options as UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> | undefined;
     const {selector: selectorProp, ...optionsWithoutSelector} = useOnyxOptions ?? {};
@@ -70,15 +71,15 @@ const useOnyx: OriginalUseOnyx = (key, options, dependencies) => {
     const originalResult = originalUseOnyx(snapshotKey, onyxOptions, dependencies);
 
     // Extract and memoize the specific key data from snapshot if in search mode
-    const result = useMemo((): OriginalUseOnyxReturnType => {
+    const result = useMemo((): UseOnyxResult<TReturnValue> => {
         // if it has selector, we don't need to use snapshot here
         if (!shouldUseSnapshot || selector) {
-            return originalResult as OriginalUseOnyxReturnType;
+            return originalResult as UseOnyxResult<TReturnValue>;
         }
 
-        const keyData = getKeyData(originalResult[0] as SearchResults, key, onyxOptions?.initialValue);
-        return [keyData, originalResult[1]] as OriginalUseOnyxReturnType;
-    }, [shouldUseSnapshot, originalResult, key, onyxOptions?.initialValue, selector]);
+        const keyData = getKeyData(originalResult[0] as SearchResults, key);
+        return [keyData, originalResult[1]] as UseOnyxResult<TReturnValue>;
+    }, [shouldUseSnapshot, originalResult, key, selector]);
 
     return result;
 };

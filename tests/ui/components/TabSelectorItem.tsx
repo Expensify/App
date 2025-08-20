@@ -5,12 +5,6 @@ import Tooltip from '@components/Tooltip';
 
 // Mock the Tooltip component since it uses portals which aren't supported in RNTL
 jest.mock('@components/Tooltip');
-jest.mock('@libs/Fullstory', () => ({
-    default: {
-        consentAndIdentify: jest.fn(),
-    },
-    parseFSAttributes: jest.fn(),
-}));
 
 describe('TabSelectorItem Component', () => {
     const title = 'Test Tab';
@@ -35,7 +29,7 @@ describe('TabSelectorItem Component', () => {
                 shouldRender: true,
                 text: title,
             }),
-            expect.any(Object),
+            undefined,
         );
     });
 
@@ -56,7 +50,7 @@ describe('TabSelectorItem Component', () => {
                 shouldRender: false,
                 text: title,
             }),
-            expect.any(Object),
+            undefined,
         );
     });
 
@@ -77,7 +71,7 @@ describe('TabSelectorItem Component', () => {
                 shouldRender: false,
                 text: title,
             }),
-            expect.any(Object),
+            undefined,
         );
     });
 });

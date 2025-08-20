@@ -5,14 +5,23 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportNextStep, TransactionViolations} from '@src/types/onyx';
+import type {Beta, Policy, Report, ReportNextStep, TransactionViolations} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportNextStep';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import {getNextApproverAccountID} from './actions/IOU';
 import EmailUtils from './EmailUtils';
+import Permissions from './Permissions';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
-import {getDisplayNameForParticipant, getPersonalDetailsForAccountID, hasViolations as hasViolationsReportUtils, isExpenseReport, isInvoiceReport, isPayer} from './ReportUtils';
+import {
+    getDisplayNameForParticipant,
+    getMoneyRequestSpendBreakdown,
+    getNextApproverAccountID,
+    getPersonalDetailsForAccountID,
+    hasViolations as hasViolationsReportUtils,
+    isExpenseReport,
+    isInvoiceReport,
+    isPayer,
+} from './ReportUtils';
 
 let currentUserAccountID = -1;
 let currentUserEmail = '';
@@ -33,6 +42,12 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (value) => (allPolicies = value),
+});
+
+let allBetas: OnyxEntry<Beta[]>;
+Onyx.connect({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => (allBetas = value),
 });
 
 let transactionViolations: OnyxCollection<TransactionViolations>;
@@ -135,7 +150,9 @@ function buildNextStep(
     const {harvesting, autoReportingOffset} = policy;
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
-    const shouldShowFixMessage = hasViolations && autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const isInstantSubmitEnabled = autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
+    const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
     const [policyOwnerPersonalDetails, ownerPersonalDetails] = getPersonalDetailsByIDs({
         accountIDs: [policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, ownerAccountID],
         currentUserAccountID,
@@ -146,6 +163,7 @@ function buildNextStep(
         ((report.total !== 0 && report.total !== undefined) ||
             (report.unheldTotal !== 0 && report.unheldTotal !== undefined) ||
             (report.unheldNonReimbursableTotal !== 0 && report.unheldNonReimbursableTotal !== undefined));
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
     const ownerDisplayName = ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID});
     const policyOwnerDisplayName = policyOwnerPersonalDetails?.displayName ?? policyOwnerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: policy.ownerAccountID});
@@ -193,7 +211,7 @@ function buildNextStep(
     switch (predictedNextStatus) {
         // Generates an optimistic nextStep once a report has been opened
         case CONST.REPORT.STATUS_NUM.OPEN:
-            if (shouldFixViolations) {
+            if ((isASAPSubmitBetaEnabled && hasViolations && isInstantSubmitEnabled) || shouldFixViolations) {
                 optimisticNextStep = {
                     type,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -350,7 +368,7 @@ function buildNextStep(
         // Generates an optimistic nextStep once a report has been submitted
         case CONST.REPORT.STATUS_NUM.SUBMITTED: {
             if (policy.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
-                optimisticNextStep = nextStepPayExpense;
+                optimisticNextStep = reimbursableSpend === 0 ? noActionRequired : nextStepPayExpense;
                 break;
             }
             // Another owner
@@ -436,7 +454,8 @@ function buildNextStep(
                         email: currentUserEmail,
                     },
                     report,
-                )
+                ) ||
+                reimbursableSpend === 0
             ) {
                 optimisticNextStep = noActionRequired;
 

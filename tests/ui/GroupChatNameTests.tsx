@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import {act, render, screen, waitFor} from '@testing-library/react-native';
+import {render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {translateLocal} from '@libs/Localize';
@@ -33,11 +33,6 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
         ignoreAllLogs: jest.fn(),
     },
 }));
-
-/**
- * We need to keep track of the transitionEnd callback so we can trigger it in our tests
- */
-let transitionEndCB: () => void;
 
 jest.mock('@react-navigation/native');
 
@@ -83,12 +78,8 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
             const hintText = translateLocal('loginForm.loginForm');
             const loginForm = screen.queryAllByLabelText(hintText);
             expect(loginForm).toHaveLength(1);
-
-            await act(async () => {
-                await TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
-            });
-            return waitForBatchedUpdatesWithAct();
         })
+        .then(async () => TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A'))
         .then(() => {
             subscribeToUserEvents();
             return waitForBatchedUpdates();
@@ -131,6 +122,7 @@ describe('Tests for group chat name', () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
+        global.fetch = TestHelper.getGlobalFetchMock();
         // Unsubscribe to pusher channels
         PusherHelper.teardown();
 
@@ -212,7 +204,6 @@ describe('Tests for group chat name', () => {
             })
             .then(waitForBatchedUpdates)
             .then(async () => {
-                await act(() => transitionEndCB?.());
                 const name = 'A, B, C, D';
                 const displayNameTexts = screen.queryAllByLabelText(name);
                 return waitFor(() => expect(displayNameTexts).toHaveLength(1));
@@ -248,7 +239,6 @@ describe('Tests for group chat name', () => {
             .then(() => navigateToSidebarOption(0))
             .then(waitForBatchedUpdates)
             .then(async () => {
-                await act(() => transitionEndCB?.());
                 const name = 'A, B, C, D, E...';
                 const displayNameTexts = screen.queryAllByLabelText(name);
                 return waitFor(() => expect(displayNameTexts).toHaveLength(1));
@@ -275,7 +265,6 @@ describe('Tests for group chat name', () => {
             })
             .then(waitForBatchedUpdates)
             .then(async () => {
-                await act(() => transitionEndCB?.());
                 const name = 'Test chat';
                 const displayNameTexts = screen.queryAllByLabelText(name);
                 return waitFor(() => expect(displayNameTexts).toHaveLength(1));
@@ -302,7 +291,6 @@ describe('Tests for group chat name', () => {
             })
             .then(waitForBatchedUpdates)
             .then(async () => {
-                await act(() => transitionEndCB?.());
                 const name = "Let's talk";
                 const displayNameTexts = screen.queryAllByLabelText(name);
                 return waitFor(() => expect(displayNameTexts).toHaveLength(1));

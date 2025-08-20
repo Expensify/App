@@ -33,11 +33,11 @@
 
 1. Open any workspace settings (Settings → Workspaces → Select any workspace)
 2. Click the Settings button on the bottom tab.
-3. Verify that the Workspace list is displayed (`/settings/workspaces`)
+3. Verify that the Workspace list is displayed (`/workspaces`)
 4. Select any workspace again.
 5. Reload the page.
 6. Click the Settings button on the bottom tab.
-7. Verify that the Workspace list is displayed (`/settings/workspaces`)
+7. Verify that the Workspace list is displayed (`/workspaces/`)
 
 
 #### The last visited screen in the settings tab is saved when switching between tabs 
@@ -52,7 +52,7 @@
 
 #### Going up to the workspace list page after refreshing on the workspace settings and pressing the up button
 
-1. Open the workspace settings from the deep link (use a link in format: `/settings/workspaces/:policyID:/profile`)
+1. Open the workspace settings from the deep link (use a link in format: `/workspaces/:policyID:/profile`)
 2. Click the app’s back button.
 3. Verify if the workspace list is displayed.
 

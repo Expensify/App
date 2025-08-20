@@ -1,26 +1,32 @@
-import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
-import isEqual from 'lodash/isEqual';
-import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
+import {findFocusedRoute, useFocusEffect, useNavigationState} from '@react-navigation/native';
+import {deepEqual} from 'fast-equals';
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
-import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import {useOptionsList} from '@components/OptionListContextProvider';
+import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {GetAdditionalSectionsCallback} from '@components/Search/SearchAutocompleteList';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
+import {useSearchContext} from '@components/Search/SearchContext';
 import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
-import type {SearchQueryString} from '@components/Search/types';
+import type {SearchFilterKey, SearchQueryString} from '@components/Search/types';
 import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {scrollToRight} from '@libs/InputUtils';
+import Log from '@libs/Log';
 import backHistory from '@libs/Navigation/helpers/backHistory';
 import type {SearchOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -31,7 +37,7 @@ import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import {navigateToAndOpenReport, searchInServer} from '@userActions/Report';
-import CONST from '@src/CONST';
+import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -79,9 +85,18 @@ type SearchRouterProps = {
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed}: SearchRouterProps, ref: React.Ref<View>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {setShouldResetSearchQuery} = useSearchContext();
     const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
+    const {areOptionsInitialized} = useOptionsList();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-
+    const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
+    const shouldShowList = isRecentSearchesDataLoaded && areOptionsInitialized;
+    const personalDetails = usePersonalDetails();
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
+    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
 
@@ -189,23 +204,55 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const onSearchQueryChange = useCallback(
         (userQuery: string, autoScrollToRight = false) => {
-            if (autoScrollToRight) {
-                shouldScrollRef.current = true;
-            }
-            const singleLineUserQuery = StringUtils.lineBreaksToSpaces(userQuery, true);
-            const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, singleLineUserQuery);
-            setTextInputValue(updatedUserQuery);
-            setAutocompleteQueryValue(updatedUserQuery);
+            const actionId = `search_query_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+            const startTime = Date.now();
 
-            const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(singleLineUserQuery, autocompleteSubstitutions);
-            if (!isEqual(autocompleteSubstitutions, updatedSubstitutionsMap)) {
-                setAutocompleteSubstitutions(updatedSubstitutionsMap);
-            }
+            Log.info('[CMD_K_DEBUG] Search query change started', false, {
+                actionId,
+                inputLength: userQuery.length,
+                previousInputLength: textInputValue.length,
+                autoScrollToRight,
+                timestamp: startTime,
+            });
 
-            if (updatedUserQuery || textInputValue.length > 0) {
-                listRef.current?.updateAndScrollToFocusedIndex(0);
-            } else {
-                listRef.current?.updateAndScrollToFocusedIndex(-1);
+            try {
+                if (autoScrollToRight) {
+                    shouldScrollRef.current = true;
+                }
+                const singleLineUserQuery = StringUtils.lineBreaksToSpaces(userQuery, true);
+                const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, singleLineUserQuery);
+                setTextInputValue(updatedUserQuery);
+                setAutocompleteQueryValue(updatedUserQuery);
+
+                const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(singleLineUserQuery, autocompleteSubstitutions);
+                if (!deepEqual(autocompleteSubstitutions, updatedSubstitutionsMap)) {
+                    setAutocompleteSubstitutions(updatedSubstitutionsMap);
+                }
+
+                if (updatedUserQuery || textInputValue.length > 0) {
+                    listRef.current?.updateAndScrollToFocusedIndex(0);
+                } else {
+                    listRef.current?.updateAndScrollToFocusedIndex(-1);
+                }
+
+                const endTime = Date.now();
+                Log.info('[CMD_K_DEBUG] Search query change completed', false, {
+                    actionId,
+                    duration: endTime - startTime,
+                    finalInputLength: updatedUserQuery.length,
+                    substitutionsUpdated: !deepEqual(autocompleteSubstitutions, updatedSubstitutionsMap),
+                    timestamp: endTime,
+                });
+            } catch (error) {
+                const endTime = Date.now();
+                Log.alert('[CMD_K_FREEZE] Search query change failed', {
+                    actionId,
+                    error: String(error),
+                    duration: endTime - startTime,
+                    inputLength: userQuery.length,
+                    timestamp: endTime,
+                });
+                throw error;
             }
         },
         [autocompleteSubstitutions, setTextInputValue, textInputValue],
@@ -219,6 +266,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 return;
             }
 
+            // Reset the search query flag when performing a new search
+            setShouldResetSearchQuery(false);
+
             backHistory(() => {
                 onRouterClose();
                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
@@ -227,7 +277,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             setTextInputValue('');
             setAutocompleteQueryValue('');
         },
-        [autocompleteSubstitutions, onRouterClose, setTextInputValue],
+        [autocompleteSubstitutions, onRouterClose, setTextInputValue, setShouldResetSearchQuery],
     );
 
     const setTextAndUpdateSelection = useCallback(
@@ -241,59 +291,153 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const onListItemPress = useCallback(
         (item: OptionData | SearchQueryItem) => {
+            const actionId = `list_item_press_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+            const startTime = Date.now();
+
+            Log.info('[CMD_K_DEBUG] List item press started', false, {
+                actionId,
+                itemType: isSearchQueryItem(item) ? 'SearchQueryItem' : 'OptionData',
+                searchItemType: isSearchQueryItem(item) ? item.searchItemType : undefined,
+                hasSearchQuery: isSearchQueryItem(item) ? !!item.searchQuery : undefined,
+                hasReportID: 'reportID' in item ? !!item.reportID : undefined,
+                hasLogin: 'login' in item ? !!item.login : undefined,
+                timestamp: startTime,
+            });
+
             const setFocusAndScrollToRight = () => {
-                InteractionManager.runAfterInteractions(() => {
-                    if (!textInputRef.current) {
-                        return;
-                    }
-                    textInputRef.current.focus();
-                    scrollToRight(textInputRef.current);
-                });
+                try {
+                    InteractionManager.runAfterInteractions(() => {
+                        if (!textInputRef.current) {
+                            Log.info('[CMD_K_DEBUG] Focus skipped - no text input ref', false, {
+                                actionId,
+                                timestamp: Date.now(),
+                            });
+                            return;
+                        }
+                        textInputRef.current.focus();
+                        scrollToRight(textInputRef.current);
+                    });
+                } catch (error) {
+                    Log.alert('[CMD_K_FREEZE] Focus and scroll failed', {
+                        actionId,
+                        error: String(error),
+                        timestamp: Date.now(),
+                    });
+                }
             };
 
-            if (isSearchQueryItem(item)) {
-                if (!item.searchQuery) {
-                    return;
-                }
-
-                if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
-                    const searchQuery = getContextualSearchQuery(item);
-                    const newSearchQuery = `${searchQuery}\u00A0`;
-                    onSearchQueryChange(newSearchQuery, true);
-                    setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
-
-                    const autocompleteKey = getContextualSearchAutocompleteKey(item);
-                    if (autocompleteKey && item.autocompleteID) {
-                        const substitutions = {...autocompleteSubstitutions, [autocompleteKey]: item.autocompleteID};
-
-                        setAutocompleteSubstitutions(substitutions);
+            try {
+                if (isSearchQueryItem(item)) {
+                    if (!item.searchQuery) {
+                        Log.info('[CMD_K_DEBUG] List item press skipped - no search query', false, {
+                            actionId,
+                            itemType: 'SearchQueryItem',
+                            timestamp: Date.now(),
+                        });
+                        return;
                     }
-                    setFocusAndScrollToRight();
-                } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
-                    const trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(textInputValue);
-                    const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)}\u00A0`;
-                    onSearchQueryChange(newSearchQuery, true);
-                    setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
-                    if (item.mapKey && item.autocompleteID) {
-                        const substitutions = {...autocompleteSubstitutions, [item.mapKey]: item.autocompleteID};
+                    if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
+                        const searchQuery = getContextualSearchQuery(item);
+                        const newSearchQuery = `${searchQuery}\u00A0`;
+                        onSearchQueryChange(newSearchQuery, true);
+                        setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
-                        setAutocompleteSubstitutions(substitutions);
+                        const autocompleteKey = getContextualSearchAutocompleteKey(item);
+                        if (autocompleteKey && item.autocompleteID) {
+                            const substitutions = {...autocompleteSubstitutions, [autocompleteKey]: item.autocompleteID};
+                            setAutocompleteSubstitutions(substitutions);
+                        }
+                        setFocusAndScrollToRight();
+
+                        const endTime = Date.now();
+                        Log.info('[CMD_K_DEBUG] Contextual suggestion handled', false, {
+                            actionId,
+                            duration: endTime - startTime,
+                            newQueryLength: newSearchQuery.length,
+                            hasSubstitutions: !!(autocompleteKey && item.autocompleteID),
+                            timestamp: endTime,
+                        });
+                    } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
+                        const fieldKey = item.mapKey?.includes(':') ? item.mapKey.split(':').at(0) : item.mapKey;
+                        const isNameField = fieldKey && CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.includes(fieldKey as SearchFilterKey);
+
+                        let trimmedUserSearchQuery;
+                        if (isNameField && fieldKey) {
+                            const fieldPattern = `${fieldKey}:`;
+                            const keyIndex = textInputValue.toLowerCase().lastIndexOf(fieldPattern.toLowerCase());
+
+                            if (keyIndex !== -1) {
+                                trimmedUserSearchQuery = textInputValue.substring(0, keyIndex + fieldPattern.length);
+                            } else {
+                                trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(textInputValue);
+                            }
+                        } else {
+                            const keyIndex = fieldKey ? textInputValue.toLowerCase().lastIndexOf(`${fieldKey}:`) : -1;
+                            trimmedUserSearchQuery =
+                                keyIndex !== -1 && fieldKey ? textInputValue.substring(0, keyIndex + fieldKey.length + 1) : getQueryWithoutAutocompletedPart(textInputValue);
+                        }
+
+                        const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)}\u00A0`;
+                        onSearchQueryChange(newSearchQuery, true);
+                        setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
+
+                        if (item.mapKey && item.autocompleteID) {
+                            const substitutions = {...autocompleteSubstitutions, [item.mapKey]: item.autocompleteID};
+                            setAutocompleteSubstitutions(substitutions);
+                        }
+                        setFocusAndScrollToRight();
+
+                        const endTime = Date.now();
+                        Log.info('[CMD_K_DEBUG] Autocomplete suggestion handled', false, {
+                            actionId,
+                            duration: endTime - startTime,
+                            trimmedQueryLength: trimmedUserSearchQuery.length,
+                            newQueryLength: newSearchQuery.length,
+                            hasMapKey: !!(item.mapKey && item.autocompleteID),
+                            timestamp: endTime,
+                        });
+                    } else {
+                        submitSearch(item.searchQuery);
+
+                        const endTime = Date.now();
+                        Log.info('[CMD_K_DEBUG] Search submitted', false, {
+                            actionId,
+                            duration: endTime - startTime,
+                            searchQuery: item.searchQuery,
+                            timestamp: endTime,
+                        });
                     }
-                    // needed for android mWeb
-                    setFocusAndScrollToRight();
                 } else {
-                    submitSearch(item.searchQuery);
-                }
-            } else {
-                backHistory(() => {
+                    backHistory(() => {
+                        if (item?.reportID) {
+                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
+                        } else if ('login' in item) {
+                            navigateToAndOpenReport(item.login ? [item.login] : [], false);
+                        }
+                    });
                     onRouterClose();
-                    if (item?.reportID) {
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
-                    } else if ('login' in item) {
-                        navigateToAndOpenReport(item.login ? [item.login] : [], false);
-                    }
+
+                    const endTime = Date.now();
+                    Log.info('[CMD_K_DEBUG] Navigation item handled', false, {
+                        actionId,
+                        duration: endTime - startTime,
+                        reportID: item?.reportID,
+                        hasLogin: 'login' in item ? !!item.login : false,
+                        timestamp: endTime,
+                    });
+                }
+            } catch (error) {
+                const endTime = Date.now();
+                Log.alert('[CMD_K_FREEZE] List item press failed', {
+                    actionId,
+                    error: String(error),
+                    duration: endTime - startTime,
+                    itemType: isSearchQueryItem(item) ? 'SearchQueryItem' : 'OptionData',
+                    searchItemType: isSearchQueryItem(item) ? item.searchItemType : undefined,
+                    timestamp: endTime,
                 });
+                throw error;
             }
         },
         [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, submitSearch, textInputValue],
@@ -316,13 +460,29 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     });
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
-    const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
+
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    /** We added a delay to focus on text input to allow navigation/modal animations to get completed, see issue https://github.com/Expensify/App/issues/65855 for more details */
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => {
+                if (!textInputRef.current) {
+                    return;
+                }
+                textInputRef?.current?.focus();
+            }, CONST.ANIMATED_TRANSITION);
+
+            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
+        }, []),
+    );
 
     return (
         <View
             style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
             testID={SearchRouter.displayName}
             ref={ref}
+            onStartShouldSetResponder={() => true}
+            onResponderRelease={Keyboard.dismiss}
         >
             {shouldUseNarrowLayout && (
                 <HeaderWithBackButton
@@ -331,46 +491,56 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     shouldDisplayHelpButton={false}
                 />
             )}
-            {isRecentSearchesDataLoaded && (
-                <>
-                    <SearchInputSelectionWrapper
-                        value={textInputValue}
-                        isFullWidth={shouldUseNarrowLayout}
-                        onSearchQueryChange={onSearchQueryChange}
-                        onSubmit={() => {
-                            const focusedOption = listRef.current?.getFocusedOption();
+            <SearchInputSelectionWrapper
+                value={textInputValue}
+                isFullWidth={shouldUseNarrowLayout}
+                onSearchQueryChange={onSearchQueryChange}
+                onSubmit={() => {
+                    const focusedOption = listRef.current?.getFocusedOption();
 
-                            if (!focusedOption) {
-                                submitSearch(textInputValue);
-                                return;
-                            }
+                    if (!focusedOption) {
+                        submitSearch(textInputValue);
+                        return;
+                    }
 
-                            onListItemPress(focusedOption);
-                        }}
-                        caretHidden={shouldHideInputCaret}
-                        autocompleteListRef={listRef}
-                        shouldShowOfflineMessage
-                        wrapperStyle={{...styles.border, ...styles.alignItemsCenter}}
-                        outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
-                        wrapperFocusedStyle={styles.borderColorFocus}
-                        isSearchingForReports={isSearchingForReports}
-                        selection={selection}
-                        substitutionMap={autocompleteSubstitutions}
-                        ref={textInputRef}
-                    />
-                    <SearchAutocompleteList
-                        autocompleteQueryValue={autocompleteQueryValue || textInputValue}
-                        handleSearch={searchInServer}
-                        searchQueryItem={searchQueryItem}
-                        getAdditionalSections={getAdditionalSections}
-                        onListItemPress={onListItemPress}
-                        setTextQuery={setTextAndUpdateSelection}
-                        updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
-                        onHighlightFirstItem={() => listRef.current?.updateAndScrollToFocusedIndex(1)}
-                        ref={listRef}
-                        textInputRef={textInputRef}
-                    />
-                </>
+                    onListItemPress(focusedOption);
+                }}
+                caretHidden={shouldHideInputCaret}
+                autocompleteListRef={listRef}
+                shouldShowOfflineMessage
+                wrapperStyle={{...styles.border, ...styles.alignItemsCenter}}
+                outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
+                wrapperFocusedStyle={styles.borderColorFocus}
+                isSearchingForReports={!!isSearchingForReports}
+                selection={selection}
+                substitutionMap={autocompleteSubstitutions}
+                ref={textInputRef}
+                autoFocus={false}
+            />
+            {shouldShowList && (
+                <SearchAutocompleteList
+                    autocompleteQueryValue={autocompleteQueryValue || textInputValue}
+                    handleSearch={searchInServer}
+                    searchQueryItem={searchQueryItem}
+                    getAdditionalSections={getAdditionalSections}
+                    onListItemPress={onListItemPress}
+                    setTextQuery={setTextAndUpdateSelection}
+                    updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
+                    onHighlightFirstItem={() => listRef.current?.updateAndScrollToFocusedIndex(1)}
+                    ref={listRef}
+                    textInputRef={textInputRef}
+                    personalDetails={personalDetails}
+                    reports={reports}
+                    allFeeds={allFeeds}
+                    allCards={allCards}
+                />
+            )}
+            {!shouldShowList && (
+                <OptionsListSkeletonView
+                    fixedNumItems={4}
+                    shouldStyleAsTable
+                    speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+                />
             )}
         </View>
     );
