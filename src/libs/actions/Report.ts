@@ -5782,7 +5782,6 @@ function buildOptimisticChangePolicyData(report: Report, policy: Policy, reportN
     });
 
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
     // Search data might not have the new policy data so we should add it optimistically.
     if (policy && currentSearchQueryJSON) {
