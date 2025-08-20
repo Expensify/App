@@ -143,6 +143,7 @@ import type {
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
     MissingPropertyParams,
+    MovedActionParams,
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
     MovedTransactionParams,
@@ -645,6 +646,8 @@ const translations = {
         getTheApp: 'Obtenha o aplicativo',
         scanReceiptsOnTheGo: 'Digitalize recibos com seu celular',
         headsUp: 'Atenção!',
+        submitTo: 'Enviar para',
+        forwardTo: 'Encaminhar para',
         merge: 'Mesclar',
         unstableInternetConnection: 'Conexão de internet instável. Verifique sua rede e tente novamente.',
     },
@@ -988,6 +991,11 @@ const translations = {
             'O arquivo que você enviou está vazio ou contém dados inválidos. Por favor, certifique-se de que o arquivo está formatado corretamente e contém as informações necessárias antes de enviá-lo novamente.',
         importSpreadsheet: 'Importar planilha',
         downloadCSV: 'Baixar CSV',
+        importMemberConfirmation: () => ({
+            one: `Confirme os detalhes abaixo para um novo membro do workspace que será adicionado como parte deste envio. Os membros existentes não receberão atualizações de função nem mensagens de convite.`,
+            other: (count: number) =>
+                `Confirme os detalhes abaixo para os ${count} novos membros do workspace que serão adicionados como parte deste envio. Os membros existentes não receberão atualizações de função nem mensagens de convite.`,
+        }),
     },
     receipt: {
         upload: 'Fazer upload de recibo',
@@ -1083,6 +1091,12 @@ const translations = {
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `excluiu uma despesa (${amount} para ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `moveu uma despesa${reportName ? `de ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moveu esta despesa${reportName ? `para <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
+            if (shouldHideMovedReportUrl) {
+                return `moveu este relatório para o workspace <a href="${newParentReportUrl}">${toPolicyName}</a>`;
+            }
+            return `moveu este <a href="${movedReportUrl}">relatório</a> para o workspace <a href="${newParentReportUrl}">${toPolicyName}</a>`;
+        },
         unreportedTransaction: 'movei esta despesa para o seu espaço pessoal',
         pendingMatchWithCreditCard: 'Recibo pendente de correspondência com transação do cartão',
         pendingMatch: 'Partida pendente',
@@ -3547,6 +3561,9 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: 'Automatize despesas de viagens e entrega de refeições em toda a sua organização.',
+                autoRemove: 'Convidar novos membros do espaço de trabalho para o Uber for Business',
+                autoInvite: 'Desativar membros removidos do espaço de trabalho do Uber for Business',
+                manageInvites: 'Gerenciar convites',
             },
         },
         perDiem: {
@@ -4677,6 +4694,7 @@ const translations = {
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Desconectar Uber',
                 disconnectText: 'Para desativar este recurso, desconecte primeiro a integração do Uber for Business.',
+                description: 'Tem certeza de que deseja desconectar esta integração?',
                 confirmText: 'Entendi',
             },
             workflowWarningModal: {
@@ -6034,6 +6052,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nunca',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Último mês',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Este mês',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Última declaração',
                 },
             },
@@ -6070,9 +6089,10 @@ const translations = {
             billable: 'Faturável',
             reimbursable: 'Reembolsável',
             groupBy: {
-                reports: 'Relatório',
-                from: 'De',
-                card: 'Cartão',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Relatório',
+                [CONST.SEARCH.GROUP_BY.FROM]: 'De',
+                [CONST.SEARCH.GROUP_BY.CARD]: 'Cartão',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retirada',
             },
             feed: 'Feed',
             withdrawalType: {
