@@ -5,7 +5,6 @@ import MoveIsOptimisticReportToMetadata from './migrations/MoveIsOptimisticRepor
 import NVPMigration from './migrations/NVPMigration';
 import PendingMembersToMetadata from './migrations/PendingMembersToMetadata';
 import PronounsMigration from './migrations/PronounsMigration';
-import RenameCardIsVirtual from './migrations/RenameCardIsVirtual';
 import RenameReceiptFilename from './migrations/RenameReceiptFilename';
 
 export default function () {
@@ -15,7 +14,6 @@ export default function () {
     return new Promise<void>((resolve) => {
         // Add all migrations to an array so they are executed in order
         const migrationPromises = [
-            RenameCardIsVirtual,
             RenameReceiptFilename,
             KeyReportActionsDraftByReportActionID,
             NVPMigration,
