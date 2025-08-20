@@ -142,7 +142,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         }));
 
         setSelectedOptions(allSelectedMembers);
-    }, []);
+    }, [workspaceMembers]);
 
     const toggleOption = useCallback(
         (option: MemberForList) => {
@@ -183,7 +183,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
     return (
         <ScreenWrapper testID={InviteReceiptPartnerPolicyPage.displayName}>
             <HeaderWithBackButton
-                title={translate('workspace.receiptPartners.uber.inviteMembers')}
+                title={translate('workspace.receiptPartners.uber.sendInvites')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <SelectionList
