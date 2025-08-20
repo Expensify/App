@@ -19,12 +19,12 @@ const cidAndroidMap: Record<string, string> = {
 };
 
 function init(): Promise<void> {
-    fp.init();
     return Promise.all([getEnvironment(), getOldDotEnvironmentURL()]).then(([env, oldDotURL]) => {
         const iOSCustomerID = cidIOSMap[env] ?? cidIOSMap[CONST.ENVIRONMENT.DEV];
         const androidCustomerID = cidAndroidMap[env] ?? cidAndroidMap[CONST.ENVIRONMENT.DEV];
         fp.setCustomerId(iOSCustomerID, androidCustomerID);
         fp.setTargetURL(`${oldDotURL}/api/fl`);
+        fp.run();
     });
 }
 
