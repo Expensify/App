@@ -2073,6 +2073,7 @@ function getSearchOptions(
     maxResults?: number,
     includeUserToInvite?: boolean,
     includeRecentReports = true,
+    includeCurrentUser?: boolean
 ): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -2091,6 +2092,7 @@ function getSearchOptions(
         shouldBoldTitleByDefault: !isUsedInChatFinder,
         excludeHiddenThreads: true,
         maxElements: maxResults,
+        includeCurrentUser,
         searchString: searchQuery,
         includeUserToInvite,
     });
