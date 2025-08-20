@@ -1,5 +1,5 @@
 import {useMemo} from 'react';
-import { useBetas } from '@components/OnyxListItemProvider';
+import {useBetas} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import {appendCountryCode} from '@libs/LoginUtils';
 import {filterAndOrderOptions, getHeaderMessage, getMemberInviteOptions} from '@libs/OptionsListUtils';
