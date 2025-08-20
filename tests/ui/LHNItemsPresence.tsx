@@ -177,7 +177,7 @@ describe('SidebarLinksData', () => {
             await waitForBatchedUpdatesWithAct();
 
             // And a draft message is added to the report.
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${draftReport.reportID}`, 'draft report message');
+            await Onyx.merge(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, {[draftReport.reportID]: 'draft report message'});
 
             // Then the sidebar should display the draft report.
             expect(getDisplayNames()).toHaveLength(1);
