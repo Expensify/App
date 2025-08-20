@@ -6289,6 +6289,7 @@ const CONST = {
 
     SEARCH: {
         RESULTS_PAGE_SIZE: 50,
+        EXITING_ANIMATION_DURATION: 200,
         DATA_TYPES: {
             EXPENSE: 'expense',
             INVOICE: 'invoice',
@@ -6338,6 +6339,7 @@ const CONST = {
             REPORTS: 'reports',
             FROM: 'from',
             CARD: 'card',
+            WITHDRAWAL_ID: 'withdrawal-id',
         },
         BOOLEAN: {
             YES: 'yes',
@@ -6497,6 +6499,13 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             ACTION: 'action',
+        },
+
+        // Maps an internal search value to the user friendly display text, e.g. `perDiem` -> `per-diem`
+        get SEARCH_USER_FRIENDLY_VALUES_MAP() {
+            return {
+                [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',
+            };
         },
         DATE_MODIFIERS: {
             ON: 'On',
@@ -6989,6 +6998,7 @@ const CONST = {
 
     BILLING: {
         TYPE_FAILED_2018: 'failed_2018',
+        TYPE_STRIPE_FAILED_AUTHENTICATION: 'failed_stripe_authentication',
     },
 
     ONBOARDING_HELP: {
