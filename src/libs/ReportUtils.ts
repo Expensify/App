@@ -4300,7 +4300,10 @@ function canEditFieldOfMoneyRequest(
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
-        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID) && isExpenseReport(moneyRequestReport)) {
+        // Unreported transaction from OldDot can have the reportID as an empty string
+        const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
+        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID) && !isUnreportedExpense) {
             return false;
         }
 
@@ -4309,9 +4312,6 @@ function canEditFieldOfMoneyRequest(
             return false;
         }
         const isOwner = moneyRequestReport?.ownerAccountID === currentUserAccountID;
-
-        // Unreported transaction from OldDot can have the reportID as an empty string
-        const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
         if (isInvoiceReport(moneyRequestReport) && !isUnreportedExpense) {
             return (
