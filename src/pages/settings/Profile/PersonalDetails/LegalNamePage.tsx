@@ -124,6 +124,7 @@ function LegalNamePage() {
                                 defaultValue={legalLastName}
                                 spellCheck={false}
                                 autoCapitalize="words"
+                                autoFocus={false}
                             />
                         </View>
                     </FormProvider>

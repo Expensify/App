@@ -79,6 +79,7 @@ function AddressSearch(
         value,
         locationBias,
         caretHidden,
+        autoFocus = true,
     }: AddressSearchProps,
     ref: ForwardedRef<HTMLElement>,
 ) {
@@ -446,6 +447,7 @@ function AddressSearch(
                             spellCheck: false,
                             selectTextOnFocus: true,
                             caretHidden,
+                            autoFocus,
                         }}
                         styles={{
                             textInputContainer: [styles.flexColumn],

@@ -10,7 +10,7 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
         <FocusTrap
             active={active}
             focusTrapOptions={{
-                onActivate: blurActiveElement,
+                // onActivate: blurActiveElement,
                 preventScroll: shouldPreventScroll,
                 trapStack: sharedTrapStack,
                 clickOutsideDeactivates: true,

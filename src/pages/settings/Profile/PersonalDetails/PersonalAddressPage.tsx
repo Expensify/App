@@ -11,7 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 /**
- * Submit form to update user's first and last legal name
+ * Submit form to update user's personal address
  * @param values - form input values
  */
 function updateAddress(values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) {

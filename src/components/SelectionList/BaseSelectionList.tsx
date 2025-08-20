@@ -108,7 +108,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldHideListOnInitialRender = true,
         textInputIconLeft,
         sectionTitleStyles,
-        textInputAutoFocus = true,
+        autoFocus = true,
         shouldShowTextInputAfterHeader = false,
         shouldShowHeaderMessageAfterHeader = false,
         includeSafeAreaPaddingBottom = true,
@@ -740,6 +740,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     testID="selection-list-text-input"
                     shouldInterceptSwipe={shouldTextInputInterceptSwipe}
                     errorText={errorText}
+                    autoFocus={autoFocus}
                 />
             </View>
         );
@@ -792,7 +793,7 @@ function BaseSelectionList<TItem extends ListItem>(
     /** Focuses the text input when the component comes into focus and after any navigation animations finish. */
     useFocusEffect(
         useCallback(() => {
-            if (textInputAutoFocus && shouldShowTextInput) {
+            if (autoFocus && shouldShowTextInput) {
                 if (shouldDelayFocus) {
                     focusTimeoutRef.current = setTimeout(focusTextInput, CONST.ANIMATED_TRANSITION);
                 } else {
@@ -801,7 +802,7 @@ function BaseSelectionList<TItem extends ListItem>(
             }
 
             return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
-        }, [shouldShowTextInput, textInputAutoFocus, shouldDelayFocus, focusTextInput]),
+        }, [shouldShowTextInput, autoFocus, shouldDelayFocus, focusTextInput]),
     );
 
     const prevTextInputValue = usePrevious(textInputValue);
