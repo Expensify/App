@@ -23,5 +23,3 @@ export class FP {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     setCustomEvent(): void {}
 }
-
-
