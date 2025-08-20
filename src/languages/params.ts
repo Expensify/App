@@ -149,6 +149,13 @@ type MovedTransactionParams = {
     reportName?: string;
 };
 
+type MovedActionParams = {
+    shouldHideMovedReportUrl: boolean;
+    movedReportUrl: string;
+    newParentReportUrl: string;
+    toPolicyName: string;
+};
+
 type MovedFromReportParams = {
     reportName: string;
 };
@@ -506,6 +513,8 @@ type NeedCategoryForExportToIntegrationParams = {connectionName: string};
 type TaxAmountParams = {taxAmount: number};
 
 type SecondaryLoginParams = {secondaryLogin: string};
+
+type WorkspaceMembersCountParams = {count: number};
 
 type OwnerOwesAmountParams = {amount: string; email: string};
 
@@ -1154,6 +1163,7 @@ export type {
     BankAccountLastFourParams,
     ReviewParams,
     CreateExpensesParams,
+    WorkspaceMembersCountParams,
     CurrencyInputDisabledTextParams,
     EmployeeInviteMessageParams,
     FlightParams,
@@ -1170,6 +1180,7 @@ export type {
     MergeSuccessDescriptionParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
+    MovedActionParams,
     IndividualExpenseRulesSubtitleParams,
     BillableDefaultDescriptionParams,
     WorkspaceShareNoteParams,
