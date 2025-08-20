@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
-import type {ForwardedRef, MutableRefObject, ReactNode} from 'react';
+import type {ForwardedRef, RefObject, ReactNode} from 'react';
 import React, {createRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
@@ -315,7 +315,7 @@ function FormProvider({
 
     const registerInput = useCallback<RegisterInput>(
         (inputID, shouldSubmitForm, inputProps) => {
-            const newRef: MutableRefObject<InputComponentBaseProps> = inputRefs.current[inputID] ?? inputProps.ref ?? createRef();
+            const newRef: RefObject<InputComponentBaseProps> = inputRefs.current[inputID] ?? inputProps.ref ?? createRef();
             if (inputRefs.current[inputID] !== newRef) {
                 inputRefs.current[inputID] = newRef;
             }
