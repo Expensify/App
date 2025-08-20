@@ -13,12 +13,14 @@ function useIsReportReadyToDisplay(report: OnyxEntry<Report>, reportIDFromRoute:
         return reportIDFromRoute !== '' && !!report?.reportID && !isTransitioning;
     }, [report, reportIDFromRoute]);
 
-    const isEditingDisabled = useMemo(() => !isCurrentReportLoadedFromOnyx || !canUserPerformWriteAction(report, isReportArchived), [isCurrentReportLoadedFromOnyx, report]);
+    const isEditingDisabled = useMemo(
+        () => !isCurrentReportLoadedFromOnyx || !canUserPerformWriteAction(report, isReportArchived),
+        [isCurrentReportLoadedFromOnyx, report, isReportArchived],
+    );
 
     return {
         isCurrentReportLoadedFromOnyx,
         isEditingDisabled,
-        isReportArchived,
     };
 }
 
