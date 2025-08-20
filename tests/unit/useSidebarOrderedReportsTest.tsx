@@ -184,6 +184,7 @@ describe('useSidebarOrderedReports', () => {
             expect.any(Function), // localeCompare
             expect.any(Object), // reportNameValuePairs
             expect.any(Object), // reportAttributes
+            expect.any(Object), // drafts
         );
     });
 
