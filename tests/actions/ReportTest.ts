@@ -44,6 +44,17 @@ jest.mock('@libs/ReportUtils', () => {
     };
 });
 
+const currentHash = 12345;
+jest.mock('@src/libs/SearchQueryUtils', () => ({
+    getCurrentSearchQueryJSON: jest.fn().mockImplementation(() => ({
+        hash: currentHash,
+        query: 'test',
+        type: 'expense',
+        status: '',
+        flatFilters: [],
+    })),
+}));
+
 const UTC = 'UTC';
 jest.mock('@src/libs/actions/Report', () => {
     const originalModule = jest.requireActual<Report>('@src/libs/actions/Report');
@@ -1835,8 +1846,11 @@ describe('actions/Report', () => {
                 private_isArchived: DateUtils.getDBTime(),
             });
 
+            const newPolicy = createRandomPolicy(2);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+
             // When moving to another workspace
-            Report.changeReportPolicy(expenseReport, '2');
+            Report.changeReportPolicy(expenseReport, newPolicy.id);
             await waitForBatchedUpdates();
 
             // Then the expense report should not be archived anymore
@@ -1850,6 +1864,19 @@ describe('actions/Report', () => {
                 });
             });
             expect(isArchived).toBe(false);
+
+            const snapshotData = await new Promise<OnyxEntry<OnyxTypes.SearchResults>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentHash}`,
+                    callback: (val) => {
+                        resolve(val);
+                        Onyx.disconnect(connection);
+                    },
+                });
+            });
+
+            // Then the new policy data should also be populated on the current search snapshot.
+            expect(snapshotData?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]).toBeDefined();
         });
     });
 
