@@ -1,15 +1,13 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {SectionListData} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
+import { FallbackAvatar } from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import type {Section} from '@components/SelectionList/types';
+import type { Section } from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
@@ -17,29 +15,31 @@ import useLocalize from '@hooks/useLocalize';
 import useMemberInviteSearch from '@hooks/useMemberInviteSearch';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
-import {searchInServer} from '@libs/actions/Report';
-import {setApprovalWorkflowMembers} from '@libs/actions/Workflow';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import { setWorkspaceInviteMembersDraft } from '@libs/actions/Policy/Member';
+import { searchInServer } from '@libs/actions/Report';
+import { setApprovalWorkflowMembers } from '@libs/actions/Workflow';
+import { canUseTouchScreen } from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {formatMemberForList, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
-import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
+import type { WorkspaceSplitNavigatorParamList } from '@libs/Navigation/types';
+import { formatMemberForList, getSearchValueForPhoneOrEmail, sortAlphabetically } from '@libs/OptionsListUtils';
+import { getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin } from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
-import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+import type { WithPolicyAndFullscreenLoadingProps } from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Member} from '@src/types/onyx/ApprovalWorkflow';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type { Member } from '@src/types/onyx/ApprovalWorkflow';
+import type { Icon } from '@src/types/onyx/OnyxCommon';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import variables from '@styles/variables';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import type { SectionListData } from 'react-native';
 
 type SelectionListMember = {
     text: string;
@@ -196,10 +196,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 const userToInviteFormatted = formatMemberForList(inviteOptions.userToInvite);
                 const userToInvite = {
                     ...userToInviteFormatted,
-                    icons: userToInviteFormatted.icons?.map((icon) => ({
-                        ...icon,
-                        source: icon.source === FallbackAvatar ? '' : icon.source,
-                    })),
                     rightElement: (
                         <MemberRightIcon
                             role={policy?.employeeList?.[userToInviteFormatted.login]?.role}
@@ -247,7 +243,11 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     }, [isInitialCreationFlow, route.params.policyID, firstApprover, approvalWorkflow?.action]);
 
     const nextStep = useCallback(() => {
-        const members: Member[] = selectedMembers.map((member) => ({displayName: member.text, avatar: member.icons?.[0]?.source, email: member.login}));
+        const members: Member[] = selectedMembers.map((member) => ({
+            displayName: member.text,
+            avatar: member.icons?.[0]?.source === FallbackAvatar ? undefined : member.icons?.[0]?.source,
+            email: member.login,
+        }));
         setApprovalWorkflowMembers(members);
 
         const newUsersSelected = selectedMembers.filter((member) => !policy?.employeeList?.[member.login]);
