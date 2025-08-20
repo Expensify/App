@@ -362,7 +362,7 @@ function TransactionItemRow({
             shouldUseNarrowLayout,
             transactionItem,
             report?.policyID,
-            report?.total
+            report?.total,
         ],
     );
     const shouldRenderChatBubbleCell = useMemo(() => {
