@@ -204,7 +204,18 @@ function SecuritySettingsPage() {
             link: '',
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [translate, waitForNavigate, styles, isDelegateAccessRestricted, showDelegateNoAccessModal, isAccountLocked, showLockedAccountModal, privateSubscription, currentUserPersonalDetails]);
+    }, [
+        isAccountLocked,
+        isDelegateAccessRestricted,
+        isUserValidated,
+        showDelegateNoAccessModal,
+        showLockedAccountModal,
+        privateSubscription?.type,
+        currentUserPersonalDetails.login,
+        waitForNavigate,
+        translate,
+        styles.sectionMenuItemTopDescription,
+    ]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
         () =>
