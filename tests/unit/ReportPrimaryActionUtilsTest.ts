@@ -1,7 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {getReportPrimaryAction, getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
+import {getReportPrimaryAction, getTransactionThreadPrimaryAction, isReviewDuplicatesAction} from '@libs/ReportPrimaryActionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -358,6 +358,60 @@ describe('getPrimaryAction', () => {
         ).toBe('');
     });
 
+    it('should return REMOVE HOLD for an approver who held the expense', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as unknown as Report;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const HOLD_ACTION_ID = 'HOLD_ACTION_ID';
+        const REPORT_ACTION_ID = 'REPORT_ACTION_ID';
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+        const CHILD_REPORT_ID = 'CHILD_REPORT_ID';
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+            comment: {
+                hold: HOLD_ACTION_ID,
+            },
+        } as unknown as Transaction;
+
+        const policy = {
+            approver: CURRENT_USER_ACCOUNT_ID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+        } as unknown as Policy;
+
+        const reportAction = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            type: CONST.REPORT.ACTIONS.TYPE.IOU,
+            reportActionID: REPORT_ACTION_ID,
+            actorAccountID: 2, // The iou was created by a member
+            childReportID: CHILD_REPORT_ID,
+            message: [
+                {
+                    html: 'html',
+                },
+            ],
+            originalMessage: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                IOUTransactionID: TRANSACTION_ID,
+            },
+        } as unknown as ReportAction;
+
+        const holdAction = {
+            reportActionID: HOLD_ACTION_ID,
+            reportID: CHILD_REPORT_ID,
+            actorAccountID: CURRENT_USER_ACCOUNT_ID,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[REPORT_ACTION_ID]: reportAction});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHILD_REPORT_ID}`, {[HOLD_ACTION_ID]: holdAction});
+
+        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy, isChatReportArchived: false})).toBe(
+            CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD,
+        );
+    });
+
     it('should return REMOVE HOLD for reports with transactions on hold', async () => {
         const report = {
             reportID: REPORT_ID,
@@ -515,6 +569,91 @@ describe('getPrimaryAction', () => {
                 isChatReportArchived: isChatReportArchived.current,
             }),
         ).toBe('');
+    });
+});
+
+describe('isReviewDuplicatesAction', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        Onyx.clear();
+        await Onyx.merge(ONYXKEYS.SESSION, SESSION);
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
+    });
+
+    it('should return true when report approver has duplicated transactions', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: 999,
+            managerID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+        } as unknown as Transaction;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`, [
+            {
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+            } as TransactionViolation,
+        ]);
+
+        expect(isReviewDuplicatesAction(report, [transaction])).toBe(true);
+    });
+
+    it('should return false when report approver has no duplicated transactions', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: 999,
+            managerID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+        } as unknown as Transaction;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+
+        expect(isReviewDuplicatesAction(report, [transaction])).toBe(false);
+    });
+
+    it('should return false when current user is neither the report submitter nor approver', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: 999,
+            managerID: 888,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+        } as unknown as Transaction;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`, [
+            {
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+            } as TransactionViolation,
+        ]);
+
+        expect(isReviewDuplicatesAction(report, [transaction])).toBe(false);
     });
 });
 

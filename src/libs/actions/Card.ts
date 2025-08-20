@@ -40,6 +40,9 @@ type IssueNewCardFlowData = {
 
     /** ID of the policy */
     policyID: string | undefined;
+
+    /** Whether the changing assignee is disabled. E.g., The assignee is auto selected from workspace members page */
+    isChangeAssigneeDisabled?: boolean;
 };
 
 function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
@@ -363,12 +366,13 @@ function getCardDefaultName(userName?: string) {
     return `${userName}'s Card`;
 }
 
-function setIssueNewCardStepAndData({data, isEditing, step, policyID}: IssueNewCardFlowData) {
+function setIssueNewCardStepAndData({data, isEditing, step, policyID, isChangeAssigneeDisabled}: IssueNewCardFlowData) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
         data,
         isEditing,
         currentStep: step,
         errors: null,
+        isChangeAssigneeDisabled,
     });
 }
 
@@ -377,6 +381,10 @@ function clearIssueNewCardFlow(policyID: string | undefined) {
         currentStep: null,
         data: {},
     });
+}
+
+function clearIssueNewCardFormData() {
+    Onyx.set(ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM, {});
 }
 
 function clearIssueNewCardError(policyID: string | undefined) {
@@ -967,5 +975,6 @@ export {
     deactivateCard,
     getCardDefaultName,
     queueExpensifyCardForBilling,
+    clearIssueNewCardFormData,
 };
 export type {ReplacementReason};
