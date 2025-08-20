@@ -10,6 +10,7 @@ import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
+import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
@@ -25,7 +26,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildCannedSearchQuery, isCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import {searchInServer} from '@userActions/Report';
@@ -105,14 +106,10 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
-    const shouldDisplayCancelSearch = shouldUseNarrowLayout && ((!!queryJSON && !isCannedSearchQuery(queryJSON)) || searchRouterListVisible);
+    const shouldDisplayCancelSearch = shouldUseNarrowLayout && searchRouterListVisible;
     const cancelSearchCallback = useCallback(() => {
-        if (searchRouterListVisible) {
-            setSearchRouterListVisible(false);
-            return;
-        }
-        Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
-    }, [searchRouterListVisible]);
+        setSearchRouterListVisible(false);
+    }, []);
 
     const handleSearchAction = useCallback((value: SearchParams | string) => {
         if (typeof value === 'string') {
@@ -141,6 +138,8 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
 
     const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!currentSearchResults?.search?.isLoading);
+    const metadata = searchResults?.search;
+    const shouldShowFooter = !!metadata?.count;
 
     return (
         <ScreenWrapper
@@ -223,6 +222,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
                         />
                     </View>
                 )}
+                {shouldShowFooter && <SearchPageFooter metadata={metadata} />}
             </View>
         </ScreenWrapper>
     );

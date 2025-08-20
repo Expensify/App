@@ -38,13 +38,14 @@ type AssigneeStepProps = {
 };
 
 function AssigneeStep({policy, feed}: AssigneeStepProps) {
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [list] = useCardsList(policy?.id, feed);
     const [cardFeeds] = useCardFeeds(policy?.id);
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed]);
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
 
     const isEditing = assignCard?.isEditing;
 
@@ -137,10 +138,10 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             });
         });
 
-        membersList = sortAlphabetically(membersList, 'text');
+        membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList, selectedMember, formatPhoneNumber]);
+    }, [isOffline, policy?.employeeList, selectedMember, formatPhoneNumber, localeCompare]);
 
     const sections = useMemo(() => {
         if (!debouncedSearchTerm) {
