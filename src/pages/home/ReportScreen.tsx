@@ -862,7 +862,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         <ScrollView contentContainerStyle={styles.wideRHPMoneyRequestReceiptViewScrollView}>
                                             <MoneyRequestReceiptView
                                                 allReports={allReports}
-                                                report={report}
+                                                report={transactionThreadReport ?? report}
                                                 fillSpace
                                             />
                                         </ScrollView>
