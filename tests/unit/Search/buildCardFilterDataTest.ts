@@ -389,7 +389,7 @@ describe('buildCardsData closed cards', () => {
 describe('buildCardsData with empty argument objects', () => {
     it('Returns empty array when cardList and workspaceCardFeeds are empty', () => {
         const result = buildCardsData({}, {}, {}, [], illustrationsMock as IllustrationsType);
-        expect(result).toEqual({selected: [], unselected: []});
+        expect(result).toEqual([]);
     });
 });
 
