@@ -239,6 +239,7 @@ const ROUTES = {
     SETTINGS_LOCK_ACCOUNT: 'settings/security/lock-account',
     SETTINGS_UNLOCK_ACCOUNT: 'settings/security/unlock-account',
     SETTINGS_FAILED_TO_LOCK_ACCOUNT: 'settings/security/failed-to-lock-account',
+    SETTINGS_DELEGATE_VERIFY_ACCOUNT: 'settings/security/delegate/verify-account',
     SETTINGS_ADD_DELEGATE: 'settings/security/delegate',
     SETTINGS_DELEGATE_ROLE: {
         route: 'settings/security/delegate/:login/role/:role',
@@ -343,14 +344,7 @@ const ROUTES = {
         getRoute: (backTo?: string, forwardTo?: string) =>
             getUrlWithBackToParam(forwardTo ? `settings/security/two-factor-auth?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/security/two-factor-auth', backTo),
     },
-    SETTINGS_2FA_VERIFY_ACCOUNT: {
-        route: 'settings/security/two-factor-auth/verify-account',
-        getRoute: (backTo?: string, forwardTo?: string) =>
-            getUrlWithBackToParam(
-                forwardTo ? `settings/security/two-factor-auth/verify-account?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/security/two-factor-auth/verify-account',
-                backTo,
-            ),
-    },
+    SETTINGS_2FA_VERIFY_ACCOUNT: 'settings/security/two-factor-auth/verify-account',
     SETTINGS_2FA_VERIFY: {
         route: 'settings/security/two-factor-auth/verify',
         getRoute: (backTo?: string, forwardTo?: string) =>

@@ -336,6 +336,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_ADDRESS_STATE.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.DELEGATE.VERIFY_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_DELEGATE_VERIFY_ACCOUNT,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: {
                             path: ROUTES.SETTINGS_ADD_DELEGATE,
                             exact: true,
@@ -1006,7 +1010,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT]: {
-                            path: ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.route,
+                            path: ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT,
                             exact: true,
                         },
                         [SCREENS.TWO_FACTOR_AUTH.VERIFY]: {

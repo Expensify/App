@@ -135,7 +135,7 @@ function SecuritySettingsPage() {
                         return;
                     }
                     if (!isUserValidated) {
-                        Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_2FA_ROOT.getRoute()));
+                        Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT);
                         return;
                     }
                     Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute());
@@ -398,7 +398,7 @@ function SecuritySettingsPage() {
                                             icon={Expensicons.UserPlus}
                                             onPress={() => {
                                                 if (!isUserValidated) {
-                                                    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_DELEGATE));
+                                                    Navigation.navigate(ROUTES.SETTINGS_DELEGATE_VERIFY_ACCOUNT);
                                                     return;
                                                 }
                                                 if (isAccountLocked) {

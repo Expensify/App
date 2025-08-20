@@ -106,10 +106,7 @@ type SettingsNavigatorParamList = {
         backTo?: Routes;
         forwardTo?: Routes;
     };
-    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VERIFY_ACCOUNT]: {
-        backTo?: Routes;
-        forwardTo?: Routes;
-    };
+    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.PAYMENT_CURRENCY]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: undefined;
@@ -909,6 +906,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.TWO_FACTOR_AUTH.DISABLED]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.DISABLE]: undefined;
+    [SCREENS.SETTINGS.DELEGATE.VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: undefined;
     [SCREENS.SETTINGS.DELEGATE.DELEGATE_ROLE]: {
         login: string;
@@ -1134,10 +1132,7 @@ type TwoFactorAuthNavigatorParamList = {
         backTo?: Routes;
         forwardTo?: string;
     };
-    [SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT]: {
-        backTo?: Routes;
-        forwardTo?: string;
-    };
+    [SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.VERIFY]: {
         backTo?: Routes;
         forwardTo?: string;
