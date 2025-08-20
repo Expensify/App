@@ -14,15 +14,7 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDistanceRateCustomUnitRate, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isReportInGroupPolicy} from '@libs/ReportUtils';
-import {
-    calculateTaxAmount,
-    getCurrency,
-    getDistanceInMeters,
-    getRateID,
-    getTaxValue,
-    isDistanceRequest as isDistanceRequestTransactionUtils,
-    isManualDistanceRequest,
-} from '@libs/TransactionUtils';
+import {calculateTaxAmount, getCurrency, getDistanceInMeters, getRateID, getTaxValue, isDistanceRequest as isDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -56,7 +48,7 @@ function IOURequestStepDistanceRate({
 
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
-    const isDistanceRequest = isDistanceRequestTransactionUtils(transaction) || isManualDistanceRequest(transaction);
+    const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isPolicyExpenseChat = isReportInGroupPolicy(report);
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
     const isEditing = action === CONST.IOU.ACTION.EDIT;

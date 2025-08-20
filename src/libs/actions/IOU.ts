@@ -202,6 +202,7 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isDuplicate,
     isFetchingWaypointsFromServer,
+    isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isOnHold,
     isPendingCardOrScanningTransaction,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
@@ -3937,6 +3938,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         filename = existingTransaction?.filename;
     }
     const isDistanceRequest = existingTransaction && isDistanceRequestTransactionUtils(existingTransaction);
+    const isManualDistanceRequest = existingTransaction && isManualDistanceRequestTransactionUtils(existingTransaction);
     let optimisticTransaction = buildOptimisticTransaction({
         existingTransactionID,
         existingTransaction,
@@ -3955,7 +3957,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             taxCode,
             taxAmount,
             billable,
-            pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
+            pendingFields: isDistanceRequest && !isManualDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
             reimbursable: false,
             filename,
             attendees,

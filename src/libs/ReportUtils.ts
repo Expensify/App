@@ -4273,7 +4273,7 @@ function canEditFieldOfMoneyRequest(
         return isAdmin || isManager || isRequestor;
     }
 
-    if ((fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) && (isDistanceRequest(transaction) || isManualDistanceRequest(transaction))) {
+    if ((fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) && isDistanceRequest(transaction)) {
         return isAdmin || isManager;
     }
 
@@ -4288,8 +4288,8 @@ function canEditFieldOfMoneyRequest(
         return (
             !isInvoiceReport(moneyRequestReport) &&
             !isReceiptBeingScanned(transaction) &&
-            !isDistanceRequest(transaction) &&
             !isPerDiemRequest(transaction) &&
+            isManualDistanceRequest(transaction) &&
             (isAdmin || isManager || isRequestor) &&
             (isDeleteAction ? isRequestor : true)
         );
@@ -4297,7 +4297,7 @@ function canEditFieldOfMoneyRequest(
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE) {
         // The distance rate can be modified only on the distance expense reports
-        return isExpenseReport(moneyRequestReport) && (isDistanceRequest(transaction) || isManualDistanceRequest(transaction));
+        return isExpenseReport(moneyRequestReport) && isDistanceRequest(transaction);
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {

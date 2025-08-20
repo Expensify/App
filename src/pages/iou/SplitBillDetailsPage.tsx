@@ -69,6 +69,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const isEditingSplitBill = session?.accountID === actorAccountID && areRequiredFieldsEmpty(transaction);
     const isDistanceRequest = isDistanceRequestUtil(transaction);
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
+    const isMapDistanceRequest = isDistanceRequest && !isManualDistanceRequest;
     const [isConfirmed, setIsConfirmed] = useState(false);
 
     const {
@@ -110,7 +111,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                             />
                         </View>
                     )}
-                    <ImageBehaviorContextProvider shouldSetAspectRatioInStyle={!isDistanceRequest}>
+                    <ImageBehaviorContextProvider shouldSetAspectRatioInStyle={!isMapDistanceRequest}>
                         {!!participants.length && (
                             <MoneyRequestConfirmationList
                                 payeePersonalDetails={payeePersonalDetails}

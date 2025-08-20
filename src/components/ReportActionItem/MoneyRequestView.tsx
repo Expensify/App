@@ -199,9 +199,9 @@ function MoneyRequestView({
         postedDate: transactionPostedDate,
     } = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-    const isMapDistanceRequest = isDistanceRequestTransactionUtils(transaction);
+    const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
-    const isDistanceRequest = isMapDistanceRequest || isManualDistanceRequest;
+    const isMapDistanceRequest = isDistanceRequest && !isManualDistanceRequest;
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
     const hasReceipt = hasReceiptTransactionUtils(updatedTransaction ?? transaction);
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);

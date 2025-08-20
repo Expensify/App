@@ -158,7 +158,11 @@ function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction>): boolean {
 function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE || transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
+        return (
+            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ||
+            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
+            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL
+        );
     }
 
     // This is the case for transaction objects once they have been saved to the server
@@ -311,9 +315,9 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         commentJSON.splitExpenses = splitExpenses;
     }
 
-    const isDistanceTransaction = !!pendingFields?.waypoints;
+    const isMapDistanceTransaction = !!pendingFields?.waypoints;
     const isManualDistanceTransaction = isManualDistanceRequest(existingTransaction);
-    if (isDistanceTransaction || isManualDistanceTransaction) {
+    if (isMapDistanceTransaction || isManualDistanceTransaction) {
         // Set the distance unit, which comes from the policy distance unit or the P2P rate data
         lodashSet(commentJSON, 'customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy}));
         lodashSet(commentJSON, 'customUnit.quantity', distance);
@@ -712,7 +716,7 @@ function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction
  * Verify that the transaction is in Self DM and that its distance rate is invalid.
  */
 function isUnreportedAndHasInvalidDistanceRateTransaction(transaction: OnyxInputOrEntry<Transaction>, policyParam: OnyxEntry<Policy> = undefined) {
-    if (transaction && (isDistanceRequest(transaction) || isManualDistanceRequest(transaction))) {
+    if (transaction && isDistanceRequest(transaction)) {
         const report = getReportOrDraftReport(transaction.reportID);
         // eslint-disable-next-line deprecation/deprecation
         const policy = policyParam ?? getPolicy(report?.policyID);
@@ -731,7 +735,7 @@ function isUnreportedAndHasInvalidDistanceRateTransaction(transaction: OnyxInput
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
 function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: OnyxEntry<Policy> = undefined): string {
-    if (transaction && (isDistanceRequest(transaction) || isManualDistanceRequest(transaction))) {
+    if (transaction && isDistanceRequest(transaction)) {
         const report = getReportOrDraftReport(transaction.reportID);
         // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
         // eslint-disable-next-line deprecation/deprecation
@@ -1361,7 +1365,7 @@ function getRateID(transaction: OnyxInputOrEntry<Transaction>): string {
  * Else returns policy default tax rate if transaction is in policy default currency, otherwise foreign default tax rate
  */
 function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency?: string | undefined): string | undefined {
-    if (isDistanceRequest(transaction) || isManualDistanceRequest(transaction)) {
+    if (isDistanceRequest(transaction)) {
         const customUnitRateID = getRateID(transaction) ?? '';
         const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
         return customUnitRate?.attributes?.taxRateExternalID;
@@ -1803,7 +1807,7 @@ function buildMergeDuplicatesParams(
 
 function getCategoryTaxCodeAndAmount(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>) {
     const taxRules = policy?.rules?.expenseRules?.filter((rule) => rule.tax);
-    if (!taxRules || taxRules?.length === 0 || isDistanceRequest(transaction) || isManualDistanceRequest(transaction)) {
+    if (!taxRules || taxRules?.length === 0 || isDistanceRequest(transaction)) {
         return {categoryTaxCode: undefined, categoryTaxAmount: undefined};
     }
 
