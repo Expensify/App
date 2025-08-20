@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmationPage from '@components/ConfirmationPage';
 import RenderHTML from '@components/RenderHTML';
@@ -20,6 +20,16 @@ function UpgradeConfirmation({policyName, onConfirmUpgrade, isCategorizing, isTr
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
+    const [subscriptionLink, setSubscriptionLink] = useState('');
+
+    const updateSubscriptionLink = useCallback(() => {
+        const backTo = Navigation.getActiveRoute();
+        setSubscriptionLink(`${environmentURL}/${ROUTES.SETTINGS_SUBSCRIPTION.getRoute(backTo)}`);
+    }, [environmentURL]);
+
+    useEffect(() => {
+        Navigation.isNavigationReady().then(() => updateSubscriptionLink());
+    }, [updateSubscriptionLink]);
 
     const description = useMemo(() => {
         if (isCategorizing) {
@@ -29,9 +39,6 @@ function UpgradeConfirmation({policyName, onConfirmUpgrade, isCategorizing, isTr
         if (isTravelUpgrade) {
             return <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.travelMessage')}</Text>;
         }
-
-        const backTo = Navigation.getActiveRoute();
-        const subscriptionLink = `${environmentURL}/${ROUTES.SETTINGS_SUBSCRIPTION.getRoute(backTo)}`;
 
         return (
             <View style={[styles.renderHTML, styles.w100]}>
