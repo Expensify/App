@@ -376,12 +376,7 @@ function BaseTextInput(
                                         ref.current = baseTextInputRef;
                                     }
 
-<<<<<<< HEAD
                                     input.current = element;
-=======
-                                    const elementRef = element as AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null;
-                                    input.current = elementRef;
->>>>>>> 7acd72ff71c (Prettier run)
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
