@@ -92,7 +92,7 @@ describe('SearchQueryUtils', () => {
                 type: 'expense',
                 status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 policyID: ['12345'],
-                lessThan: '100',
+                amountLessThan: '100',
             };
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
@@ -177,8 +177,8 @@ describe('SearchQueryUtils', () => {
                 to: ['user3@gmail.com'],
                 dateAfter: '2025-03-01',
                 dateBefore: '2025-03-10',
-                lessThan: '1000',
-                greaterThan: '1',
+                amountLessThan: '1000',
+                amountGreaterThan: '1',
                 category: ['finance', 'insurance'],
             };
             const result = buildQueryStringFromFilterFormValues(filterValues);
