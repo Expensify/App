@@ -7,7 +7,7 @@ import useBeforeRemove from './useBeforeRemove';
  *
  * @param firstRenderCb - The callback function to execute on the component's first render.
  * @param shouldSkip - Optional condition to control whether the callback should run.
- *   - If `true`, the callback will we skipped.
+ *   - If `true`, the callback will be skipped.
  *   - If `false` (default), AND it's a first render, the callback will be executed.
  *
  * @example
@@ -30,7 +30,7 @@ function useRunOnFirstRender(firstRenderCb: () => void, shouldSkip = false) {
         }
         firstRenderRef.current = false;
         firstRenderCb();
-        // We only want to send validate code on first render, so we don't add dependencies.
+        // We only want to run firstRenderCb on first render, so we don't add dependencies.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
