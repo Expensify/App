@@ -33,7 +33,7 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     useEffect(() => {
         openSubscriptionPage();
     }, []);
-    const [isAppLoading] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
+    const [isAppLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
 
     if (!subscriptionPlan && isAppLoading) {
         return <FullScreenLoadingIndicator />;
