@@ -6,6 +6,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
+import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
 import {formatReportLastMessageText, getAllReportErrors, getDisplayNameForParticipant, getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -36,7 +37,7 @@ jest.mock('@libs/DraftCommentUtils', () => ({
 
 // Mock PolicyUtils
 jest.mock('@libs/PolicyUtils', () => ({
-    ...jest.requireActual('@libs/PolicyUtils'),
+    ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
     getConnectedIntegration: jest.fn(() => true),
 }));
 
