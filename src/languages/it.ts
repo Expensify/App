@@ -6212,7 +6212,16 @@ const translations = {
                 changeType: ({oldType, newType}: ChangeTypeParams) => `cambiato tipo da ${oldType} a ${newType}`,
                 exportedToCSV: `esportato in CSV`,
                 exportedToIntegration: {
-                    automatic: ({label}: ExportedToIntegrationParams) => `esportato in ${label}`,
+                    automatic: ({label}: ExportedToIntegrationParams) => {
+                        // The label will always be in English, so we need to translate it
+                        const labelTranslations: Record<string, string> = {
+                            'All Data - Expense Level Export': translations.export.expenseLevelExport,
+                            'All Data - Report Level Export': translations.export.reportLevelExport,
+                            'Basic Export': translations.export.basicExport,
+                        };
+                        const translatedLabel = labelTranslations[label] || label;
+                        return `esportato in ${translatedLabel}`;
+                    },
                     automaticActionOne: ({label}: ExportedToIntegrationParams) => `esportato su ${label} tramite`,
                     automaticActionTwo: 'impostazioni contabili',
                     manual: ({label}: ExportedToIntegrationParams) => `ha contrassegnato questo report come esportato manualmente su ${label}.`,
