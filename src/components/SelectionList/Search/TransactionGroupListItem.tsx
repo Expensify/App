@@ -204,6 +204,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
+    console.log(isLargeScreenWidth);
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
@@ -266,7 +267,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                     />
                                 ))}
                                 {shouldDisplayShowMoreButton && !shouldDisplayLoadingIndicator && (
-                                    <View style={[styles.w100, styles.flexRow, styles.pl10]}>
+                                    <View style={[styles.w100, styles.flexRow, isLargeScreenWidth && styles.pl10]}>
                                         <Button
                                             text={translate('common.showMore')}
                                             onPress={() => {
@@ -290,7 +291,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                     </View>
                                 )}
                                 {shouldDisplayLoadingIndicator && (
-                                    <View style={[styles.pl10, styles.pt3]}>
+                                    <View style={[isLargeScreenWidth && styles.pl10, styles.pt3]}>
                                         <ActivityIndicator
                                             color={theme.spinner}
                                             size={25}
