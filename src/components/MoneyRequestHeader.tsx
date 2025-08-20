@@ -280,7 +280,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     };
 
     const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]);
-    const shouldDisplayWideRHPVersion = wideRHPRouteKeys.length > 0 && isSmallScreenWidth;
+    const shouldDisplayWideRHPVersion = wideRHPRouteKeys.length > 0 && !isSmallScreenWidth;
 
     return (
         <View style={[styles.pl0, styles.borderBottom]}>
@@ -304,7 +304,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 shouldEnableDetailPageNavigation
                 openParentReportInCurrentTab={shouldOpenParentReportInCurrentTab}
             >
-                {!shouldUseNarrowLayout && (
+                {(!shouldUseNarrowLayout || shouldDisplayWideRHPVersion) && (
                     <View style={[styles.flexRow, styles.gap2]}>
                         {!!primaryAction && primaryActionImplementation[primaryAction]}
                         {!!applicableSecondaryActions.length && (
@@ -319,23 +319,12 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         )}
                     </View>
                 )}
-                {!!applicableSecondaryActions.length && !shouldDisplayWideRHPVersion && (
-                    <ButtonWithDropdownMenu
-                        success={false}
-                        onPress={() => {}}
-                        shouldAlwaysShowDropdownMenu
-                        customText={translate('common.more')}
-                        options={applicableSecondaryActions}
-                        isSplitButton={false}
-                        wrapperStyle={[!primaryAction && styles.flexGrow4, {marginRight: 12}]}
-                    />
-                )}
                 {shouldDisplayTransactionNavigation && <MoneyRequestReportTransactionsNavigation currentReportID={reportID} />}
             </HeaderWithBackButton>
-            {shouldUseNarrowLayout && (!!primaryAction || (!!applicableSecondaryActions.length && shouldDisplayWideRHPVersion)) && (
+            {shouldUseNarrowLayout && !shouldDisplayWideRHPVersion && (
                 <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     {!!primaryAction && <View style={[styles.flexGrow4]}>{primaryActionImplementation[primaryAction]}</View>}
-                    {!!applicableSecondaryActions.length && shouldDisplayWideRHPVersion && (
+                    {!!applicableSecondaryActions.length && (
                         <ButtonWithDropdownMenu
                             success={false}
                             onPress={() => {}}
