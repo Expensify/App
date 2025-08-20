@@ -12,11 +12,7 @@ type GibSdk = {
     IS_GUEST?: number;
 };
 
-declare global {
-    interface Window {
-        gib?: GibSdk;
-    }
-}
+type WindowWithGib = typeof window & {gib?: GibSdk};
 
 function getScriptURL(): string {
     if (typeof window === 'undefined' || typeof window.location === 'undefined') {
@@ -56,7 +52,7 @@ function init(): Promise<void> {
         return Promise.resolve();
     }
     return Promise.all([getEnvironment(), getOldDotEnvironmentURL(), loadGroupIBScript()]).then(([env, oldDotURL]) => {
-        const fp: GibSdk | undefined = typeof window !== 'undefined' ? window.gib : undefined;
+        const fp = (window as WindowWithGib).gib;
         const cid = cidMap[env] ?? cidMap[CONST.ENVIRONMENT.DEV];
         fp?.init?.({cid, backUrl: `${oldDotURL.replace('https://', '//')}/api/fl`, gafUrl: '//eu.id.group-ib.com/id.html'});
         resolveFpInstancePromise(fp);
