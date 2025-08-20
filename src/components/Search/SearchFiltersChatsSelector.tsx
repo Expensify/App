@@ -100,13 +100,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             sections: newSections,
             headerMessage: message,
         };
-    }, [
-        areOptionsInitialized,
-        chatOptions.recentReports,
-        didScreenTransitionEnd,
-        reportAttributesDerived,
-        translate,
-    ]);
+    }, [areOptionsInitialized, chatOptions.recentReports, didScreenTransitionEnd, reportAttributesDerived, translate]);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
