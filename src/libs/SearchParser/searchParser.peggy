@@ -117,6 +117,7 @@ key "key"
       / keyword
       / in
       / currency
+      / groupCurrency
       / tag
       / category
       / to
@@ -126,6 +127,7 @@ key "key"
       / payer
       / exporter
       / expenseType
+      / withdrawalType
       / submitted
       / approved
       / paid
@@ -150,7 +152,7 @@ filterKey
 defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy)
 
 identifier
-  = (","+)? parts:(quotedString / alphanumeric)|1.., ","+| empty:(","+)? {
+  = (","+)? parts:(values / quotedString / alphanumeric)|1.., ","+| empty:(","+)? {
       const value = parts.flat().filter(Boolean).map((word) => {
         if (word.startsWith('"') && word.endsWith('"') && word.length >= 2) {
           return word.slice(1, -1);
