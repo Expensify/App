@@ -64,11 +64,13 @@ function IOURequestStartPage({
     const isLoadingSelectedTab = shouldUseTab ? isLoadingOnyxValue(selectedTabResult) : false;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) => Object.values(items ?? {}),
         canBeMissing: true,
     });
     const [isMultiScanEnabled, setIsMultiScanEnabled] = useState((optimisticTransactions ?? []).length > 1);
+    const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
@@ -116,6 +118,25 @@ function IOURequestStartPage({
         Navigation.closeRHPFlow();
     };
 
+    // This useEffect is used to initialize the money request, so that currency will be reset to default currency on page reload.
+    useEffect(() => {
+        if (transaction?.amount !== 0) {
+            return;
+        }
+        initMoneyRequest({
+            reportID,
+            policy,
+            isFromGlobalCreate,
+            currentIouRequestType: transaction?.iouRequestType,
+            newIouRequestType: transaction?.iouRequestType,
+            report,
+            parentReport,
+            currentDate,
+            lastSelectedDistanceRates,
+        });
+        // eslint-disable-next-line
+    }, []);
+
     const resetIOUTypeIfChanged = useCallback(
         (newIOUType: IOURequestType) => {
             Keyboard.dismiss();
@@ -131,9 +152,11 @@ function IOURequestStartPage({
                 newIouRequestType: newIOUType,
                 report,
                 parentReport,
+                currentDate,
+                lastSelectedDistanceRates,
             });
         },
-        [policy, reportID, isFromGlobalCreate, transaction, report, parentReport],
+        [transaction?.iouRequestType, reportID, policy, isFromGlobalCreate, report, parentReport, currentDate, lastSelectedDistanceRates],
     );
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
@@ -152,7 +175,7 @@ function IOURequestStartPage({
     const [activeTabContainerElement, setActiveTabContainerElement] = useState<HTMLElement | null>(null);
 
     const focusTrapContainerElements = useMemo(() => {
-        return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element) as HTMLElement[];
+        return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
 
     const {isBetaEnabled} = usePermissions();
