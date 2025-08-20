@@ -7,10 +7,6 @@ class FP {
         return new FP();
     }
 
-    // No-op implementations for tests
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    init(): void {}
-
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     setCustomerId(): void {}
 
@@ -28,6 +24,9 @@ class FP {
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     setCustomEvent(): void {}
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    run(): void {}
 }
 
 export default {FP, FPAttributeFormat};
