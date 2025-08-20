@@ -24,6 +24,7 @@
 * [canBeMissing onyx param](#canbemissing-onyx-param)
 
 #### Additional Reading
+* [Application Philosophy](contributingGuides/philosophies/INDEX.md)
 * [API Details](contributingGuides/API.md)
 * [Offline First](contributingGuides/OFFLINE_UX.md)
 * [Contributing to Expensify](contributingGuides/CONTRIBUTING.md)
@@ -180,6 +181,8 @@ variables referenced here get updated since your local `.env` file is ignored.
    see [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
 - `E2E_TESTING` (optional) - This needs to be set to `true` when running the e2e tests for performance regression testing.
    This happens usually automatically, read [this](tests/e2e/README.md) for more information
+
+> If your changes to .env aren't having an effect, try `rm -rf .rnef`, then re-run `npm run ios` or `npm run android`
 
 ----
 
@@ -525,7 +528,7 @@ You can only build HybridApp if you have been granted access to [`Mobile-Expensi
 4. Run `git config --global submodule.recurse true` in order to have the submodule updated when you pull App.
 
 
-> [!Note]  
+> [!Note]
 > #### For external agencies and C+ contributors only
 >
 > If you'd like to modify the `Mobile-Expensify` source code, it is best that you create your own fork. Then, you can swap origin of the remote repository by executing this command:
@@ -560,15 +563,15 @@ If for some reason, you need to target the standalone NewDot application, you ca
 
 ### Working with HybridApp vs Standalone NewDot
 
-Day-to-day work with **HybridApp** shouldn't differ much from working on the standalone **NewDot** repository.  
-The primary difference is that the native code, which runs React Native, is located in the following directories:  
+Day-to-day work with **HybridApp** shouldn't differ much from working on the standalone **NewDot** repository.
+The primary difference is that the native code, which runs React Native, is located in the following directories:
 
 - `./Mobile-Expensify/Android`
 - `./Mobile-Expensify/iOS`
 
 ### Important Notes:
 1. **Root Folders Do Not Affect HybridApp Builds:**
-   - Changes made to the `./android` and `./ios` folders at the root of the repository **won't affect the HybridApp build**.  
+   - Changes made to the `./android` and `./ios` folders at the root of the repository **won't affect the HybridApp build**.
 
 2. **Modifying iOS Code for HybridApp:**
    - If you need to remove `Pods`, you must do it in the **`./Mobile-Expensify/iOS`** directory.
@@ -583,15 +586,15 @@ The primary difference is that the native code, which runs React Native, is loca
 
 ### Updating the `Mobile-Expensify` Submodule
 
-The `Mobile-Expensify` directory is a **Git submodule**. This means it points to a specific commit on the `Mobile-Expensify` repository.  
+The `Mobile-Expensify` directory is a **Git submodule**. This means it points to a specific commit on the `Mobile-Expensify` repository.
 
-If you'd like to fetch the submodule while executing the `git pull` command in `Expensify/App` instead of updating it manually you can run this command in the root of the project: 
+If you'd like to fetch the submodule while executing the `git pull` command in `Expensify/App` instead of updating it manually you can run this command in the root of the project:
 
 ```
 git config submodule.recurse true
 ```
 
-> [!WARNING]  
+> [!WARNING]
 > Please, remember that the submodule will get updated automatically only after executing the `git pull` command - if you switch between branches it is still recommended to execute `git submodule update` to make sure you're working on a compatible submodule version!
 
 If you'd like to download the most recent changes from the `main` branch, please use the following command:
@@ -599,7 +602,7 @@ If you'd like to download the most recent changes from the `main` branch, please
 git submodule update --remote
 ```
 
-It's important to emphasize that a git submodule is just a **regular git repository** after all. It means that you can switch branches, pull the newest changes, and execute all regular git commands within the `Mobile-Expensify` directory. 
+It's important to emphasize that a git submodule is just a **regular git repository** after all. It means that you can switch branches, pull the newest changes, and execute all regular git commands within the `Mobile-Expensify` directory.
 
 ### Adding HybridApp-related patches
 
@@ -805,7 +808,7 @@ Some pointers:
 - When working with translations that involve plural forms, it's important to handle different cases correctly.
 
   For example:
-  - zero: Used when there are no items **(optional)**. 
+  - zero: Used when there are no items **(optional)**.
   - one: Used when there's exactly one item.
   - two: Used when there's two items. **(optional)**
   - few: Used for a small number of items **(optional)**.
