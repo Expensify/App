@@ -110,7 +110,6 @@ describe('canEditFieldOfMoneyRequest', () => {
                 const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
                 expect(canEditReportField).toBe(true);
             });
-
         });
 
         describe('type is expense', () => {
