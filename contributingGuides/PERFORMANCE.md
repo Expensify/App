@@ -276,17 +276,6 @@ https://github.com/user-attachments/assets/39e8514a-caac-4296-b837-b986e088fa9a
 
 You need to have the web server running. The app will open in a separate browser window.
 
-#### Why Did You Render?
-
-Why Did You Render (WDYR) sends console notifications about potentially avoidable component re-renders:
-
-- To enable it, set `USE_WDYR=true` in your `.env` file
-- You can add or exclude tracked components by their `displayName` in `wdyr.js`
-- Open the browser console to see WDYR notifications
-- Provides detailed information about what props or state changed
-
-**Suggested** [Why Did You Render docs](https://github.com/welldone-software/why-did-you-render)
-
 ### Performance Metrics (Opt-In on local release builds)
 
 To capture reliable performance metrics for native app launch, we must test against a release build. To make this easier for everyone to do, we created an opt-in tool (using [`react-native-performance`](https://github.com/oblador/react-native-performance)) that will capture metrics and display them in an alert once the app becomes interactive. To set this up, just set `CAPTURE_METRICS=true` in your `.env` file, then create a release build on iOS or Android. The metrics this tool shows are as follows:
