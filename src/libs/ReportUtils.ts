@@ -10223,7 +10223,6 @@ function prepareOnboardingOnyxData(
               newParticipantList: [CONST.ACCOUNT_ID.CONCIERGE, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID],
               reports: allReports,
               shouldIncludeGroupChats: false,
-              shouldExcludeClosedReports: true,
           });
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 
