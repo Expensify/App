@@ -1082,13 +1082,13 @@ const translations = {
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `删除了一笔费用 (${merchant} 的 ${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `移动了一笔费用${reportName ? `来自${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `移动了此费用${reportName ? `至 <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `已将此费用移动到您的<a href="${reportUrl}">个人空间</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
                 return `已将此报告移动到 <a href="${newParentReportUrl}">${toPolicyName}</a> 工作区`;
             }
             return `已将此 <a href="${movedReportUrl}">报告</a> 移动到 <a href="${newParentReportUrl}">${toPolicyName}</a> 工作区`;
         },
-        unreportedTransaction: '已将此费用移动到您的个人空间',
         pendingMatchWithCreditCard: '收据待与卡交易匹配',
         pendingMatch: '待匹配',
         pendingMatchWithCreditCardDescription: '收据待与卡交易匹配。标记为现金以取消。',

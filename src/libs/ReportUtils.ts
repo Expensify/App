@@ -5236,7 +5236,7 @@ function getReportNameInternal({
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        return translateLocal('iou.unreportedTransaction');
+        return getUnreportedTransactionMessage();
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
@@ -6260,6 +6260,15 @@ function getMovedTransactionMessage(report: OnyxEntry<Report>) {
     const message = translateLocal('iou.movedTransaction', {
         reportUrl,
         reportName,
+    });
+    return message;
+}
+
+function getUnreportedTransactionMessage() {
+    const selfDMReportID = findSelfDMReportID();
+    const reportUrl = `${environmentURL}/r/${selfDMReportID}`;
+    const message = translateLocal('iou.unreportedTransaction', {
+        reportUrl,
     });
     return message;
 }
@@ -11770,6 +11779,7 @@ export {
     getReportSubtitlePrefix,
     getPolicyChangeMessage,
     getMovedTransactionMessage,
+    getUnreportedTransactionMessage,
     getExpenseReportStateAndStatus,
     generateReportName,
     navigateToLinkedReportAction,
