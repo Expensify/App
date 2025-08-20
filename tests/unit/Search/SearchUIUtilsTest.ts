@@ -1178,6 +1178,7 @@ const transactionMemberGroupListItemsSorted: TransactionMemberGroupListItemType[
         login: 'approver@policy.com',
         total: 30,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 
     {
@@ -1190,6 +1191,7 @@ const transactionMemberGroupListItemsSorted: TransactionMemberGroupListItemType[
         login: 'admin@policy.com',
         total: 70,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1208,6 +1210,7 @@ const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
         login: 'admin@policy.com',
         total: 40,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
     {
         accountID: 1111111,
@@ -1223,6 +1226,7 @@ const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
         login: 'approver@policy.com',
         total: 20,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1241,6 +1245,7 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         login: 'approver@policy.com',
         total: 20,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
     {
         accountID: 18439984,
@@ -1256,6 +1261,7 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         login: 'admin@policy.com',
         total: 40,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 ];
 
