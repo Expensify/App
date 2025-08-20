@@ -23,6 +23,7 @@ function ConfirmInviteReceiptPartnerPolicyPage() {
             />
             <ConfirmationPage
                 illustration={Illustrations.ToddInCar}
+                illustrationStyle={styles.uberConfirmationIllustrationContainer}
                 heading={translate('workspace.receiptPartners.uber.readyToRoll')}
                 description={translate('workspace.receiptPartners.uber.takeBusinessRideMessage')}
                 shouldShowButton
