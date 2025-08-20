@@ -47,6 +47,7 @@ import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import colors from '@styles/theme/colors';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -445,9 +446,9 @@ function WorkspacesListPage() {
                             title={translate('workspace.emptyWorkspace.title')}
                             subtitle={translate('workspace.emptyWorkspace.subtitle')}
                             titleStyles={styles.pt2}
-                            headerStyles={[styles.alignItemsCenter, styles.justifyContentCenter, styles.overflowHidden, StyleUtils.getBackgroundColorStyle(colors.pink800)]}
-                            lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                            headerContentStyles={styles.emptyStateFolderWebStyles}
+                            headerStyles={[styles.overflowHidden, StyleUtils.getBackgroundColorStyle(colors.pink800), StyleUtils.getHeight(variables.sectionIllustrationHeight)]}
+                            lottieWebViewStyles={styles.emptyWorkspaceListIllustrationStyle}
+                            headerContentStyles={styles.emptyWorkspaceListIllustrationStyle}
                             buttons={[
                                 {
                                     success: true,
