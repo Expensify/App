@@ -15,7 +15,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeDifferenceIntervals, getTimeForDisplay} from '@libs/PerDiemRequestUtils';
-import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {canSendInvoice, getPerDiemCustomUnit, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {
@@ -332,7 +332,7 @@ function MoneyRequestConfirmationListFooter({
     // Determine if the merchant error should be displayed
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
-    const shouldShowReceiptEmptyState = (iouType === CONST.IOU.TYPE.SUBMIT || (iouType === CONST.IOU.TYPE.TRACK && !isMovingTransactionFromTrackExpense(action))) && !isPerDiemRequest;
+    const shouldShowReceiptEmptyState = (iouType === CONST.IOU.TYPE.SUBMIT && isPaidGroupPolicy(policy) || iouType === CONST.IOU.TYPE.TRACK) && !isPerDiemRequest;
     // The per diem custom unit
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const {
