@@ -6901,7 +6901,7 @@ const translations = {
         takeATestDrive: '试驾',
     },
     migratedUserWelcomeModal: {
-        title: '旅行和报销，以聊天的速度进行',
+        title: '欢迎使用 New Expensify！',
         subtitle: '新Expensify拥有同样出色的自动化功能，但现在增加了令人惊叹的协作功能：',
         confirmText: '我们走吧！',
         features: {
