@@ -3550,11 +3550,12 @@ const translations = {
             uber: {
                 subtitle: '組織全体で出張費や食事の配達費を自動化します。',
                 sendInvites: 'メンバーを招待',
+                sendInvitesDescription: 'これらのワークスペースメンバーはまだUber for Businessアカウントを持っていません。現在招待したくないメンバーの選択を解除してください。',
                 confirmInvite: '招待を確認',
                 manageInvites: '招待を管理',
                 confirm: '確認',
                 allSet: '設定完了',
-                readyToRoll: '準備完了です！',
+                readyToRoll: '準備完了です',
                 takeBusinessRideMessage: 'ビジネス利用でUberに乗車すると、レシートがExpensifyに自動的にインポートされます。出発しましょう！',
                 all: 'すべて',
                 linked: 'リンク済み',

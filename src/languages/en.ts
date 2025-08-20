@@ -3534,11 +3534,12 @@ const translations = {
             uber: {
                 subtitle: 'Automate travel and meal delivery expenses across your organization.',
                 sendInvites: 'Send invites',
+                sendInvitesDescription: "These workspace members don't have an Uber for Business account yet. Unselect any members you do not wish to invite at this time.",
                 confirmInvite: 'Confirm invite',
                 manageInvites: 'Manage invites',
                 confirm: 'Confirm',
                 allSet: 'All set',
-                readyToRoll: "You're ready to roll!",
+                readyToRoll: "You're ready to roll",
                 takeBusinessRideMessage: 'Take a business ride and your Uber receipts will import into Expensify. Scoot!',
                 all: 'All',
                 linked: 'Linked',

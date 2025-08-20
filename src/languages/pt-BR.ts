@@ -3555,11 +3555,12 @@ const translations = {
             uber: {
                 subtitle: 'Automatize despesas de viagens e entrega de refeições em toda a sua organização.',
                 sendInvites: 'Convidar membros',
+                sendInvitesDescription: 'Esses membros do workspace ainda não têm uma conta do Uber for Business. Desmarque quaisquer membros que você não deseja convidar neste momento.',
                 confirmInvite: 'Confirmar convite',
                 manageInvites: 'Gerenciar convites',
                 confirm: 'Confirmar',
                 allSet: 'Tudo pronto',
-                readyToRoll: 'Você está pronto para começar!',
+                readyToRoll: 'Você está pronto para começar',
                 takeBusinessRideMessage: 'Faça uma viagem de negócios e seus recibos do Uber serão importados para o Expensify. Vamos lá!',
                 all: 'Todos',
                 linked: 'Vinculado',

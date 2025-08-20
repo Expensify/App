@@ -3508,11 +3508,12 @@ const translations = {
             uber: {
                 subtitle: '自动化整个组织的差旅和送餐费用。',
                 sendInvites: '邀请成员',
+                sendInvitesDescription: '这些工作区成员还没有 Uber for Business 账户。取消选择您此时不希望邀请的成员。',
                 confirmInvite: '确认邀请',
                 manageInvites: '管理邀请',
                 confirm: '确认',
                 allSet: '全部设置完毕',
-                readyToRoll: '您已准备就绪！',
+                readyToRoll: '您已准备就绪',
                 takeBusinessRideMessage: '进行商务出行，您的Uber收据将导入到Expensify。出发吧！',
                 all: '全部',
                 linked: '已关联',

@@ -3557,11 +3557,12 @@ const translations = {
             uber: {
                 subtitle: 'Automatiseer reis- en maaltijdbezorgkosten binnen uw organisatie.',
                 sendInvites: 'Leden uitnodigen',
+                sendInvitesDescription: 'Deze workspace-leden hebben nog geen Uber for Business-account. Deselecteer alle leden die u op dit moment niet wilt uitnodigen.',
                 confirmInvite: 'Uitnodiging bevestigen',
                 manageInvites: 'Uitnodigingen beheren',
                 confirm: 'Bevestigen',
                 allSet: 'Alles klaar',
-                readyToRoll: 'Je bent klaar om te beginnen!',
+                readyToRoll: 'Je bent klaar om te beginnen',
                 takeBusinessRideMessage: 'Neem een zakelijke rit en je Uber-bonnetjes worden geïmporteerd in Expensify. Laten we gaan!',
                 all: 'Alle',
                 linked: 'Gekoppeld',
