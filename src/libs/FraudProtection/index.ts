@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {init, sendEvent, setAttribute, setAuthenticationData} from './GroupIBSDKBridge';
+import {init, sendEvent, setAttribute, setAuthenticationData} from './GroupIBSdkBridge';
 
 const sessionID: string = Str.guid();
 Onyx.connectWithoutView({

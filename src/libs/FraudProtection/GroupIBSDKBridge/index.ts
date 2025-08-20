@@ -1,5 +1,5 @@
-import CONST from '@src/CONST';
 import {getEnvironment, getOldDotEnvironmentURL} from '@libs/Environment/Environment';
+import CONST from '@src/CONST';
 import cidMap from './cidMap';
 
 function getScriptURL(): string {
@@ -14,7 +14,7 @@ function getScriptURL(): string {
     return 'gib.js';
 }
 
-function loadGroupIBFP(): Promise<void> {
+function loadGroupIBScript(): Promise<void> {
     return new Promise((resolve, reject) => {
         if (typeof document === 'undefined') {
             resolve();
@@ -39,7 +39,7 @@ async function init(): Promise<void> {
         resolveFpInstancePromise(undefined);
         return;
     }
-    await loadGroupIBFP();
+    await loadGroupIBScript();
     const fp = (globalThis as any)?.window?.gib;
     const env = await getEnvironment();
     const cid = cidMap[env] ?? cidMap[CONST.ENVIRONMENT.DEV];

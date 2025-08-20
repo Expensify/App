@@ -21,12 +21,12 @@ const cidAndroidMap: Record<string, string> = {
 function init(): Promise<void> {
     fp.init();
     return Promise.all([getEnvironment(), getOldDotEnvironmentURL()]).then(([env, oldDotURL]) => {
-      const iOSCustomerID = cidIOSMap[env] ?? cidIOSMap[CONST.ENVIRONMENT.DEV];
-      const androidCustomerID = cidAndroidMap[env] ?? cidAndroidMap[CONST.ENVIRONMENT.DEV];
-      fp.setCustomerId(iOSCustomerID, androidCustomerID);
-      fp.setTargetURL(`${oldDotURL}/api/fl`);
+        const iOSCustomerID = cidIOSMap[env] ?? cidIOSMap[CONST.ENVIRONMENT.DEV];
+        const androidCustomerID = cidAndroidMap[env] ?? cidAndroidMap[CONST.ENVIRONMENT.DEV];
+        fp.setCustomerId(iOSCustomerID, androidCustomerID);
+        fp.setTargetURL(`${oldDotURL}/api/fl`);
     });
-  }
+}
 
 function setAuthenticationData(identity: string, sessionID: string): void {
     setAttribute('user_id', identity);
