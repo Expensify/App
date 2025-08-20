@@ -3,11 +3,13 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
+import UserListItem from '@components/SelectionList/UserListItem';
+import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {clearErrors, inviteWorkspaceEmployeesToUber} from '@libs/actions/Policy/Policy';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
@@ -27,6 +29,7 @@ const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
 type InviteReceiptPartnerPolicyPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE>;
 
 function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageProps) {
+    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -192,8 +195,11 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
                 textInputValue={searchTerm}
                 onChangeText={setSearchTerm}
                 sections={sections}
+                headerContent={<Text style={[styles.ph5, styles.pb3]}>{translate('workspace.receiptPartners.uber.sendInvitesDescription')}</Text>}
+                shouldShowTextInputAfterHeader
                 headerMessage={headerMessage}
-                ListItem={InviteMemberListItem}
+                ListItem={UserListItem}
+                shouldUseDefaultRightHandSideCheckmark
                 onSelectRow={toggleOption}
                 showConfirmButton
                 confirmButtonText={translate('workspace.receiptPartners.uber.confirm')}
