@@ -58,25 +58,23 @@ const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmoun
 /**
  * Wrapper around MoneyRequestAmountInput with money request flow-specific logics.
  */
-function MoneyRequestAmountForm(
-    {
-        amount = 0,
-        taxAmount = 0,
-        currency = CONST.CURRENCY.USD,
-        isCurrencyPressable = true,
-        isEditing = false,
-        skipConfirmation = false,
-        iouType = CONST.IOU.TYPE.SUBMIT,
-        policyID = '',
-        onCurrencyButtonPress,
-        onSubmitButtonPress,
-        selectedTab = CONST.TAB_REQUEST.MANUAL,
-        shouldKeepUserInput = false,
-        chatReportID,
-        hideCurrencySymbol = false,
-        forwardedRef,
-    }: MoneyRequestAmountFormProps,
-) {
+function MoneyRequestAmountForm({
+    amount = 0,
+    taxAmount = 0,
+    currency = CONST.CURRENCY.USD,
+    isCurrencyPressable = true,
+    isEditing = false,
+    skipConfirmation = false,
+    iouType = CONST.IOU.TYPE.SUBMIT,
+    policyID = '',
+    onCurrencyButtonPress,
+    onSubmitButtonPress,
+    selectedTab = CONST.TAB_REQUEST.MANUAL,
+    shouldKeepUserInput = false,
+    chatReportID,
+    hideCurrencySymbol = false,
+    forwardedRef,
+}: MoneyRequestAmountFormProps) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const {translate} = useLocalize();

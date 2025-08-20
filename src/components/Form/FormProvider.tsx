@@ -100,28 +100,26 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     shouldPreventDefaultFocusOnPressSubmit?: boolean;
 
     /** Reference to the outer element */
-    forwardedRef?: ForwardedRef<FormRef>,
+    forwardedRef?: ForwardedRef<FormRef>;
 };
 
-function FormProvider(
-    {
-        formID,
-        validate,
-        shouldValidateOnBlur = true,
-        shouldValidateOnChange = true,
-        children,
-        enabledWhenOffline = false,
-        onSubmit,
-        shouldTrimValues = true,
-        allowHTML = false,
-        isLoading = false,
-        shouldRenderFooterAboveSubmit = false,
-        shouldUseStrictHtmlTagValidation = false,
-        shouldPreventDefaultFocusOnPressSubmit = false,
-        forwardedRef,
-        ...rest
-    }: FormProviderProps,
-) {
+function FormProvider({
+    formID,
+    validate,
+    shouldValidateOnBlur = true,
+    shouldValidateOnChange = true,
+    children,
+    enabledWhenOffline = false,
+    onSubmit,
+    shouldTrimValues = true,
+    allowHTML = false,
+    isLoading = false,
+    shouldRenderFooterAboveSubmit = false,
+    shouldUseStrictHtmlTagValidation = false,
+    shouldPreventDefaultFocusOnPressSubmit = false,
+    forwardedRef,
+    ...rest
+}: FormProviderProps) {
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
     const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`, {canBeMissing: true});
     const [draftValues, draftValuesMetadata] = useOnyx<OnyxFormDraftKey, Form>(`${formID}Draft`, {canBeMissing: true});

@@ -18,7 +18,7 @@ type AnimatedMarkdownTextInputRef = typeof AnimatedMarkdownTextInput & MarkdownT
 // Make the parser prop optional for this component because we are always defaulting to `parseExpensiMark`
 type RNMarkdownTextInputWithRefProps = Omit<MarkdownTextInputProps, 'parser'> & {
     parser?: MarkdownTextInputProps['parser'];
-    ref?: ForwardedRef<AnimatedMarkdownTextInputRef>
+    ref?: ForwardedRef<AnimatedMarkdownTextInputRef>;
 };
 
 function RNMarkdownTextInputWithRef({maxLength, parser, ref, ...props}: RNMarkdownTextInputWithRefProps) {

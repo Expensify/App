@@ -43,24 +43,22 @@ type AmountTextInputProps = {
     hideFocusedState?: boolean;
 } & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'submitBehavior' | 'ref'>;
 
-function AmountTextInput(
-    {
-        formattedAmount,
-        onChangeAmount,
-        placeholder,
-        selection,
-        onSelectionChange,
-        style,
-        touchableInputWrapperStyle,
-        onKeyPress,
-        containerStyle,
-        disableKeyboard = true,
-        hideFocusedState = true,
-        shouldApplyPaddingToContainer = false,
-        ref,
-        ...rest
-    }: AmountTextInputProps,
-) {
+function AmountTextInput({
+    formattedAmount,
+    onChangeAmount,
+    placeholder,
+    selection,
+    onSelectionChange,
+    style,
+    touchableInputWrapperStyle,
+    onKeyPress,
+    containerStyle,
+    disableKeyboard = true,
+    hideFocusedState = true,
+    shouldApplyPaddingToContainer = false,
+    ref,
+    ...rest
+}: AmountTextInputProps) {
     return (
         <TextInput
             autoGrow

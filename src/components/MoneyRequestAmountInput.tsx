@@ -118,36 +118,34 @@ const defaultOnFormatAmount = (amount: number, currency?: string) => convertToFr
 /**
  * Specialized money amount input with currency and money amount formatting.
  */
-function MoneyRequestAmountInput(
-    {
-        amount = 0,
-        currency = CONST.CURRENCY.USD,
-        isCurrencyPressable = true,
-        onCurrencyButtonPress,
-        onAmountChange,
-        prefixCharacter = '',
-        hideCurrencySymbol = false,
-        moneyRequestAmountInputRef,
-        disableKeyboard = true,
-        onFormatAmount = defaultOnFormatAmount,
-        formatAmountOnBlur,
-        maxLength,
-        hideFocusedState = true,
-        shouldKeepUserInput = false,
-        shouldShowBigNumberPad = false,
-        inputStyle,
-        autoGrow = true,
-        autoGrowExtraSpace,
-        contentWidth,
-        testID,
-        submitBehavior,
-        shouldApplyPaddingToContainer = false,
-        shouldUseDefaultLineHeightForPrefix = true,
-        shouldWrapInputInContainer = true,
-        forwardedRef,
-        ...props
-    }: MoneyRequestAmountInputProps,
-) {
+function MoneyRequestAmountInput({
+    amount = 0,
+    currency = CONST.CURRENCY.USD,
+    isCurrencyPressable = true,
+    onCurrencyButtonPress,
+    onAmountChange,
+    prefixCharacter = '',
+    hideCurrencySymbol = false,
+    moneyRequestAmountInputRef,
+    disableKeyboard = true,
+    onFormatAmount = defaultOnFormatAmount,
+    formatAmountOnBlur,
+    maxLength,
+    hideFocusedState = true,
+    shouldKeepUserInput = false,
+    shouldShowBigNumberPad = false,
+    inputStyle,
+    autoGrow = true,
+    autoGrowExtraSpace,
+    contentWidth,
+    testID,
+    submitBehavior,
+    shouldApplyPaddingToContainer = false,
+    shouldUseDefaultLineHeightForPrefix = true,
+    shouldWrapInputInContainer = true,
+    forwardedRef,
+    ...props
+}: MoneyRequestAmountInputProps) {
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
     const decimals = getCurrencyDecimals(currency);

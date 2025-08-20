@@ -82,37 +82,35 @@ const NUM_PAD_VIEW_ID = 'numPadView';
  * Can render either a standard TextInput or a number input with BigNumberPad and symbol interaction.
  * Already handles number decimals and input validation.
  */
-function NumberWithSymbolForm(
-    {
-        value: number,
-        symbol = '',
-        symbolPosition = CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX,
-        hideSymbol = false,
-        decimals = 0,
-        maxLength,
-        errorText,
-        onInputChange,
-        onSymbolButtonPress,
-        isSymbolPressable = true,
-        shouldShowBigNumberPad = canUseTouchScreen,
-        displayAsTextInput = false,
-        footer,
-        numberFormRef,
-        label,
-        style,
-        containerStyle,
-        symbolTextStyle,
-        autoGrow = true,
-        disableKeyboard = true,
-        prefixCharacter = '',
-        hideFocusedState = true,
-        shouldApplyPaddingToContainer = false,
-        shouldUseDefaultLineHeightForPrefix = true,
-        shouldWrapInputInContainer = true,
-        forwardedRef,
-        ...props
-    }: NumberWithSymbolFormProps,
-) {
+function NumberWithSymbolForm({
+    value: number,
+    symbol = '',
+    symbolPosition = CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX,
+    hideSymbol = false,
+    decimals = 0,
+    maxLength,
+    errorText,
+    onInputChange,
+    onSymbolButtonPress,
+    isSymbolPressable = true,
+    shouldShowBigNumberPad = canUseTouchScreen,
+    displayAsTextInput = false,
+    footer,
+    numberFormRef,
+    label,
+    style,
+    containerStyle,
+    symbolTextStyle,
+    autoGrow = true,
+    disableKeyboard = true,
+    prefixCharacter = '',
+    hideFocusedState = true,
+    shouldApplyPaddingToContainer = false,
+    shouldUseDefaultLineHeightForPrefix = true,
+    shouldWrapInputInContainer = true,
+    forwardedRef,
+    ...props
+}: NumberWithSymbolFormProps) {
     const styles = useThemeStyles();
     const {toLocaleDigit, numberFormat} = useLocalize();
 

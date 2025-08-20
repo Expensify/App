@@ -50,25 +50,23 @@ type AmountFormProps = {
 /**
  * Wrapper around NumberWithSymbolForm with currency handling.
  */
-function AmountForm(
-    {
-        value,
-        currency = CONST.CURRENCY.USD,
-        amountMaxLength,
-        errorText,
-        onInputChange,
-        onCurrencyButtonPress,
-        displayAsTextInput = false,
-        isCurrencyPressable = true,
-        label,
-        decimals: decimalsProp,
-        hideCurrencySymbol = false,
-        autoFocus,
-        autoGrowExtraSpace,
-        autoGrowMarginSide,
-        forwardedRef,
-    }: AmountFormProps,
-) {
+function AmountForm({
+    value,
+    currency = CONST.CURRENCY.USD,
+    amountMaxLength,
+    errorText,
+    onInputChange,
+    onCurrencyButtonPress,
+    displayAsTextInput = false,
+    isCurrencyPressable = true,
+    label,
+    decimals: decimalsProp,
+    hideCurrencySymbol = false,
+    autoFocus,
+    autoGrowExtraSpace,
+    autoGrowMarginSide,
+    forwardedRef,
+}: AmountFormProps) {
     const styles = useThemeStyles();
     const decimals = decimalsProp ?? getCurrencyDecimals(currency);
 
