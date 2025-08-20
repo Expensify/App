@@ -2073,7 +2073,7 @@ function getSearchOptions(
     maxResults?: number,
     includeUserToInvite?: boolean,
     includeRecentReports = true,
-    includeCurrentUser?: boolean
+    includeCurrentUser?: boolean,
 ): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
