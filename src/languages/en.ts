@@ -6174,9 +6174,8 @@ const translations = {
                 exportedToIntegration: {
                     automatic: ({label}: ExportedToIntegrationParams) => {
                         const labelTranslations: Record<string, string> = {
-                            'All Data - Expense Level Export': translations.export.expenseLevelExport,
-                            'All Data - Report Level Export': translations.export.reportLevelExport,
-                            'Basic Export': translations.export.basicExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
                         };
                         const translatedLabel = labelTranslations[label] || label;
                         return `exported to ${translatedLabel}`;
