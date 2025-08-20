@@ -15,7 +15,8 @@ getEnvironment().then((envName) => {
     ENV_NAME = envName;
 
     // We connect here, so we have the updated ENV_NAME when Onyx callback runs
-    Onyx.connect({
+    // We called `connectWithoutView` here because it is not connected to any UI
+    Onyx.connectWithoutView({
         key: ONYXKEYS.ACCOUNT,
         callback: (value) => {
             // Toggling between APIs is not allowed on production and internal dev environment
