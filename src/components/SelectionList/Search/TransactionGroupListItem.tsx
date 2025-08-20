@@ -204,7 +204,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
-    console.log(isLargeScreenWidth);
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
