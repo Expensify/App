@@ -1275,7 +1275,7 @@ const translations = {
         reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>
             `Este informe ya ha sido exportado a ${connectionName}. Cambiarlo puede provocar discrepancias en los datos. ¿Estás seguro de que deseas reabrir este informe?`,
         reason: 'Razón',
-        retracted: 'retirado',
+        retracted: 'retractado',
         holdReasonRequired: 'Se requiere una razón para retener.',
         expenseWasPutOnHold: 'Este gasto está retenido',
         expenseOnHold: 'Este gasto está retenido. Revisa los comentarios para saber como proceder.',
