@@ -77,7 +77,7 @@ function useReportActionAvatars({
     const reportPolicyID = iouReport?.policyID ?? chatReport?.policyID;
     const chatReportPolicyIDExists = chatReport?.policyID === CONST.POLICY.ID_FAKE || !chatReport?.policyID;
     const changedPolicyID = actionChildReport?.policyID ?? iouReport?.policyID;
-    const shouldUseChangedPolicyID = !!changedPolicyID && changedPolicyID !== chatReport?.policyID;
+    const shouldUseChangedPolicyID = !!changedPolicyID && changedPolicyID !== (chatReport?.policyID ?? iouReport?.policyID);
     const retrievedPolicyID = chatReportPolicyIDExists ? reportPolicyID : chatReport?.policyID;
 
     const policyID = shouldUseChangedPolicyID ? changedPolicyID : (passedPolicyID ?? retrievedPolicyID);
