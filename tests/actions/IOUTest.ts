@@ -135,6 +135,7 @@ jest.mock('@src/libs/SearchQueryUtils', () => ({
         flatFilters: [],
     })),
     getTodoSearchQuery: jest.fn(),
+    getUnapprovedCashSearchQuery: jest.fn(),
     buildSearchQueryJSON: jest.fn(),
 }));
 
