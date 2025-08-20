@@ -1,7 +1,6 @@
 import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
 import cloneDeep from 'lodash/cloneDeep';
-import lodashUnion from 'lodash/union';
 import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -239,6 +238,7 @@ import {clearAllRelatedReportActionErrors} from './ReportActions';
 import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
 import {removeDraftSplitTransaction, removeDraftTransaction, removeDraftTransactions} from './TransactionEdit';
 import {getOnboardingMessages} from './Welcome/OnboardingFlow';
+import { concat } from 'lodash';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -3238,7 +3238,9 @@ function getSendInvoiceInformation(
         },
     });
 
-    const optimisticPolicyRecentlyUsedCategories = lodashUnion([category], policyRecentlyUsedCategories);
+    const optimisticPolicyRecentlyUsedCategories = Array.from(
+        new Set([category, ...(Array.isArray(policyRecentlyUsedCategories) ? policyRecentlyUsedCategories : [])]),
+    );
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags(optimisticInvoiceReport.policyID, tag);
     const optimisticRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
 
@@ -3703,8 +3705,9 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     // This is to differentiate between a normal expense and a per diem expense
     optimisticTransaction.iouRequestType = CONST.IOU.REQUEST_TYPE.PER_DIEM;
     optimisticTransaction.hasEReceipt = true;
-
-    const optimisticPolicyRecentlyUsedCategories = lodashUnion([category], policyRecentlyUsedCategories).filter((c) => c !== undefined);
+    const optimisticPolicyRecentlyUsedCategories = Array.from(
+        new Set([category, ...(Array.isArray(policyRecentlyUsedCategories) ? policyRecentlyUsedCategories : [])]),
+    );
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
     const optimisticPolicyRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
     const optimisticPolicyRecentlyUsedDestinations = customUnit.customUnitRateID ? [...new Set([customUnit.customUnitRateID, ...(recentlyUsedDestinations ?? [])])] : [];
