@@ -15,7 +15,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeDifferenceIntervals, getTimeForDisplay} from '@libs/PerDiemRequestUtils';
-import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {canSendInvoice, getPerDiemCustomUnit, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {
@@ -336,8 +336,16 @@ function MoneyRequestConfirmationListFooter({
     // Determine if the merchant error should be displayed
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
+    // Determine when to show the receipt empty state:
+    // - Show for submit or track expense types
+    // - Hide for per diem requests
+    // - Hide when submitting a track expense to a non-paid group policy (personal users)
+    // - Hide for manual distance requests
     const shouldShowReceiptEmptyState =
-        (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isPerDiemRequest && !isMovingTransactionFromTrackExpense(action) && !isManualDistanceRequest;
+        (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) &&
+        !isPerDiemRequest &&
+        (!isMovingTransactionFromTrackExpense(action) || isPaidGroupPolicy(policy)) &&
+        !isManualDistanceRequest;
     // The per diem custom unit
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const {
