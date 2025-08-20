@@ -56,6 +56,7 @@ import {
     getConnectedIntegration,
     getCurrentConnectionName,
     getTagLists,
+    goBackFromPolicyPages,
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
     hasDependentTags as hasDependentTagsPolicyUtils,
     hasIndependentTags as hasIndependentTagsPolicyUtils,
@@ -677,6 +678,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 policyID={policyID}
                 accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
                 featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
+                backToRoute={route.params.backTo}
             >
                 <ScreenWrapper
                     enableEdgeToEdgeBottomSafeAreaPadding
@@ -696,13 +698,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 turnOffMobileSelectionMode();
                                 return;
                             }
-
-                            if (backTo) {
-                                Navigation.goBack(backTo);
-                                return;
-                            }
-
-                            Navigation.popToSidebar();
+                            goBackFromPolicyPages(backTo);
                         }}
                     >
                         {!shouldUseNarrowLayout && getHeaderButtons()}
