@@ -317,7 +317,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                         isAlternateTextMultilineSupported
                         addBottomSafeAreaPadding
                         showConfirmButton
-                        confirmButtonText={translate('common.next')}
+                        confirmButtonText={translate('common.continue')}
                         onConfirm={onConfirmSelectList}
                     />
                 </View>
