@@ -12,6 +12,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {payMoneyRequestOnSearch} from '@libs/actions/Search';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {isInvoiceReport} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -130,6 +131,7 @@ function ActionCell({
                 shouldUseShortForm
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                 currency={currency}
+                formattedAmount={convertToDisplayString(iouReport?.total, currency)}
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 policyID={policyID || iouReport?.policyID}
                 iouReport={iouReport}

@@ -115,7 +115,7 @@ function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions:
     }
 
     return isTransactionListItemType(item)
-        ? mapToTransactionItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)
+        ? mapToTransactionItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash)
         : {
               ...item,
               shouldAnimateInHighlight,
@@ -614,6 +614,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
     const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
     const ListItem = getListItem(type, status, groupBy);
+    // console.log('hashhashhashhash')
     const sortedSelectedData = useMemo(
         () =>
             getSortedSections(type, status, data, localeCompare, sortBy, sortOrder, groupBy).map((item) => {
