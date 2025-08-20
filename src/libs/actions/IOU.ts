@@ -11846,7 +11846,7 @@ function shouldOptimisticallyUpdateSearch(
         validSearchTypes &&
         (currentSearchQueryJSON.flatFilters.length === 0 ||
             [submitQueryJSON?.hash, approveQueryJSON?.hash].includes(currentSearchQueryJSON.hash) ||
-            (unapprovedCashQueryJSON?.hash === currentSearchQueryJSON.hash && transaction?.reimbursable))
+            (unapprovedCashQueryJSON?.hash === currentSearchQueryJSON.hash && isExpenseReport(iouReport) && transaction?.reimbursable))
     );
 }
 
