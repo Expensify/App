@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
-import {getEnvironment, getOldDotEnvironmentURL} from '../../Environment/Environment';
-import {cidMap} from './cidMap';
+import {getEnvironment, getOldDotEnvironmentURL} from '@libs/Environment/Environment';
+import cidMap from './cidMap';
 
 function getScriptURL(): string {
     if (typeof window === 'undefined' || typeof window.location === 'undefined') {
@@ -29,8 +29,8 @@ function loadGroupIBFP(): Promise<void> {
     });
 }
 
-let resolveFpInstancePromise: (fp: any | undefined) => void = () => {};
-const fpInstancePromise = new Promise<any | undefined>((resolve) => {
+let resolveFpInstancePromise: (fp: any) => void = () => {};
+const fpInstancePromise = new Promise<any>((resolve) => {
     resolveFpInstancePromise = resolve;
 });
 
