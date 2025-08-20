@@ -188,8 +188,6 @@ function ReportActionItemImage({
                                     transaction?.transactionID,
                                     readonly,
                                     isFromReviewDuplicates,
-                                    undefined,
-                                    undefined,
                                     mergeTransactionID,
                                 ),
                             )
