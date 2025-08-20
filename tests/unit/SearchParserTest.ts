@@ -297,8 +297,7 @@ const tests = [
         },
     },
     {
-        // cspell:disable-next-line
-        query: 'amount>100 amount<200 from:usera@user.com tax-rate:1234 card:1234 reportid:12345 tag:ecx date>2023-01-01',
+        query: 'amount>100 amount<200 from:usera@user.com tax-rate:1234 card:1234 report-id:12345 tag:ecx date>2023-01-01',
         expected: {
             type: 'expense',
             status: CONST.SEARCH.STATUS.EXPENSE.ALL,
@@ -613,6 +612,20 @@ const keywordTests = [
                     left: 'to',
                     right: '""Unruly"" “““Glad””” """Dog""',
                 },
+            },
+        },
+    },
+    {
+        query: 'expense-type:per-diem',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: {
+                operator: 'eq',
+                left: 'expenseType',
+                right: 'perDiem',
             },
         },
     },

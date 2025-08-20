@@ -11,7 +11,7 @@
  */
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
-import type {OnboardingCompanySize, OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -43,6 +43,7 @@ import type {
     BeginningOfChatHistoryInvoiceRoomParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
+    BillableDefaultDescriptionParams,
     BillingBannerCardAuthenticationRequiredParams,
     BillingBannerCardExpiredParams,
     BillingBannerCardOnDisputeParams,
@@ -120,6 +121,7 @@ import type {
     ImportPerDiemRatesSuccessfulDescriptionParams,
     ImportTagsSuccessfulDescriptionParams,
     IncorrectZipFormatParams,
+    IndividualExpenseRulesSubtitleParams,
     InstantSummaryParams,
     IntacctMappingTitleParams,
     IntegrationExportParams,
@@ -141,6 +143,7 @@ import type {
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
     MissingPropertyParams,
+    MovedActionParams,
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
     MovedTransactionParams,
@@ -190,6 +193,7 @@ import type {
     RoleNamesParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    RulesEnableWorkflowsParams,
     SecondaryLoginParams,
     SetTheDistanceMerchantParams,
     SetTheRequestParams,
@@ -290,8 +294,10 @@ import type {
     WorkEmailResendCodeParams,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
+    WorkspaceMembersCountParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
+    WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
@@ -547,6 +553,7 @@ const translations = {
         auditor: 'Revisore dei conti',
         role: 'Ruolo',
         currency: 'Valuta',
+        groupCurrency: 'Valuta di gruppo',
         rate: 'Valuta',
         emptyLHN: {
             title: 'Woohoo! Tutto aggiornato.',
@@ -639,6 +646,8 @@ const translations = {
         getTheApp: "Scarica l'app",
         scanReceiptsOnTheGo: 'Scansiona le ricevute dal tuo telefono',
         headsUp: 'Attenzione!',
+        submitTo: 'Invia a',
+        forwardTo: 'Inoltra a',
         merge: 'Unisci',
         unstableInternetConnection: 'Connessione Internet instabile. Controlla la tua rete e riprova.',
     },
@@ -980,6 +989,11 @@ const translations = {
             'Il file che hai caricato è vuoto o contiene dati non validi. Assicurati che il file sia formattato correttamente e contenga le informazioni necessarie prima di caricarlo di nuovo.',
         importSpreadsheet: 'Importa foglio di calcolo',
         downloadCSV: 'Scarica CSV',
+        importMemberConfirmation: () => ({
+            one: `Conferma i dettagli di seguito per un nuovo membro del workspace che verrà aggiunto come parte di questo caricamento. I membri esistenti non riceveranno aggiornamenti di ruolo né messaggi di invito.`,
+            other: (count: number) =>
+                `Conferma i dettagli di seguito per i ${count} nuovi membri del workspace che verranno aggiunti come parte di questo caricamento. I membri esistenti non riceveranno aggiornamenti di ruolo né messaggi di invito.`,
+        }),
     },
     receipt: {
         upload: 'Carica ricevuta',
@@ -1075,6 +1089,12 @@ const translations = {
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `ha eliminato una spesa (${amount} per ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `ha spostato una spesa${reportName ? `da ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `spostato questa spesa${reportName ? `a <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
+            if (shouldHideMovedReportUrl) {
+                return `ha spostato questo rapporto nello spazio di lavoro <a href="${newParentReportUrl}">${toPolicyName}</a>`;
+            }
+            return `ha spostato questo <a href="${movedReportUrl}">rapporto</a> nello spazio di lavoro <a href="${newParentReportUrl}">${toPolicyName}</a>`;
+        },
         unreportedTransaction: 'spostato questa spesa nel tuo spazio personale',
         pendingMatchWithCreditCard: 'Ricevuta in attesa di abbinamento con transazione della carta',
         pendingMatch: 'Partita in sospeso',
@@ -1576,6 +1596,7 @@ const translations = {
             testCrash: 'Test crash',
             resetToOriginalState: 'Ripristina allo stato originale',
             usingImportedState: 'Stai utilizzando uno stato importato. Premi qui per cancellarlo.',
+            shouldBlockTransactionThreadReportCreation: 'Blocca la creazione di report del thread di transazione',
             debugMode: 'Modalità debug',
             invalidFile: 'File non valido',
             invalidFileDescription: 'Il file che stai cercando di importare non è valido. Per favore riprova.',
@@ -2373,14 +2394,14 @@ const translations = {
                     `![Invita il tuo team](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
             },
             setupCategoriesAndTags: {
-                title: ({workspaceCategoriesLink, workspaceMoreFeaturesLink}) => `Configura [categorie](${workspaceCategoriesLink}) e [tag](${workspaceMoreFeaturesLink})`,
+                title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Configura [categorie](${workspaceCategoriesLink}) e [tag](${workspaceTagsLink})`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
                     '*Configura categorie e tag* in modo che il tuo team possa codificare le spese per una rendicontazione semplice.\n' +
                     '\n' +
                     `Importale automaticamente [collegando il software di contabilità](${workspaceAccountingLink}), oppure configuralo manualmente nelle [impostazioni dello spazio di lavoro](${workspaceCategoriesLink}).`,
             },
             setupTagsTask: {
-                title: ({workspaceMoreFeaturesLink}) => `Configura i [tag](${workspaceMoreFeaturesLink})`,
+                title: ({workspaceTagsLink}) => `Configura i [tag](${workspaceTagsLink})`,
                 description: ({workspaceMoreFeaturesLink}) =>
                     'Usa i tag per aggiungere dettagli extra alle spese come progetti, clienti, sedi e reparti. Se ti servono più livelli di tag, puoi passare al piano Control.\n' +
                     '\n' +
@@ -2465,8 +2486,8 @@ const translations = {
         messages: {
             onboardingEmployerOrSubmitMessage: 'Ricevere un rimborso è facile come inviare un messaggio. Vediamo le basi.',
             onboardingPersonalSpendMessage: 'Ecco come monitorare le tue spese in pochi clic.',
-            onboardingMangeTeamMessage: ({onboardingCompanySize}: {onboardingCompanySize?: OnboardingCompanySize}) =>
-                `Ecco un elenco di attività che consiglio per un’azienda delle tue dimensioni con ${onboardingCompanySize} persone che inviano spese:`,
+            onboardingManageTeamMessage:
+                '# La tua prova gratuita è iniziata! Procediamo con la configurazione.\n👋 Ciao, sono il tuo specialista di configurazione Expensify. Ora che hai creato uno spazio di lavoro, sfrutta al massimo i tuoi 30 giorni di prova gratuita seguendo i passaggi indicati di seguito!',
             onboardingTrackWorkspaceMessage:
                 '# Iniziamo\n👋 Sono qui per aiutarti! Per iniziare, ho personalizzato le impostazioni dello spazio di lavoro per ditte individuali e aziende simili. Puoi modificarle cliccando il link qui sotto!\n\nEcco come monitorare le tue spese in pochi clic:',
             onboardingChatSplitMessage: 'Dividere le spese con gli amici è facile come inviare un messaggio. Ecco come.',
@@ -3489,11 +3510,8 @@ const translations = {
             appliedOnExport: "Non importato in Expensify, applicato all'esportazione",
             shareNote: {
                 header: 'Condividi il tuo spazio di lavoro con altri membri',
-                content: {
-                    firstPart:
-                        'Condividi questo codice QR o copia il link qui sotto per facilitare ai membri la richiesta di accesso al tuo spazio di lavoro. Tutte le richieste di adesione allo spazio di lavoro appariranno nella',
-                    secondPart: 'spazio per la tua recensione.',
-                },
+                content: ({adminsRoomLink}: WorkspaceShareNoteParams) =>
+                    `Condividi questo codice QR o copia il link sottostante per consentire ai membri di richiedere facilmente l'accesso al tuo spazio di lavoro. Tutte le richieste di accesso allo spazio di lavoro verranno visualizzate nella stanza <a href="${adminsRoomLink}">${CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}</a> per la tua revisione.`,
             },
             connectTo: ({connectionName}: ConnectionNameParams) => `Connettiti a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             createNewConnection: 'Crea nuova connessione',
@@ -3538,6 +3556,9 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: 'Automatizza le spese di viaggio e di consegna dei pasti in tutta la tua organizzazione.',
+                autoRemove: "Invita nuovi membri dell'area di lavoro su Uber for Business",
+                autoInvite: "Disattiva i membri dell'area di lavoro rimossi da Uber for Business",
+                manageInvites: 'Gestisci inviti',
             },
         },
         perDiem: {
@@ -4676,6 +4697,7 @@ const translations = {
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Disconnetti Uber',
                 disconnectText: "Per disabilitare questa funzionalità, disconnetti prima l'integrazione Uber for Business.",
+                description: 'Sei sicuro di voler disconnettere questa integrazione?',
                 confirmText: 'Capito',
             },
             workflowWarningModal: {
@@ -4923,7 +4945,7 @@ const translations = {
             },
             addedWithPrimary: 'Alcuni membri sono stati aggiunti con i loro accessi principali.',
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Aggiunto da login secondario ${secondaryLogin}.`,
-            membersListTitle: 'Directory di tutti i membri del workspace.',
+            workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Numero totale di membri dello spazio di lavoro: ${count}`,
             importMembers: 'Importa membri',
         },
         card: {
@@ -5543,7 +5565,8 @@ const translations = {
         rules: {
             individualExpenseRules: {
                 title: 'Spese',
-                subtitle: 'Imposta controlli di spesa e predefiniti per le singole spese. Puoi anche creare regole per',
+                subtitle: ({categoriesPageLink, tagsPageLink}: IndividualExpenseRulesSubtitleParams) =>
+                    `<muted-text>Imposta controlli di spesa e valori predefiniti per le singole spese. Puoi anche creare regole per <a href="${categoriesPageLink}">categorie</a> e <a href="${tagsPageLink}">tag</a>.</muted-text>`,
                 receiptRequiredAmount: 'Importo richiesto della ricevuta',
                 receiptRequiredAmountDescription: 'Richiedi ricevute quando la spesa supera questo importo, a meno che non sia derogato da una regola di categoria.',
                 maxExpenseAmount: 'Importo massimo spesa',
@@ -5567,8 +5590,8 @@ const translations = {
                 alwaysNonReimbursable: 'Mai rimborsabile',
                 alwaysNonReimbursableDescription: 'Le spese non sono mai rimborsate ai dipendenti',
                 billableDefault: 'Predefinito fatturabile',
-                billableDefaultDescription:
-                    'Scegli se le spese in contanti e con carta di credito devono essere fatturabili per impostazione predefinita. Le spese fatturabili sono abilitate o disabilitate in',
+                billableDefaultDescription: ({tagsPageLink}: BillableDefaultDescriptionParams) =>
+                    `<muted-text>Scegli se le spese in contanti e con carta di credito devono essere fatturabili per impostazione predefinita. Le spese fatturabili possono essere abilitate o disabilitate nei <a href="${tagsPageLink}">tag</a>.</muted-text>`,
                 billable: 'Fatturabile',
                 billableDescription: 'Le spese sono più spesso riaddebitate ai clienti.',
                 nonBillable: 'Non-fatturabile',
@@ -5636,8 +5659,8 @@ const translations = {
                     always: 'Richiedi sempre le ricevute',
                 },
                 defaultTaxRate: 'Aliquota fiscale predefinita',
-                goTo: 'Vai a',
-                andEnableWorkflows: 'e abilita i flussi di lavoro, quindi aggiungi approvazioni per sbloccare questa funzione.',
+                enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
+                    `Vai su [Più funzionalità](${moreFeaturesLink}) e attiva i flussi di lavoro, quindi aggiungi le approvazioni per sbloccare questa funzionalità.`,
             },
             customRules: {
                 title: 'Regole personalizzate',
@@ -6037,6 +6060,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Mai',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Ultimo mese',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Questo mese',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Ultima dichiarazione',
                 },
             },
@@ -6064,18 +6088,19 @@ const translations = {
             },
             current: 'Corrente',
             past: 'Passato',
-            submitted: 'Data di invio',
-            approved: 'Data approvata',
-            paid: 'Data di pagamento',
-            exported: 'Data esportata',
-            posted: 'Data di pubblicazione',
-            withdrawn: 'Data di ritiro',
+            submitted: 'Invio',
+            approved: 'Approvato',
+            paid: 'Pagato',
+            exported: 'Esportato',
+            posted: 'Pubblicato',
+            withdrawn: 'Ritirato',
             billable: 'Fatturabile',
             reimbursable: 'Rimborsabile',
             groupBy: {
-                reports: 'Rapporto',
-                members: 'Membro',
-                cards: 'Carta',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Rapporto',
+                [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
+                [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID di prelievo',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -6693,9 +6718,8 @@ const translations = {
                     `Hai contestato l'addebito di ${amountOwed} sulla carta che termina con ${cardEnding}. Il tuo account sarà bloccato fino a quando la disputa non sarà risolta con la tua banca.`,
             },
             cardAuthenticationRequired: {
-                title: 'La tua carta non può essere addebitata',
-                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) =>
-                    `La tua carta di pagamento non è stata completamente autenticata. Completa il processo di autenticazione per attivare la tua carta di pagamento che termina con ${cardEnding}.`,
+                title: 'La tua carta di pagamento non è stata completamente autenticata.',
+                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) => `Completa il processo di autenticazione per attivare la tua carta che termina con ${cardEnding}.`,
             },
             insufficientFunds: {
                 title: 'La tua carta non può essere addebitata',

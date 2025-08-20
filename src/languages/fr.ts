@@ -11,7 +11,7 @@
  */
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
-import type {OnboardingCompanySize, OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
+import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -43,6 +43,7 @@ import type {
     BeginningOfChatHistoryInvoiceRoomParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
+    BillableDefaultDescriptionParams,
     BillingBannerCardAuthenticationRequiredParams,
     BillingBannerCardExpiredParams,
     BillingBannerCardOnDisputeParams,
@@ -120,6 +121,7 @@ import type {
     ImportPerDiemRatesSuccessfulDescriptionParams,
     ImportTagsSuccessfulDescriptionParams,
     IncorrectZipFormatParams,
+    IndividualExpenseRulesSubtitleParams,
     InstantSummaryParams,
     IntacctMappingTitleParams,
     IntegrationExportParams,
@@ -141,6 +143,7 @@ import type {
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
     MissingPropertyParams,
+    MovedActionParams,
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
     MovedTransactionParams,
@@ -190,6 +193,7 @@ import type {
     RoleNamesParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    RulesEnableWorkflowsParams,
     SecondaryLoginParams,
     SetTheDistanceMerchantParams,
     SetTheRequestParams,
@@ -290,8 +294,10 @@ import type {
     WorkEmailResendCodeParams,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
+    WorkspaceMembersCountParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
+    WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
@@ -547,6 +553,7 @@ const translations = {
         auditor: 'Auditeur',
         role: 'Rôle',
         currency: 'Devise',
+        groupCurrency: 'Devise du groupe',
         rate: 'Taux',
         emptyLHN: {
             title: 'Youpi ! Tout est à jour.',
@@ -639,6 +646,8 @@ const translations = {
         getTheApp: "Obtenez l'application",
         scanReceiptsOnTheGo: 'Numérisez les reçus depuis votre téléphone',
         headsUp: 'Attention !',
+        submitTo: 'Envoyer à',
+        forwardTo: 'Transférer à',
         merge: 'Fusionner',
         unstableInternetConnection: 'Connexion Internet instable. Veuillez vérifier votre réseau et réessayer.',
     },
@@ -985,6 +994,11 @@ const translations = {
             'Le fichier que vous avez téléchargé est soit vide, soit contient des données invalides. Veuillez vous assurer que le fichier est correctement formaté et contient les informations nécessaires avant de le télécharger à nouveau.',
         importSpreadsheet: 'Importer une feuille de calcul',
         downloadCSV: 'Télécharger CSV',
+        importMemberConfirmation: () => ({
+            one: `Veuillez confirmer les informations ci-dessous pour un nouveau membre de l’espace de travail qui sera ajouté dans le cadre de cet import. Les membres existants ne recevront aucune mise à jour de rôle ni de message d’invitation.`,
+            other: (count: number) =>
+                `Veuillez confirmer les informations ci-dessous pour les ${count} nouveaux membres de l’espace de travail qui seront ajoutés dans le cadre de cet import. Les membres existants ne recevront aucune mise à jour de rôle ni de message d’invitation.`,
+        }),
     },
     receipt: {
         upload: 'Télécharger le reçu',
@@ -1080,6 +1094,12 @@ const translations = {
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `supprimé une dépense (${amount} pour ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `a déplacé une dépense${reportName ? `de ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `déplacé cette dépense${reportName ? `à <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
+            if (shouldHideMovedReportUrl) {
+                return `a déplacé ce rapport vers l’espace de travail <a href="${newParentReportUrl}">${toPolicyName}</a>`;
+            }
+            return `a déplacé ce <a href="${movedReportUrl}">rapport</a> vers l’espace de travail <a href="${newParentReportUrl}">${toPolicyName}</a>`;
+        },
         unreportedTransaction: 'déplacé cette dépense vers votre espace personnel',
         pendingMatchWithCreditCard: 'Reçu en attente de correspondance avec la transaction par carte',
         pendingMatch: 'Correspondance en attente',
@@ -1583,6 +1603,7 @@ const translations = {
             testCrash: 'Test crash',
             resetToOriginalState: "Réinitialiser à l'état d'origine",
             usingImportedState: 'Vous utilisez un état importé. Appuyez ici pour le réinitialiser.',
+            shouldBlockTransactionThreadReportCreation: 'Bloquer la création de rapports de fil de transaction',
             debugMode: 'Mode débogage',
             invalidFile: 'Fichier invalide',
             invalidFileDescription: "Le fichier que vous essayez d'importer n'est pas valide. Veuillez réessayer.",
@@ -2371,13 +2392,13 @@ const translations = {
                     `![Inviter votre équipe](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
             },
             setupCategoriesAndTags: {
-                title: ({workspaceCategoriesLink, workspaceMoreFeaturesLink}) => `Configurer les [catégories](${workspaceCategoriesLink}) et [tags](${workspaceMoreFeaturesLink})`,
+                title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Configurer les [catégories](${workspaceCategoriesLink}) et [tags](${workspaceTagsLink})`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
                     '*Configurez les catégories et tags* pour aider votre équipe à coder les dépenses plus facilement.\n\n' +
                     `Importez-les automatiquement en [connectant votre logiciel comptable](${workspaceAccountingLink}), ou configurez-les manuellement dans les [paramètres de l’espace](${workspaceCategoriesLink}).`,
             },
             setupTagsTask: {
-                title: ({workspaceMoreFeaturesLink}) => `Configurer les [tags](${workspaceMoreFeaturesLink})`,
+                title: ({workspaceTagsLink}) => `Configurer les [tags](${workspaceTagsLink})`,
                 description: ({workspaceMoreFeaturesLink}) =>
                     'Utilisez les tags pour ajouter des détails comme projets, clients, emplacements et départements. Pour plusieurs niveaux de tags, passez au plan Control.\n\n' +
                     '1. Cliquez sur *Espaces de travail*.\n' +
@@ -2452,8 +2473,8 @@ const translations = {
         messages: {
             onboardingEmployerOrSubmitMessage: 'Se faire rembourser est aussi simple que d’envoyer un message. Voici les bases.',
             onboardingPersonalSpendMessage: 'Voici comment suivre vos dépenses en quelques clics.',
-            onboardingMangeTeamMessage: ({onboardingCompanySize}: {onboardingCompanySize?: OnboardingCompanySize}) =>
-                `Voici une liste de tâches recommandée pour une entreprise de votre taille avec ${onboardingCompanySize} soumetteurs :`,
+            onboardingManageTeamMessage:
+                '# Votre essai gratuit a commencé ! Passons à la configuration.\n👋 Bonjour, je suis votre spécialiste de configuration Expensify. Maintenant que vous avez créé un espace de travail, profitez pleinement de vos 30 jours d’essai gratuit en suivant les étapes ci-dessous !',
             onboardingTrackWorkspaceMessage:
                 '# Configurons votre espace\n👋 Je suis là pour vous aider ! J’ai personnalisé votre espace pour les entrepreneurs individuels et entreprises similaires. Vous pouvez le modifier via le lien ci-dessous.\n\nVoici comment suivre vos dépenses rapidement :',
             onboardingChatSplitMessage: 'Partager des dépenses entre amis est aussi simple qu’un message. Voici comment faire.',
@@ -3484,11 +3505,8 @@ const translations = {
             appliedOnExport: "Non importé dans Expensify, appliqué à l'exportation",
             shareNote: {
                 header: "Partagez votre espace de travail avec d'autres membres",
-                content: {
-                    firstPart:
-                        "Partagez ce code QR ou copiez le lien ci-dessous pour faciliter la demande d'accès des membres à votre espace de travail. Toutes les demandes pour rejoindre l'espace de travail apparaîtront dans le",
-                    secondPart: 'espace pour votre avis.',
-                },
+                content: ({adminsRoomLink}: WorkspaceShareNoteParams) =>
+                    `Partagez ce code QR ou copiez le lien ci-dessous pour permettre aux membres de demander facilement l'accès à votre espace de travail. Toutes les demandes d'adhésion à l'espace de travail s'afficheront dans la salle <a href="${adminsRoomLink}">${CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}</a> pour que vous puissiez les examiner.`,
             },
             connectTo: ({connectionName}: ConnectionNameParams) => `Se connecter à ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             createNewConnection: 'Créer une nouvelle connexion',
@@ -3533,6 +3551,9 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: 'Automatisez les dépenses de déplacement et de livraison de repas dans toute votre organisation.',
+                autoRemove: "Inviter de nouveaux membres de l'espace de travail sur Uber",
+                autoInvite: "Désactiver les membres supprimés de l'espace de travail sur Uber",
+                manageInvites: 'Gérer les invitations',
             },
         },
         perDiem: {
@@ -4677,6 +4698,7 @@ const translations = {
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Déconnecter Uber',
                 disconnectText: "Pour désactiver cette fonctionnalité, veuillez d'abord déconnecter l'intégration Uber for Business.",
+                description: 'Êtes-vous sûr de vouloir déconnecter cette intégration?',
                 confirmText: 'Compris',
             },
             workflowWarningModal: {
@@ -4924,7 +4946,7 @@ const translations = {
             },
             addedWithPrimary: 'Certains membres ont été ajoutés avec leurs identifiants principaux.',
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Ajouté par la connexion secondaire ${secondaryLogin}.`,
-            membersListTitle: "Annuaire de tous les membres de l'espace de travail.",
+            workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Nombre total de membres de l’espace de travail : ${count}`,
             importMembers: 'Importer des membres',
         },
         card: {
@@ -5543,7 +5565,8 @@ const translations = {
         rules: {
             individualExpenseRules: {
                 title: 'Dépenses',
-                subtitle: 'Définissez des contrôles de dépenses et des paramètres par défaut pour les dépenses individuelles. Vous pouvez également créer des règles pour',
+                subtitle: ({categoriesPageLink, tagsPageLink}: IndividualExpenseRulesSubtitleParams) =>
+                    `<muted-text>Définissez des contrôles de dépenses et des valeurs par défaut pour chaque dépense. Vous pouvez également créer des règles pour les <a href="${categoriesPageLink}">catégories</a> et <a href="${tagsPageLink}">tags</a>.</muted-text>`,
                 receiptRequiredAmount: 'Montant requis pour le reçu',
                 receiptRequiredAmountDescription: 'Exiger des reçus lorsque les dépenses dépassent ce montant, sauf si une règle de catégorie le remplace.',
                 maxExpenseAmount: 'Montant maximum de la dépense',
@@ -5567,8 +5590,8 @@ const translations = {
                 alwaysNonReimbursable: 'Jamais remboursable',
                 alwaysNonReimbursableDescription: 'Les dépenses ne sont jamais remboursées aux employés',
                 billableDefault: 'Par défaut facturable',
-                billableDefaultDescription:
-                    'Choisissez si les dépenses en espèces et par carte de crédit doivent être facturables par défaut. Les dépenses facturables sont activées ou désactivées dans',
+                billableDefaultDescription: ({tagsPageLink}: BillableDefaultDescriptionParams) =>
+                    `<muted-text>Choisissez si les dépenses en espèces et par carte de crédit doivent être facturables par défaut. Les dépenses facturables sont activées ou désactivées dans les <a href="${tagsPageLink}">tags</a>.</muted-text>`,
                 billable: 'Facturable',
                 billableDescription: 'Les dépenses sont le plus souvent refacturées aux clients.',
                 nonBillable: 'Non-facturable',
@@ -5635,8 +5658,8 @@ const translations = {
                     always: 'Toujours exiger des reçus',
                 },
                 defaultTaxRate: 'Taux de taxe par défaut',
-                goTo: 'Aller à',
-                andEnableWorkflows: 'et activez les flux de travail, puis ajoutez des approbations pour débloquer cette fonctionnalité.',
+                enableWorkflows: ({moreFeaturesLink}: RulesEnableWorkflowsParams) =>
+                    `Accédez à [Plus de fonctionnalités](${moreFeaturesLink}) et activez les workflows, puis ajoutez des approbations pour débloquer cette fonctionnalité.`,
             },
             customRules: {
                 title: 'Règles personnalisées',
@@ -6034,6 +6057,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Jamais',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Le mois dernier',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ce mois-ci',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Dernière relevé',
                 },
             },
@@ -6061,18 +6085,19 @@ const translations = {
             },
             current: 'Actuel',
             past: 'Passé',
-            submitted: 'Date de soumission',
-            approved: 'Date approuvée',
-            paid: 'Date de paiement',
-            exported: 'Date exportée',
-            posted: 'Date de publication',
-            withdrawn: 'Date de retrait',
+            submitted: 'Soumission',
+            approved: 'Approuvé',
+            paid: 'Payé',
+            exported: 'Exporté',
+            posted: 'Posté',
+            withdrawn: 'Retiré',
             billable: 'Facturable',
             reimbursable: 'Remboursable',
             groupBy: {
-                reports: 'Rapport',
-                members: 'Membre',
-                cards: 'Carte',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Rapport',
+                [CONST.SEARCH.GROUP_BY.FROM]: 'De',
+                [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retrait',
             },
             feed: 'Flux',
             withdrawalType: {
@@ -6691,9 +6716,9 @@ const translations = {
                     `Vous avez contesté le débit de ${amountOwed} sur la carte se terminant par ${cardEnding}. Votre compte sera verrouillé jusqu'à ce que le litige soit résolu avec votre banque.`,
             },
             cardAuthenticationRequired: {
-                title: "Votre carte n'a pas pu être débitée",
+                title: "Votre carte de paiement n'a pas été entièrement authentifiée.",
                 subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) =>
-                    `Votre carte de paiement n'a pas été entièrement authentifiée. Veuillez compléter le processus d'authentification pour activer votre carte de paiement se terminant par ${cardEnding}.`,
+                    `Veuillez terminer le processus d'authentification pour activer votre carte se terminant par ${cardEnding}.`,
             },
             insufficientFunds: {
                 title: "Votre carte n'a pas pu être débitée",

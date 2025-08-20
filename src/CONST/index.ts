@@ -664,6 +664,7 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         ASAP_SUBMIT: 'asapSubmit',
+        AUTH_AUTO_REPORT_TITLE: 'authAutoReportTitle',
         DEFAULT_ROOMS: 'defaultRooms',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
@@ -915,6 +916,7 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     DEFAULT_NUMBER_ID,
+    FAKE_REPORT_ID: 'FAKE_REPORT_ID',
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
     EXPENSIFY_MOBILE_URL,
@@ -1515,6 +1517,9 @@ const CONST = {
         APPLY_AIRSHIP_UPDATES: 'apply_airship_updates',
         APPLY_PUSHER_UPDATES: 'apply_pusher_updates',
         APPLY_HTTPS_UPDATES: 'apply_https_updates',
+        COMPUTE_REPORT_NAME: 'compute_report_name',
+        COMPUTE_REPORT_NAME_FOR_NEW_REPORT: 'compute_report_name_for_new_report',
+        UPDATE_OPTIMISTIC_REPORT_NAMES: 'update_optimistic_report_names',
         COLD: 'cold',
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
@@ -3190,7 +3195,7 @@ const CONST = {
             BREX: 'oauth.brex.com',
             WELLS_FARGO: 'oauth.wellsfargo.com',
             AMEX_DIRECT: 'oauth.americanexpressfdx.com',
-            CSV: '_ccupload',
+            CSV: 'ccupload',
         },
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
@@ -5168,6 +5173,7 @@ const CONST = {
     SF_COORDINATES: [-122.4194, 37.7749],
 
     NAVIGATION: {
+        CUSTOM_HISTORY_ENTRY_SIDE_PANEL: 'CUSTOM_HISTORY-SIDE_PANEL',
         ACTION_TYPE: {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
@@ -5181,6 +5187,7 @@ const CONST = {
             OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
             SET_HISTORY_PARAM: 'SET_HISTORY_PARAM',
             REPLACE_PARAMS: 'REPLACE_PARAMS',
+            TOGGLE_SIDE_PANEL_WITH_HISTORY: 'TOGGLE_SIDE_PANEL_WITH_HISTORY',
         },
     },
     TIME_PERIOD: {
@@ -6273,6 +6280,7 @@ const CONST = {
 
     SEARCH: {
         RESULTS_PAGE_SIZE: 50,
+        EXITING_ANIMATION_DURATION: 200,
         DATA_TYPES: {
             EXPENSE: 'expense',
             INVOICE: 'invoice',
@@ -6320,8 +6328,9 @@ const CONST = {
         },
         GROUP_BY: {
             REPORTS: 'reports',
-            MEMBERS: 'members',
-            CARDS: 'cards',
+            FROM: 'from',
+            CARD: 'card',
+            WITHDRAWAL_ID: 'withdrawal-id',
         },
         BOOLEAN: {
             YES: 'yes',
@@ -6381,6 +6390,7 @@ const CONST = {
             TITLE: 'title',
             ASSIGNEE: 'assignee',
             IN: 'in',
+            CARD: 'card',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -6406,6 +6416,7 @@ const CONST = {
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expenseType',
             CURRENCY: 'currency',
+            GROUP_CURRENCY: 'groupCurrency',
             MERCHANT: 'merchant',
             DESCRIPTION: 'description',
             FROM: 'from',
@@ -6452,6 +6463,7 @@ const CONST = {
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expense-type',
             CURRENCY: 'currency',
+            GROUP_CURRENCY: 'group-currency',
             MERCHANT: 'merchant',
             DESCRIPTION: 'description',
             FROM: 'from',
@@ -6463,7 +6475,7 @@ const CONST = {
             TAX_RATE: 'tax-rate',
             CARD_ID: 'card',
             FEED: 'feed',
-            REPORT_ID: 'reportid',
+            REPORT_ID: 'report-id',
             KEYWORD: 'keyword',
             IN: 'in',
             SUBMITTED: 'submitted',
@@ -6479,6 +6491,13 @@ const CONST = {
             BILLABLE: 'billable',
             ACTION: 'action',
         },
+
+        // Maps an internal search value to the user friendly display text, e.g. `perDiem` -> `per-diem`
+        get SEARCH_USER_FRIENDLY_VALUES_MAP() {
+            return {
+                [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',
+            };
+        },
         DATE_MODIFIERS: {
             ON: 'On',
             AFTER: 'After',
@@ -6487,6 +6506,7 @@ const CONST = {
         DATE_PRESETS: {
             NEVER: 'never',
             LAST_MONTH: 'last-month',
+            THIS_MONTH: 'this-month',
             LAST_STATEMENT: 'last-statement',
         },
         SNAPSHOT_ONYX_KEYS: [
@@ -6510,6 +6530,7 @@ const CONST = {
             UNAPPROVED_CASH: 'unapprovedCash',
             UNAPPROVED_CARD: 'unapprovedCard',
         },
+        GROUP_PREFIX: 'group_',
     },
 
     EXPENSE: {
@@ -6968,6 +6989,7 @@ const CONST = {
 
     BILLING: {
         TYPE_FAILED_2018: 'failed_2018',
+        TYPE_STRIPE_FAILED_AUTHENTICATION: 'failed_stripe_authentication',
     },
 
     ONBOARDING_HELP: {
