@@ -535,7 +535,7 @@ function isReopenAction(report: Report, policy?: Policy): boolean {
  */
 function isMergeAction(parentReport: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
     // Temporary hide merge action
-    return true;
+    return false;
 
     // Do not show merge action if there are multiple transactions
     if (reportTransactions.length !== 1) {
