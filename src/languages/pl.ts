@@ -647,6 +647,8 @@ const translations = {
         getTheApp: 'Pobierz aplikację',
         scanReceiptsOnTheGo: 'Skanuj paragony za pomocą telefonu',
         headsUp: 'Uwaga!',
+        submitTo: 'Wyślij do',
+        forwardTo: 'Przekaż do',
         merge: 'Scal',
         unstableInternetConnection: 'Niestabilne połączenie internetowe. Sprawdź swoją sieć i spróbuj ponownie.',
     },
@@ -987,6 +989,11 @@ const translations = {
             'Plik, który przesłałeś, jest pusty lub zawiera nieprawidłowe dane. Upewnij się, że plik jest poprawnie sformatowany i zawiera niezbędne informacje przed ponownym przesłaniem.',
         importSpreadsheet: 'Importuj arkusz kalkulacyjny',
         downloadCSV: 'Pobierz CSV',
+        importMemberConfirmation: () => ({
+            one: `Potwierdź poniższe szczegóły dotyczące nowego członka przestrzeni roboczej, który zostanie dodany w ramach tego przesyłania. Istniejący członkowie nie otrzymają aktualizacji ról ani wiadomości z zaproszeniem.`,
+            other: (count: number) =>
+                `Potwierdź poniższe szczegóły dotyczące ${count} nowych członków przestrzeni roboczej, którzy zostaną dodani w ramach tego przesyłania. Istniejący członkowie nie otrzymają aktualizacji ról ani wiadomości z zaproszeniem.`,
+        }),
     },
     receipt: {
         upload: 'Prześlij paragon',
@@ -3550,6 +3557,9 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: 'Zautomatyzuj wydatki na podróże i dostawę posiłków w swojej organizacji.',
+                autoRemove: 'Zaproś nowych członków przestrzeni roboczej do Ubera dla Firm',
+                autoInvite: 'Dezaktywuj usuniętych członków przestrzeni roboczej w Uberze dla Firm',
+                manageInvites: 'Zarządzaj zaproszeniami',
             },
         },
         perDiem: {
@@ -4679,6 +4689,7 @@ const translations = {
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Rozłącz Uber',
                 disconnectText: 'Aby wyłączyć tę funkcję, najpierw rozłącz integrację Uber for Business.',
+                description: 'Czy na pewno chcesz rozłączyć tę integrację?',
                 confirmText: 'Rozumiem',
             },
             workflowWarningModal: {
@@ -6065,9 +6076,10 @@ const translations = {
             billable: 'Podlegające fakturowaniu',
             reimbursable: 'Podlegające zwrotowi',
             groupBy: {
-                reports: 'Raport',
-                from: 'Od',
-                card: 'Karta',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Raport',
+                [CONST.SEARCH.GROUP_BY.FROM]: 'Od',
+                [CONST.SEARCH.GROUP_BY.CARD]: 'Karta',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Identyfikator wypłaty',
             },
             feed: 'Kanal',
             withdrawalType: {
