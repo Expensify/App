@@ -14,10 +14,10 @@ The goal is: **Cross Platform 99.9999%**
 ### - Features MUST be implemented on all supported platforms
 A feature isn't done until it works on all platforms. Any platform-specific code blocks will be asked to be undone.
 
-### - ReactNative bugs MUST be fixed upstream
+### - React Native bugs MUST be fixed upstream
 If the reason cross-platform code cannot be written is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
 
-While upstream PRs are waiting to be merged, sometimes a patch can be used which is managed by the NPM package `patch-package`. Read more about it [here](https://github.com/Expensify/App?tab=readme-ov-file#adding-hybridapp-related-patches).
+While upstream PRs are waiting to be merged, a patch can be used which is managed by the NPM package `patch-package`. Read more about it [here](https://github.com/Expensify/App?tab=readme-ov-file#adding-hybridapp-related-patches).
 
 ### - Features that don't exist on all platforms MUST use NOOP shims
 If there is a feature that simply doesn't exist on all platforms and thus doesn't exist in RN, rather than doing `if (platform=iOS) { }`, instead write a "shim" library that is implemented with NOOPs on the other platforms.  For example, rather than injecting platform-specific multi-tab code (which can only work on browsers, because it's the only platform with multiple tabs), write a TabManager class that just is NOOP for non-browser platforms.  This encapsulates the platform-specific code into a platform library, rather than sprinkling through the business logic.

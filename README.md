@@ -651,7 +651,7 @@ This application is built with the following principles.
         5. UI updates with data from the server
 
 1. **Cross Platform 99.9999%**
-This section has moved [here](contributingGuides/philosophies/CROSS-PLATFORM.md).
+See details [here](contributingGuides/philosophies/CROSS-PLATFORM.md).
 
 ----
 
