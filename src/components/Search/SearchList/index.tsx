@@ -29,6 +29,7 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
+import navigationRef from '@libs/Navigation/navigationRef';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -183,6 +184,11 @@ function SearchList(
 
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
+            const currentRoute = navigationRef.current?.getCurrentRoute();
+            if (currentRoute && route.key !== currentRoute.key) {
+                return;
+            }
+
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox) {
                 return;
@@ -198,7 +204,7 @@ function SearchList(
             setLongPressedItem(item);
             setIsModalVisible(true);
         },
-        [isSmallScreenWidth, onCheckboxPress, isMobileSelectionModeEnabled, shouldPreventLongPressRow],
+        [route.key, shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled, onCheckboxPress],
     );
 
     const turnOnSelectionMode = useCallback(() => {
