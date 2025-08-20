@@ -9086,7 +9086,6 @@ function canUserPerformWriteAction(report: OnyxEntry<Report>, isReportArchived?:
 
 /**
  * Returns ID of the original report from which the given reportAction is first created.
- * @deprecated use useOriginalReportID instead
  */
 function getOriginalReportID(reportID: string | undefined, reportAction: OnyxInputOrEntry<ReportAction>): string | undefined {
     if (!reportID) {
