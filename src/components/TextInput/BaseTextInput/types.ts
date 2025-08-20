@@ -1,5 +1,4 @@
 import type {MarkdownRange, MarkdownStyle} from '@expensify/react-native-live-markdown';
-import type {ForwardedRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import type {MaskedTextInputOwnProps} from 'react-native-advanced-input-mask/lib/typescript/src/types';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
