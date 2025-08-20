@@ -332,7 +332,8 @@ function MoneyRequestConfirmationListFooter({
     // Determine if the merchant error should be displayed
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
-    const shouldShowReceiptEmptyState = (iouType === CONST.IOU.TYPE.SUBMIT && isPaidGroupPolicy(policy) || iouType === CONST.IOU.TYPE.TRACK) && !isPerDiemRequest;
+    const shouldShowReceiptEmptyState =
+        ((iouType === CONST.IOU.TYPE.SUBMIT && (isPaidGroupPolicy(policy) || !isMovingTransactionFromTrackExpense(action))) || iouType === CONST.IOU.TYPE.TRACK) && !isPerDiemRequest;
     // The per diem custom unit
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const {
