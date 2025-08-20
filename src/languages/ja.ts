@@ -3549,7 +3549,7 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: '組織全体で出張費や食事の配達費を自動化します。',
-                inviteMembers: 'メンバーを招待',
+                sendInvites: 'メンバーを招待',
                 confirmInvite: '招待を確認',
                 manageInvites: '招待を管理',
                 confirm: '確認',

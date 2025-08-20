@@ -3549,7 +3549,7 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: 'Automatizza le spese di viaggio e di consegna dei pasti in tutta la tua organizzazione.',
-                inviteMembers: 'Invita membri',
+                sendInvites: 'Invita membri',
                 confirmInvite: 'Conferma invito',
                 manageInvites: 'Gestisci inviti',
                 confirm: 'Conferma',

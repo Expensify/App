@@ -3507,7 +3507,7 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: '自动化整个组织的差旅和送餐费用。',
-                inviteMembers: '邀请成员',
+                sendInvites: '邀请成员',
                 confirmInvite: '确认邀请',
                 manageInvites: '管理邀请',
                 confirm: '确认',
