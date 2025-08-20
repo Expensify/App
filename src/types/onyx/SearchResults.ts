@@ -503,6 +503,30 @@ type SearchCardGroup = {
     lastFourPAN: string;
 };
 
+/** Model of withdrawal ID grouped search result */
+type SearchWithdrawalIDGroup = {
+    /** Withdrawal ID */
+    entryID: number;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+
+    /** Masked account number */
+    accountNumber: string;
+
+    /** Bank name */
+    addressName: string;
+
+    /** When the withdrawal completed */
+    debitPosted: string;
+};
+
 /** Types of searchable transactions */
 type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
@@ -526,7 +550,7 @@ type SearchResults = {
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, SearchPolicy> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
-        PrefixedRecord<typeof CONST.SEARCH.GROUP_PREFIX, SearchMemberGroup | SearchCardGroup>;
+        PrefixedRecord<typeof CONST.SEARCH.GROUP_PREFIX, SearchMemberGroup | SearchCardGroup | SearchWithdrawalIDGroup>;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
@@ -552,4 +576,5 @@ export type {
     SearchResultsInfo,
     SearchMemberGroup,
     SearchCardGroup,
+    SearchWithdrawalIDGroup,
 };
