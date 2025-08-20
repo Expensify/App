@@ -280,8 +280,8 @@ function shouldShowPolicy(policy: OnyxEntry<Policy>, shouldShowPendingDeletePoli
     );
 }
 
-function isPolicyMember(policy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean {
-    return getPolicyRole(policy, currentUserLogin) !== undefined;
+function isPolicyMember(policy: OnyxEntry<Policy>, userLogin: string | undefined): boolean {
+    return !!policy && !!userLogin && !!policy.employeeList?.[userLogin];
 }
 
 function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean {
