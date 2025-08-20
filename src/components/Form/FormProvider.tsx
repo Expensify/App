@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
-import type {ForwardedRef, RefObject, ReactNode} from 'react';
+import type {ForwardedRef, ReactNode, RefObject} from 'react';
 import React, {createRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
