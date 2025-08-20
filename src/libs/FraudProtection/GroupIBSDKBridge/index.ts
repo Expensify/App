@@ -34,18 +34,17 @@ const fpInstancePromise = new Promise<any>((resolve) => {
     resolveFpInstancePromise = resolve;
 });
 
-async function init(): Promise<void> {
+function init(): Promise<void> {
     if (typeof document === 'undefined') {
         resolveFpInstancePromise(undefined);
-        return;
+        return Promise.resolve();
     }
-    await loadGroupIBScript();
-    const fp = (globalThis as any)?.window?.gib;
-    const env = await getEnvironment();
-    const cid = cidMap[env] ?? cidMap[CONST.ENVIRONMENT.DEV];
-    const oldDotURL = await getOldDotEnvironmentURL();
-    fp?.init?.({cid, backUrl: `${oldDotURL.replace('https://', '//')}/api/fl`, gafUrl: '//eu.id.group-ib.com/id.html'});
-    resolveFpInstancePromise(fp);
+    return Promise.all([loadGroupIBScript(), getEnvironment(), getOldDotEnvironmentURL()]).then(([_, env, oldDotURL]) => {
+        const fp = (globalThis as any)?.window?.gib;
+        const cid = cidMap[env] ?? cidMap[CONST.ENVIRONMENT.DEV];
+        fp?.init?.({cid, backUrl: `${oldDotURL.replace('https://', '//')}/api/fl`, gafUrl: '//eu.id.group-ib.com/id.html'});
+        resolveFpInstancePromise(fp);
+    });
 }
 
 function setAuthenticationData(identity: string, sessionID: string): void {
