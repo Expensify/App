@@ -472,7 +472,7 @@ const helpContentMap: HelpContent = {
                 <View>
                     <Text style={[styles.textHeadlineH1, styles.mv4]}>Scan Receipt</Text>
                     <Text style={[styles.textNormal]}>SmartScan automatically extracts expense details from receipt images.</Text>
-                    <Text style={[styles.textHeadlineH2, styles.mt4]}>How to Scan</Text>
+                    <Text style={[styles.textHeadlineH2, styles.mt4, styles.mb1]}>How to Scan</Text>
                     <NumberedList
                         styles={styles}
                         items={[
@@ -490,7 +490,7 @@ const helpContentMap: HelpContent = {
                             </Text>,
                         ]}
                     />
-                    <Text style={[styles.textHeadlineH2, styles.mt4]}>What SmartScan Detects</Text>
+                    <Text style={[styles.textHeadlineH2, styles.mt4, styles.mb1]}>What SmartScan Detects</Text>
                     <BulletList
                         styles={styles}
                         items={[
@@ -511,7 +511,7 @@ const helpContentMap: HelpContent = {
                             </Text>,
                         ]}
                     />
-                    <Text style={[styles.textHeadlineH2, styles.mt4]}>Supported Receipt Types</Text>
+                    <Text style={[styles.textHeadlineH2, styles.mt4, styles.mb1]}>Supported Receipt Types</Text>
                     <BulletList
                         styles={styles}
                         items={[
@@ -529,7 +529,7 @@ const helpContentMap: HelpContent = {
                             </Text>,
                         ]}
                     />
-                    <Text style={[styles.textHeadlineH2, styles.mt4]}>Tips for Best Results</Text>
+                    <Text style={[styles.textHeadlineH2, styles.mt4, styles.mb1]}>Tips for Best Results</Text>
                     <BulletList
                         styles={styles}
                         items={[
@@ -539,7 +539,7 @@ const helpContentMap: HelpContent = {
                             <Text style={styles.textNormal}>Straight angles work better than tilted photos</Text>,
                         ]}
                     />
-                    <Text style={[styles.textHeadlineH2, styles.mt4]}>After Scanning</Text>
+                    <Text style={[styles.textHeadlineH2, styles.mt4, styles.mb1]}>After Scanning</Text>
                     <BulletList
                         styles={styles}
                         items={[
@@ -548,7 +548,7 @@ const helpContentMap: HelpContent = {
                             <Text style={styles.textNormal}>SmartScan learns from your corrections</Text>,
                         ]}
                     />
-                    <Text style={[styles.textHeadlineH2, styles.mt4]}>Related Links</Text>
+                    <Text style={[styles.textHeadlineH2, styles.mt4, styles.mb1]}>Related Links</Text>
                     <BulletList
                         styles={styles}
                         items={[
@@ -680,7 +680,7 @@ const helpContentMap: HelpContent = {
                                         ]}
                                     />
 
-                                    <Text style={[styles.textHeadlineH2, styles.mt4]}>Learn More</Text>
+                                    <Text style={[styles.textHeadlineH2, styles.mt4, styles.mb1]}>Learn More</Text>
                                     <BulletList
                                         styles={styles}
                                         items={[
@@ -830,7 +830,7 @@ const helpContentMap: HelpContent = {
                                         ]}
                                     />
 
-                                    <Text style={[styles.textHeadlineH2, styles.mt4]}>Learn More</Text>
+                                    <Text style={[styles.textHeadlineH2, styles.mt4, styles.mb1]}>Learn More</Text>
                                     <BulletList
                                         styles={styles}
                                         items={[
@@ -937,7 +937,7 @@ const helpContentMap: HelpContent = {
                                         ]}
                                     />
 
-                                    <Text style={[styles.textHeadlineH2, styles.mt4]}>Learn More</Text>
+                                    <Text style={[styles.textHeadlineH2, styles.mt4, styles.mb1]}>Learn More</Text>
                                     <BulletList
                                         styles={styles}
                                         items={[
@@ -1084,7 +1084,7 @@ const helpContentMap: HelpContent = {
                                         ]}
                                     />
 
-                                    <Text style={[styles.textHeadlineH2, styles.mt4]}>Learn More</Text>
+                                    <Text style={[styles.textHeadlineH2, styles.mt4, styles.mb1]}>Learn More</Text>
                                     <BulletList
                                         styles={styles}
                                         items={[
@@ -1152,7 +1152,7 @@ const helpContentMap: HelpContent = {
                                             <Text style={styles.textNormal}>No approval or payment permissions</Text>,
                                         ]}
                                     />
-                                    <Text style={[styles.textHeadlineH2, styles.mt4]}>Adding Members</Text>
+                                    <Text style={[styles.textHeadlineH2, styles.mt4, styles.mb1]}>Adding Members</Text>
                                     <NumberedList
                                         styles={styles}
                                         items={[
@@ -1198,7 +1198,7 @@ const helpContentMap: HelpContent = {
                                             <Text style={styles.textNormal}>Confirm removal</Text>,
                                         ]}
                                     />
-                                    <Text style={[styles.textHeadlineH2, styles.mt4]}>Transfer Ownership of a Workspace</Text>
+                                    <Text style={[styles.textHeadlineH2, styles.mt4, styles.mb1]}>Transfer Ownership of a Workspace</Text>
                                     <NumberedList
                                         styles={styles}
                                         items={[
@@ -1212,7 +1212,7 @@ const helpContentMap: HelpContent = {
                                             <Text style={styles.textNormal}>You become the new owner</Text>,
                                         ]}
                                     />
-                                    <Text style={[styles.textHeadlineH2, styles.mt4]}>Learn More</Text>
+                                    <Text style={[styles.textHeadlineH2, styles.mt4, styles.mb1]}>Learn More</Text>
                                     <BulletList
                                         styles={styles}
                                         items={[
@@ -1396,7 +1396,7 @@ const helpContentMap: HelpContent = {
                                         ]}
                                     />
 
-                                    <Text style={[styles.textHeadlineH2, styles.mt4]}>Learn More</Text>
+                                    <Text style={[styles.textHeadlineH2, styles.mt4, styles.mb1]}>Learn More</Text>
                                     <BulletList
                                         styles={styles}
                                         items={[
@@ -1619,7 +1619,7 @@ const helpContentMap: HelpContent = {
                                 ]}
                             />
 
-                            <Text style={[styles.textHeadlineH2, styles.mt4]}>Learn More</Text>
+                            <Text style={[styles.textHeadlineH2, styles.mt4, styles.mb1]}>Learn More</Text>
                             <BulletList
                                 styles={styles}
                                 items={[
@@ -1701,7 +1701,7 @@ const helpContentMap: HelpContent = {
                                 ]}
                             />
 
-                            <Text style={[styles.textHeadlineH2, styles.mt4]}>Learn More</Text>
+                            <Text style={[styles.textHeadlineH2, styles.mt4, styles.mb1]}>Learn More</Text>
                             <BulletList
                                 styles={styles}
                                 items={[
@@ -1865,7 +1865,7 @@ const helpContentMap: HelpContent = {
                                 ]}
                             />
 
-                            <Text style={[styles.textHeadlineH2, styles.mt4]}>Learn More</Text>
+                            <Text style={[styles.textHeadlineH2, styles.mt4, styles.mb1]}>Learn More</Text>
                             <BulletList
                                 styles={styles}
                                 items={[
@@ -1955,7 +1955,7 @@ const helpContentMap: HelpContent = {
                         your workspace(s).
                     </Text>
 
-                    <Text style={[styles.textHeadlineH2, styles.mt4]}>Expenses &amp; Reports</Text>
+                    <Text style={[styles.textHeadlineH2, styles.mt4, styles.mb1]}>Expenses &amp; Reports</Text>
                     <BulletList
                         styles={styles}
                         items={[
@@ -1986,7 +1986,7 @@ const helpContentMap: HelpContent = {
                         ]}
                     />
 
-                    <Text style={[styles.textHeadlineH2, styles.mt4]}>Chats</Text>
+                    <Text style={[styles.textHeadlineH2, styles.mt4, styles.mb1]}>Chats</Text>
                     <BulletList
                         styles={styles}
                         items={[
@@ -2004,7 +2004,7 @@ const helpContentMap: HelpContent = {
                         ]}
                     />
 
-                    <Text style={[styles.textHeadlineH2, styles.mt4]}>To-Do</Text>
+                    <Text style={[styles.textHeadlineH2, styles.mt4, styles.mb1]}>To-Do</Text>
                     <BulletList
                         styles={styles}
                         items={[
@@ -2023,7 +2023,7 @@ const helpContentMap: HelpContent = {
                         ]}
                     />
 
-                    <Text style={[styles.textHeadlineH2, styles.mt4]}>Learn More</Text>
+                    <Text style={[styles.textHeadlineH2, styles.mt4, styles.mb1]}>Learn More</Text>
                     <BulletList
                         styles={styles}
                         items={[

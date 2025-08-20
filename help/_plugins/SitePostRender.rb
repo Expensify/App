@@ -242,6 +242,7 @@ module Jekyll
       # If a list follows immediately, don't add the normal bottom margin
       if %w[ul ol].include?(node.next_element&.name)
         classes << 'styles.mt4'
+        classes << 'styles.mb1'
       else
         classes << 'styles.mv4'
       end
