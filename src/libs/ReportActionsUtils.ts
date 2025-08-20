@@ -234,6 +234,10 @@ function isMovedTransactionAction(reportAction: OnyxInputOrEntry<ReportAction>):
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION);
 }
 
+function isMovedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MOVED);
+}
+
 function isPolicyChangeLogAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>> {
     return reportAction?.actionName ? POLICY_CHANGE_LOG_ARRAY.has(reportAction.actionName) : false;
 }
@@ -265,13 +269,6 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
     }
     // eslint-disable-next-line deprecation/deprecation
     return reportAction.originalMessage;
-}
-
-/**
- * Get the transaction ID from a money request report action
- */
-function getTransactionIDFromReportAction(reportAction: OnyxInputOrEntry<ReportAction>): string | undefined {
-    return isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : undefined;
 }
 
 function isExportIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION> {
@@ -1300,9 +1297,12 @@ function getOneTransactionThreadReportAction(
 
     const iouRequestActions = [];
     for (const action of reportActionsArray) {
-        // If the original message is a 'pay' IOU, it shouldn't be added to the transaction count.
+        // If the original message is a 'pay' IOU without IOUDetails, it shouldn't be added to the transaction count.
         // However, it is excluded from the matching function in order to display it properly, so we need to compare the type here.
-        if (!isIOUActionMatchingTransactionList(action, reportTransactionIDs, true) || getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+        if (
+            !isIOUActionMatchingTransactionList(action, reportTransactionIDs, true) ||
+            (getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !getOriginalMessage(action)?.IOUDetails)
+        ) {
             continue;
         }
 
@@ -1311,7 +1311,6 @@ function getOneTransactionThreadReportAction(
         if (
             actionType &&
             iouRequestTypesSet.has(actionType) &&
-            action.childReportID &&
             // Include deleted IOU reportActions if:
             // - they have an associated IOU transaction ID or
             // - the action is pending deletion and the user is offline
@@ -1343,7 +1342,11 @@ function getOneTransactionThreadReportAction(
  * Returns a reportID if there is exactly one transaction thread for the report, and undefined otherwise.
  */
 function getOneTransactionThreadReportID(...args: Parameters<typeof getOneTransactionThreadReportAction>): string | undefined {
-    return getOneTransactionThreadReportAction(...args)?.childReportID;
+    const reportAction = getOneTransactionThreadReportAction(...args);
+    if (reportAction) {
+        // Since we don't always create transaction thread optimistically, we return CONST.FAKE_REPORT_ID
+        return reportAction.childReportID ?? CONST.FAKE_REPORT_ID;
+    }
 }
 
 /**
@@ -1775,7 +1778,7 @@ function getReopenedMessage(): string {
 }
 
 function getReceiptScanFailedMessage() {
-    return translateLocal('receipt.scanFailed');
+    return translateLocal('iou.receiptScanningFailed');
 }
 
 function getUpdateRoomDescriptionFragment(reportAction: ReportAction): Message {
@@ -3031,7 +3034,6 @@ export {
     getSortedReportActionsForDisplay,
     getTextFromHtml,
     getTrackExpenseActionableWhisper,
-    getTransactionIDFromReportAction,
     getWhisperedTo,
     hasRequestFromCurrentAccount,
     isActionOfType,
@@ -3084,6 +3086,7 @@ export {
     isSentMoneyReportAction,
     isSplitBillAction,
     isTaskAction,
+    isMovedAction,
     isThreadParentMessage,
     isTrackExpenseAction,
     isTransactionThread,
