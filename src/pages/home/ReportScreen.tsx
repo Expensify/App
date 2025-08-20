@@ -795,9 +795,14 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    // @ts-expect-error TODO somebody messed up the types
-    const shouldShowWideRHP = route.name === SCREENS.SEARCH.REPORT_RHP && !isSmallScreenWidth && isTransactionThread(parentReportAction);
+    const shouldShowWideRHP =
+        // @ts-expect-error @TODO-RHP somebody messed up the types
+        route.name === SCREENS.SEARCH.REPORT_RHP &&
+        !isSmallScreenWidth &&
+        (isTransactionThread(parentReportAction) || parentReportAction?.childType === CONST.REPORT.TYPE.EXPENSE || parentReportAction?.childType === CONST.REPORT.TYPE.IOU);
+
     useShowWideRHPVersion(shouldShowWideRHP);
+
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
     // We aim to display a loader first, then fetch relevant reportActions, and finally show them.
