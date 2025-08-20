@@ -6,7 +6,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getReportOrDraftReport, getReportTransactions, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import {getAmount, getTransactionViolationsOfTransaction, isCardTransaction} from '@src/libs/TransactionUtils';
+import {getAmount, getCreated, getTransactionViolationsOfTransaction, isCardTransaction} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction, Policy, Report, Transaction} from '@src/types/onyx';
 
@@ -135,7 +135,7 @@ function mergeTransactionRequest(mergeTransactionID: string, mergeTransaction: M
     const params = {
         transactionID: mergeTransaction.targetTransactionID,
         transactionIDList: [mergeTransaction.sourceTransactionID],
-        created: targetTransaction.created,
+        created: getCreated(targetTransaction),
         merchant: mergeTransaction.merchant,
         amount: finalAmount,
         currency: mergeTransaction.currency,
