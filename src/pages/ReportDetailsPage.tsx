@@ -792,6 +792,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         removeTransaction,
         report,
         requestParentReportAction,
+        isReportArchived,
     ]);
 
     // A flag to indicate whether the user chose to delete the transaction or not
