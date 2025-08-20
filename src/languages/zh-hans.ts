@@ -3471,7 +3471,7 @@ const translations = {
             existingConnectionsDescription: ({connectionName}: ConnectionNameParams) =>
                 `由于您之前已连接到${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}，您可以选择重用现有连接或创建新连接。`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - 上次同步时间 ${formattedDate}`,
-            authenticationError: ({connectionName}: AuthenticationErrorParams) => `由于身份验证错误，无法连接到${connectionName}`,
+            authenticationError: ({connectionName}: AuthenticationErrorParams) => `由于身份验证错误，无法连接到${connectionName}。`,
             learnMore: '了解更多',
             memberAlternateText: '成员可以提交和批准报告。',
             adminAlternateText: '管理员对所有报告和工作区设置拥有完全编辑权限。',
