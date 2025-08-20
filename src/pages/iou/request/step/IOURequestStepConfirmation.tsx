@@ -35,6 +35,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
+import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import {getAttendees, getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints, hasReceipt, isScanRequest} from '@libs/TransactionUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
@@ -50,6 +51,7 @@ import {
     setMoneyRequestBillable,
     setMoneyRequestCategory,
     setMoneyRequestReceipt,
+    setMoneyRequestReimbursable,
     splitBill,
     splitBillAndOpenReport,
     startMoneyRequest,
@@ -131,6 +133,7 @@ function IOURequestStepConfirmation({
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${realPolicyID}`, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     /*
      * We want to use a report from the transaction if it exists
@@ -214,7 +217,7 @@ function IOURequestStepConfirmation({
         [transaction?.participants, iouType, personalDetails, reportAttributesDerived],
     );
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
-    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
+    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS) || !account?.shouldBlockTransactionThreadReportCreation;
     const formHasBeenSubmitted = useRef(false);
 
     useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
@@ -240,6 +243,13 @@ function IOURequestStepConfirmation({
             setMoneyRequestBillable(transactionID, defaultBillable);
         });
     }, [transactionIDs, defaultBillable]);
+
+    useEffect(() => {
+        const defaultReimbursable = isPolicyExpenseChat && isPaidGroupPolicy(policy) ? !!policy?.defaultReimbursable : true;
+        transactionIDs.forEach((transactionID) => {
+            setMoneyRequestReimbursable(transactionID, defaultReimbursable);
+        });
+    }, [transactionIDs, policy, isPolicyExpenseChat]);
 
     useEffect(() => {
         // Exit early if the transaction is still loading
@@ -366,10 +376,6 @@ function IOURequestStepConfirmation({
         backTo,
     ]);
 
-    const navigateToAddReceipt = useCallback(() => {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(action, iouType, initialTransactionID, reportID, Navigation.getActiveRouteWithoutParams()));
-    }, [iouType, initialTransactionID, reportID, action]);
-
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
@@ -485,6 +491,7 @@ function IOURequestStepConfirmation({
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
                         billable: item.billable,
+                        reimbursable: item.reimbursable,
                         actionableWhisperReportActionID: item.actionableWhisperReportActionID,
                         linkedTrackedExpenseReportAction: item.linkedTrackedExpenseReportAction,
                         linkedTrackedExpenseReportID: item.linkedTrackedExpenseReportID,
@@ -551,6 +558,7 @@ function IOURequestStepConfirmation({
                     tag: transaction.tag,
                     customUnit: transaction.comment?.customUnit,
                     billable: transaction.billable,
+                    reimbursable: transaction.reimbursable,
                     attendees: transaction.comment?.attendees,
                 },
             });
@@ -594,6 +602,7 @@ function IOURequestStepConfirmation({
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
                         billable: item.billable,
+                        reimbursable: item.reimbursable,
                         gpsPoints,
                         validWaypoints: Object.keys(item?.comment?.waypoints ?? {}).length ? getValidWaypoints(item.comment?.waypoints, true) : undefined,
                         actionableWhisperReportActionID: item.actionableWhisperReportActionID,
@@ -657,6 +666,7 @@ function IOURequestStepConfirmation({
                     splitShares: transaction.splitShares,
                     validWaypoints: getValidWaypoints(transaction.comment?.waypoints, true),
                     billable: transaction.billable,
+                    reimbursable: transaction.reimbursable,
                     attendees: transaction.comment?.attendees,
                 },
                 backToReport,
@@ -721,6 +731,7 @@ function IOURequestStepConfirmation({
                         receipt: currentTransactionReceiptFile,
                         existingSplitChatReportID: report?.reportID,
                         billable: transaction.billable,
+                        reimbursable: transaction.reimbursable,
                         category: transaction.category,
                         tag: transaction.tag,
                         currency: transaction.currency,
@@ -748,6 +759,7 @@ function IOURequestStepConfirmation({
                         tag: transaction.tag,
                         existingSplitChatReportID: report?.reportID,
                         billable: transaction.billable,
+                        reimbursable: transaction.reimbursable,
                         iouRequestType: transaction.iouRequestType,
                         splitShares: transaction.splitShares,
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs ?? [],
@@ -773,6 +785,7 @@ function IOURequestStepConfirmation({
                         category: transaction.category,
                         tag: transaction.tag,
                         billable: !!transaction.billable,
+                        reimbursable: !!transaction.reimbursable,
                         iouRequestType: transaction.iouRequestType,
                         splitShares: transaction.splitShares,
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs,
@@ -936,6 +949,13 @@ function IOURequestStepConfirmation({
         [currentTransactionID],
     );
 
+    const setReimbursable = useCallback(
+        (reimbursable: boolean) => {
+            setMoneyRequestReimbursable(currentTransactionID, reimbursable);
+        },
+        [currentTransactionID],
+    );
+
     // This loading indicator is shown because the transaction originalCurrency is being updated later than the component mounts.
     // To prevent the component from rendering with the wrong currency, we show a loading indicator until the correct currency is set.
     const isLoading = !!transaction?.originalCurrency;
@@ -1013,9 +1033,6 @@ function IOURequestStepConfirmation({
         showPreviousTransaction();
     };
 
-    const shouldShowThreeDotsButton =
-        requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isMovingTransactionFromTrackExpense;
-
     const shouldShowSmartScanFields =
         !!transaction?.receipt?.isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
 
@@ -1025,10 +1042,7 @@ function IOURequestStepConfirmation({
             testID={IOURequestStepConfirmation.displayName}
             headerGapStyles={isDraggingOver ? [styles.dropWrapper] : []}
         >
-            <DragAndDropProvider
-                setIsDraggingOver={setIsDraggingOver}
-                isDisabled={!shouldShowThreeDotsButton}
-            >
+            <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}
@@ -1114,6 +1128,8 @@ function IOURequestStepConfirmation({
                         payeePersonalDetails={payeePersonalDetails}
                         isConfirmed={isConfirmed}
                         isConfirming={isConfirming}
+                        iouIsReimbursable={transaction?.reimbursable}
+                        onToggleReimbursable={setReimbursable}
                         expensesNumber={transactions.length}
                         isReceiptEditable
                     />

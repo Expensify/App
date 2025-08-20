@@ -143,6 +143,7 @@ import type {
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
     MissingPropertyParams,
+    MovedActionParams,
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
     MovedTransactionParams,
@@ -293,6 +294,7 @@ import type {
     WorkEmailResendCodeParams,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
+    WorkspaceMembersCountParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
@@ -644,6 +646,8 @@ const translations = {
         getTheApp: 'Pobierz aplikację',
         scanReceiptsOnTheGo: 'Skanuj paragony za pomocą telefonu',
         headsUp: 'Uwaga!',
+        submitTo: 'Wyślij do',
+        forwardTo: 'Przekaż do',
         merge: 'Scal',
         unstableInternetConnection: 'Niestabilne połączenie internetowe. Sprawdź swoją sieć i spróbuj ponownie.',
     },
@@ -984,6 +988,11 @@ const translations = {
             'Plik, który przesłałeś, jest pusty lub zawiera nieprawidłowe dane. Upewnij się, że plik jest poprawnie sformatowany i zawiera niezbędne informacje przed ponownym przesłaniem.',
         importSpreadsheet: 'Importuj arkusz kalkulacyjny',
         downloadCSV: 'Pobierz CSV',
+        importMemberConfirmation: () => ({
+            one: `Potwierdź poniższe szczegóły dotyczące nowego członka przestrzeni roboczej, który zostanie dodany w ramach tego przesyłania. Istniejący członkowie nie otrzymają aktualizacji ról ani wiadomości z zaproszeniem.`,
+            other: (count: number) =>
+                `Potwierdź poniższe szczegóły dotyczące ${count} nowych członków przestrzeni roboczej, którzy zostaną dodani w ramach tego przesyłania. Istniejący członkowie nie otrzymają aktualizacji ról ani wiadomości z zaproszeniem.`,
+        }),
     },
     receipt: {
         upload: 'Prześlij paragon',
@@ -1079,6 +1088,12 @@ const translations = {
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `usunął wydatek (${amount} dla ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `przeniósł wydatek${reportName ? `z ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `przeniesiono ten wydatek${reportName ? `do <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
+            if (shouldHideMovedReportUrl) {
+                return `przeniósł ten raport do przestrzeni roboczej <a href="${newParentReportUrl}">${toPolicyName}</a>`;
+            }
+            return `przeniósł ten <a href="${movedReportUrl}">raport</a> do przestrzeni roboczej <a href="${newParentReportUrl}">${toPolicyName}</a>`;
+        },
         unreportedTransaction: 'przeniósł ten wydatek do twojej przestrzeni osobistej',
         pendingMatchWithCreditCard: 'Paragon oczekuje na dopasowanie z transakcją kartą',
         pendingMatch: 'Oczekujące dopasowanie',
@@ -1579,6 +1594,7 @@ const translations = {
             testCrash: 'Test awarii',
             resetToOriginalState: 'Przywróć do stanu początkowego',
             usingImportedState: 'Używasz zaimportowanego stanu. Naciśnij tutaj, aby go wyczyścić.',
+            shouldBlockTransactionThreadReportCreation: 'Blokuj tworzenie raportów wątku transakcji',
             debugMode: 'Tryb debugowania',
             invalidFile: 'Nieprawidłowy plik',
             invalidFileDescription: 'Plik, który próbujesz zaimportować, jest nieprawidłowy. Spróbuj ponownie.',
@@ -2376,14 +2392,14 @@ const translations = {
             },
 
             setupCategoriesAndTags: {
-                title: ({workspaceCategoriesLink, workspaceMoreFeaturesLink}) => `Stel [categorieën](${workspaceCategoriesLink}) en [tags](${workspaceMoreFeaturesLink}) in`,
+                title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Stel [categorieën](${workspaceCategoriesLink}) en [tags](${workspaceTagsLink}) in`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
                     '*Stel categorieën en tags in* zodat uw team uitgaven kan coderen voor eenvoudige rapportage.\n' +
                     '\n' +
                     `Importeer ze automatisch door [uw boekhoudsoftware te verbinden](${workspaceAccountingLink}), of stel ze handmatig in via uw [werkruimte-instellingen](${workspaceCategoriesLink}).`,
             },
             setupTagsTask: {
-                title: ({workspaceMoreFeaturesLink}) => `Stel [tags](${workspaceMoreFeaturesLink}) in`,
+                title: ({workspaceTagsLink}) => `Stel [tags](${workspaceTagsLink}) in`,
                 description: ({workspaceMoreFeaturesLink}) =>
                     'Gebruik tags om extra uitgavendetails toe te voegen zoals projecten, klanten, locaties en afdelingen. Als u meerdere niveaus van tags nodig heeft, kunt u upgraden naar het Control-abonnement.\n' +
                     '\n' +
@@ -3540,6 +3556,9 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: 'Zautomatyzuj wydatki na podróże i dostawę posiłków w swojej organizacji.',
+                autoRemove: 'Zaproś nowych członków przestrzeni roboczej do Ubera dla Firm',
+                autoInvite: 'Dezaktywuj usuniętych członków przestrzeni roboczej w Uberze dla Firm',
+                manageInvites: 'Zarządzaj zaproszeniami',
             },
         },
         perDiem: {
@@ -4669,6 +4688,7 @@ const translations = {
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Rozłącz Uber',
                 disconnectText: 'Aby wyłączyć tę funkcję, najpierw rozłącz integrację Uber for Business.',
+                description: 'Czy na pewno chcesz rozłączyć tę integrację?',
                 confirmText: 'Rozumiem',
             },
             workflowWarningModal: {
@@ -4916,7 +4936,7 @@ const translations = {
             },
             addedWithPrimary: 'Niektórzy członkowie zostali dodani z ich głównymi loginami.',
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Dodane przez dodatkowe logowanie ${secondaryLogin}.`,
-            membersListTitle: 'Katalog wszystkich członków przestrzeni roboczej.',
+            workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Łączna liczba członków przestrzeni roboczej: ${count}`,
             importMembers: 'Importuj członków',
         },
         card: {
@@ -5543,6 +5563,17 @@ const translations = {
                     one: '1 dzień',
                     other: (count: number) => `${count} dni`,
                 }),
+                cashExpenseDefault: 'Domyślny wydatek gotówkowy',
+                cashExpenseDefaultDescription:
+                    'Wybierz, jak powinny być tworzone wydatki gotówkowe. Wydatek jest uznawany za gotówkowy, jeśli nie jest importowaną transakcją kartą firmową. Obejmuje to ręcznie tworzone wydatki, paragony, diety, odległości i czas pracy.',
+                reimbursableDefault: 'Zwracany',
+                reimbursableDefaultDescription: 'Wydatki są zazwyczaj zwracane pracownikom',
+                nonReimbursableDefault: 'Niezwracany',
+                nonReimbursableDefaultDescription: 'Wydatki są czasami zwracane pracownikom',
+                alwaysReimbursable: 'Zawsze zwracany',
+                alwaysReimbursableDescription: 'Wydatki są zawsze zwracane pracownikom',
+                alwaysNonReimbursable: 'Nigdy nie zwracany',
+                alwaysNonReimbursableDescription: 'Wydatki nigdy nie są zwracane pracownikom',
                 billableDefault: 'Domyślne do rozliczenia',
                 billableDefaultDescription: ({tagsPageLink}: BillableDefaultDescriptionParams) =>
                     `<muted-text>Wybierz, czy wydatki gotówkowe i kartą kredytową powinny być domyślnie rozliczane. Rozliczane wydatki można włączyć lub wyłączyć w <a href="${tagsPageLink}">tagi</a>.</muted-text>`,
@@ -5831,6 +5862,8 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `zaktualizowano "Ponowne obciążenie klientów kosztami" na "${newValue}" (wcześniej "${oldValue}")`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `zaktualizowano "Domyślny wydatek gotówkowy" na "${newValue}" (wcześniej "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `zmieniono "Wymuś domyślne tytuły raportów" ${value ? 'na' : 'wyłączony'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `zaktualizował nazwę tego miejsca pracy na "${newName}" (wcześniej "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -6005,6 +6038,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nigdy',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Ostatni miesiąc',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ten miesiąc',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Ostatni miesiąc',
                 },
             },
@@ -6032,18 +6066,19 @@ const translations = {
             },
             current: 'Obecny',
             past: 'Przeszłość',
-            submitted: 'Data złożenia',
-            approved: 'Data zatwierdzenia',
-            paid: 'Data płatności',
-            exported: 'Data eksportu',
-            posted: 'Data opublikowania',
-            withdrawn: 'Data wycofania',
+            submitted: 'Złożone',
+            approved: 'Zatwierdzone',
+            paid: 'Zapłacone',
+            exported: 'Eksportowane',
+            posted: 'Opublikowane',
+            withdrawn: 'Wycofane',
             billable: 'Podlegające fakturowaniu',
             reimbursable: 'Podlegające zwrotowi',
             groupBy: {
-                reports: 'Raport',
-                from: 'Od',
-                card: 'Karta',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Raport',
+                [CONST.SEARCH.GROUP_BY.FROM]: 'Od',
+                [CONST.SEARCH.GROUP_BY.CARD]: 'Karta',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Identyfikator wypłaty',
             },
             feed: 'Kanal',
             withdrawalType: {
@@ -6659,9 +6694,8 @@ const translations = {
                     `Zakwestionowałeś opłatę w wysokości ${amountOwed} na karcie kończącej się na ${cardEnding}. Twoje konto zostanie zablokowane do czasu rozwiązania sporu z bankiem.`,
             },
             cardAuthenticationRequired: {
-                title: 'Nie można było obciążyć Twojej karty',
-                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) =>
-                    `Twoja karta płatnicza nie została w pełni uwierzytelniona. Proszę ukończyć proces uwierzytelniania, aby aktywować kartę płatniczą kończącą się na ${cardEnding}.`,
+                title: 'Twoja karta płatnicza nie została w pełni uwierzytelniona.',
+                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) => `Dokończ proces uwierzytelnienia, aby aktywować kartę kończącą się na ${cardEnding}.`,
             },
             insufficientFunds: {
                 title: 'Nie można było obciążyć Twojej karty',
