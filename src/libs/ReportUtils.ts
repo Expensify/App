@@ -4300,7 +4300,7 @@ function canEditFieldOfMoneyRequest(
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
-        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID)) {
+        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID) && isExpenseReport(moneyRequestReport)) {
             return false;
         }
 
