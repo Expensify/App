@@ -244,6 +244,7 @@ type OneOnOneIOUReport = OnyxTypes.Report | undefined | null;
 
 type BaseTransactionParams = {
     amount: number;
+    modifiedAmount?: number;
     currency: string;
     created: string;
     merchant: string;
@@ -3339,6 +3340,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     const {
         attendees,
         amount,
+        modifiedAmount,
         comment = '',
         currency,
         source = '',
@@ -3429,6 +3431,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         policy,
         transactionParams: {
             amount: isExpenseReport(iouReport) ? -amount : amount,
+            ...(modifiedAmount !== undefined && {modifiedAmount: isExpenseReport(iouReport) ? -modifiedAmount : modifiedAmount}),
             currency,
             reportID: iouReport.reportID,
             comment,
@@ -12204,7 +12207,8 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
                 policyTags,
             },
             transactionParams: {
-                amount: splitExpense.amount ?? 0,
+                amount: Math.abs(originalTransaction?.amount ?? 0),
+                modifiedAmount: splitExpense.amount ?? 0,
                 currency: draftTransaction?.currency ?? CONST.CURRENCY.USD,
                 created: splitExpense.created,
                 merchant: draftTransaction?.merchant ?? '',
