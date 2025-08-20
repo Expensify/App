@@ -117,6 +117,7 @@ import {
     arePaymentsEnabled,
     canSendInvoiceFromWorkspace,
     getActivePolicies,
+    getCleanedTagName,
     getForwardsToAccount,
     getManagerAccountEmail,
     getManagerAccountID,
@@ -173,6 +174,7 @@ import {
     getWorkspaceReportFieldAddMessage,
     getWorkspaceReportFieldDeleteMessage,
     getWorkspaceReportFieldUpdateMessage,
+    getWorkspaceTagUpdateMessage,
     getWorkspaceUpdateFieldMessage,
     isActionableJoinRequest,
     isActionableJoinRequestPending,
@@ -205,6 +207,7 @@ import {
     isRoomChangeLogAction,
     isSentMoneyReportAction,
     isSplitBillAction as isSplitBillReportAction,
+    isTagModificationAction,
     isThreadParentMessage,
     isTrackExpenseAction,
     isTransactionThread,
@@ -4297,7 +4300,10 @@ function canEditFieldOfMoneyRequest(
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
-        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID)) {
+        // Unreported transaction from OldDot can have the reportID as an empty string
+        const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
+        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID) && !isUnreportedExpense) {
             return false;
         }
 
@@ -4306,9 +4312,6 @@ function canEditFieldOfMoneyRequest(
             return false;
         }
         const isOwner = moneyRequestReport?.ownerAccountID === currentUserAccountID;
-
-        // Unreported transaction from OldDot can have the reportID as an empty string
-        const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
         if (isInvoiceReport(moneyRequestReport) && !isUnreportedExpense) {
             return (
@@ -5233,7 +5236,7 @@ function getReportNameInternal({
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        return translateLocal('iou.unreportedTransaction');
+        return getUnreportedTransactionMessage();
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
@@ -5252,6 +5255,10 @@ function getReportNameInternal({
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
         return getPolicyChangeMessage(parentReportAction);
+    }
+
+    if (parentReportAction?.actionName && isTagModificationAction(parentReportAction?.actionName)) {
+        return getCleanedTagName(getWorkspaceTagUpdateMessage(parentReportAction) ?? '');
     }
 
     if (isMovedAction(parentReportAction)) {
@@ -5519,7 +5526,7 @@ function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers:
 /**
  * Gets the parent navigation subtitle for the report
  */
-function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigationSummaryParams {
+function getParentNavigationSubtitle(report: OnyxEntry<Report>, isReportArchived = false): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
     if (isEmptyObject(parentReport)) {
         const ownerAccountID = report?.ownerAccountID;
@@ -5543,9 +5550,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigatio
     if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
         let reportName = `${getPolicyName({report: parentReport})} & ${getInvoicePayerName(parentReport)}`;
 
-        // This will get removed as part of https://github.com/Expensify/App/issues/59961
-        // eslint-disable-next-line deprecation/deprecation
-        if (isArchivedNonExpenseReport(parentReport, !!getReportNameValuePairs(parentReport?.reportID)?.private_isArchived)) {
+        if (isArchivedNonExpenseReport(parentReport, isReportArchived)) {
             reportName += ` (${translateLocal('common.archived')})`;
         }
 
@@ -6253,6 +6258,15 @@ function getMovedTransactionMessage(report: OnyxEntry<Report>) {
     const message = translateLocal('iou.movedTransaction', {
         reportUrl,
         reportName,
+    });
+    return message;
+}
+
+function getUnreportedTransactionMessage() {
+    const selfDMReportID = findSelfDMReportID();
+    const reportUrl = `${environmentURL}/r/${selfDMReportID}`;
+    const message = translateLocal('iou.unreportedTransaction', {
+        reportUrl,
     });
     return message;
 }
@@ -8219,7 +8233,11 @@ type ReportErrorsAndReportActionThatRequiresAttention = {
     reportAction?: OnyxEntry<ReportAction>;
 };
 
-function getAllReportActionsErrorsAndReportActionThatRequiresAttention(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): ReportErrorsAndReportActionThatRequiresAttention {
+function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
+    report: OnyxEntry<Report>,
+    reportActions: OnyxEntry<ReportActions>,
+    isReportArchived = false,
+): ReportErrorsAndReportActionThatRequiresAttention {
     const reportActionsArray = Object.values(reportActions ?? {}).filter((action) => !isDeletedAction(action));
     const reportActionErrors: ErrorFields = {};
     let reportAction: OnyxEntry<ReportAction>;
@@ -8238,11 +8256,7 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(report: O
             ? undefined
             : allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
 
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
-
-    if (!isArchivedReport(reportNameValuePairs)) {
+    if (!isReportArchived) {
         if (wasActionTakenByCurrentUser(parentReportAction) && isTransactionThread(parentReportAction)) {
             const transactionID = isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : null;
             const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -8270,9 +8284,9 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(report: O
 /**
  * Get an object of error messages keyed by microtime by combining all error objects related to the report.
  */
-function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): Errors {
+function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>, isReportArchived = false): Errors {
     const reportErrorFields = report?.errorFields ?? {};
-    const {errors: reportActionErrors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+    const {errors: reportActionErrors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, isReportArchived);
 
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
     const errorSources = {
@@ -9859,6 +9873,10 @@ function hasMissingPaymentMethod(userWalletTierName: string | undefined, iouRepo
  * - we have one, but we can't add more transactions to it due to: report is approved or settled
  */
 function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxInputOrEntry<Report> | undefined, chatReport: OnyxInputOrEntry<Report>, isScanRequest: boolean): boolean {
+    if (existingIOUReport && !!existingIOUReport.errorFields?.createChat) {
+        return true;
+    }
+
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddTransaction(existingIOUReport) || (isScanRequest && isASAPSubmitBetaEnabled);
 }
@@ -11270,13 +11288,13 @@ function generateReportAttributes({
     chatReport,
     reportActions,
     transactionViolations,
-    reportNameValuePairs,
+    isReportArchived = false,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
     reportActions?: OnyxCollection<ReportActions>;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
-    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+    isReportArchived: boolean;
 }) {
     const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`];
     const parentReportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
@@ -11285,11 +11303,10 @@ function generateReportAttributes({
     const doesReportHasViolations = hasReportViolations(report?.reportID);
     const hasViolationsToDisplayInLHN = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
     const hasAnyTypeOfViolations = hasViolationsToDisplayInLHN || (!isReportSettled && isCurrentUserReportOwner && doesReportHasViolations);
-    const reportErrors = getAllReportErrors(report, reportActionsList);
+    const reportErrors = getAllReportErrors(report, reportActionsList, isReportArchived);
     const hasErrors = Object.entries(reportErrors ?? {}).length > 0;
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList);
     const parentReportAction = report?.parentReportActionID ? parentReportActionsList?.[report.parentReportActionID] : undefined;
-    const isReportArchived = !!reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]?.private_isArchived;
     const requiresAttention = requiresAttentionFromCurrentUser(report, parentReportAction, isReportArchived);
 
     return {
@@ -11301,7 +11318,6 @@ function generateReportAttributes({
         oneTransactionThreadReportID,
         parentReportAction,
         requiresAttention,
-        isReportArchived,
     };
 }
 
@@ -11765,6 +11781,7 @@ export {
     getReportSubtitlePrefix,
     getPolicyChangeMessage,
     getMovedTransactionMessage,
+    getUnreportedTransactionMessage,
     getExpenseReportStateAndStatus,
     generateReportName,
     navigateToLinkedReportAction,
