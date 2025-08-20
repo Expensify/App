@@ -367,11 +367,11 @@ type MenuItemBaseProps = {
     /** Whether to teleport the portal to the modal layer */
     shouldTeleportPortalToModalLayer?: boolean;
 
-    /** The value to copy in copy to clipboard action. Must be used in conjunction with `copiable=true`. Default value is `title` prop. */
+    /** The value to copy in copy to clipboard action. Must be used in conjunction with `copyable=true`. Default value is `title` prop. */
     copyValue?: string;
 
     /** Should enable copy to clipboard action */
-    copiable?: boolean;
+    copyable?: boolean;
 
     /** Plaid image for the bank */
     plaidUrl?: string;
@@ -505,7 +505,7 @@ function MenuItem(
         shouldTeleportPortalToModalLayer,
         plaidUrl,
         copyValue = title,
-        copiable = false,
+        copyable = false,
         hasSubMenuItems = false,
     }: MenuItemProps,
     ref: PressableRef,
@@ -970,7 +970,7 @@ function MenuItem(
                                                         additionalStyles={styles.alignSelfCenter}
                                                     />
                                                 )}
-                                                {copiable && deviceHasHoverSupport && !interactive && isHovered && !!copyValue && (
+                                                {copyable && deviceHasHoverSupport && !interactive && isHovered && !!copyValue && (
                                                     <View style={styles.justifyContentCenter}>
                                                         <CopyTextToClipboard
                                                             urlToCopy={copyValue}

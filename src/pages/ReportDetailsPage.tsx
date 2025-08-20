@@ -881,7 +881,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                                 copyValue={base62ReportID}
                                 interactive={false}
                                 shouldBlockSelection
-                                copiable
+                                copyable
                             />
                             <MenuItemWithTopDescription
                                 title={report.reportID}
@@ -889,7 +889,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                                 copyValue={report.reportID}
                                 interactive={false}
                                 shouldBlockSelection
-                                copiable
+                                copyable
                             />
                         </>
                     )}

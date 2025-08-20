@@ -231,7 +231,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                         copyValue={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}
                                         description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
                                         interactive={false}
-                                        copiable
+                                        copyable
                                     />
                                 </View>
                             ) : null}

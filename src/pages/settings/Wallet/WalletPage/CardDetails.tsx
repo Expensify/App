@@ -49,7 +49,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
                     title={pan}
                     interactive={false}
                     copyValue={pan}
-                    copiable
+                    copyable
                 />
             )}
             {expiration?.length > 0 && (
@@ -57,7 +57,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
                     description={translate('cardPage.cardDetails.expiration')}
                     title={expiration}
                     interactive={false}
-                    copiable
+                    copyable
                 />
             )}
             {cvv?.length > 0 && (
@@ -65,7 +65,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
                     description={translate('cardPage.cardDetails.cvv')}
                     title={cvv}
                     interactive={false}
-                    copiable
+                    copyable
                 />
             )}
             {pan?.length > 0 && (
@@ -75,7 +75,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         title={getFormattedAddress(privatePersonalDetails || defaultPrivatePersonalDetails)}
                         interactive={false}
-                        copiable
+                        copyable
                     />
                     <TextLink
                         style={[styles.link, styles.mh5, styles.mb3]}
