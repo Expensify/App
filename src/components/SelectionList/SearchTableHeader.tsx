@@ -145,7 +145,7 @@ function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, groupBy
         default:
             return null;
     }
-};
+}
 
 type SearchTableHeaderProps = {
     data: OnyxTypes.SearchResults['data'];

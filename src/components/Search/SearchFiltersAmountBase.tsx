@@ -14,9 +14,9 @@ import {updateAdvancedFilters} from '@libs/actions/Search';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {TranslationPaths} from '@src/languages/types';
 import type {SearchAmountFilterKeys} from './types';
 
 function SearchFiltersAmountBase({title, filterKey, testID}: {title: TranslationPaths; filterKey: SearchAmountFilterKeys; testID: string}) {
@@ -36,7 +36,10 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
         const greaterThanBackendAmount = greater ? convertToBackendAmount(Number(greater)) : '';
         const less = values[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`];
         const lessThanBackendAmount = less ? convertToBackendAmount(Number(less)) : '';
-        updateAdvancedFilters({[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`]: greaterThanBackendAmount?.toString(), [`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`]: lessThanBackendAmount?.toString()});
+        updateAdvancedFilters({
+            [`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`]: greaterThanBackendAmount?.toString(),
+            [`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`]: lessThanBackendAmount?.toString(),
+        });
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 

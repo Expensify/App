@@ -1,6 +1,6 @@
 import React from 'react';
-import CONST from '@src/CONST';
 import SearchFiltersAmountBase from '@components/Search/SearchFiltersAmountBase';
+import CONST from '@src/CONST';
 
 function SearchFiltersTotalPage() {
     return (
