@@ -3,6 +3,7 @@ import {startTransition, use, useLayoutEffect, useState} from 'react';
 
 /**
  * This is a wrapper component that allows us to defer rendering children and do it in the background with the use of startTransition.
+ * Caution: To achieve performance benefits from this component you have to wrap it in a Suspense component.
  */
 function Deferred({children}: PropsWithChildren) {
     const [{promise, resolve}] = useState(() => {
@@ -27,7 +28,7 @@ function Deferred({children}: PropsWithChildren) {
         return null;
     }
 
-    // Suspend rendering children until the callback resolves. To achieve deferring we have to wrap Deferred component with Suspense that will catch this use(promise)
+    // Suspend rendering children until the callback resolves. This promise will be caught by the parent Suspense component.
     use(promise);
     return children;
 }
