@@ -1,8 +1,8 @@
-export enum FPAttributeFormat {
+enum FPAttributeFormat {
     ClearText = 1,
 }
 
-export class FP {
+class FP {
     static getInstance(): FP {
         return new FP();
     }
@@ -29,3 +29,5 @@ export class FP {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     setCustomEvent(): void {}
 }
+
+export default {FP, FPAttributeFormat};
