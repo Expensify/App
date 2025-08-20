@@ -49,7 +49,8 @@ function resetHasReadRequiredDataFromStorage() {
     });
 }
 
-Onyx.connect({
+// Use connectWithoutView since this doesn't affect to any UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         authToken = val?.authToken ?? null;
@@ -59,7 +60,8 @@ Onyx.connect({
     },
 });
 
-Onyx.connect({
+// Use connectWithoutView since this doesn't affect to any UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.CREDENTIALS,
     callback: (val) => {
         credentials = val ?? null;
@@ -69,7 +71,8 @@ Onyx.connect({
 
 // We subscribe to the online/offline status of the network to determine when we should fire off API calls
 // vs queueing them for later.
-Onyx.connect({
+// Use connectWithoutView since this doesn't affect to any UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
@@ -100,7 +103,7 @@ function getAuthToken(): string | null | undefined {
 function isSupportRequest(command: string): boolean {
     return [
         WRITE_COMMANDS.OPEN_APP,
-        WRITE_COMMANDS.SEARCH,
+        READ_COMMANDS.SEARCH,
         WRITE_COMMANDS.UPDATE_NEWSLETTER_SUBSCRIPTION,
         WRITE_COMMANDS.OPEN_REPORT,
         SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP,

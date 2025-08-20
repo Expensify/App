@@ -64,7 +64,7 @@ function VerifyIdentity({onBackButtonPress}: VerifyIdentityProps) {
             wrapperID={VerifyIdentity.displayName}
             headerTitle={translate('onfidoStep.verifyIdentity')}
             handleBackButtonPress={onBackButtonPress}
-            startStepIndex={2}
+            startStepIndex={3}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
             enableEdgeToEdgeBottomSafeAreaPadding
         >

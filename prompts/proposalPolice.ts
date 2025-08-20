@@ -13,8 +13,9 @@ const PROPOSAL_POLICE_TEMPLATES = {
     getDuplicateCheckWithdrawMessage: (): string => {
         return '#### 🚫 Duplicated proposal withdrawn by 🤖 ProposalPolice.';
     },
-    getDuplicateCheckNoticeMessage: (proposalAuthor: string | undefined): string => {
-        return `⚠️ @${proposalAuthor} Your proposal is a duplicate of an already existing proposal and has been automatically withdrawn to prevent spam. Please review the existing proposals before submitting a new one.`;
+    getDuplicateCheckNoticeMessage: (proposalAuthor: string | undefined, originalProposalURL?: string): string => {
+        const existingProposalWithURL = originalProposalURL ? `[existing proposal](${originalProposalURL})` : 'existing proposal';
+        return `⚠️ @${proposalAuthor} Your proposal is a duplicate of an already ${existingProposalWithURL} and has been automatically withdrawn to prevent spam. Please review the existing proposals before submitting a new one.`;
     },
 };
 
