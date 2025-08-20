@@ -115,7 +115,6 @@ const defaultOnFormatAmount = (amount: number, currency?: string) => convertToFr
 /**
  * Specialized money amount input with currency and money amount formatting.
  */
-<<<<<<< HEAD
 function MoneyRequestAmountInput(
     {
         amount = 0,
@@ -146,36 +145,6 @@ function MoneyRequestAmountInput(
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
-=======
-function MoneyRequestAmountInput({
-    amount = 0,
-    currency = CONST.CURRENCY.USD,
-    isCurrencyPressable = true,
-    onCurrencyButtonPress,
-    onAmountChange,
-    prefixCharacter = '',
-    hideCurrencySymbol = false,
-    moneyRequestAmountInputRef,
-    disableKeyboard = true,
-    onFormatAmount = defaultOnFormatAmount,
-    formatAmountOnBlur,
-    maxLength,
-    hideFocusedState = true,
-    shouldKeepUserInput = false,
-    shouldShowBigNumberPad = false,
-    inputStyle,
-    autoGrow = true,
-    autoGrowExtraSpace,
-    contentWidth,
-    testID,
-    submitBehavior,
-    shouldApplyPaddingToContainer = false,
-    shouldUseDefaultLineHeightForPrefix = true,
-    shouldWrapInputInContainer = true,
-    forwardedRef,
-    ...props
-}: MoneyRequestAmountInputProps) {
->>>>>>> 6ddd1784ffe (Prettier run)
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
     const decimals = getCurrencyDecimals(currency);

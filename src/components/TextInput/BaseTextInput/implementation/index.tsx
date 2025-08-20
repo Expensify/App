@@ -32,7 +32,6 @@ import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
-<<<<<<< HEAD
 function BaseTextInput(
     {
         label = '',
@@ -86,59 +85,6 @@ function BaseTextInput(
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
-=======
-function BaseTextInput({
-    label = '',
-    /**
-     * To be able to function as either controlled or uncontrolled component we should not
-     * assign a default prop value for `value` or `defaultValue` props
-     */
-    value = undefined,
-    defaultValue = undefined,
-    placeholder = '',
-    errorText = '',
-    icon = null,
-    iconLeft = null,
-    textInputContainerStyles,
-    shouldApplyPaddingToContainer = true,
-    touchableInputWrapperStyle,
-    containerStyles,
-    inputStyle,
-    forceActiveLabel = false,
-    disableKeyboard = false,
-    autoGrow = false,
-    autoGrowHeight = false,
-    maxAutoGrowHeight,
-    hideFocusedState = false,
-    maxLength = undefined,
-    hint = '',
-    onInputChange = () => {},
-    multiline = false,
-    shouldInterceptSwipe = false,
-    autoCorrect = true,
-    prefixCharacter = '',
-    suffixCharacter = '',
-    inputID,
-    type = 'default',
-    excludedMarkdownStyles = [],
-    shouldShowClearButton = false,
-    shouldHideClearButton = true,
-    shouldUseDisabledStyles = true,
-    prefixContainerStyle = [],
-    prefixStyle = [],
-    suffixContainerStyle = [],
-    suffixStyle = [],
-    contentWidth,
-    loadingSpinnerStyle,
-    uncontrolled = false,
-    placeholderTextColor,
-    onClearInput,
-    iconContainerStyle,
-    shouldUseDefaultLineHeightForPrefix = true,
-    ref,
-    ...inputProps
-}: BaseTextInputProps) {
->>>>>>> 7acd72ff71c (Prettier run)
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
     const isMarkdownEnabled = type === 'markdown';
     const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
