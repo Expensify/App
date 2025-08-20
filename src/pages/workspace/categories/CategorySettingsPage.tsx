@@ -11,7 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -57,6 +57,7 @@ function CategorySettingsPage({
     const {translate} = useLocalize();
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
     const policy = usePolicy(policyID);
+    const {environmentURL} = useEnvironment();
 
     const policyCategory = policyCategories?.[categoryName] ?? Object.values(policyCategories ?? {}).find((category) => category.previousCategoryName === categoryName);
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -303,20 +304,16 @@ function CategorySettingsPage({
                                     Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_APPROVER.getRoute(policyID, policyCategory.name));
                                 }}
                                 shouldShowRightIcon
-                                // disabled={approverDisabled}
+                                disabled={approverDisabled}
+                                helperText={
+                                    approverDisabled
+                                        ? translate('workspace.rules.categoryRules.enableWorkflows', {
+                                              moreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`,
+                                          })
+                                        : undefined
+                                }
+                                shouldParseHelperText
                             />
-                            {approverDisabled && (
-                                <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mv2, styles.mh5]}>
-                                    <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.goTo')}</Text>{' '}
-                                    <TextLink
-                                        style={[styles.link, styles.label]}
-                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID))}
-                                    >
-                                        {translate('workspace.common.moreFeatures')}
-                                    </TextLink>{' '}
-                                    <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.andEnableWorkflows')}</Text>
-                                </Text>
-                            )}
                             {!!policy?.tax?.trackingEnabled && (
                                 <MenuItemWithTopDescription
                                     title={defaultTaxRateText}
