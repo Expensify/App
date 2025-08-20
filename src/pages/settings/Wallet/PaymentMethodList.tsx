@@ -68,9 +68,6 @@ type PaymentMethodListProps = {
     /** Whether the add bank account button should be shown on the list */
     shouldShowAddBankAccount?: boolean;
 
-    /** Whether the add Bank account button be shown on the list */
-    shouldShowAddBankAccountButton?: boolean;
-
     /** Whether the assigned cards should be shown on the list */
     shouldShowAssignedCards?: boolean;
 
@@ -172,7 +169,6 @@ function PaymentMethodList({
     listHeaderComponent,
     onPress,
     shouldShowSelectedState = false,
-    shouldShowAddBankAccountButton = false,
     shouldShowAddBankAccount = true,
     shouldShowAssignedCards = false,
     selectedMethodID = '',
@@ -383,25 +379,16 @@ function PaymentMethodList({
     }, [isUserValidated, onAddBankAccountPress]);
 
     const renderListFooterComponent = useCallback(
-        () =>
-            shouldShowAddBankAccountButton ? (
-                <Button
-                    key="addBankAccountButton"
-                    text={translate('bankAccount.addBankAccount')}
-                    large
-                    success
-                    onPress={onAddBankAccountPress}
-                />
-            ) : (
-                <MenuItem
-                    onPress={onPressItem}
-                    title={translate('bankAccount.addBankAccount')}
-                    icon={Expensicons.Plus}
-                    wrapperStyle={[styles.paymentMethod, listItemStyle]}
-                />
-            ),
+        () => (
+            <MenuItem
+                onPress={onPressItem}
+                title={translate('bankAccount.addBankAccount')}
+                icon={Expensicons.Plus}
+                wrapperStyle={[styles.paymentMethod, listItemStyle]}
+            />
+        ),
 
-        [shouldShowAddBankAccountButton, onPressItem, translate, styles.paymentMethod, listItemStyle, onAddBankAccountPress],
+        [onPressItem, translate, styles.paymentMethod, listItemStyle],
     );
 
     const itemsToRender = useMemo(() => {

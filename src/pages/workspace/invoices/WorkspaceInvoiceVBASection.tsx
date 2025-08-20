@@ -151,13 +151,12 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
             subtitleMuted
         >
             <PaymentMethodList
-                shouldShowAddBankAccountButton={!hasBankAccount}
                 onPress={paymentMethodPressed}
                 onAddBankAccountPress={onAddBankAccountPress}
                 invoiceTransferBankAccountID={transferBankAccountID}
                 activePaymentMethodID={transferBankAccountID}
                 actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
-                style={[styles.mt5, hasBankAccount && [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
+                style={[styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}
                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
             />
             <Popover
