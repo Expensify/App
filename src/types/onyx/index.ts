@@ -27,6 +27,7 @@ import type {OutstandingReportsByPolicyIDDerivedValue, ReportAttributesDerivedVa
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Download from './Download';
+import type DraftReportComments from './DraftReportComments';
 import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
@@ -36,6 +37,7 @@ import type {FundList} from './Fund';
 import type Fund from './Fund';
 import type HybridApp from './HybridApp';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
+import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -253,6 +255,7 @@ export type {
     SaveSearch,
     RecentSearchItem,
     ImportedSpreadsheet,
+    ImportedSpreadsheetMemberData,
     Onboarding,
     OnboardingPurpose,
     ValidateMagicCodeAction,
@@ -273,4 +276,5 @@ export type {
     BillingReceiptDetails,
     ExportTemplate,
     HybridApp,
+    DraftReportComments,
 };
