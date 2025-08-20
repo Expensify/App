@@ -8,6 +8,7 @@
         "ADDCOMMENT",
         "Addendums",
         "ADFS",
+        "aeiou",
         "Aeroplan",
         "águero",
         "Aircall",
@@ -145,6 +146,7 @@
         "deeplinking",
         "deeplinks",
         "delegators",
+        "deployers",
         "delish",
         "describedby",
         "Deutsch",
@@ -237,6 +239,7 @@
         "formatjs",
         "Français",
         "Frederico",
+        "freetext",
         "frontpart",
         "fullstory",
         "FWTV",
@@ -250,6 +253,7 @@
         "genkey",
         "GEOLOCATION",
         "getprop",
+        "gibsdk",
         "glcode",
         "gödecke",
         "googleusercontent",
@@ -272,6 +276,7 @@
         "Highlightable",
         "Hoverable",
         "HRMS",
+        "HSBCSGS",
         "hybridapp",
         "Hydronics",
         "iaco",
@@ -730,7 +735,8 @@
         "pnrs",
         "POLICYCHANGELOG_ADD_EMPLOYEE",
         "xcshareddata",
-        "xcuserdata"
+        "xcuserdata",
+        "inputmethod"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
@@ -777,7 +783,8 @@
         "tests/unit/currencyList.json",
         "tests/unit/ValidationUtilsTest.ts",
         "src/CONST/index.ts",
-        "src/libs/SearchParser/*"
+        "src/libs/SearchParser/*",
+        "modules/group-ib-fp"
     ],
     "ignoreRegExpList": ["@assets/.*"],
     "useGitignore": true

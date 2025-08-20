@@ -8,6 +8,7 @@ import type {ModalProps} from 'react-native-modal';
 import type {SvgProps} from 'react-native-svg';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -15,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
+import variables from '@styles/variables';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
@@ -178,7 +180,16 @@ function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
     return menuItems.findIndex((option) => option.isSelected);
 }
 
-function PopoverMenu({
+function PopoverMenu(props: PopoverMenuProps) {
+    const wasVisible = usePrevious(props.isVisible);
+    // Do not render the PopoverMenu before it gets opened. Until then both values are false
+    if (!wasVisible && !props.isVisible) {
+        return null;
+    }
+    return <BasePopoverMenu {...props} />;
+}
+
+function BasePopoverMenu({
     menuItems,
     onItemSelected,
     isVisible,
@@ -280,8 +291,9 @@ function PopoverMenu({
             <MenuItem
                 key={previouslySelectedItem?.text}
                 icon={Expensicons.BackArrow}
-                iconFill={theme.icon}
+                iconFill={(isHovered) => (isHovered ? theme.iconHovered : theme.icon)}
                 style={hasBackButtonText ? styles.pv0 : undefined}
+                additionalIconStyles={[{width: variables.iconSizeSmall, height: variables.iconSizeSmall}, styles.opacitySemiTransparent, styles.mr1]}
                 title={hasBackButtonText ? previouslySelectedItem?.backButtonText : previouslySelectedItem?.text}
                 titleStyle={hasBackButtonText ? styles.createMenuHeaderText : undefined}
                 shouldShowBasicTitle={hasBackButtonText}
@@ -322,17 +334,15 @@ function PopoverMenu({
                         }
                         setFocusedIndex(menuIndex);
                     }}
-                    wrapperStyle={StyleUtils.getItemBackgroundColorStyle(
-                        !!item.isSelected,
-                        focusedIndex === menuIndex,
-                        item.disabled ?? false,
-                        theme.activeComponentBG,
-                        theme.hoverComponentBG,
-                    )}
+                    wrapperStyle={[
+                        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, focusedIndex === menuIndex, item.disabled ?? false, theme.activeComponentBG, theme.hoverComponentBG),
+                        shouldUseScrollView && !shouldUseModalPaddingStyle && StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
+                    ]}
                     shouldRemoveHoverBackground={item.isSelected}
                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                     // Spread other props dynamically
                     {...menuItemProps}
+                    hasSubMenuItems={!!subMenuItems?.length}
                     shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
                 />
             </OfflineWithFeedback>
@@ -406,6 +416,8 @@ function PopoverMenu({
         return styles.createMenuContainer;
     }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer]);
 
+    const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
+
     return (
         <PopoverWithMeasuredContent
             anchorPosition={anchorPosition}
@@ -431,18 +443,18 @@ function PopoverMenu({
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
             useNativeDriver
             restoreFocusType={restoreFocusType}
-            innerContainerStyle={innerContainerStyle}
+            innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             testID={testID}
         >
             <FocusTrapForModal active={isVisible}>
                 <View
                     onLayout={onLayout}
-                    style={[menuContainerStyle, containerStyles]}
+                    style={[menuContainerStyle, containerStyles, {paddingTop, paddingBottom, paddingVertical, ...(isWebOrDesktop ? styles.flex1 : styles.flexGrow1)}]}
                 >
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
-                    {renderWithConditionalWrapper(shouldUseScrollView, scrollContainerStyle, renderedMenuItems)}
+                    {renderWithConditionalWrapper(shouldUseScrollView, restScrollContainerStyle, renderedMenuItems)}
                 </View>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>

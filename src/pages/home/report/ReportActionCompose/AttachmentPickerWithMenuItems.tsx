@@ -16,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -56,9 +57,6 @@ type AttachmentPickerWithMenuItemsProps = {
 
     /** Whether or not the composer is full size */
     isComposerFullSize: boolean;
-
-    /** Whether or not the user is blocked from concierge */
-    isBlockedFromConcierge: boolean;
 
     /** Whether or not the attachment picker is disabled */
     disabled?: boolean;
@@ -111,7 +109,6 @@ function AttachmentPickerWithMenuItems({
     isFullComposerAvailable,
     isComposerFullSize,
     reportID,
-    isBlockedFromConcierge,
     disabled,
     setMenuVisibility,
     isMenuVisible,
@@ -135,6 +132,7 @@ function AttachmentPickerWithMenuItems({
     const {isProduction} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
     const {setIsLoaderVisible} = useFullScreenLoader();
+    const isReportArchived = useReportIsArchived(report?.reportID);
 
     const isManualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
 
@@ -228,10 +226,21 @@ function AttachmentPickerWithMenuItems({
             ],
         };
 
-        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => options[option]);
+        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => options[option], isReportArchived);
 
         return moneyRequestOptionsList.flat().filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
-    }, [translate, shouldUseNarrowLayout, report, policy, reportParticipantIDs, selectOption, isDelegateAccessRestricted, showDelegateNoAccessModal, isManualDistanceTrackingEnabled]);
+    }, [
+        translate,
+        shouldUseNarrowLayout,
+        report,
+        policy,
+        reportParticipantIDs,
+        selectOption,
+        isDelegateAccessRestricted,
+        showDelegateNoAccessModal,
+        isManualDistanceTrackingEnabled,
+        isReportArchived,
+    ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
         if (!isPolicyExpenseChat(report) || !isPaidGroupPolicy(report) || !isReportOwner(report)) {
@@ -360,7 +369,7 @@ function AttachmentPickerWithMenuItems({
                                                 setMenuVisibility(!isMenuVisible);
                                             }}
                                             style={styles.composerSizeButton}
-                                            disabled={isBlockedFromConcierge || disabled}
+                                            disabled={disabled}
                                             role={CONST.ROLE.BUTTON}
                                             accessibilityLabel={translate('common.create')}
                                         >
@@ -387,7 +396,7 @@ function AttachmentPickerWithMenuItems({
                                                     // Keep focus on the composer when Collapse button is clicked.
                                                     onMouseDown={(e) => e.preventDefault()}
                                                     style={styles.composerSizeButton}
-                                                    disabled={isBlockedFromConcierge || disabled}
+                                                    disabled={disabled}
                                                     role={CONST.ROLE.BUTTON}
                                                     accessibilityLabel={translate('reportActionCompose.collapse')}
                                                 >
@@ -411,7 +420,7 @@ function AttachmentPickerWithMenuItems({
                                                     // Keep focus on the composer when Expand button is clicked.
                                                     onMouseDown={(e) => e.preventDefault()}
                                                     style={styles.composerSizeButton}
-                                                    disabled={isBlockedFromConcierge || disabled}
+                                                    disabled={disabled}
                                                     role={CONST.ROLE.BUTTON}
                                                     accessibilityLabel={translate('reportActionCompose.expand')}
                                                 >
