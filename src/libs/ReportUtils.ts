@@ -117,6 +117,7 @@ import {
     arePaymentsEnabled,
     canSendInvoiceFromWorkspace,
     getActivePolicies,
+    getCleanedTagName,
     getForwardsToAccount,
     getManagerAccountEmail,
     getManagerAccountID,
@@ -173,6 +174,7 @@ import {
     getWorkspaceReportFieldAddMessage,
     getWorkspaceReportFieldDeleteMessage,
     getWorkspaceReportFieldUpdateMessage,
+    getWorkspaceTagUpdateMessage,
     getWorkspaceUpdateFieldMessage,
     isActionableJoinRequest,
     isActionableJoinRequestPending,
@@ -205,6 +207,7 @@ import {
     isRoomChangeLogAction,
     isSentMoneyReportAction,
     isSplitBillAction as isSplitBillReportAction,
+    isTagModificationAction,
     isThreadParentMessage,
     isTrackExpenseAction,
     isTransactionThread,
@@ -4297,6 +4300,10 @@ function canEditFieldOfMoneyRequest(
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
+        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID)) {
+            return false;
+        }
+
         const isRequestIOU = isIOUReport(moneyRequestReport);
         if (isRequestIOU) {
             return false;
@@ -4438,8 +4445,8 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): vo
 
     const transactionID = getOriginalMessage(reportAction)?.IOUTransactionID;
 
-    if (!transactionID || !reportAction.childReportID) {
-        Log.warn('Missing transactionID and reportAction.childReportID during the change of the money request hold status');
+    if (!transactionID) {
+        Log.warn('Missing transactionID during the change of the money request hold status');
         return;
     }
 
@@ -4448,7 +4455,11 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): vo
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`] ?? null;
 
     if (isOnHold) {
-        unholdRequest(transactionID, reportAction.childReportID);
+        if (reportAction.childReportID) {
+            unholdRequest(transactionID, reportAction.childReportID);
+        } else {
+            Log.warn('Missing reportAction.childReportID during money request unhold');
+        }
     } else {
         const activeRoute = encodeURIComponent(Navigation.getActiveRoute());
         Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID, activeRoute));
@@ -5244,6 +5255,10 @@ function getReportNameInternal({
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
         return getPolicyChangeMessage(parentReportAction);
+    }
+
+    if (parentReportAction?.actionName && isTagModificationAction(parentReportAction?.actionName)) {
+        return getCleanedTagName(getWorkspaceTagUpdateMessage(parentReportAction) ?? '');
     }
 
     if (isMovedAction(parentReportAction)) {
@@ -7870,6 +7885,7 @@ function buildTransactionThread(
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>,
     moneyRequestReport: OnyxEntry<Report>,
     existingTransactionThreadReportID?: string,
+    optimisticTransactionThreadReportID?: string,
 ): OptimisticChatReport {
     const participantAccountIDs = [...new Set([currentUserAccountID, Number(reportAction?.actorAccountID)])].filter(Boolean) as number[];
     const existingTransactionThreadReport = getReportOrDraftReport(existingTransactionThreadReportID);
@@ -7892,6 +7908,7 @@ function buildTransactionThread(
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportActionID: reportAction?.reportActionID,
         parentReportID: moneyRequestReport?.reportID,
+        optimisticReportID: optimisticTransactionThreadReportID,
     });
 }
 
@@ -9742,13 +9759,11 @@ function getAllAncestorReportActionIDs(report: Report | null | undefined, includ
 
 /**
  * Get optimistic data of parent report action
- * @param reportID The reportID of the report that is updated
+ * @param report The report that is updated
  * @param lastVisibleActionCreated Last visible action created of the child report
  * @param type The type of action in the child report
  */
-function getOptimisticDataForParentReportAction(reportID: string | undefined, lastVisibleActionCreated: string, type: string): Array<OnyxUpdate | null> {
-    const report = getReportOrDraftReport(reportID);
-
+function getOptimisticDataForParentReportAction(report: Report | undefined, lastVisibleActionCreated: string, type: string): Array<OnyxUpdate | null> {
     if (!report || isEmptyObject(report)) {
         return [];
     }
