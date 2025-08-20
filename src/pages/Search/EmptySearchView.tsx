@@ -32,7 +32,7 @@ import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
-import {areAllGroupPoliciesExpenseChatDisabled, getGroupPaidPoliciesWithExpenseChatEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {areAllGroupPoliciesExpenseChatDisabled, getGroupPaidPoliciesWithExpenseChatEnabled, isPaidGroupPolicy, isPolicyMember} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -91,6 +91,10 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         canBeMissing: true,
     });
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
+    const [isUserPaidPolicyMember = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        canBeMissing: true,
+        selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(currentUserPersonalDetails.login, policy?.id)),
+    });
 
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
@@ -196,7 +200,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         }
 
         const startTestDriveAction = () => {
-            startTestDrive(introSelected, false, tryNewDot?.hasBeenAddedToNudgeMigration);
+            startTestDrive(introSelected, false, tryNewDot?.hasBeenAddedToNudgeMigration ?? false, isUserPaidPolicyMember);
         };
 
         // If we are grouping by reports, show a custom message rather than a type-specific message
@@ -247,7 +251,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                                           if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
                                               const createdReportID = createNewReport(currentUserPersonalDetails, workspaceIDForReportCreation);
                                               Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID}));
                                               });
                                           } else {
                                               Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
@@ -370,6 +374,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         shouldRedirectToExpensifyClassic,
         transactions,
         tryNewDot?.hasBeenAddedToNudgeMigration,
+        isUserPaidPolicyMember,
     ]);
 
     return (

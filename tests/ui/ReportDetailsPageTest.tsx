@@ -15,6 +15,7 @@ import type {Report} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
@@ -85,6 +86,7 @@ describe('ReportDetailsPage', () => {
                 </LocaleContextProvider>
             </OnyxListItemProvider>,
         );
+        await waitForBatchedUpdates();
 
         const submitText = translateLocal('actionableMentionTrackExpense.submit');
         const categorizeText = translateLocal('actionableMentionTrackExpense.categorize');

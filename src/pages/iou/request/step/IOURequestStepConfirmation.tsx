@@ -35,6 +35,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
+import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import {getAttendees, getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints, hasReceipt, isScanRequest} from '@libs/TransactionUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
@@ -50,6 +51,7 @@ import {
     setMoneyRequestBillable,
     setMoneyRequestCategory,
     setMoneyRequestReceipt,
+    setMoneyRequestReimbursable,
     splitBill,
     splitBillAndOpenReport,
     startMoneyRequest,
@@ -96,9 +98,9 @@ function IOURequestStepConfirmation({
         canBeMissing: true,
     });
     const transactions = useMemo(() => {
-        const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? (optimisticTransactions ?? []) : [initialTransaction];
+        const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
-    }, [initialTransaction, initialTransactionID, optimisticTransactions]);
+    }, [initialTransaction, optimisticTransactions]);
     const hasMultipleTransactions = transactions.length > 1;
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -131,6 +133,7 @@ function IOURequestStepConfirmation({
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${realPolicyID}`, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     /*
      * We want to use a report from the transaction if it exists
@@ -153,7 +156,7 @@ function IOURequestStepConfirmation({
     const [selectedParticipantList, setSelectedParticipantList] = useState<Participant[]>([]);
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
-    const [receiptFiles, setReceiptFiles] = useState<Record<string, Receipt | undefined>>({});
+    const [receiptFiles, setReceiptFiles] = useState<Record<string, Receipt>>({});
     const requestType = getRequestType(transaction);
     const isDistanceRequest = requestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
@@ -214,7 +217,7 @@ function IOURequestStepConfirmation({
         [transaction?.participants, iouType, personalDetails, reportAttributesDerived],
     );
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
-    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
+    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS) || !account?.shouldBlockTransactionThreadReportCreation;
     const formHasBeenSubmitted = useRef(false);
 
     useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
@@ -240,6 +243,13 @@ function IOURequestStepConfirmation({
             setMoneyRequestBillable(transactionID, defaultBillable);
         });
     }, [transactionIDs, defaultBillable]);
+
+    useEffect(() => {
+        const defaultReimbursable = isPolicyExpenseChat && isPaidGroupPolicy(policy) ? !!policy?.defaultReimbursable : true;
+        transactionIDs.forEach((transactionID) => {
+            setMoneyRequestReimbursable(transactionID, defaultReimbursable);
+        });
+    }, [transactionIDs, policy, isPolicyExpenseChat]);
 
     useEffect(() => {
         // Exit early if the transaction is still loading
@@ -481,6 +491,7 @@ function IOURequestStepConfirmation({
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
                         billable: item.billable,
+                        reimbursable: item.reimbursable,
                         actionableWhisperReportActionID: item.actionableWhisperReportActionID,
                         linkedTrackedExpenseReportAction: item.linkedTrackedExpenseReportAction,
                         linkedTrackedExpenseReportID: item.linkedTrackedExpenseReportID,
@@ -547,6 +558,7 @@ function IOURequestStepConfirmation({
                     tag: transaction.tag,
                     customUnit: transaction.comment?.customUnit,
                     billable: transaction.billable,
+                    reimbursable: transaction.reimbursable,
                     attendees: transaction.comment?.attendees,
                 },
             });
@@ -590,6 +602,7 @@ function IOURequestStepConfirmation({
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
                         billable: item.billable,
+                        reimbursable: item.reimbursable,
                         gpsPoints,
                         validWaypoints: Object.keys(item?.comment?.waypoints ?? {}).length ? getValidWaypoints(item.comment?.waypoints, true) : undefined,
                         actionableWhisperReportActionID: item.actionableWhisperReportActionID,
@@ -653,6 +666,7 @@ function IOURequestStepConfirmation({
                     splitShares: transaction.splitShares,
                     validWaypoints: getValidWaypoints(transaction.comment?.waypoints, true),
                     billable: transaction.billable,
+                    reimbursable: transaction.reimbursable,
                     attendees: transaction.comment?.attendees,
                 },
                 backToReport,
@@ -717,6 +731,7 @@ function IOURequestStepConfirmation({
                         receipt: currentTransactionReceiptFile,
                         existingSplitChatReportID: report?.reportID,
                         billable: transaction.billable,
+                        reimbursable: transaction.reimbursable,
                         category: transaction.category,
                         tag: transaction.tag,
                         currency: transaction.currency,
@@ -744,6 +759,7 @@ function IOURequestStepConfirmation({
                         tag: transaction.tag,
                         existingSplitChatReportID: report?.reportID,
                         billable: transaction.billable,
+                        reimbursable: transaction.reimbursable,
                         iouRequestType: transaction.iouRequestType,
                         splitShares: transaction.splitShares,
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs ?? [],
@@ -769,6 +785,7 @@ function IOURequestStepConfirmation({
                         category: transaction.category,
                         tag: transaction.tag,
                         billable: !!transaction.billable,
+                        reimbursable: !!transaction.reimbursable,
                         iouRequestType: transaction.iouRequestType,
                         splitShares: transaction.splitShares,
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs,
@@ -928,6 +945,13 @@ function IOURequestStepConfirmation({
     const setBillable = useCallback(
         (billable: boolean) => {
             setMoneyRequestBillable(currentTransactionID, billable);
+        },
+        [currentTransactionID],
+    );
+
+    const setReimbursable = useCallback(
+        (reimbursable: boolean) => {
+            setMoneyRequestReimbursable(currentTransactionID, reimbursable);
         },
         [currentTransactionID],
     );
@@ -1096,6 +1120,8 @@ function IOURequestStepConfirmation({
                         payeePersonalDetails={payeePersonalDetails}
                         isConfirmed={isConfirmed}
                         isConfirming={isConfirming}
+                        iouIsReimbursable={transaction?.reimbursable}
+                        onToggleReimbursable={setReimbursable}
                         expensesNumber={transactions.length}
                         isReceiptEditable
                     />

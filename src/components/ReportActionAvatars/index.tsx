@@ -127,7 +127,7 @@ function ReportActionAvatars({
 
     const [primaryAvatar, secondaryAvatar] = icons;
 
-    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && !!secondaryAvatar?.name) {
+    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && (!!secondaryAvatar?.name || !!subscriptCardFeed)) {
         return (
             <ReportActionAvatar.Subscript
                 primaryAvatar={primaryAvatar}

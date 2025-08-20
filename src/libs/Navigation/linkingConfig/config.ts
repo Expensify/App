@@ -31,6 +31,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.WORKSPACE_AVATAR]: ROUTES.WORKSPACE_AVATAR.route,
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
+        [SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]: ROUTES.MONEY_REQUEST_RECEIPT_PREVIEW.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
         [SCREENS.REQUIRE_TWO_FACTOR_AUTH]: ROUTES.REQUIRE_TWO_FACTOR_AUTH,
         [SCREENS.WORKSPACES_LIST]: {
@@ -381,6 +382,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.SUBSCRIPTION.REQUEST_EARLY_CANCELLATION]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION,
                         },
+                        [SCREENS.SETTINGS.SUBSCRIPTION.SUBSCRIPTION_DOWNGRADE_BLOCKED]: {
+                            path: ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.route,
+                        },
                         [SCREENS.WORKSPACE.CURRENCY]: {
                             path: ROUTES.WORKSPACE_OVERVIEW_CURRENCY.route,
                         },
@@ -703,6 +707,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBERS_IMPORTED]: {
                             path: ROUTES.WORKSPACE_MEMBERS_IMPORTED.route,
                         },
+                        [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION]: {
+                            path: ROUTES.WORKSPACE_MEMBERS_IMPORTED_CONFIRMATION.route,
+                        },
                         [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.route,
                         },
@@ -959,6 +966,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
                             path: ROUTES.RULES_BILLABLE_DEFAULT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_REIMBURSABLE_DEFAULT]: {
+                            path: ROUTES.RULES_REIMBURSABLE_DEFAULT.route,
                         },
                         [SCREENS.WORKSPACE.RULES_CUSTOM]: {
                             path: ROUTES.RULES_CUSTOM.route,
@@ -1458,6 +1468,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_POSTED_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_POSTED,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_WITHDRAWN_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_WITHDRAWN,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_CURRENCY_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_CURRENCY,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_GROUP_CURRENCY_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_GROUP_CURRENCY,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_MERCHANT_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_MERCHANT,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_DESCRIPTION_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_DESCRIPTION,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_REPORT_ID_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_REPORT_ID,
