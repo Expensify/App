@@ -137,6 +137,41 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         return [customUnits, allRates, allSubRatesMemo];
     }, [policy]);
 
+    const subRateIDs = new Set(allSubRates.map((subRate) => subRate.subRateID));
+
+    const [eligibleTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (transactions) => {
+            if (!customUnit?.customUnitID || subRateIDs.size === 0) {
+                return undefined;
+            }
+            return Object.values(transactions ?? {}).reduce((transactionIDs, transaction) => {
+                if (
+                    transaction &&
+                    transaction?.comment?.customUnit?.customUnitID === customUnit.customUnitID &&
+                    transaction?.comment?.customUnit?.subRates?.some((subRate) => subRateIDs.has(subRate.id))
+                ) {
+                    transactionIDs.add(transaction?.transactionID);
+                }
+                return transactionIDs;
+            }, new Set<string>());
+        },
+        canBeMissing: true,
+    });
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
+        selector: (violations) => {
+            if (!eligibleTransactionIDs || eligibleTransactionIDs.size === 0) {
+                return undefined;
+            }
+            return Object.fromEntries(
+                Object.entries(violations ?? {}).filter(([key]) => {
+                    const id = key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '');
+                    return eligibleTransactionIDs?.has(id);
+                }),
+            );
+        },
+        canBeMissing: true,
+    });
+
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
 
     const fetchPerDiem = useCallback(() => {
@@ -258,7 +293,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     };
 
     const handleDeletePerDiemRates = () => {
-        deleteWorkspacePerDiemRates(policyID, customUnit, selectedPerDiem);
+        deleteWorkspacePerDiemRates(policyID, customUnit, selectedPerDiem, Array.from(eligibleTransactionIDs ?? []), transactionViolations);
         setDeletePerDiemConfirmModalVisible(false);
 
         InteractionManager.runAfterInteractions(() => {
