@@ -1,7 +1,6 @@
 import type {ReactNode} from 'react';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {View as ViewType} from 'react-native';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
@@ -49,8 +48,8 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
-    const triggerRef = useRef<ViewType | null>(null);
-    const anchorRef = useRef<ViewType | null>(null);
+    const triggerRef = useRef<View | null>(null);
+    const anchorRef = useRef<View | null>(null);
     const [isOverlayVisible, setIsOverlayVisible] = useState(false);
     const {calculatePopoverPosition} = usePopoverPosition();
 
