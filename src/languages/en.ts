@@ -1079,13 +1079,13 @@ const translations = {
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `deleted an expense (${amount} for ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `moved an expense${reportName ? ` from ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense${reportName ? ` to <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `moved this expense to your <a href="${reportUrl}">personal space</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
                 return `moved this report to the <a href="${newParentReportUrl}">${toPolicyName}</a> workspace`;
             }
             return `moved this <a href="${movedReportUrl}">report</a> to the <a href="${newParentReportUrl}">${toPolicyName}</a> workspace`;
         },
-        unreportedTransaction: 'moved this expense to your personal space',
         pendingMatchWithCreditCard: 'Receipt pending match with card transaction',
         pendingMatch: 'Pending match',
         pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
@@ -4865,8 +4865,8 @@ const translations = {
             updateTaxCodeFailureMessage: 'An error occurred while updating the tax code, please try again',
         },
         emptyWorkspace: {
-            title: 'Create a workspace',
-            subtitle: 'Create a workspace to track receipts, reimburse expenses, manage travel, send invoices, and more — all at the speed of chat.',
+            title: 'You have no workspaces',
+            subtitle: 'Track receipts, reimburse expenses, manage travel, send invoices, and more.',
             createAWorkspaceCTA: 'Get Started',
             features: {
                 trackAndCollect: 'Track and collect receipts',
@@ -6057,9 +6057,10 @@ const translations = {
             billable: 'Billable',
             reimbursable: 'Reimbursable',
             groupBy: {
-                reports: 'Report', // s77rt use singular key name
-                from: 'From',
-                card: 'Card',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Report',
+                [CONST.SEARCH.GROUP_BY.FROM]: 'From',
+                [CONST.SEARCH.GROUP_BY.CARD]: 'Card',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Withdrawal ID',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -6500,7 +6501,7 @@ const translations = {
         overTripLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Amount over ${formattedLimit}/trip limit`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Amount over ${formattedLimit}/person limit`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Amount over daily ${formattedLimit}/person category limit`,
-        receiptNotSmartScanned: 'Receipt and expense details added manually. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Learn more</a>.',
+        receiptNotSmartScanned: 'Receipt and expense details added manually.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Receipt required';
             if (formattedLimit ?? category) {

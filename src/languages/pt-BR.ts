@@ -1091,13 +1091,13 @@ const translations = {
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `excluiu uma despesa (${amount} para ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `moveu uma despesa${reportName ? `de ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moveu esta despesa${reportName ? `para <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `movei esta despesa para o seu <a href="${reportUrl}">espaço pessoal</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
                 return `moveu este relatório para o workspace <a href="${newParentReportUrl}">${toPolicyName}</a>`;
             }
             return `moveu este <a href="${movedReportUrl}">relatório</a> para o workspace <a href="${newParentReportUrl}">${toPolicyName}</a>`;
         },
-        unreportedTransaction: 'movei esta despesa para o seu espaço pessoal',
         pendingMatchWithCreditCard: 'Recibo pendente de correspondência com transação do cartão',
         pendingMatch: 'Partida pendente',
         pendingMatchWithCreditCardDescription: 'Recibo pendente de correspondência com transação do cartão. Marcar como dinheiro para cancelar.',
@@ -4894,8 +4894,8 @@ const translations = {
             updateTaxCodeFailureMessage: 'Ocorreu um erro ao atualizar o código de imposto, por favor, tente novamente.',
         },
         emptyWorkspace: {
-            title: 'Criar um espaço de trabalho',
-            subtitle: 'Crie um espaço de trabalho para rastrear recibos, reembolsar despesas, gerenciar viagens, enviar faturas e muito mais — tudo na velocidade do chat.',
+            title: 'Você não tem espaços de trabalho',
+            subtitle: 'Acompanhe recibos, reembolse despesas, gerencie viagens, envie faturas e muito mais.',
             createAWorkspaceCTA: 'Começar',
             features: {
                 trackAndCollect: 'Acompanhe e colete recibos',
@@ -6089,9 +6089,10 @@ const translations = {
             billable: 'Faturável',
             reimbursable: 'Reembolsável',
             groupBy: {
-                reports: 'Relatório',
-                from: 'De',
-                card: 'Cartão',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Relatório',
+                [CONST.SEARCH.GROUP_BY.FROM]: 'De',
+                [CONST.SEARCH.GROUP_BY.CARD]: 'Cartão',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retirada',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -6535,8 +6536,7 @@ const translations = {
         overTripLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Valor acima do limite de ${formattedLimit}/viagem`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Quantia acima do limite de ${formattedLimit}/pessoa`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Quantia acima do limite diário de ${formattedLimit}/pessoa para a categoria`,
-        receiptNotSmartScanned:
-            'Recibo e detalhes da despesa adicionados manualmente. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Saiba mais</a>.',
+        receiptNotSmartScanned: 'Recibo e detalhes da despesa adicionados manualmente.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Recibo necessário';
             if (formattedLimit ?? category) {

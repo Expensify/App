@@ -1092,13 +1092,13 @@ const translations = {
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `hat eine Ausgabe gelöscht (${amount} für ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `verschob eine Ausgabe${reportName ? `von ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `verschob diese Ausgabe${reportName ? `to <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `diese Ausgabe in Ihren <a href="${reportUrl}">persönlichen Bereich</a> verschoben`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
                 return `hat diesen Bericht in den <a href="${newParentReportUrl}">${toPolicyName}</a> Workspace verschoben`;
             }
             return `hat diesen <a href="${movedReportUrl}">Bericht</a> in den <a href="${newParentReportUrl}">${toPolicyName}</a> Workspace verschoben`;
         },
-        unreportedTransaction: 'diese Ausgabe in Ihren persönlichen Bereich verschoben',
         pendingMatchWithCreditCard: 'Beleg steht aus, um mit Kartentransaktion abgeglichen zu werden',
         pendingMatch: 'Ausstehende Übereinstimmung',
         pendingMatchWithCreditCardDescription: 'Beleg wartet auf Abgleich mit Kartentransaktion. Als Barzahlung markieren, um abzubrechen.',
@@ -4882,9 +4882,8 @@ const translations = {
             updateTaxCodeFailureMessage: 'Beim Aktualisieren des Steuercodes ist ein Fehler aufgetreten, bitte versuchen Sie es erneut.',
         },
         emptyWorkspace: {
-            title: 'Erstellen Sie einen Arbeitsbereich',
-            subtitle:
-                'Erstellen Sie einen Arbeitsbereich, um Belege zu verfolgen, Ausgaben zu erstatten, Reisen zu verwalten, Rechnungen zu senden und mehr – alles in der Geschwindigkeit eines Chats.',
+            title: 'Sie haben keine Arbeitsbereiche',
+            subtitle: 'Verfolgen Sie Belege, erstatten Sie Ausgaben, verwalten Sie Reisen, senden Sie Rechnungen und mehr.',
             createAWorkspaceCTA: 'Loslegen',
             features: {
                 trackAndCollect: 'Belege verfolgen und sammeln',
@@ -6082,9 +6081,10 @@ const translations = {
             billable: 'Abrechenbar',
             reimbursable: 'Erstattungsfähig',
             groupBy: {
-                reports: 'Bericht',
-                from: 'Von',
-                card: 'Karte',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Bericht',
+                [CONST.SEARCH.GROUP_BY.FROM]: 'Von',
+                [CONST.SEARCH.GROUP_BY.CARD]: 'Karte',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Auszahlungs-ID',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -6529,8 +6529,7 @@ const translations = {
         overTripLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Betrag über ${formattedLimit}/Fahrtgrenze`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Betrag über dem Limit von ${formattedLimit}/Person`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Betrag über dem täglichen ${formattedLimit}/Personen-Kategorielimit`,
-        receiptNotSmartScanned:
-            'Beleg und Ausgabendetails manuell hinzugefügt. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Erfahren Sie mehr</a>.',
+        receiptNotSmartScanned: 'Beleg und Ausgabendetails manuell hinzugefügt.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Beleg erforderlich';
             if (formattedLimit ?? category) {

@@ -32,6 +32,7 @@ import type {
     TransactionListItemType,
     TransactionMemberGroupListItemType,
     TransactionReportGroupListItemType,
+    TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionList/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -635,6 +636,13 @@ function isTransactionMemberGroupListItemType(item: ListItem): item is Transacti
  */
 function isTransactionCardGroupListItemType(item: ListItem): item is TransactionCardGroupListItemType {
     return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.CARD;
+}
+
+/**
+ * Type guard that checks if something is a TransactionWithdrawalIDGroupListItemType
+ */
+function isTransactionWithdrawalIDGroupListItemType(item: ListItem): item is TransactionWithdrawalIDGroupListItemType {
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
 }
 
 /**
@@ -1428,6 +1436,17 @@ function getCardSections(data: OnyxTypes.SearchResults['data']): TransactionCard
 }
 
 /**
+ * @private
+ * Organizes data into List Sections grouped by card for display, for the TransactionWithdrawalIDGroupListItemType of Search Results.
+ *
+ * Do not use directly, use only via `getSections()` facade.
+ */
+function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data']): TransactionWithdrawalIDGroupListItemType[] {
+    // Will be implemented as part of https://github.com/Expensify/App/pull/66078
+    return data ? [] : [];
+}
+
+/**
  * Returns the appropriate list item component based on the type and status of the search data.
  */
 function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: SearchGroupBy): ListItemType<typeof type, typeof status> {
@@ -1474,6 +1493,8 @@ function getSections(
                 return getMemberSections(data);
             case CONST.SEARCH.GROUP_BY.CARD:
                 return getCardSections(data);
+            case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
+                return getWithdrawalIDSections(data);
         }
     }
 
@@ -1509,6 +1530,8 @@ function getSortedSections(
                 return getSortedMemberData(data as TransactionMemberGroupListItemType[], localeCompare);
             case CONST.SEARCH.GROUP_BY.CARD:
                 return getSortedCardData(data as TransactionCardGroupListItemType[], localeCompare);
+            case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
+                return getSortedWithdrawalIDData(data as TransactionWithdrawalIDGroupListItemType[]);
         }
     }
 
@@ -1615,6 +1638,15 @@ function getSortedMemberData(data: TransactionMemberGroupListItemType[], localeC
  */
 function getSortedCardData(data: TransactionCardGroupListItemType[], localeCompare: LocaleContextProps['localeCompare']) {
     return data.sort((a, b) => localeCompare(a.displayName ?? a.login ?? '', b.displayName ?? b.login ?? ''));
+}
+
+/**
+ * @private
+ * Sorts report sections based on a specified column and sort order.
+ */
+function getSortedWithdrawalIDData(data: TransactionWithdrawalIDGroupListItemType[]) {
+    // Will be implemented as part of https://github.com/Expensify/App/pull/66078
+    return data ? [] : [];
 }
 
 /**
@@ -1998,6 +2030,7 @@ export {
     isTransactionReportGroupListItemType,
     isTransactionMemberGroupListItemType,
     isTransactionCardGroupListItemType,
+    isTransactionWithdrawalIDGroupListItemType,
     isSearchResultsEmpty,
     isTransactionListItemType,
     isReportActionListItemType,

@@ -1091,13 +1091,13 @@ const translations = {
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `経費を削除しました (${merchant}の${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `費用${reportName ? `${reportName} から` : ''}を移動しました`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `この経費${reportName ? `to <a href="${reportUrl}">${reportName}</a>` : ''}を移動しました`,
+        unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `この経費をあなたの<a href="${reportUrl}">個人スペース</a>に移動しました。`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
                 return `<a href="${newParentReportUrl}">${toPolicyName}</a> ワークスペースにこのレポートを移動しました`;
             }
             return `<a href="${movedReportUrl}">レポート</a> を <a href="${newParentReportUrl}">${toPolicyName}</a> ワークスペースに移動しました`;
         },
-        unreportedTransaction: 'この経費をあなたの個人スペースに移動しました。',
         pendingMatchWithCreditCard: 'カード取引との一致待ちの領収書',
         pendingMatch: '保留中の一致',
         pendingMatchWithCreditCardDescription: '領収書がカード取引と一致待ちです。現金としてマークしてキャンセルしてください。',
@@ -4876,8 +4876,8 @@ const translations = {
             updateTaxCodeFailureMessage: '税コードの更新中にエラーが発生しました。もう一度お試しください。',
         },
         emptyWorkspace: {
-            title: 'ワークスペースを作成',
-            subtitle: '領収書を追跡し、経費を払い戻し、旅行を管理し、請求書を送信するためのワークスペースを作成し、チャットの速度でこれらすべてを行いましょう。',
+            title: 'ワークスペースがありません',
+            subtitle: '領収書の管理、経費精算、出張管理、請求書の送信などができます。',
             createAWorkspaceCTA: '開始する',
             features: {
                 trackAndCollect: '領収書を追跡して収集する',
@@ -6055,9 +6055,10 @@ const translations = {
             billable: 'ビラブル',
             reimbursable: '払い戻し可能',
             groupBy: {
-                reports: '報告',
-                from: 'から',
-                card: 'カード',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: '報告',
+                [CONST.SEARCH.GROUP_BY.FROM]: 'から',
+                [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金ID',
             },
             feed: 'フィード',
             withdrawalType: {
@@ -6500,7 +6501,7 @@ const translations = {
         overTripLimit: ({formattedLimit}: ViolationsOverLimitParams) => `${formattedLimit}/回を超える金額`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `${formattedLimit}/人の制限を超えた金額`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `1日あたりのカテゴリ制限${formattedLimit}/人を超える金額`,
-        receiptNotSmartScanned: '領収書と経費の詳細を手動で追加しました。<a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">詳細を学ぶ</a>。',
+        receiptNotSmartScanned: '領収書と経費の詳細を手動で追加しました。',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = '領収書が必要です';
             if (formattedLimit ?? category) {

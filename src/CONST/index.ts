@@ -6330,6 +6330,7 @@ const CONST = {
             REPORTS: 'reports',
             FROM: 'from',
             CARD: 'card',
+            WITHDRAWAL_ID: 'withdrawal-id',
         },
         BOOLEAN: {
             YES: 'yes',
@@ -6489,6 +6490,13 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             ACTION: 'action',
+        },
+
+        // Maps an internal search value to the user friendly display text, e.g. `perDiem` -> `per-diem`
+        get SEARCH_USER_FRIENDLY_VALUES_MAP() {
+            return {
+                [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',
+            };
         },
         DATE_MODIFIERS: {
             ON: 'On',

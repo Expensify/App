@@ -1088,13 +1088,13 @@ const translations = {
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `usunął wydatek (${amount} dla ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `przeniósł wydatek${reportName ? `z ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `przeniesiono ten wydatek${reportName ? `do <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `przeniósł ten wydatek do twojej <a href="${reportUrl}">przestrzeni osobistej</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
                 return `przeniósł ten raport do przestrzeni roboczej <a href="${newParentReportUrl}">${toPolicyName}</a>`;
             }
             return `przeniósł ten <a href="${movedReportUrl}">raport</a> do przestrzeni roboczej <a href="${newParentReportUrl}">${toPolicyName}</a>`;
         },
-        unreportedTransaction: 'przeniósł ten wydatek do twojej przestrzeni osobistej',
         pendingMatchWithCreditCard: 'Paragon oczekuje na dopasowanie z transakcją kartą',
         pendingMatch: 'Oczekujące dopasowanie',
         pendingMatchWithCreditCardDescription: 'Paragon oczekuje na dopasowanie z transakcją kartą. Oznacz jako gotówka, aby anulować.',
@@ -4888,8 +4888,8 @@ const translations = {
             updateTaxCodeFailureMessage: 'Wystąpił błąd podczas aktualizacji kodu podatkowego, spróbuj ponownie.',
         },
         emptyWorkspace: {
-            title: 'Utwórz przestrzeń roboczą',
-            subtitle: 'Utwórz przestrzeń roboczą do śledzenia paragonów, zwracania wydatków, zarządzania podróżami, wysyłania faktur i nie tylko — wszystko z prędkością czatu.',
+            title: 'Nie masz żadnych przestrzeni roboczych',
+            subtitle: 'Śledź paragony, zwracaj wydatki, zarządzaj podróżami, wysyłaj faktury i nie tylko.',
             createAWorkspaceCTA: 'Rozpocznij',
             features: {
                 trackAndCollect: 'Śledź i zbieraj paragony',
@@ -6075,9 +6075,10 @@ const translations = {
             billable: 'Podlegające fakturowaniu',
             reimbursable: 'Podlegające zwrotowi',
             groupBy: {
-                reports: 'Raport',
-                from: 'Od',
-                card: 'Karta',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Raport',
+                [CONST.SEARCH.GROUP_BY.FROM]: 'Od',
+                [CONST.SEARCH.GROUP_BY.CARD]: 'Karta',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Identyfikator wypłaty',
             },
             feed: 'Kanal',
             withdrawalType: {
@@ -6521,8 +6522,7 @@ const translations = {
         overTripLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Kwota przekraczająca limit ${formattedLimit}/przejazd`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Kwota przekracza limit ${formattedLimit}/osobę`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Kwota przekracza dzienny limit ${formattedLimit}/osoba dla kategorii`,
-        receiptNotSmartScanned:
-            'Paragon i szczegóły wydatku dodane ręcznie. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Dowiedz się więcej</a>.',
+        receiptNotSmartScanned: 'Paragon i szczegóły wydatku dodane ręcznie.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Wymagany paragon';
             if (formattedLimit ?? category) {

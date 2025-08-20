@@ -101,6 +101,7 @@ import {
     getReportNotificationPreference,
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
+    getUnreportedTransactionMessage,
     getWorkspaceNameUpdatedMessage,
     hasReceiptError,
     hasReportErrorsOtherThanFailedReceipt,
@@ -539,7 +540,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
     isReportArchived = false,
 ): ReasonAndReportActionThatHasRedBrickRoad | null {
-    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, isReportArchived);
     const errors = reportErrors;
     const hasErrors = Object.keys(errors).length !== 0;
 
@@ -867,7 +868,7 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
             result.alternateText = getPolicyChangeLogDeleteMemberMessage(lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-            result.alternateText = translateLocal('iou.unreportedTransaction');
+            result.alternateText = getUnreportedTransactionMessage();
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
             result.alternateText = getReportActionMessageText(lastAction) ?? '';
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION) {
