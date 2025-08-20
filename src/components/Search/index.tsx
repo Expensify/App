@@ -550,7 +550,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 if (!newQueryJSONWithHash) {
                     return;
                 }
-                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals});
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false});
                 return;
             }
 
@@ -563,7 +563,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 if (!newQueryJSONWithHash) {
                     return;
                 }
-                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals});
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false});
                 return;
             }
 

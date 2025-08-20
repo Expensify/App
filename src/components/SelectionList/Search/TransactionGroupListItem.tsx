@@ -286,7 +286,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                                     queryJSON: groupItem.transactionsQueryJSON,
                                                     searchKey: undefined,
                                                     offset: (transactionsSnapshotMetadata?.offset ?? 0) + CONST.SEARCH.RESULTS_PAGE_SIZE,
-                                                    shouldCalculateTotals: true,
+                                                    shouldCalculateTotals: false,
                                                 });
                                             }}
                                             link
