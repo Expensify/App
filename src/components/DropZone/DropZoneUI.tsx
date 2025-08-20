@@ -20,19 +20,19 @@ type DropZoneUIProps = {
     dropTextStyles?: StyleProp<TextStyle>;
 
     /** Custom styles for the inner wrapper of the drop zone */
-    dropInnerWrapperStyles?: StyleProp<ViewStyle>;
+    dashedBorderStyles?: StyleProp<ViewStyle>;
 
     /** Custom styles for the drop wrapper */
     dropWrapperStyles?: StyleProp<ViewStyle>;
 };
 
-function DropZoneUI({icon, dropTitle, dropStyles, dropTextStyles, dropWrapperStyles, dropInnerWrapperStyles}: DropZoneUIProps) {
+function DropZoneUI({icon, dropTitle, dropStyles, dropTextStyles, dropWrapperStyles, dashedBorderStyles}: DropZoneUIProps) {
     const styles = useThemeStyles();
 
     return (
         <View style={[styles.flex1, styles.dropWrapper, styles.p2, dropWrapperStyles]}>
             <View style={[styles.borderRadiusComponentLarge, styles.p2, styles.flex1, dropStyles]}>
-                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.borderRadiusComponentNormal, dropInnerWrapperStyles, styles.dropInnerWrapper]}>
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.pRelative]}>
                     <View style={styles.mb3}>
                         <Icon
                             src={icon}
@@ -41,6 +41,7 @@ function DropZoneUI({icon, dropTitle, dropStyles, dropTextStyles, dropWrapperSty
                         />
                     </View>
                     <Text style={[styles.textDropZone, dropTextStyles]}>{dropTitle}</Text>
+                    <View style={[styles.borderRadiusComponentNormal, dashedBorderStyles]} />
                 </View>
             </View>
         </View>

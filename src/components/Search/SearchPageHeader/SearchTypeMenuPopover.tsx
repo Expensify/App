@@ -4,7 +4,6 @@ import PopoverMenu from '@components/PopoverMenu';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useSearchTypeMenu from '@hooks/useSearchTypeMenu';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 
@@ -13,7 +12,6 @@ type SearchTypeMenuNarrowProps = {
 };
 
 function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {isPopoverVisible, delayPopoverMenuFirstRender, openMenu, closeMenu, allMenuItems, DeleteConfirmModal, windowHeight} = useSearchTypeMenu(queryJSON);
 
@@ -23,7 +21,6 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     return (
         <>
             <Button
-                innerStyles={[{backgroundColor: theme.sidebarHover}]}
                 icon={Expensicons.Menu}
                 onPress={openMenu}
             />
@@ -39,9 +36,13 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
                     shouldUseModalPaddingStyle={false}
                     innerContainerStyle={{paddingBottom: unmodifiedPaddings.bottom}}
                     shouldAvoidSafariException
+                    scrollContainerStyle={styles.pv0}
                 />
             )}
-            <DeleteConfirmModal />
+            {/* DeleteConfirmModal is a stable JSX element returned by the hook.
+                Returning the element directly keeps the component identity across re-renders so React
+                can play its exit animation instead of removing it instantly. */}
+            {DeleteConfirmModal}
         </>
     );
 }
