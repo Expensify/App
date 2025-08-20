@@ -6,7 +6,7 @@ keywords: Expensify Card UK, EEA, Global Reimbursements, GBP, EUR, card setup, i
 
 <div id="new-expensify" markdown="1">
 
-The Expensify Card is now available for companies in the United Kingdom and the European Economic Area (EEA)! This guide walks you through eligibility and how to set up and start using the card in GBP or EUR.
+The Expensify Card is now available for companies in the United Kingdom and the European Economic Area (EEA)! This guide walks you through eligibility and how to set up and start using the card in GBP or EUR. We are currently issuing virtual cards only, but will be releasing physical cards very soon!
 
 # Expensify Card (UK/EU) setup
 
@@ -33,9 +33,12 @@ You can issue cards to employees in:
 
 ### 1. Enable the Expensify Card for your Workspace
 
-1. Go to `Settings > Workspaces > [Workspace Name] > More features`.
-2. Under **Spend**, toggle on **Expensify Card**.
-3. A new **Expensify Card** tab will appear in the left-hand menu.
+1. If you don't already have a GBP or EUR bank account connected, follow [this process](link to ND GR process to come) to connect one.
+2. Complete the Know Your Customer (KYC) form.
+3. Go to `Settings > Workspaces > [Workspace Name] > More features`.
+4. Under **Spend**, toggle on **Expensify Card**.
+5. Select **Expensify Card** tab will appear in the left-hand menu.
+6. Follow the prompts to request the Expensify Card.
 
 ---
 
@@ -63,15 +66,15 @@ You can issue cards to employees in:
 
 ---
 
-### 4. Activate the card
+### 4. Access your Virtual Card
 
-Once the user receives their card:
+Once you have issued a Virtual Card to a user, they can:
 
 1. Go to `Settings > Account > Wallet`.
-2. Follow the activation steps.
-3. After activation, a **4-digit PIN** is displayed **once**—record it securely.
-
-**Note:** The PIN cannot be retrieved again. Store it in a secure place like 1Password or another password manager.
+2. Under Assign Cards click Expensify Card.
+3. Click Reveal Details.
+4. The user will be sent a Magic Code to the email or phone number associated with the account.
+5. Enter the Magic Code to reveal the Virtual Card details
 
 ---
 
