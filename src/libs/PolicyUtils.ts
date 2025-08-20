@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate, TryNewDot} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -1383,6 +1383,25 @@ function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
     return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
 }
 
+/**
+ * Determines if the user should be redirected to Expensify Classic for expense creation.
+ * This handles both policy-based redirection and OD/ND transition scenarios.
+ * 
+ * @param policies - Collection of all policies
+ * @param tryNewDot - The tryNewDot NVP data containing classicRedirect settings
+ * @returns true if the user should see the "Coming Soon" modal and be redirected to Classic
+ */
+function shouldRedirectToExpensifyClassic(policies: OnyxCollection<Policy> | null, tryNewDot: OnyxEntry<TryNewDot>): boolean {
+    // Check if all group policies have expense chat disabled
+    const hasDisabledPolicies = areAllGroupPoliciesExpenseChatDisabled((policies as OnyxCollection<Policy>) ?? {});
+    
+    // Check if user is in OD/ND transition and should be redirected
+    // When classicRedirect.dismissed is true, user should see "Coming Soon" modal
+    const shouldRedirectForTransition = tryNewDot?.classicRedirect?.dismissed === true;
+    
+    return hasDisabledPolicies || shouldRedirectForTransition;
+}
+
 function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Policy> | null = allPolicies) {
     if (isEmptyObject(policies)) {
         return CONST.EMPTY_ARRAY;
@@ -1667,6 +1686,7 @@ export {
     getManagerAccountID,
     isPreferredExporter,
     areAllGroupPoliciesExpenseChatDisabled,
+    shouldRedirectToExpensifyClassic,
     getCountOfRequiredTagLists,
     getActiveEmployeeWorkspaces,
     isUserInvitedToWorkspace,
