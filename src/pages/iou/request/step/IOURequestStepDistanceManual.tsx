@@ -84,8 +84,7 @@ function IOURequestStepDistanceManual({
     const isCreatingNewRequest = !(backTo || isEditing);
 
     const customUnitRateID = getRateID(transaction);
-    const rate = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID, policy});
-    const unit = DistanceRequestUtils.getDistanceUnit(transaction, rate);
+    const unit = DistanceRequestUtils.getRate({transaction, policy}).unit;
     const distance = transaction?.comment?.customUnit?.quantity ? roundToTwoDecimalPlaces(transaction.comment.customUnit.quantity) : undefined;
 
     useEffect(() => {
