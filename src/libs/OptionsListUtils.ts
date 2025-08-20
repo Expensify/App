@@ -42,7 +42,7 @@ import filterArrayByMatch from './filterArrayByMatch';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
-import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
+import {appendCountryCode, appendCountryCodeWithCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {MaxHeap} from './MaxHeap';
 import {MinHeap} from './MinHeap';
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
@@ -1200,8 +1200,8 @@ function isMakingLastRequiredTagListOptional(policy: Policy | undefined, policyT
     return false;
 }
 
-function getSearchValueForPhoneOrEmail(searchTerm: string) {
-    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(searchTerm)));
+function getSearchValueForPhoneOrEmail(searchTerm: string, countryCode: OnyxEntry<number>) {
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCodeWithCountryCode(Str.removeSMSDomain(searchTerm), countryCode ?? 1));
     return parsedPhoneNumber.possible ? (parsedPhoneNumber.number?.e164 ?? '') : searchTerm.toLowerCase();
 }
 
