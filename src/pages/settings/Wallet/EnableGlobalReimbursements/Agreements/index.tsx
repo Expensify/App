@@ -37,6 +37,7 @@ function Agreements({onBackButtonPress, onSubmit, currency}: AgreementsProps) {
             defaultValues={defaultValues}
             formID={ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS}
             inputIDs={inputIDs}
+            isLoading={false}
             onBackButtonPress={onBackButtonPress}
             onSubmit={onSubmit}
             currency={currency}

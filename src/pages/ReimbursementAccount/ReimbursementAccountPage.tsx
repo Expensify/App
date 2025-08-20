@@ -264,11 +264,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
     const continueNonUSDVBBASetup = () => {
         const isPastSignerStep = achData?.corpay?.signerFullName && achData?.corpay?.authorizedToBindClientToAgreement === undefined;
-        const allAgreementsChecked =
-            reimbursementAccountDraft?.authorizedToBindClientToAgreement === true &&
-            reimbursementAccountDraft?.agreeToTermsAndConditions === true &&
-            reimbursementAccountDraft?.consentToPrivacyNotice === true &&
-            reimbursementAccountDraft?.provideTruthfulInformation === true;
 
         setShouldShowContinueSetupButton(false);
         if (nonUSDCountryDraftValue !== '' && achData?.created === undefined) {
@@ -291,13 +286,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             return;
         }
 
-        if (isPastSignerStep && !allAgreementsChecked) {
+        if (isPastSignerStep) {
             setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS);
-            return;
-        }
-
-        if (isPastSignerStep && allAgreementsChecked) {
-            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.DOCUSIGN);
             return;
         }
 
