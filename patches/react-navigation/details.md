@@ -1,6 +1,13 @@
 # `@react-navigation` patches
 
-### [@react-navigation+core+7.10.0+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+core+7.10.0+001+fix-failing-jest-by-disabling-esmodule.patch)
+### @react-navigation+package-name+7+fix-failing-jest-by-disabling-esmodule.patch
+#### [@react-navigation+core+7.10.0+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+core+7.10.0+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+elements+2.4.3+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+elements+2.4.3+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+material-top-tabs+7.2.13+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+material-top-tabs+7.2.13+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+native-stack+7.3.14+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native-stack+7.3.14+002+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+native+7.1.10+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native+7.1.10+002+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+routers+7.4.0+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+routers+7.4.0+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+stack+7.3.3+004+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+stack+7.3.3+004+fix-failing-jest-by-disabling-esmodule.patch)
 
 - Reason: Necessary to run Jest with the obligatory `--experimental-vm-modules` flag. Currently we transpile all the code to `commonjs`, but Jest looks up to individual `package.jsons` to see whether the package is `commonjs` or `ESModule`. That causes a conflict, which can be solved by removing `{"type":"module"}` from `lib/module/package.json`. This might be an issue with Jest, but it would require much more investigation. More: https://github.com/react-navigation/react-navigation/issues/12637
 - Upstream PR/issue: https://github.com/react-navigation/react-navigation/issues/12637
@@ -15,6 +22,14 @@
 - E/App issue: [#29948](https://github.com/Expensify/App/issues/29948)
 - PR Introducing Patch: [#37891](https://github.com/Expensify/App/pull/37891)
 - PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155)
+
+### [@react-navigation+core+7.10.0+002+fix-crash-when-parsing-emoji.patch](@react-navigation+core+7.10.0+002+fix-crash-when-parsing-emoji.patch)
+
+- Reason: App crashes when the path contains emoji
+- Upstream PR/issue: https://www.github.com/react-navigation/react-navigation/pull/12679
+- E/App issue: [#65709](https://github.com/Expensify/App/issues/65709)
+- PR Introducing Patch: [#65836](https://github.com/Expensify/App/pull/65836)
+- PR Updating Patch: N/A
 
 ### [@react-navigation+native-stack+7.3.14+001+added-interaction-manager-integration.patch](@react-navigation+native-stack+7.3.14+001+added-interaction-manager-integration.patch)
 
@@ -41,13 +56,16 @@
 - PR Updating Patch: [#22678](https://github.com/Expensify/App/pull/22678) [#22437](https://github.com/Expensify/App/pull/22437) [#64155](https://github.com/Expensify/App/pull/64155)
 
 ### [@react-navigation+stack+7.3.3+002+dontDetachScreen.patch](@react-navigation+stack+7.3.3+002+dontDetachScreen.patch)
-- Reason: Makes sure the second screen in stack does't get detatched too early
+- Reason: Prevents the second screen in the stack from being detached too early.  
+  Additionally, setting `zIndex: Platform.OS === 'web' ? 'auto' : undefined` helps avoid issues in Safari where the home screen might be hidden due to `overflow: hidden`.
 - Upstream PR/issue: N/A
 - E/App issue: [#22372](https://github.com/Expensify/App/issues/22372)
 - PR Introducing Patch: [#22437](https://github.com/Expensify/App/pull/22437)
-- PR Updating Patch: [#33280](https://github.com/Expensify/App/pull/33280) [#37421](https://github.com/Expensify/App/pull/37421) [#49539](https://github.com/Expensify/App/pull/49539) [#64155](https://github.com/Expensify/App/pull/64155)
+- PR Updating Patch: [#33280](https://github.com/Expensify/App/pull/33280) [#37421](https://github.com/Expensify/App/pull/37421) [#49539](https://github.com/Expensify/App/pull/49539) [#64155](https://github.com/Expensify/App/pull/64155) [#65119](https://github.com/Expensify/App/issues/65119)
 
-### [@react-navigation+stack+7.3.3+003+fix-invisible-sidebar-safari.patch](@react-navigation+stack+7.3.3+003+fix-invisible-sidebar-safari.patch)
-- Reason: Sidebar is invisible on the safari
+### [@react-navigation+core+7.10.0+002+getStateFromPath.patch](@react-navigation+core+7.10.0+002+getStateFromPath.patch)
+- Reason: Make sure navigation state props retrieved from the path are available at all nesting levels to avoid undefined state.
 - Upstream PR/issue: N/A
-- E/App issue: [#65119](https://github.com/Expensify/App/issues/65119)
+- E/App issue: [#48150](https://github.com/Expensify/App/issues/48150)
+- PR Introducing Patch: [#48151](https://github.com/Expensify/App/pull/48151)
+- PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155)

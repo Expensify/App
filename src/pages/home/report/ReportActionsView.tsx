@@ -1,18 +1,20 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
-import {selectAllTransactionsForReport} from '@libs/MoneyRequestReportUtils';
+import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {generateNewRandomInt, rand64} from '@libs/NumberUtils';
@@ -76,8 +78,9 @@ function ReportActionsView({
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+    const isReportArchived = useReportIsArchived(report?.reportID);
     const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {
-        selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction(report), true),
+        selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction(report, isReportArchived), true),
         canBeMissing: true,
     });
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
@@ -95,11 +98,11 @@ function ReportActionsView({
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
-    const [reportTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (allTransactions: OnyxCollection<OnyxTypes.Transaction>) =>
-            selectAllTransactionsForReport(allTransactions, reportID, allReportActions ?? []).map((transaction) => transaction.transactionID),
-        canBeMissing: true,
-    });
+    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportID);
+    const reportTransactionIDs = useMemo(
+        () => getAllNonDeletedTransactions(reportTransactions, allReportActions ?? []).map((transaction) => transaction.transactionID),
+        [reportTransactions, allReportActions],
+    );
 
     useEffect(() => {
         // When we linked to message - we do not need to wait for initial actions - they already exists
@@ -193,7 +196,7 @@ function ReportActionsView({
         [allReportActions, transactionThreadReportActions, transactionThreadReport?.parentReportActionID],
     );
 
-    const canPerformWriteAction = canUserPerformWriteAction(report);
+    const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
     const visibleReportActions = useMemo(
         () =>
             reportActions.filter(
@@ -275,7 +278,13 @@ function ReportActionsView({
         };
     }, [isTheFirstReportActionIsLinked]);
 
-    if ((isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline) ?? isLoadingApp) {
+    // Show skeleton while loading initial report actions when data is incomplete/missing and online
+    const shouldShowSkeletonForInitialLoad = isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline;
+
+    // Show skeleton while the app is loading and we're online
+    const shouldShowSkeletonForAppLoad = isLoadingApp && !isOffline;
+
+    if (shouldShowSkeletonForInitialLoad ?? shouldShowSkeletonForAppLoad) {
         return <ReportActionsSkeletonView />;
     }
 

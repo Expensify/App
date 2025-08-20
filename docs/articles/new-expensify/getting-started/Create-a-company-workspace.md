@@ -125,7 +125,7 @@ Approval workflows help automate expense report reviews.
 - [Expensify Cards](https://help.expensify.com/new-expensify/hubs/expensify-card/)
 - [Workspace Settings](https://help.expensify.com/new-expensify/hubs/workspaces/)
 - [Workflows - Payments](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account)
-- [Workflows - Delayed submission](https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows)
+- [Workflows - Delay submission](https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows)
 - [Connect Company Cards](https://help.expensify.com/new-expensify/hubs/connect-credit-cards/)
 
 **How to enable features:**

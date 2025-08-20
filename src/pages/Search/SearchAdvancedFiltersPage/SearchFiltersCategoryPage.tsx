@@ -35,12 +35,16 @@ function SearchFiltersCategoryPage() {
         const items = [{name: translate('search.noCategory'), value: CONST.SEARCH.CATEGORY_EMPTY_VALUE as string}];
         const uniqueCategoryNames = new Set<string>();
 
-        if (!selectedPoliciesCategories) {
+        if (!selectedPoliciesCategories || selectedPoliciesCategories.length === 0) {
             Object.values(allPolicyCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
         } else {
             selectedPoliciesCategories.forEach((category) => uniqueCategoryNames.add(category.name));
         }
-        items.push(...Array.from(uniqueCategoryNames).map((categoryName) => ({name: categoryName, value: categoryName})));
+        items.push(
+            ...Array.from(uniqueCategoryNames)
+                .filter(Boolean)
+                .map((categoryName) => ({name: categoryName, value: categoryName})),
+        );
         return items;
     }, [allPolicyCategories, selectedPoliciesCategories, translate]);
 

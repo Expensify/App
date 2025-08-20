@@ -36,7 +36,7 @@ function SearchFiltersTaxRatePage() {
     const selectedPoliciesTaxRates = policies?.map((policy) => policy?.taxRates?.taxes).filter((taxRates) => !!taxRates);
 
     const taxItems = useMemo(() => {
-        if (!selectedPoliciesTaxRates) {
+        if (!selectedPoliciesTaxRates || selectedPoliciesTaxRates?.length === 0) {
             return Object.entries(allTaxRates).map(([taxRateName, taxRateKeys]) => ({name: taxRateName, value: taxRateKeys}));
         }
         const selectedPoliciesTaxRatesItems = selectedPoliciesTaxRates.reduce(

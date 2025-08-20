@@ -48,13 +48,13 @@ To set up category rules:
 
 If users violate these rules, the violations will be displayed in red on the report.
 
-**Note:** If Delayed Submission is enabled on a workspace, expenses with category violations will not be auto-submitted unless a comment is added to the expense.
+**Note:** If Delay Submission is enabled on a workspace, expenses with category violations will not be auto-submitted unless a comment is added to the expense.
 
 ---
 
 # Make Categories Required
 
-This setting ensures that all expenses must be coded with a category. If a category is not selected, the report will receive a violation, which may prevent submission if **Delayed Submission** is enabled.
+This setting ensures that all expenses must be coded with a category. If a category is not selected, the report will receive a violation, which may prevent submission if **Delay Submission** is enabled.
 
 You can set this up under **Settings > Workspace > [Workspace Name] > Categories**, select **People must categorize expenses**.
 

@@ -63,9 +63,8 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
             isVisible={isVisible}
             onClose={onClose}
             onModalHide={onClose}
-            hideModalContentWhileAnimating
-            useNativeDriver
             onBackdropPress={onBackdropPress}
+            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={[styles.pb0]}

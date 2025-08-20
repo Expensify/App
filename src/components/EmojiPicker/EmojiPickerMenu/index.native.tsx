@@ -120,7 +120,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
 
     return (
         <View style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(shouldUseNarrowLayout)]}>
-            <View style={[styles.ph4, styles.pb1, styles.pt2]}>
+            <View style={[styles.p4, styles.pb3]}>
                 <TextInput
                     label={translate('common.search')}
                     accessibilityLabel={translate('common.search')}

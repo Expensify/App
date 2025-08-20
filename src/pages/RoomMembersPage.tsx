@@ -8,7 +8,7 @@ import type {DropdownOption, RoomMemberBulkActionType} from '@components/ButtonW
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar, Plus, RemoveMembers} from '@components/Icon/Expensicons';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -18,6 +18,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -26,7 +27,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
@@ -53,7 +53,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: false});
     const currentUserAccountID = Number(session?.accountID);
-    const {formatPhoneNumber, translate} = useLocalize();
+    const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
     const [searchValue, setSearchValue] = useState('');
@@ -91,8 +91,8 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the selection mode only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
-    const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
 
     /**
      * Get members for the current room
@@ -283,6 +283,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         return result;
     }, [
         formatPhoneNumber,
+        localeCompare,
         isPolicyExpenseChat,
         participants,
         personalDetails,
@@ -357,7 +358,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         },
         [report, backTo],
     );
-    const selectionModeHeader = selectionMode?.isEnabled && isSmallScreenWidth;
+    const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
 
     const customListHeader = useMemo(() => {
         const header = (
@@ -392,7 +393,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
                     subtitle={StringUtils.lineBreaksToSpaces(getReportName(report))}
                     onBackButtonPress={() => {
-                        if (selectionMode?.isEnabled) {
+                        if (isMobileSelectionModeEnabled) {
                             setSelectedMembers([]);
                             turnOffMobileSelectionMode();
                             return;

@@ -4,9 +4,10 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import type SettlementButtonProps from '@components/SettlementButton/types';
 import type {PaymentOrApproveOption} from '@libs/PaymentUtils';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
-import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
+import {getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
 import {
     doesReportBelongToWorkspace,
+    getBankAccountRoute,
     isExpenseReport as isExpenseReportUtil,
     isIndividualInvoiceRoom as isIndividualInvoiceRoomUtil,
     isInvoiceReport as isInvoiceReportUtil,
@@ -15,18 +16,19 @@ import Navigation from '@navigation/Navigation';
 import {isCurrencySupportedForDirectReimbursement} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {LastPaymentMethodType} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {BankAccountList, FundList} from '@src/types/onyx';
+import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
+import usePolicy from './usePolicy';
 import useThemeStyles from './useThemeStyles';
 
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 type UsePaymentOptionsProps = Pick<
     SettlementButtonProps,
-    | 'addBankAccountRoute'
     | 'currency'
     | 'iouReport'
     | 'chatReportID'
@@ -45,7 +47,6 @@ type UsePaymentOptionsProps = Pick<
  * It dynamically generates payment or approval options to ensure the user interface reflects the correct actions possible for the user's current situation.
  */
 function usePaymentOptions({
-    addBankAccountRoute = '',
     currency = CONST.CURRENCY.USD,
     iouReport,
     chatReportID = '',
@@ -59,29 +60,32 @@ function usePaymentOptions({
 }: UsePaymentOptionsProps): PaymentOrApproveOption[] {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const policy = usePolicy(policyID);
+    const {accountID} = useCurrentUserPersonalDetails();
 
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
-    const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
+    const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, accountID);
     const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyEmployeeAccountIDs, policyID) : false;
     const policyIDKey = reportBelongsToWorkspace ? policyID : CONST.POLICY.ID_FAKE;
     const [lastPaymentMethod, lastPaymentMethodResult] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
         canBeMissing: true,
         selector: (paymentMethod) => {
-            if (typeof paymentMethod?.[policyIDKey] === 'string') {
-                return paymentMethod?.[policyIDKey];
+            const paymentMethodType = paymentMethod?.[policyIDKey];
+            if (typeof paymentMethodType === 'string') {
+                return paymentMethodType;
             }
-            if (typeof (paymentMethod?.[policyIDKey] as LastPaymentMethodType)?.lastUsed === 'string') {
-                return (paymentMethod?.[policyIDKey] as LastPaymentMethodType).lastUsed;
+            if (typeof paymentMethodType?.lastUsed === 'string') {
+                return paymentMethodType.lastUsed;
             }
-            return (paymentMethod?.[policyIDKey] as LastPaymentMethodType)?.lastUsed.name;
+            return paymentMethodType?.lastUsed.name;
         },
     });
 
     const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
-    const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [fundList = {}] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const lastPaymentMethodRef = useRef(lastPaymentMethod);
 
     useEffect(() => {
@@ -172,9 +176,12 @@ function usePaymentOptions({
                             onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
                         },
                         {
-                            text: translate('workspace.invoices.paymentMethods.addBankAccount'),
+                            text: translate('bankAccount.addBankAccount'),
                             icon: Expensicons.Bank,
-                            onSelected: () => Navigation.navigate(addBankAccountRoute),
+                            onSelected: () => {
+                                const bankAccountRoute = getBankAccountRoute(chatReport);
+                                Navigation.navigate(bankAccountRoute);
+                            },
                         },
                     ],
                 });
@@ -188,9 +195,12 @@ function usePaymentOptions({
                 subMenuItems: [
                     ...(isCurrencySupported ? getPaymentSubitems(true) : []),
                     {
-                        text: translate('workspace.invoices.paymentMethods.addBankAccount'),
+                        text: translate('bankAccount.addBankAccount'),
                         icon: Expensicons.Bank,
-                        onSelected: () => Navigation.navigate(addBankAccountRoute),
+                        onSelected: () => {
+                            const bankAccountRoute = getBankAccountRoute(chatReport);
+                            Navigation.navigate(bankAccountRoute);
+                        },
                     },
                     {
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),

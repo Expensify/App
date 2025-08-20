@@ -68,10 +68,9 @@ function ValidateCodeActionModal({
             onClose={hide}
             onModalHide={onModalHide ?? hide}
             onBackdropPress={() => Navigation.dismissModal()}
-            hideModalContentWhileAnimating
-            useNativeDriver
             shouldUseModalPaddingStyle={false}
             animationInTiming={disableAnimation ? 1 : undefined}
+            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom

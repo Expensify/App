@@ -1,13 +1,16 @@
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import type {SectionListData} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import { FallbackAvatar } from '@components/Icon/Expensicons';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import type { Section } from '@components/SelectionList/types';
+import type {Section} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
@@ -15,31 +18,29 @@ import useLocalize from '@hooks/useLocalize';
 import useMemberInviteSearch from '@hooks/useMemberInviteSearch';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { setWorkspaceInviteMembersDraft } from '@libs/actions/Policy/Member';
-import { searchInServer } from '@libs/actions/Report';
-import { setApprovalWorkflowMembers } from '@libs/actions/Workflow';
-import { canUseTouchScreen } from '@libs/DeviceCapabilities';
+import {setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
+import {searchInServer} from '@libs/actions/Report';
+import {setApprovalWorkflowMembers} from '@libs/actions/Workflow';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
-import type { WorkspaceSplitNavigatorParamList } from '@libs/Navigation/types';
-import { formatMemberForList, getSearchValueForPhoneOrEmail, sortAlphabetically } from '@libs/OptionsListUtils';
-import { getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin } from '@libs/PolicyUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {formatMemberForList, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
-import type { WithPolicyAndFullscreenLoadingProps } from '@pages/workspace/withPolicyAndFullscreenLoading';
+import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type { Member } from '@src/types/onyx/ApprovalWorkflow';
-import type { Icon } from '@src/types/onyx/OnyxCommon';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
+import type {Member} from '@src/types/onyx/ApprovalWorkflow';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import variables from '@styles/variables';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import type { SectionListData } from 'react-native';
 
 type SelectionListMember = {
     text: string;
@@ -59,7 +60,7 @@ type WorkspaceWorkflowsApprovalsExpensesFromPageProps = WithPolicyAndFullscreenL
 
 function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsExpensesFromPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [approvalWorkflow, approvalWorkflowResults] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
@@ -82,7 +83,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy);
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !route.params.backTo;
     const shouldShowListEmptyContent = !isLoadingApprovalWorkflow && approvalWorkflow && approvalWorkflow.availableMembers.length === 0;
-    const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
+    const firstApprover = approvalWorkflow?.originalApprovers?.[0]?.email ?? '';
 
     const personalDetailLogins = useDeepCompareRef(Object.fromEntries(Object.entries(personalDetails ?? {}).map(([id, details]) => [id, details?.login])));
 
@@ -108,12 +109,12 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 const login = personalDetailLogins?.[accountID];
 
                 return {
-                    text: member.displayName,
+                    text: Str.removeSMSDomain(member.displayName),
                     alternateText: member.email,
                     keyForList: member.email,
                     isSelected: true,
                     login: member.email,
-                    icons: [{source: member.avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: member.displayName, id: accountID}],
+                    icons: [{source: member.avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: Str.removeSMSDomain(member.displayName), id: accountID}],
                     rightElement: (
                         <MemberRightIcon
                             role={policy?.employeeList?.[member.email]?.role}
@@ -144,12 +145,12 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                     const login = personalDetailLogins?.[accountID];
 
                     return {
-                        text: member.displayName,
+                        text: Str.removeSMSDomain(member.displayName),
                         alternateText: member.email,
                         keyForList: member.email,
                         isSelected: false,
                         login: member.email,
-                        icons: [{source: member.avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: member.displayName, id: accountID}],
+                        icons: [{source: member.avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: Str.removeSMSDomain(member.displayName), id: accountID}],
                         rightElement: (
                             <MemberRightIcon
                                 role={policy?.employeeList?.[member.email]?.role}
@@ -215,7 +216,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         return [
             {
                 title: undefined,
-                data: sortAlphabetically(filteredMembers, 'text'),
+                data: sortAlphabetically(filteredMembers, 'text', localeCompare),
                 shouldShow: true,
             },
         ];
@@ -230,6 +231,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         personalDetailLogins,
         inviteOptions.personalDetails,
         inviteOptions.userToInvite,
+        localeCompare,
     ]);
 
     const goBack = useCallback(() => {
@@ -328,6 +330,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             <ScreenWrapper
                 testID={WorkspaceWorkflowsApprovalsExpensesFromPage.displayName}
                 enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
             >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}

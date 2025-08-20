@@ -1,15 +1,18 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {useIsFocused, useRoute} from '@react-navigation/native';
+import {FlashList} from '@shopify/flash-list';
+import type {FlashListProps, ViewToken} from '@shopify/flash-list';
+import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-import type {FlatList, ListRenderItemInfo, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
-import Animated from 'react-native-reanimated';
-import type {FlatListPropsWithLayout} from 'react-native-reanimated';
+import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import Animated, {Easing, FadeOutUp, LinearTransition} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import type TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
@@ -17,21 +20,29 @@ import type TransactionListItem from '@components/SelectionList/Search/Transacti
 import type {ExtendedTargetedEvent, ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useInitialWindowDimensions from '@hooks/useInitialWindowDimensions';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
-import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
+import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {createItemHeightCalculator} from './itemHeightCalculator';
+import ITEM_HEIGHTS from './itemHeights';
 import type {SearchQueryJSON} from './types';
+
+const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
+
+const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
 
 type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
 type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof TransactionGroupListItem | typeof TaskListItem;
@@ -41,7 +52,7 @@ type SearchListHandle = {
     scrollToIndex: (index: number, animated?: boolean) => void;
 };
 
-type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' | 'contentContainerStyle' | 'onEndReached' | 'onEndReachedThreshold' | 'ListFooterComponent'> & {
+type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'contentContainerStyle' | 'onEndReached' | 'onEndReachedThreshold' | 'ListFooterComponent'> & {
     data: SearchListItem[];
 
     /** Default renderer for every item in the list */
@@ -70,6 +81,9 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
     /** Whether to prevent long press of options */
     shouldPreventLongPressRow?: boolean;
 
+    /** Whether to animate the items in the list */
+    shouldAnimate?: boolean;
+
     /** The search query */
     queryJSON: SearchQueryJSON;
 
@@ -78,9 +92,26 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
 
     /** Invoked on mount and layout changes */
     onLayout?: () => void;
+
+    /** Styles to apply to the content container */
+    contentContainerStyle?: StyleProp<ViewStyle>;
+
+    /** The estimated height of an item in the list */
+    estimatedItemSize?: number;
+
+    /** Whether mobile selection mode is enabled */
+    isMobileSelectionModeEnabled: boolean;
 };
 
-const onScrollToIndexFailed = () => {};
+const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
+
+function isTransactionGroupListItemArray(data: SearchListItem[]): data is TransactionGroupListItemType[] {
+    if (data.length <= 0) {
+        return false;
+    }
+    const firstElement = data.at(0);
+    return typeof firstElement === 'object' && 'transactions' in firstElement;
+}
 
 function SearchList(
     {
@@ -90,7 +121,7 @@ function SearchList(
         onSelectRow,
         onCheckboxPress,
         canSelectMultiple,
-        onScroll,
+        onScroll = () => {},
         onAllCheckboxPress,
         contentContainerStyle,
         onEndReachedThreshold,
@@ -102,36 +133,51 @@ function SearchList(
         queryJSON,
         onViewableItemsChanged,
         onLayout,
+        shouldAnimate,
+        estimatedItemSize = ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD,
+        isMobileSelectionModeEnabled,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
     const styles = useThemeStyles();
-    const {hash, groupBy} = queryJSON;
-    const flattenedTransactions = groupBy ? (data as TransactionGroupListItemType[]).flatMap((item) => item.transactions) : data;
-    const flattenedTransactionWithoutPendingDelete = flattenedTransactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const selectedItemsLength = flattenedTransactions.reduce((acc, item) => {
-        return item?.isSelected ? acc + 1 : acc;
-    }, 0);
+
+    const {initialHeight, initialWidth} = useInitialWindowDimensions();
+    const {hash, groupBy, type} = queryJSON;
+    const flattenedItems = useMemo(() => {
+        if (groupBy) {
+            if (!isTransactionGroupListItemArray(data)) {
+                return data;
+            }
+            return data.flatMap((item) => item.transactions);
+        }
+        return data;
+    }, [data, groupBy]);
+    const flattenedItemsWithoutPendingDelete = useMemo(() => flattenedItems.filter((t) => t?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), [flattenedItems]);
+
+    const selectedItemsLength = useMemo(
+        () =>
+            flattenedItems.reduce((acc, item) => {
+                return item?.isSelected ? acc + 1 : acc;
+            }, 0),
+        [flattenedItems],
+    );
+
     const {translate} = useLocalize();
     const isFocused = useIsFocused();
-    const listRef = useRef<FlatList<SearchListItem>>(null);
+    const listRef = useRef<FlashList<SearchListItem>>(null);
     const hasKeyBeenPressed = useRef(false);
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
+    const prevDataLength = usePrevious(data.length);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here because there is a race condition that causes shouldUseNarrowLayout to change indefinitely in this component
     // See https://github.com/Expensify/App/issues/48675 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const {selectionMode} = useMobileSelectionMode();
     const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
-    // Check if selection should be on when the modal is opened
-    const wasSelectionOnRef = useRef(false);
-    // Keep track of the number of selected items to determine if we should turn off selection mode
-    const selectionRef = useRef(0);
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: true,
@@ -139,37 +185,15 @@ function SearchList(
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
 
-    useEffect(() => {
-        selectionRef.current = selectedItemsLength;
+    const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
+    const personalDetails = usePersonalDetails();
 
-        if (!isSmallScreenWidth) {
-            if (selectedItemsLength === 0) {
-                turnOffMobileSelectionMode();
-            }
-            return;
-        }
-        if (!isFocused) {
-            return;
-        }
-        if (!wasSelectionOnRef.current && selectedItemsLength > 0) {
-            wasSelectionOnRef.current = true;
-        }
-        if (selectedItemsLength > 0 && !selectionMode?.isEnabled) {
-            turnOnMobileSelectionMode();
-        } else if (selectedItemsLength === 0 && selectionMode?.isEnabled && !wasSelectionOnRef.current) {
-            turnOffMobileSelectionMode();
-        }
-    }, [selectionMode, isSmallScreenWidth, isFocused, selectedItemsLength]);
+    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: (wallet) => wallet?.tierName, canBeMissing: false});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
 
-    useEffect(
-        () => () => {
-            if (selectionRef.current !== 0) {
-                return;
-            }
-            turnOffMobileSelectionMode();
-        },
-        [],
-    );
+    const route = useRoute();
+    const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
 
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
@@ -181,14 +205,14 @@ function SearchList(
             if ('transactions' in item && item.transactions.length === 0) {
                 return;
             }
-            if (selectionMode?.isEnabled) {
+            if (isMobileSelectionModeEnabled) {
                 onCheckboxPress(item);
                 return;
             }
             setLongPressedItem(item);
             setIsModalVisible(true);
         },
-        [isFocused, isSmallScreenWidth, onCheckboxPress, selectionMode?.isEnabled, shouldPreventLongPressRow],
+        [isFocused, isSmallScreenWidth, onCheckboxPress, isMobileSelectionModeEnabled, shouldPreventLongPressRow],
     );
 
     const turnOnSelectionMode = useCallback(() => {
@@ -231,7 +255,7 @@ function SearchList(
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
-        maxIndex: flattenedTransactions.length - 1,
+        maxIndex: flattenedItems.length - 1,
         isActive: isFocused,
         onFocusedIndexChange: (index: number) => {
             scrollToIndex(index);
@@ -254,7 +278,7 @@ function SearchList(
         captureOnInputs: true,
         shouldBubble: false,
         shouldPreventDefault: false,
-        isActive: isFocused,
+        isActive: isFocused && focusedIndex >= 0,
         shouldStopPropagation: true,
     });
 
@@ -284,16 +308,9 @@ function SearchList(
                 clearTimeout(itemFocusTimeoutRef.current);
             }
 
-            const duration =
-                CONST.ANIMATED_HIGHLIGHT_ENTRY_DELAY +
-                CONST.ANIMATED_HIGHLIGHT_ENTRY_DURATION +
-                CONST.ANIMATED_HIGHLIGHT_START_DELAY +
-                CONST.ANIMATED_HIGHLIGHT_START_DURATION +
-                CONST.ANIMATED_HIGHLIGHT_END_DELAY +
-                CONST.ANIMATED_HIGHLIGHT_END_DURATION;
             itemFocusTimeoutRef.current = setTimeout(() => {
                 setItemsToHighlight(null);
-            }, duration);
+            }, durationHighlightItem);
         },
         [data, scrollToIndex],
     );
@@ -301,66 +318,163 @@ function SearchList(
     useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex}), [scrollAndHighlightItem, scrollToIndex]);
 
     const renderItem = useCallback(
-        ({item, index}: ListRenderItemInfo<SearchListItem>) => {
+        // eslint-disable-next-line react/no-unused-prop-types
+        ({item, index}: {item: SearchListItem; index: number}) => {
             const isItemFocused = focusedIndex === index;
             const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
             const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             return (
-                <ListItem
-                    showTooltip
-                    isFocused={isItemFocused}
-                    onSelectRow={onSelectRow}
-                    onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
-                        // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
-                        if (isMobileChrome() && event.nativeEvent) {
-                            if (!event.nativeEvent.sourceCapabilities) {
-                                return;
+                <Animated.View
+                    exiting={shouldAnimate ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
+                    entering={undefined}
+                    style={styles.overflowHidden}
+                    layout={shouldAnimate && hasItemsBeingRemoved ? LinearTransition.easing(easing).duration(CONST.SEARCH.EXITING_ANIMATION_DURATION) : undefined}
+                >
+                    <ListItem
+                        showTooltip
+                        isFocused={isItemFocused}
+                        onSelectRow={onSelectRow}
+                        onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
+                            // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
+                            if (isMobileChrome() && event.nativeEvent) {
+                                if (!event.nativeEvent.sourceCapabilities) {
+                                    return;
+                                }
+                                // Ignore the focus if it's caused by a touch event on mobile chrome.
+                                // For example, a long press will trigger a focus event on mobile chrome
+                                if (event.nativeEvent.sourceCapabilities.firesTouchEvents) {
+                                    return;
+                                }
                             }
-                            // Ignore the focus if it's caused by a touch event on mobile chrome.
-                            // For example, a long press will trigger a focus event on mobile chrome
-                            if (event.nativeEvent.sourceCapabilities.firesTouchEvents) {
-                                return;
-                            }
-                        }
-                        setFocusedIndex(index);
-                    }}
-                    onLongPressRow={handleLongPressRow}
-                    onCheckboxPress={onCheckboxPress}
-                    canSelectMultiple={canSelectMultiple}
-                    item={{
-                        shouldAnimateInHighlight: isItemHighlighted,
-                        ...item,
-                    }}
-                    shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                    queryJSONHash={hash}
-                    policies={policies}
-                    isDisabled={isDisabled}
-                    allReports={allReports}
-                    groupBy={groupBy}
-                />
+                            setFocusedIndex(index);
+                        }}
+                        onLongPressRow={handleLongPressRow}
+                        onCheckboxPress={onCheckboxPress}
+                        canSelectMultiple={canSelectMultiple}
+                        item={{
+                            shouldAnimateInHighlight: isItemHighlighted,
+                            ...item,
+                        }}
+                        shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                        queryJSONHash={hash}
+                        policies={policies}
+                        isDisabled={isDisabled}
+                        allReports={allReports}
+                        groupBy={groupBy}
+                        userWalletTierName={userWalletTierName}
+                        isUserValidated={isUserValidated}
+                        personalDetails={personalDetails}
+                        userBillingFundID={userBillingFundID}
+                    />
+                </Animated.View>
             );
         },
         [
-            ListItem,
-            canSelectMultiple,
             focusedIndex,
-            handleLongPressRow,
             itemsToHighlight,
-            onCheckboxPress,
+            shouldAnimate,
+            styles.overflowHidden,
+            hasItemsBeingRemoved,
+            ListItem,
             onSelectRow,
-            policies,
-            hash,
-            groupBy,
-            setFocusedIndex,
+            handleLongPressRow,
+            onCheckboxPress,
+            canSelectMultiple,
             shouldPreventDefaultFocusOnSelectRow,
+            hash,
+            policies,
             allReports,
+            groupBy,
+            userWalletTierName,
+            isUserValidated,
+            personalDetails,
+            userBillingFundID,
+            setFocusedIndex,
         ],
     );
 
     const tableHeaderVisible = canSelectMultiple || !!SearchTableHeader;
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
-    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedTransactionWithoutPendingDelete.length;
+    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedItemsWithoutPendingDelete.length;
+
+    const getItemHeight = useMemo(
+        () =>
+            createItemHeightCalculator({
+                isLargeScreenWidth,
+                shouldUseNarrowLayout,
+                type,
+            }),
+        [isLargeScreenWidth, shouldUseNarrowLayout, type],
+    );
+
+    const overrideItemLayout = useCallback(
+        (layout: {span?: number; size?: number}, item: SearchListItem) => {
+            if (!layout) {
+                return;
+            }
+            const height = getItemHeight(item);
+            // eslint-disable-next-line no-param-reassign
+            return (layout.size = height > 0 ? height : estimatedItemSize);
+        },
+        [getItemHeight, estimatedItemSize],
+    );
+
+    const calculatedListHeight = useMemo(() => {
+        return initialHeight - variables.contentHeaderHeight;
+    }, [initialHeight]);
+
+    const calculatedListWidth = useMemo(() => {
+        if (shouldUseNarrowLayout) {
+            return initialWidth;
+        }
+
+        if (isLargeScreenWidth) {
+            return initialWidth - variables.navigationTabBarSize - variables.sideBarWithLHBWidth;
+        }
+
+        return initialWidth;
+    }, [initialWidth, shouldUseNarrowLayout, isLargeScreenWidth]);
+
+    const estimatedListSize = useMemo(() => {
+        return {
+            height: calculatedListHeight,
+            width: calculatedListWidth,
+        };
+    }, [calculatedListHeight, calculatedListWidth]);
+
+    const handleScroll = useCallback<NonNullable<FlashListProps<SearchListItem>['onScroll']>>(
+        (e) => {
+            if (onScroll && typeof onScroll === 'function') {
+                onScroll(e);
+            }
+
+            if (e.nativeEvent.layoutMeasurement.height > 0) {
+                saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+            }
+        },
+        [onScroll, route, saveScrollOffset],
+    );
+
+    const handleLayout = useCallback(() => {
+        if (onLayout && typeof onLayout === 'function') {
+            onLayout();
+        }
+
+        const offset = getScrollOffset(route);
+        if (!offset || !listRef.current) {
+            return;
+        }
+
+        // Use requestAnimationFrame to ensure proper scrolling on iOS
+        requestAnimationFrame(() => {
+            if (!offset || !listRef.current) {
+                return;
+            }
+
+            listRef.current.scrollToOffset({offset});
+        });
+    }, [onLayout, getScrollOffset, route]);
 
     return (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
@@ -370,11 +484,11 @@ function SearchList(
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             isChecked={isSelectAllChecked}
-                            isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedTransactionWithoutPendingDelete.length}
+                            isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedItemsWithoutPendingDelete.length}
                             onPress={() => {
                                 onAllCheckboxPress();
                             }}
-                            disabled={flattenedTransactions.length === 0}
+                            disabled={flattenedItems.length === 0}
                         />
                     )}
 
@@ -395,22 +509,26 @@ function SearchList(
                 </View>
             )}
 
-            <Animated.FlatList
+            <AnimatedFlashListComponent
                 data={data}
                 renderItem={renderItem}
-                keyExtractor={(item, index) => item.keyForList ?? `${index}`}
-                onScroll={onScroll}
-                contentContainerStyle={contentContainerStyle}
+                keyExtractor={keyExtractor}
+                onScroll={handleScroll}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
-                extraData={focusedIndex}
+                extraData={[focusedIndex, isFocused]}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}
-                removeClippedSubviews
                 onViewableItemsChanged={onViewableItemsChanged}
-                onScrollToIndexFailed={onScrollToIndexFailed}
-                onLayout={onLayout}
+                onLayout={handleLayout}
+                removeClippedSubviews
+                drawDistance={1000}
+                estimatedItemSize={estimatedItemSize}
+                overrideItemLayout={overrideItemLayout}
+                estimatedListSize={estimatedListSize}
+                contentContainerStyle={contentContainerStyle}
+                overrideProps={{estimatedHeightSize: calculatedListHeight}}
             />
             <Modal
                 isVisible={isModalVisible}

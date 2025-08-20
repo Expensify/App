@@ -1,5 +1,7 @@
+import type {ViewStyle} from 'react-native';
 import {Easing} from 'react-native-reanimated';
 import type {ValidKeyframeProps} from 'react-native-reanimated/lib/typescript/commonTypes';
+import variables from '@styles/variables';
 import type {AnimationInType, AnimationOutType} from './types';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
@@ -26,10 +28,26 @@ function getModalInAnimation(animationType: AnimationInType): ValidKeyframeProps
             return {
                 from: {opacity: 0},
                 to: {
-                    opacity: 0.72,
+                    opacity: variables.overlayOpacity,
                     easing,
                 },
             };
+        default:
+            throw new Error('Unknown animation type');
+    }
+}
+
+/**
+ * @returns A function that takes a number between 0 and 1 and returns a ViewStyle object.
+ */
+function getModalInAnimationStyle(animationType: AnimationInType): (progress: number) => ViewStyle {
+    switch (animationType) {
+        case 'slideInRight':
+            return (progress) => ({transform: [{translateX: `${100 * (1 - progress)}%`}]});
+        case 'slideInUp':
+            return (progress) => ({transform: [{translateY: `${100 * (1 - progress)}%`}]});
+        case 'fadeIn':
+            return (progress) => ({opacity: progress});
         default:
             throw new Error('Unknown animation type');
     }
@@ -55,7 +73,7 @@ function getModalOutAnimation(animationType: AnimationOutType): ValidKeyframePro
             };
         case 'fadeOut':
             return {
-                from: {opacity: 0.72},
+                from: {opacity: variables.overlayOpacity},
                 to: {
                     opacity: 0,
                     easing,
@@ -66,4 +84,4 @@ function getModalOutAnimation(animationType: AnimationOutType): ValidKeyframePro
     }
 }
 
-export {getModalInAnimation, getModalOutAnimation};
+export {getModalInAnimation, getModalOutAnimation, getModalInAnimationStyle, easing};

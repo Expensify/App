@@ -4,6 +4,7 @@ import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DropZoneUI from './DropZoneUI';
 import DropZoneWrapper from './DropZoneWrapper';
@@ -17,14 +18,19 @@ type DropZoneProps = {
 
     /** Callback to execute when a file is dropped */
     onReceiptDrop: (event: DragEvent) => void;
+
+    /** Whether the drop zone should accept a single receipt */
+    shouldAcceptSingleReceipt?: boolean;
 };
 
-function DualDropZone({isEditing, onAttachmentDrop, onReceiptDrop}: DropZoneProps) {
+function DualDropZone({isEditing, onAttachmentDrop, onReceiptDrop, shouldAcceptSingleReceipt}: DropZoneProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const theme = useTheme();
 
     const shouldStackVertically = shouldUseNarrowLayout || isMediumScreenWidth;
+    const scanReceiptsText = shouldAcceptSingleReceipt ? 'dropzone.addReceipt' : 'dropzone.scanReceipts';
 
     return (
         <DragAndDropConsumer>
@@ -36,8 +42,8 @@ function DualDropZone({isEditing, onAttachmentDrop, onReceiptDrop}: DropZoneProp
                             dropTitle={translate('dropzone.addAttachments')}
                             dropStyles={styles.attachmentDropOverlay(isDraggingOver)}
                             dropTextStyles={styles.attachmentDropText}
-                            dropInnerWrapperStyles={styles.attachmentDropInnerWrapper(isDraggingOver)}
                             dropWrapperStyles={shouldStackVertically ? styles.pb0 : styles.pr0}
+                            dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.attachmentDropBorderColorActive, isDraggingOver)}
                         />
                     )}
                 </DropZoneWrapper>
@@ -45,10 +51,10 @@ function DualDropZone({isEditing, onAttachmentDrop, onReceiptDrop}: DropZoneProp
                     {({isDraggingOver}) => (
                         <DropZoneUI
                             icon={isEditing ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
-                            dropTitle={translate(isEditing ? 'dropzone.replaceReceipt' : 'dropzone.scanReceipts')}
+                            dropTitle={translate(isEditing ? 'dropzone.replaceReceipt' : scanReceiptsText)}
                             dropStyles={styles.receiptDropOverlay(isDraggingOver)}
                             dropTextStyles={styles.receiptDropText}
-                            dropInnerWrapperStyles={styles.receiptDropInnerWrapper(isDraggingOver)}
+                            dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, isDraggingOver)}
                         />
                     )}
                 </DropZoneWrapper>

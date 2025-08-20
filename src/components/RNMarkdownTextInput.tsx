@@ -23,8 +23,8 @@ type RNMarkdownTextInputWithRefProps = Omit<MarkdownTextInputProps, 'parser'> & 
 function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTextInputWithRefProps, ref: ForwardedRef<AnimatedMarkdownTextInputRef>) {
     const theme = useTheme();
 
-    const {mentionsList, currentUserMentions} = useShortMentionsList();
-    const mentionsSharedVal = useSharedValue<string[]>(mentionsList);
+    const {availableLoginsList, currentUserMentions} = useShortMentionsList();
+    const mentionsSharedVal = useSharedValue<string[]>(availableLoginsList);
     const inputRef = useRef<AnimatedMarkdownTextInputRef>(null);
 
     // Expose the ref to the parent component
@@ -63,9 +63,9 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTex
         runOnLiveMarkdownRuntime(() => {
             'worklet';
 
-            mentionsSharedVal.set(mentionsList);
+            mentionsSharedVal.set(availableLoginsList);
         })();
-    }, [mentionsList, mentionsSharedVal]);
+    }, [availableLoginsList, mentionsSharedVal]);
 
     return (
         <AnimatedMarkdownTextInput
@@ -85,7 +85,7 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTex
     );
 }
 
-RNMarkdownTextInputWithRef.displayName = 'RNMarkdownTextInputWithRef';
+RNMarkdownTextInputWithRef.displayName = 'RNTextInputWithRef';
 
 export default forwardRef(RNMarkdownTextInputWithRef);
 export type {AnimatedMarkdownTextInputRef};

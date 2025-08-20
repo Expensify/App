@@ -24,10 +24,12 @@ type Parameters = {
 };
 
 let isAuthenticatingWithShortLivedToken = false;
+let isSupportAuthTokenUsed = false;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         isAuthenticatingWithShortLivedToken = !!value?.isAuthenticatingWithShortLivedToken;
+        isSupportAuthTokenUsed = !!value?.isSupportAuthTokenUsed;
     },
 });
 
@@ -80,6 +82,7 @@ function reauthenticate(command = ''): Promise<boolean> {
     if (isAuthenticatingWithShortLivedToken) {
         Log.hmmm('Reauthenticate - Authentication with shortLivedToken is in progress. Re-authentication aborted.', {
             command,
+            isSupportAuthTokenUsed,
         });
         return Promise.resolve(false);
     }

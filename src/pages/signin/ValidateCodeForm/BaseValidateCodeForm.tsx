@@ -1,6 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import SafariFormWrapper from '@components/Form/SafariFormWrapper';
@@ -46,7 +45,7 @@ type ValidateCodeFormVariant = 'validateCode' | 'twoFactorAuthCode' | 'recoveryC
 
 type FormError = Partial<Record<ValidateCodeFormVariant, TranslationPaths>>;
 
-function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible}: BaseValidateCodeFormProps, forwardedRef: ForwardedRef<BaseValidateCodeFormRef>) {
+function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible, ref}: BaseValidateCodeFormProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
@@ -178,7 +177,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         sessionActionsClearSignInData();
     }, [clearLocalSignInData]);
 
-    useImperativeHandle(forwardedRef, () => ({
+    useImperativeHandle(ref, () => ({
         clearSignInData,
     }));
 
@@ -292,8 +291,8 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
 
     return (
         <SafariFormWrapper>
-            {/* At this point, if we know the account requires 2FA we already successfully authenticated */}
-            {account?.requiresTwoFactorAuth ? (
+            {/* At this point, show 2FA only after the user has submitted a magic code and account requires 2FA */}
+            {account?.requiresTwoFactorAuth && !!credentials?.validateCode ? (
                 <View style={[styles.mv3]}>
                     {isUsingRecoveryCode ? (
                         <TextInput
@@ -406,6 +405,6 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
 
 BaseValidateCodeForm.displayName = 'BaseValidateCodeForm';
 
-export default withToggleVisibilityView(forwardRef(BaseValidateCodeForm));
+export default withToggleVisibilityView(BaseValidateCodeForm);
 
 export type {BaseValidateCodeFormRef};

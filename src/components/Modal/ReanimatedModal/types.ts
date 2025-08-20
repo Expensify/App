@@ -3,6 +3,7 @@ import type {NativeSyntheticEvent, StyleProp, ViewProps, ViewStyle} from 'react-
 import type {ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import type {SharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
+import type {FocusTrapOptions} from '@components/Modal/types';
 import type CONST from '@src/CONST';
 
 type GestureProps = {
@@ -13,13 +14,27 @@ type GestureProps = {
     deviceWidth?: number | null;
 };
 
+type SwipeDirection = ValueOf<typeof CONST.SWIPE_DIRECTION>;
+
+type GestureHandlerProps = {
+    /** Callback to be fired on swipe gesture. */
+    onSwipeComplete?: () => void;
+
+    /** Threshold for swipe gesture. */
+    swipeThreshold: number;
+
+    /** Threshold for swipe gesture. */
+    swipeDirection?: SwipeDirection | SwipeDirection[];
+};
+
 type AnimationInType = 'fadeIn' | 'slideInUp' | 'slideInRight';
 type AnimationOutType = 'fadeOut' | 'slideOutDown' | 'slideOutRight';
 
 type AnimationOut = ValueOf<Pick<ReactNativeModalProps, 'animationOut'>>;
 
 type ReanimatedModalProps = ViewProps &
-    GestureProps & {
+    GestureProps &
+    GestureHandlerProps & {
         /** Content inside the modal */
         children: ReactNode;
 
@@ -122,6 +137,12 @@ type ReanimatedModalProps = ViewProps &
 
         /** Modal type */
         type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
+
+        /** Whether to prevent scroll on focus */
+        shouldPreventScrollOnFocus?: boolean;
+
+        /** Whether to use a custom backdrop for the modal? (This prevents focus issues on desktop) */
+        initialFocus?: FocusTrapOptions['initialFocus'];
     };
 
 type BackdropProps = {
@@ -168,4 +189,4 @@ type ContainerProps = {
 };
 
 export default ReanimatedModalProps;
-export type {BackdropProps, ContainerProps, AnimationOut, AnimationInType, AnimationOutType};
+export type {BackdropProps, ContainerProps, GestureHandlerProps, AnimationOut, AnimationInType, AnimationOutType, SwipeDirection};
