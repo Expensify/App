@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import type {SetRequired} from 'type-fest';
 import {resolveDuplicationConflictAction, resolveEnableFeatureConflicts} from '@libs/actions/RequestConflictUtils';
 import type {EnablePolicyFeatureCommand, RequestMatcher} from '@libs/actions/RequestConflictUtils';
+import {getFinishOnboardingTaskOnyxData} from '@libs/actions/Task';
 import Log from '@libs/Log';
 import {handleDeletedAccount, HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, RecheckConnection, SaveResponseInOnyx} from '@libs/Middleware';
 import {isOffline} from '@libs/Network/NetworkStore';
@@ -167,7 +168,66 @@ function write<TCommand extends WriteCommand>(
     conflictResolver: RequestConflictResolver = {},
 ): Promise<void | Response> {
     Log.info('[API] Called API write', false, {command, ...apiCommandParameters});
-    const request = prepareRequest(command, CONST.API_REQUEST_TYPE.WRITE, apiCommandParameters, onyxData, conflictResolver);
+
+    // List of workspace-related commands that should complete the reviewWorkspaceSettings onboarding task
+    const workspaceCommands: WriteCommand[] = [
+        WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES,
+        WRITE_COMMANDS.SET_POLICY_CATEGORY_APPROVER,
+        WRITE_COMMANDS.SET_POLICY_CATEGORY_RECEIPTS_REQUIRED,
+        WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX,
+        WRITE_COMMANDS.UPDATE_POLICY_CATEGORY_GL_CODE,
+        WRITE_COMMANDS.UPDATE_POLICY_CATEGORY_PAYROLL_CODE,
+        WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES,
+        WRITE_COMMANDS.SET_POLICY_CATEGORY_DESCRIPTION_REQUIRED,
+        WRITE_COMMANDS.SET_POLICY_CATEGORY_MAX_AMOUNT,
+        WRITE_COMMANDS.CREATE_POLICY_TAG,
+        WRITE_COMMANDS.SET_POLICY_TAGS_ENABLED,
+        WRITE_COMMANDS.RENAME_POLICY_TAG,
+        WRITE_COMMANDS.RENAME_POLICY_TAG_LIST,
+        WRITE_COMMANDS.SET_POLICY_TAGS_REQUIRED,
+        WRITE_COMMANDS.DELETE_POLICY_TAGS,
+        WRITE_COMMANDS.SET_POLICY_TAG_APPROVER,
+        WRITE_COMMANDS.UPDATE_POLICY_TAG_GL_CODE,
+        WRITE_COMMANDS.DELETE_MEMBERS_FROM_WORKSPACE,
+        WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE,
+        WRITE_COMMANDS.REQUEST_WORKSPACE_OWNER_CHANGE,
+        WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE,
+        WRITE_COMMANDS.IMPORT_MEMBERS_SPREADSHEET,
+        WRITE_COMMANDS.JOIN_POLICY_VIA_INVITE_LINK,
+        WRITE_COMMANDS.JOIN_ACCESSIBLE_POLICY,
+        WRITE_COMMANDS.ASK_TO_JOIN_POLICY,
+        WRITE_COMMANDS.ACCEPT_JOIN_REQUEST,
+        WRITE_COMMANDS.DECLINE_JOIN_REQUEST,
+        WRITE_COMMANDS.SET_POLICY_CUSTOM_TAX_NAME,
+        WRITE_COMMANDS.UPDATE_POLICY_TAX_VALUE,
+        WRITE_COMMANDS.RENAME_POLICY_TAX,
+        WRITE_COMMANDS.CREATE_POLICY_DISTANCE_RATE,
+        WRITE_COMMANDS.DELETE_POLICY_DISTANCE_RATES,
+        WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_ENABLED,
+        WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_UNIT,
+        WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE_VALUE,
+        WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES,
+        WRITE_COMMANDS.CREATE_WORKSPACE,
+        WRITE_COMMANDS.UPDATE_WORKSPACE_AVATAR,
+        WRITE_COMMANDS.DELETE_WORKSPACE_AVATAR,
+        WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS,
+        WRITE_COMMANDS.UPDATE_WORKSPACE_DESCRIPTION,
+    ];
+
+    let onyxDataWithOnboardingData: OnyxData | undefined;
+    // Check if this is a workspace-related command that should complete the reviewWorkspaceSettings task
+    if (workspaceCommands.includes(command)) {
+        const {optimisticData, successData, failureData} = getFinishOnboardingTaskOnyxData(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS, true);
+
+        onyxDataWithOnboardingData = {
+            ...onyxData,
+            optimisticData: [...(onyxData.optimisticData ?? []), ...(optimisticData ?? [])],
+            successData: [...(onyxData.successData ?? []), ...(successData ?? [])],
+            failureData: [...(onyxData.failureData ?? []), ...(failureData ?? [])],
+        };
+    }
+
+    const request = prepareRequest(command, CONST.API_REQUEST_TYPE.WRITE, apiCommandParameters, onyxDataWithOnboardingData ?? onyxData, conflictResolver);
     return processRequest(request, CONST.API_REQUEST_TYPE.WRITE);
 }
 
