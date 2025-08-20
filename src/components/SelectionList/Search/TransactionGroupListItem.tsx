@@ -137,6 +137,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     canSelectMultiple={canSelectMultiple}
                 />
             ),
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: (
+                // Will be implemented as part of https://github.com/Expensify/App/pull/66078
+                <View />
+            ),
         };
 
         if (!groupBy) {
