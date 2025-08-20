@@ -30,12 +30,12 @@ type TextProps = RNTextProps &
 
         /** Should apply default line height */
         shouldUseDefaultLineHeight?: boolean;
+
+        /** Reference to the outer element */
+        ref?: ForwardedRef<RNText>;
     };
 
-function Text(
-    {color, fontSize = variables.fontSizeNormal, textAlign = 'left', children, family = 'EXP_NEUE', style = {}, shouldUseDefaultLineHeight = true, ...props}: TextProps,
-    ref: ForwardedRef<RNText>,
-) {
+function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', children, family = 'EXP_NEUE', style = {}, shouldUseDefaultLineHeight = true, ref, ...props}: TextProps) {
     const theme = useTheme();
     const customStyle = useContext(CustomStylesForChildrenContext);
 
@@ -58,7 +58,7 @@ function Text(
         }
         if (Array.isArray(children)) {
             return children.every((child) => {
-                return child === null || (typeof child === 'string' && containsOnlyCustomEmoji(child));
+                return child === null || child === undefined || (typeof child === 'string' && containsOnlyCustomEmoji(child));
             });
         }
         return false;
@@ -83,5 +83,5 @@ function Text(
 
 Text.displayName = 'Text';
 
-export default React.forwardRef(Text);
+export default Text;
 export type {TextProps};
