@@ -9,10 +9,10 @@ import MenuItem from '@components/MenuItem';
 import {useSession} from '@components/OnyxListItemProvider';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
 import type QRShareWithDownloadHandle from '@components/QRShare/QRShareWithDownload/types';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -30,7 +30,7 @@ import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
 function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
-    const themeStyles = useThemeStyles();
+    const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
@@ -62,6 +62,8 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
         return getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policy?.id);
     }, [policy?.id]);
 
+    const adminsRoomLink = adminRoom ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(adminRoom.reportID)}` : '';
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -77,32 +79,18 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
                     onBackButtonPress={Navigation.goBack}
                 />
                 <ScrollView
-                    style={[themeStyles.flex1, themeStyles.pt3]}
+                    style={[styles.flex1, styles.pt3]}
                     addBottomSafeAreaPadding
                 >
-                    <View style={[themeStyles.flex1, shouldUseNarrowLayout ? themeStyles.workspaceSectionMobile : themeStyles.workspaceSection]}>
-                        <View style={[themeStyles.mh5]}>
-                            <Text style={[themeStyles.textHeadlineH1, themeStyles.mb2]}>{translate('workspace.common.shareNote.header')}</Text>
+                    <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        <View style={[styles.mh5]}>
+                            <Text style={[styles.textHeadlineH1, styles.mb2]}>{translate('workspace.common.shareNote.header')}</Text>
                         </View>
-                        <View style={[themeStyles.mh5, themeStyles.mb9]}>
-                            <Text style={[themeStyles.textNormal]}>
-                                {translate('workspace.common.shareNote.content.firstPart')}{' '}
-                                <TextLink
-                                    style={themeStyles.link}
-                                    onPress={() => {
-                                        if (!adminRoom?.reportID) {
-                                            return;
-                                        }
-                                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminRoom.reportID));
-                                    }}
-                                >
-                                    {CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}
-                                </TextLink>{' '}
-                                {translate('workspace.common.shareNote.content.secondPart')}
-                            </Text>
+                        <View style={[styles.renderHTML, styles.mh5, styles.mb9]}>
+                            <RenderHTML html={translate('workspace.common.shareNote.content', {adminsRoomLink})} />
                         </View>
 
-                        <View style={[themeStyles.workspaceSectionMobile, themeStyles.ph9]}>
+                        <View style={[styles.workspaceSectionMobile, styles.ph9]}>
                             <QRShareWithDownload
                                 ref={qrCodeRef}
                                 url={url}
@@ -115,7 +103,7 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
                                 logoMarginRatio={CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
                             />
                         </View>
-                        <View style={[themeStyles.mt3, themeStyles.ph4]}>
+                        <View style={[styles.mt3, styles.ph4]}>
                             <ContextMenuItem
                                 isAnonymousAction
                                 text={translate('qrCodes.copy')}
@@ -124,7 +112,7 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
                                 successText={translate('qrCodes.copied')}
                                 onPress={() => Clipboard.setString(url)}
                                 shouldLimitWidth={false}
-                                wrapperStyle={themeStyles.sectionMenuItemTopDescription}
+                                wrapperStyle={styles.sectionMenuItemTopDescription}
                             />
                             {/* Remove this once https://github.com/Expensify/App/issues/19834 is done.
                             We shouldn't introduce platform specific code in our codebase.
@@ -135,7 +123,7 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
                                     title={translate('common.download')}
                                     icon={Expensicons.Download}
                                     onPress={() => qrCodeRef.current?.download?.()}
-                                    wrapperStyle={themeStyles.sectionMenuItemTopDescription}
+                                    wrapperStyle={styles.sectionMenuItemTopDescription}
                                 />
                             )}
                         </View>
