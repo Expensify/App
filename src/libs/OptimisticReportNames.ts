@@ -72,6 +72,13 @@ function getPolicyByID(policyID: string | undefined, allPolicies: Record<string,
 }
 
 /**
+ * Get transaction by ID from the transactions collection
+ */
+function getTransactionByID(transactionID: string, allTransactions: Record<string, Transaction>): Transaction | undefined {
+    return allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+}
+
+/**
  * Get all reports associated with a policy ID
  */
 function getReportsByPolicyID(policyID: string, allReports: Record<string, Report>, context: UpdateContext): Report[] {
@@ -112,9 +119,7 @@ function getReportByTransactionID(transactionID: string, context: UpdateContext)
         return undefined;
     }
 
-    // Get the transaction directly using its ID
-    const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-    const transaction = context.allTransactions[transactionKey];
+    const transaction = getTransactionByID(transactionID, context.allTransactions);
 
     if (!transaction?.reportID) {
         return undefined;
@@ -205,8 +210,8 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
     const formulaParts = parse(formula);
 
     let transaction: Transaction | undefined;
-    if (updateType === 'transaction' && (incomingUpdate.value as Transaction).reportID === targetReport.reportID) {
-        transaction = context.allTransactions[(incomingUpdate.value as Transaction).transactionID];
+    if (updateType === 'transaction') {
+        transaction = getTransactionByID((incomingUpdate.value as Transaction).transactionID, context.allTransactions);
     }
 
     // Check if any formula part might be affected by this update
@@ -235,10 +240,7 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
 
     const updatedPolicy = updateType === 'policy' && targetReport.policyID === getPolicyIDFromKey(incomingUpdate.key) ? {...(policy ?? {}), ...(incomingUpdate.value as Policy)} : policy;
 
-    const updatedTransaction =
-        updateType === 'transaction' && (incomingUpdate.value as Transaction).reportID === targetReport.reportID
-            ? {...(transaction ?? {}), ...(incomingUpdate.value as Transaction)}
-            : undefined;
+    const updatedTransaction = updateType === 'transaction' ? {...(transaction ?? {}), ...(incomingUpdate.value as Transaction)} : undefined;
 
     // Compute the new name
     const formulaContext: FormulaContext = {
