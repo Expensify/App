@@ -1,9 +1,10 @@
 import {useIsFocused} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import isEmpty from 'lodash/isEmpty';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {Suspense, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {FadeInRight, FadeOutRight} from 'react-native-reanimated';
+import Deferred from '@components/Deferred';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -19,6 +20,7 @@ import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQuery
 import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
+import SearchInputSelectionSkeleton from '@components/Skeletons/SearchInputSelectionSkeleton';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -355,22 +357,26 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                 <View style={[styles.appBG, styles.flex1]}>
                     <View style={[styles.flexRow, styles.mh5, styles.mb3, styles.alignItemsCenter, styles.justifyContentCenter, {height: variables.searchTopBarHeight}]}>
                         <Animated.View style={[styles.flex1, styles.zIndex10]}>
-                            <SearchInputSelectionWrapper
-                                value={textInputValue}
-                                substitutionMap={autocompleteSubstitutions}
-                                selection={selection}
-                                onSearchQueryChange={onSearchQueryChange}
-                                isFullWidth
-                                onSubmit={() => {
-                                    KeyboardUtils.dismiss().then(() => submitSearch(textInputValue));
-                                }}
-                                autoFocus={false}
-                                onFocus={onFocus}
-                                wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
-                                wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
-                                autocompleteListRef={listRef}
-                                ref={textInputRef}
-                            />
+                            <Suspense fallback={<SearchInputSelectionSkeleton />}>
+                                <Deferred>
+                                    <SearchInputSelectionWrapper
+                                        value={textInputValue}
+                                        substitutionMap={autocompleteSubstitutions}
+                                        selection={selection}
+                                        onSearchQueryChange={onSearchQueryChange}
+                                        isFullWidth
+                                        onSubmit={() => {
+                                            KeyboardUtils.dismiss().then(() => submitSearch(textInputValue));
+                                        }}
+                                        autoFocus={false}
+                                        onFocus={onFocus}
+                                        wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
+                                        wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
+                                        autocompleteListRef={listRef}
+                                        ref={textInputRef}
+                                    />
+                                </Deferred>
+                            </Suspense>
                         </Animated.View>
                         {showPopupButton && (
                             <Animated.View
@@ -431,28 +437,34 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                 style={[styles.searchResultsHeaderBar, styles.flex1, isAutocompleteListVisible && styles.pr1, isAutocompleteListVisible && styles.pl3]}
             >
                 <View style={[styles.appBG, ...autocompleteInputStyle]}>
-                    <SearchInputSelectionWrapper
-                        value={textInputValue}
-                        onSearchQueryChange={onSearchQueryChange}
-                        isFullWidth
-                        onSubmit={() => {
-                            const focusedOption = listRef.current?.getFocusedOption();
-                            if (focusedOption) {
-                                return;
-                            }
-                            submitSearch(textInputValue);
-                        }}
-                        autoFocus={false}
-                        onFocus={showAutocompleteList}
-                        onBlur={hideAutocompleteList}
-                        wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
-                        wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
-                        outerWrapperStyle={[inputWrapperActiveStyle, styles.pb2]}
-                        autocompleteListRef={listRef}
-                        ref={textInputRef}
-                        selection={selection}
-                        substitutionMap={autocompleteSubstitutions}
-                    />
+                    <View style={[styles.flex1]}>
+                        <Suspense fallback={<SearchInputSelectionSkeleton />}>
+                            <Deferred>
+                                <SearchInputSelectionWrapper
+                                    value={textInputValue}
+                                    onSearchQueryChange={onSearchQueryChange}
+                                    isFullWidth
+                                    onSubmit={() => {
+                                        const focusedOption = listRef.current?.getFocusedOption();
+                                        if (focusedOption) {
+                                            return;
+                                        }
+                                        submitSearch(textInputValue);
+                                    }}
+                                    autoFocus={false}
+                                    onFocus={showAutocompleteList}
+                                    onBlur={hideAutocompleteList}
+                                    wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
+                                    wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
+                                    outerWrapperStyle={[inputWrapperActiveStyle, styles.pb2]}
+                                    autocompleteListRef={listRef}
+                                    ref={textInputRef}
+                                    selection={selection}
+                                    substitutionMap={autocompleteSubstitutions}
+                                />
+                            </Deferred>
+                        </Suspense>
+                    </View>
                     <View style={[styles.mh65vh, !isAutocompleteListVisible && styles.dNone]}>
                         <SearchAutocompleteList
                             autocompleteQueryValue={autocompleteQueryValue}
