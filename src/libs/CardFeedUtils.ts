@@ -22,7 +22,7 @@ import type {OptionData} from './ReportUtils';
 
 type CardFilterItem = Partial<OptionData> & AdditionalCardProps & {isCardFeed?: boolean; correspondingCards?: string[]; cardFeedKey: string; plaidUrl?: string};
 type DomainFeedData = {bank: string; domainName: string; correspondingCardIDs: string[]; fundID?: string};
-type ItemsGroupedBySelection = {selected: CardFilterItem[]; unselected: CardFilterItem[]};
+type ItemsGroupedBySelection = CardFilterItem[];
 type CardFeedNamesWithType = Record<string, {name: string; type: 'domain' | 'workspace'}>;
 type CardFeedData = {cardName: string; bank: string; label?: string; type: 'domain' | 'workspace'};
 type GetCardFeedData = {
@@ -128,16 +128,8 @@ function buildCardsData(
         });
 
     const allCardItems = [...userAssignedCards, ...allWorkspaceCards];
-    const selectedCardItems: CardFilterItem[] = [];
-    const unselectedCardItems: CardFilterItem[] = [];
-    allCardItems.forEach((card) => {
-        if (card.isSelected) {
-            selectedCardItems.push(card);
-        } else {
-            unselectedCardItems.push(card);
-        }
-    });
-    return {selected: selectedCardItems, unselected: unselectedCardItems};
+
+    return allCardItems;
 }
 
 /**
@@ -316,8 +308,7 @@ function buildCardFeedsData(
     translate: LocaleContextProps['translate'],
     illustrations: IllustrationsType,
 ): ItemsGroupedBySelection {
-    const selectedFeeds: CardFilterItem[] = [];
-    const unselectedFeeds: CardFilterItem[] = [];
+    const cardFeed: CardFilterItem[] = [];
     const repeatingBanks = getRepeatingBanks(Object.keys(workspaceCardFeeds), domainFeedsData);
 
     Object.values(domainFeedsData).forEach((domainFeed) => {
@@ -335,11 +326,7 @@ function buildCardFeedsData(
             selectedCards,
             illustrations,
         });
-        if (feedItem.isSelected) {
-            selectedFeeds.push(feedItem);
-        } else {
-            unselectedFeeds.push(feedItem);
-        }
+        cardFeed.push(feedItem);
     });
 
     filterOutDomainCards(workspaceCardFeeds).forEach(([workspaceFeedKey, workspaceFeed]) => {
@@ -363,14 +350,10 @@ function buildCardFeedsData(
             selectedCards,
             illustrations,
         });
-        if (feedItem.isSelected) {
-            selectedFeeds.push(feedItem);
-        } else {
-            unselectedFeeds.push(feedItem);
-        }
+        cardFeed.push(feedItem);
     });
 
-    return {selected: selectedFeeds, unselected: unselectedFeeds};
+    return cardFeed;
 }
 
 function getSelectedCardsFromFeeds(cards: CardList | undefined, workspaceCardFeeds?: Record<string, WorkspaceCardsList | undefined>, selectedFeeds?: string[]): string[] {
