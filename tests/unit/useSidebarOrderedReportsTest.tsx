@@ -58,7 +58,7 @@ describe('useSidebarOrderedReports', () => {
             [ONYXKEYS.COLLECTION.TRANSACTION]: {},
             [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: {},
             [ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]: {},
-            [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT]: {},
+            [ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS]: {},
             [ONYXKEYS.BETAS]: [],
             [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: {reports: {}},
         } as unknown as OnyxMultiSetInput);
