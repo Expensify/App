@@ -646,6 +646,8 @@ const translations = {
         getTheApp: "Obtenez l'application",
         scanReceiptsOnTheGo: 'Numérisez les reçus depuis votre téléphone',
         headsUp: 'Attention !',
+        submitTo: 'Envoyer à',
+        forwardTo: 'Transférer à',
         merge: 'Fusionner',
         unstableInternetConnection: 'Connexion Internet instable. Veuillez vérifier votre réseau et réessayer.',
     },
@@ -992,6 +994,11 @@ const translations = {
             'Le fichier que vous avez téléchargé est soit vide, soit contient des données invalides. Veuillez vous assurer que le fichier est correctement formaté et contient les informations nécessaires avant de le télécharger à nouveau.',
         importSpreadsheet: 'Importer une feuille de calcul',
         downloadCSV: 'Télécharger CSV',
+        importMemberConfirmation: () => ({
+            one: `Veuillez confirmer les informations ci-dessous pour un nouveau membre de l’espace de travail qui sera ajouté dans le cadre de cet import. Les membres existants ne recevront aucune mise à jour de rôle ni de message d’invitation.`,
+            other: (count: number) =>
+                `Veuillez confirmer les informations ci-dessous pour les ${count} nouveaux membres de l’espace de travail qui seront ajoutés dans le cadre de cet import. Les membres existants ne recevront aucune mise à jour de rôle ni de message d’invitation.`,
+        }),
     },
     receipt: {
         upload: 'Télécharger le reçu',
@@ -3544,6 +3551,9 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: 'Automatisez les dépenses de déplacement et de livraison de repas dans toute votre organisation.',
+                autoRemove: "Inviter de nouveaux membres de l'espace de travail sur Uber",
+                autoInvite: "Désactiver les membres supprimés de l'espace de travail sur Uber",
+                manageInvites: 'Gérer les invitations',
             },
         },
         perDiem: {
@@ -4688,6 +4698,7 @@ const translations = {
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Déconnecter Uber',
                 disconnectText: "Pour désactiver cette fonctionnalité, veuillez d'abord déconnecter l'intégration Uber for Business.",
+                description: 'Êtes-vous sûr de vouloir déconnecter cette intégration?',
                 confirmText: 'Compris',
             },
             workflowWarningModal: {
@@ -4887,8 +4898,8 @@ const translations = {
             updateTaxCodeFailureMessage: "Une erreur s'est produite lors de la mise à jour du code fiscal, veuillez réessayer.",
         },
         emptyWorkspace: {
-            title: 'Créer un espace de travail',
-            subtitle: 'Créez un espace de travail pour suivre les reçus, rembourser les dépenses, gérer les voyages, envoyer des factures, et plus encore — le tout à la vitesse du chat.',
+            title: "Vous n'avez aucun espace de travail",
+            subtitle: 'Suivez les reçus, remboursez les dépenses, gérez les déplacements, envoyez des factures, et plus encore.',
             createAWorkspaceCTA: 'Commencer',
             features: {
                 trackAndCollect: 'Suivre et collecter les reçus',
@@ -6083,9 +6094,10 @@ const translations = {
             billable: 'Facturable',
             reimbursable: 'Remboursable',
             groupBy: {
-                reports: 'Rapport',
-                from: 'De',
-                card: 'Carte',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Rapport',
+                [CONST.SEARCH.GROUP_BY.FROM]: 'De',
+                [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retrait',
             },
             feed: 'Flux',
             withdrawalType: {

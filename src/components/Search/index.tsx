@@ -814,6 +814,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 onViewableItemsChanged={onViewableItemsChanged}
                 onLayout={onLayout}
                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
             />
         </SearchScopeProvider>
     );

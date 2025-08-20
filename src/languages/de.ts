@@ -646,6 +646,8 @@ const translations = {
         getTheApp: 'Hole dir die App',
         scanReceiptsOnTheGo: 'Scannen Sie Belege von Ihrem Telefon aus',
         headsUp: 'Achtung!',
+        submitTo: 'Einreichen an',
+        forwardTo: 'Weiterleiten an',
         merge: 'Zusammenführen',
         unstableInternetConnection: 'Instabile Internetverbindung. Bitte überprüfe dein Netzwerk und versuche es erneut.',
     },
@@ -990,6 +992,11 @@ const translations = {
             'Die Datei, die Sie hochgeladen haben, ist entweder leer oder enthält ungültige Daten. Bitte stellen Sie sicher, dass die Datei korrekt formatiert ist und die notwendigen Informationen enthält, bevor Sie sie erneut hochladen.',
         importSpreadsheet: 'Tabellenkalkulation importieren',
         downloadCSV: 'CSV herunterladen',
+        importMemberConfirmation: () => ({
+            one: `Bitte bestätige die folgenden Angaben für ein neues Workspace-Mitglied, das mit diesem Upload hinzugefügt wird. Bestehende Mitglieder erhalten keine Rollenaktualisierungen oder Einladungshinweise.`,
+            other: (count: number) =>
+                `Bitte bestätige die folgenden Angaben für die ${count} neuen Workspace-Mitglieder, die mit diesem Upload hinzugefügt werden. Bestehende Mitglieder erhalten keine Rollenaktualisierungen oder Einladungshinweise.`,
+        }),
     },
     receipt: {
         upload: 'Beleg hochladen',
@@ -3536,6 +3543,9 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: 'Automatisieren Sie die Reisekosten und Essenslieferungskosten in Ihrem gesamten Unternehmen.',
+                autoRemove: 'Neue Workspace-Mitglieder zu Uber for Business einladen',
+                autoInvite: 'Entfernte Workspace-Mitglieder von Uber for Business deaktivieren',
+                manageInvites: 'Einladungen verwalten',
             },
         },
         perDiem: {
@@ -4672,6 +4682,7 @@ const translations = {
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Uber trennen',
                 disconnectText: 'Um diese Funktion zu deaktivieren, trennen Sie bitte zuerst die Uber for Business Integration.',
+                description: 'Möchten Sie diese Integration wirklich trennen?',
                 confirmText: 'Verstanden',
             },
             workflowWarningModal: {
@@ -4871,9 +4882,8 @@ const translations = {
             updateTaxCodeFailureMessage: 'Beim Aktualisieren des Steuercodes ist ein Fehler aufgetreten, bitte versuchen Sie es erneut.',
         },
         emptyWorkspace: {
-            title: 'Erstellen Sie einen Arbeitsbereich',
-            subtitle:
-                'Erstellen Sie einen Arbeitsbereich, um Belege zu verfolgen, Ausgaben zu erstatten, Reisen zu verwalten, Rechnungen zu senden und mehr – alles in der Geschwindigkeit eines Chats.',
+            title: 'Sie haben keine Arbeitsbereiche',
+            subtitle: 'Verfolgen Sie Belege, erstatten Sie Ausgaben, verwalten Sie Reisen, senden Sie Rechnungen und mehr.',
             createAWorkspaceCTA: 'Loslegen',
             features: {
                 trackAndCollect: 'Belege verfolgen und sammeln',
@@ -6071,9 +6081,10 @@ const translations = {
             billable: 'Abrechenbar',
             reimbursable: 'Erstattungsfähig',
             groupBy: {
-                reports: 'Bericht',
-                from: 'Von',
-                card: 'Karte',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Bericht',
+                [CONST.SEARCH.GROUP_BY.FROM]: 'Von',
+                [CONST.SEARCH.GROUP_BY.CARD]: 'Karte',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Auszahlungs-ID',
             },
             feed: 'Feed',
             withdrawalType: {
