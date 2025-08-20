@@ -19,6 +19,7 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
     const {translate} = useLocalize();
     const {backTo = '', reportID} = route.params ?? {};
     const context = useSearchContext();
+    const [ancestorReportActions] = useAncestorReportActionIDs(reportID);
     const [reports] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`, {canBeMissing: false});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: false});
     const [transactions] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}`, {canBeMissing: false});
@@ -29,17 +30,7 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
                 if (reportActions) {
-                    bulkHold(
-                        comment,
-                        reportID,
-                        reports,
-                        Object.values(reportActions),
-                        context.selectedTransactionIDs,
-                        transactions,
-                        transactionsViolations,
-                        context.currentSearchHash,
-                        snapshot,
-                    );
+                    bulkHold(comment, reportID, reports, Object.values(reportActions), context.selectedTransactionIDs, transactions, transactionsViolations, ancestorReportActions);
                 }
                 context.clearSelectedTransactions(true);
             } else {
@@ -82,3 +73,7 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
 SearchHoldReasonPage.displayName = 'SearchHoldReasonPage';
 
 export default SearchHoldReasonPage;
+
+function useAncestorReportActionIDs(reportID: string): [any] {
+    throw new Error('Function not implemented.');
+}
