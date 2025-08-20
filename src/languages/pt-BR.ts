@@ -7038,7 +7038,7 @@ const translations = {
         takeATestDrive: 'Faça um test drive',
     },
     migratedUserWelcomeModal: {
-        title: 'Viagens e despesas, na velocidade do chat',
+        title: 'Bem-vindo ao New Expensify!',
         subtitle: 'O novo Expensify tem a mesma ótima automação, mas agora com uma colaboração incrível:',
         confirmText: 'Vamos lá!',
         features: {
