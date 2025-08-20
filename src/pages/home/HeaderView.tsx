@@ -164,7 +164,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         account?.guideDetails?.email !== CONST.EMAIL.CONCIERGE &&
         !!account?.guideDetails?.calendarLink &&
         isAdminRoom(report) &&
-        !!canUserPerformWriteAction(report) &&
+        !!canUserPerformWriteAction(report, isReportArchived) &&
         !isChatThread &&
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO;
 
