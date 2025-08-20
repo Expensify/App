@@ -20,8 +20,7 @@ function useOriginalReportID(reportID: string | undefined, reportAction: OnyxInp
             return report?.parentReportID;
         }
         const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? ([] as ReportAction[]));
-        const retorno = transactionThreadReportID ?? reportID;
-        return retorno;
+        return transactionThreadReportID ?? reportID;
     }
     return reportID;
 }
