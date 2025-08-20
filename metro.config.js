@@ -33,6 +33,7 @@ const config = {
                 inlineRequires: true,
             },
         }),
+        platforms: ['ios', 'android', 'native', 'web'],
     },
 };
 
