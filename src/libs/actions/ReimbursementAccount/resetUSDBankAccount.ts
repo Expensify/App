@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {ACHAccount} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 /**
@@ -15,7 +16,7 @@ function resetUSDBankAccount(
     bankAccountID: number | undefined,
     session: OnyxEntry<OnyxTypes.Session>,
     policyID: string | undefined,
-    policy: OnyxEntry<OnyxTypes.Policy>
+    achAccount: ACHAccount | undefined,
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
 ) {
     if (!bankAccountID) {
@@ -25,7 +26,6 @@ function resetUSDBankAccount(
         throw new Error('Missing credentials when attempting to reset free plan bank account');
     }
 
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as OnyxTypes.Policy);
     const isLastUsedPaymentMethodBBA = lastUsedPaymentMethod?.expense?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
     const isPreviousLastUsedPaymentMethodBBA = lastUsedPaymentMethod?.lastUsed?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
 
@@ -130,7 +130,7 @@ function resetUSDBankAccount(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    achAccount: policy?.achAccount,
+                    achAccount,
                 },
             },
         ],
