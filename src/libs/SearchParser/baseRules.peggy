@@ -69,6 +69,7 @@ title = "title"i { return "title"; }
 assignee = "assignee"i { return "assignee"; }
 createdBy = "createdBy"i  / "created-by"i { return "createdBy"; }
 action = "action"i { return "action"; }
+total = "total"i {return "total"; }
 
 // Value transformation rules
 values

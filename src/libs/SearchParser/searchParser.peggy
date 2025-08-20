@@ -111,6 +111,7 @@ key "key"
   = @(
       date
       / amount
+      / total
       / merchant
       / description
       / reportID
