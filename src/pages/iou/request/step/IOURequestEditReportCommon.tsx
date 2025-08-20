@@ -10,6 +10,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getOutstandingReportsForUser, getPolicyName, isIOUReport, isOpenReport, isReportOwner, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
@@ -29,6 +30,7 @@ type TransactionGroupListItem = ListItem & {
 type Props = {
     backTo: Route | undefined;
     transactionsReports: Report[];
+    transactionIds?: string[];
     policyID?: string;
     selectReport: (item: TransactionGroupListItem) => void;
     removeFromReport?: () => void;
@@ -40,6 +42,7 @@ type Props = {
 function IOURequestEditReportCommon({
     backTo,
     transactionsReports,
+    transactionIds,
     selectReport,
     policyID: policyIDFromProps,
     removeFromReport,
@@ -62,9 +65,21 @@ function IOURequestEditReportCommon({
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
     const onlyReport = transactionsReports.length === 1 ? transactionsReports.at(0) : undefined;
+    const reportTransactions = useReportTransactions(onlyReport?.reportID);
+
     const isOwner = onlyReport ? onlyReport.ownerAccountID === currentUserPersonalDetails.accountID : false;
     const isReportIOU = onlyReport ? isIOUReport(onlyReport) : false;
-    const shouldShowRemoveFromReport = isEditing && isOwner && !isReportIOU && !isUnreported;
+    const isCardTransaction = useMemo(() => {
+        if (!transactionIds || !onlyReport) {
+            return false;
+        }
+
+        return reportTransactions
+            .filter((transaction) => transactionIds.includes(transaction.transactionID))
+            .some((transaction) => transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT);
+    }, [transactionIds, onlyReport, reportTransactions]);
+
+    const shouldShowRemoveFromReport = isEditing && isOwner && !isReportIOU && !isUnreported && !isCardTransaction;
 
     const expenseReports = useMemo(() => {
         // Early return if no reports are available to prevent useless loop
@@ -107,6 +122,7 @@ function IOURequestEditReportCommon({
                     alternateText: getPolicyName({report}) ?? matchingOption?.alternateText,
                     value: report.reportID,
                     isSelected: onlyReport && report.reportID === onlyReport?.reportID,
+                    policyID: matchingOption?.policyID ?? report.policyID,
                 };
             });
     }, [outstandingReportsByPolicyID, debouncedSearchValue, expenseReports, onlyReport, options.reports, localeCompare]);
