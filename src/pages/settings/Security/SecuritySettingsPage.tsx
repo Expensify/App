@@ -135,7 +135,7 @@ function SecuritySettingsPage() {
                         return;
                     }
                     if (!isUserValidated) {
-                        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(ROUTES.SETTINGS_SECURITY, ROUTES.SETTINGS_2FA_ROOT.getRoute()));
+                        Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_2FA_ROOT.getRoute()));
                         return;
                     }
                     Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute());
