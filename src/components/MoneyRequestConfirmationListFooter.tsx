@@ -12,6 +12,7 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeDifferenceIntervals, getTimeForDisplay} from '@libs/PerDiemRequestUtils';
 import {canSendInvoice, getPerDiemCustomUnit, isPaidGroupPolicy} from '@libs/PolicyUtils';
@@ -31,6 +32,7 @@ import {
     getTaxAmount,
     getTaxName,
     isAmountMissing,
+    isCardTransaction,
     isCreatedMissing,
     isFetchingWaypointsFromServer,
     shouldShowAttendees as shouldShowAttendeesTransactionUtils,
@@ -198,6 +200,12 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** The PDF password callback */
     onPDFPassword?: () => void;
+
+    /** Function to toggle reimbursable */
+    onToggleReimbursable?: (isOn: boolean) => void;
+
+    /** Flag indicating if the IOU is reimbursable */
+    iouIsReimbursable: boolean;
 };
 
 function MoneyRequestConfirmationListFooter({
@@ -247,6 +255,8 @@ function MoneyRequestConfirmationListFooter({
     unit,
     onPDFLoadError,
     onPDFPassword,
+    iouIsReimbursable,
+    onToggleReimbursable,
     isReceiptEditable = false,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
@@ -313,6 +323,7 @@ function MoneyRequestConfirmationListFooter({
     const canModifyTaxFields = !isReadOnly && !isDistanceRequest && !isPerDiemRequest;
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
+    const shouldShowReimbursable = isPolicyExpenseChat && policy?.disabledFields?.reimbursable === false && !isCardTransaction(transaction) && !isTypeInvoice;
     // Calculate the formatted tax amount based on the transaction's tax amount and the IOU currency code
     const taxAmount = getTaxAmount(transaction, false);
     const formattedTaxAmount = convertToDisplayString(taxAmount, iouCurrencyCode);
@@ -321,8 +332,12 @@ function MoneyRequestConfirmationListFooter({
     // Determine if the merchant error should be displayed
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
-    // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
-    const shouldShowReceiptEmptyState = iouType === CONST.IOU.TYPE.SUBMIT && isPaidGroupPolicy(policy) && !isPerDiemRequest;
+    // Determine when to show the receipt empty state:
+    // - Show for submit or track expense types
+    // - Hide for per diem requests
+    // - Hide when submitting a track expense to a non-paid group policy (personal users)
+    const shouldShowReceiptEmptyState =
+        (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isPerDiemRequest && (!isMovingTransactionFromTrackExpense(action) || isPaidGroupPolicy(policy));
     // The per diem custom unit
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const {
@@ -646,6 +661,25 @@ function MoneyRequestConfirmationListFooter({
         {
             item: (
                 <View
+                    key={Str.UCFirst(translate('iou.reimbursable'))}
+                    style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}
+                >
+                    <ToggleSettingOptionRow
+                        switchAccessibilityLabel={Str.UCFirst(translate('iou.reimbursable'))}
+                        title={Str.UCFirst(translate('iou.reimbursable'))}
+                        onToggle={(isOn) => onToggleReimbursable?.(isOn)}
+                        isActive={iouIsReimbursable}
+                        disabled={isReadOnly}
+                        wrapperStyle={styles.flex1}
+                    />
+                </View>
+            ),
+            shouldShow: shouldShowReimbursable,
+            isSupplementary: true,
+        },
+        {
+            item: (
+                <View
                     key={translate('common.billable')}
                     style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}
                 >
@@ -755,7 +789,7 @@ function MoneyRequestConfirmationListFooter({
 
                             Navigation.navigate(
                                 isReceiptEditable
-                                    ? ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, undefined, undefined, action, iouType)
+                                    ? ROUTES.MONEY_REQUEST_RECEIPT_PREVIEW.getRoute(reportID, transactionID, action, iouType)
                                     : ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID),
                             );
                         }}
@@ -780,7 +814,7 @@ function MoneyRequestConfirmationListFooter({
 
                             Navigation.navigate(
                                 isReceiptEditable
-                                    ? ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, undefined, undefined, action, iouType)
+                                    ? ROUTES.MONEY_REQUEST_RECEIPT_PREVIEW.getRoute(reportID, transactionID, action, iouType)
                                     : ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID),
                             );
                         }}
