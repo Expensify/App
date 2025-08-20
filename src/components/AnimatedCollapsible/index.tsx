@@ -1,5 +1,5 @@
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState} from 'react';
-import type {ForwardedRef, ReactNode} from 'react';
+import React from 'react';
+import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -12,10 +12,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type AnimatedCollapsibleProps = {
+    /** Whether the component is expanded */
+    isExpanded: boolean;
+
     /** Element that is inside the collapsible area */
     children: ReactNode;
 
-    /** Header function that receives the toggle button as a parameter */
+    /** Header content to display above the collapsible content */
     header: ReactNode;
 
     /** Duration of expansion animation */
@@ -37,51 +40,18 @@ type AnimatedCollapsibleProps = {
     disabled?: boolean;
 
     /** Callback for when the toggle button is pressed */
-    onPress?: () => void;
-
-    /** Whether to animate on initial mount. Defaults to false */
-    shouldAnimateOnMount?: boolean;
-
-    /** Whether to force the collapsible to be expanded */
-    shouldForceExpand?: boolean;
+    onPress: () => void;
 };
 
-type AnimatedCollapsibleHandle = {
-    handleToggle: () => void;
-};
-
-function AnimatedCollapsible(
-    {
-        children,
-        header,
-        duration = 300,
-        style,
-        headerStyle,
-        contentStyle,
-        expandButtonStyle,
-        onPress,
-        disabled = false,
-        shouldAnimateOnMount = false,
-        shouldForceExpand = false,
-    }: AnimatedCollapsibleProps,
-    ref: ForwardedRef<AnimatedCollapsibleHandle>,
-) {
+function AnimatedCollapsible({isExpanded, children, header, duration = 300, style, headerStyle, contentStyle, expandButtonStyle, onPress, disabled = false}: AnimatedCollapsibleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const height = useSharedValue(0);
     const isAnimating = useSharedValue(false);
-    const hasBeenToggled = useSharedValue(false);
-    const [isExpanded, setIsExpanded] = useState(false);
 
     // Animation for content height and opacity
     const derivedHeight = useDerivedValue(() => {
-        const shouldAnimate = shouldAnimateOnMount || hasBeenToggled.get();
         const targetHeight = height.get() * Number(isExpanded);
-
-        if (!shouldAnimate) {
-            return targetHeight;
-        }
-
         return withTiming(
             targetHeight,
             {
@@ -98,13 +68,7 @@ function AnimatedCollapsible(
     });
 
     const derivedOpacity = useDerivedValue(() => {
-        const shouldAnimate = shouldAnimateOnMount || hasBeenToggled.get();
         const targetOpacity = isExpanded ? 1 : 0;
-
-        if (!shouldAnimate) {
-            return targetOpacity;
-        }
-
         isAnimating.set(true);
         return withTiming(targetOpacity, {
             duration,
@@ -128,50 +92,25 @@ function AnimatedCollapsible(
         };
     });
 
-    const handleToggle = useCallback(() => {
-        if (disabled) {
-            return;
-        }
-        if (onPress) {
-            onPress();
-            return;
-        }
-        hasBeenToggled.set(true);
-        setIsExpanded(!isExpanded);
-    }, [disabled, hasBeenToggled, isExpanded, onPress]);
-
-    useEffect(() => {
-        if (!shouldForceExpand || isExpanded) {
-            return;
-        }
-        handleToggle();
-    }, [handleToggle, isExpanded, shouldForceExpand]);
-
-    const expandButton = (
-        <PressableWithFeedback
-            onPress={handleToggle}
-            disabled={disabled}
-            style={[styles.p3, styles.justifyContentCenter, styles.alignItemsCenter, styles.pl0, expandButtonStyle]}
-            accessibilityRole={CONST.ROLE.BUTTON}
-            accessibilityLabel="Collapse"
-        >
-            {({hovered}) => (
-                <Icon
-                    src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
-                    fill={hovered ? theme.textSupporting : theme.icon}
-                    small
-                />
-            )}
-        </PressableWithFeedback>
-    );
-
-    useImperativeHandle(ref, () => ({handleToggle}));
-
     return (
         <View style={style}>
             <View style={[headerStyle, styles.flexRow, styles.alignItemsCenter]}>
                 <View style={[styles.flex1]}>{header}</View>
-                {expandButton}
+                <PressableWithFeedback
+                    onPress={onPress}
+                    disabled={disabled}
+                    style={[styles.p3, styles.justifyContentCenter, styles.alignItemsCenter, styles.pl0, expandButtonStyle]}
+                    accessibilityRole={CONST.ROLE.BUTTON}
+                    accessibilityLabel={isExpanded ? 'Collapse' : 'Expand'}
+                >
+                    {({hovered}) => (
+                        <Icon
+                            src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
+                            fill={hovered ? theme.textSupporting : theme.icon}
+                            small
+                        />
+                    )}
+                </PressableWithFeedback>
             </View>
             <Animated.View style={[contentAnimatedStyle, contentStyle]}>
                 <View
@@ -191,5 +130,4 @@ function AnimatedCollapsible(
 
 AnimatedCollapsible.displayName = 'AnimatedCollapsible';
 
-export default forwardRef(AnimatedCollapsible);
-export type {AnimatedCollapsibleHandle};
+export default AnimatedCollapsible;

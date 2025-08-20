@@ -551,7 +551,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     return;
                 }
                 handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals});
-                // Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQuery}));
                 return;
             }
 
@@ -565,7 +564,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     return;
                 }
                 handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals});
-                // Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQuery}));
                 return;
             }
 

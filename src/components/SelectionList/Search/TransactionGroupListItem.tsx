@@ -1,8 +1,7 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import AnimatedCollapsible from '@components/AnimatedCollapsible';
-import type {AnimatedCollapsibleHandle} from '@components/AnimatedCollapsible';
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -81,7 +80,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             isSelected: selectedTransactionIDs.includes(transactionItem.transactionID),
         }));
     }, [isGroupByReports, transactionsSnapshot?.data, transactionsSnapshot?.search, accountID, formatPhoneNumber, groupItem.transactions, selectedTransactionIDs]);
-    const collapsibleRef = useRef<AnimatedCollapsibleHandle>(null);
+    const [isExpanded, setIsExpanded] = useState(false);
     const prevTransactionsLength = usePrevious(transactions.length);
     const shouldForceExpand = prevTransactionsLength === 0 && transactions.length > 0 && !isGroupByReports;
 
@@ -190,13 +189,24 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
 
+    useEffect(() => {
+        if (!shouldForceExpand || isExpanded) {
+            return;
+        }
+        setIsExpanded(true);
+    }, [shouldForceExpand, isExpanded]);
+
+    const handleToggle = useCallback(() => {
+        setIsExpanded(!isExpanded);
+    }, [isExpanded]);
+
     const onPress = useCallback(() => {
         if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS || transactions.length === 0) {
             onSelectRow(item);
             return;
         }
-        collapsibleRef?.current?.handleToggle();
-    }, [groupBy, item, onSelectRow, transactions.length]);
+        handleToggle();
+    }, [groupBy, item, onSelectRow, transactions.length, handleToggle]);
 
     const onLongPress = useCallback(() => {
         onLongPressRow?.(item);
@@ -227,10 +237,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
             >
                 <View style={styles.flex1}>
                     <AnimatedCollapsible
-                        ref={collapsibleRef}
+                        isExpanded={isExpanded}
                         header={getHeader}
-                        onPress={isEmpty && !shouldDisplayEmptyView ? onPress : undefined}
-                        shouldForceExpand={shouldForceExpand}
+                        onPress={isEmpty && !shouldDisplayEmptyView ? onPress : handleToggle}
                     >
                         {shouldDisplayEmptyView ? (
                             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
