@@ -55,7 +55,7 @@ function WorkspaceResetBankAccountModal({
 
     const handleConfirm = () => {
         if (isNonUSDWorkspace) {
-            resetNonUSDBankAccount(policy);
+            resetNonUSDBankAccount(policyID, policy?.achAccount);
 
             if (setShouldShowConnectedVerifiedBankAccount) {
                 setShouldShowConnectedVerifiedBankAccount(false);
