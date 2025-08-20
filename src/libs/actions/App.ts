@@ -89,6 +89,16 @@ Onyx.connect({
     },
 });
 
+let preservedUserSession: OnyxTypes.Session | undefined;
+
+// We called `connectWithoutView` here because it is not connected to any UI
+Onyx.connectWithoutView({
+    key: ONYXKEYS.PRESERVED_USER_SESSION,
+    callback: (value) => {
+        preservedUserSession = value;
+    },
+});
+
 const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.ACCOUNT,
     ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
@@ -588,7 +598,7 @@ function setPreservedUserSession(session: OnyxTypes.Session) {
     Onyx.set(ONYXKEYS.PRESERVED_USER_SESSION, session);
 }
 
-function clearOnyxAndResetApp(preservedUserSession: OnyxEntry<OnyxTypes.Session> | undefined, shouldNavigateToHomepage?: boolean) {
+function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     // The value of isUsingImportedState will be lost once Onyx is cleared, so we need to store it
     const isStateImported = isUsingImportedState;
     const shouldUseStagingServer = preservedShouldUseStagingServer;
