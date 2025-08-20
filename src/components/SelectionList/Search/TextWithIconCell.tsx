@@ -7,6 +7,7 @@ import Tooltip from '@components/Tooltip';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type IconAsset from '@src/types/utils/IconAsset';
+import TextWithTooltip from '@components/TextWithTooltip';
 
 type TextWithIconCellProps = {
     icon: IconAsset;
@@ -24,24 +25,18 @@ export default function TextWithIconCell({icon, text, showTooltip, textStyle}: T
     }
 
     return (
-        <Tooltip
-            shouldRender={showTooltip}
+        <View style={[styles.flexRow, styles.flexShrink1, styles.gap1]}>
+        <Icon
+            src={icon}
+            fill={theme.icon}
+            height={12}
+            width={12}
+        />
+        <TextWithTooltip
             text={text}
-        >
-            <View style={[styles.flexRow, styles.flexShrink1, styles.gap1]}>
-                <Icon
-                    src={icon}
-                    fill={theme.icon}
-                    height={12}
-                    width={12}
-                />
-                <Text
-                    numberOfLines={1}
-                    style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter, styles.textMicro, styles.textSupporting, styles.flexShrink1, textStyle]}
-                >
-                    {text}
-                </Text>
-            </View>
-        </Tooltip>
+            shouldShowTooltip={showTooltip}
+            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter, styles.textMicro, styles.textSupporting, styles.flexShrink1, textStyle]}
+        />
+    </View>
     );
 }
