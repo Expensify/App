@@ -143,6 +143,7 @@ import type {
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
     MissingPropertyParams,
+    MovedActionParams,
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
     MovedTransactionParams,
@@ -644,6 +645,8 @@ const translations = {
         getTheApp: 'Download de app',
         scanReceiptsOnTheGo: 'Scan bonnetjes vanaf je telefoon',
         headsUp: 'Let op!',
+        submitTo: 'Sturen naar',
+        forwardTo: 'Doorsturen naar',
         merge: 'Samenvoegen',
         unstableInternetConnection: 'Onstabiele internetverbinding. Controleer je netwerk en probeer het opnieuw.',
     },
@@ -987,6 +990,11 @@ const translations = {
             'Het bestand dat u heeft geüpload is ofwel leeg of bevat ongeldige gegevens. Zorg ervoor dat het bestand correct is opgemaakt en de benodigde informatie bevat voordat u het opnieuw uploadt.',
         importSpreadsheet: 'Spreadsheet importeren',
         downloadCSV: 'CSV downloaden',
+        importMemberConfirmation: () => ({
+            one: `Bevestig hieronder de gegevens voor een nieuw werkruimte-lid dat via deze upload wordt toegevoegd. Bestaande leden ontvangen geen rolupdates of uitnodigingsberichten.`,
+            other: (count: number) =>
+                `Bevestig hieronder de gegevens voor de ${count} nieuwe werkruimte-leden die via deze upload worden toegevoegd. Bestaande leden ontvangen geen rolupdates of uitnodigingsberichten.`,
+        }),
     },
     receipt: {
         upload: 'Bonnetje uploaden',
@@ -1082,6 +1090,12 @@ const translations = {
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `verwijderde een uitgave (${amount} voor ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `verplaatste een uitgave${reportName ? `van ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `heeft deze uitgave verplaatst${reportName ? `naar <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
+            if (shouldHideMovedReportUrl) {
+                return `heeft dit rapport verplaatst naar de <a href="${newParentReportUrl}">${toPolicyName}</a> werkruimte`;
+            }
+            return `heeft dit <a href="${movedReportUrl}">rapport</a> verplaatst naar de <a href="${newParentReportUrl}">${toPolicyName}</a> werkruimte`;
+        },
         unreportedTransaction: 'heeft deze uitgave naar uw persoonlijke ruimte verplaatst',
         pendingMatchWithCreditCard: 'Bon is in afwachting van een overeenkomst met kaarttransactie',
         pendingMatch: 'In afwachting van overeenkomst',
@@ -2383,14 +2397,14 @@ const translations = {
             },
 
             setupCategoriesAndTags: {
-                title: ({workspaceCategoriesLink, workspaceMoreFeaturesLink}) => `Stel [categorieën](${workspaceCategoriesLink}) en [tags](${workspaceMoreFeaturesLink}) in`,
+                title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Stel [categorieën](${workspaceCategoriesLink}) en [tags](${workspaceTagsLink}) in`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
                     '*Stel categorieën en tags in* zodat uw team uitgaven kan coderen voor eenvoudige rapportage.\n' +
                     '\n' +
                     `Importeer ze automatisch door [uw boekhoudsoftware te verbinden](${workspaceAccountingLink}), of stel ze handmatig in via uw [werkruimte-instellingen](${workspaceCategoriesLink}).`,
             },
             setupTagsTask: {
-                title: ({workspaceMoreFeaturesLink}) => `Stel [tags](${workspaceMoreFeaturesLink}) in`,
+                title: ({workspaceTagsLink}) => `Stel [tags](${workspaceTagsLink}) in`,
                 description: ({workspaceMoreFeaturesLink}) =>
                     'Gebruik tags om extra uitgavendetails toe te voegen zoals projecten, klanten, locaties en afdelingen. Als u meerdere niveaus van tags nodig heeft, kunt u upgraden naar het Control-abonnement.\n' +
                     '\n' +
@@ -3549,6 +3563,9 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: 'Automatiseer reis- en maaltijdbezorgkosten binnen uw organisatie.',
+                autoRemove: 'Nodig nieuwe werkruimteleden uit voor Uber for Business',
+                autoInvite: 'Deactiveer verwijderde werkruimteleden van Uber for Business',
+                manageInvites: 'Beheer uitnodigingen',
             },
         },
         perDiem: {
@@ -4682,6 +4699,7 @@ const translations = {
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Uber verbreken',
                 disconnectText: 'Om deze functie uit te schakelen, verbreek eerst de Uber for Business integratie.',
+                description: 'Weet u zeker dat u deze integratie wilt verbreken?',
                 confirmText: 'Begrepen',
             },
             workflowWarningModal: {
@@ -6035,6 +6053,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nooit',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Laatste maand',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Deze maand',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Laatste verklaring',
                 },
             },
@@ -6071,9 +6090,10 @@ const translations = {
             billable: 'Factureerbaar',
             reimbursable: 'Vergoedbaar',
             groupBy: {
-                reports: 'Verslag',
-                from: 'Van',
-                card: 'Kaart',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Verslag',
+                [CONST.SEARCH.GROUP_BY.FROM]: 'Van',
+                [CONST.SEARCH.GROUP_BY.CARD]: 'Kaart',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Opname-ID',
             },
             feed: 'Feed',
             withdrawalType: {
