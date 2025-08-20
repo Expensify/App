@@ -366,11 +366,6 @@
     "webpack-merge": "^5.8.0",
     "xlsx": "file:vendor/xlsx-0.20.3.tgz"
   },
-  "jest": {
-    "moduleNameMapper": {
-      "^group-ib-fp$": "<rootDir>/tests/mocks/group-ib-fp.ts"
-    }
-  },
   "overrides": {
     "braces": "3.0.3",
     "yargs": "17.7.2",

@@ -32,5 +32,6 @@ module.exports = {
     cacheDirectory: '<rootDir>/.jest-cache',
     moduleNameMapper: {
         '\\.(lottie)$': '<rootDir>/__mocks__/fileMock.ts',
+        '^group-ib-fp$': '<rootDir>/__mocks__/group-ib-fp.ts',
     },
 };
