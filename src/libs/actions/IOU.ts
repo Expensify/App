@@ -12080,7 +12080,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 urlToNavigateBack = lastRouteParams && 'backTo' in lastRouteParams ? lastRouteParams?.backTo : undefined;
             } else {
                 // Go back to the expense chat
-                urlToNavigateBack = report.chatReportID;
+                urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(report.chatReportID);
             }
         }
     } else if (hasMultipleExpenses) {
