@@ -587,6 +587,7 @@ const translations = {
         network: '网络',
         reportID: '报告 ID',
         longID: 'Long ID',
+        withdrawalID: '提现ID',
         bankAccounts: '银行账户',
         chooseFile: '选择文件',
         chooseFiles: '选择文件',
@@ -1082,13 +1083,13 @@ const translations = {
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `删除了一笔费用 (${merchant} 的 ${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `移动了一笔费用${reportName ? `来自${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `移动了此费用${reportName ? `至 <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `已将此费用移动到您的<a href="${reportUrl}">个人空间</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
                 return `已将此报告移动到 <a href="${newParentReportUrl}">${toPolicyName}</a> 工作区`;
             }
             return `已将此 <a href="${movedReportUrl}">报告</a> 移动到 <a href="${newParentReportUrl}">${toPolicyName}</a> 工作区`;
         },
-        unreportedTransaction: '已将此费用移动到您的个人空间',
         pendingMatchWithCreditCard: '收据待与卡交易匹配',
         pendingMatch: '待匹配',
         pendingMatchWithCreditCardDescription: '收据待与卡交易匹配。标记为现金以取消。',
@@ -1279,9 +1280,8 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: '看起来您没有未报告的费用。请尝试在下面创建一个。',
         addUnreportedExpenseConfirm: '添加到报告',
         explainHold: '请解释您为何保留此费用。',
-        undoSubmit: '撤销提交',
         retracted: '撤回',
-        undoClose: '撤销关闭',
+        retract: '撤回',
         reopened: '重新打开',
         reopenReport: '重新打开报告',
         reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) => `此报告已导出到${connectionName}。更改它可能会导致数据不一致。您确定要重新打开此报告吗？`,
@@ -3477,7 +3477,7 @@ const translations = {
             existingConnectionsDescription: ({connectionName}: ConnectionNameParams) =>
                 `由于您之前已连接到${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}，您可以选择重用现有连接或创建新连接。`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - 上次同步时间 ${formattedDate}`,
-            authenticationError: ({connectionName}: AuthenticationErrorParams) => `由于身份验证错误，无法连接到${connectionName}`,
+            authenticationError: ({connectionName}: AuthenticationErrorParams) => `由于身份验证错误，无法连接到${connectionName}。`,
             learnMore: '了解更多',
             memberAlternateText: '成员可以提交和批准报告。',
             adminAlternateText: '管理员对所有报告和工作区设置拥有完全编辑权限。',
@@ -4811,8 +4811,8 @@ const translations = {
             updateTaxCodeFailureMessage: '更新税码时发生错误，请重试',
         },
         emptyWorkspace: {
-            title: '创建一个工作区',
-            subtitle: '创建一个工作区来跟踪收据、报销费用、管理差旅、发送发票等——一切都在聊天的速度下完成。',
+            title: '您没有任何工作区',
+            subtitle: '跟踪收据、报销费用、管理差旅、发送发票等。',
             createAWorkspaceCTA: '开始使用',
             features: {
                 trackAndCollect: '跟踪并收集收据',
@@ -6122,7 +6122,15 @@ const translations = {
                 changeType: ({oldType, newType}: ChangeTypeParams) => `类型从${oldType}更改为${newType}`,
                 exportedToCSV: `导出为CSV`,
                 exportedToIntegration: {
-                    automatic: ({label}: ExportedToIntegrationParams) => `导出到${label}`,
+                    automatic: ({label}: ExportedToIntegrationParams) => {
+                        // The label will always be in English, so we need to translate it
+                        const labelTranslations: Record<string, string> = {
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
+                        };
+                        const translatedLabel = labelTranslations[label] || label;
+                        return `导出到${translatedLabel}`;
+                    },
                     automaticActionOne: ({label}: ExportedToIntegrationParams) => `通过 ${label} 导出到`,
                     automaticActionTwo: '会计设置',
                     manual: ({label}: ExportedToIntegrationParams) => `将此报告标记为手动导出到${label}。`,
@@ -6413,7 +6421,7 @@ const translations = {
         overTripLimit: ({formattedLimit}: ViolationsOverLimitParams) => `超过 ${formattedLimit}/次限额的金额`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `金额超过${formattedLimit}/人限制`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `金额超过每日 ${formattedLimit}/人类别限制`,
-        receiptNotSmartScanned: '收据和费用详情手动添加。<a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">了解更多</a>。',
+        receiptNotSmartScanned: '收据和费用详情手动添加。',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = '需要收据';
             if (formattedLimit ?? category) {
@@ -6908,7 +6916,7 @@ const translations = {
         takeATestDrive: '试驾',
     },
     migratedUserWelcomeModal: {
-        title: '旅行和报销，以聊天的速度进行',
+        title: '欢迎使用 New Expensify！',
         subtitle: '新Expensify拥有同样出色的自动化功能，但现在增加了令人惊叹的协作功能：',
         confirmText: '我们走吧！',
         features: {

@@ -1071,6 +1071,7 @@ const CONST = {
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
         UNREPORTED_REPORT_ID: '0',
+        DEFAULT_REPORT_ID: '1',
         SPLIT_REPORT_ID: '-2',
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1153,6 +1154,7 @@ const CONST = {
                 DELETED_TRANSACTION: 'DELETEDTRANSACTION',
                 DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
                 DONATION: 'DONATION', // Deprecated OldDot Action
+                EXPENSIFY_CARD_SYSTEM_MESSAGE: 'EXPENSIFYCARDSYSTEMMESSAGE',
                 EXPORTED_TO_CSV: 'EXPORTCSV', // OldDot Action
                 EXPORTED_TO_INTEGRATION: 'EXPORTINTEGRATION', // OldDot Action
                 EXPORTED_TO_QUICK_BOOKS: 'EXPORTED', // Deprecated OldDot Action
@@ -1437,6 +1439,10 @@ const CONST = {
             DOWNLOAD_CSV: 'downloadCSV',
             REPORT_LEVEL_EXPORT: 'report_level_export',
             EXPENSE_LEVEL_EXPORT: 'detailed_export',
+        },
+        EXPORT_OPTION_LABELS: {
+            REPORT_LEVEL_EXPORT: 'All Data - Report Level Export',
+            EXPENSE_LEVEL_EXPORT: 'All Data - Expense Level Export',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -5315,6 +5321,35 @@ const CONST = {
     },
 
     /**
+     * Bank account names (user friendly)
+     */
+    get BANK_NAMES_USER_FRIENDLY() {
+        return {
+            [this.BANK_NAMES.EXPENSIFY]: 'Expensify',
+            [this.BANK_NAMES.AMERICAN_EXPRESS]: 'American Express',
+            [this.BANK_NAMES.BANK_OF_AMERICA]: 'Bank of America',
+            [this.BANK_NAMES.BB_T]: 'Truist',
+            [this.BANK_NAMES.CAPITAL_ONE]: 'Capital One',
+            [this.BANK_NAMES.CHASE]: 'Chase',
+            [this.BANK_NAMES.CHARLES_SCHWAB]: 'Charles Schwab',
+            [this.BANK_NAMES.CITIBANK]: 'Citibank',
+            [this.BANK_NAMES.CITIZENS_BANK]: 'Citizens',
+            [this.BANK_NAMES.DISCOVER]: 'Discover',
+            [this.BANK_NAMES.FIDELITY]: 'Fidelity',
+            [this.BANK_NAMES.GENERIC_BANK]: 'Bank',
+            [this.BANK_NAMES.HUNTINGTON_BANK]: 'Huntington',
+            [this.BANK_NAMES.HUNTINGTON_NATIONAL]: 'Huntington National',
+            [this.BANK_NAMES.NAVY_FEDERAL_CREDIT_UNION]: 'Navy Federal Credit Union',
+            [this.BANK_NAMES.PNC]: 'PNC',
+            [this.BANK_NAMES.REGIONS_BANK]: 'Regions',
+            [this.BANK_NAMES.SUNTRUST]: 'SunTrust',
+            [this.BANK_NAMES.TD_BANK]: 'TD Bank',
+            [this.BANK_NAMES.US_BANK]: 'U.S. Bank',
+            [this.BANK_NAMES.USAA]: 'USAA',
+        };
+    },
+
+    /**
      * Constants for maxToRenderPerBatch parameter that is used for FlatList or SectionList. This controls the amount of items rendered per batch, which is the next chunk of items
      * rendered on every scroll.
      */
@@ -6391,6 +6426,7 @@ const CONST = {
             ASSIGNEE: 'assignee',
             IN: 'in',
             CARD: 'card',
+            WITHDRAWAL_ID: 'withdrawalID',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -6496,6 +6532,7 @@ const CONST = {
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
                 [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',
+                [this.GROUP_BY.REPORTS]: 'report',
             };
         },
         DATE_MODIFIERS: {
