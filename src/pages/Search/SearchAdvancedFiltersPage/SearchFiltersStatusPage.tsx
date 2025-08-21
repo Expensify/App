@@ -40,11 +40,11 @@ function SearchFiltersStatusPage() {
 
     const listData: ListItem[] = useMemo(() => {
         return items.map((statusOption) => ({
-            text: translate(statusOption.translation),
+            text: statusOption.text,
             keyForList: statusOption.value,
             isSelected: selectedItems.includes(statusOption.value),
         }));
-    }, [items, selectedItems, translate]);
+    }, [items, selectedItems]);
 
     const updateSelectedItems = useCallback(
         (listItem: ListItem) => {
