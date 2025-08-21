@@ -23,7 +23,7 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.HYBRID_APP,
     callback: (hybridApp) => {
         currentHybridApp = hybridApp;
-        handleChangeInHybridAppSignInFlow(hybridApp, currentTryNewDot, currentCredentials, currentSession);
+        signInToOldDotAndChooseExperience(hybridApp, currentTryNewDot, currentCredentials, currentSession);
     },
 });
 
@@ -31,7 +31,7 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_TRY_NEW_DOT,
     callback: (tryNewDot) => {
         currentTryNewDot = tryNewDot;
-        handleChangeInHybridAppSignInFlow(currentHybridApp, tryNewDot, currentCredentials, currentSession);
+        signInToOldDotAndChooseExperience(currentHybridApp, tryNewDot, currentCredentials, currentSession);
     },
 });
 
@@ -39,7 +39,7 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.CREDENTIALS,
     callback: (credentials) => {
         currentCredentials = credentials;
-        handleChangeInHybridAppSignInFlow(currentHybridApp, currentTryNewDot, credentials, currentSession);
+        signInToOldDotAndChooseExperience(currentHybridApp, currentTryNewDot, credentials, currentSession);
     },
 });
 
@@ -47,7 +47,7 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (session: OnyxEntry<Session>) => {
         currentSession = session;
-        handleChangeInHybridAppSignInFlow(currentHybridApp, currentTryNewDot, currentCredentials, session);
+        signInToOldDotAndChooseExperience(currentHybridApp, currentTryNewDot, currentCredentials, session);
     },
 });
 
@@ -66,7 +66,11 @@ function shouldUseOldApp(tryNewDot: TryNewDot) {
     return tryNewDot.classicRedirect.dismissed;
 }
 
-function handleChangeInHybridAppSignInFlow(hybridApp: OnyxEntry<HybridApp>, tryNewDot: OnyxEntry<TryNewDot>, credentials: OnyxEntry<Credentials>, session: OnyxEntry<Session>) {
+/**
+ * Signs the user into OldDot when session and credentials are available,
+ * then decides whether to stay in NewDot or switch to OldDot based on `nvp_tryNewDot`.
+ */
+function signInToOldDotAndChooseExperience(hybridApp: OnyxEntry<HybridApp>, tryNewDot: OnyxEntry<TryNewDot>, credentials: OnyxEntry<Credentials>, session: OnyxEntry<Session>) {
     if (!CONFIG.IS_HYBRID_APP) {
         return;
     }
