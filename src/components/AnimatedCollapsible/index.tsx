@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -48,6 +48,20 @@ function AnimatedCollapsible({isExpanded, children, header, duration = 300, styl
     const styles = useThemeStyles();
     const height = useSharedValue(0);
     const isAnimating = useSharedValue(false);
+    const hasExpanded = useSharedValue(false);
+    const isExpanedFirstTime = useRef(false);
+
+    useEffect(() => {
+        if (!isExpanded && !isExpanedFirstTime.current) {
+            return;
+        }
+        if (isExpanedFirstTime.current) {
+            hasExpanded.set(true);
+        } else {
+            isExpanedFirstTime.current = true;  
+        }
+    }, [hasExpanded, isExpanded]);
+    
 
     // Animation for content height and opacity
     const derivedHeight = useDerivedValue(() => {
@@ -77,7 +91,7 @@ function AnimatedCollapsible({isExpanded, children, header, duration = 300, styl
     });
 
     const contentAnimatedStyle = useAnimatedStyle(() => {
-        if (!isExpanded && derivedHeight.get() === 0) {
+        if (!isExpanded && !hasExpanded.get()) {
             return {
                 height: 0,
                 opacity: 0,
@@ -86,7 +100,7 @@ function AnimatedCollapsible({isExpanded, children, header, duration = 300, styl
         }
 
         return {
-            height: derivedHeight.get(),
+            height: !hasExpanded.get() ? undefined : derivedHeight.get(),
             opacity: derivedOpacity.get(),
             overflow: isAnimating.get() ? 'hidden' : 'visible',
         };
@@ -115,6 +129,12 @@ function AnimatedCollapsible({isExpanded, children, header, duration = 300, styl
             <Animated.View style={[contentAnimatedStyle, contentStyle]}>
                 <View
                     onLayout={(e) => {
+                        if (!e.nativeEvent.layout.height) {
+                            return;
+                        }
+                        if (!isExpanded) {
+                            hasExpanded.set(true);
+                        }
                         height.set(e.nativeEvent.layout.height);
                     }}
                 >
