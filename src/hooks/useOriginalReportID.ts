@@ -1,11 +1,11 @@
-import { useMemo } from 'react';
+import {useMemo} from 'react';
+import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
-import { getAllNonDeletedTransactions } from '@libs/MoneyRequestReportUtils';
-import CONST from '@src/CONST';
-import useOnyx from './useOnyx';
 import useNetwork from './useNetwork';
+import useOnyx from './useOnyx';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
 
 function useOriginalReportID(reportID: string | undefined, reportAction: OnyxInputOrEntry<ReportAction>): string | undefined {
@@ -16,8 +16,10 @@ function useOriginalReportID(reportID: string | undefined, reportAction: OnyxInp
     const {transactions: allReportTransactions} = useTransactionsAndViolationsForReport(reportID);
 
     const visibleTransactionsIDs = useMemo(
-        () => getAllNonDeletedTransactions(allReportTransactions, Object.values(reportActions ?? {}))
-        .filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).map((transaction) => transaction.transactionID),
+        () =>
+            getAllNonDeletedTransactions(allReportTransactions, Object.values(reportActions ?? {}))
+                .filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                .map((transaction) => transaction.transactionID),
         [allReportTransactions, reportActions, isOffline],
     );
     if (!reportID) {
