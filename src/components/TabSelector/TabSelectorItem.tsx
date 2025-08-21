@@ -135,6 +135,7 @@ function TabSelectorItem({
                     title={title}
                     activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
                     inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
+                    hasIcon={!!icon}
                 />
             )}
         </AnimatedPressableWithFeedback>
