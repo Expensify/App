@@ -101,6 +101,7 @@ import {
     getReportNotificationPreference,
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
+    getUnreportedTransactionMessage,
     getWorkspaceNameUpdatedMessage,
     hasReceiptError,
     hasReportErrorsOtherThanFailedReceipt,
@@ -539,7 +540,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
     isReportArchived = false,
 ): ReasonAndReportActionThatHasRedBrickRoad | null {
-    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, isReportArchived);
     const errors = reportErrors;
     const hasErrors = Object.keys(errors).length !== 0;
 
@@ -615,6 +616,7 @@ function getOptionData({
     invoiceReceiverPolicy,
     card,
     localeCompare,
+    isReportArchived = false,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -627,6 +629,7 @@ function getOptionData({
     reportAttributes: OnyxEntry<ReportAttributes>;
     card: Card | undefined;
     localeCompare: LocaleContextProps['localeCompare'];
+    isReportArchived?: boolean;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -703,7 +706,7 @@ function getOptionData({
     result.parentReportID = report.parentReportID;
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.notificationPreference = getReportNotificationPreference(report);
-    result.isAllowedToComment = canUserPerformWriteActionUtil(report);
+    result.isAllowedToComment = canUserPerformWriteActionUtil(report, isReportArchived);
     result.chatType = report.chatType;
     result.isDeletedParentAction = report.isDeletedParentAction;
     result.isSelfDM = isSelfDM(report);
@@ -790,7 +793,7 @@ function getOptionData({
                     ? translateLocal('workspace.invite.invited')
                     : translateLocal('workspace.invite.removed');
             const users = translateLocal(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
-            result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName} ${verb} ${targetAccountIDsLength} ${users}`);
+            result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName}: ${verb} ${targetAccountIDsLength} ${users}`);
             const roomName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`]) || lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
@@ -867,7 +870,7 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
             result.alternateText = getPolicyChangeLogDeleteMemberMessage(lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-            result.alternateText = translateLocal('iou.unreportedTransaction');
+            result.alternateText = getUnreportedTransactionMessage();
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
             result.alternateText = getReportActionMessageText(lastAction) ?? '';
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION) {
