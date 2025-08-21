@@ -6,7 +6,17 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {PartialPolicyForSidebar, ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, PersonalDetails, PersonalDetailsList, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {
+    Card,
+    DraftReportComments,
+    PersonalDetails,
+    PersonalDetailsList,
+    ReportActions,
+    ReportAttributesDerivedValue,
+    ReportNameValuePairs,
+    Transaction,
+    TransactionViolation,
+} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -15,7 +25,6 @@ import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {extractCollectionItemID} from './CollectionUtils';
-import {hasValidDraftComment} from './DraftCommentUtils';
 import {translateLocal} from './Localize';
 import {getLastActorDisplayName, getLastMessageTextForReport, getPersonalDetailsForAccountIDs, shouldShowLastActorDisplayName} from './OptionsListUtils';
 import Parser from './Parser';
@@ -33,6 +42,7 @@ import {
     getOriginalMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogDefaultBillableMessage,
+    getPolicyChangeLogDefaultReimbursableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getPolicyChangeLogDeleteMemberMessage,
     getPolicyChangeLogEmployeeLeftMessage,
@@ -91,6 +101,7 @@ import {
     getReportNotificationPreference,
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
+    getUnreportedTransactionMessage,
     getWorkspaceNameUpdatedMessage,
     hasReceiptError,
     hasReportErrorsOtherThanFailedReceipt,
@@ -206,6 +217,7 @@ function shouldDisplayReportInLHN(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     isReportArchived?: boolean,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
+    draftReportComments?: DraftReportComments,
 ) {
     if (!report) {
         return {shouldDisplay: false};
@@ -236,7 +248,12 @@ function shouldDisplayReportInLHN(
     // Check if report should override hidden status
     const isSystemChat = isSystemChatUtil(report);
     const shouldOverrideHidden =
-        hasValidDraftComment(report.reportID) || hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || !!report.isPinned || reportAttributes?.[report?.reportID]?.requiresAttention;
+        !!draftReportComments?.[report.reportID] ||
+        hasErrorsOtherThanFailedReceipt ||
+        isFocused ||
+        isSystemChat ||
+        !!report.isPinned ||
+        reportAttributes?.[report?.reportID]?.requiresAttention;
 
     if (isHidden && !shouldOverrideHidden) {
         return {shouldDisplay: false};
@@ -267,6 +284,7 @@ function getReportsToDisplayInLHN(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
+    draftReportComments?: DraftReportComments,
 ) {
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const allReportsDictValues = reports ?? {};
@@ -286,6 +304,7 @@ function getReportsToDisplayInLHN(
             transactionViolations,
             isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]),
             reportAttributes,
+            draftReportComments,
         );
 
         if (shouldDisplay) {
@@ -303,10 +322,10 @@ function updateReportsToDisplayInLHN(
     currentReportId: string | undefined,
     isInFocusMode: boolean,
     betas: OnyxEntry<Beta[]>,
-    policies: OnyxCollection<PartialPolicyForSidebar>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
+    draftReportComments?: DraftReportComments,
 ) {
     const displayedReportsCopy = {...displayedReports};
     updatedReportsKeys.forEach((reportID) => {
@@ -324,6 +343,7 @@ function updateReportsToDisplayInLHN(
             transactionViolations,
             isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]),
             reportAttributes,
+            draftReportComments,
         );
 
         if (shouldDisplay) {
@@ -335,6 +355,130 @@ function updateReportsToDisplayInLHN(
 
     return displayedReportsCopy;
 }
+/**
+ * Categorizes reports into their respective LHN groups
+ */
+function categorizeReportsForLHN(
+    reportsToDisplay: ReportsToDisplayInLHN,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
+    draftReportComments?: DraftReportComments,
+) {
+    const pinnedAndGBRReports: MiniReport[] = [];
+    const errorReports: MiniReport[] = [];
+    const draftReports: MiniReport[] = [];
+    const nonArchivedReports: MiniReport[] = [];
+    const archivedReports: MiniReport[] = [];
+
+    // There are a few properties that need to be calculated for the report which are used when sorting reports.
+    for (const report of Object.values(reportsToDisplay)) {
+        const reportID = report.reportID;
+        const isPinned = !!report.isPinned;
+        const hasErrors = !!report.hasErrorsOtherThanFailedReceipt;
+        const hasDraft = reportID ? !!draftReportComments?.[reportID] : false;
+        const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
+        const rNVPs = reportNameValuePairs?.[reportNameValuePairsKey];
+
+        const miniReport: MiniReport = {
+            reportID,
+            displayName: getReportName(report),
+            lastVisibleActionCreated: report.lastVisibleActionCreated,
+        };
+
+        if (isPinned || (reportID && reportAttributes?.[reportID]?.requiresAttention)) {
+            pinnedAndGBRReports.push(miniReport);
+        } else if (hasErrors) {
+            errorReports.push(miniReport);
+        } else if (hasDraft) {
+            draftReports.push(miniReport);
+        } else if (isArchivedNonExpenseReport(report, !!rNVPs?.private_isArchived)) {
+            archivedReports.push(miniReport);
+        } else {
+            nonArchivedReports.push(miniReport);
+        }
+    }
+
+    return {
+        pinnedAndGBRReports,
+        errorReports,
+        draftReports,
+        nonArchivedReports,
+        archivedReports,
+    };
+}
+
+/**
+ * Sorts categorized reports and returns new sorted arrays (pure function).
+ * This function does not mutate the input and returns new arrays for better testability.
+ */
+function sortCategorizedReports(
+    categories: {
+        pinnedAndGBRReports: MiniReport[];
+        errorReports: MiniReport[];
+        draftReports: MiniReport[];
+        nonArchivedReports: MiniReport[];
+        archivedReports: MiniReport[];
+    },
+    isInDefaultMode: boolean,
+    localeCompare: LocaleContextProps['localeCompare'],
+): {
+    pinnedAndGBRReports: MiniReport[];
+    errorReports: MiniReport[];
+    draftReports: MiniReport[];
+    nonArchivedReports: MiniReport[];
+    archivedReports: MiniReport[];
+} {
+    const {pinnedAndGBRReports, errorReports, draftReports, nonArchivedReports, archivedReports} = categories;
+
+    // Sort each group of reports accordingly
+    const sortedPinnedAndGBRReports = [...pinnedAndGBRReports].sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
+    const sortedErrorReports = [...errorReports].sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
+    const sortedDraftReports = [...draftReports].sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
+
+    let sortedNonArchivedReports: MiniReport[];
+    let sortedArchivedReports: MiniReport[];
+
+    if (isInDefaultMode) {
+        sortedNonArchivedReports = [...nonArchivedReports].sort((a, b) => {
+            const compareDates = a?.lastVisibleActionCreated && b?.lastVisibleActionCreated ? compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated) : 0;
+            if (compareDates) {
+                return compareDates;
+            }
+            const compareDisplayNames = a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0;
+            return compareDisplayNames;
+        });
+        // For archived reports ensure that most recent reports are at the top by reversing the order
+        sortedArchivedReports = [...archivedReports].sort((a, b) =>
+            a?.lastVisibleActionCreated && b?.lastVisibleActionCreated ? compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated) : 0,
+        );
+    } else {
+        sortedNonArchivedReports = [...nonArchivedReports].sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
+        sortedArchivedReports = [...archivedReports].sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
+    }
+
+    return {
+        pinnedAndGBRReports: sortedPinnedAndGBRReports,
+        errorReports: sortedErrorReports,
+        draftReports: sortedDraftReports,
+        nonArchivedReports: sortedNonArchivedReports,
+        archivedReports: sortedArchivedReports,
+    };
+}
+
+/**
+ * Combines sorted report categories and extracts report IDs
+ */
+function combineReportCategories(
+    pinnedAndGBRReports: MiniReport[],
+    errorReports: MiniReport[],
+    draftReports: MiniReport[],
+    nonArchivedReports: MiniReport[],
+    archivedReports: MiniReport[],
+): string[] {
+    // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
+    // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
+    return [...pinnedAndGBRReports, ...errorReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID).filter(Boolean) as string[];
+}
 
 /**
  * @returns An array of reportIDs sorted in the proper order
@@ -345,8 +489,10 @@ function sortReportsToDisplayInLHN(
     localeCompare: LocaleContextProps['localeCompare'],
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
+    draftReportComments?: DraftReportComments,
 ): string[] {
     Performance.markStart(CONST.TIMING.GET_ORDERED_REPORT_IDS);
+
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInFocusMode;
     // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
@@ -360,64 +506,23 @@ function sortReportsToDisplayInLHN(
     //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
 
-    const pinnedAndGBRReports: MiniReport[] = [];
-    const errorReports: MiniReport[] = [];
-    const draftReports: MiniReport[] = [];
-    const nonArchivedReports: MiniReport[] = [];
-    const archivedReports: MiniReport[] = [];
+    // Step 1: Categorize reports
+    const categories = categorizeReportsForLHN(reportsToDisplay, reportNameValuePairs, reportAttributes, draftReportComments);
 
-    // There are a few properties that need to be calculated for the report which are used when sorting reports.
-    Object.values(reportsToDisplay).forEach((reportToDisplay) => {
-        const report = reportToDisplay;
-        const miniReport: MiniReport = {
-            reportID: report?.reportID,
-            displayName: getReportName(report),
-            lastVisibleActionCreated: report?.lastVisibleActionCreated,
-        };
+    // Step 2: Sort each category
+    const sortedCategories = sortCategorizedReports(categories, isInDefaultMode, localeCompare);
 
-        const isPinned = report?.isPinned ?? false;
-        const rNVPs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-        if (isPinned || reportAttributes?.[report?.reportID]?.requiresAttention) {
-            pinnedAndGBRReports.push(miniReport);
-        } else if (report?.hasErrorsOtherThanFailedReceipt) {
-            errorReports.push(miniReport);
-        } else if (hasValidDraftComment(report?.reportID)) {
-            draftReports.push(miniReport);
-        } else if (isArchivedNonExpenseReport(report, !!rNVPs?.private_isArchived)) {
-            archivedReports.push(miniReport);
-        } else {
-            nonArchivedReports.push(miniReport);
-        }
-    });
-
-    // Sort each group of reports accordingly
-    pinnedAndGBRReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
-    errorReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
-    draftReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
-
-    if (isInDefaultMode) {
-        nonArchivedReports.sort((a, b) => {
-            const compareDates = a?.lastVisibleActionCreated && b?.lastVisibleActionCreated ? compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated) : 0;
-            if (compareDates) {
-                return compareDates;
-            }
-            const compareDisplayNames = a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0;
-            return compareDisplayNames;
-        });
-        // For archived reports ensure that most recent reports are at the top by reversing the order
-        archivedReports.sort((a, b) => (a?.lastVisibleActionCreated && b?.lastVisibleActionCreated ? compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated) : 0));
-    } else {
-        nonArchivedReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
-        archivedReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
-    }
-
-    // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
-    // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
-
-    const LHNReports = [...pinnedAndGBRReports, ...errorReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID).filter(Boolean) as string[];
+    // Step 3: Combine and extract IDs
+    const result = combineReportCategories(
+        sortedCategories.pinnedAndGBRReports,
+        sortedCategories.errorReports,
+        sortedCategories.draftReports,
+        sortedCategories.nonArchivedReports,
+        sortedCategories.archivedReports,
+    );
 
     Performance.markEnd(CONST.TIMING.GET_ORDERED_REPORT_IDS);
-    return LHNReports;
+    return result;
 }
 
 type ReasonAndReportActionThatHasRedBrickRoad = {
@@ -435,7 +540,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
     isReportArchived = false,
 ): ReasonAndReportActionThatHasRedBrickRoad | null {
-    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, isReportArchived);
     const errors = reportErrors;
     const hasErrors = Object.keys(errors).length !== 0;
 
@@ -686,7 +791,7 @@ function getOptionData({
                     ? translateLocal('workspace.invite.invited')
                     : translateLocal('workspace.invite.removed');
             const users = translateLocal(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
-            result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName} ${verb} ${targetAccountIDsLength} ${users}`);
+            result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName}: ${verb} ${targetAccountIDsLength} ${users}`);
             const roomName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`]) || lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
@@ -742,6 +847,8 @@ function getOptionData({
             result.alternateText = getPolicyChangeLogMaxExpenseAmountMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE) {
             result.alternateText = getPolicyChangeLogDefaultBillableMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_REIMBURSABLE) {
+            result.alternateText = getPolicyChangeLogDefaultReimbursableMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED) {
             result.alternateText = getPolicyChangeLogDefaultTitleEnforcedMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
@@ -760,6 +867,8 @@ function getOptionData({
             result.alternateText = getPolicyChangeLogUpdateEmployee(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
             result.alternateText = getPolicyChangeLogDeleteMemberMessage(lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
+            result.alternateText = getUnreportedTransactionMessage();
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
             result.alternateText = getReportActionMessageText(lastAction) ?? '';
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION) {
@@ -956,6 +1065,9 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = fal
 export default {
     getOptionData,
     sortReportsToDisplayInLHN,
+    categorizeReportsForLHN,
+    sortCategorizedReports,
+    combineReportCategories,
     getWelcomeMessage,
     getReasonAndReportActionThatHasRedBrickRoad,
     shouldShowRedBrickRoad,

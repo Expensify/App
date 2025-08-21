@@ -67,6 +67,7 @@ type SearchStatus = SingularSearchStatus | SingularSearchStatus[];
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
+type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
 
 type SearchContextData = {
     currentSearchHash: number;
@@ -76,6 +77,7 @@ type SearchContextData = {
     selectedReports: SelectedReports[];
     isOnSearch: boolean;
     shouldTurnOffSelectionMode: boolean;
+    shouldResetSearchQuery: boolean;
 };
 
 type SearchContext = SearchContextData & {
@@ -99,6 +101,7 @@ type SearchContext = SearchContextData & {
     shouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
     areAllMatchingItemsSelected: boolean;
     selectAllMatchingItems: (on: boolean) => void;
+    setShouldResetSearchQuery: (shouldReset: boolean) => void;
 };
 
 type ASTNode = {
@@ -120,7 +123,8 @@ type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED;
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN;
 
 type SearchFilterKey =
     | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
@@ -129,6 +133,7 @@ type SearchFilterKey =
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY;
 
 type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
+type UserFriendlyValue = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP>;
 
 type QueryFilters = Array<{
     key: SearchFilterKey;
@@ -152,6 +157,8 @@ type SearchQueryJSON = {
     hash: number;
     /** Hash used for putting queries in recent searches list. It ignores sortOrder and sortBy, because we want to treat queries differing only in sort params as the same query */
     recentSearchHash: number;
+    /** Use similarSearchHash to test if two searchers are similar i.e. have same filters but not necessary same values */
+    similarSearchHash: number;
     flatFilters: QueryFilters;
 } & SearchQueryAST;
 
@@ -204,4 +211,6 @@ export type {
     SearchGroupBy,
     SingularSearchStatus,
     SearchDatePreset,
+    SearchWithdrawalType,
+    UserFriendlyValue,
 };
