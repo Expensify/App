@@ -188,7 +188,9 @@ module.exports = (api) => {
     const runningIn = api.caller((args = {}) => args.name);
     console.debug('  - running in: ', runningIn);
 
-    // for repack, the caller is sometimes undefined so it's hard to determine if we're using repack or metro
-    // TODO fix this
-    return repack;
+    if (runningIn === '@callstack/repack') {
+        return repack;
+    }
+
+    return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
 };
