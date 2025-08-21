@@ -99,7 +99,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                         return null;
                     }
 
-                    if (policy?.preventSelfApproval && membersEmail?.includes(email)) {
+                    if (!isDefault && policy?.preventSelfApproval && membersEmail?.includes(email)) {
                         return null;
                     }
 
