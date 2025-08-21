@@ -1300,9 +1300,8 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: "Il semble que vous n'ayez aucune dépense non déclarée. Essayez d'en créer une ci-dessous.",
         addUnreportedExpenseConfirm: 'Ajouter au rapport',
         explainHold: 'Expliquez pourquoi vous retenez cette dépense.',
-        undoSubmit: "Annuler l'envoi",
         retracted: 'retraité',
-        undoClose: 'Annuler la fermeture',
+        retract: 'Retirer',
         reopened: 'rouvert',
         reopenReport: 'Rouvrir le rapport',
         reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>
@@ -3515,7 +3514,7 @@ const translations = {
             existingConnectionsDescription: ({connectionName}: ConnectionNameParams) =>
                 `Puisque vous vous êtes déjà connecté à ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, vous pouvez choisir de réutiliser une connexion existante ou d'en créer une nouvelle.`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Dernière synchronisation le ${formattedDate}`,
-            authenticationError: ({connectionName}: AuthenticationErrorParams) => `Impossible de se connecter à ${connectionName} en raison d'une erreur d'authentification`,
+            authenticationError: ({connectionName}: AuthenticationErrorParams) => `Impossible de se connecter à ${connectionName} en raison d'une erreur d'authentification.`,
             learnMore: 'En savoir plus',
             memberAlternateText: 'Les membres peuvent soumettre et approuver des rapports.',
             adminAlternateText: "Les administrateurs ont un accès complet pour modifier tous les rapports et les paramètres de l'espace de travail.",
@@ -6244,7 +6243,15 @@ const translations = {
                 changeType: ({oldType, newType}: ChangeTypeParams) => `changé le type de ${oldType} à ${newType}`,
                 exportedToCSV: `exporté en CSV`,
                 exportedToIntegration: {
-                    automatic: ({label}: ExportedToIntegrationParams) => `exporté vers ${label}`,
+                    automatic: ({label}: ExportedToIntegrationParams) => {
+                        // The label will always be in English, so we need to translate it
+                        const labelTranslations: Record<string, string> = {
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
+                        };
+                        const translatedLabel = labelTranslations[label] || label;
+                        return `exporté vers ${translatedLabel}`;
+                    },
                     automaticActionOne: ({label}: ExportedToIntegrationParams) => `exporté vers ${label} via`,
                     automaticActionTwo: 'paramètres de comptabilité',
                     manual: ({label}: ExportedToIntegrationParams) => `a marqué ce rapport comme exporté manuellement vers ${label}.`,
@@ -7055,7 +7062,7 @@ const translations = {
         takeATestDrive: 'Faites un essai',
     },
     migratedUserWelcomeModal: {
-        title: 'Voyage et dépenses, à la vitesse du chat',
+        title: 'Bienvenue sur New Expensify !',
         subtitle: 'New Expensify a la même excellente automatisation, mais maintenant avec une collaboration incroyable :',
         confirmText: 'Allons-y !',
         features: {
