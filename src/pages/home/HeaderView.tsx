@@ -109,6 +109,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
+    const [reportNameValuePairsForParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: true});
     const isReportArchived = isArchivedReport(reportNameValuePairs);
 
@@ -133,7 +134,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const reportHeaderData = !isTaskReport && !isChatThread && report?.parentReportID ? parentReport : report;
     // Use sorted display names for the title for group chats on native small screen widths
     const title = getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy);
-    const subtitle = getChatRoomSubtitle(reportHeaderData, {isReportArchived});
+    const isReportForHeaderDataArchived = isArchivedReport(!isTaskReport && !isChatThread && report?.parentReportID ? reportNameValuePairsForParentReport : reportNameValuePairs);
+    const subtitle = getChatRoomSubtitle(reportHeaderData, {isReportArchived: isReportForHeaderDataArchived});
     const isReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.reportID);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(reportHeaderData, isReportHeaderDataArchived);
     const reportDescription = Parser.htmlToText(getReportDescription(report));

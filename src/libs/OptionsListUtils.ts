@@ -106,7 +106,6 @@ import {
     isUnapprovedAction,
     shouldReportActionBeVisible,
 } from './ReportActionsUtils';
-import type {OptionData} from './ReportUtils';
 import {
     canUserPerformWriteAction,
     formatReportLastMessageText,
@@ -136,6 +135,7 @@ import {
     getUpgradeWorkspaceMessage,
     hasIOUWaitingOnCurrentUserBankAccount,
     isArchivedNonExpenseReport,
+    isArchivedReport,
     isChatThread,
     isDefaultRoom,
     isDM,
@@ -161,6 +161,7 @@ import {
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
 } from './ReportUtils';
+import type {OptionData} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from './TaskUtils';
 import type {AvatarSource} from './UserUtils';
@@ -939,6 +940,7 @@ function createOption(
     result.isOptimisticPersonalDetail = personalDetail?.isOptimisticPersonalDetail;
     if (report) {
         const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+        const isReportArchived = isArchivedReport(reportNameValuePairs);
         result.isChatRoom = reportUtilsIsChatRoom(report);
         result.isDefaultRoom = isDefaultRoom(report);
         result.private_isArchived = reportNameValuePairs?.private_isArchived;
@@ -947,7 +949,7 @@ function createOption(
         result.isMoneyRequestReport = reportUtilsIsMoneyRequestReport(report);
         result.isThread = isChatThread(report);
         result.isTaskReport = reportUtilsIsTaskReport(report);
-        result.shouldShowSubscript = shouldReportShowSubscript(report, !!result.private_isArchived);
+        result.shouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
         result.isPolicyExpenseChat = reportUtilsIsPolicyExpenseChat(report);
         result.isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat ?? false;
         result.allReportErrors = reportAttributesDerived?.[report.reportID]?.reportErrors ?? {};
@@ -974,7 +976,7 @@ function createOption(
         result.tooltipText = getReportParticipantsTitle(visibleParticipantAccountIDs);
 
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || reportUtilsIsGroupChat(report);
-        subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true, isReportArchived: !!result.private_isArchived});
+        subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true, isReportArchived});
 
         const lastAction = lastVisibleReportActions[report.reportID];
         // lastActorAccountID can be an empty string
@@ -982,14 +984,14 @@ function createOption(
         const lastActorAccountID = lastAction?.actorAccountID || report.lastActorAccountID;
         const lastActorDetails = lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null;
         const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
-        const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, undefined, !!result.private_isArchived);
+        const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, undefined, isReportArchived);
         let lastMessageText = lastMessageTextFromReport;
 
         const shouldDisplayLastActorName =
             lastAction &&
             lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
             lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU &&
-            !isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived) &&
+            !isArchivedNonExpenseReport(report, isReportArchived) &&
             shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
         if (shouldDisplayLastActorName && lastActorDisplayName && lastMessageTextFromReport) {
             lastMessageText = `${lastActorDisplayName}: ${lastMessageTextFromReport}`;

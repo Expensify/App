@@ -674,6 +674,7 @@ function getOptionData({
 
     const participantPersonalDetailList = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails));
     const personalDetail = participantPersonalDetailList.at(0) ?? ({} as PersonalDetails);
+    const isReportArchived = isArchivedReport(reportNameValuePairs);
 
     result.isThread = isChatThread(report);
     result.isChatRoom = isChatRoom(report);
@@ -684,7 +685,7 @@ function getOptionData({
     result.isPolicyExpenseChat = isPolicyExpenseChat(report);
     result.isExpenseRequest = isExpenseRequest(report);
     result.isMoneyRequestReport = isMoneyRequestReport(report);
-    result.shouldShowSubscript = shouldReportShowSubscript(report, !!result.private_isArchived);
+    result.shouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
     result.brickRoadIndicator = reportAttributes?.brickRoadStatus;
     result.ownerAccountID = report.ownerAccountID;
@@ -716,7 +717,7 @@ function getOptionData({
 
     const isExpense = isExpenseReport(report);
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || isExpense;
-    const subtitle = getChatRoomSubtitle(report, {isReportArchived: !!result.private_isArchived});
+    const subtitle = getChatRoomSubtitle(report, {isReportArchived});
 
     const status = personalDetail?.status ?? '';
 
@@ -750,16 +751,16 @@ function getOptionData({
     const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
-        lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, policy, !!result?.private_isArchived);
+        lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, policy, isReportArchived);
     }
 
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.
     let lastMessageText = Str.removeSMSDomain(lastMessageTextFromReport);
 
-    const isGroupChat = isGroupChatUtil(report) || isDeprecatedGroupDM(report, !!result.private_isArchived);
+    const isGroupChat = isGroupChatUtil(report) || isDeprecatedGroupDM(report, isReportArchived);
 
     const isThreadMessage = isThread(report) && lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && lastAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage || isGroupChat) && !result.private_isArchived) {
+    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage || isGroupChat) && !isReportArchived) {
         const lastActionName = lastAction?.actionName ?? report.lastActionType;
         const prefix = getReportSubtitlePrefix(report);
 
@@ -898,9 +899,7 @@ function getOptionData({
                     : getLastVisibleMessage(report.reportID, result.isAllowedToComment, {}, lastAction)?.lastMessageText;
 
             if (!result.alternateText) {
-                result.alternateText = formatReportLastMessageText(
-                    getWelcomeMessage(report, policy, localeCompare, !!result.private_isArchived).messageText ?? translateLocal('report.noActivityYet'),
-                );
+                result.alternateText = formatReportLastMessageText(getWelcomeMessage(report, policy, localeCompare, isReportArchived).messageText ?? translateLocal('report.noActivityYet'));
             }
         }
         result.alternateText = prefix + result.alternateText;
@@ -908,7 +907,7 @@ function getOptionData({
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                getWelcomeMessage(report, policy, localeCompare, !!result.private_isArchived).messageText || translateLocal('report.noActivityYet'),
+                getWelcomeMessage(report, policy, localeCompare, isReportArchived).messageText || translateLocal('report.noActivityYet'),
             );
         }
         if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction) && !isArchivedReport(reportNameValuePairs)) {
@@ -944,7 +943,7 @@ function getOptionData({
         personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
         policy,
         invoiceReceiverPolicy,
-        !!result.private_isArchived,
+        isReportArchived,
     );
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 

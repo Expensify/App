@@ -5510,7 +5510,6 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>, config: GetChatRoomSubti
         return `${getReportSubtitlePrefix(report)}${translateLocal('iou.submitsTo', {name: subtitle ?? ''})}`;
     }
 
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
     if (config.isReportArchived) {
         return report?.oldPolicyName ?? '';
     }
