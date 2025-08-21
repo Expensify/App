@@ -1,5 +1,6 @@
 import * as Repack from '@callstack/repack';
 import {ExpoModulesPlugin} from '@callstack/repack-plugin-expo-modules';
+import {ReanimatedPlugin} from '@callstack/repack-plugin-reanimated';
 import {RsdoctorRspackPlugin} from '@rsdoctor/rspack-plugin';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -60,7 +61,7 @@ export default Repack.defineRspackConfig({
             },
         ],
     },
-    plugins: [new Repack.RepackPlugin(), new ExpoModulesPlugin(), process.env.RSDOCTOR && new RsdoctorRspackPlugin({})].filter(Boolean),
+    plugins: [new Repack.RepackPlugin(), new ExpoModulesPlugin(), new ReanimatedPlugin(), process.env.RSDOCTOR && new RsdoctorRspackPlugin({})].filter(Boolean),
     ignoreWarnings: [
         /Module not found: Can't resolve '@react-native-masked-view\/masked-view'/,
         /Module not found: Can't resolve 'react-native-worklets-core'/,
