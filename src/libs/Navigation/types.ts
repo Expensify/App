@@ -190,6 +190,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.MEMBERS_IMPORTED]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
         policyID: string;
         backTo?: Routes;
@@ -1440,7 +1443,7 @@ type MoneyRequestNavigatorParamList = {
         backTo: Routes;
         backToReport?: string;
     };
-    [SCREENS.MONEY_REQUEST.RECEIPT_VIEW_MODAL]: {
+    [SCREENS.MONEY_REQUEST.RECEIPT_VIEW]: {
         transactionID: string;
         backTo: Routes;
     };
